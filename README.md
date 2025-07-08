@@ -71,7 +71,7 @@ int cc= kit
 ### join
 join方法后直接跟join字符串，包含left join这样的开头部分到结束
 ````c#
-.join("left join ZH_Danger g on a.HH_MdmRiskOID=g.ZH_SrcDanger_FK")
+.join("left join Danger g on a.MdmRiskOID=g.SrcDanger_FK")
 ````
 ### orderby() 
      :用于定义排序部分；
@@ -198,7 +198,7 @@ int cc=kit.doMergeInto();
 ````c#
 var wsRow = kit.clear()
 .select("SUM(m.WS_Totalpumpingamount) as wsouted,SUM(m.WS_Totalutilization) as wsused")
-.from("ZH_WaterSourmanagement m")
+.from("terSourmanagement m")
 .where("m.WS_Year", year)
 .queryRow();
 ````
@@ -277,7 +277,7 @@ whereNotLike(string key, Object val)
 ````
 4. UCML下GUID主键条件，自动进行guid的正则核验，核验失败时条件转为 1=2
 ```` c#
-.whereGuid("ZH_DangerOID", "00000000-0000-0000-0000-000000000000")
+.whereGuid("DangerOID", "00000000-0000-0000-0000-000000000000")
 ````
 ### sink()   
 开启一个新的条件分组，条件之间默认AND 连接，可传入"OR" 参数改变连接。
@@ -302,19 +302,19 @@ whereNotLike(string key, Object val)
 + 注意：一个SQL的参数存在上限，sqlserver为2000.
 + 以上自动检查不进行参数化处理，主要是规避参数量上限的限制
 ```` c#
-.whereIn("ZH_DangerOID",List<string>)
+.whereIn("DangerOID",List<string>)
 ````
 ### whereInGuid
 UCML的主键 where in ('')条件  必须是有效的GUID,否则条件将转为 永远不成立的"1=2";
 ```` c#
-.whereInGuid("ZH_DangerOID",List<string>)
+.whereInGuid("DangerOID",List<string>)
 ````
 where in 一组GUID，自动进行GUID的正则核验，使用非参数化进行查询
 ````c#
 var oldDt = kit.clear()
     .select("*")
-    .from("ZH_Danger")
-    .whereInGuid("ZH_SrcDanger_FK", oids)
+    .from("Danger")
+    .whereInGuid("SrcDanger_FK", oids)
     .query();
 ````
 
@@ -361,7 +361,7 @@ where not 组 ，
 ki.or((k) =>
 {
     k.where("TT_Public=1")
-    .where("KB_DeptInfo_FK", orgoid);
+    .where("DeptInfo_FK", orgoid);
 });
 ````
 推荐写法3  --- whereFormat 
@@ -385,10 +385,10 @@ ki.or((k) =>
         int cc = 0;
         var kit = DBCash.newKit(0);
         var dt = kit.select("*")
-                   .from("UCML_RESPONSIBILITY r")
+                   .from("PONSIBILITY r")
                    .query();
-        var oldDt= kit.clear().select("*").from("HH_SysRole").query();
-        var mb = new MatchBulk("HH_SysRole", 0);
+        var oldDt= kit.clear().select("*").from("SysRole").query();
+        var mb = new MatchBulk("SysRole", 0);
         mb.checkTable = oldDt;
         mb.keyCol = "Id";//设置主键
         if (dt.Rows.Count > 0) {
@@ -438,31 +438,31 @@ DataTable dt= kit.select()
 ````
 2、where not in 子查询
 ````c#
-    cc += kit.setTable("HH_WorkorScope")
-        .where("WS_InSrc='1'")
-        .where("HH_DivWorker_FK", " not in", (ckit) =>
+    cc += kit.setTable("WorkorScope")
+        .where("InSrc='1'")
+        .where("DivWorker_FK", " not in", (ckit) =>
         {
-            ckit.select("HH_DivWorkerOID")
-                .from("HH_DivWorker w")
+            ckit.select("DivWorkerOID")
+                .from("DivWorker w")
                 .where("( w.DW_IsOn = 1 and w.SYS_Deleted = 0)");
         })
         .doDelete();
 ````
 3、where not exist 子查询
 ````c#
-    cc += kit.setTable("RESP_USER_MAP")
-        .where("HH_InSrc = '4'")
+    cc += kit.setTable("USER_MAP")
+        .where("InSrc = '4'")
         .pinLeft()
         .whereNotExist((s) => {
-            s.select("HH_User_FK")
-            .from("HH_WorkorScope s")
-            .where("s.HH_User_FK=RESP_USER_MAP.UCML_UserOID");
+            s.select("User_FK")
+            .from("WorkorScope s")
+            .where("s.User_FK=USER_MAP.UCML_UserOID");
         })
         .or()
-        .where("UCML_RESPONSIBILITYOID", " not in ", (w) => {
-            w.select("r.UCML_RESPONSIBILITY_FK")
-            .from("HH_WorkorRole r join HH_WorkorScope s on r.HH_WorkorType_FK=s.HH_WorkorType_FK")
-            .where("s.HH_User_FK=RESP_USER_MAP.UCML_UserOID");
+        .where("BILITYOID", " not in ", (w) => {
+            w.select("r.NSIBILITY_FK")
+            .from("orkorRole r join orkorScope s on r.WorkorType_FK=s.WorkorType_FK")
+            .where("s.User_FK=USER_MAP.UCML_UserOID");
         })
     .pinRight()
     .doDelete();
@@ -471,16 +471,16 @@ DataTable dt= kit.select()
 
 
 ````c#
-var dt = kit.select("l.ZH_LandInfoOID,d.LS_Looking,d.LS_MaxLength,l.LI_LandID,l.LI_LnadName,l.LI_Depart,o.OrgName,'' as distan")
-    .from("ZH_LandShedule d join ZH_LandInfo l on d.ZH_LandInfo_FK=l.ZH_LandInfoOID" +
-    " left join UCML_Organize o on l.ZH_Organize_FK=o.UCML_OrganizeOID")
+var dt = kit.select(",'' as distan")
+    .from("d" +
+    " left join o on l.Organize_FK=o.OrganizeOID")
     .where("d.LS_IsOn=1")
     .where("(l.SYS_Deleted is null or l.SYS_Deleted=0)")
     .whereOR((k) => {
         k.where("d.LS_Access='1'")//全公开的
-        .whereIn("l.ZH_LandInfoOID", (u) => { //作为巡查员指定的。
-            u.select("w.ZH_LandInfo_FK").from("ZH_LandWatchor w")
-            .where("w.ZH_CONTACT_FK", _userManager.UId)
+        .whereIn("l.LandInfoOID", (u) => { //指定的。
+            u.select("w.LandInfo_FK").from("LandWatchor w")
+            .where("w.CONTACT_FK", _userManager.UId)
             .where("w.LW_IsOn=1");//启用的
         });
     })
@@ -494,8 +494,8 @@ var dt = kit.select("l.ZH_LandInfoOID,d.LS_Looking,d.LS_MaxLength,l.LI_LandID,l.
 6、where = guid 按某个guid值查询
 ````c#
             var dang = kit.select("d.*")
-                .from("ZH_Danger d")
-                .whereGuid("ZH_DangerOID", dangOID)
+                .from("Danger d")
+                .whereGuid("DangerOID", dangOID)
                 .where("D_Type","4")//只允许风险识别事项这么操作。后续根据情况可以放开
                 .queryRow();
 ````
@@ -512,12 +512,12 @@ var dt = kit.select("l.ZH_LandInfoOID,d.LS_Looking,d.LS_MaxLength,l.LI_LandID,l.
                 para1=RegxUntils.SqlFilter(para1,false)
                 .where("a="+para1)
                 // 直接拼接，但是外界传入的变量使用手动参数化的方式传入，
-                .where("KB_Taskoid in (select KB_Task_fk from KB_TaskManType c  where c.KM_Code="+kit.addPara("code",Code)+"  )")
+                .where("oid in (select Task_fk from Type c  where c.KM_Code="+kit.addPara("code",Code)+"  )")
                 // 使用 whereFormat方式
-                .whereFormat("KB_Taskoid in (select KB_Task_fk from KB_TaskManType c  where c.KM_Code={0}  )",Code)
+                .whereFormat("oid in (select Task_fk from TaskManType c  where c.KM_Code={0}  )",Code)
                 // 使用 子查询编织器方式。
-                .whereIn("KB_Taskoid", (c) => {
-                    c.select("KB_Task_fk").from("KB_TaskManType c").where("c.KM_Code", Code);
+                .whereIn("oid", (c) => {
+                    c.select("Task_fk").from("TaskManType c").where("c.KM_Code", Code);
                 })
 ````
 
