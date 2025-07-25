@@ -161,8 +161,6 @@ namespace mooSQL.data
         /// <summary>
         /// 查询第一列第一个值。没查到时返回-1
         /// </summary>
-        /// <param name="SQL"></param>
-        /// <param name="para"></param>
         /// <returns></returns>
         public int exeQueryCount(SQLCmd sqlCmd)
         {
@@ -571,7 +569,12 @@ namespace mooSQL.data
         }
 
 
-
+        /// <summary>
+        /// 依据自定义的行读取规则，来创建目标类的list.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <returns></returns>
         public T queryRow<T>(Func<DataRow, T> builder)
         {
             DataTable dt = this.query();

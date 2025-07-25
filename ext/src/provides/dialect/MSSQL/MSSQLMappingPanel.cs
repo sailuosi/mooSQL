@@ -31,48 +31,48 @@ namespace mooSQL.data.MSSQL
 
 
 
-        public override DataType GetDataType(string? dataType, string? columnType, int? length, int? precision, int? scale)
+        public override DataFam GetDataType(string? dataType, string? columnType = null)
         {
             switch (dataType)
             {
-                case "image": return DataType.Image;
-                case "text": return DataType.Text;
-                case "binary": return DataType.Binary;
-                case "tinyint": return DataType.Byte;
-                case "date": return DataType.Date;
-                case "time": return DataType.Time;
-                case "bit": return DataType.Boolean;
-                case "smallint": return DataType.Int16;
-                case "decimal": return DataType.Decimal;
-                case "int": return DataType.Int32;
-                case "smalldatetime": return DataType.SmallDateTime;
-                case "real": return DataType.Single;
-                case "money": return DataType.Money;
-                case "datetime": return DataType.DateTime;
-                case "float": return DataType.Double;
-                case "numeric": return DataType.Decimal;
-                case "smallmoney": return DataType.SmallMoney;
-                case "datetime2": return DataType.DateTime2;
-                case "bigint": return DataType.Int64;
-                case "varbinary": return DataType.VarBinary;
-                case "timestamp": return DataType.Timestamp;
-                case "sysname": return DataType.NVarChar;
-                case "nvarchar": return DataType.NVarChar;
-                case "varchar": return DataType.VarChar;
-                case "ntext": return DataType.NText;
-                case "uniqueidentifier": return DataType.Guid;
-                case "datetimeoffset": return DataType.DateTimeOffset;
-                case "sql_variant": return DataType.Variant;
-                case "xml": return DataType.Xml;
-                case "char": return DataType.Char;
-                case "nchar": return DataType.NChar;
+                case "image": return DataFam.Image;
+                case "text": return DataFam.Text;
+                case "binary": return DataFam.Binary;
+                case "tinyint": return DataFam.Byte;
+                case "date": return DataFam.Date;
+                case "time": return DataFam.Time;
+                case "bit": return DataFam.Boolean;
+                case "smallint": return DataFam.Int16;
+                case "decimal": return DataFam.Decimal;
+                case "int": return DataFam.Int32;
+                case "smalldatetime": return DataFam.SmallDateTime;
+                case "real": return DataFam.Single;
+                case "money": return DataFam.Money;
+                case "datetime": return DataFam.DateTime;
+                case "float": return DataFam.Double;
+                case "numeric": return DataFam.Decimal;
+                case "smallmoney": return DataFam.SmallMoney;
+                case "datetime2": return DataFam.DateTime2;
+                case "bigint": return DataFam.Int64;
+                case "varbinary": return DataFam.VarBinary;
+                case "timestamp": return DataFam.Timestamp;
+                case "sysname": return DataFam.NVarChar;
+                case "nvarchar": return DataFam.NVarChar;
+                case "varchar": return DataFam.VarChar;
+                case "ntext": return DataFam.NText;
+                case "uniqueidentifier": return DataFam.Guid;
+                case "datetimeoffset": return DataFam.DateTimeOffset;
+                case "sql_variant": return DataFam.Variant;
+                case "xml": return DataFam.Xml;
+                case "char": return DataFam.Char;
+                case "nchar": return DataFam.NChar;
                 case "hierarchyid":
                 case "geography":
-                case "geometry": return DataType.Udt;
-                case "table type": return DataType.Structured;
+                case "geometry": return DataFam.Udt;
+                case "table type": return DataFam.Structured;
             }
 
-            return DataType.Undefined;
+            return DataFam.Undefined;
         }
 
         public override Type? GetProviderSpecificType(string? dataType)
@@ -122,23 +122,23 @@ namespace mooSQL.data.MSSQL
         private void InitDataTypeMap() {
             SetDefaultValue<SqlChars>( SqlChars.Null);
             SetNullable<SqlChars>(true);
-            SetDataType<SqlBinary>(SqlBinary.Null, true, DataType.VarBinary);
-            SetDataType<SqlBoolean>(SqlBoolean.Null, true, DataType.Boolean);
-            SetDataType<SqlByte>(SqlByte.Null, true, DataType.Byte);
-            SetDataType<SqlDateTime>(SqlDateTime.Null, true, DataType.DateTime);
-            SetDataType<SqlDecimal>(SqlDecimal.Null, true, DataType.Decimal);
-            SetDataType<SqlDouble>(SqlDouble.Null, true, DataType.Double);
-            SetDataType<SqlGuid>(SqlGuid.Null, true, DataType.Guid);
-            SetDataType<SqlInt16>(SqlInt16.Null, true, DataType.Int16);
-            SetDataType<SqlInt32>(SqlInt32.Null, true, DataType.Int32);
-            SetDataType<SqlInt64>(SqlInt64.Null, true, DataType.Int64);
-            SetDataType<SqlMoney>(SqlMoney.Null, true, DataType.Money);
-            SetDataType<SqlSingle>(SqlSingle.Null, true, DataType.Single);
-            SetDataType<SqlString>(SqlString.Null, true, DataType.NVarChar);
-            SetDataType<SqlXml>( SqlXml.Null, true, DataType.Xml);
+            SetDataType<SqlBinary>(SqlBinary.Null, true, DataFam.VarBinary);
+            SetDataType<SqlBoolean>(SqlBoolean.Null, true, DataFam.Boolean);
+            SetDataType<SqlByte>(SqlByte.Null, true, DataFam.Byte);
+            SetDataType<SqlDateTime>(SqlDateTime.Null, true, DataFam.DateTime);
+            SetDataType<SqlDecimal>(SqlDecimal.Null, true, DataFam.Decimal);
+            SetDataType<SqlDouble>(SqlDouble.Null, true, DataFam.Double);
+            SetDataType<SqlGuid>(SqlGuid.Null, true, DataFam.Guid);
+            SetDataType<SqlInt16>(SqlInt16.Null, true, DataFam.Int16);
+            SetDataType<SqlInt32>(SqlInt32.Null, true, DataFam.Int32);
+            SetDataType<SqlInt64>(SqlInt64.Null, true, DataFam.Int64);
+            SetDataType<SqlMoney>(SqlMoney.Null, true, DataFam.Money);
+            SetDataType<SqlSingle>(SqlSingle.Null, true, DataFam.Single);
+            SetDataType<SqlString>(SqlString.Null, true, DataFam.NVarChar);
+            SetDataType<SqlXml>( SqlXml.Null, true, DataFam.Xml);
 
-            SetDataType<DateTime>(DataType.DateTime2);
-            SetDataType<string>(DataType.NVarChar);
+            SetDataType<DateTime>(DataFam.DateTime2);
+            SetDataType<string>(DataFam.NVarChar);
         }
         /// <summary>
         /// 字符串和char都需要结合字段类型进行转换
@@ -189,9 +189,9 @@ namespace mooSQL.data.MSSQL
 
             switch (dataType.DataType)
             {
-                case DataType.Char:
-                case DataType.VarChar:
-                case DataType.Text:
+                case DataFam.Char:
+                case DataFam.VarChar:
+                case DataFam.Text:
                     startPrefix = null;
                     break;
                 default:
@@ -208,9 +208,9 @@ namespace mooSQL.data.MSSQL
 
             switch (sqlDataType.DataType)
             {
-                case DataType.Char:
-                case DataType.VarChar:
-                case DataType.Text:
+                case DataFam.Char:
+                case DataFam.VarChar:
+                case DataFam.Text:
                     start = "'";
                     break;
                 default:
@@ -226,41 +226,41 @@ namespace mooSQL.data.MSSQL
             StringBuilder stringBuilder = new();
             switch (dt.DataType, v2008plus, supportsFromParts)
             {
-                case (DataType.Text, _, _) or (DataType.Char, _, _) or (DataType.VarChar, _, _)
+                case (DataFam.Text, _, _) or (DataFam.Char, _, _) or (DataFam.VarChar, _, _)
                     when value.Hour == 0 && value.Minute == 0 && value.Second == 0 && value.Millisecond == 0:
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_FORMAT, value);
                     break;
-                case (DataType.Text, _, _) or (DataType.Char, _, _) or (DataType.VarChar, _, _):
+                case (DataFam.Text, _, _) or (DataFam.Char, _, _) or (DataFam.VarChar, _, _):
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATETIME_FORMAT, value);
                     break;
 
-                case (DataType.NText, _, _) or (DataType.NChar, _, _) or (DataType.NVarChar, _, _)
+                case (DataFam.NText, _, _) or (DataFam.NChar, _, _) or (DataFam.NVarChar, _, _)
                     when value.Hour == 0 && value.Minute == 0 && value.Second == 0 && value.Millisecond == 0:
                     stringBuilder.Append('N');
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_FORMAT, value);
                     break;
-                case (DataType.NText, _, _) or (DataType.NChar, _, _) or (DataType.NVarChar, _, _):
+                case (DataFam.NText, _, _) or (DataFam.NChar, _, _) or (DataFam.NVarChar, _, _):
                     stringBuilder.Append('N');
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATETIME_FORMAT, value);
                     break;
 
-                case (DataType.SmallDateTime, _, _):
+                case (DataFam.SmallDateTime, _, _):
                     // don't use SMALLDATETIMEFROMPARTS as it doesn't accept seconds/milliseconds, which used for rounding
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, SMALLDATETIME_TYPED_FORMAT, value);
                     break;
 
-                case (DataType.Date, true, true):
+                case (DataFam.Date, true, true):
                     // DATEFROMPARTS ( year, month, day )
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_FROMPARTS_FORMAT, value.Year, value.Month, value.Day);
                     break;
-                case (DataType.Date, true, false):
+                case (DataFam.Date, true, false):
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_TYPED_FORMAT, value);
                     break;
-                case (DataType.Date, false, _):
+                case (DataFam.Date, false, _):
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_AS_DATETIME_TYPED_FORMAT, value);
                     break;
 
-                case (DataType.DateTime2, true, true):
+                case (DataFam.DateTime2, true, true):
                     {
                         var precision = dt.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -270,7 +270,7 @@ namespace mooSQL.data.MSSQL
                         stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DaTETIME2_FROMPARTS_FORMAT, value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, GetFractionalSecondFromTicks(value.Ticks, precision), precision);
                         break;
                     }
-                case (DataType.DateTime2, true, false):
+                case (DataFam.DateTime2, true, false):
                     {
                         var precision = dt.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -279,7 +279,7 @@ namespace mooSQL.data.MSSQL
                         stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATETIME2_TYPED_FORMATS[precision], value);
                         break;
                     }
-                case (DataType.DateTime2, false, _):
+                case (DataFam.DateTime2, false, _):
                     {
                         var precision = dt.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -306,7 +306,7 @@ namespace mooSQL.data.MSSQL
             StringBuilder stringBuilder = new StringBuilder();
             switch (sqlDataType.DataType, supportsTime, supportsFromParts)
             {
-                case (DataType.Int64, _, _):
+                case (DataFam.Int64, _, _):
                     {
                         var precision = sqlDataType.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -317,7 +317,7 @@ namespace mooSQL.data.MSSQL
                         stringBuilder.AppendFormat(CultureInfo.InvariantCulture, TIME_TICKS_FORMAT, ticks);
                         break;
                     }
-                case (DataType.Text, _, _) or (DataType.Char, _, _) or (DataType.VarChar, _, _):
+                case (DataFam.Text, _, _) or (DataFam.Char, _, _) or (DataFam.VarChar, _, _):
                     {
                         var precision = sqlDataType.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -328,7 +328,7 @@ namespace mooSQL.data.MSSQL
                         stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "'{0:c}'", TimeSpan.FromTicks(ticks));
                         break;
                     }
-                case (DataType.NText, _, _) or (DataType.NChar, _, _) or (DataType.NVarChar, _, _) or (_, false, _):
+                case (DataFam.NText, _, _) or (DataFam.NChar, _, _) or (DataFam.NVarChar, _, _) or (_, false, _):
                     {
                         var precision = sqlDataType.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -365,7 +365,7 @@ namespace mooSQL.data.MSSQL
             StringBuilder stringBuilder = new StringBuilder();
             switch (sqlDataType.DataType, v2008plus, supportsFromParts)
             {
-                case (DataType.Text, _, _) or (DataType.Char, _, _) or (DataType.VarChar, _, _):
+                case (DataFam.Text, _, _) or (DataFam.Char, _, _) or (DataFam.VarChar, _, _):
                     {
                         var precision = sqlDataType.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -374,7 +374,7 @@ namespace mooSQL.data.MSSQL
                         stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATETIMEOFFSET_FORMATS[precision], value);
                         break;
                     }
-                case (DataType.NText, _, _) or (DataType.NChar, _, _) or (DataType.NVarChar, _, _):
+                case (DataFam.NText, _, _) or (DataFam.NChar, _, _) or (DataFam.NVarChar, _, _):
                     {
                         var precision = sqlDataType.Precision ?? 7;
                         if (precision < 0 || precision > 7)
@@ -385,7 +385,7 @@ namespace mooSQL.data.MSSQL
                         break;
                     }
 
-                case (DataType.Date, _, _) or (DataType.DateTime, _, _) or (DataType.DateTime2, _, _) or (DataType.SmallDateTime, _, _):
+                case (DataFam.Date, _, _) or (DataFam.DateTime, _, _) or (DataFam.DateTime2, _, _) or (DataFam.SmallDateTime, _, _):
                     return ConvertDateTimeToSql( sqlDataType, value.LocalDateTime, v2008plus, supportsFromParts);
                     
 
@@ -422,11 +422,11 @@ namespace mooSQL.data.MSSQL
             StringBuilder stringBuilder = new StringBuilder();
             switch (sqlDataType.DataType, v2008plus, supportsFromParts)
             {
-                case (DataType.NText, _, _) or (DataType.NChar, _, _) or (DataType.NVarChar, _, _):
+                case (DataFam.NText, _, _) or (DataFam.NChar, _, _) or (DataFam.NVarChar, _, _):
                     stringBuilder.Append('N');
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_FORMAT, value);
                     break;
-                case (DataType.Text, _, _) or (DataType.Char, _, _) or (DataType.VarChar, _, _):
+                case (DataFam.Text, _, _) or (DataFam.Char, _, _) or (DataFam.VarChar, _, _):
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, DATE_FORMAT, value);
                     break;
 

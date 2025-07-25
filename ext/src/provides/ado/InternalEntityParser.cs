@@ -26,6 +26,10 @@ namespace mooSQL.data.Mapping
                     entityColumn.DbColumnName = (attr.Name==null?propertyInfo.Name:attr.Name);
                     entityColumn.ColumnDescription = attr.Caption;
                     entityColumn.IsIgnore = attr.SkipOnEntityFetch&& attr.SkipOnInsert && attr.SkipOnUpdate;
+                    if (attr.IsColumn == false) {
+                        entityColumn.IsIgnore = true;
+
+                    }
                     entityColumn.Length = attr.Length;
                     entityColumn.IsPrimarykey = attr.IsPrimaryKey;
                     entityColumn.IsNullable = attr.CanBeNull;         

@@ -55,6 +55,7 @@ namespace mooSQL.data.mapping
             TypeDefaultValue = new MappingValue<Type, object>("TypeDefaultValue");
             ValueToSQL = new MappingGroup("ValueToSQL");
             TypeScalar = new MappingValue<Type, bool>("TypeScalar");
+            TypeNullable = new MappingValue<Type, bool>("TypeNullable");
 
             this.ValueConverter = new MappingGroup("ValueConverter");
             this.Converters.TryAdd("ValueConverter", ValueConverter);
@@ -65,7 +66,7 @@ namespace mooSQL.data.mapping
         /// </summary>
         /// <param name="type"></param>
         /// <param name="dataType"></param>
-        protected void SetDataType(Type type, DataType dataType)
+        protected void SetDataType(Type type, DataFam dataType)
         {
             SharpToDataType.Add(type,new DbDataType (dataType));
         }
@@ -78,12 +79,12 @@ namespace mooSQL.data.mapping
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataType"></param>
-        protected void SetDataType<T>(DataType dataType)
+        protected void SetDataType<T>(DataFam dataType)
         {
             SharpToDataType.Add(typeof(T), new DbDataType(dataType));
         }
 
-        protected void SetDataType<T>(T defaultValue,bool canbeNull,DataType dataType)
+        protected void SetDataType<T>(T defaultValue,bool canbeNull,DataFam dataType)
         {
             var t = typeof(T);
             SharpToDataType.Add(t, new DbDataType(dataType));
@@ -141,11 +142,11 @@ namespace mooSQL.data.mapping
             return res;
         }
 
-        public void AddScalarType(Type type, DataType dataType = DataType.Undefined)
+        public void AddScalarType(Type type, DataFam dataType = DataFam.Undefined)
         {
             SetScalarType(type);
 
-            if (dataType != DataType.Undefined)
+            if (dataType != DataFam.Undefined)
                 SetDataType(type, dataType);
         }
         /// <summary>
@@ -276,8 +277,10 @@ namespace mooSQL.data.mapping
             return null;
         }
 
-        public virtual DataType GetDataType(string? dataType, string? columnType, int? length, int? precision, int? scale) {
-            return  DataType.Undefined;
+        public virtual DataFam GetDataType(string? dataType, string? columnType=null) {
+            return  DataFam.Undefined;
         }
+
+
     }
 }

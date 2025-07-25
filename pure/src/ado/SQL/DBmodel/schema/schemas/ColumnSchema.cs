@@ -57,7 +57,7 @@ namespace mooSQL.data
 		/// <summary>
 		/// Gets column type as <see cref="DataType"/> enumeration value.
 		/// </summary>
-		public DataType    DataType             { get; set; }
+		public DataFam    DataType             { get; set; }
 		/// <summary>
 		/// Gets flag indicating that insert operations without explicit column setter should ignore this column.
 		/// </summary>

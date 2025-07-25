@@ -13,7 +13,7 @@
 		protected virtual bool ProcessConversion(CastWord cast, out IExpWord result)
 		{
 			// SQL Server 2005 does not support TIME data type
-			if (cast.ToType.DataType == DataType.Time)
+			if (cast.ToType.DataType == DataFam.Time)
 			{
 				result = cast.Expression;
 				return true;

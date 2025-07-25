@@ -21,6 +21,7 @@ namespace mooSQL.data
 
             mapping = new NpgMappingPanel();
             sentence = new NpgSentence(this);
+            function = new NpgSQLFunction();
         }
 
         public override DbCommandBuilder getCmdBuilder()

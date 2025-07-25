@@ -65,7 +65,7 @@ namespace mooSQL.data
 		/// <summary>
 		/// Gets parameter type as <see cref="DataType"/> enumeration value.
 		/// </summary>
-		public DataType DataType             { get; set; }
+		public DataFam DataType             { get; set; }
 
 		/// <summary>
 		/// Gets provider-specific .net parameter type as a string.

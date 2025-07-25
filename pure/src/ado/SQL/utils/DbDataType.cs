@@ -14,7 +14,7 @@ namespace mooSQL.data.model
 	[DebuggerDisplay("DbDataType: {ToString()}")]
 	public struct DbDataType : IEquatable<DbDataType>
 	{
-		public static readonly DbDataType Undefined = new (typeof(object), DataType.Undefined);
+		public static readonly DbDataType Undefined = new (typeof(object), DataFam.Undefined);
 
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType) : this()
@@ -23,20 +23,20 @@ namespace mooSQL.data.model
 		}
 
 		[DebuggerStepThrough]
-		public DbDataType(Type systemType, DataType dataType) : this(systemType)
+		public DbDataType(Type systemType, DataFam dataType) : this(systemType)
 		{
 			DataType   = dataType;
 		}
 
 		[DebuggerStepThrough]
-		public DbDataType(Type systemType, DataType dataType, string? dbType) : this(systemType)
+		public DbDataType(Type systemType, DataFam dataType, string? dbType) : this(systemType)
 		{
 			DataType   = dataType;
 			DbType     = dbType;
 		}
 
 		[DebuggerStepThrough]
-		public DbDataType(Type systemType, DataType dataType, string? dbType, int? length) : this(systemType)
+		public DbDataType(Type systemType, DataFam dataType, string? dbType, int? length) : this(systemType)
 		{
 			DataType   = dataType;
 			DbType     = dbType;
@@ -44,7 +44,7 @@ namespace mooSQL.data.model
 		}
 
 		[DebuggerStepThrough]
-		public DbDataType(Type systemType, DataType dataType, string? dbType, int? length, int? precision, int? scale) : this(systemType)
+		public DbDataType(Type systemType, DataFam dataType, string? dbType, int? length, int? precision, int? scale) : this(systemType)
 		{
 			DataType  = dataType;
 			DbType    = dbType;
@@ -52,7 +52,7 @@ namespace mooSQL.data.model
 			Precision = precision;
 			Scale     = scale;
 		}
-        public DbDataType( DataType dataType, int? length=0, int? precision = 0, int? scale = 0) 
+        public DbDataType( DataFam dataType, int? length=0, int? precision = 0, int? scale = 0) 
         {
             DataType = dataType;
             Length = length;
@@ -72,7 +72,7 @@ namespace mooSQL.data.model
         /// <summary>
         /// 对应字段类型
         /// </summary>
-        public DataType DataType { get; set; }
+        public DataFam DataType { get; set; }
         /// <summary>
         /// 字段类型
         /// </summary>
@@ -96,7 +96,7 @@ namespace mooSQL.data.model
 		{
 			return new DbDataType(
 				from.SystemType != typeof(object)   ? from.SystemType : SystemType,
-				from.DataType != DataType.Undefined ? from.DataType   : DataType,
+				from.DataType != DataFam.Undefined ? from.DataType   : DataType,
 				!string.IsNullOrEmpty(from.DbType)  ? from.DbType     : DbType,
 				from.Length    ?? Length,
 				from.Precision ?? Precision,
@@ -119,7 +119,7 @@ namespace mooSQL.data.model
 		//public readonly DbDataType WithoutSystemType(ColumnDescriptor from) => new (SystemType, from.DataType, from.DbType, from.Length, from.Precision, from.Scale);
 
 		public readonly DbDataType WithSystemType    (Type     systemType           ) => new (systemType, DataType, DbType, Length, Precision, Scale);
-		public readonly DbDataType WithDataType      (DataType dataType             ) => new (SystemType, dataType, DbType, Length, Precision, Scale);
+		public readonly DbDataType WithDataType      (DataFam dataType             ) => new (SystemType, dataType, DbType, Length, Precision, Scale);
 		public readonly DbDataType WithDbType        (string?  dbName               ) => new (SystemType, DataType, dbName, Length, Precision, Scale);
 		public readonly DbDataType WithLength        (int?     length               ) => new (SystemType, DataType, DbType, length, Precision, Scale);
 		public readonly DbDataType WithPrecision     (int?     precision            ) => new (SystemType, DataType, DbType, Length, precision, Scale);
@@ -128,7 +128,7 @@ namespace mooSQL.data.model
 
 		public readonly override string ToString()
 		{
-			var dataTypeStr  = DataType == DataType.Undefined ? string.Empty : $", {DataType}";
+			var dataTypeStr  = DataType == DataFam.Undefined ? string.Empty : $", {DataType}";
 			var dbTypeStr    = string.IsNullOrEmpty(DbType)   ? string.Empty : $", \"{DbType}\"";
 			var lengthStr    = Length == null                 ? string.Empty : $", \"{Length}\"";
 			var precisionStr = Precision == null              ? string.Empty : $", \"{Precision}\"";

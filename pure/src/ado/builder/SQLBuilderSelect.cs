@@ -101,6 +101,22 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// SQL语句列定义
+        /// </summary>
+        /// <param name="asName"></param>
+        /// <param name="doColSelect"></param>
+        /// <returns></returns>
+        public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect) 
+        {
+            var ckit = this.getBrotherBuilder();
+            doColSelect(ckit);
+            var selectSQL = ckit.toSelect();
+            var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, asName);
+            current.select(fromPart);
+            return this;
+        }
+
+        /// <summary>
         /// 对unnion 的包裹最外层select语句进行select赋值。
         /// </summary>
         /// <param name="columns"></param>
@@ -328,7 +344,7 @@ namespace mooSQL.data
         /// <param name="orderByPart"></param>
         /// <returns></returns>
 
-        public SQLBuilder orderby(string orderByPart)
+        public SQLBuilder orderBy(string orderByPart)
         {
             if (this.unionHolder.Count>0 )
             {
@@ -338,6 +354,15 @@ namespace mooSQL.data
             }
             current.orderby(orderByPart);
             return this;
+        }
+        /// <summary>
+        /// 设置排序部分，规范化后废弃，请使用 orderBy 方法代替
+        /// </summary>
+        /// <param name="orderByPart"></param>
+        /// <returns></returns>
+        [Obsolete("规范化后废弃，请使用 orderBy 方法代替")]
+        public SQLBuilder orderby(string orderByPart) { 
+            return orderBy(orderByPart);
         }
 
         /// <summary>

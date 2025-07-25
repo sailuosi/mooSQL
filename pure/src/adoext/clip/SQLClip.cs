@@ -57,8 +57,16 @@ namespace mooSQL.data
             this.Context.clear();
             return this;
         }
-        
-        
+        /// <summary>
+        /// 注册打印回调，用于调试SQL语句。
+        /// </summary>
+        /// <param name="onPrint"></param>
+        /// <returns></returns>
+        public SQLClip print(Action<string> onPrint)
+        {
+            Context.Builder.print(onPrint);
+            return this;
+        }
 
         /// <summary>
         /// from语句，用于指定查询的主体表。
@@ -143,7 +151,14 @@ namespace mooSQL.data
             }
             return this;
         }
-
+        /// <summary>
+        /// 支持操作符定义的where语句。
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
         public SQLClip where<R>(Expression<Func<R>> fieldSelector, R value,string op)
         {
             var field = provider.PatchOutField(fieldSelector);
@@ -153,7 +168,13 @@ namespace mooSQL.data
             }
             return this;
         }
-
+        /// <summary>
+        /// 构造in语句，用于指定字段和值集合。例如：whereIn(x=>x.id,new int[]{1,2}) 即 where id in (1,2)
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public SQLClip whereIn<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)
         {
             //Builder.orderBy(orderCondition);
@@ -163,6 +184,13 @@ namespace mooSQL.data
             }
             return this;
         }
+        /// <summary>
+        /// 构造not in语句，用于指定字段和值集合。例如：whereNotIn(x=>x.id,new int[]{1,2}) 即 where id not in (1,2)
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)
         {
             //Builder.orderBy(orderCondition);
@@ -173,6 +201,12 @@ namespace mooSQL.data
             }
             return this;
         }
+        /// <summary>
+        /// 构造like语句，用于模糊查询字段。例如：whereLike(x=>x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。
+        /// </summary>
+        /// <param name="fieldSelector"></param>
+        /// <param name="searchTxt"></param>
+        /// <returns></returns>
         public SQLClip whereLike(Expression<Func<string>> fieldSelector, string searchTxt)
         {
             //Builder.orderBy(orderCondition);
@@ -297,7 +331,11 @@ namespace mooSQL.data
             Context.Builder.sink();
             return this;
         }
-
+        /// <summary>
+        /// 构造TOP语句。例如：top(10) 即 select top 10 * from ...;
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
         public SQLClip top(int num) { 
             Context.Builder.top(num);
             return this;
@@ -363,7 +401,10 @@ namespace mooSQL.data
             provider.PatchOrderBy(orderCondition,true);
             return this;
         }
-
+        /// <summary>
+        /// 获取构造好的SQL语句。
+        /// </summary>
+        /// <returns></returns>
         public SQLCmd toSelect() { 
             return Context.Builder.toSelect();
         }

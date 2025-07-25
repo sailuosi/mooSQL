@@ -16,12 +16,19 @@ namespace mooSQL.data.mapping
         /// 是否可逆，比如数据库的int和C#的Int32是可逆的。
         /// </summary>
         public bool Reversable { get; set; }
-
+        /// <summary>
+        /// 名称
+        /// </summary>
         public string Name { get; set; }
-
+        /// <summary>
+        /// 映射关系
+        /// </summary>
         public ConcurrentDictionary<S, R> map { get; set; }
 
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="name"></param>
         public MappingValue(string name)
         {
             map = new ConcurrentDictionary<S, R>();
@@ -41,13 +48,23 @@ namespace mooSQL.data.mapping
             }
             map.TryAdd(source, result);
         }
-
+        /// <summary>
+        /// 获取映射关系，如果不存在则返回默认值。
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         public R Get(S source) {
             if (map.ContainsKey(source)) {
                 return map[source];
             }
             return default(R);
         }
+        /// <summary>
+        /// 尝试获取映射关系，如果不存在则返回false。
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="res"></param>
+        /// <returns></returns>
         public bool TryGet(S source,out R res)
         {
             if (map.ContainsKey(source))

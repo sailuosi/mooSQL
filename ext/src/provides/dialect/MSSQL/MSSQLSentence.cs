@@ -118,15 +118,15 @@ public class MSSQLSentence : SQLSentence
         " AND systypes.name<>'geography'" +
         " ORDER BY syscolumns.colid";
     */
-    public override string GetTableInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment   FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0 AND (tbp.Name='MS_Description' OR tbp.Name is null)  WHERE s.xtype IN('U') ";
+    public override string GetTableInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment   FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0 AND (tbp.Name='MS_Description' OR tbp.Name is null)  WHERE s.xtype IN('U') order by s.Name";
 
     public override string GetViewInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0  AND (tbp.Name='MS_Description' OR tbp.Name is null) WHERE s.xtype IN('V')  ";
 
     public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
     {
         var kit = DBLive.useSQL()
-            .select("syscolumns.name AS Name,systypes.name AS DataType," +
-            "COLUMNPROPERTY(syscolumns.id,syscolumns.name,'PRECISION') as ColumnLength," +
+            .select("syscolumns.name AS Name,systypes.name AS DbTypeText," +
+            "COLUMNPROPERTY(syscolumns.id,syscolumns.name,'PRECISION') as MaxLength," +
             "isnull(COLUMNPROPERTY(syscolumns.id,syscolumns.name,'Scale'),0) as Scale," +
             "sys.extended_properties.[value] AS Comment," +
             "syscolumns.isnullable AS IsNullable," +
@@ -140,12 +140,19 @@ public class MSSQLSentence : SQLSentence
             .where("systypes.name <> 'sysname'")
             .where("sysobjects.name", tableName)
             .where("systypes.name<>'geometry'  AND systypes.name<>'geography'")
-            .orderby("syscolumns.colid")
-            .query<DbColumnInfo>();
+            .orderBy("syscolumns.colid")
+            ;
         //var sql = string.Format(this.GetColumnInfosByTableNameSql, tableName);
         //var res = this.DBLive.ExeQuery<DbColumnInfo>(sql);
         //return res.ToList();
-        return kit.ToList();
+        var sql = kit.toSelect();
+        var tar= kit.query<DbColumnInfo>().ToList();
+        foreach (var item in tar) {
+            if (!string.IsNullOrWhiteSpace(item.DbTypeText)) { 
+                item.FieldType= this.dialect.mapping.GetDataType(item.DbTypeText);
+            }
+        }
+        return tar;
     }
     public override SQLCmd buildHasTable(string TableName)
     {

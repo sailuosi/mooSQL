@@ -127,7 +127,7 @@ namespace mooSQL.data
 		/// 数据类型
 		/// 默认为字段的类型.
 		/// </summary>
-		public DataType DataType { get; set; }
+		public DataFam DataType { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the database column type.

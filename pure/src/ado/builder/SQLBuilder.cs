@@ -33,7 +33,9 @@ namespace mooSQL.data
 
         /// 数据库实例
         public DBInstance DBLive { get; private set; }
-
+        /// <summary>
+        /// 核心运行实例
+        /// </summary>
         public MooClient MooClient {
             get {
                 if (this.DBLive != null)
@@ -182,6 +184,9 @@ namespace mooSQL.data
         /// 层深，递归调用时增长
         /// </summary>
         public int level = 0;
+        /// <summary>
+        /// 当前操作的名称，默认为空字符串。
+        /// </summary>
         public string name = "";
         /// <summary>
         /// 参数存储体
@@ -204,18 +209,27 @@ namespace mooSQL.data
 
         private bool opened = true;
 
-
+        /// <summary>
+        /// 命名的SQL构建器，便于调试和追踪。
+        /// </summary>
+        /// <param name="name"></param>
         public SQLBuilder(string name)
         {
             this.name = name;
             init();
         }
-
+        /// <summary>
+        /// SQL构建器。
+        /// </summary>
         public SQLBuilder()
         {
             this.name = "";
             init();
         }
+        /// <summary>
+        /// SQL构建器，延迟初始化。
+        /// </summary>
+        /// <param name="lazyInit"></param>
         public SQLBuilder(bool lazyInit)
         {
             this.name = "";
@@ -224,6 +238,10 @@ namespace mooSQL.data
             }
             
         }
+        /// <summary>
+        /// SQL构建器，传入表达式实例。
+        /// </summary>
+        /// <param name="expression"></param>
         public SQLBuilder(SQLExpression expression)
         {
             this.name = "";
@@ -244,6 +262,16 @@ namespace mooSQL.data
         public SQLBuilder beginTransaction() { 
             this.Executor= new  DBExecutor(this.DBLive);
             Executor.beginTransaction();
+            return this;
+        }
+        /// <summary>
+        /// 使用一个已开启的事务执行器，此后的所有操作都在同一个事务中。
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public SQLBuilder useTransaction(DBExecutor executor)
+        {
+            this.Executor = executor;
             return this;
         }
         /// <summary>
@@ -313,6 +341,12 @@ namespace mooSQL.data
             //return Pattern.compile(regx, Pattern.CASE_INSENSITIVE).matcher(src).replaceAll(tar);
             return Regex.Replace(src, regx, tar);
         }
+        /// <summary>
+        /// SQL注入过滤，防止SQL注入攻击。
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="onlyWrite"></param>
+        /// <returns></returns>
         public string SqlFilter(string source, bool onlyWrite)
         {
             //sql注入过滤
@@ -353,7 +387,12 @@ namespace mooSQL.data
         {
             return this.current.addListPara(list, prefix);
         }
-
+        /// <summary>
+        /// 设置缓存键值，用于缓存查询结果。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
         public SQLBuilder setCache(string key,int timeout)
         {
             this.cacheKey = key;

@@ -100,7 +100,6 @@ namespace mooSQL.data
         /// <param name="valueSums"></param>
         /// <param name="commonCol"></param>
         /// <param name="fromPart"></param>
-        /// <param name="position"></param>
         /// <returns></returns>
         public static string dealPivot(string keyColname, string valueCols, string valueSums, string commonCol, string fromPart, DBInstance db)
         {
@@ -128,6 +127,16 @@ namespace mooSQL.data
                 " pivot ( {4} for keycol in ({0}) ) as pv", keycol, keyColname, commonCol, valueCols, valueSums, fromPart);
             return res;
         }
+        /// <summary>
+        /// 生成行列转置的SQL语句。一个合格的pivot源数据表，列必须纯粹。除了统计列、结果列、共性列之外，不能有多余的列。尤其是统计列不能重复，否则会有大量冗余数据。
+        /// </summary>
+        /// <param name="keyColname"></param>
+        /// <param name="keyScope"></param>
+        /// <param name="valueCols"></param>
+        /// <param name="valueSums"></param>
+        /// <param name="commonCol"></param>
+        /// <param name="fromPart"></param>
+        /// <returns></returns>
         public static string dealPivot(string keyColname, string keyScope, string valueCols, string valueSums, string commonCol, string fromPart)
         {
             var res = "";

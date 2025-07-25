@@ -15,7 +15,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 		class SqlTypes2005Translation : SqlTypesTranslation
 		{
 			protected override Expression? ConvertDate(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.DateTime));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.DateTime));
 		}
 
 		class DateFunctionsTranslator2005 : SqlServerDateFunctionsTranslator

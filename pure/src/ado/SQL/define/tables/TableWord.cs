@@ -85,7 +85,7 @@ namespace mooSQL.data.model
 				field.ColumnDescriptor = column;
 				Add(field);
 
-				if (field.Type.DataType == DataType.Undefined)
+				if (field.Type.DataType == DataFam.Undefined)
 				{
 					//var dataType = entityDescriptor.MappingSchema.GetDataType(field.Type.SystemType);
 

@@ -302,8 +302,10 @@ namespace mooSQL.data.context
                     _watchor.WriteDbSessionRollbackAfter(operationId, this);
                     return;
                 }
+                if (transaction.Connection != null && transaction.Connection.State == ConnectionState.Open) { 
+                    transaction.Rollback();                
+                }
 
-                transaction.Rollback();
                 //Rollbacked?.Invoke(this, DbSessionEventArgs.None);
 
                 #endregion
@@ -323,7 +325,10 @@ namespace mooSQL.data.context
 
         private void ReleaseTransaction()
         {
-            transaction.Dispose();
+            if (transaction != null) {
+                transaction.Dispose();
+            }
+            
             transaction = null;
         }
 

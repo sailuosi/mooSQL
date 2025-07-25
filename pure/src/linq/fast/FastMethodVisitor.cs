@@ -504,7 +504,7 @@ namespace mooSQL.linq
                 var fv = new FieldVisitor(Context, true);
                 var fie= fv.FindField(p2);
                 if (fie != null) {
-                    Context.TopLayer.Current.orderby(fie);
+                    Context.TopLayer.Current.orderBy(fie);
                 }
             }
             return base.VisitOrderBy(method);

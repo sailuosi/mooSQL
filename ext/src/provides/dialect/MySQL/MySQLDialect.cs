@@ -20,6 +20,7 @@ namespace mooSQL.data
             sentence = new MySQLSentence(this);
             clauseTranslator = new MySQLClauseTranslator(this);
             mapping = new MySQLMappingPanel();
+            function = new MySQLFunction();
         }
         public override DbCommand getCommand()
         {

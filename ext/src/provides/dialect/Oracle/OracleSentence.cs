@@ -113,7 +113,7 @@ public class OracleSentence : SQLSentence
             .from("all_tables a ")
             .join("join all_tab_comments b ON a.table_name = b.table_name")
             .where("a.table_name not like '%$%'")
-            .orderby("a.table_name")
+            .orderBy("a.table_name")
             .query<DbTableInfo>();
         return dt.ToList();
     }

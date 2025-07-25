@@ -667,12 +667,18 @@ namespace mooSQL.data
 
                     // 此时栈上应该有一个 Guid 类型的值
                 }
+                else if (from == typeof(byte[]) && to == typeof(string)) {
+                    il.Emit(OpCodes.Ldloc, dblocal);
+                    var mt = typeof(ReadTypeConverter).GetMethod(nameof(ReadTypeConverter.ByteArrToString));
+                    var met = mt.MakeGenericMethod(from, to);
+                    il.Emit(OpCodes.Call, met); // stack is now [target][target][Guid-value]
+                }
                 else
                 {
                     il.Emit(OpCodes.Ldtoken, via ?? to); // stack is now [target][target][value][member-type-token]
                     il.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null); // stack is now [target][target][value][member-type]
                     il.EmitCall(OpCodes.Call, MapperUntils.InvariantCulture, null); // stack is now [target][target][value][member-type][culture]
-                    il.EmitCall(OpCodes.Call, typeof(Convert).GetMethod(nameof(Convert.ChangeType), new Type[] { typeof(object), typeof(Type), typeof(IFormatProvider) }), null); // stack is now [target][target][boxed-member-type-value]
+                    il.EmitCall(OpCodes.Call, typeof(ReadTypeConverter).GetMethod(nameof(ReadTypeConverter.ChangeType), new Type[] { typeof(object), typeof(Type), typeof(IFormatProvider) }), null); // stack is now [target][target][boxed-member-type-value]
                     il.Emit(OpCodes.Unbox_Any, to); // stack is now [target][target][typed-value]
                 }
             }

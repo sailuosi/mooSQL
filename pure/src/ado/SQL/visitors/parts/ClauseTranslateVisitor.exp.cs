@@ -126,23 +126,23 @@ namespace mooSQL.linq
             //    return;
             //}
 
-            if (type.DataType == DataType.Undefined)
+            if (type.DataType == DataFam.Undefined)
                 // give some hint to user that it is expected situation and he need to fix something on his side
                 throw new Exception($"Database column type cannot be determined automatically and must be specified explicitly for system type {type}");
 
             switch (type.DataType)
             {
-                case DataType.Double: return "Float";
-                case DataType.Single: return "Real";
-                case DataType.SByte: return "TinyInt";
-                case DataType.UInt16: return "Int";
-                case DataType.UInt32: return "BigInt";
-                case DataType.UInt64: return "Decimal";
-                case DataType.Byte: return "TinyInt";
-                case DataType.Int16: return "SmallInt";
-                case DataType.Int32: return "Int";
-                case DataType.Int64: return "BigInt";
-                case DataType.Boolean: return "Bit";
+                case DataFam.Double: return "Float";
+                case DataFam.Single: return "Real";
+                case DataFam.SByte: return "TinyInt";
+                case DataFam.UInt16: return "Int";
+                case DataFam.UInt32: return "BigInt";
+                case DataFam.UInt64: return "Decimal";
+                case DataFam.Byte: return "TinyInt";
+                case DataFam.Int16: return "SmallInt";
+                case DataFam.Int32: return "Int";
+                case DataFam.Int64: return "BigInt";
+                case DataFam.Boolean: return "Bit";
             }
 
             var tar=$"{type.DataType}";

@@ -36,7 +36,9 @@ namespace mooSQL.data {
                 return current.wherePart.CurrentConnector;
             }
         }
-
+        /// <summary>
+        /// 当前的where条件是否为and
+        /// </summary>
         public bool ConditionIsAnd
         {
             get {
@@ -161,7 +163,28 @@ namespace mooSQL.data {
             current.where(key, null, "", false);
             return this;
         }
+        /// <summary>
+        /// 添加一个 where is null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIsNull(string key) { 
+            return where(key + " IS NULL");
+        }
+        /// <summary>
+        ///     添加一个 where is not null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIsNotNull(string key) { 
+            return where(key + " IS NOT NULL");
+        }
 
+        /// <summary>
+        /// 添加一个 where条件字符串
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
         public SQLBuilder where(WhereFrag frag)
         {
             if (!opened)
@@ -368,6 +391,22 @@ namespace mooSQL.data {
             //return whereFormat(key + " like "+ content, val);
         }
         /// <summary>
+        /// 在多个字段中模糊匹配一个字符串，形如 (key1 like '%abc%' or key2 like '%abc%') 形式，
+        /// </summary>
+        /// <param name="keys"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public SQLBuilder whereLikes(IEnumerable<string> keys, string val)
+        {
+            sinkOR();
+            foreach (var key in keys)
+            {
+                whereLike(key, val);
+            }
+            rise();
+            return this;
+        }
+        /// <summary>
         /// 模糊匹配一组字符串，默认使用 or 连接，形如 (key like '%abc%' or key like '%bcd%') 形式，
         /// </summary>
         /// <param name="key"></param>
@@ -533,6 +572,28 @@ namespace mooSQL.data {
             whereListInner(key, " IN ", values);
             return this;
         }
+        /// <summary>
+        /// 构建where in + (固定范围值) 条件。注意：数值型集合直接转为数值范围SQL，简单字符集合转为字符SQL，复杂字符串为参数化。 受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIn<T>(string key,params T[] values)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (!checkWhereIn(values))
+            {
+                return this;
+            }
+            whereListInner(key, " IN ", values);
+            return this;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -831,7 +892,17 @@ namespace mooSQL.data {
             current.where(key, op, doselect);
             return this;
         }
-
+        /// <summary>
+        /// 创建 where 后面一个 key=#{val}形式的条件。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="doselect"></param>
+        /// <returns></returns>
+        public SQLBuilder where(string key, Action<SQLBuilder> doselect)
+        {
+            current.where(key, "=", doselect);
+            return this;
+        }
         /// <summary>
         /// 创建 where 后面一个 key=#{val}形式的条件。
         /// </summary>

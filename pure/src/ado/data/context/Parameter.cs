@@ -36,7 +36,7 @@ namespace mooSQL.data
         /// </summary>
         public DbDataType dbType { get; set; }
 
-        public DataType dataType { get; set; }
+        public DataFam dataType { get; set; }
 
         public ParameterDirection direction { get; set; }
 

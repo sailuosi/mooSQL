@@ -20,6 +20,6 @@ namespace mooSQL.data.model
 		public bool      IsIdentity;
 		public bool      SkipOnInsert;
 		public bool      SkipOnUpdate;
-		public DataType? Type;
+		public DataFam? Type;
 	}
 }

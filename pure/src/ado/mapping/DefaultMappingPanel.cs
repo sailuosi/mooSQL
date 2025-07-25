@@ -37,33 +37,33 @@ namespace mooSQL.data.mapping
         private void InitShartoDataType()
         {
             var tar = this.SharpToDataType;
-            this.SetDataType<string>(DataType.NVarChar);
-            this.SetDataType<decimal>( DataType.Decimal);
-            this.SetDataType<DateTime>( DataType.DateTime2);
-            this.SetDataType<DateTimeOffset>( DataType.DateTimeOffset);
-            this.SetDataType<TimeSpan>( DataType.Time);
+            this.SetDataType<string>(DataFam.NVarChar);
+            this.SetDataType<decimal>( DataFam.Decimal);
+            this.SetDataType<DateTime>( DataFam.DateTime2);
+            this.SetDataType<DateTimeOffset>( DataFam.DateTimeOffset);
+            this.SetDataType<TimeSpan>( DataFam.Time);
 #if NET6_0_OR_GREATER
-				this.SetDataType<DateOnly>(DataType.Date);
+				this.SetDataType<DateOnly>(DataFam.Date);
 #endif
-            this.SetDataType<byte[]>( DataType.VarBinary);
+            this.SetDataType<byte[]>( DataFam.VarBinary);
             //this.SetDataType<Binary>( DataType.VarBinary);
-            this.SetDataType<Guid>( DataType.Guid);
-            this.SetDataType<object>( DataType.Variant);
-            this.SetDataType<XmlDocument>( DataType.Xml);
-            this.SetDataType<XDocument>( DataType.Xml);
-            this.SetDataType<bool>( DataType.Boolean);
-            this.SetDataType<sbyte>( DataType.SByte);
-            this.SetDataType<short>( DataType.Int16);
-            this.SetDataType<int>( DataType.Int32);
-            this.SetDataType<long>( DataType.Int64);
-            this.SetDataType<byte>( DataType.Byte);
-            this.SetDataType<ushort>( DataType.UInt16);
-            this.SetDataType<uint>( DataType.UInt32);
-            this.SetDataType<ulong>( DataType.UInt64);
-            this.SetDataType<float>( DataType.Single);
-            this.SetDataType<double>( DataType.Double);
+            this.SetDataType<Guid>( DataFam.Guid);
+            this.SetDataType<object>( DataFam.Variant);
+            this.SetDataType<XmlDocument>( DataFam.Xml);
+            this.SetDataType<XDocument>( DataFam.Xml);
+            this.SetDataType<bool>( DataFam.Boolean);
+            this.SetDataType<sbyte>( DataFam.SByte);
+            this.SetDataType<short>( DataFam.Int16);
+            this.SetDataType<int>( DataFam.Int32);
+            this.SetDataType<long>( DataFam.Int64);
+            this.SetDataType<byte>( DataFam.Byte);
+            this.SetDataType<ushort>( DataFam.UInt16);
+            this.SetDataType<uint>( DataFam.UInt32);
+            this.SetDataType<ulong>( DataFam.UInt64);
+            this.SetDataType<float>( DataFam.Single);
+            this.SetDataType<double>( DataFam.Double);
 
-            this.SetDataType<BitArray>( DataType.BitArray);
+            this.SetDataType<BitArray>( DataFam.BitArray);
         }
 
         private void InitValueConvert()
@@ -136,58 +136,58 @@ namespace mooSQL.data.mapping
         }
 
         private void InitScalarType() {
-            AddScalarType(typeof(char), DataType.NChar);
-            AddScalarType(typeof(string), DataType.NVarChar);
-            AddScalarType(typeof(decimal), DataType.Decimal);
-            AddScalarType(typeof(DateTime), DataType.DateTime2);
-            AddScalarType(typeof(DateTimeOffset), DataType.DateTimeOffset);
-            AddScalarType(typeof(TimeSpan), DataType.Time);
+            AddScalarType(typeof(char), DataFam.NChar);
+            AddScalarType(typeof(string), DataFam.NVarChar);
+            AddScalarType(typeof(decimal), DataFam.Decimal);
+            AddScalarType(typeof(DateTime), DataFam.DateTime2);
+            AddScalarType(typeof(DateTimeOffset), DataFam.DateTimeOffset);
+            AddScalarType(typeof(TimeSpan), DataFam.Time);
 #if NET6_0_OR_GREATER
-				AddScalarType(typeof(DateOnly),        DataType.Date);
+				AddScalarType(typeof(DateOnly),        DataFam.Date);
 #endif
-            AddScalarType(typeof(byte[]), DataType.VarBinary);
+            AddScalarType(typeof(byte[]), DataFam.VarBinary);
             //AddScalarType(typeof(Binary), DataType.VarBinary);
-            AddScalarType(typeof(Guid), DataType.Guid);
-            AddScalarType(typeof(object), DataType.Variant);
-            AddScalarType(typeof(XmlDocument), DataType.Xml);
-            AddScalarType(typeof(XDocument), DataType.Xml);
-            AddScalarType(typeof(bool), DataType.Boolean);
-            AddScalarType(typeof(sbyte), DataType.SByte);
-            AddScalarType(typeof(short), DataType.Int16);
-            AddScalarType(typeof(int), DataType.Int32);
-            AddScalarType(typeof(long), DataType.Int64);
-            AddScalarType(typeof(byte), DataType.Byte);
-            AddScalarType(typeof(ushort), DataType.UInt16);
-            AddScalarType(typeof(uint), DataType.UInt32);
-            AddScalarType(typeof(ulong), DataType.UInt64);
-            AddScalarType(typeof(float), DataType.Single);
-            AddScalarType(typeof(double), DataType.Double);
+            AddScalarType(typeof(Guid), DataFam.Guid);
+            AddScalarType(typeof(object), DataFam.Variant);
+            AddScalarType(typeof(XmlDocument), DataFam.Xml);
+            AddScalarType(typeof(XDocument), DataFam.Xml);
+            AddScalarType(typeof(bool), DataFam.Boolean);
+            AddScalarType(typeof(sbyte), DataFam.SByte);
+            AddScalarType(typeof(short), DataFam.Int16);
+            AddScalarType(typeof(int), DataFam.Int32);
+            AddScalarType(typeof(long), DataFam.Int64);
+            AddScalarType(typeof(byte), DataFam.Byte);
+            AddScalarType(typeof(ushort), DataFam.UInt16);
+            AddScalarType(typeof(uint), DataFam.UInt32);
+            AddScalarType(typeof(ulong), DataFam.UInt64);
+            AddScalarType(typeof(float), DataFam.Single);
+            AddScalarType(typeof(double), DataFam.Double);
 
-            AddScalarType(typeof(BitArray), DataType.BitArray);
+            AddScalarType(typeof(BitArray), DataFam.BitArray);
         }
 
         public override Type ConvertParameterType(Type type, DbDataType dataType)
         {
             switch (dataType.DataType)
             {
-                case DataType.Char:
-                case DataType.NChar:
-                case DataType.VarChar:
-                case DataType.NVarChar:
-                case DataType.Text:
-                case DataType.NText:
+                case DataFam.Char:
+                case DataFam.NChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                case DataFam.Text:
+                case DataFam.NText:
                     if (type == typeof(DateTimeOffset)) return typeof(string);
                     break;
-                case DataType.Image:
-                case DataType.Binary:
-                case DataType.Blob:
+                case DataFam.Image:
+                case DataFam.Binary:
+                case DataFam.Blob:
                 //case DataType.VarBinary:
                 //    if (type == typeof(Binary)) return typeof(byte[]);
                 //    break;
-                case DataType.Int64:
+                case DataFam.Int64:
                     if (type == typeof(TimeSpan)) return typeof(long);
                     break;
-                case DataType.Xml:
+                case DataFam.Xml:
                     if (type == typeof(XDocument) ||
                         type == typeof(XmlDocument)) return typeof(string);
                     break;
@@ -200,12 +200,12 @@ namespace mooSQL.data.mapping
         {
             switch (dataType.DataType)
             {
-                case DataType.Char:
-                case DataType.NChar:
-                case DataType.VarChar:
-                case DataType.NVarChar:
-                case DataType.Text:
-                case DataType.NText:
+                case DataFam.Char:
+                case DataFam.NChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                case DataFam.Text:
+                case DataFam.NText:
                     if (value is DateTimeOffset dto) value = dto.ToString("yyyy-MM-ddTHH:mm:ss.ffffff zzz", DateTimeFormatInfo.InvariantInfo);
                     else if (value is DateTime dt)
                     {
@@ -230,16 +230,16 @@ namespace mooSQL.data.mapping
                             DateTimeFormatInfo.InvariantInfo);
                     }
                     break;
-                case DataType.Image:
-                case DataType.Binary:
-                case DataType.Blob:
-                case DataType.VarBinary:
+                case DataFam.Image:
+                case DataFam.Binary:
+                case DataFam.Blob:
+                case DataFam.VarBinary:
                     //if (value is Binary binary) value = binary.ToArray();
                     break;
-                case DataType.Int64:
+                case DataFam.Int64:
                     if (value is TimeSpan span) value = span.Ticks;
                     break;
-                case DataType.Xml:
+                case DataFam.Xml:
                     if (value is XDocument xdoc) value = xdoc.ToString();
                     else if (value is XmlDocument document) value = document.InnerXml;
                     break;
@@ -256,32 +256,32 @@ namespace mooSQL.data.mapping
 
             switch (dataType.DataType)
             {
-                case DataType.Char: dbType = DbType.AnsiStringFixedLength; break;
-                case DataType.VarChar: dbType = DbType.AnsiString; break;
-                case DataType.NChar: dbType = DbType.StringFixedLength; break;
-                case DataType.NVarChar: dbType = DbType.String; break;
-                case DataType.Blob:
-                case DataType.VarBinary: dbType = DbType.Binary; break;
-                case DataType.Boolean: dbType = DbType.Boolean; break;
-                case DataType.SByte: dbType = DbType.SByte; break;
-                case DataType.Int16: dbType = DbType.Int16; break;
-                case DataType.Int32: dbType = DbType.Int32; break;
-                case DataType.Int64: dbType = DbType.Int64; break;
-                case DataType.Byte: dbType = DbType.Byte; break;
-                case DataType.UInt16: dbType = DbType.UInt16; break;
-                case DataType.UInt32: dbType = DbType.UInt32; break;
-                case DataType.UInt64: dbType = DbType.UInt64; break;
-                case DataType.Single: dbType = DbType.Single; break;
-                case DataType.Double: dbType = DbType.Double; break;
-                case DataType.Decimal: dbType = DbType.Decimal; break;
-                case DataType.Guid: dbType = DbType.Guid; break;
-                case DataType.Date: dbType = DbType.Date; break;
-                case DataType.Time: dbType = DbType.Time; break;
-                case DataType.DateTime: dbType = DbType.DateTime; break;
-                case DataType.DateTime2: dbType = DbType.DateTime2; break;
-                case DataType.DateTimeOffset: dbType = DbType.DateTimeOffset; break;
-                case DataType.Variant: dbType = DbType.Object; break;
-                case DataType.VarNumeric: dbType = DbType.VarNumeric; break;
+                case DataFam.Char: dbType = DbType.AnsiStringFixedLength; break;
+                case DataFam.VarChar: dbType = DbType.AnsiString; break;
+                case DataFam.NChar: dbType = DbType.StringFixedLength; break;
+                case DataFam.NVarChar: dbType = DbType.String; break;
+                case DataFam.Blob:
+                case DataFam.VarBinary: dbType = DbType.Binary; break;
+                case DataFam.Boolean: dbType = DbType.Boolean; break;
+                case DataFam.SByte: dbType = DbType.SByte; break;
+                case DataFam.Int16: dbType = DbType.Int16; break;
+                case DataFam.Int32: dbType = DbType.Int32; break;
+                case DataFam.Int64: dbType = DbType.Int64; break;
+                case DataFam.Byte: dbType = DbType.Byte; break;
+                case DataFam.UInt16: dbType = DbType.UInt16; break;
+                case DataFam.UInt32: dbType = DbType.UInt32; break;
+                case DataFam.UInt64: dbType = DbType.UInt64; break;
+                case DataFam.Single: dbType = DbType.Single; break;
+                case DataFam.Double: dbType = DbType.Double; break;
+                case DataFam.Decimal: dbType = DbType.Decimal; break;
+                case DataFam.Guid: dbType = DbType.Guid; break;
+                case DataFam.Date: dbType = DbType.Date; break;
+                case DataFam.Time: dbType = DbType.Time; break;
+                case DataFam.DateTime: dbType = DbType.DateTime; break;
+                case DataFam.DateTime2: dbType = DbType.DateTime2; break;
+                case DataFam.DateTimeOffset: dbType = DbType.DateTimeOffset; break;
+                case DataFam.Variant: dbType = DbType.Object; break;
+                case DataFam.VarNumeric: dbType = DbType.VarNumeric; break;
                 default: return;
             }
 

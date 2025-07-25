@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
+using mooSQL.utils;
 
 namespace mooSQL.data
 {
@@ -44,6 +45,26 @@ namespace mooSQL.data
                 String strVal = Convert.ToString(value) ?? string.Empty;
                 Object vv = strVal;
                 return (T)vv;
+            }
+            if (type.Name == "Guid") {
+                if (value is Guid gval) { 
+                    return (T)(object)gval;
+                }
+                var val = value as string;
+                if (RegxUntils.isGUID(val))
+                {
+                    return (T)(object)Guid.Parse(val);
+                }
+                return default;
+            }
+            if(type.Name == "DateTime")
+            {
+                if (value is DateTime dt) { return (T)(object)dt; }
+                var val = value as string;
+                if (TypeAs.asDateTimeFull(val,out var dtval)) { 
+                    return (T)(object)dtval;
+                }
+                
             }
             return (T)Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
         }

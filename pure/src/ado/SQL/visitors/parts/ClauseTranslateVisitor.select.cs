@@ -530,7 +530,7 @@ namespace mooSQL.linq
             if (!string.IsNullOrWhiteSpace(inner))
             {
                 var res = " " + inner;
-                builder.orderby(res);
+                builder.orderBy(res);
                 return null;
             }
             return null;

@@ -15,7 +15,7 @@ namespace mooSQL.data
         public MySQLMappingPanel()
         {
 
-            this.SetDataType(typeof(string), DataType.NVarChar);
+            this.SetDataType(typeof(string), DataFam.NVarChar);
 
             this.SetValueToSql<string>( (v) => ConvertStringToSql(v));
             this.SetValueToSql<char>( ( v) => ConvertCharToSql(v));
@@ -63,25 +63,25 @@ namespace mooSQL.data
         public override string DbDataTypeToSQL(DbDataType type)
         {
             switch (type.DataType) {
-                case DataType.VarChar:
-                case DataType.NVarChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
                     return string.Format("VARCHAR({0})", type.Length);
-                case DataType.DateTime:
-                case DataType.DateTime2:
+                case DataFam.DateTime:
+                case DataFam.DateTime2:
                     return "DATETIME";
-                case DataType.Time:
+                case DataFam.Time:
                     return "TIME";
-                case DataType.Date:
+                case DataFam.Date:
                     return "DATE";
-                case DataType.Boolean:
+                case DataFam.Boolean:
                     return "bit(1)";
-                case DataType.Decimal:
-                case DataType.VarNumeric:
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
                     if (type.Precision == null || type.Precision == 0) {
                         type.Precision = 10;
                     }
                     return string.Format("DECIMAL({0},{1})", type.Precision, type.Scale);
-                case DataType.Double:
+                case DataFam.Double:
                     if (type.Precision == null || type.Precision == 0)
                     {
                         return "DOUBLE";
@@ -94,61 +94,61 @@ namespace mooSQL.data
                         return string.Format("DECIMAL({0},{1})", type.Precision, type.Scale);
                     }
                     
-                case DataType.Guid:
+                case DataFam.Guid:
                     return "varchar(36)";
-                case DataType.Char:
+                case DataFam.Char:
                     return string.Format("CHAR({0})", type.Length);
-                case DataType.Int32:
+                case DataFam.Int32:
                     return "INT";
-                case DataType.Int64:
-                case DataType.Long:
+                case DataFam.Int64:
+                case DataFam.Long:
                     return "BIGINT";
-                case DataType.Text:
+                case DataFam.Text:
                     return "TEXT";
             }
             return base.DbDataTypeToSQL(type);
         }
 
-        public override DataType GetDataType(string? dataType, string? columnType, int? length, int? precision, int? scale)
+        public override DataFam GetDataType(string? dataType, string? columnType=null)
         {
             return dataType?.ToLowerInvariant() switch
             {
-                "tinyint unsigned" => DataType.Byte,
-                "smallint unsigned" => DataType.UInt16,
-                "mediumint unsigned" => DataType.UInt32,
-                "int unsigned" => DataType.UInt32,
-                "bigint unsigned" => DataType.UInt64,
-                "bool" => DataType.SByte, // tinyint(1) alias
-                "bit" => DataType.BitArray,
-                "blob" => DataType.Blob,
-                "tinyblob" => DataType.Blob,
-                "mediumblob" => DataType.Blob,
-                "longblob" => DataType.Blob,
-                "binary" => DataType.Binary,
-                "varbinary" => DataType.VarBinary,
-                "date" => DataType.Date,
-                "datetime" => DataType.DateTime,
-                "timestamp" => DataType.DateTime,
-                "time" => DataType.Time,
-                "char" => DataType.Char,
-                "varchar" => DataType.VarChar,
-                "set" => DataType.VarChar,
-                "enum" => DataType.VarChar,
-                "tinytext" => DataType.Text,
-                "text" => DataType.Text,
-                "mediumtext" => DataType.Text,
-                "longtext" => DataType.Text,
-                "double" => DataType.Double,
-                "float" => DataType.Single,
-                "tinyint" => columnType != null && columnType.Contains("unsigned") ? DataType.Byte : DataType.SByte,
-                "smallint" => columnType != null && columnType.Contains("unsigned") ? DataType.UInt16 : DataType.Int16,
-                "int" => columnType != null && columnType.Contains("unsigned") ? DataType.UInt32 : DataType.Int32,
-                "year" => DataType.Int32,
-                "mediumint" => columnType != null && columnType.Contains("unsigned") ? DataType.UInt32 : DataType.Int32,
-                "bigint" => columnType != null && columnType.Contains("unsigned") ? DataType.UInt64 : DataType.Int64,
-                "decimal" => DataType.Decimal,
-                "json" => DataType.Json,
-                _ => DataType.Undefined,
+                "tinyint unsigned" => DataFam.Byte,
+                "smallint unsigned" => DataFam.UInt16,
+                "mediumint unsigned" => DataFam.UInt32,
+                "int unsigned" => DataFam.UInt32,
+                "bigint unsigned" => DataFam.UInt64,
+                "bool" => DataFam.SByte, // tinyint(1) alias
+                "bit" => DataFam.BitArray,
+                "blob" => DataFam.Blob,
+                "tinyblob" => DataFam.Blob,
+                "mediumblob" => DataFam.Blob,
+                "longblob" => DataFam.Blob,
+                "binary" => DataFam.Binary,
+                "varbinary" => DataFam.VarBinary,
+                "date" => DataFam.Date,
+                "datetime" => DataFam.DateTime,
+                "timestamp" => DataFam.DateTime,
+                "time" => DataFam.Time,
+                "char" => DataFam.Char,
+                "varchar" => DataFam.VarChar,
+                "set" => DataFam.VarChar,
+                "enum" => DataFam.VarChar,
+                "tinytext" => DataFam.Text,
+                "text" => DataFam.Text,
+                "mediumtext" => DataFam.Text,
+                "longtext" => DataFam.Text,
+                "double" => DataFam.Double,
+                "float" => DataFam.Single,
+                "tinyint" => columnType != null && columnType.Contains("unsigned") ? DataFam.Byte : DataFam.SByte,
+                "smallint" => columnType != null && columnType.Contains("unsigned") ? DataFam.UInt16 : DataFam.Int16,
+                "int" => columnType != null && columnType.Contains("unsigned") ? DataFam.UInt32 : DataFam.Int32,
+                "year" => DataFam.Int32,
+                "mediumint" => columnType != null && columnType.Contains("unsigned") ? DataFam.UInt32 : DataFam.Int32,
+                "bigint" => columnType != null && columnType.Contains("unsigned") ? DataFam.UInt64 : DataFam.Int64,
+                "decimal" => DataFam.Decimal,
+                "json" => DataFam.Json,
+                _ => DataFam.Undefined,
             };
         }
 

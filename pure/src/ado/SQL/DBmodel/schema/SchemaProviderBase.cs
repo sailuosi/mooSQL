@@ -37,7 +37,7 @@ namespace mooSQL.data
 			}
 		}
 
-        protected abstract DataType                            GetDataType   (string? dataType, string? columnType, int? length, int? precision, int? scale);
+        protected abstract DataFam                            GetDataType   (string? dataType, string? columnType, int? length, int? precision, int? scale);
 		protected abstract List<TableInfo>                     GetTables     ( GetSchemaOptions options);
 		protected abstract IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options);
 		protected abstract List<ColumnInfo>                    GetColumns    ( GetSchemaOptions options);
@@ -545,7 +545,7 @@ namespace mooSQL.data
 
 		protected virtual string? GetProviderSpecificType(string? dataType) => null;
 
-		protected virtual DataTypeInfo? GetDataType(string? typeName, DataType? dataType, GetSchemaOptions options)
+		protected virtual DataTypeInfo? GetDataType(string? typeName, DataFam? dataType, GetSchemaOptions options)
 		{
 			if (typeName == null)
 				return null;

@@ -131,7 +131,7 @@ namespace mooSQL.data.clip
                 foreach (var item in fidv.ClipFields) {
                     var fid = item.toSQLField(true);
                     var sql = string.Format(" {0} {1}", fid, isDesc ? "DESC" : "ASC");
-                    clip.Context.Builder.orderby(sql);
+                    clip.Context.Builder.orderBy(sql);
                 }
             }
         }

@@ -25,6 +25,10 @@ namespace mooSQL.data
         /// </summary>
         public DbDataType DbType { get; set; }
         /// <summary>
+        /// 类型化的字段类型，如int,varchar,datetime等
+        /// </summary>
+        public DataFam FieldType { get; set; }
+        /// <summary>
         /// 数据库类型，字符串，varchar
         /// </summary>
         public string DbTypeText { get; set; }

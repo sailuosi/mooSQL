@@ -120,7 +120,13 @@ namespace mooSQL.data
         {
             var sql = string.Format(GetColumnInfosByTableNameSql, tableName);
             var res = this.DBLive.ExeQuery<DbColumnInfo>(sql);
-            return res.ToList();
+            var tar= res.ToList();
+            foreach (var it in tar) {
+                if (!string.IsNullOrWhiteSpace(it.DbTypeText)) { 
+                    it.FieldType = this.dialect.mapping.GetDataType(it.DbTypeText);
+                }
+            }
+            return tar;
         }
         public virtual bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         {

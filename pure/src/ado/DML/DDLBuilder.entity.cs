@@ -823,9 +823,9 @@ namespace mooSQL.data
 
         protected virtual void SetDbType(EntityColumn item, DbColumnInfo result)
         {
-            if (!Enum.IsDefined(typeof(DataType), item.DataType))
+            if (!Enum.IsDefined(typeof(DataFam), item.DataType))
             {
-                item.DataType = DataType.VarChar;
+                item.DataType = DataFam.VarChar;
             }
             result.DbType = item.DbType;
             result.DbTypeTextFull = result.DbType.ToDBString();

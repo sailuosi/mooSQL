@@ -36,7 +36,7 @@ namespace mooSQL.data
         /// </summary>
         public SQLSentence sentence;
 
-
+        public SooSQLFunction function;
         public SooOption Option {  get; set; }
         #region 数据库的命令执行方言
         /// <summary>

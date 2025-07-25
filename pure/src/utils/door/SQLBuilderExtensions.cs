@@ -35,20 +35,39 @@ namespace mooSQL.data
             var tar= new SQLBuilder<T>(builder.DBLive);
             return tar;
         }
-
+        /// <summary>
+        /// 使用某个实体类的仓库类。注意！在启用事务时，将继承调用者的事务上下文。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static SooRepository<T> useRepo<T>(this SQLBuilder builder) where T : class, new()
+        {
+            var tar = builder.DBLive.useRepo<T>();
+            if (builder.Executor != null) { 
+                tar.useTransaction(builder.Executor);
+            }
+            return tar;
+        }
 
         /// <summary>
-        /// 默认返回一个新的SQLClip，如果inherit为true则继承当前的上下文。
+        /// 默认返回一个新的SQLClip，如果inherit为true则继承当前的上下文。注意！在启用事务时，将继承调用者的事务上下文。
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
         public static SQLClip useClip(this SQLBuilder builder,bool inherit=false)
         {
-            if (inherit) { 
+            if (inherit)
+            {
                 return builder.MooClient.ClientFactory.useClip(builder.DBLive, builder);
             }
-            var tar= builder.MooClient.ClientFactory.useClip(builder.DBLive,null);
+            else if(builder.Executor !=null){
+                var kit = builder.DBLive.useSQL();
+                kit.useTransaction(builder.Executor);
+                return builder.MooClient.ClientFactory.useClip(builder.DBLive, kit);
+            }
+            var tar = builder.MooClient.ClientFactory.useClip(builder.DBLive, null);
             return tar;
         }
         /// <summary>

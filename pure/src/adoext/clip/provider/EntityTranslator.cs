@@ -80,13 +80,13 @@ namespace mooSQL.data
                 var val = col.PropertyInfo.GetValue(entity);
                 if (val == null)
                 {
-                    throw new Exception("无法删除！要删除的实体属性其where条件字段值为空！");
+                    throw new Exception("设置主键失败！要操作的实体属性其where条件字段值为空！");
                 }
                 builder.where(col.DbColumnName, val);
             }
             if (gotWhere == false && builder.ConditionCount == 0)
             {
-                throw new Exception("无法删除！未找到主键或者where条件未定义！");
+                throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
             }
         }
         public void prepareDelete<T>(SQLBuilder builder, T entity)
@@ -312,16 +312,16 @@ namespace mooSQL.data
                     if (string.IsNullOrWhiteSpace(ob.order))
                     {
                         //默认升序排序
-                        kit.orderby(field + " ASC ");
+                        kit.orderBy(field + " ASC ");
                         continue;
                     }
                     var des = ob.order.Trim().ToLower();
                     if (des == "desc")
                     {
-                        kit.orderby(field + " DESC ");
+                        kit.orderBy(field + " DESC ");
                         continue;
                     }
-                    kit.orderby(field + " ASC ");
+                    kit.orderBy(field + " ASC ");
                     continue;
                 }
 
@@ -352,11 +352,11 @@ namespace mooSQL.data
                     }
                     else if (ob.OType == OrderType.ASC)
                     {
-                        kit.orderby(fie + " ASC ");
+                        kit.orderBy(fie + " ASC ");
                     }
                     else if (ob.OType == OrderType.DESC)
                     {
-                        kit.orderby(fie + " DESC ");
+                        kit.orderBy(fie + " DESC ");
                     }
                 }
             }

@@ -82,7 +82,7 @@ namespace mooSQL.data
         public bool IsIgnore { get;  set; }
 
         public DbDataType DbType { get; set; }
-        public DataType DataType { get; set; }
+        public DataFam DataType { get; set; }
         /// <summary>
         /// 数值精度
         /// </summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -95,6 +96,49 @@ namespace mooSQL.utils
                 return v;
             }
             return defaultVal;
+        }
+        // 常见日期格式集合（可根据需求扩展）
+        private static readonly string[] CommonFormats = new[]
+        {
+            "yyyy-MM-dd",
+            "yyyy/MM/dd",
+            "MM/dd/yyyy",
+            "dd-MMM-yyyy",
+            "yyyyMMdd",
+            "yyyy-MM-ddTHH:mm:ss", // ISO 8601
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss",
+            "MM/dd/yyyy HH:mm:ss",
+            "dd-MMM-yyyy HH:mm:ss",
+            "yyyyMMddHHmmss",
+            "yyyy-MM-ddTHH:mm:ss.fffZ" // ISO 8601 with timezone
+        };
+
+        /// <summary>
+        /// 安全解析日期字符串
+        /// </summary>
+        /// <param name="dateString">日期字符串</param>
+        /// <param name="result">输出DateTime对象</param>
+        /// <param name="culture">可选文化信息</param>
+        /// <returns>是否解析成功</returns>
+        public static bool asDateTimeFull(string dateString, out DateTime result, CultureInfo culture = null)
+        {
+            result = DateTime.MinValue;
+            if (string.IsNullOrWhiteSpace(dateString))
+                return false;
+
+            culture = culture ?? CultureInfo.InvariantCulture;
+
+            // 先尝试精确匹配常见格式
+            if (DateTime.TryParseExact(dateString, CommonFormats, culture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out result))
+            {
+                return true;
+            }
+
+            // 尝试宽松解析（性能较差，作为备选方案）
+            return DateTime.TryParse(dateString, culture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out result);
         }
         /// <summary>
         /// 

@@ -24,7 +24,13 @@ namespace mooSQL.data
         protected DBInstance DBLive;
 
         private Action<string> _onPrint;
-
+        /// <summary>
+        /// 事务执行器，用于执行SQL语句。
+        /// </summary>
+        public DBExecutor Executor { get; private set; }
+        /// <summary>
+        /// 实体转换器，用于将数据库字段转换为实体属性
+        /// </summary>
         public EntityTranslator Translator { get; set; }
         /// <summary>
         /// 基础仓储实现
@@ -44,6 +50,17 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 注册一个事务上下午，将被后续的执行所使用
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public SooRepository<T> useTransaction(DBExecutor executor)
+        {
+            this.Executor = executor;
+            return this;
+        }
+
+        /// <summary>
         /// 获取SQL构建器实例，用于构建SQL语句。
         /// </summary>
         /// <returns></returns>
@@ -52,7 +69,8 @@ namespace mooSQL.data
             if (this._onPrint != null) {
                 kit.print(this._onPrint);
             }
-            
+            if (this.Executor != null)
+                kit.useTransaction(this.Executor);
             return kit;
         }
         /// <summary>
@@ -302,6 +320,9 @@ namespace mooSQL.data
             var fkVals = new List<R>() { parentVal };
             var res = new List<T>();
             var pk = pks[0];
+            //为防止自循环，过滤已加载的ID
+            var loadedIds = new List<R>() { parentVal };
+
             while (fkVals.Count > 0) { 
                 var lvlist= this.LoadChildValues(kit,  en.DbTableName, fid,  fkVals,filterMore);
                 if(lvlist==null || lvlist.Count==0)
@@ -312,8 +333,9 @@ namespace mooSQL.data
                 var lvPks= new List<R>();
                 foreach (var lvitem in lvlist) { 
                     var pkVal= (R)pk.PropertyInfo.GetValue(lvitem) ;
-                    if (pkVal != null) { 
+                    if (pkVal != null && !loadedIds.Contains(pkVal)) {
                         lvPks.Add(pkVal);
+                        loadedIds.Add(pkVal);
                     }
                 }
                 fkVals = lvPks;
@@ -344,6 +366,8 @@ namespace mooSQL.data
                 .query<T>()
                 .ToList();
         }
+
+
         /// <summary>
         /// 获取树形列表数据，支持最多50层递归查询。
         /// </summary>
@@ -379,8 +403,11 @@ namespace mooSQL.data
             var topNodes= new List<TreeNodeOutput<T>>();
 
 
-            var lvNodes = topNodes;
+            var preLvNodes = topNodes;
             var total = 0;
+            //为防止自循环和无限循环，每次取下级时，如果其主键在之前取过的父级中，则忽略它。
+            var paPks = new List<R>() { parentVal };
+
             while (fkVals.Count > 0)
             {
                 var lvlist = this.LoadChildValues(kit, en.DbTableName, fid, fkVals,filterMore);
@@ -388,16 +415,17 @@ namespace mooSQL.data
                     break;
 
                 //获取主键值
-
+                var lvNodes= new List<TreeNodeOutput<T>>();
                 var lvPks = new List<R>();
                 foreach (var lvitem in lvlist)
                 {
                     //获取主键值
                     var pkObj = pk.PropertyInfo.GetValue(lvitem);
                     var pkVal = (R)pkObj;
-                    if (pkVal != null)
+                    if (pkVal != null  && !paPks.Contains(pkVal))
                     {
                         lvPks.Add(pkVal);
+                        paPks.Add(pkVal);
                     }
                     //外键值
                     var fkVal = fk.PropertyInfo.GetValue(lvitem);
@@ -410,8 +438,9 @@ namespace mooSQL.data
                         PKValue = pkVal,
                         FKValue = fkR
                     };
+                    lvNodes.Add(nodeVal);
                     bool isTop = true;
-                    foreach (var node in lvNodes) {
+                    foreach (var node in preLvNodes) {
 
                         if (node.PKValue.ToString() == fkR.ToString()) {
                             node.Children.Add(nodeVal);
@@ -420,13 +449,15 @@ namespace mooSQL.data
                             break;
                         }
                     }
-                    if (isTop) { 
+                    if (isTop && fkR.ToString()==parentVal.ToString()) { 
                         topNodes.Add(nodeVal);
                         total++;
                     }
                 }
                 fkVals = lvPks;
                 lv++;
+                //初始化下一层的节点集合
+                preLvNodes= lvNodes;
                 if (lv > 50) throw new NotSupportedException("递归层级过多，可能存在无限循环！最大支持50层！");
             }
             res.Nodes = topNodes;
@@ -468,7 +499,7 @@ namespace mooSQL.data
                         if(!string.IsNullOrWhiteSpace(en.Alias))
                             name = string.Format("{0}.{1}", en.Alias, name);
                         
-                        kit.orderby(name+" desc");
+                        kit.orderBy(name+" desc");
                     }
                     
                 }

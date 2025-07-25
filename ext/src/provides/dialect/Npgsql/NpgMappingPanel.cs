@@ -26,8 +26,8 @@ namespace mooSQL.data.Npgsql
         public NpgMappingPanel() {
             initStringDbTypeMap();
 
-            this.SetDataType<PhysicalAddress>(DataType.Udt);
-            SetDataType<TimeSpan>(DataType.Interval);
+            this.SetDataType<PhysicalAddress>(DataFam.Udt);
+            SetDataType<TimeSpan>(DataFam.Interval);
             //SetDataType<ulong>(DataType.ul);
 
             initValueToSQL();
@@ -196,32 +196,32 @@ namespace mooSQL.data.Npgsql
             NpgsqlDbType? type = null;
             switch (dataType.DataType)
             {
-                case DataType.Money: type = NpgsqlDbType.Money; break;
-                case DataType.Image:
-                case DataType.Binary:
-                case DataType.VarBinary: type = NpgsqlDbType.Bytea; break;
-                case DataType.Boolean: type = NpgsqlDbType.Boolean; break;
-                case DataType.Xml: type = NpgsqlDbType.Xml; break;
-                case DataType.Text:
-                case DataType.NText: type = NpgsqlDbType.Text; break;
-                case DataType.BitArray: type = NpgsqlDbType.Bit; break;
-                case DataType.Dictionary: type = NpgsqlDbType.Hstore; break;
-                case DataType.Json: type = NpgsqlDbType.Json; break;
-                case DataType.BinaryJson: type = NpgsqlDbType.Jsonb; break;
-                case DataType.Interval: type = NpgsqlDbType.Interval; break;
-                case DataType.Int64: type = NpgsqlDbType.Bigint; break;
+                case DataFam.Money: type = NpgsqlDbType.Money; break;
+                case DataFam.Image:
+                case DataFam.Binary:
+                case DataFam.VarBinary: type = NpgsqlDbType.Bytea; break;
+                case DataFam.Boolean: type = NpgsqlDbType.Boolean; break;
+                case DataFam.Xml: type = NpgsqlDbType.Xml; break;
+                case DataFam.Text:
+                case DataFam.NText: type = NpgsqlDbType.Text; break;
+                case DataFam.BitArray: type = NpgsqlDbType.Bit; break;
+                case DataFam.Dictionary: type = NpgsqlDbType.Hstore; break;
+                case DataFam.Json: type = NpgsqlDbType.Json; break;
+                case DataFam.BinaryJson: type = NpgsqlDbType.Jsonb; break;
+                case DataFam.Interval: type = NpgsqlDbType.Interval; break;
+                case DataFam.Int64: type = NpgsqlDbType.Bigint; break;
                 // address npgsql 6.0.0 mapping DateTime by default to timestamptz
-                case DataType.DateTime:
-                case DataType.DateTime2: type = NpgsqlDbType.Timestamp; break;
+                case DataFam.DateTime:
+                case DataFam.DateTime2: type = NpgsqlDbType.Timestamp; break;
                 // npgsql 6.0.0 changed some DbType <-> NpgsqlDbType mappings
                 // while it doesn't look like having any impact on queries
                 // it makes sense to hint more precise types when we know that npgsql use less precise type
                 //
                 // Npgsql default was: NpgsqlDbType.Text
-                case DataType.NChar:
-                case DataType.Char: type = NpgsqlDbType.Char; break;
-                case DataType.NVarChar:
-                case DataType.VarChar: type = NpgsqlDbType.Varchar; break;
+                case DataFam.NChar:
+                case DataFam.Char: type = NpgsqlDbType.Char; break;
+                case DataFam.NVarChar:
+                case DataFam.VarChar: type = NpgsqlDbType.Varchar; break;
             }
 
             if (!string.IsNullOrEmpty(dataType.DbType))
@@ -238,72 +238,72 @@ namespace mooSQL.data.Npgsql
 
             switch (dataType.DataType)
             {
-                case DataType.SByte: parameter.DbType = DbType.Int16; return;
-                case DataType.UInt16: parameter.DbType = DbType.Int32; return;
-                case DataType.UInt32: parameter.DbType = DbType.Int64; return;
-                case DataType.UInt64:
-                case DataType.VarNumeric: parameter.DbType = DbType.Decimal; return;
-                case DataType.DateTime2: parameter.DbType = DbType.DateTime; return;
+                case DataFam.SByte: parameter.DbType = DbType.Int16; return;
+                case DataFam.UInt16: parameter.DbType = DbType.Int32; return;
+                case DataFam.UInt32: parameter.DbType = DbType.Int64; return;
+                case DataFam.UInt64:
+                case DataFam.VarNumeric: parameter.DbType = DbType.Decimal; return;
+                case DataFam.DateTime2: parameter.DbType = DbType.DateTime; return;
                 // fallback mappings
-                case DataType.Money: parameter.DbType = DbType.Currency; break;
-                case DataType.Xml: parameter.DbType = DbType.Xml; break;
-                case DataType.Text: parameter.DbType = DbType.AnsiString; break;
-                case DataType.NText: parameter.DbType = DbType.String; break;
-                case DataType.Image:
-                case DataType.Binary:
-                case DataType.VarBinary: parameter.DbType = DbType.Binary; break;
+                case DataFam.Money: parameter.DbType = DbType.Currency; break;
+                case DataFam.Xml: parameter.DbType = DbType.Xml; break;
+                case DataFam.Text: parameter.DbType = DbType.AnsiString; break;
+                case DataFam.NText: parameter.DbType = DbType.String; break;
+                case DataFam.Image:
+                case DataFam.Binary:
+                case DataFam.VarBinary: parameter.DbType = DbType.Binary; break;
                 // those types doesn't have fallback DbType
-                case DataType.BitArray: parameter.DbType = DbType.Binary; break;
-                case DataType.Dictionary: parameter.DbType = DbType.Object; break;
-                case DataType.Json: parameter.DbType = DbType.String; break;
-                case DataType.BinaryJson: parameter.DbType = DbType.String; break;
+                case DataFam.BitArray: parameter.DbType = DbType.Binary; break;
+                case DataFam.Dictionary: parameter.DbType = DbType.Object; break;
+                case DataFam.Json: parameter.DbType = DbType.String; break;
+                case DataFam.BinaryJson: parameter.DbType = DbType.String; break;
             }
 
             base.SetParameterType(dataConnection, parameter, dataType);
         }
 
 
-        public override DataType GetDataType(string? dataType, string? columnType, int? length, int? precision, int? scale)
+        public override DataFam GetDataType(string? dataType, string? columnType=null)
         {
             if (dataType == null)
-                return DataType.Undefined;
+                return DataFam.Undefined;
             //dataType = SimplifyDataType(dataType);
             switch (dataType)
             {
                 case "bpchar":
-                case "character": return DataType.NChar;
-                case "text": return DataType.Text;
+                case "character": return DataFam.NChar;
+                case "text": return DataFam.Text;
                 case "int2":
-                case "smallint": return DataType.Int16;
+                case "smallint": return DataFam.Int16;
                 case "oid":
                 case "xid":
                 case "int4":
-                case "integer": return DataType.Int32;
+                case "integer": return DataFam.Int32;
                 case "int8":
-                case "bigint": return DataType.Int64;
+                case "bigint": return DataFam.Int64;
                 case "float4":
-                case "real": return DataType.Single;
+                case "real": return DataFam.Single;
                 case "float8":
-                case "double precision": return DataType.Double;
-                case "bytea": return DataType.Binary;
+                case "double precision": return DataFam.Double;
+                case "bytea": return DataFam.Binary;
                 case "bool":
-                case "boolean": return DataType.Boolean;
-                case "numeric": return DataType.Decimal;
-                case "money": return DataType.Money;
-                case "uuid": return DataType.Guid;
+                case "boolean": return DataFam.Boolean;
+                case "numeric": return DataFam.Decimal;
+                case "money": return DataFam.Money;
+                case "uuid": return DataFam.Guid;
                 case "varchar":
-                case "character varying": return DataType.NVarChar;
+                case "character varying": return DataFam.NVarChar;
                 case "timestamptz":
-                case "timestamp with time zone": return DataType.DateTimeOffset;
+                case "timestamp with time zone": return DataFam.DateTimeOffset;
                 case "timestamp":
-                case "timestamp without time zone": return DataType.DateTime2;
+                case "timestamp without time zone": return DataFam.DateTime2;
                 case "timetz":
                 case "time with time zone":
                 case "time":
-                case "time without time zone": return DataType.Time;
-                case "interval": return DataType.Interval;
-                case "date": return DataType.Date;
-                case "xml": return DataType.Xml;
+                case "time without time zone": return DataFam.Time;
+                case "interval": return DataFam.Interval;
+                case "date": return DataFam.Date;
+                case "xml": return DataFam.Xml;
                 case "point":
                 case "lseg":
                 case "box":
@@ -318,16 +318,16 @@ namespace mooSQL.data.Npgsql
                 case "ARRAY":
                 case "anyarray":
                 case "anyelement":
-                case "USER-DEFINED": return DataType.Udt;
+                case "USER-DEFINED": return DataFam.Udt;
                 case "bit":
                 case "bit varying":
-                case "varbit": return DataType.BitArray;
-                case "hstore": return DataType.Dictionary;
-                case "json": return DataType.Json;
-                case "jsonb": return DataType.BinaryJson;
+                case "varbit": return DataFam.BitArray;
+                case "hstore": return DataFam.Dictionary;
+                case "json": return DataFam.Json;
+                case "jsonb": return DataFam.BinaryJson;
             }
 
-            return DataType.Undefined;
+            return DataFam.Undefined;
         }
 
 

@@ -31,8 +31,8 @@ namespace mooSQL.data.reader
                 }
                 return default;
             }
-            //throw new InvalidOperationException("泛型类型不匹配：T需为string，R需为Guid");
-            return default;
+                //throw new InvalidOperationException("泛型类型不匹配：T需为string，R需为Guid");
+                return default;
             /*
             if (RegxUntils.isGUID(s)) {
                 return Guid.Parse(s);
@@ -40,6 +40,29 @@ namespace mooSQL.data.reader
             
             return Guid.Empty;*/
              // 或者使用 Guid.TryParse 来处理可能的转换失败
+        }
+        public static R ByteArrToString<T, R>(T s, DBInstance db)
+        {
+            var valType = typeof(R);
+            var utype = valType;
+            if (valType.IsNullable() && valType.GetGenericArguments()[0] == typeof(string))
+            {
+                utype = valType.UnwrapNullable();
+            }
+
+            if (typeof(T) == typeof(byte[]) && utype == typeof(string))
+            {
+                var val = s as byte[];
+                var v= Encoding.UTF8.GetString(val);
+                return (R)(object)v;
+            }
+            //throw new InvalidOperationException("泛型类型不匹配：T需为string，R需为Guid");
+            return default;
+
+        }
+        public static object ChangeType(object value, Type conversionType, IFormatProvider provider) { 
+            return System.Convert.ChangeType(value, conversionType, provider);
+        
         }
 
         public static R Convert<T, R>(params object[] values)

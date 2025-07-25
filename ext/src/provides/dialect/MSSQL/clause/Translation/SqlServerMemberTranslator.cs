@@ -17,7 +17,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 		protected class SqlTypesTranslation : SqlTypesTranslationDefault
 		{
 			protected override Expression? ConvertDateTimeOffset(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.DateTime));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.DateTime));
 		}
 
 		public class SqlServerDateFunctionsTranslator : DateFunctionsTranslatorBase
@@ -95,7 +95,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
                 IExpWord?     millisecond)
 			{
 				var factory        = translationContext.ExpressionFactory;
-				var stringDataType = factory.GetDbDataType(typeof(string)).WithDataType(DataType.VarChar);
+				var stringDataType = factory.GetDbDataType(typeof(string)).WithDataType(DataFam.VarChar);
 				var intDataType    = factory.GetDbDataType(typeof(int));
 
                 IExpWord CastToLength(IExpWord expression, int stringLength)
@@ -149,7 +149,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 			protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
 				var factory = translationContext.ExpressionFactory;
-				var cast    = factory.Cast(dateExpression, factory.GetDbDataType(dateExpression).WithDataType(DataType.Date), true);
+				var cast    = factory.Cast(dateExpression, factory.GetDbDataType(dateExpression).WithDataType(DataFam.Date), true);
 
 				return cast;
 			}

@@ -15,53 +15,53 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 		class SqlTypesTranslation : SqlTypesTranslationDefault
 		{
 			protected override Expression? ConvertBit(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Boolean));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Boolean));
 
 			protected override Expression? ConvertTinyInt(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Int16));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Int16));
 
 			protected override Expression? ConvertMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(19, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(19, 4));
 
 			protected override Expression? ConvertSmallMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(10, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(10, 4));
 
 			protected override Expression? ConvertFloat(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(29, 10));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(29, 10));
 
 			protected override Expression? ConvertReal(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(29, 10));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(29, 10));
 
 			protected override Expression? ConvertDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.DateTime));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.DateTime));
 
 			protected override Expression? ConvertSmallDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.DateTime));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.DateTime));
 
 			protected override Expression? ConvertVarChar(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 			{
 				if (!translationContext.TryEvaluate<int>(methodCall.Arguments[0], out var length))
 					return null;
 
-				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataType.Char));
+				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.Char));
 			}
 
 			protected override Expression? ConvertDefaultChar(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Char));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Char));
 
 			protected override Expression? ConvertNVarChar(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 			{
 				if (!translationContext.TryEvaluate<int>(methodCall.Arguments[0], out var length))
 					return null;
 
-				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataType.Char));
+				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.Char));
 			}
 
 			protected override Expression? ConvertDefaultNVarChar(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
 			{
 				var dbDataType = translationContext.DBLive.dialect.mapping.GetDbDataType(typeof(string));
 
-				dbDataType = dbDataType.WithDataType(DataType.Char);
+				dbDataType = dbDataType.WithDataType(DataFam.Char);
 
 				return translationContext.CreatePlaceholder(translationContext.CurrentSelectQuery, new ValueWord(dbDataType, ""), memberExpression);
 			}
@@ -123,7 +123,7 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 				var factory       = translationContext.ExpressionFactory;
 				var dateType      = factory.GetDbDataType(dateTimeExpression);
 				var intDbType     = factory.GetDbDataType(typeof(int));
-				var intervalType  = intDbType.WithDataType(DataType.Interval);
+				var intervalType  = intDbType.WithDataType(DataFam.Interval);
 
 				string expStr;
 				switch (datepart)

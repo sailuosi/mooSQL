@@ -14,36 +14,36 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 		class SqlTypesTranslation : SqlTypesTranslationDefault
 		{
 			protected override Expression? ConvertTinyInt(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Int16));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Int16));
 
 			protected override Expression? ConvertMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(19, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(19, 4));
 
 			protected override Expression? ConvertSmallMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(10, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(10, 4));
 
 			protected override Expression? ConvertDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Timestamp));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
 
 			protected override Expression? ConvertDateTime2(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Timestamp));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
 
 			protected override Expression? ConvertSmallDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Timestamp));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
 
 			protected override Expression? ConvertDateTimeOffset(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Timestamp));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
 
 			protected override Expression? ConvertNVarChar(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 			{
 				if (!translationContext.TryEvaluate<int>(methodCall.Arguments[0], out var length))
 					return null;
 
-				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataType.VarChar));
+				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.VarChar));
 			}
 
 			protected override Expression? ConvertDefaultNVarChar(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.VarChar));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.VarChar));
 		}
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
@@ -129,7 +129,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 
 				var dateTruncExpression = factory.Function(factory.GetDbDataType(dateExpression), "Date_Trunc", factory.Value("day"), atTimeZone);
 
-				dateTruncExpression = factory.Cast(dateTruncExpression, factory.GetDbDataType(typeof(DateTime)).WithDataType(DataType.Date));
+				dateTruncExpression = factory.Cast(dateTruncExpression, factory.GetDbDataType(typeof(DateTime)).WithDataType(DataFam.Date));
 
 				return dateTruncExpression;
 			}
@@ -137,7 +137,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
-				var intervalType = factory.GetDbDataType(typeof(TimeSpan)).WithDataType(DataType.Interval);
+				var intervalType = factory.GetDbDataType(typeof(TimeSpan)).WithDataType(DataFam.Interval);
 
                 IExpWord ToInterval(IExpWord numberExpression, string intervalKind)
 				{

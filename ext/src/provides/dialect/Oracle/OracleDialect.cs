@@ -23,6 +23,7 @@ namespace mooSQL.data
             clauseTranslator = new OracleClauseTranslator(this);
 
             mapping = new OracleMappingPanel();
+            function = new OracleSQLFunction();
         }
 
 
@@ -123,29 +124,29 @@ namespace mooSQL.data
         private OracleDbType? ConvertParaType(DbDataType type) {
             switch (type.DataType)
             {
-                case DataType.BFile: return OracleDbType.BFile; 
-                case DataType.Xml: return OracleDbType.XmlType; 
-                case DataType.Single:return OracleDbType.BinaryFloat; 
-                case DataType.Double:return OracleDbType.BinaryDouble; 
-                case DataType.Text:return OracleDbType.Clob; 
-                case DataType.NText:return OracleDbType.NClob; 
-                case DataType.Image:
-                case DataType.Blob:return OracleDbType.Blob; 
-                case DataType.Binary:
-                case DataType.VarBinary:
+                case DataFam.BFile: return OracleDbType.BFile; 
+                case DataFam.Xml: return OracleDbType.XmlType; 
+                case DataFam.Single:return OracleDbType.BinaryFloat; 
+                case DataFam.Double:return OracleDbType.BinaryDouble; 
+                case DataFam.Text:return OracleDbType.Clob; 
+                case DataFam.NText:return OracleDbType.NClob; 
+                case DataFam.Image:
+                case DataFam.Blob:return OracleDbType.Blob; 
+                case DataFam.Binary:
+                case DataFam.VarBinary:
                     return (type.Length ?? 0) == 0
                         ? OracleDbType.Blob
                         : OracleDbType.Raw;
                     break;
-                case DataType.Cursor:return OracleDbType.RefCursor; 
-                case DataType.NVarChar:return OracleDbType.NVarchar2; 
-                case DataType.Long:return OracleDbType.Long; 
-                case DataType.LongRaw:return OracleDbType.LongRaw;
+                case DataFam.Cursor:return OracleDbType.RefCursor; 
+                case DataFam.NVarChar:return OracleDbType.NVarchar2; 
+                case DataFam.Long:return OracleDbType.Long; 
+                case DataFam.LongRaw:return OracleDbType.LongRaw;
                 
-                case DataType.Guid:return OracleDbType.Raw;
+                case DataFam.Guid:return OracleDbType.Raw;
 #if NETFRAMEWORK
 #else
-                case DataType.Json:return OracleDbType.Json;
+                case DataFam.Json:return OracleDbType.Json;
 #endif
             }
 

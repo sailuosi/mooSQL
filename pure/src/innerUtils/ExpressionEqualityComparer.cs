@@ -15,7 +15,7 @@ namespace mooSQL.linq;
 public sealed class ExpressionEqualityComparer : IEqualityComparer<Expression?>
 {
     /// <summary>
-    ///     Creates a new <see cref="ExpressionEqualityComparer" />.
+    /// 私有构造函数，防止外部实例化。
     /// </summary>
     private ExpressionEqualityComparer()
     {

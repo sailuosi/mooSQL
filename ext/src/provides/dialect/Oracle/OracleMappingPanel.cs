@@ -26,8 +26,8 @@ namespace mooSQL.data.Oracle
         /// </summary>
         public OracleMappingPanel() {
 
-            this.SetDataType<Guid>(DataType.Guid);
-            this.SetDataType<string>(DataType.VarChar);
+            this.SetDataType<Guid>(DataFam.Guid);
+            this.SetDataType<string>(DataFam.VarChar);
 
             SetValueToSql<Guid>((v) => ConvertBinaryToSql(v.ToByteArray()));
             SetValueToSql<string>( ( v) => ConvertStringToSql(v));
@@ -78,10 +78,10 @@ namespace mooSQL.data.Oracle
 
             switch (dataType.DataType)
             {
-                case DataType.DateTimeOffset: if (type == typeof(DateTimeOffset)) return typeof( OracleTimeStampTZ); break;
-                case DataType.Boolean: if (type == typeof(bool)) return typeof(byte); break;
-                case DataType.Guid: if (type == typeof(Guid)) return typeof(byte[]); break;
-                case DataType.Int16: if (type == typeof(bool)) return typeof(short); break;
+                case DataFam.DateTimeOffset: if (type == typeof(DateTimeOffset)) return typeof( OracleTimeStampTZ); break;
+                case DataFam.Boolean: if (type == typeof(bool)) return typeof(byte); break;
+                case DataFam.Guid: if (type == typeof(Guid)) return typeof(byte[]); break;
+                case DataFam.Int16: if (type == typeof(bool)) return typeof(short); break;
             }
 
             return base.ConvertParameterType(type, dataType);
@@ -90,7 +90,7 @@ namespace mooSQL.data.Oracle
         {
             switch (dataType.DataType)
             {
-                case DataType.DateTimeOffset:
+                case DataFam.DateTimeOffset:
                     if (value is DateTimeOffset dto)
                     {
                         dto = dto.WithPrecision(dataType.Precision ?? 6);
@@ -99,41 +99,41 @@ namespace mooSQL.data.Oracle
                     }
                     break;
 
-                case DataType.Boolean:
-                    dataType = dataType.WithDataType(DataType.Byte);
+                case DataFam.Boolean:
+                    dataType = dataType.WithDataType(DataFam.Byte);
                     if (value is bool boolValue)
                         value = boolValue ? (byte)1 : (byte)0;
                     break;
 
-                case DataType.Guid:
-                case DataType.Binary:
-                case DataType.VarBinary:
-                case DataType.Blob:
-                case DataType.Image:
+                case DataFam.Guid:
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
                     // https://github.com/linq2db/linq2db/issues/3207
                     if (value is Guid guid) value = guid.ToByteArray();
                     break;
 
-                case DataType.Time:
+                case DataFam.Time:
                     // According to http://docs.oracle.com/cd/E16655_01/win.121/e17732/featOraCommand.htm#ODPNT258
                     // Inference of DbType and OracleDbType from Value: TimeSpan - Object - IntervalDS
                     if (value is TimeSpan)
-                        dataType = dataType.WithDataType(DataType.Undefined);
+                        dataType = dataType.WithDataType(DataFam.Undefined);
                     break;
 
-                case DataType.BFile:
+                case DataFam.BFile:
                     // TODO: BFile we do not support setting parameter value
                     value = null;
                     break;
 
-                case DataType.DateTime:
+                case DataFam.DateTime:
                     {
                         if (value is DateTime dt)
                             value = dt.WithPrecision(0);
                         break;
                     }
 
-                case DataType.DateTime2:
+                case DataFam.DateTime2:
                     {
                         if (value is DateTime dt)
                             value = dt.WithPrecision(dataType.Precision ?? 6);
@@ -141,15 +141,15 @@ namespace mooSQL.data.Oracle
                     }
 
 #if NET6_0_OR_GREATER
-				case DataType.Date     :
+				case DataFam.Date     :
 					if (value is DateOnly d)
 						value = d.ToDateTime(TimeOnly.MinValue);
 					break;
 #endif
             }
 
-            if (dataType.DataType == DataType.Undefined && value is string @string && @string.Length >= 4000)
-                dataType = dataType.WithDataType(DataType.NText);
+            if (dataType.DataType == DataFam.Undefined && value is string @string && @string.Length >= 4000)
+                dataType = dataType.WithDataType(DataFam.NText);
 
             base.SetParameter(dataConnection, parameter, name, dataType, value);
         }
@@ -158,28 +158,28 @@ namespace mooSQL.data.Oracle
         {
             switch (dataType.DataType)
             {
-                case DataType.Byte:
-                case DataType.SByte: parameter.DbType = DbType.Int16; break;
-                case DataType.UInt16: parameter.DbType = DbType.Int32; break;
-                case DataType.UInt32: parameter.DbType = DbType.Int64; break;
-                case DataType.UInt64:
-                case DataType.VarNumeric: parameter.DbType = DbType.Decimal; break;
-                case DataType.SmallDateTime: parameter.DbType = DbType.Date; break;
-                case DataType.DateTime2: parameter.DbType = DbType.DateTime; break;
-                case DataType.Guid: parameter.DbType = DbType.Binary; break;
-                case DataType.VarChar: parameter.DbType = DbType.String; break;
+                case DataFam.Byte:
+                case DataFam.SByte: parameter.DbType = DbType.Int16; break;
+                case DataFam.UInt16: parameter.DbType = DbType.Int32; break;
+                case DataFam.UInt32: parameter.DbType = DbType.Int64; break;
+                case DataFam.UInt64:
+                case DataFam.VarNumeric: parameter.DbType = DbType.Decimal; break;
+                case DataFam.SmallDateTime: parameter.DbType = DbType.Date; break;
+                case DataFam.DateTime2: parameter.DbType = DbType.DateTime; break;
+                case DataFam.Guid: parameter.DbType = DbType.Binary; break;
+                case DataFam.VarChar: parameter.DbType = DbType.String; break;
 
                 // fallback (probably)
-                case DataType.NVarChar:
-                case DataType.Text:
-                case DataType.NText: parameter.DbType = DbType.String; break;
-                case DataType.Long:
-                case DataType.LongRaw:
-                case DataType.Image:
-                case DataType.Binary:
-                case DataType.Cursor: parameter.DbType = DbType.Binary; break;
-                case DataType.BFile: parameter.DbType = DbType.Binary; break;
-                case DataType.Xml: parameter.DbType = DbType.String; break;
+                case DataFam.NVarChar:
+                case DataFam.Text:
+                case DataFam.NText: parameter.DbType = DbType.String; break;
+                case DataFam.Long:
+                case DataFam.LongRaw:
+                case DataFam.Image:
+                case DataFam.Binary:
+                case DataFam.Cursor: parameter.DbType = DbType.Binary; break;
+                case DataFam.BFile: parameter.DbType = DbType.Binary; break;
+                case DataFam.Xml: parameter.DbType = DbType.String; break;
 
                 default: base.SetParameterType(cmd, parameter, dataType); break;
             }
@@ -214,42 +214,42 @@ namespace mooSQL.data.Oracle
             return base.GetProviderSpecificType(dataType);
         }
 
-        public override DataType GetDataType(string? dataType, string? columnType, int? length, int? precision, int? scale)
+        public override DataFam GetDataType(string? dataType, string? columnType)
         {
             switch (dataType)
             {
-                case "OBJECT": return DataType.Variant;
-                case "BFILE": return DataType.VarBinary;
-                case "BINARY_DOUBLE": return DataType.Double;
-                case "BINARY_FLOAT": return DataType.Single;
-                case "BINARY_INTEGER": return DataType.Int32;
-                case "BLOB": return DataType.Blob;
-                case "CHAR": return DataType.Char;
-                case "CLOB": return DataType.Text;
-                case "DATE": return DataType.DateTime;
-                case "FLOAT": return DataType.Decimal;
-                case "LONG": return DataType.Long;
-                case "LONG RAW": return DataType.LongRaw;
-                case "NCHAR": return DataType.NChar;
-                case "NCLOB": return DataType.NText;
-                case "NUMBER": return DataType.Decimal;
-                case "NVARCHAR2": return DataType.NVarChar;
-                case "RAW": return DataType.Binary;
-                case "VARCHAR2": return DataType.VarChar;
-                case "XMLTYPE": return DataType.Xml;
-                case "ROWID": return DataType.VarChar;
-                case "REF CURSOR": return DataType.Cursor;
+                case "OBJECT": return DataFam.Variant;
+                case "BFILE": return DataFam.VarBinary;
+                case "BINARY_DOUBLE": return DataFam.Double;
+                case "BINARY_FLOAT": return DataFam.Single;
+                case "BINARY_INTEGER": return DataFam.Int32;
+                case "BLOB": return DataFam.Blob;
+                case "CHAR": return DataFam.Char;
+                case "CLOB": return DataFam.Text;
+                case "DATE": return DataFam.DateTime;
+                case "FLOAT": return DataFam.Decimal;
+                case "LONG": return DataFam.Long;
+                case "LONG RAW": return DataFam.LongRaw;
+                case "NCHAR": return DataFam.NChar;
+                case "NCLOB": return DataFam.NText;
+                case "NUMBER": return DataFam.Decimal;
+                case "NVARCHAR2": return DataFam.NVarChar;
+                case "RAW": return DataFam.Binary;
+                case "VARCHAR2": return DataFam.VarChar;
+                case "XMLTYPE": return DataFam.Xml;
+                case "ROWID": return DataFam.VarChar;
+                case "REF CURSOR": return DataFam.Cursor;
                 default:
                     if (dataType?.StartsWith("TIMESTAMP") == true)
-                        return dataType.EndsWith("TIME ZONE") ? DataType.DateTimeOffset : DataType.DateTime2;
+                        return dataType.EndsWith("TIME ZONE") ? DataFam.DateTimeOffset : DataFam.DateTime2;
                     if (dataType?.StartsWith("INTERVAL DAY") == true)
-                        return DataType.Time;
+                        return DataFam.Time;
                     if (dataType?.StartsWith("INTERVAL YEAR") == true)
-                        return DataType.Int64;
+                        return DataFam.Int64;
                     break;
             }
 
-            return DataType.Undefined;
+            return DataFam.Undefined;
         }
 
 
@@ -309,10 +309,10 @@ namespace mooSQL.data.Oracle
 #endif
             switch (dataType.DataType)
             {
-                case DataType.Date:
+                case DataFam.Date:
                     format = DATE_FORMAT;
                     break;
-                case DataType.DateTime2:
+                case DataFam.DateTime2:
                     switch (dataType.Precision)
                     {
                         case 0: format = TIMESTAMP0_FORMAT; break;
@@ -326,7 +326,7 @@ namespace mooSQL.data.Oracle
                         default: format = TIMESTAMP6_FORMAT; break;
                     }
                     break;
-                case DataType.DateTimeOffset:
+                case DataFam.DateTimeOffset:
                     // just use UTC literal
                     value = value.ToUniversalTime();
                     switch (dataType.Precision)
@@ -342,7 +342,7 @@ namespace mooSQL.data.Oracle
                         default: format = TIMESTAMPTZ6_FORMAT; break;
                     }
                     break;
-                case DataType.DateTime:
+                case DataFam.DateTime:
                 default:
                     format = DATETIME_FORMAT;
                     break;

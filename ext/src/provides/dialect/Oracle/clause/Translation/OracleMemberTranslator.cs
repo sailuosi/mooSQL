@@ -15,17 +15,17 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 		class SqlTypesTranslation : SqlTypesTranslationDefault
 		{
 			protected override Expression? ConvertMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(19, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(19, 4));
 
 			protected override Expression? ConvertSmallMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
-				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataType.Decimal).WithPrecisionScale(10, 4));
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(10, 4));
 
 			protected override Expression? ConvertNVarChar(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 			{
 				if (!translationContext.TryEvaluate<int>(methodCall.Arguments[0], out var length))
 					return null;
 
-				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataType.VarChar).WithDbType($"VarChar2({length.ToString(CultureInfo.InvariantCulture)})"));
+				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.VarChar).WithDbType($"VarChar2({length.ToString(CultureInfo.InvariantCulture)})"));
 			}
 		}
 
@@ -97,7 +97,7 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 			{
 				var factory      = translationContext.ExpressionFactory;
 				var dateType     = factory.GetDbDataType(dateTimeExpression);
-				var intervalType = factory.GetDbDataType(increment).WithDataType(DataType.Interval);
+				var intervalType = factory.GetDbDataType(increment).WithDataType(DataFam.Interval);
 
 				string expStr;
 				switch (datepart)
@@ -186,7 +186,7 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 				var factory = translationContext.ExpressionFactory;
 				var dateType = factory.GetDbDataType(dateExpression);
 
-				var resultExpression = factory.Function(dateType.WithDataType(DataType.Time), "TO_CHAR", dateExpression, factory.Value("HH24:MI:SS"));
+				var resultExpression = factory.Function(dateType.WithDataType(DataFam.Time), "TO_CHAR", dateExpression, factory.Value("HH24:MI:SS"));
 
 				return resultExpression;
 			}
