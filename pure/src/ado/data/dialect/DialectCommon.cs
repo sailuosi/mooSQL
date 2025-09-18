@@ -21,5 +21,26 @@ namespace mooSQL.data
             }
             return sql.ToString();
         }
+
+
+        protected DBVersion CheckVersion() {
+            if (this.Versions != null) {
+                //倒序检查
+                var verCode = this.db.version;
+                var verNum = this.db.versionNumber;
+                for (int i = this.Versions.Count - 1; i >= 0; i--) {
+                    var v=this.Versions[i];
+                    if (verCode.HasText() && Regex.IsMatch(verCode, v.MatchRegex)) {
+                        return v;
+                    }
+                    //设置了版本号，
+                    if (verNum > 0 && v.VersionNumber <= verNum) { 
+                        return v;
+                    }
+                }
+            
+            }
+            return null;
+        }
     }
 }

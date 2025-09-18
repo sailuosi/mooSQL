@@ -92,7 +92,7 @@ namespace mooSQL.data.builder
         /// <summary>
         /// update 语句的 set 内容
         /// </summary>
-        public string setInner = "";
+        //public string setInner = "";
 
 
         // delete 语句
@@ -129,8 +129,60 @@ namespace mooSQL.data.builder
         /// <summary>
         ///     转置的配置
         /// </summary>
-        public PivotItem pivot;
+        public List<PivotItem> pivots;
 
-        public UnpivotItem unpivot;
+        public List<UnpivotItem> unpivots;
+        /// <summary>
+        /// update语句的set 部分配置项集合
+        /// </summary>
+        public List<FragSetPart> setPart { get; set; }
+    }
+    /// <summary>
+    /// update语句的set 部分配置项
+    /// </summary>
+    public class FragSetPart {
+        public string field;
+
+        public string value;
+    }
+
+    public class FragMergeInto {
+        /// <summary>
+        /// 目标表
+        /// </summary>
+        public string intoTable { get; set; }
+        /// <summary>
+        /// 目标表别名
+        /// </summary>
+        public string intoAlias { get; set; }
+        /// <summary>
+        /// 源表
+        /// </summary>
+        public string usingTable { get; set; }
+
+        /// <summary>
+        /// 源表别名
+        /// </summary>
+        public string usingAlias { get; set; }
+        /// <summary>
+        /// 桥接条件
+        /// </summary>
+        public string onPart { get; set; }
+
+
+        public List<FragMergeWhen> mergeWhens;
+    }
+
+    /// <summary>
+    /// merge into 语句的when 部分配置项
+    /// </summary>
+    public class FragMergeWhen {
+        public bool matched;
+        public string whenWhere;
+        public MergeAction action;
+
+        public string fieldInner;
+        public string valueInner;
+        public List<FragSetPart> setInner;
     }
 }

@@ -49,9 +49,10 @@ namespace mooSQL.data.context
                 foreach (var kv in this.para.value)
                 {
                     //把占位变量名，替换为数据库认可的注册变量名。
-                    if (kv.Value.CheckRaw(prefix))
+                    if (kv.Value.CheckRaw(prefix,this.cmdText,out var newSQL))
                     {
-                        this.cmdText = this.cmdText.Replace(kv.Value.rawHolder, kv.Value.key);
+                        this.cmdText = newSQL;
+                           // this.cmdText.Replace(kv.Value.rawHolder, kv.Value.key);
                     }
                 }
             }

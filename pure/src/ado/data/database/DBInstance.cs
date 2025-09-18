@@ -113,7 +113,6 @@ namespace mooSQL.data
         /// <summary>
         /// 开放准备好的cmd，由用户自定义执行
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
         /// <param name="sql"></param>
         /// <param name="para"></param>
@@ -140,22 +139,15 @@ namespace mooSQL.data
 
         private R PrepareSession<R>(Func<ExeContext, R> onrun)
         {
-            //创建请求上下文
-            ExeContext context = prepare(new SQLCmd());
-            try
-            {
-                context.session.Open(context);
-                return onrun(context);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-                context.session.Dispose();
+            using (var runner = new DBExecutor(this)) { 
+                return runner.PrepareSession<R>(onrun);
             }
         }
+        /// <summary>
+        /// 获取数据库架构信息，例如表结构等。 若不指定collectionName,则返回所有集合的架构信息。 若指定了collectionName，则只返回该集合的架构信息。 若要获取特定类型的架构信息，请使用GetSchema(string collectionName)方法。
+        /// </summary>
+        /// <param name="collectionName"></param>
+        /// <returns></returns>
         public DataTable GetSchema(string collectionName="")
         {
             return PrepareSession((context) =>
@@ -168,7 +160,10 @@ namespace mooSQL.data
                 return dt;
             });
         }
-        //
+        /// <summary>
+        /// 获取数据库数据源信息。 
+        /// </summary>
+        /// <returns></returns>
         public string GetDataSource()
         {
             return PrepareSession((context) =>
@@ -176,7 +171,10 @@ namespace mooSQL.data
                 return context.session.connection.DataSource;
             });
         }
-
+        /// <summary>
+        /// 获取数据库名称。 
+        /// </summary>
+        /// <returns></returns>
         public string GetDatabase()
         {
             return PrepareSession((context) =>
@@ -184,6 +182,10 @@ namespace mooSQL.data
                 return context.session.connection.Database;
             });
         }
+        /// <summary>
+        /// 获取数据库服务器版本信息。
+        /// </summary>
+        /// <returns></returns>
         public string GetServerVersion()
         {
             return PrepareSession((context) =>
@@ -205,9 +207,9 @@ namespace mooSQL.data
         /// 自定义Dbcommand的执行动作，并返回结果
         /// </summary>
         /// <typeparam name="R"></typeparam>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
+        /// <param name="SQL"></param>
         /// <param name="executor"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         public R Execute<R>(SQLCmd SQL, Func<DbCommand, ExeContext, R> executor, DBExecutor runner = null)
         {
@@ -254,33 +256,6 @@ namespace mooSQL.data
             return runner.ExeQueryReader<R>(SQL, executor);
         }
 
-        /// <summary>
-        /// 自定义 ICmdExecutor 的执行动作，并返回结果，执行后不关闭连接，需要手动关闭
-        /// </summary>
-        /// <typeparam name="R"></typeparam>
-        /// <returns></returns>
-        public R ExecutingNotClose<R>(SQLCmd SQL, Func<ICmdExecutor, ExeContext, R> executor)
-        {
-            if (SQL.para == null)
-            {
-                SQL.para = new Paras();
-            }
-            //创建请求上下文
-            ExeContext context = prepare(SQL);
-            try
-            {
-                context.session.Open(context);
-                var dt = executor(cmd, context);
-                return dt;
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-        }
-        public R ExecutingNotClose<R>(string sql, Paras para, Func<ICmdExecutor, ExeContext, R> executor) {
-            return ExecutingNotClose(new SQLCmd(sql, para), executor);
-        }
         /// <summary>
         /// 执行查询SQL
         /// </summary>
@@ -334,9 +309,9 @@ namespace mooSQL.data
         /// 异步查询
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
+        /// <param name="SQL"></param>
         /// <param name="reader"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         public Task<IEnumerable<T>> ExeQueryAsyc<T>(SQLCmd SQL, Func<DbDataReader, T> reader, DBExecutor runner = null)
         {
@@ -388,8 +363,8 @@ namespace mooSQL.data
         /// <summary>
         /// 自定义读取器
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
+        /// <param name="SQL"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         public Task<DataReaderWrapper> ExeQueryReaderAsync(SQLCmd SQL, DBExecutor runner = null)
         {
@@ -495,8 +470,8 @@ namespace mooSQL.data
         /// 查询唯一的一行，不唯一不行
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
+        /// <param name="SQL"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         public T ExeQueryUniqueRow<T>(SQLCmd SQL, DBExecutor runner = null)
         {
@@ -555,39 +530,6 @@ namespace mooSQL.data
             }
             return runner.ExeQueryScalarAsync(cmd,cancellationToken);
         }
-        /// <summary>
-        /// 启动环境，准备执行环境，除了最核心的执行环境交给委托。
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
-        /// <param name="onRuning"></param>
-        /// <returns></returns>
-        public TResult SetupEnvAndRun<TResult>(string sql, Paras para,Type itemType,Func<ExeContext,Type,TResult> onRuning)
-        {
-            if (para == null)
-            {
-                para = new Paras();
-            }
-            //创建请求上下文
-            ExeContext context = prepare(sql, para);
-            try
-            {
-                context.session.Open(context);
-                return onRuning(context, itemType);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-
-                context.session.Dispose();
-            }
-        }
-
-
 
 
         /// <summary>
@@ -630,7 +572,7 @@ namespace mooSQL.data
         /// <summary>
         /// 执行非查询的操作
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="SQL"></param>
         /// <returns></returns>
         public int ExeNonQuery(SQLCmd SQL, DBExecutor runner = null)
         {
@@ -640,53 +582,5 @@ namespace mooSQL.data
             }
             return runner.ExeNonQuery(SQL);
         }
-
-
-        /// <summary>
-        /// 构建执行的会话
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="para"></param>
-        /// <returns></returns>
-        public ExeContext prepare(string sql, Paras para)
-        {
-            var context = new ExeContext();
-            context.dialect = this.dialect;
-            context.session = new ExeSession();
-            context.session.linkClient(client);
-
-            
-            context.cmd = new CmdBuilder();
-            context.cmd.cmdText = sql;
-            context.cmd.para = para;
-            context.cmd.repairParas( expression.paraPrefix);
-            return context;
-        }
-        /// <summary>
-        /// 加载SQL命令
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <returns></returns>
-        public ExeContext prepare(SQLCmd cmd)
-        {
-            var context = new ExeContext();
-            context.dialect = this.dialect;
-            context.session = new ExeSession();
-            context.session.linkClient(client);
-
-
-            context.cmd = new CmdBuilder();
-            context.cmd.cmdText = cmd.sql;
-            context.cmd.para = cmd.para;
-            if (cmd.cmdType != null) {
-                context.cmd.cmdType = cmd.cmdType.Value;
-            }
-            context.cmd.timeout = cmd.timeout;
-
-            context.cmd.repairParas(expression.paraPrefix);
-            return context;
-        }
-
-
     }
 }

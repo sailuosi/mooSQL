@@ -36,6 +36,38 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 设置字段值为SQL片段，
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="SQLValue"></param>
+        /// <param name="paraed"></param>
+        /// <returns></returns>
+        public SQLClip set<R>(Expression<Func<R>> fieldSelector, string SQLValue, bool paraed = true)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.set(field, SQLValue, paraed);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 设置字段值为null
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <returns></returns>
+        public SQLClip setToNull<R>(Expression<Func<R>> fieldSelector) {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.setToNull(field);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// 设置字段值，可为空结构体类型
         /// </summary>
         /// <typeparam name="R"></typeparam>

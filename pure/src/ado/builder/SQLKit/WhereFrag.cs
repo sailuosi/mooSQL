@@ -211,7 +211,7 @@ namespace mooSQL.data
                 conditon += root.expression.paraPrefix + prefix;
                 if (fmt.Contains(";noPara;") == false)
                 {
-                    root.ps.Add(prefix, leftValue);
+                    root.ps.AddByPrefix(prefix, leftValue, root.expression.paraPrefix);
                 }
             }
             else {
@@ -229,7 +229,7 @@ namespace mooSQL.data
                 string prefix = paramKey;
                 conditon += root.expression.paraPrefix + prefix;
                 if (fmt.Contains(";noPara;") == false) {
-                    root.ps.Add(prefix, value);
+                    root.ps.AddByPrefix(prefix, value, root.expression.paraPrefix);
                 }
                 
             }

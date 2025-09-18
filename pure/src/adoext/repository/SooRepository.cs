@@ -1,14 +1,16 @@
-﻿using mooSQL.auth;
-using mooSQL.data.model;
-using mooSQL.linq;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using mooSQL.auth;
+using mooSQL.data.model;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
@@ -226,6 +228,42 @@ namespace mooSQL.data
                 .whereIn(pkname, ids)
                 .query<T>();
             return tow.ToList();
+        }
+        /// <summary>
+        /// 按ID批量查询
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public List<T> GetByIds(IEnumerable ids)
+        {
+            var en = DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var pks = en.GetPK();
+            if (pks.Count != 1)
+            {
+                throw new NotSupportedException("当前实体的主键信息不唯一！");
+            }
+            var pk = pks[0];
+            var kit = DBLive.useSQL();
+            Translator.BuildSelectFrom(kit, en);
+            var pkname = pk.DbColumnName;
+            if (!string.IsNullOrWhiteSpace(en.Alias))
+            {
+                pkname = string.Format("{0}.{1}", en.Alias, pkname);
+            }
+            var tow = kit
+                .whereIn(pkname, ids)
+                .query<T>();
+            return tow.ToList();
+        }
+        /// <summary>
+        /// 按ID批量查询
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public List<T> GetByIds<K>(params K[] ids) { 
+            return GetByIds(ids);
         }
         /// <summary>
         /// 查询全部数据
@@ -477,6 +515,8 @@ namespace mooSQL.data
             var t = kit.query<T>().ToList();
             return t;
         }
+
+
         /// <summary>
         /// 获取分页查询结果
         /// </summary>
@@ -508,6 +548,41 @@ namespace mooSQL.data
             var t = kit.queryPaged<T>();
             return t;
         }
+        /// <summary>
+        /// 获取分页查询结果。
+        /// </summary>
+        /// <param name="para"></param>
+        /// <returns></returns>
+        public DataTable GetPageData(QueryPara para)
+        {
+
+            para = CheckQueryPara(para);
+            var kit = getKit();
+            var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            Translator.PatchSQLByQueryPara(para, kit, en);
+
+            //如果无排序条件，则默认按主键降序
+            if (kit.current.orderPart.Count == 0)
+            {
+                var pks = en.GetPK();
+                if (pks != null)
+                {
+                    foreach (var pk in pks)
+                    {
+                        var name = pk.DbColumnName;
+                        if (!string.IsNullOrWhiteSpace(en.Alias))
+                            name = string.Format("{0}.{1}", en.Alias, name);
+
+                        kit.orderBy(name + " desc");
+                    }
+
+                }
+            }
+
+            var t = kit.query();
+            return t;
+        }
+
         /// <summary>
         /// 获取分页查询结果，支持自定义查询条件(clip)。
         /// </summary>
@@ -575,14 +650,14 @@ namespace mooSQL.data
         /// <param name="para"></param>
         /// <param name="onBuildSQL"></param>
         /// <returns></returns>
-        public PageOutput<T> GetPageList(QueryPara para, Action<SQLBuilder> onBuildSQL)
+        public PageOutput<T> GetPageList(QueryPara para, Action<SQLBuilder,EntityInfo> onBuildSQL)
         {
             para = CheckQueryPara(para);
             var kit = getKit();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.PatchSQLByQueryPara(para, kit, en);
-            if (onBuildSQL != null) { 
-                onBuildSQL(kit);
+            if (onBuildSQL != null) {
+                onBuildSQL(kit,en);
             }
             var t = kit.queryPaged<T>();
             return t;

@@ -28,6 +28,25 @@ namespace mooSQL.data
         /// 绑定方式
         /// </summary>
         public ClipTableType BType;
+        /// <summary>
+        /// 表的来源类型
+        /// </summary>
+        public ClipTableSrc BSrc;
+
+        public string querySQL;
+    }
+    /// <summary>
+    /// 表的来源类型
+    /// </summary>
+    internal enum ClipTableSrc { 
+        /// <summary>
+        /// 实体类
+        /// </summary>
+        Entity=0,
+        /// <summary>
+        /// 子查询SQL语句表
+        /// </summary>
+        SubSQL=1
     }
 
     internal enum ClipTableType { 

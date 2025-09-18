@@ -1,9 +1,9 @@
 ﻿
-using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
-
 using System.Text;
+using System.Xml.Linq;
+using mooSQL.data.builder;
 
 
 namespace mooSQL.data
@@ -189,6 +189,24 @@ namespace mooSQL.data
             {
                 sb.Append("distinct ");
             }
+            
+            if (!string.IsNullOrWhiteSpace(frag.rowNumberFieldName) && !string.IsNullOrWhiteSpace(frag.rowNumberOrderBy)){
+                var nfie = "ROW_NUMBER() over (";
+
+                    nfie += "order by " + frag.rowNumberOrderBy;
+                
+   
+                nfie += (") as " + frag.rowNumberFieldName);
+                if (!string.IsNullOrWhiteSpace(frag.selectInner))
+                {
+                    frag.selectInner += "," + nfie;
+                }
+                else { 
+                    frag.selectInner = nfie;
+                }
+                frag.rowNumberOrderBy = null;
+                frag.rowNumberFieldName = null;
+            }
             sb.Append(frag.selectInner);
             sb.Append(" ");
             sb.Append("from ");
@@ -301,7 +319,7 @@ namespace mooSQL.data
                 sql.Append(frag.updateTo + " ");
 
                 sql.Append(" SET ");
-                sql.Append(frag.setInner);
+                sql.Append(this.buildSetPart(frag));
 
                 if (!string.IsNullOrWhiteSpace(frag.whereInner))
                 {
@@ -314,6 +332,32 @@ namespace mooSQL.data
 
             return sql.ToString();
         }
+
+        protected virtual string buildSetPart(FragSQL frag) { 
+            return this.buildSetPartList(frag.setPart);
+        }
+        protected virtual string buildSetPartList(List<FragSetPart> setPart)
+        {
+            bool isFirst = true;
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in setPart)
+            {
+                if (!isFirst)
+                {
+                    sb.Append(",");
+                }
+                else
+                {
+                    isFirst = false;
+                }
+                sb.Append(item.field);
+                sb.Append("=");
+                sb.Append(item.value);
+                sb.Append(" ");
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         /// 构建删除语句
         /// </summary>
@@ -363,11 +407,63 @@ namespace mooSQL.data
         /// <param name="frag"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public virtual string buildMergeInto(FragSQL frag)
+        public virtual string buildMergeInto(FragMergeInto frag)
         {
             throw new Exception("未定义的数据库merge into 语法");
         }
+        protected string buildMergeIntoGeneral(FragMergeInto frag)
+        {
+            //merge into 目标表 a
+            //using 源表 b
+            //on a.条件字段1 = b.条件字段1 and a.条件字段2 = b.条件字段2...
+            //when matched update set a.字段1 = b.字段1,
+            //      a.字段2 = b.字段2
+            //when not matched insert values(b.字段1, b.字段2)
+            //when not matched by source
+            //then delete
 
+            var sb = new StringBuilder();
+            sb.AppendFormat("merge into {0} ", frag.intoTable);
+
+            if (!string.IsNullOrWhiteSpace(frag.usingAlias))
+            {
+                sb.AppendFormat(" using ({0}) as {1} ", frag.usingTable,frag.usingAlias);
+            }
+            else
+            {
+                sb.AppendFormat(" using {0}", frag.usingTable);
+            }
+            sb.AppendFormat(" on ({0}) ", frag.onPart);
+            foreach (var when in frag.mergeWhens) {
+                var moreWH = "";
+                if (when.matched) {
+                    moreWH += " when matched ";
+                }
+                else { 
+                    moreWH += " when not matched ";
+                }
+                if (!string.IsNullOrWhiteSpace(when.whenWhere))
+                {
+                    moreWH = " AND (" + when.whenWhere + ")";
+                }
+                if (when.action == MergeAction.update)
+                {
+
+                    sb.AppendFormat(" {0} then update set {1} ", moreWH,this.buildSetPartList( when.setInner));
+                }
+                else if (when.action == MergeAction.insert)
+                {
+                    sb.AppendFormat(" {0} then insert({1}) values( {2}) "
+                        , moreWH, when.fieldInner, when.valueInner);
+                }
+                else if (when.action == MergeAction.delete) {
+                    sb.Append(moreWH);
+                    sb.Append(" then delete ");
+                }
+            }
+            sb.Append(";");
+            return sb.ToString();
+        }
         /// <summary>
         /// 创建CTE表达式
         /// </summary>

@@ -22,6 +22,19 @@ namespace mooSQL.data
         /// </summary>
         protected List<DBVersion> Versions { get; set; }
 
+        private DBVersion _CurVersion;
+
+        /// <summary>
+        /// 当前数据库版本信息。
+        /// </summary>
+        public DBVersion CurVersion {
+            get {
+                if (this._CurVersion == null) {
+                    this._CurVersion= this.CheckVersion();
+                }
+                return this._CurVersion;
+            }
+        }
         /// <summary>
         /// 数据库实例
         /// </summary>

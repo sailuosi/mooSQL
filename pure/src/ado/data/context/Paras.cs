@@ -41,8 +41,19 @@ namespace mooSQL.data
         /// <param name="key">以数据库变量前缀开头的变量，比如在SQLServer下以 @开头</param>
         /// <param name="val"></param>
         public void Add(string key, Object val) {
-            var tar = new Parameter(key,val);
-            if (value.ContainsKey(key)) {
+            this.AddByPrefix(key, val, null);
+        }
+        /// <summary>
+        /// 在知晓SQL变量标识符的情况下，添加参数。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <param name="varPrefix"></param>
+        public void AddByPrefix(string key, Object val, string varPrefix)
+        {
+            var tar = new Parameter(key, val, varPrefix);
+            if (value.ContainsKey(key))
+            {
                 value[key] = tar;
             }
             else
@@ -72,16 +83,19 @@ namespace mooSQL.data
                 value.Add(key, ps);
             }
         }
-
+        public void Add(string rawKey, string placeholer, Object val)
+        {
+            AddRaw(rawKey,placeholer,val);
+        }
         /// <summary>
         /// 添加一个不含数据库变量前缀的参数。1参为参数名，2参为参数在SQL模版中的占位符，3参为参数值。
         /// </summary>
         /// <param name="rawKey"></param>
         /// <param name="placeholer"></param>
         /// <param name="val"></param>
-        public void Add(string rawKey, string placeholer,Object val)
+        public void AddRaw(string rawKey, string placeholer,Object val)
         {
-            var tar = new Parameter(rawKey,placeholer,val);
+            var tar = new Parameter(true,rawKey,placeholer,val);
             if (value.ContainsKey(rawKey))
             {
                 value[rawKey] = tar;

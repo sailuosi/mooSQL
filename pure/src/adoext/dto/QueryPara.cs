@@ -46,7 +46,7 @@ namespace mooSQL.data
         /// 附加条件，用于构建SQL语句时使用，只允许调用方法赋值，不允许自动通过接口接收web参数赋值。
         /// </summary>
         
-        public Action<SQLBuilder> onBuildSQL { get => _OnBuildSQL; }
+        public Action<SQLBuilder> onBuildingSQL { get => _OnBuildSQL; }
         /// <summary>
         /// 附加条件，用于构建SQL语句时使用，只允许调用方法赋值，不允许自动通过接口接收web参数赋值。
         /// </summary>

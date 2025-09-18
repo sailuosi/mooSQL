@@ -135,31 +135,35 @@ namespace mooSQL.data
 
         }
 
+        private static readonly object _lockObj = new object();
         /// <summary>
         /// 添加字段信息
         /// </summary>
         /// <param name="column"></param>
         public void AddColumnInfo(EntityColumn column)
         {
-            if (Columns == null) {
-                Columns= new List<EntityColumn>();
-            }
-            if (column == null) return;
-            if (_FieldMap.ContainsKey(column.PropertyName)) {
-                _FieldMap[column.PropertyName] = column;
+            lock (_lockObj) { 
+                if (Columns == null) {
+                    Columns= new List<EntityColumn>();
+                }
+                if (column == null) return;
+                if (_FieldMap.ContainsKey(column.PropertyName)) {
+                    _FieldMap[column.PropertyName] = column;
 
-                for (var i = 0; i < Columns.Count; i++) {
-                    if (Columns[i].PropertyName == column.PropertyName) {
-                        Columns[i]=column;
-                        break;
+                    for (var i = 0; i < Columns.Count; i++) {
+                        if (Columns[i].PropertyName == column.PropertyName) {
+                            Columns[i]=column;
+                            break;
+                        }
                     }
                 }
+                else
+                {
+                    _FieldMap.Add(column.PropertyName, column);
+                    Columns.Add(column);
+                }            
             }
-            else
-            {
-                _FieldMap.Add(column.PropertyName, column);
-                Columns.Add(column);
-            }
+
 
         }
         /// <summary>

@@ -35,5 +35,13 @@ namespace mooSQL.data
         /// 索引，用于排序
         /// </summary>
         public int Idx { get; set; }
+        /// <summary>
+        /// 发行年份
+        /// </summary>
+        public int Year { get; set; }
+        /// <summary>
+        /// 特性说明
+        /// </summary>
+        public string Note { get; set; }
     }
 }

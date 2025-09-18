@@ -286,6 +286,11 @@ namespace mooSQL.data
         {
             BuildSelectFrom(kit, en);
 
+            if(para.onBuildingSQL != null)
+            {
+                para.onBuildingSQL(kit);
+            }
+
             if (para.pageSize != null && para.pageNum != null)
             {
                 kit.setPage(para.pageSize.Value, para.pageNum.Value);

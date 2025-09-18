@@ -593,7 +593,31 @@ namespace mooSQL.data {
             whereListInner(key, " IN ", values);
             return this;
         }
-
+        /// <summary>
+        /// 形成 ( key =val1 or key =val2 or ... 形式，等同于 whereIn(key,values.ToArray()
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public SQLBuilder whereOR<T>(string key, params T[] values)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (!checkWhereIn(values))
+            {
+                return this;
+            }
+            sinkOR();
+            foreach (var val in values) {
+                where(key, val);
+            }
+            rise();
+            return this;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -741,6 +765,58 @@ namespace mooSQL.data {
             }
             whereListInner(key, " NOT IN ", values);
             return this;
+        }
+        /// <summary>
+        /// 构建多个字段为某个值的条件，默认无包裹，使用外界的范围
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="value"></param>
+        /// <param name="op"></param>
+        /// <param name="SinkMode">1为OR，2为AND，0为关闭</param>
+        /// <returns></returns>
+        public SQLBuilder whereFieids(IEnumerable<string> fields,object value,int SinkMode=0, string op = "=")
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (SinkMode == 1)
+            {
+                sinkOR();
+            }
+            else if (SinkMode == 2) {
+                sink();
+            }
+            foreach (var field in fields) { 
+                where(field, value, op);
+            }
+            if (SinkMode == 1 || SinkMode == 2) { 
+                rise();
+            }
+            return this;
+        }
+        /// <summary>
+        /// 任意一个字段满足条件，即形成（field1 = val or field2 = val or ...）。等同于 whereAnyFieids 方法。
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="value"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public SQLBuilder whereAnyFieid(IEnumerable<string> fields, object value,string op = "=")
+        {
+            return whereFieids(fields, value, 1,op);
+        }
+        /// <summary>
+        /// 所有字段都满足条件,即形成（field1 = val and field2 = val and ...）。等同于 whereAllFieids 方法。
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="value"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public SQLBuilder whereAllFieid(IEnumerable<string> fields, object value, string op = "=")
+        {
+            return whereFieids(fields, value, 2, op);
         }
         /// <summary>
         /// 创建一个 where key op (list)的SQL条件

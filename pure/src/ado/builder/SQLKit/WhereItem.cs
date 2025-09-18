@@ -81,7 +81,7 @@ namespace mooSQL.data
             {
                 string ke = "wf_" + ps.Count;
                 key = key.Replace("[{]" + i + "[}]", dbstr + ke);
-                ps.Add(ke, values[i]);
+                ps.AddByPrefix(ke, values[i],dbstr);
             }
             sqlbase.Append(key);
             return this;
@@ -100,7 +100,7 @@ namespace mooSQL.data
             if (paramed)
             {
                 sqlbase.Append(dbstr + prefix);
-                ps.Add(prefix, val);
+                ps.AddByPrefix(prefix, val, dbstr);
             }
             else if (val != null)
             {
@@ -116,7 +116,7 @@ namespace mooSQL.data
             {
                 string ke = "wf_" + ps.Count;
                 key = key.Replace("[{]" + i + "[}]", dbstr + ke);
-                ps.Add(ke, values[i]);
+                ps.AddByPrefix(ke, values[i], dbstr);
             }
             sqlbase.Append(key);
             return this;

@@ -2,6 +2,7 @@
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -17,6 +18,19 @@ namespace mooSQL.data.clip
         internal SQLClip clip {  get; set; }
 
         private ClipWhereVisitor WhereVisitor { get; set; }
+
+        private EntityTranslator _Translator;
+
+        private EntityTranslator Translator
+        {
+            get
+            {
+                if (_Translator == null) _Translator = new EntityTranslator();
+                return _Translator;
+            }
+
+        }
+
         public void PatchJoin<T>(Expression<Func<bool>> joinCondition, ClipJoin<T> clipJoin)
         {
             //暂时只考虑条件的两端都是成员访问的情况。
@@ -75,15 +89,59 @@ namespace mooSQL.data.clip
 
         private string TranslateField(Expression expression)
         {
-            var context = new FastCompileContext();
-            context.initByBuilder(clip.Context.Builder);
-            var fidv = new ClipFieldVisitor(context, true, clip);
-            var fie = fidv.Visit(expression);
+            // 待增加解析缓存。
+            var parser = new ClipExpSameCheckor();
+            var hashcode= parser.GetHashCode(expression);
+            /* 依据表达式的结构，创建缓存ID, 
+             * Clip表达式的所有表变量，都在闭包变量中
+             * 需要从表达式的闭包变量，依据字段别名，找到当前新的闭包表变量值，然后把表变量名替换进去。
+             */
+
+            ClipFieldParsed target = null;
+            if (ClipLinqParseCache.Cache.TryGetValue(hashcode, out target))
+            {
+                //var sw = Stopwatch.StartNew();
+
+                foreach (var fie in target.ClipFields) { 
+                    foreach (var cont in parser.constantVals) {
+                        //检查是否为闭包变量，如果是闭包变量，则替换别名。
+                        if (ClosureInspector.IsClosureClass(cont.Type))
+                        {
+                            var v = ClosureInspector.GetFieldValueN(cont.Value, fie.SQLAlias);
+                            if (v != null)
+                            {
+                                if (clip.Context.BindTables.TryGetValue(v,out var tb))
+                                {
+                                    if(string.IsNullOrWhiteSpace( tb.Alias) ) {
+                                        tb.Alias = fie.SQLAlias;
+                                    }
+                                }
+                            }
+                        }
+                    }                
+                }
+                //sw.Stop();
+                //Console.WriteLine($"命中表达式缓存，执行耗时: {sw.ElapsedTicks}ms");
+            }
+            else {
+                //var sw = Stopwatch.StartNew();
+                var context = new FastCompileContext();
+                context.initByBuilder(clip.Context.Builder);
+                var fidv = new ClipFieldVisitor(context, true, clip);
+                var fie = fidv.Visit(expression);  
+                target = new ClipFieldParsed();
+                target.ClipFields = fidv.ClipFields;
+                ClipLinqParseCache.Cache.Add(hashcode, target);
+                //sw.Stop();
+                //Console.WriteLine($"未命中表达式缓存，执行耗时: {sw.ElapsedTicks}ms");
+            }
+
+
             bool needAlias = true;
             if (clip.Context.BType == BuildSQLType.Edit) { 
                 needAlias = false;
             }
-            var sql = fidv.GetFieldCondtionSQL(needAlias);
+            var sql = target.GetFieldCondtionSQL(needAlias);
             if (!string.IsNullOrWhiteSpace(sql)) { 
                 return sql;
             }
@@ -203,6 +261,12 @@ namespace mooSQL.data.clip
                 clip.Context.Builder.setTable(sql);
             }
         }
+        /// <summary>
+        /// 执行select前的检查，主要是检查join语句是否已经执行。
+        /// </summary>
+        public void PatchBeforeSelect() { 
+            checkJoin();
+        }
 
         private void checkJoin() {
             //检查from
@@ -223,10 +287,37 @@ namespace mooSQL.data.clip
                 {
                     var sb = new StringBuilder();
                     sb.Append(item.JoinType);
-                    var ti = item.JoinBy.TableInfo;
-                    sb.Append(" ");
-                    var tbsql= clip.Context.Builder.DBLive.dialect.expression.wrapTableAsSQL(ti.DbTableName, item.JoinBy.Alias,ti.SchemaName);
-                    sb.Append(tbsql);
+
+                    var tb = item.JoinBy;
+                    if (tb.BSrc == ClipTableSrc.Entity)
+                    {
+                        var ti = item.JoinBy.TableInfo;
+                        //这里还要检查实体是否为简单实体
+                        if (ti.DType == DBTableType.Table)
+                        {
+                            sb.Append(" ");
+                            var tbsql = clip.Context.Builder.DBLive.dialect.expression.wrapTableAsSQL(ti.DbTableName, item.JoinBy.Alias, ti.SchemaName);
+                            sb.Append(tbsql);
+                        }
+                        else if (ti.DType == DBTableType.Select)
+                        {
+                            var tool = clip.Context.Builder.getBrotherBuilder();
+                            this.Translator.BuildSelectFrom(tool, tb.TableInfo);
+                            var select = tool.toSelect();
+                            sb.Append(" ( ");
+                            sb.Append(select);
+                            sb.Append(" ) AS ");
+                            sb.Append(item.JoinBy.Alias);
+                        }
+
+                    }
+                    else if (tb.BSrc == ClipTableSrc.SubSQL) { 
+                        sb.Append(" ( ");
+                        sb.Append(tb.querySQL);
+                        sb.Append(" ) AS ");
+                        sb.Append(item.JoinBy.Alias);
+                    }
+
 
                     if (string.IsNullOrWhiteSpace(item.onSQL))
                     {

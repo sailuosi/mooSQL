@@ -12,6 +12,10 @@ namespace mooSQL.data
     public abstract class SooSQLFunction
     {
 
+        public virtual string Concat(string left, string right) {
+            throw new NotImplementedException("当前数据库不支持该函数");
+        }
+
         /// <summary>
         /// 计算字符数
         /// </summary>

@@ -42,13 +42,13 @@ namespace mooSQL.data.clip
                 //&& _queryTrackingBehavior == other._queryTrackingBehavior
                 //&& 
             _async == other._async
-                && ExpressionEqualityComparer.Instance.Equals(_query, other._query);
+                && ExpSameCheckor.Instance.Equals(_query, other._query);
 
         /// <inheritdoc />
         public override int GetHashCode()
         {
             var hash = new HashCode();
-            hash.Add(_query, ExpressionEqualityComparer.Instance);
+            hash.Add(_query, ExpSameCheckor.Instance);
             hash.Add(_async);
             return hash.ToHashCode();
         }

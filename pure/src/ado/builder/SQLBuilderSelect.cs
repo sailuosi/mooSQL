@@ -43,12 +43,13 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
         {
-            var kit = this.getBrotherBuilder();
+            this.withSelect(name, selectBuilder);
+            //var kit = this.getBrotherBuilder();
 
-            selectBuilder(kit);
-            var sql = kit.toSelect();
-            var withSQL = string.Format("with {0} as ({1})", name, sql.sql);
-            current.prefix(withSQL);
+            //selectBuilder(kit);
+            //var sql = kit.toSelect();
+            //var withSQL = string.Format("with {0} as ({1})", name, sql.sql);
+            //current.prefix(withSQL);
             return this;
         }
 
@@ -173,14 +174,44 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart">(select的查询语句) as {childFromPart}</param>
         /// <returns></returns>
-        public SQLBuilder join(string joinSQLString, Action<SQLBuilder> childFromPart)
+        public SQLBuilder join(string joinKey,string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
             childFromPart(ckit);
             var selectSQL = ckit.toSelect();
-            var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, joinSQLString);
+            var fromPart = string.Format(" {0} ({1}) as {2} ",joinKey ,selectSQL.sql, joinSQLString);
             current.fromAppend(fromPart);
             return this;
+        }
+        /// <summary>
+        /// 左连接
+        /// </summary>
+        /// <param name="joinSQLString"></param>
+        /// <param name="childFromPart"></param>
+        /// <returns></returns>
+        public SQLBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
+        {
+            return this.join("LEFT JOIN", joinSQLString, childFromPart);
+        }
+        /// <summary>
+        /// 内连接
+        /// </summary>
+        /// <param name="joinSQLString"></param>
+        /// <param name="childFromPart"></param>
+        /// <returns></returns>
+        public SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        {
+            return this.join("INNER JOIN", joinSQLString, childFromPart);
+        }
+        /// <summary>
+        /// 右连接
+        /// </summary>
+        /// <param name="joinSQLString"></param>
+        /// <param name="childFromPart"></param>
+        /// <returns></returns>
+        public SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        {
+            return this.join("RIGHT JOIN", joinSQLString, childFromPart);
         }
         /// <summary>
         /// 使用子查询来构建 from布局 ，子查询可配置所有select配置。

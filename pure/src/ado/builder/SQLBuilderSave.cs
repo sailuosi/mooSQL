@@ -111,8 +111,27 @@ namespace mooSQL.data
             this.current.set(field);
             return this;
         }
-
-
+        /// <summary>
+        /// 获取当前行设置的字段值。 若不存在则返回null。 若设置了多个值，则会取最后一个设置的值。
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        public object getSetedValue(string fieldName)
+        {
+            SetFrag field = current.getSetFrag(fieldName,false);
+            if (field == null) return null;
+            var val= field.getValue(current.RowIndex);
+            return val;
+        }
+        /// <summary>
+        /// 将字段设置为null。
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        public SQLBuilder setToNull(string fieldName)
+        {
+            return set(fieldName, "NULL",false);
+        }
 
         /// <summary>
         /// 参数化的插入值
@@ -166,6 +185,21 @@ namespace mooSQL.data
 
         #region merge into 语句的配置
         /// <summary>
+        /// 创建一个merge into 语句的构建器。
+        /// </summary>
+        /// <param name="tbName"></param>
+        /// <param name="asName"></param>
+        /// <returns></returns>
+        public MergeIntoBuilder mergeInto(string tbName,string asName=null)
+        {
+            var kit=new MergeIntoBuilder(DBLive);
+            if (this._printSQL) {
+                kit.print(this.onSQLPrint);
+            }
+            kit.into(tbName,asName);
+            return kit;
+        }
+        /// <summary>
         /// 将来源的from 部分 嵌套一层的 as 名称
         /// </summary>
         /// <param name="asName"></param>
@@ -175,6 +209,31 @@ namespace mooSQL.data
             current.mergeAs(asName);
             return this;
         }
+        /// <summary>
+        /// merge into语句的来源表。使用更符合SQL语句结构的写法，即using (select ...) as asName.
+        /// </summary>
+        /// <param name="asName"></param>
+        /// <param name="buildSelect"></param>
+        /// <returns></returns>
+        public SQLBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
+        {
+            current.mergeAs(asName);
+            buildSelect(this);
+            return this;
+        }
+        /// <summary>
+        /// merge into 语句的来源表。使用更符合SQL语句结构的写法，即using tabname as asName.
+        /// </summary>
+        /// <param name="asName"></param>
+        /// <param name="tabname"></param>
+        /// <returns></returns>
+        public SQLBuilder mergeUsing(string asName, string tabname)
+        {
+            current.mergeAs(asName);
+            from(tabname);
+            return this;
+        }
+
         /// <summary>
         /// merge into 语句的on 部分
         /// </summary>

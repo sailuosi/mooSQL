@@ -1,6 +1,7 @@
 
 using mooSQL.auth;
 using mooSQL.data.builder;
+using mooSQL.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,18 +17,34 @@ namespace mooSQL.data
     /// </summary>
     public class SqlGoup {
         
-        //用于标识的名称
+        /// <summary>
+        /// 用于标识的名称
+        /// </summary>
         public string key = "";
+        /// <summary>
+        /// 表名称，用于构建修改语句。
+        /// </summary>
         public string tableName = "";
+        /// <summary>
+        /// 参数集合，用于构建修改语句。
+        /// </summary>
         public Paras ps;
+        /// <summary>
+        /// 数据库连接位，已废弃
+        /// </summary>
         public int position;
         private SQLBuilder root;
         /// <summary>
         ///  set碎片的计数，每创建一个+1
         /// </summary>
         private int setFragIndex=0;
-
+        /// <summary>
+        /// 数据库类型，用于构建修改语句。
+        /// </summary>
         public DataBaseType dbType;
+        /// <summary>
+        /// 数据库变量字符
+        /// </summary>
         public string dbstr
         {
             get {
@@ -38,22 +55,32 @@ namespace mooSQL.data
         /// where 条件项的默认连接模式。
         /// </summary>
         public string whereSeprator = "AND";
-        //前置连接符。当union时使用。
+        /// <summary>
+        /// 前置连接符。当union时使用。
+        /// </summary>
         public string preConnector = "";
         /// <summary>
         /// 每个字段的修改项
         /// </summary>
-        public List<SetFrag> columns = new List<SetFrag>();
-        public List<int> rows = new List<int>();
+        public List<SetFrag> columns { get; set; }
+        /// <summary>
+        /// 批量写入的字段
+        /// </summary>
+        public List<int> rows {  get; set; }
         /// <summary>
         /// where项
         /// </summary>
         //public List<WhereFrag> conditions = new List<WhereFrag>();
 
         public WhereCollection wherePart ;
-
-        public List<string> selectPart = new List<string>();
-        public List<string> fromPart = new List<string>();
+        /// <summary>
+        /// select 部分，用于构建select语句。
+        /// </summary>
+        public List<string> selectPart { get; set; }
+        /// <summary>
+        /// from 部分，用于构建from语句。
+        /// </summary>
+        public List<string> fromPart { get; set; }
 
 
         /// <summary>
@@ -67,12 +94,14 @@ namespace mooSQL.data
         /// <summary>
         /// 行转列的配置
         /// </summary>
-        public PivotItem pivotPart = null;
+        public List<PivotItem> pivotPart = null;
         /// <summary>
         /// 列转行的配置
         /// </summary>
-        public UnpivotItem unpivotPart = null;
-
+        public List<UnpivotItem> unpivotPart = null;
+        /// <summary>
+        /// 设置行号字段时的别名。默认是 oonum。
+        /// </summary>
         public string numField = "oonum";
         /// <summary>
         /// 设置行号字段时的行号名称。
@@ -82,12 +111,22 @@ namespace mooSQL.data
         /// 行号字段的排序依据
         /// </summary>
         public string rowNumberOrderBy;
-
-        public List<string> orderPart = new List<string>();
-        public List<string> groupbyPart = new List<string>();
+        /// <summary>
+        /// order by 部分
+        /// </summary>
+        public List<string> orderPart {  get; set; }
+        /// <summary>
+        /// group by 部分
+        /// </summary>
+        public List<string> groupbyPart {  get; set; }
         public string havingPart = "";
-
+        /// <summary>
+        /// 分页大小，默认为10。
+        /// </summary>
         public int pageSize = 10;
+        /// <summary>
+        /// 当前页码，默认为-1。小于0时查询全部数据。大于等于0时按分页查询。
+        /// </summary>
         public int pageNum = -1;//如果页面小于0，查询全部
         private bool numSeted = false;
         private bool distincted = false;//是否含有distinct
@@ -129,15 +168,63 @@ namespace mooSQL.data
             this.root = kit;
             var wherePrefix = string.Format("{0}wh_{1}_", root.paraSeed, this.key);
             this.wherePart = new WhereCollection(kit,wherePrefix);
-            
+            init();
         }
 
+        private void init() {
+            columns = new List<SetFrag>();
+            rows = new List<int>();
+            selectPart = new List<string>();
+            fromPart = new List<string>();
+            orderPart = new List<string>();
+            groupbyPart = new List<string>();
+            pivotPart = new List<PivotItem>();
+            unpivotPart = new List<UnpivotItem>();
+        }
+        /// <summary>
+        /// 清理配置
+        /// </summary>
+        /// <returns></returns>
+        public SqlGoup clear()
+        {
+            this.ps.Clear();
+            //重设 select 条件池
+            this.columns.Clear();
+            this.wherePart.Clear();
+            this.selectPart.Clear();
+            this.fromPart.Clear();
+            this.groupbyPart.Clear();
+            this.orderPart.Clear();
+            this.pivotPart.Clear();
+            this.unpivotPart.Clear();
+            this.havingPart = "";
+            this.numField = "oonum";
+            //重设批插入的标识。
+            this.setIndex = 0;
+            this.rows.Clear();
+
+            this.pageSize = 10;
+            this.pageNum = -1;//如果页面小于0，查询全部
+            this.numSeted = false;
+            this.tableName = "";
+            this.toped = -1;
+            return this;
+        }
+        /// <summary>
+        /// 生成一个新的参数前缀
+        /// </summary>
+        /// <returns></returns>
         public string getMyPrefixKey() { 
             var tar= string.Format("{0}wh_{1}_g{2}_", root.paraSeed, this.key,this._whfragIndex);
             _whfragIndex++;
             return tar;
         }
-
+        /// <summary>
+        /// 添加参数化
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
         public string addPara(string key, Object val) {
            string name = dbstr + key;
             addParaKV(key, val);
@@ -148,7 +235,7 @@ namespace mooSQL.data
             if (ps == null) {
                 ps = new Paras();
             }
-            ps.Add(key, val);
+            ps.AddByPrefix(key, val,dbstr);
         }
         public List<string> addPara<T>(IEnumerable<T> list, string prefix)
         {
@@ -163,7 +250,7 @@ namespace mooSQL.data
             {
                 string name = prefix + i;
                 names.Add(dbstr + name);
-                ps.Add(name, li);
+                ps.AddByPrefix(name, li, dbstr);
                 i++;
             }
             return names;
@@ -187,7 +274,7 @@ namespace mooSQL.data
             {
                 string name = prefix + i;
                 names.Add(dbstr + name);
-                ps.Add(name, item);
+                ps.AddByPrefix(name, item, dbstr);
                 i++;
             }
             return names;
@@ -206,7 +293,7 @@ namespace mooSQL.data
             {
                 string name = prefix + i;
                 names.Add(dbstr + name);
-                ps.Add(name, item);
+                ps.AddByPrefix(name, item, dbstr);
                 i++;
             }
             return names;
@@ -217,10 +304,10 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
         public SqlGoup newRow() {
-            if (this.columns.Count > 0) {
+            //if (this.columns.Count > 0) {
                 this.setIndex++;
                 this.rows.Add(this.setIndex);
-            }
+            //}
            
             return this;
         }
@@ -240,7 +327,7 @@ namespace mooSQL.data
             return this;
         }
 
-        public SetFrag getSetFrag(string key) {
+        public SetFrag getSetFrag(string key,bool autoAdd=true) {
             for (int i = 0; i < columns.Count; i++)
             {
                 if (columns[i].key == (key))
@@ -248,6 +335,7 @@ namespace mooSQL.data
                     return columns[i];
                 }
             }
+            if (!autoAdd) return null;
             var t= new SetFrag(key);
             t.paraPrefix = root.paraSeed + "cl_" + this.key + "_";
             t.fieldIndex = setFragIndex;
@@ -477,6 +565,49 @@ namespace mooSQL.data
         public string buildWhereNoPara() {
             return wherePart.BuildWithoutPara(dbstr);
         }
+
+        public string buildInsertFields() {
+            var cols = new List<string>();
+            foreach (SetFrag field in columns)
+            {
+                cols.Add(field.key);
+            }
+            return  string.Join(",", cols);
+        }
+        public string buildInsertValOne() { 
+            return this.buildInsertRowVal(setIndex);
+        }
+        public string buildInsertRowVal(int rowIndex) {
+            var valueRow = new List<string>();
+            foreach (SetFrag field in columns)
+            {
+                var pair = field.values[rowIndex];
+                if (pair.insetable == false)
+                {
+                    continue;
+                }
+                if (pair.paramed)
+                {
+                    valueRow.Add(dbstr + pair.paramKey);
+                    addParaKV(pair.paramKey, pair.value);
+                }
+                else
+                {
+                    var val = pair.value.ToString();
+                    if (string.IsNullOrEmpty(val))
+                    {
+                        val = "NULL";
+                    }
+                    valueRow.Add(val);
+                }
+            }
+            if (valueRow.Count == 0) { 
+                return null;
+            }
+            //存入单行写入值
+            return string.Join(",", valueRow);
+        }
+
         /// <summary>
         /// 创建插入语句，自动根据上下文推断创建的语句类别
         /// </summary>
@@ -491,39 +622,18 @@ namespace mooSQL.data
             {
                 cols.Add(field.key);
             }
-            frag.insertCols =string.Join(",", cols);
+            frag.insertCols = buildInsertFields();
             if (this.rows.Count > 0)
             {
                 var valus = new List<string>();
                 foreach (var index in rows)
                 {
                     var valueRow = new List<string>();
-                    foreach (SetFrag field in columns)
-                    {
+                    var valsql= buildInsertRowVal(index);
 
-                        var pair = field.values[index];
-                        if (pair.insetable == false)
-                        {
-                            continue;
-                        }
-                        if (pair.paramed)
-                        {
-                            valueRow.Add(dbstr + pair.paramKey);
-                            addParaKV(pair.paramKey, pair.value);
-                        }
-                        else
-                        {
-                            var val = pair.value.ToString();
-                            if (string.IsNullOrEmpty(val))
-                            {
-                                val = "NULL";
-                            }
-                            valueRow.Add(val);
-                        }
-                    }
-                    if (valueRow.Count > 0) { 
+                    if (valsql != null) { 
                         //存入本行的值
-                        valus.Add(string.Join(",", valueRow));                    
+                        valus.Add(valsql);                    
                     }
 
                 }
@@ -532,31 +642,9 @@ namespace mooSQL.data
             }
             else {
                 //此时为单行插入，
-                var valueRow = new List<string>();
-                foreach (SetFrag field in columns)
-                {
-                    var pair = field.values[setIndex];
-                    if (pair.insetable == false)
-                    {
-                        continue;
-                    }
-                    if (pair.paramed)
-                    {
-                        valueRow.Add(dbstr + pair.paramKey);
-                        addParaKV(pair.paramKey, pair.value);
-                    }
-                    else
-                    {
-                        var val = pair.value.ToString();
-                        if (string.IsNullOrEmpty(val))
-                        {
-                            val = "NULL";
-                        }
-                        valueRow.Add(val);
-                    }
-                }
+                var valueRow = this.buildInsertRowVal(setIndex);
                 //存入单行写入值
-                frag.insertValue= string.Join(",", valueRow);
+                frag.insertValue= valueRow;
 
                 //调用 方言构建语句
                 frag.fromInner = joinList(fromPart, ",");
@@ -596,7 +684,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        private string buildSetPart() {
+        public string buildSetPart() {
             StringBuilder sql = new StringBuilder();
             //sql.Append(" SET ");
 
@@ -623,15 +711,46 @@ namespace mooSQL.data
             sql.Append(" ");
             return sql.ToString();
         }
+        public List<FragSetPart> buildSetFrag(int index)
+        {
+            var res= new List<FragSetPart>();
+            foreach (var field in columns)
+            {
 
-
+                var pair = field.values[index];
+                if (!pair.updatable)
+                {
+                    continue;
+                }
+                var setPair = new FragSetPart();
+                setPair.field = field.key;
+                if (pair.paramed)
+                {
+                    setPair.value = dbstr + pair.paramKey;
+                    addParaKV(pair.paramKey, pair.value);
+                }
+                else if (pair.value is string str)
+                {
+                    setPair.value = str;
+                }
+                else { 
+                    setPair.value = pair.value.ToString();
+                }
+                res.Add(setPair);
+            }
+            return res;
+        }
+        public List<FragSetPart> buildSetFragCur() { 
+            return buildSetFrag(setIndex);
+        }
         public string buildUpdate() {
             if (wherePart.Count == 0 || columns.Count==0) {
                 return null;
             }
             var frag = new FragSQL();
             frag.updateTo = this.tableName;
-            frag.setInner = this.buildSetPart();
+            //frag.setInner = this.buildSetPart();
+            frag.setPart = buildSetFragCur();
             frag.whereInner= this.buildWhereContent();
             if (this.fromPart.Count > 0) { 
                 frag.fromInner = this.buildFromContent();
@@ -648,7 +767,8 @@ namespace mooSQL.data
             }
             var frag = new FragSQL();
             frag.updateTo = this.tableName;
-            frag.setInner = this.buildSetPart();
+            //frag.setInner = this.buildSetPart();
+            frag.setPart= buildSetFragCur();
             frag.whereInner = this.buildWhereContent();
             if (this.fromPart.Count > 0)
             {
@@ -726,96 +846,54 @@ namespace mooSQL.data
             }
             if (updateCount == 0 && insertCount == 0 && mergeDeletable==false) return "";
 
-            var frag = new FragSQL();
+            var mg= this.root.mergeInto(tableName);
 
-            frag.mergeInto = tableName;
-            frag.mergeOn = this.onInner;
-            frag.mergeAsName=this.mergeAsName;
-            frag.mergeDeletable=this.mergeDeletable;
+            mg.on(this.onInner);
+            if (this.selectPart.Count == 0 && wherePart.Count == 0)
+            {
+                mg.usingTable = this.buildFromContent();
+            }
+            else
+            {
+                mg.usingTable = this.buildSelect();
+                
+            }
+            mg.usingAlias = this.mergeAsName;
+            if (this.mergeDeletable) {
+                mg.whenMatchThenDelete();
+            }
+
             
             if (updateCount > 0)
             {
-                var updateSets= new List<string>();
+                var up = mg.when().whenMatched();
                 foreach (var field in  columns) {
                     var pair = field.values[setIndex];
                     if (field.updatable) {
-
-                        if (pair.paramed) {
-                            updateSets.Add(field.key + "=" + dbstr + pair.paramKey);
-                            addParaKV(pair.paramKey, pair.value);
-                        }
-                        else {
-                            updateSets.Add(field.key + "=" + pair.value);
-                        }
+                        up.SetPart.current.set(field);
                     }
                 }
-                frag.setInner =string.Join(",", updateSets);
             }
             if (insertCount > 0)
             {
-
-                List<string> fields = new List<string>();
-                List<string> values = new List<string>();
+                var add= mg.when().whenNotMatched();
+                
                 foreach (var field in columns) {
                     var pair = field.values[setIndex];
                     if (field.insetable) {
-                        fields.Add(field.key);
-                        if (pair.paramed) {
-                            values.Add(dbstr + pair.paramKey);
-                            addParaKV(pair.paramKey, pair.value);
-                        }
-                        else {
-                            values.Add(pair.value.ToString());
-                        }
+                        add.SetPart.current.set(field);
                     }
                 }
-                frag.insertCols = string.Join(",", fields);
-                frag.insertValue = string.Join(",", values);
 
             }
-            //如果 select /where 都为空，则是简单模式。
-            if (this.selectPart.Count == 0 && wherePart.Count == 0)
-            {
-                frag.fromInner = this.buildFromContent();
-                frag.mergeFromCTE = false; 
-            }
-            else {
-                frag.mergeFromCTE = true;
-                frag.fromInner = this.buildSelect();
-            }
-            
-            var res= root.expression.buildMergeInto(frag);
+
+            var res= mg.buildMergeInto();
             fireSQLEvent(res);
             return res;
         }
         #endregion
 
-        /// <summary>
-        /// 清理配置
-        /// </summary>
-        /// <returns></returns>
-        public SqlGoup clear() {
-            this.ps.Clear();
-            //重设 select 条件池
-            this.columns.Clear();
-            this.wherePart.Clear();
-            this.selectPart.Clear();
-            this.fromPart.Clear();
-            this.groupbyPart.Clear();
-            this.orderPart.Clear();
-            this.havingPart = "";
-            this.numField = "oonum";
-            //重设批插入的标识。
-            this.setIndex = 0;
-            this.rows.Clear();
 
-            this.pageSize = 10;
-            this.pageNum = -1;//如果页面小于0，查询全部
-            this.numSeted = false;
-            this.tableName = "";
-            this.toped = -1;
-            return this;
-        }
         /// <summary>
         /// 清空表选择部分
         /// </summary>
@@ -939,13 +1017,13 @@ namespace mooSQL.data
 
         public SqlGoup pivot(PivotItem pivotConfig)
         {
-            this.pivotPart=pivotConfig;
+            this.pivotPart.Add(pivotConfig);
             return this;
         }
 
         public SqlGoup unpivot(UnpivotItem unpivotConfig)
         {
-            this.unpivotPart = unpivotConfig;
+            this.unpivotPart.Add(unpivotConfig);
             return this;
         }
 
@@ -1096,8 +1174,8 @@ namespace mooSQL.data
             //        }
             sql.distincted = distincted;
             sql.toped = this.toped;
-            sql.pivot = this.pivotPart;
-            sql.unpivot = this.unpivotPart;
+            sql.pivots = this.pivotPart;
+            sql.unpivots = this.unpivotPart;
 
             bool wrapnum = false;
             string rownumField = "";

@@ -130,45 +130,35 @@ namespace mooSQL.data
 		public DataFam DataType { get; set; }
 
 		/// <summary>
-		/// Gets or sets the name of the database column type.
-		/// Default value: default type, defined for member type in mapping schema.
+		/// 字段类型
 		/// </summary>
 		public string? DbType { get; set; }
 
 		/// <summary>
-		/// Gets or sets flag that tells that current member should be included into mapping.
-		/// Use NonColumnAttribute instead as a shorthand.
-		/// Default value: <c>true</c>.
+		/// 是否是字段
 		/// </summary>
 		public bool IsColumn { get; set; }
 
 		/// <summary>
-		/// Gets or sets a storage property or field to hold the value from a column.
-		/// Could be usefull e.g. in combination of private storage field and getter-only mapping property.
+		/// 
 		/// </summary>
 		public string? Storage { get; set; }
 
 		public object DefaultValue { get; set; }
 
 		/// <summary>
-		/// Gets or sets whether a column contains a discriminator value for a LINQ to DB inheritance hierarchy.
-		/// <see cref="InheritanceMappingAttribute"/> for more details.
-		/// Default value: <c>false</c>.
+		/// 是否是区分列，用于多表继承。
 		/// </summary>
 		public bool IsDiscriminator { get; set; }
 
 		/// <summary>
-		/// Gets or sets whether a column must be explicitly defined in a Select statement to be fetched. If <c>true</c>, a "SELECT *"-ish statement won't retrieve this column.
-		/// Default value: <c>false</c>.
+		/// 查询时不包含此列
 		/// </summary>
 		public bool SkipOnEntityFetch { get; set; }
 
 		private bool? _skipOnInsert;
 		/// <summary>
-		/// Gets or sets whether a column is insertable.
-		/// This flag will affect only insert operations with implicit columns specification like
-		/// <see cref="DataExtensions.Insert{T}(IDataContext, T, string?, string?, string?, string?, TableOptions)"/>
-		/// method and will be ignored when user explicitly specifies value for this column.
+		/// 忽略插入
 		/// </summary>
 		public bool   SkipOnInsert
 		{
@@ -184,10 +174,7 @@ namespace mooSQL.data
 
 		private bool? _skipOnUpdate;
 		/// <summary>
-		/// Gets or sets whether a column is updatable.
-		/// This flag will affect only update operations with implicit columns specification like
-		/// <see cref="DataExtensions.Update{T}(IDataContext, T, string?, string?, string?, string?, TableOptions)"/>
-		/// method and will be ignored when user explicitly specifies value for this column.
+		/// 忽略更新
 		/// </summary>
 		public bool   SkipOnUpdate
 		{
@@ -196,15 +183,12 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="SkipOnUpdate"/> was configured for current attribute.
-        /// </summary>
-        /// <returns><c>true</c> if <see cref="SkipOnUpdate"/> property was set in attribute.</returns>
+        /// 是否忽略更新
         public bool HasSkipOnUpdate() => _skipOnUpdate.HasValue;
 
 		private bool? _isIdentity;
 		/// <summary>
-		/// Gets or sets whether a column contains values that the database auto-generates.
-		/// Also see <see cref="IdentityAttribute"/>.
+		/// 是否自增列。
 		/// </summary>
 		public  bool   IsIdentity
 		{
@@ -213,15 +197,12 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="IsIdentity"/> was configured for current attribute.
-        /// </summary>
-        /// <returns><c>true</c> if <see cref="IsIdentity"/> property was set in attribute.</returns>
+        /// 是否自增列
         public bool HasIsIdentity() => _isIdentity.HasValue;
 
 		private bool? _isPrimaryKey;
 		/// <summary>
-		/// Gets or sets whether this class member represents a column that is part or all of the primary key of the table.
-		/// Also see <see cref="PrimaryKeyAttribute"/>.
+		/// 是否主键列。
 		/// </summary>
 		public bool   IsPrimaryKey
 		{
@@ -230,20 +211,17 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="IsPrimaryKey"/> was configured for current attribute.
-        /// </summary>
-        /// <returns><c>true</c> if <see cref="IsPrimaryKey"/> property was set in attribute.</returns>
+        /// 是否主键列
         public bool HasIsPrimaryKey() => _isPrimaryKey.HasValue;
 
 		/// <summary>
-		/// Gets or sets the Primary Key order.
-		/// See <see cref="PrimaryKeyAttribute.Order"/> for more details.
+		/// 主键顺序，用于复合主键。
 		/// </summary>
 		public int PrimaryKeyOrder { get; set; }
 
 		private bool? _canBeNull;
 		/// <summary>
-		/// Gets or sets whether a column can contain <c>NULL</c> values.
+		/// 可空
 		/// </summary>
 		public  bool   CanBeNull
 		{
@@ -252,15 +230,13 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="CanBeNull"/> was configured for current attribute.
-        /// </summary>
-        /// <returns><c>true</c> if <see cref="CanBeNull"/> property was set in attribute.</returns>
+        /// 是否可空
+        /// </summary>rns>
         public bool HasCanBeNull() => _canBeNull.HasValue;
 
 		private int? _length;
 		/// <summary>
-		/// Gets or sets the length of the database column.
-		/// Default value: value, defined for member type in mapping schema.
+		/// 长度
 		/// </summary>
 		public  int   Length
 		{
@@ -269,15 +245,13 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="Length"/> was configured for current attribute.
+        /// 是否设置了长度
         /// </summary>
-        /// <returns><c>true</c> if <see cref="Length"/> property was set in attribute.</returns>
         public bool HasLength() => _length.HasValue;
 
 		private int? _precision;
 		/// <summary>
-		/// Gets or sets the precision of the database column.
-		/// Default value: value, defined for member type in mapping schema.
+		/// 精度
 		/// </summary>
 		public int   Precision
 		{
@@ -286,15 +260,13 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="Precision"/> was configured for current attribute.
+        /// 是否设置了精度
         /// </summary>
-        /// <returns><c>true</c> if <see cref="Precision"/> property was set in attribute.</returns>
         public bool HasPrecision() => _precision.HasValue;
 
 		private int? _scale;
 		/// <summary>
-		/// Gets or sets the Scale of the database column.
-		/// Default value: value, defined for member type in mapping schema.
+		/// 小数位长度。
 		/// </summary>
 		public int   Scale
 		{
@@ -303,32 +275,19 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="Scale"/> was configured for current attribute.
+        /// 是否设置了小数位长度
         /// </summary>
-        /// <returns><c>true</c> if <see cref="Scale"/> property was set in attribute.</returns>
         public bool HasScale() => _scale.HasValue;
 
 		/// <summary>
-		/// Custom template for column definition in create table SQL expression, generated using
-		/// <see cref="DataExtensions.CreateTable{T}(IDataContext, string?, string?, string?, string?, string?, DefaultNullable, string?, TableOptions)"/> methods.
-		/// Template accepts following string parameters:
-		/// <list type="bullet">
-		/// <item>{0} - column name;</item>
-		/// <item>{1} - column type;</item>
-		/// <item>{2} - NULL specifier;</item>
-		/// <item>{3} - identity specification.</item>
-		/// </list>
+		/// 自定义建表SQL格式，例如：varchar(50) not null。
 		/// </summary>
 		public string? CreateFormat { get; set; }
 
 		private int? _order;
 		/// <summary>
-		/// Specifies the order of the field in table creation.
-		/// Positive values first (ascending), then unspecified (arbitrary), then negative values (ascending).
+		/// 排序，用于生成SQL语句的字段顺序。例如：100表示排在前面，200表示排在后面。默认值为int.MaxValue，排在最后面。
 		/// </summary>
-		/// <remarks>
-		/// Ordering performed in <see cref="TableWord"/> constructor.
-		/// </remarks>
 		public int Order
 		{
 			get => _order ?? int.MaxValue;
@@ -336,9 +295,8 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// Returns <c>true</c>, if <see cref="Order"/> was configured for current attribute.
+        /// 是否设置了排序字段顺序
         /// </summary>
-        /// <returns><c>true</c> if <see cref="Order"/> property was set in attribute.</returns>
         public bool HasOrder() => _order.HasValue;
 
 		public override string GetObjectID()

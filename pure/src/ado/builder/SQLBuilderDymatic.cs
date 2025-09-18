@@ -524,7 +524,10 @@ namespace mooSQL.data
             {
                 return default(TResult);
             }
-            return DBLive.SetupEnvAndRun<TResult>(sql.sql, sql.para, typeof(T), onRuning);
+            return DBLive.ExecuteCmd(sql, (cmd, cont) =>
+            {
+                return onRuning(cont, typeof(T));
+            });
 
         }
 

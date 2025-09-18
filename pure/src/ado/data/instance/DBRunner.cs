@@ -141,45 +141,19 @@ namespace mooSQL.data
         /// <returns></returns>
         public T RunCmd<T>(Func<ICmdExecutor,ExeContext,T> func)
         {
-            T cc ;
-            if (this.context == null)
-            {
-                this.context = db.prepare(this.SQL, this.para);
-            }
-            else
-            {
-                context.cmd.reset(SQL, para);
-            }
-            context.session.Open(context);
-            try
-            {
+            using (var runner = new DBExecutor(db)) {
                 if (this.useTransactioned == tranMode.Once)
                 {
-                    context.session.BeginTransaction(context);
+                    runner.beginTransaction();
                 }
-                cc = func(executor,context);
-                if (this.useTransactioned == tranMode.Once)
-                {
-                    context.session.CommitTransaction();
+                var cmd= new SQLCmd(this.SQL, this.para);
+                var res= runner.ExecuteCmd(cmd, func);
+                if (this.useTransactioned == tranMode.Once) { 
+                    runner.commit();
                 }
-                if (connectKeep == false)
-                {
-                    context.session.connection.Close();
-                }
-                return cc;
+                return res;
+
             }
-            catch (Exception e)
-            {
-                context.session.RollbackTransaction();
-                //如果出现了异常。需要释放所有资源
-                context.session.Dispose();
-                throw e;
-            }
-            finally {
-                //消耗掉SQL
-                this.Elapse();
-            }
-            return cc;
         }
         /// <summary>
         /// 清空当前的SQL命令和参数

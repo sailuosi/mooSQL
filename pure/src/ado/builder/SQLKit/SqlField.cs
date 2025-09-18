@@ -133,7 +133,11 @@ namespace mooSQL.data
             values[index] = pair;
         }
 
-
+        public object getValue(int index)
+        {
+            if (!values.ContainsKey(index)) return null;
+            return values[index].value;
+        }
 
     }
 

@@ -181,7 +181,7 @@ namespace mooSQL.data
                         formattedValue = valEx.Message;
                     }
                 }
-                toThrow = new DataException($"Error parsing column {index} ({name}={formattedValue})", ex);
+                toThrow = new DataException($"解析列时发生错误： {index} ({name}={formattedValue})，参考消息：{ex.Message}", ex);
             }
             catch
             { // throw the **original** exception, wrapped as DataException

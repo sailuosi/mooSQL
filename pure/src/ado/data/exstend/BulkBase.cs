@@ -99,9 +99,33 @@ namespace mooSQL.data
             this.bulkTarget = dt;
         }
         /// <summary>
+        /// 传入列名的构造器
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public BulkBase setFields(IEnumerable<string> fields)
+        {
+            foreach (var field in fields)
+            {
+                this.colnames.Add(field);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 设置写入表
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public BulkBase setTarget(DataTable dt)
+        {
+            this.bulkTarget = dt;
+            return this;
+        }
+
+        /// <summary>
         /// 添加写入表中的所有列到写入列集合colnames中，
         /// </summary>
-        public void addAllTargetCol()
+        public BulkBase addAllTargetCol()
         {
             foreach (DataColumn col in  bulkTarget.Columns)
             {
@@ -109,6 +133,7 @@ namespace mooSQL.data
                     colnames.Add(col.ColumnName);
                 }
             }
+            return this;
         }
         /// <summary>
         /// 获取一个空的表dataTable供写入使用

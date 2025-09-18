@@ -58,7 +58,7 @@ namespace mooSQL.data
                     string ke =  "fmt_" + cc + "_" + i;
 
                     key = key.Replace(reg, this.dialect.expression.paraPrefix + ke);
-                    ps.Add(ke, v);
+                    ps.AddByPrefix(ke, v, this.dialect.expression.paraPrefix);
                 }
 
             }

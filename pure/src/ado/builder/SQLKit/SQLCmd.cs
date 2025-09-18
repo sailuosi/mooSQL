@@ -92,5 +92,29 @@ namespace mooSQL.data
             tar.TakeOver(this);
             return tar;
         }
+        /// <summary>
+        /// 转换为原始SQL语句，不带参数占位符。
+        /// </summary>
+        /// <param name="paraPrefix"></param>
+        /// <returns></returns>
+        public string toRawSQL(string paraPrefix="") {
+
+            var sql = this.sql;
+            if (para == null) return sql;
+            foreach (var item in para.value)
+            {
+                if (sql.Contains(item.Value.holder)) {
+                    sql = sql.Replace(item.Value.holder, "'" + item.Value.val.ToString() + "'");
+                }
+                else
+                {
+                    sql = sql.Replace(paraPrefix + item.Key, "'" + item.Value.val.ToString() + "'");
+                }
+                    
+            }
+            return sql;
+        }
+
+    
     }
 }
