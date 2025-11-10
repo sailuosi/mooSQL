@@ -151,7 +151,7 @@ namespace mooSQL.utils
         /// <param name="list"></param>
         /// <param name="seprate"></param>
         /// <returns></returns>
-        public static string JoinNotEmpty(this List<string> list, string seprate)
+        public static string JoinNotEmpty(this IEnumerable<string> list, string seprate)
         {
             var res = new StringBuilder();
             foreach (var li in list)
@@ -165,8 +165,48 @@ namespace mooSQL.utils
             return res.ToString();
 
         }
+        /// <summary>
+        /// 按照属性进行分组
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static Dictionary<R, List<T>> groupBy<R, T>(this IEnumerable<T> list, Func<T, R> func)
+        {
+            var map = new Dictionary<R, List<T>>();
+            foreach (var t in list)
+            {
+                var r = func(t);
+                if (!map.ContainsKey(r))
+                {
+                    map[r] = new List<T>();
+                }
+                map[r].Add(t);
+            }
+            return map;
+        }
 
-
+        public static Dictionary<R1, Dictionary<R2, List<T>>> groupBy<T, R1, R2>(this IEnumerable<T> list, Func<T, R1> func1, Func<T, R2> func2)
+        {
+            var map = new Dictionary<R1, Dictionary<R2, List<T>>>();
+            foreach (var t in list)
+            {
+                var r1 = func1(t);
+                var r2 = func2(t);
+                if (!map.ContainsKey(r1))
+                {
+                    map[r1] = new Dictionary<R2, List<T>>();
+                }
+                if (!map[r1].ContainsKey(r2))
+                {
+                    map[r1][r2] = new List<T>();
+                }
+                map[r1][r2].Add(t);
+            }
+            return map;
+        }
         /// <summary>
         /// 根据列的数据库列类型，转换到对应的数据格式
         /// </summary>
@@ -245,6 +285,35 @@ namespace mooSQL.utils
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// 把列表按照属性值映射到字典中，如果key重复则覆盖前面的值。如果key为空则忽略。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R1"></typeparam>
+        /// <typeparam name="R2"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="ValSelector"></param>
+        /// <returns></returns>
+        public static Dictionary<R1, R2> mapBy<T,R1,R2>(IEnumerable<T> list, Func<T, R1> keySelector, Func<T, R2> ValSelector) where R1 :notnull
+        {
+            var result = new Dictionary<R1, R2>();
+            foreach (var item in list)
+            {
+                var val = ValSelector(item);
+                var key = keySelector(item);
+                if (key == null) { 
+                    continue;
+                }
+                if (!result.ContainsKey(key)) { 
+                    result.Add(key, val);
+                    continue;
+                }
+                result.Add(key, val);
+            }
+            return result;
         }
     }
 }

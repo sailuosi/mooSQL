@@ -1,5 +1,6 @@
 ﻿using mooSQL.data.Mapping;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,9 +21,9 @@ namespace mooSQL.data
         /// <param name="analyseFactory"></param>
         public EntityContext(IEntityAnalyseFactory analyseFactory) { 
             this.analyseFactory = analyseFactory;
-            this.typeMap = new Dictionary<Type, EntityDictionary> ();
+            this.typeMap = new ConcurrentDictionary<Type, EntityDictionary> ();
         }
-        private Dictionary<Type, EntityDictionary> typeMap;
+        private ConcurrentDictionary<Type, EntityDictionary> typeMap;
 
         private void checkType(Type entity) {
             if (entity == null) { 
@@ -32,7 +33,7 @@ namespace mooSQL.data
             {
                 var tar = new EntityDictionary(entity);
                 tar.init(analyseFactory);
-                typeMap.Add(entity, tar);
+                typeMap.TryAdd(entity, tar);
             }
         }
         /// <summary>
@@ -144,6 +145,51 @@ namespace mooSQL.data
         {
             var t= typeof(T);
             return getEntityInfo(t);
+        }
+
+        /// <summary>
+        /// 注册表名解析器。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="interceptor"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public EntityContext useParser<T>(ITableNameInterceptor interceptor, string name = null) {
+            var en = getEntityInfo<T>();
+            if (string.IsNullOrWhiteSpace(name)) {
+                name = en.EntityName;
+            }
+            en.UseNameParser(name, interceptor);
+            return this;
+        }
+        /// <summary>
+        /// 注册表名解析器。用表达式的形式
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="nameParser"></param>
+        /// <returns></returns>
+        public EntityContext useParser<T>(string name,Func<T,string> nameParser)
+        {
+            var en = getEntityInfo<T>();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = en.EntityName;
+            }
+            var interceptor = new FuncTableNameCepter(nameParser);
+            en.UseNameParser(name, interceptor);
+            return this;
+        }
+        /// <summary>
+        /// 注册表名解析器。用表达式的形式
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="nameParser"></param>
+        /// <returns></returns>
+        public EntityContext useParser<T>(Func<T, string> nameParser)
+        {
+            useParser<T>(null, nameParser);
+            return this;
         }
     }
 }

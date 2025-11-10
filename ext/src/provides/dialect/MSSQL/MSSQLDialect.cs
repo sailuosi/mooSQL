@@ -33,6 +33,7 @@ namespace mooSQL.data
             sentence = new MSSQLSentence(this);
             mapping = new MSSQLMappingPanel();
             function = new MSSQLFunction();
+            initDBVersion();
         }
         public override DbCommand getCommand()
         {
@@ -105,6 +106,33 @@ namespace mooSQL.data
         public override int BulkInsert(BulkBase bk)
         {
             int cc = 0;
+            if (bk.Executor != null) {
+                cc=bk.Executor.ExecuteCmd(null, (cmd, cont) =>
+                {
+                    var conn = cont.session.connection as SqlConnection;
+                    using (SqlBulkCopy bulk = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default,cont.session.transaction as SqlTransaction))
+                    {
+                        bulk.DestinationTableName = bk.tableName;
+                        if (bk.colnames.Count == 0)
+                        {
+                            bk.addAllTargetCol();
+                        }
+                        //数据写入的来源列和目标列。
+                        foreach (var col in bk.colnames)
+                        {
+                            bulk.ColumnMappings.Add(col, col);
+                        }
+
+                        bulk.WriteToServer(bk.bulkTarget);
+
+                        cc = bk.bulkTarget.Rows.Count;
+ 
+                    }
+                    return cc;
+                });
+                return cc;
+            }
+
             var conn = this.getConnection() as SqlConnection;
             using (conn) {
                 using (SqlBulkCopy bulk = new SqlBulkCopy(conn))
@@ -241,6 +269,104 @@ namespace mooSQL.data
             wkcount = adapter.Update(tar.updateTarget);
             if (conn.State != ConnectionState.Closed) { conn.Close(); }
             return wkcount;
+        }
+
+        private List<DBVersion> initDBVersion()
+        {
+            var list = new List<DBVersion>() { 
+                new DBVersion(){ 
+                    VersionCode = "8.0",
+                    VersionName = "SQL Server 2000",
+                    MatchRegex = "^8\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 8,
+                    Year = 2000,
+                    Note = "继承7.0版本优点，支持Windows 98至Windows 2000多平台，增强可伸缩性和集成度",
+                    VersionNumber = 8.0,
+                },
+                new DBVersion(){
+                    VersionCode = "9.0",
+                    VersionName = "SQL Server 2005",
+                    MatchRegex = "^9\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 9,
+                    Year = 2005,
+                    Note = "引入CLR集成、Service Broker、分区表等企业级功能，改进商业智能工具",
+                    VersionNumber = 9.0
+                },
+                new DBVersion(){
+                    VersionCode = "10.0",
+                    VersionName = "SQL Server 2008",
+                    MatchRegex = "^10\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 10,
+                    Year = 2008,
+                    Note = "引入数据压缩、全文搜索、报表服务等新功能，改进数据仓库和BI工具",
+                    VersionNumber = 10.0
+                },
+                new DBVersion(){
+                    VersionCode = "11.0",
+                    VersionName = "SQL Server 2012",
+                    MatchRegex = "^11\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 11,
+                    Year = 2012,
+                    Note = "引入AlwaysOn高可用性、列存储索引等新功能，改进数据挖掘和报表服务",
+                    VersionNumber = 11.0
+                },
+                new DBVersion(){
+                    VersionCode = "12.0",
+                    VersionName = "SQL Server 2014",
+                    MatchRegex = "^12\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 12,
+                    Year = 2014,
+                    Note = "引入In-Memory OLTP、弹性数据库等新功能，改进数据仓库和BI工具",
+                    VersionNumber = 12.0
+                },
+                new DBVersion(){
+                    VersionCode = "13.0",
+                    VersionName = "SQL Server 2016",
+                    MatchRegex = "^13\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 13,
+                    Year = 2016,
+                    Note = "引入Stretch数据库、动态数据掩码等新功能，改进机器学习服务",
+                    VersionNumber = 13.0
+                },
+                new DBVersion(){
+                    VersionCode = "14.0",
+                    VersionName = "SQL Server 2017",
+                    MatchRegex = "^14\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 14,
+                    Year = 2017,
+                    Note = "引入PolyBase、自适应查询处理等新功能，改进机器学习服务",
+                    VersionNumber = 14.0
+                },
+                new DBVersion(){
+                    VersionCode = "15.0",
+                    VersionName = "SQL Server 2019",
+                    MatchRegex = "^15\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 15,
+                    Year = 2019,
+                    Note = "引入即时数据仓库、大规模并行处理等新功能，改进机器学习服务",
+                    VersionNumber = 15.0
+                },
+                new DBVersion(){
+                    VersionCode = "16.0",
+                    VersionName = "SQL Server 2022",
+                    MatchRegex = "^16\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 1, 1),
+                    Idx = 16,
+                    Year = 2022,
+                    Note = "引入即时数据仓库、大规模并行处理等新功能，改进机器学习服务",
+                    VersionNumber = 16.0
+                }
+            };
+            this.Versions = list;
+            return list;
         }
     }
 }

@@ -81,20 +81,26 @@ namespace mooSQL.data
             sb.Append("from ");
             sb.Append(frag.fromInner);
 
-            if (frag.pivot != null) {
-                sb.AppendFormat(" PIVOT ({0} FOR {1} IN ({2})) {3} "
-                    , frag.pivot.aggregation
-                    , frag.pivot.headField
-                    , dealValsPivot(frag.pivot.headValues)
-                    , frag.pivot.asName);
+            if (frag.pivots != null) {
+                foreach (var pivot in frag.pivots) { 
+                    sb.AppendFormat(" PIVOT ({0} FOR {1} IN ({2})) {3} "
+                        , pivot.aggregation
+                        , pivot.headField
+                        , dealValsPivot(pivot.headValues)
+                        ,pivot.asName);                
+                }
+
             }
-            if (frag.unpivot != null)
+            if (frag.unpivots != null)
             {
-                sb.AppendFormat(" UNPIVOT ({0} FOR {1} IN ({2})) {3} "
-                    , frag.unpivot.valueName
-                    , frag.unpivot.fieldName
-                    , string.Join(",",frag.unpivot.fields)
-                    , frag.unpivot.asName);
+                foreach (var unpivot in frag.unpivots) {
+                    sb.AppendFormat(" UNPIVOT ({0} FOR {1} IN ({2})) {3} "
+                        , unpivot.valueName
+                        , unpivot.fieldName
+                        , string.Join(",",unpivot.fields)
+                        , unpivot.asName);                
+                }
+
             }
 
             sb.Append(" ");
@@ -135,9 +141,30 @@ namespace mooSQL.data
          */
         public override string buildPagedSelect(FragSQL frag)
         {
-            //TODO 
-            if (DB != null && DB.versionNumber >= 11) {
+            var ver = this.dialect.CurVersion;
+
+            if (ver !=null && ver.VersionNumber >= 11) {
                 //当 SQL server的版本在 2012以后，翻页支持 OFFSET 40 ROWS FETCH NEXT 10 ROWS ONLY; 这样的语法
+                var sb = new StringBuilder();
+                var tar = this.buildPagedSelectTail(frag, (sb) => {
+                    if (frag.pageSize > -1)
+                    {
+                        int end = frag.pageSize * (frag.pageNum - 1);
+                        sb.Append("OFFSET ");
+                        sb.Append(end);
+                        sb.Append(" ROWS FETCH NEXT ");
+                        sb.Append(frag.pageSize);
+                        sb.Append(" ROWS ONLY ");
+
+                    }
+                    else if (frag.toped > -1)
+                    {
+                        sb.Append(" FETCH FIRST ");
+                        sb.Append(frag.toped);
+                        sb.Append(" ROWS ONLY ");
+                    }
+                });
+                return tar;
             }
             return this.buildPagedByRowNumber(frag);
         }
@@ -211,7 +238,7 @@ namespace mooSQL.data
         {
             var sb = new StringBuilder();
             // update a set a=b from ... where ...
-            sb.AppendFormat("update {0} set {1} ", frag.updateTo, frag.setInner);
+            sb.AppendFormat("update {0} set {1} ", frag.updateTo, this.buildSetPart(frag));
             sb.AppendFormat(" from {0} ", frag.fromInner);
             if (!string.IsNullOrWhiteSpace(frag.whereInner)) {
                 sb.AppendFormat(" where {0}", frag.whereInner);
@@ -219,48 +246,18 @@ namespace mooSQL.data
             return sb.ToString() ;
         }
 
-        public override string buildMergeInto(FragSQL frag)
+        public override string buildMergeInto(FragMergeInto frag)
         {
             //merge into 目标表 a
             //using 源表 b
             //on a.条件字段1 = b.条件字段1 and a.条件字段2 = b.条件字段2...
             //when matched update set a.字段1 = b.字段1,
-						      //      a.字段2 = b.字段2
+            //      a.字段2 = b.字段2
             //when not matched insert values(b.字段1, b.字段2)
             //when not matched by source
             //then delete
 
-            var sb = new StringBuilder();
-            sb.AppendFormat("merge into {0} ", frag.mergeInto);
-
-            if (frag.mergeFromCTE)
-            {
-                var asName = "src";
-                if (!string.IsNullOrWhiteSpace(frag.mergeAsName))
-                {
-                    asName = frag.mergeAsName;
-                }
-                sb.AppendFormat(" using ({0}) as {1} ", frag.fromInner, asName);
-            }
-            else {
-                sb.AppendFormat(" using {0}", frag.fromInner);
-                if (!string.IsNullOrWhiteSpace(frag.mergeAsName)) { 
-                    sb.Append(frag.mergeAsName);
-                }
-            }
-            sb.AppendFormat(" on ({0}) ", frag.mergeOn);
-
-            if(!string.IsNullOrWhiteSpace(frag.setInner)) {
-                sb.AppendFormat(" when matched then update set {0} ", frag.setInner);
-            }
-            if (!string.IsNullOrWhiteSpace(frag.insertCols)) {
-                sb.AppendFormat(" when not matched then insert({0}) values( {1}) ", frag.insertCols, frag.insertValue);
-            }
-            if (frag.mergeDeletable) {
-                sb.Append(" then delete ");
-            }
-            sb.Append(";");
-            return sb.ToString() ;
+            return this.buildMergeIntoGeneral(frag);
         }
         #endregion
 
@@ -282,7 +279,8 @@ namespace mooSQL.data
         /// <returns></returns>
         protected override string buildDDLFieldsCaption(DDLFragSQL frag)
         {
-            return buildDDLSoloCaptions(frag);
+            return string.Empty;
+            //return buildDDLSoloCaptions(frag);
         }
         /// <summary>
         /// 独立的字段注释

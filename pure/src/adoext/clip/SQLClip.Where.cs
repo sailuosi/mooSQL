@@ -163,6 +163,42 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 展开版的whereIn，用于指定字段和值集合。例如：whereIn(x=>x.id,new int[]{1,2}) 即 where id in (1,2)
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public SQLClip whereIn<R>(Expression<Func<R>> fieldSelector,params R[] values)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereIn(field, values);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 任意多个字段都是某个值的条件，即 where (field1=value or field2=value or field3=value)
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldSelectors"></param>
+        /// <returns></returns>
+        public SQLClip whereAnyFieldIs<R>(R value, params Expression<Func<R>>[] fieldSelectors) {
+            Context.Builder.sinkOR();
+            foreach (var fieldSelector in fieldSelectors) {
+                var field = provider.PatchOutField(fieldSelector);
+                if (!string.IsNullOrWhiteSpace(field))
+                {
+                    Context.Builder.where(field, value);
+                }
+            }
+            Context.Builder.rise();
+            return this;
+        }
+
+        /// <summary>
         /// 构造not in语句，用于指定字段和值集合。例如：whereNotIn(x=>x.id,new int[]{1,2}) 即 where id not in (1,2)
         /// </summary>
         /// <typeparam name="R"></typeparam>
@@ -178,6 +214,16 @@ namespace mooSQL.data
                 Context.Builder.whereNotIn(field, values);
             }
             return this;
+        }
+        /// <summary>
+        ///  展开版的whereNotIn，用于指定字段和值集合。例如：whereNotIn(x=>x.id,new int[]{1,2}) 即 where id not in (1,2)
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector,params R[] values) { 
+            return this.whereNotIn(fieldSelector,values);
         }
         /// <summary>
         /// 构造like语句，用于模糊查询字段。例如：whereLike(x=>x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。
@@ -211,8 +257,42 @@ namespace mooSQL.data
             }
             return this;
         }
-
-
+        /// <summary>
+        /// between and 
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public SQLClip whereBetween<R>(Expression<Func<R>> fieldSelector, R min,R max)
+        {
+            //Builder.orderBy(orderCondition);
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereBetween(field, min,max);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public SQLClip whereNotBetween<R>(Expression<Func<R>> fieldSelector, R min, R max)
+        {
+            //Builder.orderBy(orderCondition);
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotBetween(field, min, max);
+            }
+            return this;
+        }
         /// <summary>
         /// 使用子查询，并指定操作符
         /// </summary>

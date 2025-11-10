@@ -26,7 +26,20 @@ namespace mooSQL.data
         /// <summary>
         /// 数据库实例
         /// </summary>
-        public DBInstance DB;
+        public DBInstance DB{ 
+            get {
+                return this.DBLive;
+            }
+            set { 
+                this.DBLive = value;
+            }
+        }
+        public DBInstance DBLive { get; set; }
+
+        /// <summary>
+        /// 数据库执行器,用于支持统一事务
+        /// </summary>
+        public DBExecutor Executor { get; private set; }
 
         public checkColMode colCheck = checkColMode.none;
         /// <summary>
@@ -89,7 +102,6 @@ namespace mooSQL.data
         /// 带连接位的重载
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="position"></param>
         public BulkBase(string tableName, DataTable dt)
         {
             this.tableName = tableName;
@@ -98,6 +110,56 @@ namespace mooSQL.data
             this.colnames = new List<string>();
             this.bulkTarget = dt;
         }
+        /// <summary>
+        /// 注册执行器，用于支持统一事务。
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public BulkBase useTransaction(DBExecutor executor)
+        {
+            this.Executor = executor;
+            return this;
+        }
+
+        /// <summary>
+        /// 添加实体类。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public BulkBase addList<T>(IEnumerable<T> data)
+        {
+            var enInfo= this.DBLive.client.EntityCash.getEntityInfo<T>();
+            if (enInfo == null) { 
+                throw new Exception("未找到实体类型，无法批量保存到数据库！："+typeof(T).FullName);
+            }
+            if(this.tableName.HasText()==false)
+            {
+                this.tableName = enInfo.DbTableName;
+            }
+            if(this.bulkTarget==null)
+            {
+                this.bulkTarget = this.getBulkTable();
+            }
+            foreach (var item in data)
+            {
+                this.newRow();
+                foreach (var col in enInfo.Columns) {
+                    if (col.IsIgnore || col.IsOnlyIgnoreInsert) {
+                        continue;
+                    }
+                    var val = col.PropertyInfo.GetValue(item);
+                    if (val == null) { 
+                        continue;
+                    }
+                    this.add(col.DbColumnName, val);
+                }
+                this.addRow();
+            }
+            return this;
+        }
+
         /// <summary>
         /// 传入列名的构造器
         /// </summary>
@@ -294,6 +356,7 @@ namespace mooSQL.data
             {
                 this.addAllTargetCol();
             }
+            //此处目前存在事务缺陷，当数据库为SQLServer时，BulkCopy不支持事务，需要另外处理。
             return DB.dialect.BulkInsert(this);
         }
         /// <summary>

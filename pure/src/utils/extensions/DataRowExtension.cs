@@ -24,6 +24,7 @@ namespace mooSQL.utils
         /// <returns></returns>
         public static string getString(this DataRow row, string key, string defaultVal)
         {
+            if (row == null) return null;
             if (row[key] != null)
             {
                 var tar = row[key];
@@ -93,6 +94,19 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+
+        public static DateTime? getDateTime(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            DateTime v;
+            if (DateTime.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
+        }
+
         /// <summary>
         /// 失败时返回null
         /// </summary>

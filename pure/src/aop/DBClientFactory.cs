@@ -82,5 +82,20 @@ namespace mooSQL.data
             var t = new SQLClip(DB,kit);
             return t;
         }
+        /// <summary>
+        /// 创建BulkBase对象。
+        /// </summary>
+        /// <param name="DB"></param>
+        /// <returns></returns>
+        public virtual BulkBase useBulk(DBInstance DB)
+        {
+            var t = new BulkBase();
+            t.DBLive = DB;
+            return t;
+        }
+
+        public virtual EntityTranslator getEntityTranslator() { 
+            return new EntityTranslator();
+        }
     }
 }

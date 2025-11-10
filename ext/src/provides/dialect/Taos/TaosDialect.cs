@@ -17,6 +17,8 @@ namespace mooSQL.data
         {
             expression = new TaosExpress(this);
             sentence = new TaosSentence(this);
+
+            this.InitDBVersion();
         }
 
         public override DbCommandBuilder getCmdBuilder()
@@ -104,7 +106,41 @@ namespace mooSQL.data
 
             return TaosType.Text;
         }
-
+        private void InitDBVersion() { 
+            var tar= new List<DBVersion> {
+                new DBVersion(){
+                    VersionCode = "2.0",
+                    VersionName = "TDengine 2.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2020, 8, 1),
+                    Idx = 1,
+                    Year = 2020,
+                    Note = "首个开源版本，基础分布式架构",
+                    VersionNumber = 2.0
+                },
+                new DBVersion(){
+                    VersionCode = "2.6",
+                    VersionName = "TDengine 2.6",
+                    MatchRegex = "\\.6\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2022, 12, 1),
+                    Idx = 2,
+                    Year = 2022,
+                    Note = "增强多级存储支持",
+                    VersionNumber = 2.6
+                },
+                new DBVersion(){
+                    VersionCode = "3.0",
+                    VersionName = "TDengine 3.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2023, 5, 1),
+                    Idx = 3,
+                    Year = 2023,
+                    Note = "完全分布式架构重构",
+                    VersionNumber = 3.0
+                }
+            };
+            this.Versions = tar;
+        }
     }
 }
 

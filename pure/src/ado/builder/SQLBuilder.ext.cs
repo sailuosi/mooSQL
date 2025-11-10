@@ -24,5 +24,7 @@ namespace mooSQL.data
         {
             return DBLive.dialect.sentence;
         }
+
+
     }
 }

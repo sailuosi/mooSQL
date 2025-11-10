@@ -148,46 +148,8 @@ namespace mooSQL.data
                 frag.fromInner = reg.Replace(frag.fromInner, " inner join ");// .ToLower().Replace(@"\sleft\s+join\s"," inner join ");
             }
             sb.AppendFormat("update {0} set ", frag.fromInner);
-            if (!string.IsNullOrWhiteSpace(frag.updateTo))
-            {
-                //如果设置了目标则作适配性修正。如果set列没有表前缀，增加表前缀。
-                List<string> fiexedset = new List<string>();
-                if (frag.setInner.Contains(","))
-                {
-                    var sets = frag.setInner.Split(',');
 
-                    foreach (var s in sets)
-                    {
-                        var t = fixSetField(s, frag);
-                        if (!string.IsNullOrWhiteSpace(t))
-                        {
-                            fiexedset.Add(t);
-                        }
-
-                    }
-
-                }
-                else {
-                    var t = fixSetField(frag.setInner, frag);
-                    if (!string.IsNullOrWhiteSpace(t))
-                    {
-                        fiexedset.Add(t);
-                    }
-                }
-                //没有设置列信息，返回空
-                if (fiexedset.Count == 0) {
-                    return "";
-                }
-                sb.Append(" ");
-                sb.Append(string.Join(",", fiexedset)); 
-                sb.Append(" ");
-                
-            }
-            else {
-                sb.Append(" ");
-                sb.Append(string.Join(",", frag.setInner));
-                sb.Append(" ");
-            }
+            sb.Append(this.buildSetPart(frag));
             
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
@@ -195,24 +157,6 @@ namespace mooSQL.data
             }
             return sb.ToString();
         }
-
-        private string fixSetField(string setOne, FragSQL frag) {
-            var fieldsp = setOne.Split('=');
-            if (fieldsp.Length != 2) {
-                return "";
-            }
-
-            var field = fieldsp[0];
-
-            if (field.Contains(".") == false)
-            {
-                //要赋值的字段没有表前缀
-                var t = frag.updateTo + "." + setOne.TrimStart();
-                return t;
-            }
-            return setOne;
-        }
-
 
         #region DDL
 

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq
 {
+    /// <summary>
+    /// 兼容
+    /// </summary>
     public sealed class FormattableString : IFormattable
     {
         private readonly string _format;

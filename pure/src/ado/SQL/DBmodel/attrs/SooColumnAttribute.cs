@@ -228,7 +228,10 @@ namespace mooSQL.data
 			get => _canBeNull ?? true;
 			set => _canBeNull = value;
 		}
-
+		/// <summary>
+		/// 适用的业务版本，多个用逗号分隔。
+		/// </summary>
+		public string Edition { get; set; }
         /// <summary>
         /// 是否可空
         /// </summary>rns>

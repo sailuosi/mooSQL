@@ -27,6 +27,10 @@ namespace mooSQL.linq
         protected override EntityColumn GetFieldCol(MemberInfo prop, Expression expression)
         {
             try {
+                //在fast模式下，只有来自形参的函数访问可以转换为字段，其它都视为普通值
+                if (expression is MemberExpression memExp && memExp.Expression.NodeType != ExpressionType.Parameter) {
+                    return null;
+                }
 
                 var tar= this.Builder.DBLive.client.EntityCash.getFieldCol(prop,Context.EntityType);
                 if(tar==null)

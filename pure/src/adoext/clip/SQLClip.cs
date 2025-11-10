@@ -91,6 +91,45 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 直接设置from部分的表名。此为手动指定表名使用，仍要先用from语句指定实体。
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public SQLClip from(string tableName) {
+            if (this.Context._fromTarget == null) {
+                throw new Exception("必须先指定绑定的查询实体类");
+            }
+            var tb = this.Context.getFromTable();
+            tb.BSrc = ClipTableSrc.LiveTable;
+            tb.querySQL = tableName;
+            return this;
+        }
+        /// <summary>
+        /// 绑定实体的，同时手动指定表名。用于动态分表时使用。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tbname"></param>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public SQLClip from<T>(string tbname,out T table) where T : new()
+        {
+            var tar = new T();
+            table = tar;
+
+            var bt = new ClipTable()
+            {
+                BindValue = tar,
+                EnityType = typeof(T),
+                TableInfo = DBLive.client.EntityCash.getEntityInfo<T>(),
+                BType = ClipTableType.FromBy,
+                BSrc = ClipTableSrc.LiveTable,
+                querySQL = tbname
+            };
+            this.Context.BindFrom(tar, bt);
+
+            return this;
+        }
+        /// <summary>
         /// 构造JOIN语句，用于连接其他表。
         /// </summary>
         /// <typeparam name="J"></typeparam>

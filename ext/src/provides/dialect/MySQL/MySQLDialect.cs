@@ -21,6 +21,7 @@ namespace mooSQL.data
             clauseTranslator = new MySQLClauseTranslator(this);
             mapping = new MySQLMappingPanel();
             function = new MySQLFunction();
+            this.initDBVersion();
         }
         public override DbCommand getCommand()
         {
@@ -211,6 +212,113 @@ namespace mooSQL.data
             return fileName;
         }
 
-
+        private List<DBVersion> initDBVersion() {
+            var tar= new List<DBVersion> {
+                new DBVersion(){
+                    VersionCode = "3.23",
+                    VersionName = "MySQL 3.23",
+                    MatchRegex = "^3\\.23\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2001, 1, 1),
+                    Idx = 1,
+                    Year = 2001,
+                    Note = "首个稳定版，支持存储过程、触发器",
+                    VersionNumber = 3.23
+                },
+                new DBVersion(){
+                    VersionCode = "4.0",
+                    VersionName = "MySQL 4.0",
+                    MatchRegex = "^4\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2003, 3, 1),
+                    Idx = 2,
+                    Year = 2003,
+                    Note = "集成InnoDB存储引擎，支持事务",
+                    VersionNumber = 4.0
+                },
+                new DBVersion(){
+                    VersionCode = "5.0",
+                    VersionName = "MySQL 5.0",
+                    MatchRegex = "^5\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2005, 10, 1),
+                    Idx = 3,
+                    Year = 2005,
+                    Note = "引入视图、游标、XA事务",
+                    VersionNumber = 5.0
+                },
+                new DBVersion(){
+                    VersionCode = "5.1",
+                    VersionName = "MySQL 5.1",
+                    MatchRegex = "^5\\.1\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2008, 11, 1),
+                    Idx = 4,
+                    Year = 2008,
+                    Note = "支持分区表、事件调度器",
+                    VersionNumber = 5.1
+                },
+                new DBVersion(){
+                    VersionCode = "5.5",
+                    VersionName = "MySQL 5.5",
+                    MatchRegex = "^5\\.5\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2010, 12, 1),
+                    Idx = 5,
+                    Year = 2010,
+                    Note = "InnoDB成为默认引擎，支持UTF8MB4",
+                    VersionNumber = 5.5
+                },
+                new DBVersion(){
+                    VersionCode = "5.6",
+                    VersionName = "MySQL 5.6",
+                    MatchRegex = "^5\\.6\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2013, 2, 1),
+                    Idx = 6,
+                    Year = 2013,
+                    Note = "GTID复制、NoSQL接口支持",
+                    VersionNumber = 5.6
+                },
+                new DBVersion(){
+                    VersionCode = "5.7",
+                    VersionName = "MySQL 5.7",
+                    MatchRegex = "^5\\.7\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2015, 10, 1),
+                    Idx = 7,
+                    Year = 2015,
+                    Note = "引入JSON数据类型、多源复制",
+                    VersionNumber = 5.7
+                },
+                new DBVersion(){
+                    VersionCode = "8.0",
+                    VersionName = "MySQL 8.0",
+                    MatchRegex = "^8\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2018, 4, 1),
+                    Idx = 8,
+                    Year = 2018,
+                    Note = "窗口函数、CTE、数据字典",
+                    VersionNumber = 8.0
+                },
+                new DBVersion(){
+                    VersionCode = "8.4",
+                    VersionName = "MySQL 8.4",
+                    MatchRegex = "^8\\.4\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2024, 4, 1),
+                    Idx = 9,
+                    Year = 2024,
+                    Note = "LTS版本，优化JSON和GIS功能",
+                    VersionNumber = 8.4
+                },
+                new DBVersion(){
+                    VersionCode = "9.0",
+                    VersionName = "MySQL 9.0",
+                    MatchRegex = "^9\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2024, 10, 1),
+                    Idx = 10,
+                    Year = 2024,
+                    Note = "创新版本，增强云原生支持",
+                    VersionNumber = 9.0
+                }
+            };
+            this.Versions = tar;
+            return tar;
+        }
     }
+
+
 }

@@ -808,6 +808,16 @@ namespace mooSQL.data {
             return whereFieids(fields, value, 1,op);
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public SQLBuilder whereAnyFieldIs(object value,params string[] fields)
+        {
+            return whereFieids(fields, value, 1);
+        }
+        /// <summary>
         /// 所有字段都满足条件,即形成（field1 = val and field2 = val and ...）。等同于 whereAllFieids 方法。
         /// </summary>
         /// <param name="fields"></param>
@@ -920,6 +930,11 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereExist(string value)
         {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
             current.whereExist(value);
             return this;
         }
@@ -932,6 +947,11 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereExist(Action<SQLBuilder> doselect)
         {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
             current.whereExist(doselect);
             return this;
         }
@@ -953,6 +973,11 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereNotExist(Action<SQLBuilder> doselect)
         {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
             current.where("", " NOT EXISTS ", doselect);
             return this;
         }
@@ -965,6 +990,11 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder where(string key, string op, Action<SQLBuilder> doselect)
         {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
             current.where(key, op, doselect);
             return this;
         }
@@ -976,6 +1006,11 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder where(string key, Action<SQLBuilder> doselect)
         {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
             current.where(key, "=", doselect);
             return this;
         }
@@ -1125,11 +1160,11 @@ namespace mooSQL.data {
 
             if (minValue == null)
             {
-                return where(key, maxValue, "<");
+                return where(key, maxValue, "<=");
             }
             else if (maxValue == null)
             {
-                return where(key, minValue, ">");
+                return where(key, minValue, ">=");
             }
 
 
@@ -1137,7 +1172,41 @@ namespace mooSQL.data {
 
             return this;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="minValue"></param>
+        /// <param name="maxValue"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
 
+            if (maxValue == null && maxValue == null)
+            {
+                return this;
+            }
+
+            if (minValue == null)
+            {
+                return where(key, maxValue, ">");
+            }
+            else if (maxValue == null)
+            {
+                return where(key, minValue, "<");
+            }
+
+
+            current.whereFormat(key + " not between {0} and {1}", minValue, maxValue);
+
+            return this;
+        }
         /// <summary>
         /// 使用字符串模板进行格式化。参数放入到SQL参数中。格式为{0} {1} {2} 等标准化的c# String.format语法。
         /// </summary>

@@ -58,7 +58,9 @@ namespace mooSQL.data
 
         private bool isMySQL80More() {
 
-            if (DB.versionNumber > 8 || (this.DB.version !=null &&  this.DB.version.StartsWith("8."))) {
+            var ver = dialect.CurVersion;
+            if(ver !=null && ver.VersionNumber >= 8) { 
+            //if (DB.versionNumber > 8 || (this.DB.version !=null &&  this.DB.version.StartsWith("8."))) {
                 return true;
             }
             return false;
@@ -66,9 +68,28 @@ namespace mooSQL.data
 
         public override string buildPagedSelect(FragSQL frag)
         {
-            if (this.isMySQL80More()) {
-                return buildPagedByRowNumber(frag);
+            if (this.isMySQL80More()==false) {
+                //LIMIT 10, 10;  -- 跳过前10条，取第11-20条
+                return this.buildPagedSelectTail(frag, (sb) => {
+                    if (frag.pageSize > -1)
+                    {
+                        int end = frag.pageSize * (frag.pageNum - 1);
+                        sb.Append("LIMIT ");
+                        sb.Append(end);
+                        sb.Append(" , ");
+                        sb.Append(frag.pageSize);
+
+                    }
+                    else if (frag.toped > -1)
+                    {
+                        sb.Append("limit ");
+                        sb.Append(frag.toped);
+                        sb.Append(" ");
+                    }
+                });
+                //return buildPagedByRowNumber(frag);
             }
+            //LIMIT 每页行数 OFFSET 跳过的行数;
             return this.buildPagedSelectTail(frag, (sb) => {
                 if (frag.pageSize > -1)
                 {
@@ -180,47 +201,9 @@ namespace mooSQL.data
                 frag.fromInner = reg.Replace(frag.fromInner, " inner join ");// .ToLower().Replace(@"\sleft\s+join\s"," inner join ");
             }
             sb.AppendFormat("update {0} set ", frag.fromInner);
-            if (!string.IsNullOrWhiteSpace(frag.updateTo))
-            {
-                //如果设置了目标则作适配性修正。如果set列没有表前缀，增加表前缀。
-                List<string> fiexedset = new List<string>();
-                if (frag.setInner.Contains(","))
-                {
-                    var sets = frag.setInner.Split(',');
 
-                    foreach (var s in sets)
-                    {
-                        var t = fixSetField(s, frag);
-                        if (!string.IsNullOrWhiteSpace(t))
-                        {
-                            fiexedset.Add(t);
-                        }
-
-                    }
-
-                }
-                else {
-                    var t = fixSetField(frag.setInner, frag);
-                    if (!string.IsNullOrWhiteSpace(t))
-                    {
-                        fiexedset.Add(t);
-                    }
-                }
-                //没有设置列信息，返回空
-                if (fiexedset.Count == 0) {
-                    return "";
-                }
-                sb.Append(" ");
-                sb.Append(string.Join(",", fiexedset)); 
-                sb.Append(" ");
-                
-            }
-            else {
-                sb.Append(" ");
-                sb.Append(string.Join(",", frag.setInner));
-                sb.Append(" ");
-            }
-            
+            var setPart= this.buildSetPart(frag);
+            sb.Append(setPart);
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
                 sb.AppendFormat(" where {0}", frag.whereInner);
@@ -244,6 +227,153 @@ namespace mooSQL.data
             }
             return setOne;
         }
+
+        private string gotTableField(string onJoin,string tableName) {
+        
+            var tbs= onJoin.Split('=');
+            foreach (var tb in tbs) { 
+                if (tb.Contains(".")  ) {
+
+                    var tbsp = tb.Split('.');
+                    if(tbsp[0].Trim() == tableName)
+                    return tbsp[1];
+                }
+            }
+            return "";
+        }
+        /// <summary>
+        /// 不支持原始的merge into 语句，使用update from / insert from 来替代。
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
+        public override string buildMergeInto(FragMergeInto frag)
+        {
+            return this.buildMergeIntoFallBack(frag);
+        }
+        protected override string buildSetPart(FragSQL frag) { 
+            return buildSetPart(frag.setPart, frag.updateTo);
+        }
+        private string buildSetPart(List<FragSetPart> sets,string toTableAlias)
+        {
+            bool isFirst = true;
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in sets)
+            {
+                if (!isFirst)
+                {
+                    sb.Append(",");
+                }
+                else
+                {
+                    isFirst = false;
+                }
+                if (item.field.Contains(".") == false) { 
+                    sb.Append(toTableAlias);
+                    sb.Append(".");
+                }
+                sb.Append(item.field);
+                sb.Append("=");
+                sb.Append(item.value);
+                sb.Append(" ");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 当数据库不支持merge into时，衰退为一个update from /insert from 语句组合。
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
+        protected string buildMergeIntoFallBack(FragMergeInto frag)
+        {
+            var sb = new StringBuilder();
+            var setTableNick = "t_tar";
+            if (frag.intoAlias.HasText()) { 
+                setTableNick = frag.intoAlias;
+            }
+            var updateFromPart = "";
+            var insertFromPart = "";
+            var joinWH = frag.onPart;
+            if (joinWH.Contains(frag.intoTable + ".")) { 
+                joinWH = joinWH.Replace(frag.intoTable + ".", setTableNick + ".");
+            }
+            if (frag.usingAlias.HasText())
+            {
+
+                updateFromPart = string.Format("{0} AS {1} INNER JOIN  ({2}) as {3} ON {4} ",
+                    frag.intoTable, setTableNick, frag.usingTable, frag.usingAlias, joinWH);
+                insertFromPart = string.Format("{0} AS {1} Right JOIN  ({2}) as {3} ON {4} ",
+                    frag.intoTable, setTableNick, frag.usingTable, frag.usingAlias, joinWH);
+            }
+            else
+            {
+                updateFromPart = string.Format("{0} AS {1} INNER JOIN  {2} ON {3} ",
+                    frag.intoTable, setTableNick, frag.usingTable, joinWH);
+                insertFromPart = string.Format("{0} AS {1} Right JOIN  {2} ON {3} ",
+                    frag.intoTable, setTableNick, frag.usingTable, joinWH);
+            }
+            foreach (var when in frag.mergeWhens) { 
+                if (when.action == MergeAction.update && when.setInner!=null && when.setInner.Count>0 )
+                {
+                    //创建更新部分
+                    var fu = new FragSQL();
+                    fu.updateTo = setTableNick;
+                    fu.setPart = when.setInner;
+                    fu.fromInner = updateFromPart;
+                    if (!string.IsNullOrWhiteSpace(when.whenWhere)) { 
+                        fu.whereInner = when.whenWhere;
+                    }
+                    sb.Append(buildUpdate(fu));
+                    sb.Append(";");
+                    sb.AppendLine();
+                }            
+            }
+
+            foreach (var when in frag.mergeWhens) { 
+                if (when.action== MergeAction.insert && !string.IsNullOrWhiteSpace(when.fieldInner))
+                {
+                    var fi = new FragSQL();
+
+                    fi.insertInto = frag.intoTable;
+                    fi.insertCols = when.fieldInner;
+                    fi.insertValue = when.valueInner;
+                    fi.fromInner = insertFromPart;
+                    //需要把join条件解构，拆出目标的那个字段，放到where条件中
+                    string field = "";
+                    if (!string.IsNullOrWhiteSpace(frag.intoAlias)) {
+                        field = this.gotTableField(frag.onPart, frag.intoAlias);
+                    }
+                    if (string.IsNullOrWhiteSpace(field))
+                    {
+                        field = this.gotTableField(frag.onPart, frag.intoTable);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(field))
+                    {
+                        fi.whereInner = string.Format("{0}.{1} IS NULL", setTableNick, field);
+                        sb.Append(buildInsert(fi));
+                        sb.Append(";");
+                        sb.AppendLine();
+                    }
+                    else {
+                        //拆不出来，使用 not exist 处理
+                        /*
+                         WHERE NOT EXISTS (
+        SELECT 1 FROM products_archive pa 
+        WHERE pa.product_id = p.product_id
+    );
+                         */
+                    
+                    }
+
+    ;
+                }               
+            }
+
+            
+
+            return sb.ToString();
+        }
         #endregion
         #region DDL语句
 
@@ -266,7 +396,11 @@ namespace mooSQL.data
         {
             return string.Format("PRIMARY KEY ({0})",  fields);
         }
-
+        /// <summary>
+        /// 表名的注释定义
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
             return string.Format(" COMMENT '{0}';",  frag.TableCaption);
@@ -287,7 +421,11 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
-
+        /// <summary>
+        /// 复制表
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
         public override string buildCopyTableSchema(DDLFragSQL frag)
         {
             var sb=new StringBuilder();
@@ -305,7 +443,12 @@ namespace mooSQL.data
             sb.AppendFormat("CREATE TABLE {0} AS SELECT * FROM {1};", frag.Table, frag.SrcTable);
             return sb.ToString();
         }
-
+        /// <summary>
+        /// 删除索引
+        /// </summary>
+        /// <param name="indexName"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public override string buildDropIndex(string indexName, string tableName = null)
         {
             return string.Format("DROP INDEX {0} ON {1}", indexName,tableName);
@@ -327,10 +470,28 @@ namespace mooSQL.data
         {
             return string.Format("CREATE DATABASE {0} CHARACTER SET utf8 COLLATE utf8_general_ci ",database);
         }
+        /// <summary>
+        /// 添加主键
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <param name="indexName"></param>
+        /// <returns></returns>
         public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName)
         {
             return string.Format("ALTER TABLE {0} ADD PRIMARY KEY({2}) /*{1}*/", tableName, indexName, columnName);
         }
+        /// <summary>
+        /// 添加列
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <param name="dataType"></param>
+        /// <param name="defval"></param>
+        /// <param name="nullable"></param>
+        /// <param name="p2"></param>
+        /// <param name="p3"></param>
+        /// <returns></returns>
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ADD {1} {2}{3} {4} {5} {6}",
@@ -338,6 +499,17 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+        /// <summary>
+        /// 修改列
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <param name="dataType"></param>
+        /// <param name="defval"></param>
+        /// <param name="nullable"></param>
+        /// <param name="p2"></param>
+        /// <param name="p3"></param>
+        /// <returns></returns>
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("alter table {0} change  column {1} {1} {2}{3} {4} {5} {6}",
@@ -345,10 +517,26 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+        /// <summary>
+        /// 建表
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="detail"></param>
+        /// <returns></returns>
         public override string CreateTableBy(string tableName, string detail)
         { 
-            return string.Format("CREATE TABLE {0}(\r\n{1} $PrimaryKey)", tableName, detail);
+            return string.Format("CREATE TABLE {0}( {1} $PrimaryKey)", tableName, detail);
         }
+        /// <summary>
+        /// 建字段
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <param name="dataType"></param>
+        /// <param name="defval"></param>
+        /// <param name="nullable"></param>
+        /// <param name="p2"></param>
+        /// <param name="p3"></param>
+        /// <returns></returns>
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -359,15 +547,33 @@ namespace mooSQL.data
         //protected override string TruncateTableSql (){ "TRUNCATE TABLE {0}";
 
         //protected override string DropTableSql (){ "DROP TABLE {0}";
-
+        /// <summary>
+        /// 删除列
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
         public override string DropColumnToTableBy(string tableName, string columnName)
         { 
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}", tableName, columnName);
         }
+        /// <summary>
+        /// 删除主键
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="constraintName"></param>
+        /// <returns></returns>
         public override string DropConstraintBy(string tableName, string constraintName)
         { 
             return string.Format("ALTER TABLE {0} drop primary key;", tableName, constraintName);
         }
+        /// <summary>
+        /// 重命名列
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="oldName"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
             return string.Format("alter table {0} change  column {1} {2}", tableName, oldName, newName);
@@ -402,20 +608,43 @@ namespace mooSQL.data
         }
 
 
-
+        /// <summary>
+        /// 修改表注释
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="caption"></param>
+        /// <returns></returns>
         public override string AddTableCaptionBy (string tableName, string caption)
         { 
             return string.Format("ALTER TABLE {0} COMMENT='{1}';", tableName, caption);
         }
+        /// <summary>
+        /// 删除表注释
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public override string DeleteTableCaptionBy (string tableName)
         { 
             return string.Format("ALTER TABLE {0} COMMENT='';", tableName);
         }
-
+        /// <summary>
+        /// 重命名表
+        /// </summary>
+        /// <param name="oldTableName"></param>
+        /// <param name="newTableName"></param>
+        /// <returns></returns>
         public override string RenameTableBy (string oldTableName, string newTableName)
         { 
             return string.Format("alter table {0} rename {1}", oldTableName, newTableName);
         }
+        /// <summary>
+        /// 建索引
+        /// </summary>
+        /// <param name="indexName"></param>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <param name="unque"></param>
+        /// <returns></returns>
         public override string CreateIndexBy (string indexName, string tableName, string columnName,string unque)
         { 
             return string.Format("CREATE {3} INDEX Index_{0}_{2} ON {0} ({1})", tableName, columnName, indexName,unque);

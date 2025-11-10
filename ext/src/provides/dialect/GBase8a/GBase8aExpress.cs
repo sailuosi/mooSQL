@@ -13,7 +13,7 @@ namespace mooSQL.data
     /// <summary>
     /// MYSQL的特性语法
     /// </summary>
-    public class GBase8aExpress:SQLExpression
+    public class GBase8aExpress:MySQLExpress
     {
         public GBase8aExpress(Dialect dia) : base(dia) {
             _paraPrefix = "";
@@ -156,87 +156,7 @@ namespace mooSQL.data
             }
             throw new Exception("SQL语句不完整！无法构造！");
         }
-        /// <summary>
-        /// 使mysql的update from 语句，完全支持sqlserver的格式。
-        /// </summary>
-        /// <param name="frag"></param>
-        /// <returns></returns>
-        public override string buildUpdateFrom(FragSQL frag)
-        {
-            /**
-             * 创建MYSQL下的update from 必须使用inner join
-             * @return update tablename inner join a on a.pid=tablename.id set ... where ...
-             */
-            var sb = new StringBuilder();
-            // update a set a=b from ... where ...
-            //将left join 更改为inner join 
-            if (RegxUntils.test(frag.fromInner.ToLower(), @"\sleft\s+join\s")) {
-                var reg = new Regex(@"\sleft\s+join\s", RegexOptions.IgnoreCase);
-                frag.fromInner = reg.Replace(frag.fromInner, " inner join ");// .ToLower().Replace(@"\sleft\s+join\s"," inner join ");
-            }
-            sb.AppendFormat("update {0} set ", frag.fromInner);
-            if (!string.IsNullOrWhiteSpace(frag.updateTo))
-            {
-                //如果设置了目标则作适配性修正。如果set列没有表前缀，增加表前缀。
-                List<string> fiexedset = new List<string>();
-                if (frag.setInner.Contains(","))
-                {
-                    var sets = frag.setInner.Split(',');
 
-                    foreach (var s in sets)
-                    {
-                        var t = fixSetField(s, frag);
-                        if (!string.IsNullOrWhiteSpace(t))
-                        {
-                            fiexedset.Add(t);
-                        }
-
-                    }
-
-                }
-                else {
-                    var t = fixSetField(frag.setInner, frag);
-                    if (!string.IsNullOrWhiteSpace(t))
-                    {
-                        fiexedset.Add(t);
-                    }
-                }
-                //没有设置列信息，返回空
-                if (fiexedset.Count == 0) {
-                    return "";
-                }
-                sb.Append(" ");
-                sb.Append(string.Join(",", fiexedset)); 
-                sb.Append(" ");
-                
-            }
-            else {
-                
-            }
-            
-            if (!string.IsNullOrWhiteSpace(frag.whereInner))
-            {
-                sb.AppendFormat(" where {0}", frag.whereInner);
-            }
-            return sb.ToString();
-        }
-
-        private string fixSetField(string setOne, FragSQL frag) {
-            var fieldsp = setOne.Split('=');
-            if (fieldsp.Length != 2) {
-                return "";
-            }
-
-            var field = fieldsp[0];
-
-            if (field.Contains(".") == false)
-            {
-                //要赋值的字段没有表前缀
-                var t = frag.updateTo + "." + setOne.TrimStart();
-                return t;
-            }
-            return setOne;
-        }
 
         #region DDL
 

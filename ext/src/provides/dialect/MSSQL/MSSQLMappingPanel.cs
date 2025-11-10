@@ -28,6 +28,62 @@ namespace mooSQL.data.MSSQL
         }
 
 
+        public override string DbDataTypeToSQL(DbDataType type)
+        {
+            switch (type.DataType)
+            {
+                case DataFam.VarChar:
+                    return string.Format("varchar({0})", type.Length);
+                case DataFam.NVarChar:
+                    return string.Format("nvarchar({0})", type.Length);
+                case DataFam.DateTime:
+                case DataFam.DateTime2:
+                    return "datetime";
+                case DataFam.Time:
+                    var scale = type.Length;
+                    if (scale >= 0 && scale <= 7) {
+                        return string.Format("TIME{0}",scale);
+                    }
+                    return "TIME(0)";
+                case DataFam.Date:
+                    return "DATE";
+                case DataFam.Boolean:
+                    return "bit";
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                    if (type.Precision == null || type.Precision == 0)
+                    {
+                        type.Precision = 10;
+                    }
+                    return string.Format("numeric({0},{1})", type.Precision, type.Scale);
+                case DataFam.Double:
+                    if (type.Precision == null || type.Precision == 0)
+                    {
+                        return "numeric(18,0)";
+                    }
+                    else if (type.Scale == null)
+                    {
+                        return string.Format("numeric({0})", type.Precision);
+                    }
+                    else
+                    {
+                        return string.Format("numeric({0},{1})", type.Precision, type.Scale);
+                    }
+
+                case DataFam.Guid:
+                    return "uniqueidentifier";
+                case DataFam.Char:
+                    return string.Format("char({0})", type.Length);
+                case DataFam.Int32:
+                    return "int";
+                case DataFam.Int64:
+                case DataFam.Long:
+                    return "bigint";
+                case DataFam.Text:
+                    return "text";
+            }
+            return base.DbDataTypeToSQL(type);
+        }
 
 
 

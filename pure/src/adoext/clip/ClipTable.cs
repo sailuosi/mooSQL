@@ -46,7 +46,11 @@ namespace mooSQL.data
         /// <summary>
         /// 子查询SQL语句表
         /// </summary>
-        SubSQL=1
+        SubSQL=1,
+        /// <summary>
+        /// 给动态分表使用的，此时需要要指定一个表名
+        /// </summary>
+        LiveTable=2,
     }
 
     internal enum ClipTableType { 

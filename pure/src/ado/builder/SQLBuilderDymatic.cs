@@ -118,6 +118,12 @@ namespace mooSQL.data
             var cmd = new SQLCmd(SQL, para);
             return DBLive.ExeQuery<T>(cmd, Executor);
         }
+        /// <summary>
+        /// 执行一次select查询语句，返回泛型集合。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="SQL"></param>
+        /// <returns></returns>
         public IEnumerable<T> exeQuery<T>(SQLCmd SQL)
         {
             if (SQL.para == null) SQL.para = new Paras();
@@ -180,7 +186,7 @@ namespace mooSQL.data
         {
 
             int res = exeNonQuery(toInsert());
-            if (autoClear) clear();
+            if (_AutoClearWay== CleanWay.AfterModify||_AutoClearWay== CleanWay.Always) clear();
             return res;
         }
 
@@ -195,7 +201,7 @@ namespace mooSQL.data
             if (sql.Empty) return 0;
 
             int res = exeNonQuery(sql);
-            if (autoClear) clear();
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
 
@@ -208,7 +214,7 @@ namespace mooSQL.data
         public int doUpdate()
         {
             int res = exeNonQuery(this.toUpdate());
-            if (autoClear) clear();
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
 
@@ -226,7 +232,7 @@ namespace mooSQL.data
             }
 
             int res = exeNonQuery(sql);
-            if (autoClear) clear();
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
         /// <summary>
@@ -236,7 +242,7 @@ namespace mooSQL.data
         public int doMergeInto()
         {
             int res = exeNonQuery(this.toMergeInto());
-            if (autoClear) clear();
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
         /// <summary>
@@ -254,7 +260,7 @@ namespace mooSQL.data
             var sql = this.toDelete();
 
             int res = exeNonQuery(sql);
-            if (autoClear) clear();
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
 
@@ -277,9 +283,9 @@ namespace mooSQL.data
             {
                 if (cache == null)
                 {
-                    if (MooClient.Cache != null)
+                    if (Client.Cache != null)
                     {
-                        cache = MooClient.Cache;
+                        cache = Client.Cache;
                     }
                     else
                     {
@@ -313,14 +319,19 @@ namespace mooSQL.data
             {
                 return null;
             }
-            return exeQuery(sql);
-
+            var res= exeQuery(sql);
+            if (this._AutoClearWay == CleanWay.Always) { 
+                clear();
+            }
+            return res;
         }
         /// <summary>
         /// 分页查询，返回分页数据和总数。
         /// </summary>
         /// <returns></returns>
         public PagedDataTable queryPaged() {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
             var dt = this.query();
             var total = this.count();
             var res = new PagedDataTable()
@@ -330,6 +341,11 @@ namespace mooSQL.data
                 PageNum = this.current.pageNum,
                 PageSize = current.pageSize
             };
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
             return res;
         }
         /// <summary>
@@ -339,6 +355,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public PageOutput<T> queryPaged<T>()
         {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
             var dt = this.query<T>();
             var total = this.count();
             var res = new PageOutput<T>()
@@ -348,6 +366,11 @@ namespace mooSQL.data
                 PageNum = this.current.pageNum,
                 PageSize = current.pageSize
             };
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
             return res;
         }
 
@@ -375,6 +398,11 @@ namespace mooSQL.data
             {
                 return null;
             }
+
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
             return exeQuery<T>(sql);
         }
         /// <summary>
@@ -401,7 +429,12 @@ namespace mooSQL.data
             {
                 return null;
             }
-            return DBLive.ExeQueryFirstField<T>(sql,Executor);
+            var res= DBLive.ExeQueryFirstField<T>(sql,Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
         }
         /// <summary>
         /// 查询单行数据，只会读取第一行，忽略后续数据
@@ -431,8 +464,12 @@ namespace mooSQL.data
             {
                 printSQL(sql.sql, sql.para);
             }
-            return DBLive.ExeQueryRow<T>(sql,Executor);
-
+            var res= DBLive.ExeQueryRow<T>(sql,Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
         }
 
 
@@ -464,7 +501,12 @@ namespace mooSQL.data
             {
                 printSQL(sql.sql, sql.para);
             }
-            return DBLive.ExeQueryUniqueRow<T>(sql,Executor);
+            var res= DBLive.ExeQueryUniqueRow<T>(sql,Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
 
         }
 
@@ -496,8 +538,12 @@ namespace mooSQL.data
             {
                 printSQL(sql.sql, sql.para);
             }
-            return DBLive.ExeQueryScalar<T>(sql, Executor);
-
+            var tar= DBLive.ExeQueryScalar<T>(sql, Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
         }
 
         /// <summary>
@@ -524,11 +570,16 @@ namespace mooSQL.data
             {
                 return default(TResult);
             }
-            return DBLive.ExecuteCmd(sql, (cmd, cont) =>
+            var tar= DBLive.ExecuteCmd(sql, (cmd, cont) =>
             {
                 return onRuning(cont, typeof(T));
             });
 
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
         }
 
 
@@ -652,7 +703,12 @@ namespace mooSQL.data
         public int count()
         {
             var cmd = toSelectCount();
-            return exeQueryCount(cmd);
+            var tar= exeQueryCount(cmd);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
         }
 
 

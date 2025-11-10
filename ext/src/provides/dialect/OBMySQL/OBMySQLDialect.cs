@@ -21,6 +21,7 @@ namespace mooSQL.data
             mapping = new MySQLMappingPanel();
             clauseTranslator = new MySQLClauseTranslator(this);
             function = new MySQLFunction();
+            this.initVersions();
         }
         public override DbCommand getCommand()
         {
@@ -211,6 +212,102 @@ namespace mooSQL.data
             return fileName;
         }
 
+        private List<DBVersion> initVersions() { 
+            var tar= new List<DBVersion> {
+                new DBVersion(){
+                    VersionCode = "1.0",
+                    VersionName = "OceanBase 1.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2010, 6, 1),
+                    Idx = 1,
+                    Year = 2010,
+                    Note = "首个分布式版本",
+                    VersionNumber = 1.0
+                },
+                new DBVersion(){
+                    VersionCode = "2.0",
+                    VersionName = "OceanBase 2.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2016, 8, 1),
+                    Idx = 2,
+                    Year = 2016,
+                    Note = "支持多租户架构",
+                    VersionNumber = 2.0
+                },
+                new DBVersion(){
+                    VersionCode = "3.0",
+                    VersionName = "OceanBase 3.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2020, 6, 1),
+                    Idx = 3,
+                    Year = 2020,
+                    Note = "全面兼容MySQL协议",
+                    VersionNumber = 3.0
+                },
+                new DBVersion(){
+                    VersionCode = "3.1",
+                    VersionName = "OceanBase 3.1",
+                    MatchRegex = "\\.1\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2021, 3, 1),
+                    Idx = 4,
+                    Year = 2021,
+                    Note = "增强分布式事务性能",
+                    VersionNumber = 3.1
+                },
+                new DBVersion(){
+                    VersionCode = "3.2",
+                    VersionName = "OceanBase 3.2",
+                    MatchRegex = "\\.2\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2022, 5, 1),
+                    Idx = 5,
+                    Year = 2022,
+                    Note = "引入HTAP混合负载能力",
+                    VersionNumber = 3.2
+                },
+                new DBVersion(){
+                    VersionCode = "4.0",
+                    VersionName = "OceanBase 4.0",
+                    MatchRegex = "\\.0\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2023, 5, 1),
+                    Idx = 6,
+                    Year = 2023,
+                    Note = "全面兼容Oracle模式",
+                    VersionNumber = 4.0
+                },
+                new DBVersion(){
+                    VersionCode = "4.1",
+                    VersionName = "OceanBase 4.1",
+                    MatchRegex = "\\.1\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2024, 1, 1),
+                    Idx = 7,
+                    Year = 2024,
+                    Note = "增强JSON处理能力",
+                    VersionNumber = 4.1
+                },
+                new DBVersion(){
+                    VersionCode = "4.2",
+                    VersionName = "OceanBase 4.2",
+                    MatchRegex = "\\.2\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2024, 6, 1),
+                    Idx = 8,
+                    Year = 2024,
+                    Note = "支持自动回滚SQL生成",
+                    VersionNumber = 4.2
+                },
+                new DBVersion(){
+                    VersionCode = "4.3",
+                    VersionName = "OceanBase 4.3",
+                    MatchRegex = "\\.3\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2025, 3, 1),
+                    Idx = 9,
+                    Year = 2025,
+                    Note = "优化LSM-Tree读放大问题",
+                    VersionNumber = 4.3
+                }
+            };
+            this.Versions = tar;
+            return tar;
+        }
 
     }
 }

@@ -26,10 +26,14 @@ namespace mooSQL.data.Mapping
                     entityColumn.DbColumnName = (attr.Name==null?propertyInfo.Name:attr.Name);
                     entityColumn.ColumnDescription = attr.Caption;
                     entityColumn.IsIgnore = attr.SkipOnEntityFetch&& attr.SkipOnInsert && attr.SkipOnUpdate;
-                    if (attr.IsColumn == false) {
+                    if (attr.IsColumn == false)
+                    {
                         entityColumn.IsIgnore = true;
-
+                        entityColumn.DbColumnName = string.Empty;
+                        entityColumn.Kind = FieldKind.Fake;
+                        continue;
                     }
+
                     entityColumn.Length = attr.Length;
                     entityColumn.IsPrimarykey = attr.IsPrimaryKey;
                     entityColumn.IsNullable = attr.CanBeNull;         
@@ -42,7 +46,8 @@ namespace mooSQL.data.Mapping
                     }
                     
 
-                    if ( attr.Kind != FieldKind.None) {
+                    if (attr.Kind != FieldKind.None)
+                    {
                         entityColumn.Kind = attr.Kind;
                     }
                     if (!string.IsNullOrWhiteSpace(attr.Alias)) { 
@@ -64,8 +69,16 @@ namespace mooSQL.data.Mapping
                     //解析字段排序的设置
                     if (attr.Asc == true || attr.Desc == true || attr.OrderIdx > 0) {
                         var od= new EntityOrder();
-                        od.Nick= entityColumn.SrcTable;
-                        od.Field = entityColumn.SrcField;
+                        if (entityColumn.Kind == FieldKind.Base)
+                        {
+                            od.Nick = entityInfo.Alias;
+                            od.Field = entityColumn.DbColumnName;
+                        }
+                        else if (entityColumn.Kind == FieldKind.Join) {
+                            od.Nick = entityColumn.SrcTable;
+                            od.Field = entityColumn.SrcField;
+                        }
+
                         if (attr.Asc == true)
                         {
                             od.OType = OrderType.ASC;
@@ -74,13 +87,18 @@ namespace mooSQL.data.Mapping
                         {
                             od.OType = OrderType.DESC;
                         }
-                        else if (attr.OrderIdx > 0) { 
+                        else if (attr.OrderIdx > 0)
+                        {
                             od.Idx = attr.OrderIdx;
-                            if(od.OType == OrderType.None)
+                            if (od.OType == OrderType.None)
                             {
                                 od.OType = OrderType.ASC;
                             }
                         }
+                        if (entityInfo.OrderBy == null) {
+                            entityInfo.OrderBy= new List<EntityOrder>();
+                        }
+                        entityInfo.OrderBy.Add(od);
                     }
                 }
                 //设置默认类型，如果设置了字段名称，未设置类型，则为实表字段

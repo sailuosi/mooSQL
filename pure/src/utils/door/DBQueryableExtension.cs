@@ -118,5 +118,14 @@ namespace mooSQL.data
         {
             return DB.client.ClientFactory.useClip(DB, kit);
         }
+        /// <summary>
+        /// 批量插入器
+        /// </summary>
+        /// <param name="DB"></param>
+        /// <returns></returns>
+        public static BulkBase useBulk(this DBInstance DB)
+        {
+            return DB.client.ClientFactory.useBulk(DB);
+        }
     }
 }

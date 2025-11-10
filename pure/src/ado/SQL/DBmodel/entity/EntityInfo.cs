@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -79,6 +80,11 @@ namespace mooSQL.data
         /// </summary>
         public string DBName { get; set; }
         /// <summary>
+        /// 是否动态分表
+        /// </summary>
+        public bool? LiveName { get; set; }
+
+        /// <summary>
         /// 是否是视图
         /// </summary>
         public bool IsView {  get; set; }
@@ -108,6 +114,10 @@ namespace mooSQL.data
         /// </summary>
         public string Alias { get; set; }
         /// <summary>
+        /// 表名解析器
+        /// </summary>
+        public ConcurrentDictionary<string,ITableNameInterceptor> NameParses { get; set; }
+        /// <summary>
         /// 更多扩展信息
         /// </summary>
         public Dictionary<string,object> more= new Dictionary<string,object>();
@@ -132,7 +142,7 @@ namespace mooSQL.data
         /// </summary>
         public EntityInfo() {
             Columns = new List<EntityColumn>();
-
+            NameParses = new ConcurrentDictionary<string, ITableNameInterceptor>();
         }
 
         private static readonly object _lockObj = new object();
@@ -209,6 +219,20 @@ namespace mooSQL.data
                 }
             }
             return pks;
+        }
+        /// <summary>
+        /// 注册一个表名解析器，用于动态分表。name为解析器的名称。
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="nameInterceptor"></param>
+        public void UseNameParser(string name,ITableNameInterceptor nameInterceptor) {
+            if (nameInterceptor == null) {
+                return;
+            }
+            if (NameParses.ContainsKey(name)) { 
+                return;
+            }
+            NameParses.TryAdd(name,nameInterceptor);
         }
     }
 }

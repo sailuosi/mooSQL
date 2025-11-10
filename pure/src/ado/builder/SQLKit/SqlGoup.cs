@@ -119,6 +119,9 @@ namespace mooSQL.data
         /// group by 部分
         /// </summary>
         public List<string> groupbyPart {  get; set; }
+        /// <summary>
+        /// having 部分，用于构建查询语句。
+        /// </summary>
         public string havingPart = "";
         /// <summary>
         /// 分页大小，默认为10。
@@ -161,7 +164,12 @@ namespace mooSQL.data
          * 查询的数量
          */
         public int toped = -1;
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <param name="key"></param>
+        /// <param name="kit"></param>
         public SqlGoup(string Name,string key,SQLBuilder kit) {
             //this.tableName = Name;
             this.key = key;
@@ -237,6 +245,13 @@ namespace mooSQL.data
             }
             ps.AddByPrefix(key, val,dbstr);
         }
+        /// <summary>
+        /// 添加参数化列表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
         public List<string> addPara<T>(IEnumerable<T> list, string prefix)
         {
             if (ps == null)
@@ -1102,8 +1117,8 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQL"></param>
         private void fireSQLEvent(string SQL) {
-            if (root.MooClient != null) {
-                root.MooClient.fireCreatedSQL(SQL, root);
+            if (root.Client != null) {
+                root.Client.fireCreatedSQL(SQL, root);
             }
         }
 

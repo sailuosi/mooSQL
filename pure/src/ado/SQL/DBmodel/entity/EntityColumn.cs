@@ -72,6 +72,19 @@ namespace mooSQL.data
         /// 实体名
         /// </summary>
         public string EntityName { get;  set; }
+
+        public string Edition { get; set; }
+
+        public List<string> Editions
+        {
+            get {
+                if (this.Editions != null) { 
+                    var tar=this.Edition.Split(',');
+                    return tar.ToList();
+                }
+                return null;
+            }
+        }
         /// <summary>
         /// 数据库表名
         /// </summary>

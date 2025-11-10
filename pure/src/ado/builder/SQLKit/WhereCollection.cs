@@ -110,9 +110,9 @@ namespace mooSQL.data
                 frag.leftParamKey = string.Format("k{0}g{1}wl{2}", root.paraSeed, paramPrefix, this._addCount);
             }
 
-            if (root.MooClient != null)
+            if (root.Client != null)
             {
-                var ok = root.MooClient.fireBuildWhereFrag(frag, root);
+                var ok = root.Client.fireBuildWhereFrag(frag, root);
                 if (ok)
                 {
                     this.CurrentGroup.Add(frag);

@@ -193,6 +193,10 @@ namespace mooSQL.data
         {
             return this.join("LEFT JOIN", joinSQLString, childFromPart);
         }
+        public SQLBuilder leftJoin(string joinSQLString)
+        {
+            return this.join("LEFT JOIN "+ joinSQLString);
+        }
         /// <summary>
         /// 内连接
         /// </summary>
@@ -202,6 +206,10 @@ namespace mooSQL.data
         public SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("INNER JOIN", joinSQLString, childFromPart);
+        }
+        public SQLBuilder innerJoin(string joinSQLString)
+        {
+            return this.join("INNER JOIN "+ joinSQLString);
         }
         /// <summary>
         /// 右连接

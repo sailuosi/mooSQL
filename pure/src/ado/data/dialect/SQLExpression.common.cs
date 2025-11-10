@@ -73,6 +73,15 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string wrapField(string value)
         {
+            if (value == null) {
+                return value;
+            }
+            var val = value.Trim();
+            //如果不是由字母和数字组成的，不是纯SQL字段，则直接返回
+            var reg=@"^[a-zA-Z0-9_]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(val, reg)) { 
+                return value;
+            }
             return wrapKeyword(value);
         }
         /// <summary>

@@ -1,8 +1,4 @@
 ﻿
-
-
-
-using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,6 +18,8 @@ namespace mooSQL.data
         {
             expression = new GBase8aExpress(this);
             sentence = new GBase8aSentence(this);
+
+            this.InitDBVersions();
         }
         public override DbCommand getCommand()
         {
@@ -124,157 +122,74 @@ namespace mooSQL.data
             }
             return p1.DbType;
         }
-
+        private void InitDBVersions()
+        {
+            var tar = new List<DBVersion> {
+                new DBVersion(){
+                    VersionCode = "8a",
+                    VersionName = "GBase 8a",
+                    MatchRegex = "8a.*",
+                    ReleaseTime = new DateTime(2010, 1, 1),
+                    Idx = 1,
+                    Year = 2010,
+                    Note = "首款分析型数据库，列式存储架构",
+                    VersionNumber = 8.1
+                },
+                new DBVersion(){
+                    VersionCode = "8s",
+                    VersionName = "GBase 8s",
+                    MatchRegex = "8s.*",
+                    ReleaseTime = new DateTime(2015, 6, 1),
+                    Idx = 2,
+                    Year = 2015,
+                    Note = "事务型数据库，兼容Oracle语法",
+                    VersionNumber = 8.2
+                },
+                new DBVersion(){
+                    VersionCode = "8a V8",
+                    VersionName = "GBase 8a V8",
+                    MatchRegex = "8a.*V8",
+                    ReleaseTime = new DateTime(2018, 12, 1),
+                    Idx = 3,
+                    Year = 2018,
+                    Note = "支持分布式部署和MPP架构",
+                    VersionNumber = 8.3
+                },
+                new DBVersion(){
+                    VersionCode = "8s V8",
+                    VersionName = "GBase 8s V8",
+                    MatchRegex = "8s.*V8",
+                    ReleaseTime = new DateTime(2019, 6, 1),
+                    Idx = 4,
+                    Year = 2019,
+                    Note = "增强高可用特性，支持RAC集群",
+                    VersionNumber = 8.4
+                },
+                new DBVersion(){
+                    VersionCode = "8a V9",
+                    VersionName = "GBase 8a V9",
+                    MatchRegex = "8a.*V9",
+                    ReleaseTime = new DateTime(2021, 3, 1),
+                    Idx = 5,
+                    Year = 2021,
+                    Note = "引入向量化计算引擎",
+                    VersionNumber = 8.5
+                },
+                new DBVersion(){
+                    VersionCode = "8s V9",
+                    VersionName = "GBase 8s V9",
+                    MatchRegex = "8s.*V9",
+                    ReleaseTime = new DateTime(2022, 9, 1),
+                    Idx = 6,
+                    Year = 2022,
+                    Note = "支持国产CPU和操作系统",
+                    VersionNumber = 8.6
+                }
+            };
+            this.Versions = tar;
+        }
     }
 
 
-    /// <summary>
-    /// 数据填充器
-    /// </summary>
-    public class GBaseDataAdapter : DbDataAdapter
-    {
-        private OdbcCommand command;
-        private string sql;
-        private OdbcConnection _sqlConnection;
-
-        /// <summary>
-        /// SqlDataAdapter
-        /// </summary>
-        /// <param name="command"></param>
-        public GBaseDataAdapter(OdbcCommand command)
-        {
-            this.command = command;
-        }
-
-        public GBaseDataAdapter()
-        {
-
-        }
-
-        /// <summary>
-        /// SqlDataAdapter
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="_sqlConnection"></param>
-        public GBaseDataAdapter(string sql, OdbcConnection _sqlConnection)
-        {
-            this.sql = sql;
-            this._sqlConnection = _sqlConnection;
-        }
-
-        /// <summary>
-        /// SelectCommand
-        /// </summary>
-        public OdbcCommand SelectCommand
-        {
-            get
-            {
-                if (this.command == null)
-                {
-                    var conn = (OdbcConnection)this._sqlConnection;
-                    this.command = conn.CreateCommand();
-                    this.command.CommandText = sql;
-                }
-                return this.command;
-            }
-            set
-            {
-                this.command = value;
-            }
-        }
-
-        /// <summary>
-        /// Fill
-        /// </summary>
-        /// <param name="dt"></param>
-        public void Fill(DataTable dt)
-        {
-            if (dt == null)
-            {
-                dt = new DataTable();
-            }
-            var columns = dt.Columns;
-            var rows = dt.Rows;
-            using (var dr = command.ExecuteReader())
-            {
-                for (int i = 0; i < dr.FieldCount; i++)
-                {
-                    string name = dr.GetName(i).Trim();
-                    if (!columns.Contains(name))
-                        columns.Add(new DataColumn(name, dr.GetFieldType(i)));
-                    else
-                    {
-                        columns.Add(new DataColumn(name + i, dr.GetFieldType(i)));
-                    }
-                }
-
-                while (dr.Read())
-                {
-                    DataRow daRow = dt.NewRow();
-                    for (int i = 0; i < columns.Count; i++)
-                    {
-                        daRow[columns[i].ColumnName] = dr.GetValue(i);
-                    }
-                    dt.Rows.Add(daRow);
-                }
-            }
-            dt.AcceptChanges();
-        }
-
-        /// <summary>
-        /// Fill
-        /// </summary>
-        /// <param name="ds"></param>
-        public void Fill(DataSet ds)
-        {
-            if (ds == null)
-            {
-                ds = new DataSet();
-            }
-            using (var dr = command.ExecuteReader())
-            {
-                do
-                {
-                    var dt = new DataTable();
-                    var columns = dt.Columns;
-                    var rows = dt.Rows;
-                    for (int i = 0; i < dr.FieldCount; i++)
-                    {
-                        string name = dr.GetName(i).Trim();
-                        if (dr.GetFieldType(i).Name == "DateTime")
-                        {
-                            if (!columns.Contains(name))
-                                columns.Add(new DataColumn(name, dr.GetFieldType(i)));
-                            else
-                            {
-                                columns.Add(new DataColumn(name + i, dr.GetFieldType(i)));
-                            }
-                        }
-                        else
-                        {
-                            if (!columns.Contains(name))
-                                columns.Add(new DataColumn(name, dr.GetFieldType(i)));
-                            else
-                            {
-                                columns.Add(new DataColumn(name + i, dr.GetFieldType(i)));
-                            }
-                        }
-                    }
-
-                    while (dr.Read())
-                    {
-                        DataRow daRow = dt.NewRow();
-                        for (int i = 0; i < columns.Count; i++)
-                        {
-                            daRow[columns[i].ColumnName] = dr.GetValue(i);
-                        }
-                        dt.Rows.Add(daRow);
-                    }
-                    dt.AcceptChanges();
-                    ds.Tables.Add(dt);
-                } while (dr.NextResult());
-            }
-        }
-    }
 
 }

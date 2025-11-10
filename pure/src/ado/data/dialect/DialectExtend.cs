@@ -138,6 +138,9 @@ namespace mooSQL.data
                 int total = 0;
                 var db = this.dbInstance;
                 var kit = db.useSQL();
+                if (bk.Executor != null) { 
+                    kit.useTransaction(bk.Executor);
+                }
                 var cols = bk.bulkTarget.Columns;
                 kit.setTable(bk.tableName);
                 int cc = 0;

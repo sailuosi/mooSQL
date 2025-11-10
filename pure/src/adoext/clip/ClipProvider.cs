@@ -25,7 +25,7 @@ namespace mooSQL.data.clip
         {
             get
             {
-                if (_Translator == null) _Translator = new EntityTranslator();
+                if (_Translator == null) _Translator = clip.DBLive.client.ClientFactory.getEntityTranslator();
                 return _Translator;
             }
 
@@ -268,6 +268,47 @@ namespace mooSQL.data.clip
             checkJoin();
         }
 
+        private string getTableSelectDeclare(ClipTable tb) {
+            var sb = new StringBuilder();
+            if (tb.BSrc == ClipTableSrc.Entity)
+            {
+                var ti = tb.TableInfo;
+                //这里还要检查实体是否为简单实体
+                if (ti.DType == DBTableType.Table)
+                {
+                    sb.Append(" ");
+                    var tbsql = clip.Context.Builder.DBLive.dialect.expression.wrapTableAsSQL(ti.DbTableName, tb.Alias, ti.SchemaName);
+                    sb.Append(tbsql);
+                }
+                else if (ti.DType == DBTableType.Select)
+                {
+                    var tool = clip.Context.Builder.getBrotherBuilder();
+                    this.Translator.BuildSelectFrom(tool, tb.TableInfo);
+                    var select = tool.toSelect();
+                    sb.Append(" ( ");
+                    sb.Append(select);
+                    sb.Append(" ) AS ");
+                    sb.Append(tb.Alias);
+                }
+
+            }
+            else if (tb.BSrc == ClipTableSrc.SubSQL)
+            {
+                sb.Append(" ( ");
+                sb.Append(tb.querySQL);
+                sb.Append(" ) AS ");
+                sb.Append(tb.Alias);
+            }
+            else if (tb.BSrc == ClipTableSrc.LiveTable)
+            {
+                sb.Append(" ");
+                sb.Append(tb.querySQL);
+                sb.Append(" AS ");
+                sb.Append(tb.Alias);
+            }
+            return sb.ToString();
+        }
+
         private void checkJoin() {
             //检查from
 
@@ -276,7 +317,8 @@ namespace mooSQL.data.clip
                 var fromtb = clip.Context.getFromTable();
                 if (fromtb != null)
                 {
-                    var sql = string.Format("{0} AS {1}", fromtb.TableInfo.DbTableName, fromtb.Alias);
+                    var sql = getTableSelectDeclare(fromtb);
+                        //string.Format("{0} AS {1}", fromtb.TableInfo.DbTableName, fromtb.Alias);
                     clip.Context.Builder.from(sql);
                 }
 
@@ -289,35 +331,7 @@ namespace mooSQL.data.clip
                     sb.Append(item.JoinType);
 
                     var tb = item.JoinBy;
-                    if (tb.BSrc == ClipTableSrc.Entity)
-                    {
-                        var ti = item.JoinBy.TableInfo;
-                        //这里还要检查实体是否为简单实体
-                        if (ti.DType == DBTableType.Table)
-                        {
-                            sb.Append(" ");
-                            var tbsql = clip.Context.Builder.DBLive.dialect.expression.wrapTableAsSQL(ti.DbTableName, item.JoinBy.Alias, ti.SchemaName);
-                            sb.Append(tbsql);
-                        }
-                        else if (ti.DType == DBTableType.Select)
-                        {
-                            var tool = clip.Context.Builder.getBrotherBuilder();
-                            this.Translator.BuildSelectFrom(tool, tb.TableInfo);
-                            var select = tool.toSelect();
-                            sb.Append(" ( ");
-                            sb.Append(select);
-                            sb.Append(" ) AS ");
-                            sb.Append(item.JoinBy.Alias);
-                        }
-
-                    }
-                    else if (tb.BSrc == ClipTableSrc.SubSQL) { 
-                        sb.Append(" ( ");
-                        sb.Append(tb.querySQL);
-                        sb.Append(" ) AS ");
-                        sb.Append(item.JoinBy.Alias);
-                    }
-
+                    sb.Append(getTableSelectDeclare(tb));
 
                     if (string.IsNullOrWhiteSpace(item.onSQL))
                     {

@@ -37,9 +37,9 @@ namespace mooSQL.data
                 {
                     return this.setNullOption;
                 }
-                if(this.MooClient != null && this.MooClient.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
+                if(this.Client != null && this.Client.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
                 {
-                    return this.MooClient.builderOption.UpdateSetNullOpt;
+                    return this.Client.builderOption.UpdateSetNullOpt;
                 }
                 return UpdateSetNullOption.IgnoreNull;
             }
@@ -95,14 +95,22 @@ namespace mooSQL.data
                     paramed = false;
                     val = "null";
                 }
-            } 
+            }
 
 
             SetFrag field = current.getSetFrag(key);
-            field.setValue(current.RowIndex, val, type, paramed, updatable, insertable);
-            if (this.MooClient != null)
+
+            if (val == DBNull.Value)
             {
-                var ok = MooClient.fireBuildSetFrag(field, this);
+                field.setValue(current.RowIndex, "NULL", type, false, updatable, insertable);
+            }
+            else {
+                field.setValue(current.RowIndex, val, type, paramed, updatable, insertable);
+            }
+                
+            if (this.Client != null)
+            {
+                var ok = Client.fireBuildSetFrag(field, this);
                 if (ok == false)
                 {
                     return this;

@@ -27,7 +27,7 @@ namespace mooSQL.utils
                 {
                     if (typeof(T) == typeof(string))
                     {
-                        var strT = t as string;
+                        var strT = item as string;
                         if (string.IsNullOrWhiteSpace(strT))
                         {
                             continue;

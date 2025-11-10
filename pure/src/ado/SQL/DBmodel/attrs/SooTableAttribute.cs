@@ -68,21 +68,15 @@ namespace mooSQL.data
 		public TableOptions TableOptions        { get; set; }
 
 		/// <summary>
-		/// Gets or sets column mapping rules for current class or interface.
-		/// If <c>true</c>, properties and fields should be marked with one of those attributes to be used for mapping:
-		/// - <see cref="SooColumnAttribute"/>;
-		/// - <see cref="PrimaryKeyAttribute"/>;
-		/// - <see cref="IdentityAttribute"/>;
-		/// - <see cref="ColumnAliasAttribute"/>.
-		/// Otherwise all supported members of scalar type will be used:
-		/// - public instance fields and properties;
-		/// - explicit interface implementation properties.
-		/// Also see <seealso cref="Common.Configuration.IsStructIsScalarType"/> and <seealso cref="ScalarTypeAttribute"/>.
+		/// 标识列的特性是不是必须贴，是的话，只认可贴表的列。
 		/// Default value: <c>true</c>.
 		/// </summary>
 		public bool   IsColumnAttributeRequired { get; set; }
 
-
+		/// <summary>
+		/// 标识是否动态表名，用于各类分表。
+		/// </summary>
+		public bool LiveName { get; set; }
 
 		public override string GetObjectID()
 		{

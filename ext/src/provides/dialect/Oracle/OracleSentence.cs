@@ -123,7 +123,7 @@ public class OracleSentence : SQLSentence
         LoadCurrentUser();
         //new DataParameter("CurrentUser", _currentUser, DataType.VarChar)
         var para = new Paras();
-        para.Add("CurrentUser", _currentUser);
+        para.AddByPrefix("CurrentUser", _currentUser,this.DBLive.dialect.expression.paraPrefix);
 
         return DBLive.ExeQuery<TableInfo>(
             @"

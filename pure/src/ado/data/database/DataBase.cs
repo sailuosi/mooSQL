@@ -39,6 +39,15 @@ namespace mooSQL.data
         /// </summary>
         public string userId;
 
+        /// <summary>
+        /// 版本号，这里是指软件版本号
+        /// </summary>
+        public string edition;
+        /// <summary>
+        /// 软件版本号，数值
+        /// </summary>
+        public double? editionNumber;
+
         //private Dialect _lect = null;
         /// <summary>
         /// 支持 SQLSERVER/MYSQL/ORACLE/DB2

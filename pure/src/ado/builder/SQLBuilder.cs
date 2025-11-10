@@ -34,10 +34,23 @@ namespace mooSQL.data
         /// 数据库实例
         public DBInstance DBLive { get; private set; }
         /// <summary>
-        /// 核心运行实例
+        /// 核心运行实例 MooClient
         /// </summary>
-        public MooClient MooClient {
+        public MooClient MooClient
+        {
             get {
+                if (this.DBLive != null)
+                {
+                    return DBLive.client;
+                }
+                return null;
+            }
+        }
+
+        public MooClient Client
+        {
+            get
+            {
                 if (this.DBLive != null)
                 {
                     return DBLive.client;
@@ -77,6 +90,16 @@ namespace mooSQL.data
 
         private SqlCTE CTECollection;
 
+        private CleanWay _AutoClearWay { get; set; }
+        /// <summary>
+        /// 配置自动清理方式，默认为每次执行修改或删除后清理
+        /// </summary>
+        /// <param name="way"></param>
+        /// <returns></returns>
+        public SQLBuilder configClear(CleanWay way) { 
+            this._AutoClearWay = way;
+            return this;
+        }
         /// <summary>
         /// 设置数据库连接位
         /// </summary>
@@ -96,6 +119,16 @@ namespace mooSQL.data
                 return current.columns.Count;
             }
         }
+        /// <summary>
+        /// 检查是否已set了字段，通过字段名判断是否存在。
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public bool containSetColumn(string name)
+        {
+            return current.getFieldByKey(name)!=-1;
+        }
+
         /// <summary>
         /// 当前的from计数
         /// </summary>
@@ -196,10 +229,7 @@ namespace mooSQL.data
         /// 当执行buildwhere后，缓存结果到这里，以便后续副作用使用。
         /// </summary>
         public string preWhere = "";
-        /**
-         * 当执行更新、删除、查询后，是否自动清空之前的配置，默认为启用
-         */
-        public bool autoClear = true;
+
         
         /// <summary>
         /// 可选 notEmpty all notNull 默认 notEmpty
@@ -252,8 +282,11 @@ namespace mooSQL.data
         private void init() {
             this.CTECollection = new SqlCTE();
             this.unionHolder = new UnionCollection();
+            this._AutoClearWay = CleanWay.AfterModify;
             this.newGroup();
         }
+
+
 
         /// <summary>
         /// 开启事务，此后的所有的操作在commit前都会在一个事务中
@@ -296,9 +329,10 @@ namespace mooSQL.data
         {
             this.groups.Clear();
             this.unionHolder.Clear();
+            this.CTECollection.Clear();
             this.ps.Clear();
             this.preWhere = "";
-            this.autoClear = true;
+            this._AutoClearWay =  CleanWay.AfterModify;
             paraRule = "notEmpty";
             opened = true;
             this.name = "kitTb_0";
@@ -382,7 +416,12 @@ namespace mooSQL.data
         {
             return this.current.addPara(key, val);
         }
-
+        /// <summary>
+        /// 添加列表参数，返回一个命名参数列表。可以直接拼接再SQL中
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
         public List<string> addListPara(IEnumerable<object> list, string prefix)
         {
             return this.current.addListPara(list, prefix);
@@ -420,7 +459,24 @@ namespace mooSQL.data
             this.opened = isPass;
             return this;
         }
-
+        /// <summary>
+        /// 自定义条件
+        /// </summary>
+        /// <param name="isPass"></param>
+        /// <param name="whenTrue"></param>
+        /// <param name="whenFalse"></param>
+        /// <returns></returns>
+        public SQLBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
+        {
+            if (isPass)
+            {
+                whenTrue();
+            }
+            else { 
+                whenFalse();
+            }
+            return this;
+        }
 
 
         /// <summary>
@@ -433,7 +489,7 @@ namespace mooSQL.data
         {
             this.unionHolder.Clear();
             this.CTECollection.Clear();
-            this.cacheKey = null;
+            this.cacheKey = string.Empty;
             this.cacheTimeout = this.defaultCacheTimeout;
 
             current.clear();
