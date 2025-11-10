@@ -2,6 +2,9 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="src\provides\dialect\GBase8a\ado\GBaseDataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="src\provides\dialect\Taos\ado\TaosCommand.cs">
       <SubType>Component</SubType>
     </Compile>

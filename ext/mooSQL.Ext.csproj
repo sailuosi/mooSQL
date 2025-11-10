@@ -100,6 +100,7 @@
 
 
   <ItemGroup>
+    <Folder Include="src\delyon\" />
     <Folder Include="src\provides\dialect\Oscar\" />
   </ItemGroup>
 

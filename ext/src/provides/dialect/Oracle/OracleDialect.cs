@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using mooSQL.data.model;
-using mooSQL.data.Oracle;
+
 using Oracle.ManagedDataAccess.Client;
 
 namespace mooSQL.data
@@ -20,9 +20,7 @@ namespace mooSQL.data
         {
             expression = new OracleExpress(this);
             sentence = new OracleSentence(this);
-            clauseTranslator = new OracleClauseTranslator(this);
 
-            mapping = new OracleMappingPanel();
             function = new OracleSQLFunction();
             this.initDBVersion();
         }
