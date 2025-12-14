@@ -25,7 +25,13 @@ namespace mooSQL.data
             this.provider.PatchSetTable<T>();
             return new SQLClip<T>(this);
         }
-
+        /// <summary>
+        /// 字段赋值
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public SQLClip set<R>(Expression<Func<R>> fieldSelector, R value)
         {
             var field = provider.PatchOutField(fieldSelector);

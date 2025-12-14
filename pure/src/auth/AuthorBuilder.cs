@@ -300,10 +300,7 @@ namespace mooSQL.auth
             invokeOnLoadedWords();
             //角色仍然为空，调用事件或者返回
             if (wordBag.Empty && this.dataScopes.Count == 0 ) {
-                if (this._OnRoleEmpty != null) { 
-                    return this._OnRoleEmpty(this);
-                }
-                return "1=2";
+                return this.dealEmptyAuth();
             }
 
             //读取角色权限

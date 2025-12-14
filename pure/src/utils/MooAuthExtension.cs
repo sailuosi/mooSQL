@@ -59,6 +59,25 @@ namespace mooSQL.utils
             return res;
         }
         /// <summary>
+        /// 写入指定集合，并返回该集合，便于在查询中结果后直接链式写入到目标集合中
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static ICollection<T> writeTo<T>(this IEnumerable<T> list, ICollection<T> target)
+        {
+
+            foreach (T item in target)
+            {
+                if (target.Contains(item)==false)
+                {
+                    target.Add(item);
+                }
+            }
+            return target;
+        }
+        /// <summary>
         /// 将列表对象映射为一个字典
         /// </summary>
         /// <typeparam name="T"></typeparam>

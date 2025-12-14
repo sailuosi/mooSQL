@@ -209,6 +209,7 @@ namespace mooSQL.data
             this.numField = "oonum";
             //重设批插入的标识。
             this.setIndex = 0;
+            this.setFragIndex = 0;
             this.rows.Clear();
 
             this.pageSize = 10;
@@ -390,7 +391,8 @@ namespace mooSQL.data
         public SqlGoup set(SetFrag field) {
             if (field == null) return this;
             var pair = field.values[setIndex];
-            if (pair.paramed && (pair.paramKey == null || pair.paramKey ==(""))) {
+            if (pair.paramed && (pair.paramKey == null || pair.paramKey ==("")))
+            {//参数cl_0__106487_49:
                 pair.paramKey = root.paraSeed + "cl_" + this.key + "_" + field.fieldIndex+"_"+setIndex;
             }
 

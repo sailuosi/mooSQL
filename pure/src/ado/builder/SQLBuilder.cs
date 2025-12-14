@@ -31,7 +31,9 @@ namespace mooSQL.data
         }
 
 
-        /// 数据库实例
+        /// <summary>
+        /// 数据库核心运行实例
+        /// </summary>
         public DBInstance DBLive { get; private set; }
         /// <summary>
         /// 核心运行实例 MooClient
@@ -46,7 +48,9 @@ namespace mooSQL.data
                 return null;
             }
         }
-
+        /// <summary>
+        /// 客户端核心实例
+        /// </summary>
         public MooClient Client
         {
             get

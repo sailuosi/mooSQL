@@ -116,7 +116,7 @@ namespace mooSQL.data
             {
                 int cc = 0;
                 foreach (var cmd in cmds) {
-                    cont.cmd.reset(cmd.sql, cmd.para);
+                    cont.cmd.reset(cmd);
                     cc += executor.ExecuteNonQuery(cont);
                 }
                 return cc;

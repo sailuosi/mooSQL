@@ -30,7 +30,18 @@ namespace mooSQL.config
             if (!string.IsNullOrWhiteSpace(db.Version) && db.VersionNumber == null) { 
                 res.versionNumber = TypeAs.asDouble(db.Version, 0.0);
             }
-
+            if (!string.IsNullOrWhiteSpace(db.Edition)) {
+                res.edition = db.Edition;
+            }
+            if (db.EditionNumber > 0) {
+                res.editionNumber = db.EditionNumber;
+            }
+            if (db.WatchSQL == true) {
+                res.watchSQL = true;
+            }
+            if (db.MinTimeSpan > 0) {
+                res.minTimeSpan = db.MinTimeSpan;
+            }
             return res;
         }
         /// <summary>

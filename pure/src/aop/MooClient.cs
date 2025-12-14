@@ -112,7 +112,19 @@ namespace mooSQL.data
         /// </summary>
         public IEntityAnalyseFactory entityAnalyseFactory;
 
+        private EntityTranslator _Translator;
+        /// <summary>
+        /// 实体类转换器
+        /// </summary>
+        public EntityTranslator Translator
+        {
+            get
+            {
+                if (_Translator == null) _Translator = ClientFactory.getEntityTranslator();
+                return _Translator;
+            }
 
+        }
         public MooClient() { 
             //默认添加内置实体类解析器。此处被业务侧覆盖的概率较小。
             this.entityAnalyseFactory= new BaseEntityAnalyseFactory();

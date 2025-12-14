@@ -1,7 +1,9 @@
 ﻿// 本部分是承载由DB快捷获取其衍生的上层功能类的功能。
 
+using mooSQL.data.context;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,5 +69,16 @@ namespace mooSQL.data
             return cmd;
 
         }
+
+        #region 事件组
+        /// <summary>
+        /// 当绑定参数到执行命令时刻
+        /// </summary>
+        public event Action<DbCommand, ExeContext> OnBindCmdPara;
+
+        internal void FireBindCmdPara(DbCommand cmd, ExeContext context) { 
+            if(OnBindCmdPara != null) OnBindCmdPara( cmd,context );
+        }
+        #endregion
     }
 }

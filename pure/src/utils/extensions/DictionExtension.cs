@@ -60,6 +60,19 @@ namespace mooSQL.utils
             if (list.Contains(value) == false) list.Add(value);
         }
         /// <summary>
+        /// 添加一个非空非重复字符串
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="value"></param>
+        public static void AddNotEmpty(this List<string> list, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) {
+                return;
+            }
+            if (list.Contains(value) == false) list.Add(value);
+        }
+
+        /// <summary>
         /// 添加非重复
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -207,6 +220,26 @@ namespace mooSQL.utils
             }
             return map;
         }
+
+        public static Dictionary<K, V> groupByKV<T, K, V>(this IEnumerable<T> list, Func<T, K> keyFunc, Func<T, V> valFunc)
+        {
+            var dictionary = new Dictionary<K, V>();
+            foreach (T item in list)
+            {
+                var key = keyFunc(item);
+                var v = valFunc(item);
+                if (!dictionary.ContainsKey(key))
+                {
+                    dictionary.Add(key, v);
+                    continue;
+                }
+
+                dictionary[key] = v;
+            }
+
+            return dictionary;
+        }
+
         /// <summary>
         /// 根据列的数据库列类型，转换到对应的数据格式
         /// </summary>

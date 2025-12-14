@@ -185,6 +185,20 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 批量保存
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public SooUnitOfWork SaveRange<T>(IEnumerable<T> entity)
+        {
+            if (entity == null) return this;
+            var kit = DB.useSQL();
+            var cmds= kit.toSave(entity);
+            this.AddSQLs(cmds);
+            return this;
+        }
+        /// <summary>
         /// 通过SQL构建器添加一个更新语句，等待执行。
         /// </summary>
         /// <param name="builderUpdate"></param>

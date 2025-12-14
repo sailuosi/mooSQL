@@ -94,6 +94,7 @@ namespace mooSQL.data
         public LiveTransaction beginTransaction() {
             //准备环境
             var context = new ExeContext();
+            context.DBLive=this;
             context.dialect = this.dialect;
             context.session = new ExeSession();
             context.session.linkClient(client);
@@ -581,6 +582,20 @@ namespace mooSQL.data
                 runner = new DBExecutor(this);
             }
             return runner.ExeNonQuery(SQL);
+        }
+        /// <summary>
+        /// 批量执行
+        /// </summary>
+        /// <param name="SQLs"></param>
+        /// <param name="runner"></param>
+        /// <returns></returns>
+        public int ExeNonQuery(IEnumerable<SQLCmd> SQLs, DBExecutor runner = null)
+        {
+            if (runner == null)
+            {
+                runner = new DBExecutor(this);
+            }
+            return runner.ExeNonQuery(SQLs);
         }
     }
 }

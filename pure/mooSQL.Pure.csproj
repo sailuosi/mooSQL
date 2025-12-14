@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net451;net462;net6.0;net8.0</TargetFrameworks>
+	  <TargetFrameworks>net451;net462;net6.0;net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>mooSQL.Pure</AssemblyName>
@@ -58,6 +58,14 @@
     <PackageReference Include="System.Runtime.Caching">
       <Version>9.0.0</Version>
     </PackageReference>
+  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+	    <PackageReference Include="System.Runtime.Caching">
+		    <Version>10.0.0</Version>
+	    </PackageReference>
+    </ItemGroup>
+  <ItemGroup>
+    <Content Include="bitbug_favicon.ico" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\adoext\clip\visitor\" />

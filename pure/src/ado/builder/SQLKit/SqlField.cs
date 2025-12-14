@@ -60,7 +60,7 @@ namespace mooSQL.data
         /// <summary>
         /// 参数化的参数名前缀
         /// </summary>
-        public string paraPrefix;
+        public string paraPrefix { get; set; }
         /// <summary>
         /// 字段名
         /// </summary>

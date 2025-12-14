@@ -34,10 +34,16 @@ namespace mooSQL.data.context
                 均调用 SessionStore.Dispose();
              */
         private MooClient client;
-        
+        /// <summary>
+        /// 读取结果转换器
+        /// </summary>
         public Deserializer deserializer ;
 
         private DBInstance DB;
+        /// <summary>
+        /// 注册实例
+        /// </summary>
+        /// <param name="db"></param>
         public CmdExecutor(DBInstance db) { 
             this.DB = db;
             this.deserializer= new Deserializer(db.client);
@@ -57,7 +63,10 @@ namespace mooSQL.data.context
                 return client.Watchor;
             }
         }
-
+        /// <summary>
+        /// 关联客户类
+        /// </summary>
+        /// <param name="client"></param>
         public void linkClient(MooClient client)
         {
             this.client = client;
@@ -78,8 +87,8 @@ namespace mooSQL.data.context
             {
                 cmd.CommandTimeout = context.cmd.timeout;
             }
-
-
+            //触发参数绑定事件
+            DB.FireBindCmdPara(cmd, context);
             context.dialect.addCmdPara(cmd, context.cmd.para);
 
 
@@ -104,7 +113,7 @@ namespace mooSQL.data.context
             var operationId = string.Empty;
             try
             {
-                if (_logger.IsEnabled(LogLv.Debug))
+                if (_logger.IsEnabled(LogLv.Debug)||DB.config.watchSQL)
                 {
                     stopwatch = Stopwatch.StartNew();
                 }
@@ -112,7 +121,13 @@ namespace mooSQL.data.context
                 operationId = _watchor.onBeforeExecuteSet(context, operation);
                 client.fireOnBeforeExecute(context, operationId);
                 var result = executeImpl();
-
+                //触发慢SQL监控
+                if (stopwatch !=null &&(_logger.IsEnabled(LogLv.Debug) || DB.config.watchSQL) ){
+                    stopwatch.Stop();
+                    if (stopwatch.ElapsedMilliseconds > DB.config.minTimeSpan) {
+                        client.events.FireSlowSQL(context, stopwatch.Elapsed, operationId);
+                    }
+                }
                 _watchor.onAfterExecuteSet(operationId, context, operation);
                 client.fireOnAfterExecute(context, operation);
                 return result;
@@ -125,6 +140,9 @@ namespace mooSQL.data.context
             }
             finally
             {
+                if (stopwatch != null && stopwatch.IsRunning) { 
+                    stopwatch.Stop();
+                }
                 if (_logger.IsEnabled(LogLv.Debug))
                 {
                     _logger.LogDebug(
@@ -142,7 +160,7 @@ namespace mooSQL.data.context
             var operationId = string.Empty;
             try
             {
-                if (_logger.IsEnabled(LogLv.Debug))
+                if (_logger.IsEnabled(LogLv.Debug) || DB.config.watchSQL)
                 {
                     stopwatch = Stopwatch.StartNew();
                 }
@@ -150,6 +168,15 @@ namespace mooSQL.data.context
                 operationId = _watchor.onBeforeExecuteSet(context, operation);
                 client.fireOnBeforeExecute(context, operation);
                 var result = await executeImplAsync();
+                //触发慢SQL监控
+                if (stopwatch != null && (_logger.IsEnabled(LogLv.Debug) || DB.config.watchSQL))
+                {
+                    stopwatch.Stop();
+                    if (stopwatch.ElapsedMilliseconds > DB.config.minTimeSpan)
+                    {
+                        client.events.FireSlowSQL(context, stopwatch.Elapsed, operationId);
+                    }
+                }
                 _watchor.onAfterExecuteSet(operationId, context, operation);
                 client.fireOnAfterExecute(context, operation);
                 return result;
@@ -170,6 +197,11 @@ namespace mooSQL.data.context
             }
         }
         #region 同步 请求
+        /// <summary>
+        /// 获取结构
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public DataTable GetSchema(ExeContext context)
         {
             return context.session.connection.GetSchema();
@@ -313,7 +345,6 @@ namespace mooSQL.data.context
         /// <summary>
         /// 执行查询并返回一个类型化的集合对象
         /// </summary>
-        /// <param name="executionContext"></param>
         /// <returns></returns>
         public IEnumerable<T> ExecuteQueryFirstField<T>(ExeContext context) {
             return ExecuteWrap(() =>
@@ -336,7 +367,12 @@ namespace mooSQL.data.context
             }, context);
 
         }
-
+        /// <summary>
+        /// 查询获取单行结果
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public T ExecuteQueryRow<T>(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -371,7 +407,12 @@ namespace mooSQL.data.context
 
             }, context);
         }
-
+        /// <summary>
+        /// 查询获取单个结果值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public T ExecuteQueryScalar<T>(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -381,7 +422,11 @@ namespace mooSQL.data.context
 
             }, context);
         }
-
+        /// <summary>
+        /// 查询获取多个表
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public DataSet ExecuteQueryLot(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -399,7 +444,11 @@ namespace mooSQL.data.context
 
             }, context);
         }
-
+        /// <summary>
+        /// 执行非查询命令
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public int ExecuteNonQuery(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -409,7 +458,11 @@ namespace mooSQL.data.context
                 return dbCmd.ExecuteNonQuery();
             }, context);
         }
-
+        /// <summary>
+        /// 执行读取
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public DataReaderWrapper ExecuteReader(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -420,7 +473,11 @@ namespace mooSQL.data.context
                 return new DataReaderWrapper(dbReader,dbCmd,context);
             }, context);
         }
-
+        /// <summary>
+        /// 执行读取，返回基础的reader
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public DbDataReader ExecuteReaderBase(ExeContext context)
         {
             return ExecuteWrap(() =>
@@ -431,41 +488,61 @@ namespace mooSQL.data.context
                 return dbReader;
             }, context);
         }
-
+        /// <summary>
+        /// 查询结果
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public object ExecuteScalar(ExeContext context)
         {
-            return ExecuteWrap(() =>
+            var t = ExecuteWrap(() =>
             {
-                
                 DbCommand dbCmd = CreateCmd(context);
                 return dbCmd.ExecuteScalar();
             }, context);
+            return t;
         }
 
         #endregion
 
         #region 异步请求
+        /// <summary>
+        /// 异步查询单个
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task<object> ExecuteScalarAsync(ExeContext context)
         {
-            return await ExecuteWrapAsync(async () =>
+            var t =  await ExecuteWrapAsync(async () =>
             {
                 await context.session.OpenAsync(context);
                 DbCommand dbCmd = CreateCmd(context);
                 return await dbCmd.ExecuteScalarAsync();
             }, context);
+            return t;
         }
-
+        /// <summary>
+        /// 异步查询单个
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<object> ExecuteScalarAsync(ExeContext context,
             CancellationToken cancellationToken)
         {
-            return await ExecuteWrapAsync(async () =>
+            var t= await ExecuteWrapAsync(async () =>
             {
                 await context.session.OpenAsync(cancellationToken,context);
                 DbCommand dbCmd = CreateCmd(context);
                 return await dbCmd.ExecuteScalarAsync(cancellationToken);
             }, context);
+            return t;
         }
-
+        /// <summary>
+        /// 执行查询，返回表
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task<DataTable> ExecuteQueryAsync(ExeContext context)
         {
             return await ExecuteWrapAsync(async () =>
@@ -482,7 +559,11 @@ namespace mooSQL.data.context
 
             }, context);
         }
-
+        /// <summary>
+        /// 查询返回多个表
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task<DataSet> ExecuteQueryLotAsync(ExeContext context)
         {
             return await ExecuteWrapAsync(async () =>
@@ -500,7 +581,11 @@ namespace mooSQL.data.context
 
             }, context);
         }
-
+        /// <summary>
+        /// 自定义读取
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task<DataReaderWrapper> ExecuteReaderAsync(ExeContext context)
         {
             return await ExecuteWrapAsync(async () =>
@@ -511,7 +596,12 @@ namespace mooSQL.data.context
                 return new DataReaderWrapper(dbReader);
             }, context);
         }
-
+        /// <summary>
+        /// 自定义读取
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<DataReaderWrapper> ExecuteReaderAsync(ExeContext context,
             CancellationToken cancellationToken)
         {
@@ -523,7 +613,12 @@ namespace mooSQL.data.context
                 return new DataReaderWrapper(dbReader);
             }, context);
         }
-
+        /// <summary>
+        /// 查询返回
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task< IEnumerable<T>> ExecuteQueryAsync<T>(ExeContext context)
         {
             return await ExecuteWrapAsync(async () =>
@@ -540,7 +635,13 @@ namespace mooSQL.data.context
             }, context);
         }
 
-
+        /// <summary>
+        /// 查询返回列表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <param name="onReadRow"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(ExeContext context, Func<DbDataReader, T> onReadRow)
         {
             return await ExecuteWrapAsync(async () =>
@@ -563,7 +664,11 @@ namespace mooSQL.data.context
             }, context);
         }
 
-
+        /// <summary>
+        /// 异步更新
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task<int> ExecuteNonQueryAsync(ExeContext context)
         {
             return await ExecuteWrapAsync(async () =>
@@ -573,7 +678,12 @@ namespace mooSQL.data.context
                 return await dbCmd.ExecuteNonQueryAsync();
             }, context);
         }
-
+        /// <summary>
+        /// 异步更新
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<int> ExecuteNonQueryAsync(ExeContext context,
             CancellationToken cancellationToken)
         {

@@ -224,7 +224,26 @@ namespace mooSQL.data
             client.events.onBeforeExecute(handler);
             return this;
         }
-
+        /// <summary>
+        /// 慢SQL处置
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public BaseClientBuilder onWatchSlowSQL(Action<ExeContext, TimeSpan, string> handler)
+        {
+            client.events.OnWatchingSlowSQL+=handler;
+            return this;
+        }
+        /// <summary>
+        /// 数据库实例创建时刻
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public BaseClientBuilder onDBLiveCreated(Action<DBInstance> handler)
+        {
+            client.events.OnDBLiveCreated += handler;
+            return this;
+        }
         /// <summary>
         /// 执行SQL后
         /// </summary>

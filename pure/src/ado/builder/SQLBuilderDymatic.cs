@@ -47,7 +47,7 @@ namespace mooSQL.data
             if(para==null) para= new Paras();
             CheckDB();
             var cmd = new SQLCmd(SQL, para);
-            return DBLive.ExeNonQuery(cmd, Executor);
+            return exeNonQuery(cmd);
         }
 
         private void CheckDB()
@@ -74,6 +74,23 @@ namespace mooSQL.data
                 printSQL(sql.sql, sql.para);
             }
             return DBLive.ExeNonQuery(sql, Executor);
+        }
+        /// <summary>
+        /// 批量执行
+        /// </summary>
+        /// <param name="cmds"></param>
+        /// <returns></returns>
+        public int exeNonQuery(IEnumerable<SQLCmd> cmds)
+        {
+            if (cmds==null ||cmds.Count()==0) return 0;
+            if (this._printSQL)
+            {
+                foreach (SQLCmd cmd in cmds) {
+                    printSQL(cmd.sql, cmd.para);
+                }
+                
+            }
+            return DBLive.ExeNonQuery(cmds, Executor);
         }
         /// <summary>
         /// 执行一次select查询语句

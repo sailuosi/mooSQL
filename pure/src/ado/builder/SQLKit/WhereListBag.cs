@@ -137,6 +137,44 @@ namespace mooSQL.data
             }
             return cc;
         }
+        public int addValue<T>(T item)
+        {
+
+            var cc = 0;
+            var realType = typeof(T);
+            var isNum = realType == typeof(Double) || realType == typeof(float) || realType == typeof(int);
+
+            var isSafeStr = realType == typeof(Guid) || realType == typeof(Boolean);
+
+            
+            if (item == null)
+            {
+                return cc; 
+            }
+            if (isNum)
+            {
+                if (numValues.Add(item.ToString()))
+                {
+                    cc++;
+                }
+            }
+            var str = item.ToString();
+            if (isSafeStr)
+            {
+
+                if (string.IsNullOrWhiteSpace(str)) return cc; 
+                if (safedStrValues.Add(str))
+                {
+                    cc++;
+                }
+                return cc;
+            }
+            //普通文本字符串
+            cc += addStrValue(str);
+
+            
+            return cc;
+        }
         public int addStrValues(IEnumerable<string> list)
         {
             int cc = 0;
@@ -146,39 +184,39 @@ namespace mooSQL.data
             }
             return cc;
         }
+        //存在BUG，停用此写法，改泛型写法
+        //public int addValue(Object item) {
+        //    if (item == null)
+        //    {
+        //        return 0;
+        //    }
 
-        public int addValue(Object item) {
-            if (item == null)
-            {
-                return 0;
-            }
-
-            var isNum = item is Double || item is float || item is  int;
+        //    var isNum = item is Double || item is float || item is  int;
 
 
 
-            if (isNum)
-            {
-                if (numValues.Add(item.ToString()))
-                {
-                    return 1;
-                }
-                return 0;
-            }
-            var isSafeStr = item is Guid || item is Boolean ||item is DateTime;
-            var str = item.ToString();
-            if (isSafeStr)
-            {
+        //    if (isNum)
+        //    {
+        //        if (numValues.Add(item.ToString()))
+        //        {
+        //            return 1;
+        //        }
+        //        return 0;
+        //    }
+        //    var isSafeStr = item is Guid || item is Boolean ||item is DateTime;
+        //    var str = item.ToString();
+            
+        //    if (isSafeStr)
+        //    {
 
-                if (string.IsNullOrWhiteSpace(str)) return 0;
-                if (safedStrValues.Add(str))
-                {
-                    return 1;
-                }
-                
-            }
-            return 0;
-        }
+        //        addStrValue(str);
+        //        return 1;
+        //    }
+        //    if (item is string v) {
+        //        addStrValue(v);
+        //    }
+        //    return 0;
+        //}
 
         public int addStrValue(string str) {
             if (string.IsNullOrWhiteSpace(str)) return 0;

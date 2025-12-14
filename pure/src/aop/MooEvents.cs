@@ -23,6 +23,14 @@ namespace mooSQL.data
         internal List<Func<WhereFrag,SQLBuilder,bool>> onBuildWhereFragHandlers = new List<Func<WhereFrag, SQLBuilder, bool>>();
         internal List<Action<string,SQLBuilder>> onCreatedSQLHandlers = new List<Action<string, SQLBuilder>>();
         /// <summary>
+        /// 慢SQL监控事件
+        /// </summary>
+        public event Action<ExeContext, TimeSpan, string> OnWatchingSlowSQL;
+        /// <summary>
+        /// 创建数据库实例时刻
+        /// </summary>
+        public event Action<DBInstance> OnDBLiveCreated; 
+        /// <summary>
         /// 执行SQL前
         /// </summary>
         /// <param name="handler"></param>
@@ -97,6 +105,22 @@ namespace mooSQL.data
                 onCreatedSQLHandlers.Add(handler);
             }
             return this;
+        }
+
+        internal void FireSlowSQL(ExeContext context, TimeSpan span,string id) {
+            if (this.OnWatchingSlowSQL != null) {
+                this.OnWatchingSlowSQL(context,span, id);
+            }
+        
+        }
+
+        internal void FireCreateDBLive(DBInstance db)
+        {
+            if (this.OnDBLiveCreated != null)
+            {
+                this.OnDBLiveCreated(db);
+            }
+
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using mooSQL.auth;
+using mooSQL.data.clip;
 using mooSQL.data.model;
 using mooSQL.linq;
 
@@ -192,6 +193,7 @@ namespace mooSQL.data
             }
             var pk = pks[0];
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryOne);
             var pkname = pk.DbColumnName;
             if (!string.IsNullOrWhiteSpace(en.Alias)) { 
                 pkname = string.Format("{0}.{1}", en.Alias, pkname);
@@ -201,6 +203,15 @@ namespace mooSQL.data
                 .queryUnique<T>();
             return tow;
         }
+
+        public R GetFieldValueById<R>(object id,Expression<Func<T,R>> fieldselector)
+        {
+
+            var kit = getKit();
+            return kit.findFieldValue<T, R>(id, fieldselector);
+
+        }
+
         /// <summary>
         /// 按ID批量查询
         /// </summary>
@@ -219,6 +230,7 @@ namespace mooSQL.data
             }
             var pk = pks[0];
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryOne);
             var pkname = pk.DbColumnName;
             if (!string.IsNullOrWhiteSpace(en.Alias))
             {
@@ -246,6 +258,7 @@ namespace mooSQL.data
             var pk = pks[0];
             var kit = DBLive.useSQL();
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryOne);
             var pkname = pk.DbColumnName;
             if (!string.IsNullOrWhiteSpace(en.Alias))
             {
@@ -274,6 +287,7 @@ namespace mooSQL.data
             var kit = getKit();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
             var tow = kit.query<T>();
             return tow.ToList();
         }
@@ -287,6 +301,7 @@ namespace mooSQL.data
             var kit = getKit();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
             var tow = kit.top(top)
                 .query<T>();
             return tow.ToList();
@@ -301,6 +316,7 @@ namespace mooSQL.data
             var kit = getKit();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.BuildSelectFrom(kit, en);
+            Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
             if (onBuildSQL != null) {
                 onBuildSQL(kit);
             }
@@ -339,16 +355,19 @@ namespace mooSQL.data
         /// <exception cref="NotSupportedException"></exception>
         public List<T> GetChildList<R>(Expression<Func<T, R>> keySelector, R parentVal, Action<SQLClip, T> filterMore = null) {
             //先获取关联定义，然后递归查询所有下级
-            var cont = new FastCompileContext();
+            //var cont = new FastCompileContext();
             var kit = DBLive.useSQL();
-            cont.initByBuilder(kit);
-            var fiedv = new FieldVisitor(cont, false);
-            var fid = fiedv.FindField(keySelector);
+            //cont.initByBuilder(kit);
+            //var fiedv = new FieldVisitor(cont, false);
+            //var fid = fiedv.FindField(keySelector);
+            //更改为从缓存中读取
+            var fid = DBLive.FindFieldName(keySelector);
+
             if (string.IsNullOrWhiteSpace(fid)) { 
                 throw new NotSupportedException("定义的字段过滤条件无效！未找到相应的数据库字段！");
             }
 
-            var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var en = DBLive.client.EntityCash.getEntityInfo(typeof(T));
             var pks = en.GetPK();
             if (pks.Count != 1)
             {
@@ -417,16 +436,19 @@ namespace mooSQL.data
         public TreeListOutput<T> GetTreeList<R>(Expression<Func<T, R>> keySelector, R parentVal, Action<SQLClip, T> filterMore =null)
         {
             //先获取关联定义，然后递归查询所有下级
-            var cont = new FastCompileContext();
+
             var kit = DBLive.useSQL();
-            cont.initByBuilder(kit);
-            var fiedv = new FieldVisitor(cont, false);
-            var fid = fiedv.FindField(keySelector);
+            //var cont = new FastCompileContext();
+            //cont.initByBuilder(kit);
+            //var fiedv = new FieldVisitor(cont, false);
+            //var fid = fiedv.FindField(keySelector);
+            var fie=DBLive.FindField(keySelector);
+            var fid = fie.ToSQLField(false,DBLive);
             if (string.IsNullOrWhiteSpace(fid))
             {
                 throw new NotSupportedException("定义的字段过滤条件无效！未找到相应的数据库字段！");
             }
-            var fk = fiedv.field;
+            var fk = fie.Column;
 
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             var pks = en.GetPK();
@@ -713,19 +735,21 @@ namespace mooSQL.data
             return default(T);
         }
         /// <summary>
-        /// 获取第一个，并自定义查询条件。
+        /// 获取第一个，并自定义查询条件。查不到时返回默认值。
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="filterClip"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public T GetFirst<R>(Expression<Func<T, R>> filterClip, R value) {
-            var cont = new FastCompileContext();
-            cont.EntityType = typeof(T);
+
             var kit = DBLive.useSQL();
-            cont.initByBuilder(kit);
-            var fiedv= new FieldVisitor(cont,false);
-            var fid = fiedv.FindField(filterClip);
+            //var cont = new FastCompileContext();
+            //cont.EntityType = typeof(T);
+            //cont.initByBuilder(kit);
+            //var fiedv= new FieldVisitor(cont,false);
+            //var fid = fiedv.FindField(filterClip);
+            var fid = DBLive.FindFieldName(filterClip);
             if (!string.IsNullOrWhiteSpace(fid)) { 
                 var tbname= DBLive.client.EntityCash.getTableName(typeof(T));
                 kit.from(tbname);

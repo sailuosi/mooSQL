@@ -47,6 +47,14 @@ namespace mooSQL.data
         /// 软件版本号，数值
         /// </summary>
         public double? editionNumber;
+        /// <summary>
+        /// 是否监控慢SQL，默认关闭
+        /// </summary>
+        public bool watchSQL=false;
+        /// <summary>
+        /// 默认的慢SQL时间阈值，500ms
+        /// </summary>
+        public int minTimeSpan = 500;
 
         //private Dialect _lect = null;
         /// <summary>

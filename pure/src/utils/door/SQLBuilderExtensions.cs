@@ -1,9 +1,16 @@
-﻿using mooSQL.data.utils;
+﻿using mooSQL.data.clip;
+using mooSQL.data.utils;
+using mooSQL.excel;
+using mooSQL.excel.context;
+using mooSQL.linq;
+using mooSQL.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Text;
 
 
@@ -15,15 +22,6 @@ namespace mooSQL.data
     public static class MooSQLBuilderExtensions
     {
 
-        private static EntityTranslator _Translator;
-
-        private static EntityTranslator Translator { 
-            get { 
-                if (_Translator == null) _Translator = new EntityTranslator();
-                return _Translator;
-            }
-        
-        }
 
         /// <summary>
         /// 使用某个实体类
@@ -123,7 +121,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public static int insert<T>(this SQLBuilder builder, T entity) {
             builder.clear();
-            var res= Translator.prepareInsert(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
             if (res.Status) {
                 return builder.doInsert();
             }
@@ -156,7 +154,7 @@ namespace mooSQL.data
         public static int insertByType(this SQLBuilder builder, object entity,Type EntityType)
         {
             builder.clear();
-            var res = Translator.prepareInsert(builder, entity, EntityType);
+            var res = builder.Client.Translator.prepareInsert(builder, entity, EntityType);
             if (res.Status)
             {
                 return builder.doInsert();
@@ -174,7 +172,7 @@ namespace mooSQL.data
         public static SQLCmd toInsert<T>(this SQLBuilder builder, T entity)
         {
             builder.clear();
-            var res= Translator.prepareInsert(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
             if (res.Status)
                 return builder.toInsert();
             builder.Client.Loggor.LogError(res.Message);
@@ -191,7 +189,7 @@ namespace mooSQL.data
         public static int update<T>(this SQLBuilder builder, T entity)
         {
             builder.clear();
-            var res= Translator.prepareUpdate(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareUpdate(builder, entity,typeof(T));
             if (res.Status) {
                 return builder.doUpdate();
             }
@@ -208,7 +206,7 @@ namespace mooSQL.data
         public static int updateByType(this SQLBuilder builder, object entity,Type EntityType)
         {
             builder.clear();
-            var res = Translator.prepareUpdate(builder, entity,EntityType);
+            var res = builder.Client.Translator.prepareUpdate(builder, entity,EntityType);
             if (res.Status)
             {
                 return builder.doUpdate();
@@ -226,7 +224,7 @@ namespace mooSQL.data
         public static SQLCmd toUpdate<T>(this SQLBuilder builder, T entity)
         {
             builder.clear();
-            var res= Translator. prepareUpdate(builder, entity,typeof(T));
+            var res= builder.Client.Translator. prepareUpdate(builder, entity,typeof(T));
             if (res.Status)
             {
                 return builder.toUpdate();
@@ -245,7 +243,7 @@ namespace mooSQL.data
         public static int updateBy<T>(this SQLBuilder builder, T entity,string Name)
         {
             builder.clear();
-            return Translator.updateByFieild(builder, entity, Name);
+            return builder.Client.Translator.updateByFieild(builder, entity, Name);
         }
         /// <summary>
         /// 按照指定的实体属性更新
@@ -261,7 +259,7 @@ namespace mooSQL.data
             builder.clear();
             var name = loadMemberName(updateKey.Body);
 
-            return Translator.updateByFieild(builder, entity, name);
+            return builder.Client.Translator.updateByFieild(builder, entity, name);
         }
 
 
@@ -294,7 +292,7 @@ namespace mooSQL.data
             var has= builder.checkExistKey(field.DbColumnName,val,field.DbTableName);
             if (has)
             {
-                return Translator.updateByFieild(builder, entity, Name);
+                return builder.Client.Translator.updateByFieild(builder, entity, Name);
             }
             else {
                 return insert(builder, entity);
@@ -327,32 +325,119 @@ namespace mooSQL.data
         /// <returns></returns>
         public static int save<T>(this SQLBuilder builder, T entity) {
 
+            var cmd = toSave(builder, entity);
+            if (cmd != null) { 
+                return builder.exeNonQuery(cmd);
+            }
+            return 0;
+        }
+        public static SQLCmd toSave<T>(this SQLBuilder builder, T entity)
+        {
+
             var en = builder.Client.EntityCash.getEntityInfo<T>();
 
-            if (en.Insertable == false && en.Updatable == false) {
-                return 0;
-            }
-            if (en.Insertable == false)
+            if (en.Insertable == false && en.Updatable == false)
             {
-                return update(builder, entity);
+                return null;
             }
-            else if (en.Updatable == false) { 
-                //禁止更新，则直接插入
-                return insert(builder, entity);
+            //主键短路检测，未设置主键的，直接插入
+            var pks = en.GetPK();
+            if (pks.Count == 0)
+            {
+                throw new Exception("无主键定义时，无法自动保存！");
+            }
+            foreach (var pk in pks)
+            {
+                if (pk.PropertyInfo.GetValue(entity) == null)
+                {
+                    return toInsert(builder, entity);
+                }
             }
             //检查是否存在
             var ck = builder.DBLive.useSQL();
             ck.from(en.DbTableName);
-            Translator.setPKWhere(ck, entity, en);
+            builder.Client.Translator.setPKWhere(ck, entity, en);
             var cc = ck.count();
-            if (cc > 0)
+            if (cc > 0 && en.Updatable != false)
             {
-                return update(builder, entity);
+                return toUpdate(builder, entity);
             }
-            else {
-                return insert(builder, entity);
+            else if(en.Insertable !=false)
+            {
+                return toInsert(builder, entity);
             }
+            return null;
         }
+        /// <summary>
+        /// 转为保存语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static List<SQLCmd> toSave<T>(this SQLBuilder builder,IEnumerable<T> entity)
+        {
+
+            var en = builder.Client.EntityCash.getEntityInfo<T>();
+
+            if (en.Insertable == false && en.Updatable == false)
+            {
+                return null;
+            }
+            var cmds= new List<SQLCmd>();
+            //检查是否存在
+            var ck = builder.DBLive.useSQL();
+            builder.Client.Translator.BuildFromPart(builder, en);
+            var pks = en.GetPK();
+            foreach (var pk in pks) {
+                builder.select(pk.DbColumnName);
+            }
+            builder.Client.Translator.setPKWhere(ck, entity, en);
+            var oldDt = ck.query();
+            if (oldDt.Rows.Count == 0 && en.Insertable != false)
+            {
+                foreach (var row in entity) { 
+                    cmds.Add(toInsert(builder, row));
+                }
+                return cmds;
+            }
+
+            foreach (var row in entity) {
+                var sh = new List<string>();
+                foreach (var pk in pks)
+                {
+                    sh.Add(string.Format("{0}='{1}'", pk.DbColumnName, pk.PropertyInfo.GetValue(row)));
+                }
+                var shcond = string.Join(" and ", sh);
+                var rows = oldDt.Select(shcond);
+                if (rows.Length > 0 && en.Updatable !=false) {
+                    cmds.Add(toUpdate(builder, en));
+                }
+                else if (rows.Length == 0 && en.Insertable != false)
+                {
+                    cmds.Add(toInsert(builder, en));
+                }
+            }
+ 
+            return cmds;
+        }
+
+        /// <summary>
+        /// 批量保存
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static int save<T>(this SQLBuilder builder, IEnumerable<T> entity) {
+            var cmds = toSave(builder, entity);
+            if (cmds.Count > 0) {
+                return builder.exeNonQuery(cmds);
+            }
+            return 0;
+        }
+
 
         /// <summary>
         /// 按照主键执行删除
@@ -365,7 +450,7 @@ namespace mooSQL.data
         public static int delete<T>(this SQLBuilder builder, T entity)
         {
             builder.clear();
-            Translator.prepareDelete<T>(builder, entity);
+            builder.Client.Translator.prepareDelete<T>(builder, entity);
             return builder.doDelete();
         }
         /// <summary>
@@ -378,7 +463,7 @@ namespace mooSQL.data
         public static SQLCmd toDelete<T>(this SQLBuilder builder, T entity)
         {
             builder.clear();
-            Translator.prepareDelete<T>(builder, entity);
+            builder.Client.Translator.prepareDelete<T>(builder, entity);
             return builder.toDelete();
         }
         /// <summary>
@@ -391,7 +476,7 @@ namespace mooSQL.data
         public static SQLCmd toDeleteByType(this SQLBuilder builder, object entity,Type type)
         {
             builder.clear();
-            Translator.prepareDelete(builder, entity,type);
+            builder.Client.Translator.prepareDelete(builder, entity,type);
             return builder.toDelete();
         }
         /// <summary>
@@ -404,7 +489,7 @@ namespace mooSQL.data
         public static int deleteByType(this SQLBuilder builder, object entity, Type type)
         {
             builder.clear();
-            Translator.prepareDelete(builder, entity, type);
+            builder.Client.Translator.prepareDelete(builder, entity, type);
             return builder.doDelete();
         }
         /// <summary>
@@ -568,6 +653,63 @@ namespace mooSQL.data
                 .queryList()
                 .ToList();
         }
+
+        /// <summary>
+        /// 快速查询某个对象，分页查询。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="pageNum"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static PageOutput<T> findPageList<T>(this SQLBuilder builder,int pageSize,int pageNum, Action<SQLClip, T> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            doClipFilting(clip, t);
+            return clip.select(t)
+                .setPage(pageSize, pageNum)
+                .queryPage();
+        }
+        /// <summary>
+        /// 快速查询某个对象，分页查询。手动指定表名，用于动态分表时使用。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="pageNum"></param>
+        /// <param name="tableName"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static PageOutput<T> findPageList<T>(this SQLBuilder builder, int pageSize, int pageNum, string tableName, Action<SQLClip, T> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(tableName, out var t);
+            doClipFilting(clip, t);
+            return clip.select(t)
+                .setPage(pageSize, pageNum)
+                .queryPage();
+        }
+        /// <summary>
+        /// 快速查询某个对象，分页查询。手动指定表名，用于动态分表时使用。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="pageNum"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static PageOutput<R> findPageList<T, R>(this SQLBuilder builder, int pageSize, int pageNum, Func<SQLClip, T, SQLClip<R>> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            var tar = doClipFilting(clip, t);
+            return tar
+                .setPage(pageSize, pageNum)
+                .queryPage();
+        }
         /// <summary>
         /// 根据主键快速查询，借用仓储实现
         /// </summary>
@@ -613,6 +755,39 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 根据主键值，查找某个字段的值。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="PKValue"></param>
+        /// <param name="doClipSelect"></param>
+        /// <returns></returns>
+        public static R findFieldValue<T, R>(this SQLBuilder builder,object PKValue, Func<SQLClip, T, SQLClip<R>> doClipSelect) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            clip.setFromAsName("t");
+            clip.wherePKIs<T>(PKValue);
+            var tar = doClipSelect(clip, t);
+            return tar.queryUnique();
+        }
+        /// <summary>
+        /// 自定义执行条件和字段选择，返回列表值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static List<R> findFieldValues<T, R>(this SQLBuilder builder, Func<SQLClip, T, SQLClip<R>> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            var tar = doClipFilting(clip, t);
+            return tar.queryList().ToList();
+        }
+        /// <summary>
         /// 快速查询某个实体的数量，自定义条件
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -655,7 +830,20 @@ namespace mooSQL.data
             doClipFilting(clip, t);
             return clip.doDelete();
         }
-
+        /// <summary>
+        /// 按主键删除
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public static int removeByIds<T>(this SQLBuilder builder, IEnumerable ids) where T : class, new()
+        {
+            var b = builder.useSQL();
+            var en = builder.Client.EntityCash.getEntityInfo<T>();
+            builder.Client.Translator.prepareDelete(b, en,ids);
+            return b.doDelete();
+        }
         /// <summary>
         /// 批量实体更新，传递事务
         /// </summary>
@@ -761,6 +949,130 @@ namespace mooSQL.data
             tool.useEntitys(row);
             return tool;
         }
+        /// <summary>
+        /// 查找字段值，按主键查找 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="srcKIt"></param>
+        /// <param name="id"></param>
+        /// <param name="fieldselector"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static R findFieldValue<T,R>(this SQLBuilder srcKIt, object id, Expression<Func<T, R>> fieldselector)
+        {
+
+            var kit = srcKIt.useSQL();
+            var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = kit.DBLive.client.EntityCash.getTableName(typeof(T));
+            kit.from(tbname);
+            var pks = en.GetPK();
+            if (pks.Count != 1)
+            {
+                throw new NotSupportedException("当前实体的主键信息缺失或存在多个，只有唯一主键时可用本方法！");
+            }
+            var pk = pks[0];
+            var pkname = pk.DbColumnName;
+            kit.where(pkname, id);
+
+            //var cont = new FastCompileContext();
+            //cont.EntityType = typeof(T);
+            //cont.initByBuilder(kit);
+            //var fiedv = new FieldVisitor(cont, false);
+            //var fid = fiedv.FindField(fieldselector);
+            var fid = kit.DBLive.FindFieldName(fieldselector);
+            if (string.IsNullOrWhiteSpace(fid))
+            {
+                throw new NotSupportedException("未找到属性对应的数据库字段！请检查实体和字段信息");
+            }
+
+            kit.select(fid);
+            var res = kit.queryScalar<R>();
+            return res;
+
+        }
+
+        #endregion
+
+        #region 导航扩展
+        /// <summary>
+        /// 加载子表集合的原始方法，自定义主表主键获取，主表子表集合选择，子表外键选择，子表过滤条件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="Child"></typeparam>
+        /// <param name="kit"></param>
+        /// <param name="list"></param>
+        /// <param name="findListPKValue"></param>
+        /// <param name="childSelector"></param>
+        /// <param name="childFKSelector"></param>
+        /// <param name="childFilter"></param>
+        /// <exception cref="Exception"></exception>
+        public static NavQueryGuide<T, Child> includeHis<T, Child, K>(this SQLBuilder kit, IEnumerable<T> list, Func<T, ICollection<Child>> childSelector, Func<T, K> findListPKValue, Expression<Func<Child, K>> childFKSelector, Action<SQLBuilder> childFilter = null)
+        {
+            var fk = kit.DBLive.FindFieldName(childFKSelector);
+            var childFunc = childFKSelector.Compile();
+            return includeHis<T, Child, K>(kit, list, childSelector, findListPKValue, childFunc, fk, childFilter);
+        }
+        /// <summary>
+        /// 核心的加载子表集合方法
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="Child"></typeparam>
+        /// <typeparam name="K"></typeparam>
+        /// <param name="kit"></param>
+        /// <param name="list"></param>
+        /// <param name="childSelector"></param>
+        /// <param name="findListPKValue"></param>
+        /// <param name="childFKSelector"></param>
+        /// <param name="childFKName"></param>
+        /// <param name="childFilter"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static NavQueryGuide<T, Child> includeHis<T, Child, K>(this SQLBuilder kit, IEnumerable<T> list, Func<T, ICollection<Child>> childSelector, Func<T, K> findListPKValue, Func<Child, K> childFKSelector, string childFKName, Action<SQLBuilder> childFilter)
+        {
+            var gide = new NavQueryGuide<T, Child>(kit, list);
+            return gide.include<K>(childSelector, findListPKValue, childFKSelector, childFKName, childFilter);
+        }
+        /// <summary>
+        /// 按导航特性进行加载子集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="Child"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="list"></param>
+        /// <param name="childSelector"></param>
+        /// <param name="childFilter"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static NavQueryGuide<T, Child> includeNav<T, Child>(this SQLBuilder builder, IEnumerable<T> list, Expression<Func<T, ICollection<Child>>> childSelector, Action<SQLBuilder> childFilter = null)
+        {
+            var gide = new NavQueryGuide<T, Child>(builder, list);
+            return gide.includeNav(childSelector, childFilter);
+        }
+        /// <summary>
+        /// 使用保存导航
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static NavGuideSave<T> useNavSave<T>(this SQLBuilder builder, IEnumerable<T> list) { 
+        
+            var guide= new NavGuideSave<T>(builder, list);
+            return guide;
+        }
+        public static NavGuideSave<T> useNavSave<T>(this SQLBuilder builder, T row)
+        {
+            var list= new List<T>() { row};
+            var guide = new NavGuideSave<T>(builder, list);
+            return guide;
+        }
+        #endregion
+
+
+        #region 表创建
+
         #endregion
     }
 }

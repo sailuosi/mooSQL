@@ -1,4 +1,7 @@
-﻿using System;
+﻿using mooSQL.data.context;
+using mooSQL.data.slave;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -6,8 +9,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using mooSQL.data.context;
-using mooSQL.data.slave;
 
 namespace mooSQL.data
 {
@@ -125,6 +126,7 @@ namespace mooSQL.data
 
         private ExeContext NewContext() {
             var context = new ExeContext();
+            context.DBLive = DBLive;
             context.dialect = DBLive.dialect;
             context.session = new ExeSession();
             context.session.linkClient(DBLive.client);
@@ -144,14 +146,7 @@ namespace mooSQL.data
                 this.Context = NewContext();
             }
 
-            Context.cmd.cmdText = cmd.sql;
-            Context.cmd.para = cmd.para;
-            if (cmd.cmdType != null)
-            {
-                Context.cmd.cmdType = cmd.cmdType.Value;
-            }
-            Context.cmd.timeout = cmd.timeout;
-
+            Context.cmd.reset(cmd);
             Context.cmd.repairParas(DBLive.expression.paraPrefix);
             return Context;
         }
@@ -249,7 +244,11 @@ namespace mooSQL.data
             catch (Exception e)
             {
                 //输出错误信息，并根据配置决定是否回滚事务。
-                var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sql.toRawSQL(DBLive.dialect.expression.paraPrefix));
+                var sqlTxt = "无";
+                if (sql != null) {
+                    sqlTxt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
+                }
+                var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sqlTxt);
                 if (this.OnErrBehavior == DBExecBehavior.RollbackAndBreak)
                 {
                     Context.session.RollbackTransaction();
@@ -275,6 +274,79 @@ namespace mooSQL.data
                 }
             }
         }
+        /// <summary>
+        /// 执行一组命令
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="cmds"></param>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public IEnumerable<R> ExecuteCmds<R>(IEnumerable<SQLCmd> cmds, Func<ICmdExecutor, ExeContext, R> executor)
+        {
+            SQLCmd sql = null;
+            var res = new List<R>();
+            //否则，进行一次性查询，并释放连接
+            try
+            {
+                //创建请求上下文
+
+                if (this.Context == null)
+                {
+                    this.Context = NewContext();
+                }
+                
+
+                //如果存在事务，则直接使用事务
+                if (session != null && Context.session != session)
+                {
+                    Context.session = session;
+                    //return executor(DBLive.cmd, Context);
+                }
+                if (Context.session.state != ExeSessionState.Open)
+                {
+                    Context.session.Open(Context);
+                }
+                foreach (var cmd in cmds) {
+                    sql = cmd;
+                    this.prepare(cmd);
+                    var t = executor(DBLive.cmd, Context);
+                    res.Add(t);                
+                }
+                return res;
+            }
+            catch (Exception e)
+            {
+                //输出错误信息，并根据配置决定是否回滚事务。
+                var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sql?.toRawSQL(DBLive.dialect.expression.paraPrefix));
+                if (this.OnErrBehavior == DBExecBehavior.RollbackAndBreak)
+                {
+                    Context.session.RollbackTransaction();
+                    this.KeepOpen = false;
+                    throw new Exception(msg + "，事务已回滚", e);
+                }
+                else if (this.OnErrBehavior == DBExecBehavior.SaveAndBreak)
+                {
+                    Context.session.CommitTransaction();
+                    this.KeepOpen = false;
+                    throw new Exception(msg + "，事务已提交", e);
+                }
+                else if (this.OnErrBehavior == DBExecBehavior.IgnoreAndContinue)
+                {
+                    return res;
+                }
+                //默认抛出异常
+                throw new Exception(msg + "，事务未处理", e);
+            }
+            finally
+            {
+                if (!KeepOpen)
+                {
+                    Context.session.Dispose();
+                }
+            }
+        }
+
         /// <summary>
         /// 执行一个查询类的SQL
         /// </summary>
@@ -772,7 +844,24 @@ namespace mooSQL.data
             fireModify(SQL);
             return res;
         }
-
-
+        /// <summary>
+        /// 执行一组命令
+        /// </summary>
+        /// <param name="SQLs"></param>
+        /// <returns></returns>
+        public int ExeNonQuery(IEnumerable<SQLCmd> SQLs)
+        {
+            var res = ExecuteCmds(SQLs, (cmd, c) => {
+                return cmd.ExecuteNonQuery(c);
+            });
+            foreach (SQLCmd SQL in SQLs) {
+                fireModify(SQL);
+            }
+            var total= 0;
+            foreach (var r in res) {
+                total += r;
+            }
+            return total;
+        }
     }
 }

@@ -177,7 +177,11 @@ namespace mooSQL.data
             var cmd= new CmdExecutor(db);
             return cmd;
         }
-
+        /// <summary>
+        /// 基于配置，创建数据库执行准备好的实例
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
         public DBInstance buildInstance(DataBase config) {
             if (client ==null)
             {
@@ -205,6 +209,8 @@ namespace mooSQL.data
             db.client = client;
             
             db.cmd = getExeCutor(db); 
+            //触发实例创建事件，用于客户侧注册实例动作
+            client.events.FireCreateDBLive(db);
             return db;
         }
 

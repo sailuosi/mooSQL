@@ -173,8 +173,9 @@ namespace mooSQL.data
                 }
                 return total;
             }
-            catch {
-                return BulkInsertByBatchSQL(bk);
+            catch (Exception err){
+                throw err;
+                //return BulkInsertByBatchSQL(bk);
             }
         }
         protected int BulkInsertByBatchSQL(BulkBase bk)

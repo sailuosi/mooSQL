@@ -503,6 +503,16 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
+        /// 多个左模糊条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="likeCodes"></param>
+        /// <returns></returns>
+        public SQLBuilder whereLikeLefts(string key, params string[] likeCodes) { 
+            return whereLikeLefts(key, likeCodes,true);
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="key"></param>
@@ -750,6 +760,16 @@ namespace mooSQL.data {
             whereListInner(key, " NOT IN ", values);
             return this;
         }
+        public SQLBuilder whereNotIn<T>(string key,params T[] values)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            whereListInner(key, " NOT IN ", values);
+            return this;
+        }
         /// <summary>
         /// 构建where not in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。
         /// </summary>
@@ -774,7 +794,7 @@ namespace mooSQL.data {
         /// <param name="op"></param>
         /// <param name="SinkMode">1为OR，2为AND，0为关闭</param>
         /// <returns></returns>
-        public SQLBuilder whereFieids(IEnumerable<string> fields,object value,int SinkMode=0, string op = "=")
+        public SQLBuilder whereFields(IEnumerable<string> fields,object value,int SinkMode=0, string op = "=")
         {
             if (!opened)
             {
@@ -805,7 +825,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereAnyFieid(IEnumerable<string> fields, object value,string op = "=")
         {
-            return whereFieids(fields, value, 1,op);
+            return whereFields(fields, value, 1,op);
         }
         /// <summary>
         /// 
@@ -815,7 +835,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereAnyFieldIs(object value,params string[] fields)
         {
-            return whereFieids(fields, value, 1);
+            return whereFields(fields, value, 1);
         }
         /// <summary>
         /// 所有字段都满足条件,即形成（field1 = val and field2 = val and ...）。等同于 whereAllFieids 方法。
@@ -826,7 +846,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereAllFieid(IEnumerable<string> fields, object value, string op = "=")
         {
-            return whereFieids(fields, value, 2, op);
+            return whereFields(fields, value, 2, op);
         }
         /// <summary>
         /// 创建一个 where key op (list)的SQL条件

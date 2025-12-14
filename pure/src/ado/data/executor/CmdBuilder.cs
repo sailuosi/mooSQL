@@ -1,7 +1,6 @@
 ﻿
-using System.Data.Common;
 using System.Data;
-
+using System.Data.Common;
 
 
 namespace mooSQL.data.context
@@ -30,17 +29,29 @@ namespace mooSQL.data.context
         /// </summary>
         public Paras para { get; internal set; }
 
+        public SQLCmd cmd {  get; set; }
         /// <summary>
         /// 配置SQL命令和参数
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="paras"></param>
-        public void reset(string sql, Paras paras) {
-            cmdText = sql;
-            para = paras;
-
+        public void reset(SQLCmd cmd) {
+            cmdText =cmd.sql;
+            para =cmd.para;
+            this.cmd = cmd;
+            if (cmd.cmdType != null)
+            {
+                cmdType = cmd.cmdType.Value;
+            }
+            if (cmd.timeout > 0) {
+                timeout = cmd.timeout;
+            }
+            
         }
-
+        /// <summary>
+        /// 执行参数修正，适配数据库
+        /// </summary>
+        /// <param name="prefix"></param>
         public void repairParas( string prefix)
         {
 
@@ -56,6 +67,30 @@ namespace mooSQL.data.context
                     }
                 }
             }
+        }
+        /// <summary>
+        /// 输出SQL
+        /// </summary>
+        /// <param name="paraPrefix"></param>
+        /// <returns></returns>
+        public string toRawSQL(string paraPrefix = "")
+        {
+
+            var sql = this.cmdText;
+            if (para == null) return sql;
+            foreach (var item in para.value)
+            {
+                if (sql.Contains(item.Value.holder))
+                {
+                    sql = sql.Replace(item.Value.holder, "'" + item.Value.val.ToString() + "'");
+                }
+                else
+                {
+                    sql = sql.Replace(paraPrefix + item.Key, "'" + item.Value.val.ToString() + "'");
+                }
+
+            }
+            return sql;
         }
     }
 }

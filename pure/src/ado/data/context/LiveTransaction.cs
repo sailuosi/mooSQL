@@ -50,8 +50,7 @@ namespace mooSQL.data
                 context.cmd = new CmdBuilder();
             }
             
-            context.cmd.cmdText = cmd.sql;
-            context.cmd.para = cmd.para;
+            context.cmd.reset(cmd);
             context.cmd.repairParas(DB.expression.paraPrefix);
 
             return this;

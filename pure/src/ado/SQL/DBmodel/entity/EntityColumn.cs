@@ -160,5 +160,17 @@ namespace mooSQL.data
         /// </summary>
         public string SequenceSchema { get; set; }
         public Dictionary<string,object> more = new Dictionary<string,object>();
+        /// <summary>
+        /// 是否外键
+        /// </summary>
+        public bool IsFK=false;
+        /// <summary>
+        /// 外键对象的表名称
+        /// </summary>
+        public string thatTable {  get; set; }
+        /// <summary>
+        /// 外键字段
+        /// </summary>
+        public string thatField { get; set; }
     }
 }

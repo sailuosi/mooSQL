@@ -120,7 +120,16 @@ namespace mooSQL.data
             this.Executor = executor;
             return this;
         }
-
+        /// <summary>
+        /// 设置表名
+        /// </summary>
+        /// <param name="tbname"></param>
+        /// <returns></returns>
+        public BulkBase setTable(string tbname)
+        {
+            this.tableName = tbname;
+            return this;
+        }
         /// <summary>
         /// 添加实体类。
         /// </summary>

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using mooSQL.data.model;
+using mooSQL.data.utils;
+using mooSQL.excel;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using mooSQL.data.model;
-using mooSQL.data.utils;
 
 namespace mooSQL.data
 {
@@ -18,6 +19,12 @@ namespace mooSQL.data
 
         private Func<EntityInfo,string> _onParseTableName;
 
+        private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromTable;
+        private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromPart;
+        /// <summary>
+        /// 构建条件部分事件
+        /// </summary>
+        public event Action<SQLBuilder, EntityInfo, EntityTranslator, QueryAction> onBuildWherePart;
         private List<string> ignoreUpdateFields;
 
         private List<string> includeUpdateFields;
@@ -25,7 +32,9 @@ namespace mooSQL.data
         private List<string> ignoreInsertFields;
 
         private List<string> includeInsertField;
-
+        /// <summary>
+        /// 实体翻页器
+        /// </summary>
         public EntityTranslator()
         {
             this.ignoreUpdateFields = new List<string>();
@@ -35,6 +44,13 @@ namespace mooSQL.data
 
         }
 
+        internal EntityTranslator BeforeBuildWhere(SQLBuilder kit,EntityInfo en,QueryAction qa) { 
+            if(this.onBuildWherePart != null) { 
+
+                this.onBuildWherePart(kit,en,this,qa);
+            }
+            return this;
+        }
 
         private string parseTableName(EntityInfo en) {
             if (this._onParseTableName != null) { 
@@ -60,7 +76,14 @@ namespace mooSQL.data
             }
             return en.DbTableName;
         }
-
+        /// <summary>
+        /// 构建插入语句  
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="EntityType"></param>
+        /// <param name="en"></param>
+        /// <returns></returns>
         public StatusResult prepareInsert(SQLBuilder builder, object entity, Type EntityType,EntityInfo en=null)
         {
             if (en == null) {
@@ -76,6 +99,8 @@ namespace mooSQL.data
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
+                //未设置或者基础表字段才进行更新
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 //配置为忽略时，则忽略执行
                 if (this.ignoreInsertFields.Count > 0 && this.ignoreInsertFields.Contains(col.PropertyName)) {
                     continue;
@@ -107,7 +132,14 @@ namespace mooSQL.data
             }
             return true;
         }
-
+        /// <summary>
+        /// 构建更新语句
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="EntityType"></param>
+        /// <param name="en"></param>
+        /// <returns></returns>
         public StatusResult prepareUpdate(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null)
         {
             if (en == null)
@@ -126,6 +158,8 @@ namespace mooSQL.data
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
+                //未设置或者基础表字段才进行更新
+                if ((col.Kind== FieldKind.Base || col.Kind== FieldKind.None)==false) continue;
                 //配置为忽略时，则忽略执行
                 if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
                 {
@@ -180,6 +214,57 @@ namespace mooSQL.data
                 throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
             }
         }
+
+        public void setPKWhere(SQLBuilder builder, IEnumerable<object> entitys, EntityInfo en)
+        {
+            bool gotWhere = false;
+            var pks = en.GetPK();
+            if (pks.Count == 1)
+            {
+                var pkValues = new List<object>();
+                var prop = pks[0].PropertyInfo;
+                foreach (var row in entitys)
+                {
+                    var val = prop.GetValue(row);
+                    if (val != null)
+                    {
+                        pkValues.Add(val);
+                    }
+
+                }
+                builder.whereIn(pks[0].DbColumnName, pkValues);
+            }
+            else if (pks.Count > 1) {
+                //联合主键，需要用or处理
+                builder.sinkOR();
+                foreach (var row in entitys) {
+                    builder.sink();
+                    foreach (var col in pks) {
+
+                        var val = col.PropertyInfo.GetValue(row);
+                        if (val != null)
+                        {
+                            builder.where(col.DbColumnName, val);
+                        }
+                    }
+                    builder.rise();
+                }
+                builder.rise();
+            
+            }
+
+            if (gotWhere == false && builder.ConditionCount == 0)
+            {
+                throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
+            }
+        }
+
+        /// <summary>
+        /// 构建删除语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
         public void prepareDelete<T>(SQLBuilder builder, T entity)
         {
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
@@ -187,7 +272,12 @@ namespace mooSQL.data
             setPKWhere(builder, entity, en);
 
         }
-
+        /// <summary>
+        /// 构建删除语句
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="type"></param>
         public void prepareDelete(SQLBuilder builder, object entity, Type type)
         {
             var en = builder.DBLive.client.EntityCash.getEntityInfo(type);
@@ -196,8 +286,28 @@ namespace mooSQL.data
 
         }
 
+        public void prepareDelete(SQLBuilder builder, EntityInfo en, IEnumerable ids) {
+
+            var pks = en.GetPK();
+            if (pks.Count != 1)
+            {
+                throw new NotSupportedException("当前实体的主键信息不匹配！");
+            }
+            var pk = pks[0];
+            builder.setTable(en.DbTableName)
+                .whereIn(pk.DbColumnName, ids);
+        }
 
 
+        /// <summary>
+        /// 执行更新
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="updateKey"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public int updateByFieild<T>(SQLBuilder builder, T entity, string updateKey)
         {
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
@@ -206,6 +316,8 @@ namespace mooSQL.data
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
+                //未设置或者基础表字段才进行更新
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 var val = col.PropertyInfo.GetValue(entity);
                 if (col.PropertyName == updateKey)
                 {
@@ -240,21 +352,77 @@ namespace mooSQL.data
             return builder.doUpdate();
         }
 
+        /// <summary>
+        /// 执行from部分的构建
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="en"></param>
+        private void BuildFromInner(SQLBuilder kit, EntityInfo en)
+        {
+            if (this._onBuildFromPart != null)
+            {
+                this._onBuildFromPart(kit, en, this);
+                return;
+            }
+            if (this._onBuildFromTable != null)
+            {
+                this._onBuildFromTable(kit, en, this);
+                //接着进行join构建
+            }
+            else if (string.IsNullOrWhiteSpace(en.Alias))
+            {
+                //直接使用表名，无别名
+                kit.from(parseTableName(en));
+            }
+            else
+            {
+                kit.from(string.Format("{0} as {1}", parseTableName(en), en.Alias));
+            }
+            if (en.Joins != null) { 
+                //构建join
+                foreach (var jo in en.Joins)
+                {
+                    var joinStr = BuildJoinType(jo.Type);
+                    var t = new StringBuilder();
+                    t.Append(joinStr);
+                    t.Append(" ");
+                    t.Append(jo.To);
+                    t.Append(" ");
+                    if (!string.IsNullOrWhiteSpace(jo.As))
+                    {
+                        t.Append(" as ");
+                        t.Append(jo.As);
+                    }
+                    if (!string.IsNullOrWhiteSpace(jo.OnA) && !string.IsNullOrWhiteSpace(jo.OnB))
+                    {
+                        t.Append(" on ");
+                        t.Append(jo.OnA);
+                        t.Append("=");
+                        t.Append(jo.OnB);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(jo.On))
+                    {
+                        t.Append(" on ");
+                        t.Append(jo.On);
+                    }
+                    if (t.Length > 0)
+                        kit.join(t.ToString());
+                }            
+            }
 
+        }
+        /// <summary>
+        /// 创建实体的基础select和from部分
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="en"></param>
+        /// <returns></returns>
         public SQLBuilder BuildSelectFrom(SQLBuilder kit, EntityInfo en)
         {
             var exp = kit.Dialect.expression;
             if (en.DType == DBTableType.Table)
             {
-                if (string.IsNullOrWhiteSpace(en.Alias))
-                {
-                    //直接使用表名，无别名
-                    kit.from(parseTableName(en));
-                }
-                else
-                {
-                    kit.from(string.Format("{0} as {1}", en.DbTableName, en.Alias));
-                }
+                BuildFromInner(kit, en);
                 return kit;
             }
             if (en.DType == DBTableType.Select)
@@ -316,44 +484,35 @@ namespace mooSQL.data
                 }
 
                 //构建from
-                if (string.IsNullOrWhiteSpace(en.Alias))
-                {
-                    //直接使用表名，无别名
-                    kit.from(parseTableName(en));
-                }
-                else
-                {
-                    kit.from(string.Format("{0} as {1}", parseTableName(en), en.Alias));
-                }
-                //构建join
-                foreach (var jo in en.Joins)
-                {
-                    var joinStr = BuildJoinType(jo.Type);
-                    var t = new StringBuilder();
-                    t.Append(joinStr);
-                    t.Append(" ");
-                    t.Append(jo.To);
-                    t.Append(" ");
-                    if (!string.IsNullOrWhiteSpace(jo.As))
-                    {
-                        t.Append(" as ");
-                        t.Append(jo.As);
-                    }
-                    if (!string.IsNullOrWhiteSpace(jo.OnA) && !string.IsNullOrWhiteSpace(jo.OnB))
-                    {
-                        t.Append(" on ");
-                        t.Append(jo.OnA);
-                        t.Append("=");
-                        t.Append(jo.OnB);
-                    }
-                    else if (!string.IsNullOrWhiteSpace(jo.On))
-                    {
-                        t.Append(" on ");
-                        t.Append(jo.On);
-                    }
-                    if (t.Length > 0)
-                        kit.join(t.ToString());
-                }
+                BuildFromInner(kit, en);
+
+
+                return kit;
+
+            }
+
+            if (en.DType == DBTableType.View)
+            {
+                kit.from(en.DbTableName);
+                return kit;
+
+            }
+
+            return kit;
+        }
+
+        public SQLBuilder BuildFromPart(SQLBuilder kit, EntityInfo en)
+        {
+            var exp = kit.Dialect.expression;
+            if (en.DType == DBTableType.Table)
+            {
+                BuildFromInner(kit, en);
+                return kit;
+            }
+            if (en.DType == DBTableType.Select)
+            {
+                //构建from
+                BuildFromInner(kit, en);
                 return kit;
 
             }
@@ -401,8 +560,8 @@ namespace mooSQL.data
         public void PatchSQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en)
         {
             BuildSelectFrom(kit, en);
-
-            if(para.onBuildingSQL != null)
+            BeforeBuildWhere(kit, en, QueryAction.QueryList);
+            if (para.onBuildingSQL != null)
             {
                 para.onBuildingSQL(kit);
             }

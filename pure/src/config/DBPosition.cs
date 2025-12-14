@@ -33,8 +33,24 @@ namespace mooSQL.config
         public string Version { get; set; }
 
         /// <summary>
-        /// 版本号
+        /// 数据库版本号
         /// </summary>
         public double? VersionNumber{ get; set; }
+        /// <summary>
+        /// 软件版本
+        /// </summary>
+        public string Edition;
+        /// <summary>
+        /// 软件版本号，数值
+        /// </summary>
+        public double EditionNumber;
+        /// <summary>
+        /// 是否监控慢SQL，默认关闭
+        /// </summary>
+        public bool WatchSQL = false;
+        /// <summary>
+        /// 默认的慢SQL时间阈值，500ms
+        /// </summary>
+        public int MinTimeSpan = 500;
     }
 }

@@ -68,6 +68,26 @@ namespace mooSQL.data
             Context.Builder.print(onPrint);
             return this;
         }
+        /// <summary>
+        /// 传递事务
+        /// </summary>
+        /// <param name="core"></param>
+        /// <returns></returns>
+        public SQLClip useTransaction(DBExecutor core)
+        {
+            Context.Builder.useTransaction(core);
+            return this;
+        }
+        /// <summary>
+        /// 唯一
+        /// </summary>
+        /// <returns></returns>
+        public SQLClip distinct()
+        {
+            Context.Builder.distinct();
+            return this;
+        }
+
 
         /// <summary>
         /// from语句，用于指定查询的主体表。
@@ -90,6 +110,39 @@ namespace mooSQL.data
           
             return this;
         }
+        /// <summary>
+        /// 设置from部分的别名。仅在没有where表达式使用。
+        /// </summary>
+        /// <param name="asName"></param>
+        /// <returns></returns>
+        internal SQLClip setFromAsName(string asName) { 
+            var tb=this.Context.getFromTable();
+            tb.Alias = asName;
+            return this;
+        }
+
+        internal SQLClip wherePKIs<T>(object pkValue) { 
+            var en=DBLive.client.EntityCash.getEntityInfo<T>();
+            var pks=en.GetPK();
+            if(pks.Count==1)
+            {
+                var pk = pks[0];
+                var tb = this.Context.getFromTable();
+                if (tb.Alias.HasText())
+                {
+                    this.Context.Builder.where(tb.Alias + "." + pk.DbColumnName, pkValue);
+                }
+                else {
+                    this.Context.Builder.where( pk.DbColumnName, pkValue);
+                }
+            }
+            else
+            {
+                throw new Exception("复合主键不支持此方法，请使用where表达式指定条件");
+            }   
+            return this;
+        }
+
         /// <summary>
         /// 直接设置from部分的表名。此为手动指定表名使用，仍要先用from语句指定实体。
         /// </summary>
