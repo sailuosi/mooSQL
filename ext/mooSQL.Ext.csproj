@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <AssemblyName>mooSQL.Ext</AssemblyName>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <Version>1.0.1</Version>
 	  <LangVersion>12.0</LangVersion>
 	  <ApplicationIcon>bitbug_favicon.ico</ApplicationIcon>
 	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>
@@ -16,7 +16,7 @@
 	  <PackageId>$(AssemblyName).Core</PackageId>
 	  <Authors>rainlime</Authors>
 	  <Product>$(AssemblyName).Core</Product>
-	  <FileVersion>1.0.0</FileVersion>
+	  <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
 		<Reference Include="Microsoft.CSharp" />
@@ -98,23 +98,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.6" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Compile Remove="src\linq\src\zeroNeed\Extensions\**" />
-	  <Compile Remove="src\linq\src\zeroNeed\Remote\**" />
-	  <Compile Remove="src\linq\toClean\database\**" />
-	  <Compile Remove="src\linq\toClean\Data\dataConnection\**" />
-	  <EmbeddedResource Remove="src\linq\src\zeroNeed\Extensions\**" />
-	  <EmbeddedResource Remove="src\linq\src\zeroNeed\Remote\**" />
-	  <EmbeddedResource Remove="src\linq\toClean\database\**" />
-	  <EmbeddedResource Remove="src\linq\toClean\Data\dataConnection\**" />
-	  <None Remove="src\linq\src\zeroNeed\Extensions\**" />
-	  <None Remove="src\linq\src\zeroNeed\Remote\**" />
-	  <None Remove="src\linq\toClean\database\**" />
-	  <None Remove="src\linq\toClean\Data\dataConnection\**" />
-	</ItemGroup>
-  <ItemGroup>
-    <Content Include="bitbug_favicon.ico" />
-  </ItemGroup>
 
 
   <ItemGroup>
@@ -128,24 +111,11 @@
   </ItemGroup>
 
 
-
   <ItemGroup>
-    <Folder Include="src\delyon\" />
-    <Folder Include="src\provides\dialect\Oscar\" />
-  </ItemGroup>
-
-
-
-  <ItemGroup>
-    <None Update="bitbug_favicon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="bitbug_favicon.png" Pack="true" PackagePath="\" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

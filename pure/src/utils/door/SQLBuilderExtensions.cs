@@ -1,7 +1,6 @@
 ﻿using mooSQL.data.clip;
 using mooSQL.data.utils;
-using mooSQL.excel;
-using mooSQL.excel.context;
+
 using mooSQL.linq;
 using mooSQL.utils;
 using System;
