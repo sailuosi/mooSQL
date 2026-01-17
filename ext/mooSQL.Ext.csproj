@@ -1,0 +1,124 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net451;net462;net6.0;net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>mooSQL.Ext</AssemblyName>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <Version>1.0.1</Version>
+	  <LangVersion>12.0</LangVersion>
+	  <ApplicationIcon>bitbug_favicon.ico</ApplicationIcon>
+	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <PackageId>$(AssemblyName).Core</PackageId>
+	  <Authors>rainlime</Authors>
+	  <Product>$(AssemblyName).Core</Product>
+	  <FileVersion>1.0.1</FileVersion>
+  </PropertyGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Data.DataSetExtensions" />
+		<Reference Include="System.Data.Linq" />
+		<Reference Include="System.Data.Services" />
+		<PackageReference Include="NPOI">
+			<Version>2.5.6</Version>
+		</PackageReference>
+		<PackageReference Include="Npgsql">
+			<Version>4.0.14</Version>
+		</PackageReference>
+
+		<PackageReference Include="MySqlConnector">
+			<Version>2.1.13</Version>
+		</PackageReference>
+		<PackageReference Include="Oracle.ManagedDataAccess">
+			<Version>18.15.1</Version>
+		</PackageReference>
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Data.DataSetExtensions" />
+		<Reference Include="System.Data.Linq" />
+		<Reference Include="System.Data.Services" />
+		<PackageReference Include="Oracle.ManagedDataAccess">
+			<Version>19.26.0</Version>
+		</PackageReference>
+		<PackageReference Include="NPOI">
+			<Version>2.7.0</Version>
+		</PackageReference>
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+		<PackageReference Include="MySqlConnector" Version="2.3.7" />
+		<PackageReference Include="Npgsql" Version="4.0.14" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite">
+		  <Version>9.0.1</Version>
+		</PackageReference>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="System.Data.Odbc" Version="8.0.1" />
+		<PackageReference Include="NPOI" Version="2.7.0" />
+		<PackageReference Include="MySqlConnector" Version="2.3.7" />
+		<PackageReference Include="Npgsql" Version="8.0.6" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite">
+		  <Version>9.0.1</Version>
+		</PackageReference>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="System.Data.Odbc" Version="8.0.1" />
+		<PackageReference Include="NPOI" Version="2.7.0" />
+		<PackageReference Include="MySqlConnector" Version="2.3.7" />
+		<PackageReference Include="Npgsql" Version="8.0.6" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite">
+			<Version>9.0.1</Version>
+		</PackageReference>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="System.Data.Odbc" Version="8.0.1" />
+		<PackageReference Include="NPOI" Version="2.7.0" />
+		<PackageReference Include="MySqlConnector" Version="2.3.7" />
+		<PackageReference Include="Npgsql" Version="8.0.6" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
+	</ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\pure\mooSQL.Pure.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+
+
+</Project>
