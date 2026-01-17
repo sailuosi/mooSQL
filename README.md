@@ -4,7 +4,7 @@
 mooSQL是一个.Net下的轻量级ORM库，适用于.Net6/8/10以及netframework 4.5，核心设计理念是数据库优先和SQL语义化。与主流ORM（EFCore）相比，它学习门槛低，熟悉SQL的开发者能轻松入手。
 
 #### 重点功能
-mooSQL的目标不是为了替代EFcore、SqlSugar等ORM，而是为喜欢操作SQL、熟悉SQL的人，提供一个趁手的工具。可以说是面向“数据库”开发。
+mooSQL的目标不是为了替代EFcore等ORM，而是为喜欢操作SQL、熟悉SQL的人，提供一个趁手的工具。可以说是面向“数据库”开发。
 通过“方言”模式设计，mooSQL能够抹平SQL操作数据的常见障碍，如多数据库兼容(支持mysql/sqlserver/postgre/oracle等数据库)，通过SQL方言层抹平各数据库基础增删改查SQL的差异，驱动层提供丰富的数据库访问方法（类比Dapper），同时又拥有ORM具体的实体查询功能，独创SQLClip模式，实现与SQL语法极为类似的实体操作查询！
 
 ### 特性
