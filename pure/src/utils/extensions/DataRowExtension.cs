@@ -40,6 +40,21 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+
+        public static string getString(this DataRow row, string key)
+        {
+            if (row == null) return null;
+            if (row[key] != null)
+            {
+                var tar = row[key];
+                if (tar == DBNull.Value)
+                {
+                    return null;
+                }
+                return tar.ToString();
+            }
+            return null;
+        }
         /// <summary>
         /// 获取一个int 或默认值
         /// </summary>
@@ -58,6 +73,17 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        public static int? getInt(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            int v;
+            if (int.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -75,6 +101,17 @@ namespace mooSQL.utils
                 return v;
             }
             return defaultVal;
+        }
+        public static long? getLong(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            long v;
+            if (long.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
         }
         /// <summary>
         /// 
@@ -160,6 +197,40 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        public static double? getDouble(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            double v;
+            if (double.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
+        }
+
+        public static decimal getDecimal(this DataRow row, string key, decimal defaultVal)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return defaultVal;
+            decimal v;
+            if (decimal.TryParse(val, out v))
+            {
+                return v;
+            }
+            return defaultVal;
+        }
+        public static decimal? getDecimal(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            decimal v;
+            if (decimal.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -177,6 +248,17 @@ namespace mooSQL.utils
                 return v;
             }
             return defaultVal;
+        }
+        public static Guid? getGuid(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            Guid v;
+            if (Guid.TryParse(val, out v))
+            {
+                return v;
+            }
+            return null;
         }
         /// <summary>
         /// 
@@ -200,6 +282,21 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
-
+        public static bool? getBoolean(this DataRow row, string key)
+        {
+            var val = row.getString(key, "");
+            if (val == "") return null;
+            bool v;
+            if (bool.TryParse(val, out v))
+            {
+                return v;
+            }
+            //有的数据库使用varchar或int存储布尔值
+            if (val.ToLower() == "1" || val.ToLower().Trim() == "true")
+            {
+                return true;
+            }
+            return null;
+        }
     }
 }

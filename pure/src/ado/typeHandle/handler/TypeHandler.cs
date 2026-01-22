@@ -5,66 +5,66 @@ namespace mooSQL.data
 {
 
     /// <summary>
-    /// Base-class for simple type-handlers
+    /// 简单类型处理器的基类
     /// </summary>
-    /// <typeparam name="T">This <see cref="Type"/> this handler is for.</typeparam>
-    public abstract class TypeHandler<T> : ITypeHandler
+    /// <typeparam name="T">此处理器针对的 <see cref="Type"/>。</typeparam>
+    public abstract class TypeHandler<T> : ITypeParser
     {
         /// <summary>
-        /// Assign the value of a parameter before a command executes
+        /// 在命令执行前分配参数值
         /// </summary>
-        /// <param name="parameter">The parameter to configure</param>
-        /// <param name="value">Parameter value</param>
+        /// <param name="parameter">要配置的参数</param>
+        /// <param name="value">参数值</param>
         public abstract void SetValue(IDbDataParameter parameter, T value);
 
         /// <summary>
-        /// Parse a database value back to a typed value
+        /// 将数据库值解析回类型化值
         /// </summary>
-        /// <param name="value">The value from the database</param>
-        /// <returns>The typed value</returns>
+        /// <param name="value">来自数据库的值</param>
+        /// <returns>类型化值</returns>
         public abstract T Parse(object value);
 
 
 
-        object ITypeHandler.Parse(Type destinationType, object value)
+        object ITypeParser.Parse(Type destinationType, object value)
         {
             return Parse(value);
         }
     }
 
     /// <summary>
-    /// Base-class for simple type-handlers that are based around strings
+    /// 基于字符串的简单类型处理器的基类
     /// </summary>
-    /// <typeparam name="T">This <see cref="Type"/> this handler is for.</typeparam>
+    /// <typeparam name="T">此处理器针对的 <see cref="Type"/>。</typeparam>
     public abstract class StringTypeHandler<T> : TypeHandler<T>
     {
         /// <summary>
-        /// Parse a string into the expected type (the string will never be null)
+        /// 将字符串解析为预期类型（字符串永远不会为 null）
         /// </summary>
-        /// <param name="xml">The string to parse.</param>
+        /// <param name="xml">要解析的字符串。</param>
         protected abstract T Parse(string xml);
 
         /// <summary>
-        /// Format an instance into a string (the instance will never be null)
+        /// 将实例格式化为字符串（实例永远不会为 null）
         /// </summary>
-        /// <param name="xml">The string to format.</param>
+        /// <param name="xml">要格式化的字符串。</param>
         protected abstract string Format(T xml);
 
         /// <summary>
-        /// Assign the value of a parameter before a command executes
+        /// 在命令执行前分配参数值
         /// </summary>
-        /// <param name="parameter">The parameter to configure</param>
-        /// <param name="value">Parameter value</param>
+        /// <param name="parameter">要配置的参数</param>
+        /// <param name="value">参数值</param>
         public override void SetValue(IDbDataParameter parameter, T value)
         {
             parameter.Value = value == null ? (object)DBNull.Value : Format(value);
         }
 
         /// <summary>
-        /// Parse a database value back to a typed value
+        /// 将数据库值解析回类型化值
         /// </summary>
-        /// <param name="value">The value from the database</param>
-        /// <returns>The typed value</returns>
+        /// <param name="value">来自数据库的值</param>
+        /// <returns>类型化值</returns>
         public override T Parse(object value)
         {
             if (value is null || value is DBNull) return default;

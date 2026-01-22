@@ -13,7 +13,7 @@ namespace mooSQL.data
     /// <summary>
     /// 存放成员属性部分
     /// </summary>
-    public partial class Deserializer
+    public partial class PackUp
     {
         private Func<DbDataReader,DBInstance, object> ReadViaGetValue(int index)
         => (reader,db) =>
@@ -151,18 +151,18 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// Internal use only
+        /// 仅供内部使用
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="reader"></param>
-        /// <param name="startBound"></param>
-        /// <param name="length"></param>
-        /// <param name="returnNullIfFirstMissing"></param>
-        public Func<DbDataReader, DBInstance, object> GetTypeDeserializer(
-            Deserializer deserializer,Type type, DbDataReader reader, int startBound = 0, int length = -1, bool returnNullIfFirstMissing = false,DBInstance db=null
+        /// <param name="type">类型</param>
+        /// <param name="reader">读取器</param>
+        /// <param name="startBound">起始边界</param>
+        /// <param name="length">长度</param>
+        /// <param name="returnNullIfFirstMissing">如果第一个缺失则返回 null</param>
+        public Func<DbDataReader, DBInstance, object> GetTypePacker(
+            PackUp deserializer,Type type, DbDataReader reader, int startBound = 0, int length = -1, bool returnNullIfFirstMissing = false,DBInstance db=null
         )
         {
-            return TypeDeserializerCache.GetReader(deserializer,type, reader, startBound, length, returnNullIfFirstMissing, db);
+            return TypePackerCache.GetReader(deserializer,type, reader, startBound, length, returnNullIfFirstMissing, db);
         }
 
         private LocalBuilder GetTempLocal(ILGenerator il, ref Dictionary<Type, LocalBuilder> locals, Type type, bool initAndLoad)

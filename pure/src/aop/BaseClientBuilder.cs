@@ -4,6 +4,7 @@ using mooSQL.data.Mapping;
 using mooSQL.data.slave;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,10 +23,14 @@ namespace mooSQL.data
             client= new MooClient();
             InitClientBase();
         }
-
+        /// <summary>
+        /// 客户实例
+        /// </summary>
         protected MooClient client;
-
-        protected void InitClientBase() {
+        /// <summary>
+        /// 初始化构造器
+        /// </summary>
+        protected virtual void InitClientBase() {
             client.modifyMediator = SlaveFactory.createBase();
         }
         /// <summary>
@@ -57,14 +62,33 @@ namespace mooSQL.data
             {
                 client.useLogger(youCash.getExeQueryLog());
             }
-
+            if (client.ClientFactory == null) { 
+                client.useClientFactory(new DBClientFactory());
+            }
+            if (this.youCash.dialectFactory == null)
+            {
+                useDialectFactory(new DialectFactoryBase());
+            }
             buildingCash();
             if (DBPositions != null) {
                 youCash.addConfig(DBPositions);
             }
-            if (client.ClientFactory == null) { 
-                client.useClientFactory(new DBClientFactory());
-            }            
+            //对于二级属性，允许超前注册、滞后加载
+            if (parses != null) {
+                foreach (var p in parses) {
+                    client.entityAnalyseFactory.register(p);
+                }
+            }
+            //超前注册的方言入库
+            if (diadic != null) {
+                foreach (var dd in diadic) {
+                    client.dialectFactory.useDialect(dd.Key,dd.Value);
+                }
+            }
+            //配置实体翻译器的应用
+            if (_configET != null) {
+                _configET(client.Translator);
+            }
             youCash.configPath = DBXMLConfig;
 
             return this.youCash;
@@ -75,6 +99,18 @@ namespace mooSQL.data
         protected virtual void buildingCash() {
             //子类使用
         }
+        private Action<EntityTranslator> _configET;
+        /// <summary>
+        /// 自定义实体的处理切面
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public BaseClientBuilder useEntityTranslate(Action<EntityTranslator> act)
+        {
+            _configET = act;
+            return this;
+        }
+
         /// <summary>
         /// 注册方言工厂
         /// </summary>
@@ -84,7 +120,18 @@ namespace mooSQL.data
             client.dialectFactory = dialectFactory;
             return this;
         }
-
+        private Dictionary<DataBaseType, Func<Dialect>> diadic= new Dictionary<DataBaseType, Func<Dialect>>(); 
+        /// <summary>
+        /// 注册方言，注意！如果自定义工厂，必须先调用useDialectFactory,再调用本方法
+        /// </summary>
+        /// <param name="dbType"></param>
+        /// <param name="creator"></param>
+        /// <returns></returns>
+        public BaseClientBuilder useDialect(DataBaseType dbType, Func<Dialect> creator)
+        {
+            diadic[dbType] = creator;
+            return this;
+        }
         /// <summary>
         /// 注册实体解析工厂，默认有。
         /// </summary>
@@ -94,16 +141,34 @@ namespace mooSQL.data
             client.entityAnalyseFactory = entityAnalyseFactory;
             return this;
         }
+
+        private List<IEntityAnalyser> parses = new List<IEntityAnalyser>();
+
+        /// <summary>
+        /// 【已废弃，存在错别字】注册自定义的实体解析器
+        /// </summary>
+        /// <param name="entityAnalyser"></param>
+        /// <returns></returns>
+        [Obsolete("拼写错误，将在新版本废弃")]
+        public BaseClientBuilder useEnityAnalyser(IEntityAnalyser entityAnalyser) {
+            parses.Add(entityAnalyser);
+            return this;
+        }
         /// <summary>
         /// 注册自定义的实体解析器
         /// </summary>
         /// <param name="entityAnalyser"></param>
         /// <returns></returns>
-        public BaseClientBuilder useEnityAnalyser(IEntityAnalyser entityAnalyser) { 
-            client.entityAnalyseFactory.register(entityAnalyser);
+        public BaseClientBuilder useEntityAnalyser(IEntityAnalyser entityAnalyser)
+        {
+            parses.Add(entityAnalyser);
             return this;
         }
-
+        /// <summary>
+        /// 注册业务实体工厂
+        /// </summary>
+        /// <param name="clientFactory"></param>
+        /// <returns></returns>
         public BaseClientBuilder useClientFactory(DBClientFactory clientFactory)
         {
             client.useClientFactory( clientFactory);
@@ -142,10 +207,10 @@ namespace mooSQL.data
         /// <summary>
         /// 注册数据库加载方法
         /// </summary>
-        /// <param name="loadDBByPostion"></param>
+        /// <param name="loadDBByPosition"></param>
         /// <returns></returns>
-        public BaseClientBuilder useDataBase(Func<int, DataBase> loadDBByPostion) { 
-            client.useDataBase(loadDBByPostion);
+        public BaseClientBuilder useDataBase(Func<int, DataBase> loadDBByPosition) { 
+            client.useDataBase(loadDBByPosition);
             return this;
         }
         /// <summary>
@@ -173,10 +238,10 @@ namespace mooSQL.data
         /// <summary>
         /// 注册XML配置，等待DialectFactory进行解析
         /// </summary>
-        /// <param name="confipath"></param>
+        /// <param name="configPath"></param>
         /// <returns></returns>
-        public BaseClientBuilder useDBXMLConfig(string confipath) {
-            this.DBXMLConfig = confipath;
+        public BaseClientBuilder useDBXMLConfig(string configPath) {
+            this.DBXMLConfig = configPath;
             return this;
         }
         
@@ -187,7 +252,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public BaseClientBuilder useSlave(Func<SlaveTeam, SlaveTeam> createTeam)
         {
-            var slave = SlaveFactory.CreateSlave();
+            var slave = SlaveFactory.CreateSlave("");
             slave = createTeam(slave);
             client.modifyMediator.signModify(slave);
             return this;
@@ -202,7 +267,9 @@ namespace mooSQL.data
             client.modifyMediator.signModify(slaveTeam);
             return this;
         }
-
+        /// <summary>
+        /// 配置管理实例
+        /// </summary>
         protected DBInsCash youCash;
         /// <summary>
         /// 自定义实例时使用，一般无须使用

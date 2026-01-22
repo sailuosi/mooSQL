@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 映射器缓存，用于缓存查询结果的反序列化器
+    /// </summary>
     internal static class MapperCache
     {
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<Identity, CacheInfo> _queryCache = new System.Collections.Concurrent.ConcurrentDictionary<Identity, CacheInfo>();
 
         /// <summary>
-        /// Called if the query cache is purged via PurgeQueryCache
+        /// 当通过 PurgeQueryCache 清除查询缓存时调用
         /// </summary>
         public static event EventHandler QueryCachePurged;
         private static void OnQueryCachePurged()
@@ -23,7 +26,7 @@ namespace mooSQL.data
             handler?.Invoke(null, EventArgs.Empty);
         }
 
-        internal static CacheInfo GetCacheInfo(Deserializer deserializer,Identity identity, object exampleParameters, bool addToCache)
+        internal static CacheInfo GetCacheInfo(PackUp deserializer,Identity identity, object exampleParameters, bool addToCache)
         {
             if (!TryGetQueryCache(identity, out CacheInfo info))
             {
@@ -57,12 +60,12 @@ namespace mooSQL.data
             _queryCache[key] = value;
         }
         /// <summary>
-        /// Purge the query cache
+        /// 清除查询缓存
         /// </summary>
         public static void PurgeQueryCache()
         {
             _queryCache.Clear();
-            TypeDeserializerCache.Purge();
+            TypePackerCache.Purge();
             OnQueryCachePurged();
         }
 
@@ -73,7 +76,7 @@ namespace mooSQL.data
                 if (entry.Key.Type == type)
                     _queryCache.TryRemove(entry.Key, out _);
             }
-            TypeDeserializerCache.Purge(type);
+            TypePackerCache.Purge(type);
         }
 
 

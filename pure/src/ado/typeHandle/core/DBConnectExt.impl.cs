@@ -38,7 +38,7 @@ namespace mooSQL.data
 
             if (tuple.Func is null || tuple.Hash != hash)
             {
-                tuple = info.Deserializer = new DeserializerState(hash, executor.deserializer.GetDeserializer(effectiveType, reader, 0, -1, false, DB));
+                tuple = info.Deserializer = new PackUpState(hash, executor.deserializer.GetPacker(effectiveType, reader, 0, -1, false, DB));
                 if (addToCache) MapperCache.SetQueryCache(identity, info);
             }
             T result = default;
@@ -66,7 +66,7 @@ namespace mooSQL.data
 
             if (tuple.Func is null || tuple.Hash != hash)
             {
-                tuple = info.Deserializer = new DeserializerState(hash, executor.deserializer.GetDeserializer(effectiveType, reader, 0, -1, false, DB));
+                tuple = info.Deserializer = new PackUpState(hash, executor.deserializer.GetPacker(effectiveType, reader, 0, -1, false, DB));
                 if (addToCache) MapperCache.SetQueryCache(identity, info);
             }
             T result = default;
@@ -93,7 +93,7 @@ namespace mooSQL.data
         /// <param name="effectiveType"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        internal static T queryScalarByType<T>(DbCommand cmd,Deserializer deserializer)
+        internal static T queryScalarByType<T>(DbCommand cmd,PackUp deserializer)
         {
             var  data = cmd.ExecuteScalar();
             return deserializer.Parse<T>(data);

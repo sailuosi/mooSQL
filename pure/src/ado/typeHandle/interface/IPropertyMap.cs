@@ -7,7 +7,7 @@ namespace mooSQL.data
     /// <summary>
     /// 自定义属性映射
     /// </summary>
-    public interface IMemberMap
+    public interface IPropertyMap
     {
         /// <summary>
         /// 来源字段名

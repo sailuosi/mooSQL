@@ -7,6 +7,16 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.data
 {
 
+    /// <summary>
+    /// 具有七个类型参数的标识类，用于缓存查询结果
+    /// </summary>
+    /// <typeparam name="TFirst">第一个类型</typeparam>
+    /// <typeparam name="TSecond">第二个类型</typeparam>
+    /// <typeparam name="TThird">第三个类型</typeparam>
+    /// <typeparam name="TFourth">第四个类型</typeparam>
+    /// <typeparam name="TFifth">第五个类型</typeparam>
+    /// <typeparam name="TSixth">第六个类型</typeparam>
+    /// <typeparam name="TSeventh">第七个类型</typeparam>
     internal sealed class Identity<TFirst, TSecond, TThird, TFourth, TFifth, TSixth, TSeventh> : Identity
     {
         private static readonly int s_typeHash;
@@ -64,6 +74,9 @@ namespace mooSQL.data
 
         } 
     }
+        /// <summary>
+        /// 具有类型数组的标识类，用于缓存查询结果
+        /// </summary>
         internal sealed class IdentityWithTypes : Identity
         {
             private readonly Type[] _types;
@@ -119,9 +132,9 @@ namespace mooSQL.data
                 : new IdentityWithTypes(sql, commandType, connectionString, primaryType, parametersType, otherTypes, gridIndex);
 
             /// <summary>
-            /// Create an identity for use with DynamicParameters, internal use only.
+            /// 创建用于 DynamicParameters 的标识，仅供内部使用。
             /// </summary>
-            /// <param name="type">The parameters type to create an <see cref="Identity"/> for.</param>
+            /// <param name="type">要为其创建 <see cref="Identity"/> 的参数类型。</param>
             /// <returns></returns>
             public Identity ForDynamicParameters(Type type) =>
                 new Identity(sql, commandType, connectionString, this.type, type, 0, -1);
@@ -154,97 +167,97 @@ namespace mooSQL.data
             }
 
             /// <summary>
-            /// Whether this <see cref="Identity"/> equals another.
+            /// 判断此 <see cref="Identity"/> 是否与另一个相等。
             /// </summary>
-            /// <param name="obj">The other <see cref="object"/> to compare to.</param>
+            /// <param name="obj">要比较的另一个 <see cref="object"/>。</param>
             public override bool Equals(object obj) => Equals(obj as Identity);
 
             /// <summary>
-            /// The raw SQL command.
+            /// 原始 SQL 命令。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(Sql) + ". This API may be removed at a later date.")]
             public readonly string sql;
 
             /// <summary>
-            /// The raw SQL command.
+            /// 原始 SQL 命令。
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public string Sql => sql;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// The SQL command type.
+            /// SQL 命令类型。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(CommandType) + ". This API may be removed at a later date.")]
             public readonly CommandType commandType;
 
             /// <summary>
-            /// The SQL command type.
+            /// SQL 命令类型。
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public CommandType CommandType => commandType;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// The hash code of this Identity.
+            /// 此 Identity 的哈希码。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(GetHashCode) + ". This API may be removed at a later date.")]
             public readonly int hashCode;
 
             /// <summary>
-            /// The grid index (position in the reader) of this Identity.
+            /// 此 Identity 的网格索引（在读取器中的位置）。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(GridIndex) + ". This API may be removed at a later date.")]
             public readonly int gridIndex;
 
             /// <summary>
-            /// The grid index (position in the reader) of this Identity.
+            /// 此 Identity 的网格索引（在读取器中的位置）。
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public int GridIndex => gridIndex;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// The <see cref="Type"/> of this Identity.
+            /// 此 Identity 的 <see cref="Type"/>。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(Type) + ". This API may be removed at a later date.")]
             public readonly Type type;
 
             /// <summary>
-            /// The <see cref="Type"/> of this Identity.
+            /// 此 Identity 的 <see cref="Type"/>。
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public Type Type => type;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// The connection string for this Identity.
+            /// 此 Identity 的连接字符串。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("This API may be removed at a later date.")]
             public readonly string connectionString;
 
             /// <summary>
-            /// The type of the parameters object for this Identity.
+            /// 此 Identity 的参数对象类型。
             /// </summary>
             [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Please use " + nameof(ParametersType) + ". This API may be removed at a later date.")]
             public readonly Type parametersType;
 
             /// <summary>
-            /// The type of the parameters object for this Identity.
+            /// 此 Identity 的参数对象类型。
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public Type ParametersType => parametersType;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// Gets the hash code for this identity.
+            /// 获取此标识的哈希码。
             /// </summary>
             /// <returns></returns>
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -252,17 +265,17 @@ namespace mooSQL.data
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// See object.ToString()
+            /// 参见 object.ToString()
             /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
             public override string ToString() => sql;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
-            /// Compare 2 Identity objects
+            /// 比较两个 Identity 对象
             /// </summary>
-            /// <param name="other">The other <see cref="Identity"/> object to compare.</param>
-            /// <returns>Whether the two are equal</returns>
+            /// <param name="other">要比较的另一个 <see cref="Identity"/> 对象。</param>
+            /// <returns>两者是否相等</returns>
             public bool Equals(Identity other)
             {
                 if (ReferenceEquals(this, other)) return true;
@@ -294,10 +307,9 @@ namespace mooSQL.data
             }
 
             /// <summary>
-            /// How should connection strings be compared for equivalence? Defaults to StringComparer.Ordinal.
-            /// Providing a custom implementation can be useful for allowing multi-tenancy databases with identical
-            /// schema to share strategies. Note that usual equivalence rules apply: any equivalent connection strings
-            /// <b>MUST</b> yield the same hash-code.
+            /// 应如何比较连接字符串的等价性？默认为 StringComparer.Ordinal。
+            /// 提供自定义实现可用于允许具有相同架构的多租户数据库共享策略。
+            /// 请注意，通常的等价规则适用：任何等价的连接字符串 <b>必须</b> 产生相同的哈希码。
             /// </summary>
             public static IEqualityComparer<string> ConnectionStringComparer
             {

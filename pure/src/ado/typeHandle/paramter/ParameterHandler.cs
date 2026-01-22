@@ -14,15 +14,18 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 参数处理器，提供参数处理和转换的静态方法
+    /// </summary>
     internal static partial  class ParameterHandler
     {
 
         //private static Deserializer deserializer = new Deserializer();
 
         /// <summary>
-        /// OBSOLETE: For internal usage only. Sanitizes the parameter value with proper type casting.
+        /// 已过时：仅供内部使用。使用适当的类型转换清理参数值。
         /// </summary>
-        /// <param name="value">The value to sanitize.</param>
+        /// <param name="value">要清理的值。</param>
 
         internal static object SanitizeParameterValue(object value)
         {

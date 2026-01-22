@@ -93,7 +93,10 @@ namespace mooSQL.data
         private int _whereCount = 0;
 
         private SqlCTE CTECollection;
-
+        /// <summary>
+        /// 新令，在一个信令下创建的SQL，都将持有该信令
+        /// </summary>
+        public string Signal { get; set; }
         private CleanWay _AutoClearWay { get; set; }
         /// <summary>
         /// 配置自动清理方式，默认为每次执行修改或删除后清理
@@ -104,6 +107,25 @@ namespace mooSQL.data
             this._AutoClearWay = way;
             return this;
         }
+        /// <summary>
+        /// 注册信令
+        /// </summary>
+        /// <param name="signalName"></param>
+        /// <returns></returns>
+        public SQLBuilder useSignal(string signalName) {
+            this.Signal = signalName;
+            return this;
+        }
+        /// <summary>
+        /// 置空信令
+        /// </summary>
+        /// <returns></returns>
+        public SQLBuilder resetSignal()
+        {
+            this.Signal = string.Empty;
+            return this;
+        }
+
         /// <summary>
         /// 设置数据库连接位
         /// </summary>
@@ -495,7 +517,7 @@ namespace mooSQL.data
             this.CTECollection.Clear();
             this.cacheKey = string.Empty;
             this.cacheTimeout = this.defaultCacheTimeout;
-
+            this.Signal = string.Empty;
             current.clear();
             if (this.groups.Count > 1) {
                 this.groups.Clear();
@@ -638,6 +660,11 @@ namespace mooSQL.data
         }
 
         #region 秋天的收获 ---SQL的最终生成，以 to开头的一组方法
+        private SQLCmd geneCmd(string sql, Paras ps) {
+            var cmd = new SQLCmd(sql, ps);
+            cmd.signal = this.Signal;
+            return cmd;
+        }
         /// <summary>
         /// 创建 select 语句
         /// </summary>
@@ -662,7 +689,7 @@ namespace mooSQL.data
                 }
             }
 
-            return new SQLCmd(sql,ps);
+            return geneCmd(sql,ps);
         }
 
 
@@ -676,12 +703,12 @@ namespace mooSQL.data
             if (this.unionHolder.Count == 0)
             {
                 string cksql = this.buildCountSQL();
-                return new SQLCmd(cksql, ps);
+                return geneCmd(cksql, ps);
             }
             else
             {
                 string sql = unionHolder.buildCount();
-                return new SQLCmd(sql, ps);
+                return geneCmd(sql, ps);
             }
         }
         /// <summary>
@@ -690,7 +717,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toInsert() {
             string sql = current.buildInsert();
-            return new SQLCmd(sql, ps);
+            return geneCmd(sql, ps);
         }
         /// <summary>
         /// 创建 insert from语句
@@ -699,7 +726,7 @@ namespace mooSQL.data
         public SQLCmd toInsertFrom()
         {
             var sql =  current.buildInsertFrom();
-            return new SQLCmd(sql, ps); 
+            return geneCmd(sql, ps); 
         }
         /// <summary>
         /// 创建update 语句
@@ -712,7 +739,7 @@ namespace mooSQL.data
             sql = current.buildUpdate();
                 
             
-            return new SQLCmd(sql, ps);
+            return geneCmd(sql, ps);
 
         }
         /// <summary>
@@ -727,7 +754,7 @@ namespace mooSQL.data
             }
 
             string sql = current.buildUpdateFrom();
-            return new SQLCmd(sql, ps);
+            return geneCmd(sql, ps);
         }
         /// <summary>
         /// 创建 delete from 语句
@@ -737,7 +764,7 @@ namespace mooSQL.data
         public SQLCmd toDelete()
         {
             string sql = current.buildDelete();
-            return new SQLCmd(sql, ps);
+            return geneCmd(sql, ps);
         }
         /// <summary>
         /// 创建 merge into语句
@@ -746,7 +773,7 @@ namespace mooSQL.data
         public SQLCmd toMergeInto()
         {
             string sql = current.buildMerge();
-            return new SQLCmd(sql, ps);
+            return geneCmd(sql, ps);
         }
 
         #endregion

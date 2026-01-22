@@ -5,23 +5,22 @@ namespace mooSQL.data
 {
 
     /// <summary>
-    /// A type handler for data-types that are supported by the underlying provider, but which need
-    /// a well-known UdtTypeName to be specified
+    /// 用于底层提供程序支持但需要指定已知 UdtTypeName 的数据类型的类型处理器
     /// </summary>
-    public class UdtTypeHandler : ITypeHandler
+    public class UdtTypeHandler : ITypeParser
     {
         private readonly string udtTypeName;
         /// <summary>
-        /// Creates a new instance of UdtTypeHandler with the specified <see cref="UdtTypeHandler"/>.
+        /// 使用指定的 <see cref="UdtTypeHandler"/> 创建 UdtTypeHandler 的新实例。
         /// </summary>
-        /// <param name="udtTypeName">The user defined type name.</param>
+        /// <param name="udtTypeName">用户定义的类型名称。</param>
         public UdtTypeHandler(string udtTypeName)
         {
             if (string.IsNullOrEmpty(udtTypeName)) throw new ArgumentException("Cannot be null or empty", udtTypeName);
             this.udtTypeName = udtTypeName;
         }
 
-        object ITypeHandler.Parse(Type destinationType, object value)
+        object ITypeParser.Parse(Type destinationType, object value)
         {
             return value is DBNull ? null : value;
         }

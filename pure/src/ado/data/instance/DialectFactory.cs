@@ -24,7 +24,11 @@ namespace mooSQL.data
         /// <param name="dBIns"></param>
         /// <returns></returns>
         Dictionary<int, DataBase> loadDBConfig(DBInsCash dBIns);
-
-
+        /// <summary>
+        /// ×¢²á·½ÑÔ
+        /// </summary>
+        /// <param name="dbType"></param>
+        /// <param name="creator"></param>
+        void useDialect(DataBaseType dbType, Func<Dialect> creator);
     }
 }

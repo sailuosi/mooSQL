@@ -37,7 +37,7 @@ namespace mooSQL.data.context
         /// <summary>
         /// 读取结果转换器
         /// </summary>
-        public Deserializer deserializer ;
+        public PackUp deserializer ;
 
         private DBInstance DB;
         /// <summary>
@@ -46,7 +46,7 @@ namespace mooSQL.data.context
         /// <param name="db"></param>
         public CmdExecutor(DBInstance db) { 
             this.DB = db;
-            this.deserializer= new Deserializer(db.client);
+            this.deserializer= new PackUp(db.client);
             this.linkClient(db.client);
         }
 
@@ -331,7 +331,7 @@ namespace mooSQL.data.context
         {
             var tar = new List<T>();
 
-            var func = deserializer.GetDeserializer(effectiveType, reader, 0, -1, false,DB);
+            var func = deserializer.GetPacker(effectiveType, reader, 0, -1, false,DB);
             var convertToType = Nullable.GetUnderlyingType(effectiveType) ?? effectiveType;
             while (reader.Read())
             {

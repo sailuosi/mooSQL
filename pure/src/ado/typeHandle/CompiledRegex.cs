@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 namespace mooSQL.data
 {
 
+    /// <summary>
+    /// 编译的正则表达式，用于 SQL 参数和字面量标记的匹配
+    /// </summary>
     internal static partial class CompiledRegex
     {
 

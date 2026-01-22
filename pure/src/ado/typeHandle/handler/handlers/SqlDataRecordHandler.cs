@@ -4,7 +4,11 @@ using System.Data;
 
 namespace mooSQL.data
 {
-    internal sealed class SqlDataRecordHandler<T> : ITypeHandler
+    /// <summary>
+    /// SqlDataRecord 类型处理器
+    /// </summary>
+    /// <typeparam name="T">数据记录类型</typeparam>
+    internal sealed class SqlDataRecordHandler<T> : ITypeParser
         where T : IDataRecord
     {
         public object Parse(Type destinationType, object value)

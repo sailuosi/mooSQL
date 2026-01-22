@@ -103,7 +103,25 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 
+        /// 带有if的判断，如果isTrue,则执行条件，否则不执行
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="ifJudge"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SQLClip whereIf<R>(bool isTrue,Expression<Func<R>> fieldSelector, R value)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.where(field, value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 为空
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -117,7 +135,12 @@ namespace mooSQL.data
             }
             return this;
         }
-
+        /// <summary>
+        /// 非空
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <returns></returns>
         public SQLClip whereIsNotNull<R>(Expression<Func<R>> fieldSelector)
         {
             var field = provider.PatchOutField(fieldSelector);
@@ -175,6 +198,22 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(field))
             {
                 Context.Builder.whereIn(field, values);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 子查询采用SQLBuilder方式构造where in语句
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="doselect"></param>
+        /// <returns></returns>
+        public SQLClip whereIn<R>(Expression<Func<R>> fieldSelector, Action<SQLBuilder> doselect)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereIn(field, doselect);
             }
             return this;
         }
@@ -238,6 +277,22 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(field))
             {
                 Context.Builder.whereLike(field, searchTxt);
+            }
+            return this;
+        }
+        /// <summary>
+        /// 非包含
+        /// </summary>
+        /// <param name="fieldSelector"></param>
+        /// <param name="searchTxt"></param>
+        /// <returns></returns>
+        public SQLClip whereNotLike(Expression<Func<string>> fieldSelector, string searchTxt)
+        {
+            //Builder.orderBy(orderCondition);
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotLike(field, searchTxt);
             }
             return this;
         }

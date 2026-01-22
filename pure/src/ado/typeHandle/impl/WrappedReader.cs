@@ -11,5 +11,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-
+    /// <summary>
+    /// 包装的读取器（当前为空，保留用于未来扩展）
+    /// </summary>
 }

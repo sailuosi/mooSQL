@@ -14,22 +14,17 @@ namespace mooSQL.data.slave
     {
 
         public SlaveCmdWorker() {
-            Ticker = new System.Timers.Timer(200);
-            Ticker.Elapsed += EatingSQL;
-            Ticker.AutoReset = true;
+
         }
 
-        /// <summary>
-        /// 待执行的任务
-        /// </summary>
-        public Queue<SQLCmd> cmds =new Queue<SQLCmd>();
-        public DBInstance DB;
+
+        public DBInstance DBLive{ get; set; }
         /// <summary>
         /// 发生异常时的动作，由业务侧自定义
         /// </summary>
-        public Func<SQLCmd, IEventEat, string> errFunction;
+        public Func<ModifyPara, IEventEat, string> errFunction;
 
-        private System.Timers.Timer Ticker;
+
 
         public bool stoped = true;
 
@@ -39,45 +34,32 @@ namespace mooSQL.data.slave
         /// <param name="misery"></param>
         /// <returns></returns>
         public string Eat(ModifyPara misery) {
-
-            cmds.Enqueue(misery.cmd);
-
-            if (stoped) { 
-                stoped = false;
-                Ticker.Enabled = true;
-            }
+            EatingSQL(misery);
 
             return "goted.";
         }
 
-        private void reportErr(SQLCmd cmd) {
-            if (errFunction != null) { 
-                errFunction(cmd,this);
-            }
-        }
-
-        private void EatingSQL(object source, ElapsedEventArgs e) {
+        private void EatingSQL(ModifyPara para) {
             
-            Ticker.Enabled = false;
 
-            if (cmds.Count == 0) { 
-                stoped=true;
-                return;
-            }
-            var cmd = cmds.Dequeue();
             try { 
 
-                DB.ExeNonQuery(cmd);
-
+                DBLive.ExeNonQuery(para.cmd);
                 //执行完毕
-
             }
             catch(Exception err) {
-                reportErr(cmd);
+                if (errFunction != null)
+                {
+                    errFunction(para, this);
+                }
             }
-            //准备干下一个工作
-            Ticker.Enabled = true;
 
+
+        }
+
+        public string Report()
+        {
+            return "";
         }
     }
 }

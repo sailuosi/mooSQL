@@ -15,7 +15,7 @@ namespace mooSQL.data.slave
         /// <summary>
         /// 已注册的监听器
         /// </summary>
-        public List<IModifyListener> modifyEars = new List<IModifyListener>();
+        private List<IModifyListener> modifyEars = new List<IModifyListener>();
 
 
         /// <summary>
@@ -33,7 +33,12 @@ namespace mooSQL.data.slave
         /// 注册监听器
         /// </summary>
         /// <param name="listener"></param>
-        public void signModify(IModifyListener listener) { 
+        public void signModify(IModifyListener listener) {
+            foreach (var ear in modifyEars) {
+                if (ear.Code == listener.Code) {
+                    return;
+                }
+            }
             if(!modifyEars.Contains(listener)) { modifyEars.Add(listener); }
         }
 

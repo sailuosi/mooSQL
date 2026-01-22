@@ -10,16 +10,16 @@ namespace mooSQL.data
     /// <summary>
     /// 存放成员属性部分
     /// </summary>
-    public partial class Deserializer
+    public partial class PackUp
     {
         // use Hashtable to get free lockless reading
         private readonly Hashtable _typeMaps = new Hashtable();
 
         /// <summary>
-        /// Set custom mapping for type deserializers
+        /// 为类型反序列化器设置自定义映射
         /// </summary>
-        /// <param name="type">Entity type to override</param>
-        /// <param name="map">Mapping rules implementation, null to remove custom map</param>
+        /// <param name="type">要覆盖的实体类型</param>
+        /// <param name="map">映射规则实现，null 表示移除自定义映射</param>
         public void SetTypeMap(Type type, ITypeMap map)
         {
             if (type is null)
@@ -44,10 +44,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Gets type-map for the given <see cref="Type"/>.
+        /// 获取给定 <see cref="Type"/> 的类型映射。
         /// </summary>
-        /// <param name="type">The type to get a map for.</param>
-        /// <returns>Type map implementation, DefaultTypeMap instance if no override present</returns>
+        /// <param name="type">要获取映射的类型。</param>
+        /// <returns>类型映射实现，如果没有覆盖则返回 DefaultTypeMap 实例</returns>
         public ITypeMap GetTypeMap(Type type)
         {
             if (type is null) throw new ArgumentNullException(nameof(type));
@@ -70,9 +70,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Gets type-map for the given type
+        /// 获取给定类型的类型映射
         /// </summary>
-        /// <returns>Type map instance, default is to create new instance of DefaultTypeMap</returns>
+        /// <returns>类型映射实例，默认是创建 DefaultTypeMap 的新实例</returns>
 #pragma warning disable CA2211 // Non-constant fields should not be visible - I agree with you, but we can't do that until we break the API
         public ITypeMap GetTypeMapProvider(Type type) {
             return new DefaultTypeMap(type, this._client);

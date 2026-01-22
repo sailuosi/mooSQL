@@ -27,8 +27,8 @@ namespace mooSQL.data.slave
         /// 创建从库主控
         /// </summary>
         /// <returns></returns>
-        public static SlaveTeam CreateSlave() {
-            var res = new SlaveTeam();
+        public static SlaveTeam CreateSlave(string code) {
+            var res = new SlaveTeam(code);
 
             return res;
         }
@@ -40,14 +40,14 @@ namespace mooSQL.data.slave
         /// <param name="instances"></param>
         /// <param name="onErr"></param>
         /// <returns></returns>
-        public static TeamHeader createTeam(int id, List<DBInstance> instances, Func<SQLCmd, IEventEat, string> onErr = null) { 
+        public static TeamHeader createTeam(int id, List<DBInstance> instances, Func<ModifyPara, IEventEat, string> onErr = null) { 
             var head = new TeamHeader();
             head.position = id;
 
             foreach (DBInstance db in instances) { 
                 if(db == null) continue;
                 var mem = new SlaveCmdWorker();
-                mem.DB=db;                
+                mem.DBLive=db;                
                 mem.errFunction = onErr;
             }
             return head;

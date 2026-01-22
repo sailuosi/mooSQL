@@ -7,6 +7,9 @@ using mooSQL.utils;
 
 namespace mooSQL.data.reader
 {
+    /// <summary>
+    /// 读取类型转换器，提供类型转换的静态方法
+    /// </summary>
     public static class ReadTypeConverter
     {
         public static R StringToGuid<T,R>(T s,DBInstance db)
@@ -81,6 +84,9 @@ namespace mooSQL.data.reader
     }
 
 
+    /// <summary>
+    /// 类型转换读取器，提供类型转换的实例方法
+    /// </summary>
     public class TypeChangeReader
     {
         private DBInstance db;  

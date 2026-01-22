@@ -5,17 +5,17 @@ namespace mooSQL.data
 {
  
     /// <summary>
-    /// Represents a placeholder for a value that should be replaced as a literal value in the resulting sql
+    /// 表示一个占位符，该值应在生成的 SQL 中替换为字面量值
     /// </summary>
     internal readonly struct LiteralToken
     {
         /// <summary>
-        /// The text in the original command that should be replaced
+        /// 原始命令中应被替换的文本
         /// </summary>
         public string Token { get; }
 
         /// <summary>
-        /// The name of the member referred to by the token
+        /// 标记引用的成员名称
         /// </summary>
         public string Member { get; }
 

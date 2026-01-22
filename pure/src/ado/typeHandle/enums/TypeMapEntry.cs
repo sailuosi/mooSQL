@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型映射条目，包含数据库类型和标志
+    /// </summary>
     internal readonly struct TypeMapEntry : IEquatable<TypeMapEntry>
     {
         public DbType DbType { get; }

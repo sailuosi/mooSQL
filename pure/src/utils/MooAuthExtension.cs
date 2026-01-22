@@ -58,6 +58,80 @@ namespace mooSQL.utils
             }
             return res;
         }
+
+        public static R reduece<T,R>(this IEnumerable<T> list, Func<R,T, R> doreduce)
+        {
+            T pre ;
+            bool isFirst = true;
+            R res=default(R);
+            foreach (T item in list)
+            {
+                if (isFirst) { 
+                    pre = item;
+                    isFirst = false;
+                    continue;
+                }
+
+                 res=doreduce(res, item);
+
+            }
+            return res;
+        }
+
+        public static int sum<T>(this IEnumerable<T> list, Func<T, int?> doselect)
+        {
+            int r = 0;
+            foreach (var li in list) {
+                var ri = doselect(li);
+                if (ri.HasValue) {
+                    r += ri.Value;
+                }
+            }
+            return r;
+        }
+
+        public static double sum<T>(this IEnumerable<T> list, Func<T, double?> doselect)
+        {
+            double r = 0;
+            foreach (var li in list)
+            {
+                var ri = doselect(li);
+                if (ri.HasValue)
+                {
+                    r += ri.Value;
+                }
+            }
+            return r;
+        }
+
+        public static decimal sum<T>(this IEnumerable<T> list, Func<T, decimal?> doselect)
+        {
+            decimal r = 0;
+            foreach (var li in list)
+            {
+                var ri = doselect(li);
+                if (ri.HasValue)
+                {
+                    r += ri.Value;
+                }
+            }
+            return r;
+        }
+
+        public static float sum<T>(this IEnumerable<T> list, Func<T, float?> doselect)
+        {
+            float r = 0;
+            foreach (var li in list)
+            {
+                var ri = doselect(li);
+                if (ri.HasValue)
+                {
+                    r += ri.Value;
+                }
+            }
+            return r;
+        }
+
         /// <summary>
         /// 写入指定集合，并返回该集合，便于在查询中结果后直接链式写入到目标集合中
         /// </summary>
@@ -106,6 +180,9 @@ namespace mooSQL.utils
                 }
                 var key =keySelector(item);
                 var value =valueSelector(item);
+                if (key == null) { 
+                    continue;
+                }
                 if (!res.ContainsKey(key))
                 {
                     res.Add(key,value);

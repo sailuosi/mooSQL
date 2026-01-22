@@ -6,7 +6,7 @@ namespace mooSQL.data
 {
 
     /// <summary>
-    /// Permits specifying certain SqlMapper values globally.
+    /// 允许全局指定某些 SqlMapper 值。
     /// </summary>
     public static class Settings
     {
@@ -17,15 +17,15 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// Indicates whether nulls in data are silently ignored (default) vs actively applied and assigned to members
+        /// 指示数据中的 null 值是否被静默忽略（默认）还是主动应用并分配给成员
         /// </summary>
         public static bool ApplyNullValues { get; set; }
 
 
 
         /// <summary>
-        /// If set, pseudo-positional parameters (i.e. ?foo?) are passed using auto-generated incremental names, i.e. "1", "2", "3"
-        /// instead of the original name; for most scenarios, this is ignored since the name is redundant, but "snowflake" requires this.
+        /// 如果设置，伪位置参数（即 ?foo?）将使用自动生成的增量名称传递，即 "1"、"2"、"3"，
+        /// 而不是原始名称；对于大多数场景，这会被忽略，因为名称是冗余的，但 "snowflake" 需要此设置。
         /// </summary>
         public static bool UseIncrementalPseudoPositionalParameterNames { get; set; }
 

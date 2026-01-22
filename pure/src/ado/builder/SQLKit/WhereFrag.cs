@@ -55,6 +55,7 @@ namespace mooSQL.data
     {
         public WhereBracket() { 
             this.isBox = true;
+            this.isNot=false;
             this.children = new List<Boxable>();
         }
 
@@ -150,23 +151,24 @@ namespace mooSQL.data
         public WhereFrag()
         {
             this.isBox = false;
+            this.isNot = false;
         }
-        public WhereFrag(string key)
+        public WhereFrag(string key):this()
         {
             this.key = key;
         }
-        public WhereFrag(string key, object val)
+        public WhereFrag(string key, object val) : this()
         {
             this.key = key;
             this.value = val;
         }
-        public WhereFrag(string key, object val, bool paramed)
+        public WhereFrag(string key, object val, bool paramed) : this()
         {
             this.key = key;
             this.value = val;
             this.paramed = paramed;
         }
-        public WhereFrag(string key, object val, bool paramed, bool updatable, bool insetable)
+        public WhereFrag(string key, object val, bool paramed, bool updatable, bool insetable) : this()
         {
             this.key = key;
             this.value = val;

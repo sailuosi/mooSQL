@@ -76,7 +76,7 @@ namespace mooSQL.data
         /// <param name="names">DataReader列名</param>
         /// <param name="types">DataReader列类型</param>
         /// <returns>匹配的构造器</returns>
-        public ConstructorInfo FindConstructor(string[] names, Type[] types, Deserializer deserializer)
+        public ConstructorInfo FindConstructor(string[] names, Type[] types, PackUp deserializer)
         {
             var constructors = _type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -131,29 +131,14 @@ namespace mooSQL.data
             return null;
         }
 
-        /// <summary>
-        /// Returns the constructor, if any, that has the ExplicitConstructorAttribute on it.
-        /// </summary>
-        public ConstructorInfo FindExplicitConstructor()
-        {
-            var constructors = _type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var withAttr = constructors.Where(c => c.GetCustomAttributes(typeof(ExplicitConstructorAttribute), true).Length > 0).ToList();
-
-            if (withAttr.Count == 1)
-            {
-                return withAttr[0];
-            }
-
-            return null;
-        }
 
         /// <summary>
-        /// Gets mapping for constructor parameter
+        /// 获取构造函数参数的映射
         /// </summary>
-        /// <param name="constructor">Constructor to resolve</param>
-        /// <param name="columnName">DataReader column name</param>
-        /// <returns>Mapping implementation</returns>
-        public IMemberMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
+        /// <param name="constructor">要解析的构造函数</param>
+        /// <param name="columnName">DataReader 列名</param>
+        /// <returns>映射实现</returns>
+        public IPropertyMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
         {
             var param = MatchFirstOrDefault(constructor.GetParameters(), columnName, p => p.Name) ?? Throw(columnName);
             return new SimpleMemberMap(columnName, param);
@@ -189,7 +174,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="columnName">reader字段名</param>
         /// <returns>Mapping implementation</returns>
-        public IMemberMap GetMember(string columnName)
+        public IPropertyMap GetMember(string columnName)
         {
             var col= loadTypeProp(columnName);
             if (col != null) {
@@ -227,7 +212,7 @@ namespace mooSQL.data
             return null;
         }
         /// <summary>
-        /// Should column names like User_Id be allowed to match properties/fields like UserId ?
+        /// 是否允许像 User_Id 这样的列名匹配像 UserId 这样的属性/字段？
         /// </summary>
         public static bool MatchNamesWithUnderscores { get; set; }
 
@@ -301,7 +286,7 @@ namespace mooSQL.data
             => string.Equals(x?.Replace("_", ""), y?.Replace("_", ""), StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
-        /// The settable properties for this typemap
+        /// 此类型映射的可设置属性
         /// </summary>
         public List<PropertyInfo> Properties { get; }
     }

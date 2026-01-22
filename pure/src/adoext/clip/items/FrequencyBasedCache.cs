@@ -85,6 +85,21 @@ namespace mooSQL.data.clip
             value = default;
             return false;
         }
+        /// <summary>
+        /// 获取或者设置
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="loader"></param>
+        /// <returns></returns>
+        public TValue GetOrSet(TKey key, Func<TKey, TValue> loader) {
+
+            if (TryGetValue(key, out var res)) {
+                return res;
+            }
+            var v = loader(key);
+            Add(key, v);
+            return v;
+        }
 
         private void Cleanup(object source, ElapsedEventArgs e)
         {

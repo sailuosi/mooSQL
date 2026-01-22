@@ -207,11 +207,13 @@ namespace mooSQL.utils
             foreach (var t in list)
             {
                 var r1 = func1(t);
+                if (r1 == null) continue;
                 var r2 = func2(t);
                 if (!map.ContainsKey(r1))
                 {
                     map[r1] = new Dictionary<R2, List<T>>();
                 }
+                if(r2==null) continue;
                 if (!map[r1].ContainsKey(r2))
                 {
                     map[r1][r2] = new List<T>();
@@ -228,6 +230,9 @@ namespace mooSQL.utils
             {
                 var key = keyFunc(item);
                 var v = valFunc(item);
+                if (key == null) {
+                    continue;
+                }
                 if (!dictionary.ContainsKey(key))
                 {
                     dictionary.Add(key, v);

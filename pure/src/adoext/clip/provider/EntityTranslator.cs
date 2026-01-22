@@ -1,6 +1,6 @@
 ﻿using mooSQL.data.model;
 using mooSQL.data.utils;
-
+using mooSQL.excel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,6 +21,17 @@ namespace mooSQL.data
 
         private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromTable;
         private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromPart;
+
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeInsertEntity;
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onReadyInsertEntity;
+
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeUpdateEntity;
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onReadyUpdateEntity;
+
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeDeleteEntity;
+        private event Action<SQLBuilder, object, Type, EntityInfo> _onReadyDeleteEntity;
+
+        private event Action<QueryCondition, EntityInfo, SQLBuilder> _BeforeBuildQueryCondition;
         /// <summary>
         /// 构建条件部分事件
         /// </summary>
@@ -86,6 +97,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public StatusResult prepareInsert(SQLBuilder builder, object entity, Type EntityType,EntityInfo en=null)
         {
+            if (entity == null)
+            {
+                return new StatusResult(false, "实体为空！");
+            }
             if (en == null) {
                 en = builder.DBLive.client.EntityCash.getEntityInfo(EntityType);
             }
@@ -93,6 +108,9 @@ namespace mooSQL.data
             if (en.Insertable == false)
             {
                 return new StatusResult(false, "实体类未标记为可插入！");
+            }
+            if (this._onBeforeInsertEntity != null) { 
+                this._onBeforeInsertEntity(builder, entity,EntityType, en);
             }
 
             builder.setTable(parseTableName(en,entity));
@@ -113,6 +131,10 @@ namespace mooSQL.data
                     continue;
                 }
                 builder.set(col.DbColumnName, col.PropertyInfo.GetValue(entity));
+            }
+            if (this._onReadyInsertEntity != null)
+            {
+                this._onReadyInsertEntity(builder, entity, EntityType, en);
             }
             return new StatusResult(true, "");
         }
@@ -142,12 +164,22 @@ namespace mooSQL.data
         /// <returns></returns>
         public StatusResult prepareUpdate(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null)
         {
+            if (entity == null)
+            {
+                return new StatusResult(false, "实体为空！");
+            }
             if (en == null)
             {
                 en = builder.DBLive.client.EntityCash.getEntityInfo(EntityType);
             }
             if (en.Updatable == false)
                 return new StatusResult(false, "实体类未标记为可更新！");
+
+            if (this._onBeforeUpdateEntity != null)
+            {
+                this._onBeforeUpdateEntity(builder, entity, EntityType, en);
+            }
+
             if (string.IsNullOrWhiteSpace(en.DbTableName))
             {
                 return new StatusResult(false, "实体类未标记对应的数据库表！");
@@ -187,6 +219,10 @@ namespace mooSQL.data
                 }
 
                 builder.set(col.DbColumnName, val);
+            }
+            if (this._onReadyUpdateEntity != null)
+            {
+                this._onReadyUpdateEntity(builder, entity, EntityType, en);
             }
             if (gotWhere == false && builder.ConditionCount == 0)
             {
@@ -267,6 +303,10 @@ namespace mooSQL.data
         /// <param name="entity"></param>
         public void prepareDelete<T>(SQLBuilder builder, T entity)
         {
+            if (entity == null)
+            {
+                return;
+            }
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             builder.setTable(parseTableName(en,entity));
             setPKWhere(builder, entity, en);
@@ -280,14 +320,37 @@ namespace mooSQL.data
         /// <param name="type"></param>
         public void prepareDelete(SQLBuilder builder, object entity, Type type)
         {
+            if (entity == null)
+            {
+                return;
+            }
             var en = builder.DBLive.client.EntityCash.getEntityInfo(type);
+            if (this._onBeforeDeleteEntity != null)
+            {
+                this._onBeforeUpdateEntity(builder, entity, type, en);
+            }
             builder.setTable(parseTableName(en, entity));
             setPKWhere(builder, entity, en);
-
+            if (this._onReadyDeleteEntity != null)
+            {
+                this._onReadyDeleteEntity(builder, entity, type, en);
+            }
         }
-
+        /// <summary>
+        /// 准备删除
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="en"></param>
+        /// <param name="ids"></param>
+        /// <exception cref="NotSupportedException"></exception>
         public void prepareDelete(SQLBuilder builder, EntityInfo en, IEnumerable ids) {
-
+            if (ids == null) {
+                return;
+            }
+            if (this._onBeforeDeleteEntity != null)
+            {
+                this._onBeforeUpdateEntity(builder, ids, en.Type, en);
+            }
             var pks = en.GetPK();
             if (pks.Count != 1)
             {
@@ -296,6 +359,11 @@ namespace mooSQL.data
             var pk = pks[0];
             builder.setTable(en.DbTableName)
                 .whereIn(pk.DbColumnName, ids);
+
+            if (this._onReadyDeleteEntity != null)
+            {
+                this._onReadyDeleteEntity(builder, ids, en.Type, en);
+            }
         }
 
 
@@ -310,7 +378,13 @@ namespace mooSQL.data
         /// <exception cref="Exception"></exception>
         public int updateByFieild<T>(SQLBuilder builder, T entity, string updateKey)
         {
+            if(entity==null) return 0;
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+
+            if (this._onBeforeUpdateEntity != null) {
+                this._onBeforeUpdateEntity(builder, entity, en.Type, en);
+            }
+
             builder.setTable(parseTableName(en,entity));
             bool gotWhere = false;
             foreach (var col in en.Columns)
@@ -344,6 +418,10 @@ namespace mooSQL.data
                     continue;
                 }
                 builder.set(col.DbColumnName, val);
+            }
+            if (this._onReadyUpdateEntity != null)
+            {
+                this._onReadyUpdateEntity(builder, entity, en.Type, en);
             }
             if (gotWhere == false && builder.ConditionCount == 0)
             {
@@ -781,7 +859,9 @@ namespace mooSQL.data
                 ">=",
                 "<="
             };
-
+            if (this._BeforeBuildQueryCondition != null) { 
+                this._BeforeBuildQueryCondition(cond, en, kit);
+            }
             //特殊处理，字段名必须在查询实体的字段中，否则忽略
             if (string.IsNullOrWhiteSpace(cond.op) || cond.value == null || string.IsNullOrWhiteSpace(cond.field))
             {
@@ -801,7 +881,7 @@ namespace mooSQL.data
                 cc++;
             }
 
-            else if (cond.op == "in")
+            else if (op == "in")
             {
                 if (cond.value is string valstr)
                 {
@@ -817,7 +897,7 @@ namespace mooSQL.data
                 }
                 return cc;
             }
-            else if (cond.op == "not in")
+            else if (op == "notin")
             {
                 if (cond.value is string valstr)
                 {
@@ -833,7 +913,7 @@ namespace mooSQL.data
                 }
                 return cc;
             }
-            if (cond.op == "like")
+            else if (op == "like")
             {
                 //只支持字符型值参数
                 if (cond.value is string valstr)
@@ -842,7 +922,7 @@ namespace mooSQL.data
                 }
                 return cc;
             }
-            if (cond.op == "not like")
+            else if (op == "notlike")
             {
                 if (cond.value is string valstr)
                 {
@@ -850,7 +930,7 @@ namespace mooSQL.data
                 }
                 return cc;
             }
-            if (cond.op == "likeLeft")
+            else if (op == "likeleft")
             {
                 //只支持字符型值参数
                 if (cond.value is string valstr)
@@ -859,7 +939,32 @@ namespace mooSQL.data
                 }
                 return cc;
             }
-
+            else if (op == "isnull") {
+                kit.whereIsNull(field);
+                return cc;
+            }
+            else if (op == "notnull")
+            {
+                kit.whereIsNotNull(field);
+                return cc;
+            }
+            else if (op == "between")
+            {
+                if (cond.value is string valstr)
+                {
+                    var vals = Regex.Split(valstr, @"[,;|]");
+                    if (vals.Length > 1) {
+                        kit.whereBetween(field, vals[0], vals[1]);
+                    }
+                    
+                }
+                else if (cond.value is IEnumerable<string> vals && vals.Count()>1)
+                {
+                    var t = vals.ToList();
+                    kit.whereBetween(field, t[0], t[1]);
+                }
+                return cc;
+            }
             return cc;
         }
 

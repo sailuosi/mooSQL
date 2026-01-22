@@ -15,20 +15,23 @@ using mooSQL.data.reader;
 
 namespace mooSQL.data
 {
-    public partial class Deserializer
+    /// <summary>
+    /// 打包器，负责将数据库读取器中的数据反序列化为对象
+    /// </summary>
+    public partial class PackUp
     {
 
 
 
 
-        internal  Func<DbDataReader,DBInstance, object> GetDeserializer(Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db)
+        internal  Func<DbDataReader,DBInstance, object> GetPacker(Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db)
         {
 
 
             // dynamic is passed in as Object ... by c# design
-            if (type == typeof(object) || type == typeof(DapperRow))
+            if (type == typeof(object) || type == typeof(SooRow))
             {
-                return GetDapperRowDeserializer(reader, startBound, length, returnNullIfFirstMissing);
+                return GetSooRowPacker(reader, startBound, length, returnNullIfFirstMissing);
             }
 
             Type underlyingType = null;
@@ -40,22 +43,22 @@ namespace mooSQL.data
             else if (!(type.IsEnum || type.IsArray || type.FullName == MapperUntils.LinqBinary
                 || (type.IsValueType && (underlyingType = Nullable.GetUnderlyingType(type)) != null && underlyingType.IsEnum)))
             {
-                if (typeHandlers.TryGetValue(type, out ITypeHandler handler))
+                if (typeHandlers.TryGetValue(type, out ITypeParser handler))
                 {
-                    return GetHandlerDeserializer(handler, type, startBound);
+                    return GetParserPacker(handler, type, startBound);
                 }
-                return GetTypeDeserializer(this,type, reader, startBound, length, returnNullIfFirstMissing,db);
+                return GetTypePacker(this,type, reader, startBound, length, returnNullIfFirstMissing,db);
             }
-            return GetStructDeserializer(type, underlyingType ?? type, startBound, useGetFieldValue);
+            return GetStructPacker(type, underlyingType ?? type, startBound, useGetFieldValue);
         }
 
-        private Func<DbDataReader, DBInstance, object> GetHandlerDeserializer(ITypeHandler handler, Type type, int startBound)
+        private Func<DbDataReader, DBInstance, object> GetParserPacker(ITypeParser parser, Type type, int startBound)
         {
-            return (reader,db) => handler.Parse(type, reader.GetValue(startBound));
+            return (reader,db) => parser.Parse(type, reader.GetValue(startBound));
         }
 
 
-        internal Func<DbDataReader, DBInstance, object> GetDapperRowDeserializer(DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing)
+        internal Func<DbDataReader, DBInstance, object> GetSooRowPacker(DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing)
         {
             var fieldCount = reader.FieldCount;
             if (length == -1)
@@ -70,7 +73,7 @@ namespace mooSQL.data
 
             var effectiveFieldCount = Math.Min(fieldCount - startBound, length);
 
-            DapperTable table = null;
+            SooTable table = null;
 
             return
                 (r,db) =>
@@ -82,7 +85,7 @@ namespace mooSQL.data
                         {
                             names[i] = r.GetName(i + startBound);
                         }
-                        table = new DapperTable(names);
+                        table = new SooTable(names);
                     }
 
                     var values = new object[effectiveFieldCount];
@@ -113,10 +116,10 @@ namespace mooSQL.data
                             values[iter] = obj is DBNull ? null : obj;
                         }
                     }
-                    return new DapperRow(table, values);
+                    return new SooRow(table, values);
                 };
         }
-        private Func<DbDataReader, DBInstance, object> GetStructDeserializer(Type type, Type effectiveType, int index, bool useGetFieldValue)
+        private Func<DbDataReader, DBInstance, object> GetStructPacker(Type type, Type effectiveType, int index, bool useGetFieldValue)
         {
             // no point using special per-type handling here; it boils down to the same, plus not all are supported anyway (see: SqlDataReader.GetChar - not supported!)
 #pragma warning disable 618

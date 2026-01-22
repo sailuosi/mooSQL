@@ -57,6 +57,11 @@ namespace mooSQL.data
         /// </summary>
         public int timeout { get; set; }
         /// <summary>
+        /// 信号
+        /// </summary>
+        public string signal { get; set; }
+
+        /// <summary>
         /// 复制存在的参数到本实例中
         /// </summary>
         /// <param name="pa"></param>

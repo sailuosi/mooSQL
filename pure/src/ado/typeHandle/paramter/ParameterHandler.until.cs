@@ -24,9 +24,9 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// Convert numeric values to their string form for SQL literal purposes.
+        /// 将数值转换为其字符串形式，用于 SQL 字面量。
         /// </summary>
-        /// <param name="value">The value to get a string for.</param>
+        /// <param name="value">要获取字符串的值。</param>
 
         internal static string Format(object value)
         {

@@ -85,26 +85,26 @@ namespace mooSQL.auth
                     return false;
                 }
             }
+            //直接绑定时，不作子级检查
+            //foreach (var li in bindValues)
+            //{
+            //    if (val.isChildOf(li))
+            //    {
+            //        return false;
+            //    }
+            //}
 
-            foreach (var li in bindValues)
-            {
-                if (val.isChildOf(li))
-                {
-                    return false;
-                }
-            }
+            ////反向检查，如果新增的编码，是现有编码的父编码，则移除现有编码
 
-            //反向检查，如果新增的编码，是现有编码的父编码，则移除现有编码
-
-            for (int i = bindValues.Count - 1; i >= 0; i--)
-            {
-                //比如加 116， 则移除11601这样的子级
-                var li = bindValues[i];
-                if (li.isChildOf(val))
-                {
-                    bindValues.RemoveAt(i);
-                }
-            }
+            //for (int i = bindValues.Count - 1; i >= 0; i--)
+            //{
+            //    //比如加 116， 则移除11601这样的子级
+            //    var li = bindValues[i];
+            //    if (li.isChildOf(val))
+            //    {
+            //        bindValues.RemoveAt(i);
+            //    }
+            //}
 
             //执行添加
             bindValues.Add(val);

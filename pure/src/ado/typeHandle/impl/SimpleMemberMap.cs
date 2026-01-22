@@ -4,15 +4,15 @@ using System.Reflection;
 namespace mooSQL.data
 {
     /// <summary>
-    /// Represents simple member map for one of target parameter or property or field to source DataReader column
+    /// 表示目标参数、属性或字段到源 DataReader 列的简单成员映射
     /// </summary>
-    internal sealed class SimpleMemberMap : IMemberMap
+    internal sealed class SimpleMemberMap : IPropertyMap
     {
         /// <summary>
-        /// Creates instance for simple property mapping
+        /// 为简单属性映射创建实例
         /// </summary>
-        /// <param name="columnName">DataReader column name</param>
-        /// <param name="property">Target property</param>
+        /// <param name="columnName">DataReader 列名</param>
+        /// <param name="property">目标属性</param>
         public SimpleMemberMap(string columnName, PropertyInfo property)
         {
             ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
@@ -20,10 +20,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Creates instance for simple field mapping
+        /// 为简单字段映射创建实例
         /// </summary>
-        /// <param name="columnName">DataReader column name</param>
-        /// <param name="field">Target property</param>
+        /// <param name="columnName">DataReader 列名</param>
+        /// <param name="field">目标字段</param>
         public SimpleMemberMap(string columnName, FieldInfo field)
         {
             ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
@@ -31,10 +31,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Creates instance for simple constructor parameter mapping
+        /// 为简单构造函数参数映射创建实例
         /// </summary>
-        /// <param name="columnName">DataReader column name</param>
-        /// <param name="parameter">Target constructor parameter</param>
+        /// <param name="columnName">DataReader 列名</param>
+        /// <param name="parameter">目标构造函数参数</param>
         public SimpleMemberMap(string columnName, ParameterInfo parameter)
         {
             ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
@@ -42,27 +42,27 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// DataReader column name
+        /// DataReader 列名
         /// </summary>
         public string ColumnName { get; }
 
         /// <summary>
-        /// Target member type
+        /// 目标成员类型
         /// </summary>
         public Type MemberType => Field?.FieldType ?? Property?.PropertyType ?? Parameter?.ParameterType;
 
         /// <summary>
-        /// Target property
+        /// 目标属性
         /// </summary>
         public PropertyInfo Property { get; }
 
         /// <summary>
-        /// Target field
+        /// 目标字段
         /// </summary>
         public FieldInfo Field { get; }
 
         /// <summary>
-        /// Target constructor parameter
+        /// 目标构造函数参数
         /// </summary>
         public ParameterInfo Parameter { get; }
     }

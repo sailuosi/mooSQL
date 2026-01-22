@@ -311,12 +311,31 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
+        /// 开启一个否定的条件分组，形成not(... and  ...)格式
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public SQLBuilder sinkNot(string connector = "AND")
+        {
+            current.wherePart.sinkNot(connector);
+            return this;
+        }
+        /// <summary>
         /// 开启一个新的条件分组，默认是开启OR分组 注意：不调用rise将保持在分组中
         /// </summary>
         /// <returns></returns>
         public SQLBuilder sinkOR()
         {
             current.wherePart.sink("OR");
+            return this;
+        }
+        /// <summary>
+        /// 开启一个否定的条件分组，形成not(... or  ...)格式
+        /// </summary>
+        /// <returns></returns>
+        public SQLBuilder sinkNotOR()
+        {
+            current.wherePart.sinkNot("OR");
             return this;
         }
         /// <summary>
@@ -477,6 +496,48 @@ namespace mooSQL.data {
             //return whereFormat(key + " like "+ content, val);
         }
         /// <summary>
+        /// 否定的左模糊查询
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotLikeLeft(string key, string val)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (paraRule == ("notEmpty"))
+            {
+                if (val == null || string.IsNullOrEmpty(val))
+                {
+                    return this;
+                }
+            }
+            if (paraRule == ("notNull"))
+            {
+                if (val == null)
+                {
+                    return this;
+                }
+            }
+            if (val != null && RegxUntils.isPureSimpleStr(val))
+            {
+                return where(string.Format("{0} NOT like '{1}%'", key, val));
+            }
+            //更改实现方式，将内容部分直接作为参数；
+            if (val == null)
+            {
+                return this;
+            }
+            var Val = string.Format("{0}%", val);
+            return where(key, Val, "NOT like");
+            //var content = Dialect.expression.stringConcat("{0}", "'%'");
+            //return whereFormat(key + " like "+ content, val);
+        }
+
+        /// <summary>
         /// 层次码一组条件，形成(a.code like '100%' or a.code like '200%' ...)形式
         /// </summary>
         /// <param name="key"></param>
@@ -500,6 +561,28 @@ namespace mooSQL.data {
                 whereLikeLeft(key, val);
             }
             rise();
+            return this;
+        }
+        /// <summary>
+        /// 否定的
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="vals"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotLikeLefts(string key, IEnumerable<string> vals)
+        {
+            //判定有效性
+            if (vals == null) return this;
+            if (vals.Count() == 0)
+            {
+                return this;
+            }
+
+            foreach (var val in vals)
+            {
+                whereNotLikeLeft(key, val);
+            }
+
             return this;
         }
         /// <summary>
@@ -539,8 +622,49 @@ namespace mooSQL.data {
                     return this;
                 }
             }
-            return whereFormat(key + " not like concat(concat('%', {0}), '%')", val);
+            //更改实现方式，将内容部分直接作为参数；
+            if (val == null)
+            {
+                return this;
+            }
+            if (RegxUntils.isPureSimpleStr(val.ToString()))
+            {
+                return where(string.Format("{0} not like '%{1}%'", key, val.ToString()));
+            }
+
+            var Val = string.Format("%{0}%", val.ToString());
+            return where(key, Val, " not like");
+
+            //return whereFormat(key + " not like concat(concat('%', {0}), '%')", val);
         }
+        /// <summary>
+        /// 查询非Like或者is null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotLikeOrNull(string key, string val) {
+            this.sinkOR()
+                .whereNotLike(key, val)
+                .whereIsNull(key)
+                .rise();
+            return this;
+        }
+        /// <summary>
+        /// 非左模糊或者空
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotLikeLeftOrNull(string key, string val)
+        {
+            this.sinkOR()
+                .whereNotLikeLeft(key, val)
+                .whereIsNull(key)
+                .rise();
+            return this;
+        }
+        
         /// <summary>
         /// 检查参数是否正常，参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
         /// </summary>
@@ -760,6 +884,26 @@ namespace mooSQL.data {
             whereListInner(key, " NOT IN ", values);
             return this;
         }
+        /// <summary>
+        /// 不包含或者空
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
+            return this.sinkOR()
+                .whereNotIn(key, values)
+                .whereIsNull(key)
+                .rise();
+        }
+        /// <summary>
+        /// 展开模式的not in 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public SQLBuilder whereNotIn<T>(string key,params T[] values)
         {
             if (!opened)
@@ -1046,6 +1190,36 @@ namespace mooSQL.data {
             return where(key, val, "=", true);
         }
         /// <summary>
+        /// 带条件判断的 where 条件添加，如果 isTrue 为false或null,则忽略本次条件添加。
+        /// </summary>
+        /// <param name="isTrue"></param>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIf(bool? isTrue,string key, Object val,string op="=")
+        {
+            if (isTrue.HasValue==false|| isTrue.Value == false) { 
+                return this;
+            }
+            return where(key, val, op, true);
+        }
+        /// <summary>
+        /// 带条件判断的 where 条件添加
+        /// </summary>
+        /// <param name="isTrue"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIf(bool? isTrue, string key)
+        {
+            if (isTrue.HasValue == false || isTrue.Value == false)
+            {
+                return this;
+            }
+            return where(key);
+        }
+
+        /// <summary>
         /// 判断一个GUID的 值相等条件，如果不是正确的GUID,条件衰减为永不成立的 1=2 
         /// </summary>
         /// <param name="key"></param>
@@ -1082,6 +1256,27 @@ namespace mooSQL.data {
         public SQLBuilder where(string key, Object val, string op)
         {
             return where(key, val, op, true);
+        }
+        /// <summary>
+        /// 等于某个值或者空的条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIsOrNull(string key, Object val)
+        {
+            return sinkOR().where(key, val).whereIsNull(key).rise();
+        }
+        /// <summary>
+        /// 自定义操作符的比较，或者null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public SQLBuilder whereVsOrNull(string key, Object val,string op)
+        {
+            return sinkOR().where(key, val,op).whereIsNull(key).rise();
         }
         /// <summary>
         /// 字段、值、值类型

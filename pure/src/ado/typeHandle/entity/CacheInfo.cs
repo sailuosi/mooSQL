@@ -6,9 +6,12 @@ using System.Threading;
 namespace mooSQL.data
 {
 
+    /// <summary>
+    /// 缓存信息，存储反序列化器状态和命中计数
+    /// </summary>
     internal class CacheInfo
     {
-        public DeserializerState Deserializer { get; set; }
+        public PackUpState Deserializer { get; set; }
 
 
         private int hitCount;

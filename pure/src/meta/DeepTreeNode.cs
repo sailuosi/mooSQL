@@ -22,19 +22,33 @@ namespace mooSQL.meta
         /// 节点的父级组件
         /// </summary>
         public string parentKey;
-
+        /// <summary>
+        /// 节点名称
+        /// </summary>
         public string name;
-
+        /// <summary>
+        /// 最小编码
+        /// </summary>
         public int minBorder;
-
+        /// <summary>
+        /// 最大编码
+        /// </summary>
         public int maxBorder;
-
+        /// <summary>
+        /// 深度
+        /// </summary>
         public int deepId;
-
+        /// <summary>
+        /// 父
+        /// </summary>
         public DeepTreeNode parent;
-
+        /// <summary>
+        /// 子级
+        /// </summary>
         public List<DeepTreeNode> children;
-
+        /// <summary>
+        /// 数据体
+        /// </summary>
         public DataRow data;
         /// <summary>
         /// 开始深度遍历
@@ -63,7 +77,13 @@ namespace mooSQL.meta
             return nowNum;
         }
 
-
+        /// <summary>
+        /// 读取数据表，生成树结构
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="pk"></param>
+        /// <param name="parentOID"></param>
+        /// <returns></returns>
         public static List<DeepTreeNode> readData(DataTable dt, string pk, string parentOID)
         {
 

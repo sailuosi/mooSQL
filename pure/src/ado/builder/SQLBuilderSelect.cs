@@ -26,7 +26,7 @@ namespace mooSQL.data
 
             var item = new SqlCTEItem();
             item.builder = kit;
-            item.type= SqlCTEType.Select;
+            item.type = SqlCTEType.Select;
             item.asName = name;
 
             CTECollection.add(item);
@@ -102,12 +102,24 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 当select语句需要参数化时使用此方法，参数使用 string.Format的格式传入，即{0}...{1}...{2}...
+        /// </summary>
+        /// <param name="selectSQLPart"></param>
+        /// <param name="paras"></param>
+        /// <returns></returns>
+        public SQLBuilder selectFormat(string selectSQLPart, params object[] paras)
+        {
+            var fromPart = ps.formatSQL(selectSQLPart, paras);
+            from(fromPart);
+            return this;
+        }
+        /// <summary>
         /// SQL语句列定义
         /// </summary>
         /// <param name="asName"></param>
         /// <param name="doColSelect"></param>
         /// <returns></returns>
-        public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect) 
+        public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect)
         {
             var ckit = this.getBrotherBuilder();
             doColSelect(ckit);
@@ -159,6 +171,18 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 当需要在from部分中含有参数时使用此方法，参数使用 string.Format的格式传入，即{0}...{1}...{2}...
+        /// </summary>
+        /// <param name="fromSQLPart"></param>
+        /// <param name="paras"></param>
+        /// <returns></returns>
+        public SQLBuilder fromFormat(string fromSQLPart, params object[] paras)
+        {
+            var fromPart = ps.formatSQL(fromSQLPart, paras);
+            from(fromPart);
+            return this;
+        }
+        /// <summary>
         /// 注意！不会自动添加left join这样的前缀字符，请写全 join语句，包含 on 部分。
         /// </summary>
         /// <param name="joinSQLString"></param>
@@ -166,6 +190,18 @@ namespace mooSQL.data
         public SQLBuilder join(string joinSQLString)
         {
             current.fromAppend(joinSQLString);
+            return this;
+        }
+        /// <summary>
+        /// 当join语句需要参数化时使用此方法。
+        /// </summary>
+        /// <param name="JoinSQLPart"></param>
+        /// <param name="paras"></param>
+        /// <returns></returns>
+        public SQLBuilder joinFormat(string JoinSQLPart,params object[] paras)
+        {
+            var fromPart = ps.formatSQL(JoinSQLPart, paras);
+            join(fromPart);
             return this;
         }
         /// <summary>

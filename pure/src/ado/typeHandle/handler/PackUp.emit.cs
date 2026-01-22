@@ -14,7 +14,7 @@ using mooSQL.data.reader;
 
 namespace mooSQL.data
 {
-    public partial class Deserializer
+    public partial class PackUp
     {
         /// <summary>
         /// 动态创建代码的起点。
@@ -26,7 +26,7 @@ namespace mooSQL.data
         /// <param name="returnNullIfFirstMissing"></param>
         /// <param name="db"></param>
         /// <returns></returns>
-        internal Func<DbDataReader, DBInstance, object> GetTypeDeserializerImpl(
+        internal Func<DbDataReader, DBInstance, object> GetTypePackImpl(
     Type type, DbDataReader reader, int startBound = 0, int length = -1, bool returnNullIfFirstMissing = false, DBInstance db = null
 )
         {
@@ -50,7 +50,7 @@ namespace mooSQL.data
             }
             else
             {
-                GenerateDeserializerFromMap(type, reader, startBound, length, returnNullIfFirstMissing, il);
+                GenePackFromMap(type, reader, startBound, length, returnNullIfFirstMissing, il);
             }
 
             var funcType = System.Linq.Expressions.Expression.GetFuncType(typeof(DbDataReader), typeof(DBInstance), returnType);
@@ -175,7 +175,7 @@ namespace mooSQL.data
         /// <param name="returnNullIfFirstMissing"></param>
         /// <param name="il"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        private void GenerateDeserializerFromMap(Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing, ILGenerator il)
+        private void GenePackFromMap(Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing, ILGenerator il)
         {
             var currentIndexDiagnosticLocal = il.DeclareLocal(typeof(int));
             var returnValueLocal = il.DeclareLocal(type);
@@ -183,17 +183,6 @@ namespace mooSQL.data
             LocalBuilder localDb = il.DeclareLocal(typeof(DBInstance));
             il.Emit(OpCodes.Ldarg_1); // 
             il.Emit(OpCodes.Stloc, localDb); // 
-
-            //il.Emit(OpCodes.Ldarg_1);
-            //il.Emit(OpCodes.Ldarg_2);
-            //il.Emit(OpCodes.Ldarg_0); // 再次加载参数1（DbDataReader）
-            ////il.Emit(OpCodes.Ldarg_1);
-            //il.Emit(OpCodes.Ldloc, localDb); // 加载局部变量 db
-
-            //var mt = typeof(ReadTypeConverter).GetMethod(nameof(ReadTypeConverter.Convert));
-            //var met = mt.MakeGenericMethod(type, typeof(string));
-            //il.Emit(OpCodes.Call, met);
-
 
             il.Emit(OpCodes.Ldc_I4_0);
             il.Emit(OpCodes.Stloc, currentIndexDiagnosticLocal);
@@ -219,24 +208,17 @@ namespace mooSQL.data
                 {
                     types[i - startBound] = reader.GetFieldType(i);
                 }
-
-                var explicitConstr = typeMap.FindExplicitConstructor();
-                if (explicitConstr != null)
+                
+                var ctor = typeMap.FindConstructor(names, types, this);
+                if (ctor is null)
                 {
-                    var consPs = explicitConstr.GetParameters();
-                    foreach (var p in consPs)
-                    {
-                        if (!p.ParameterType.IsValueType)
-                        {
-                            il.Emit(OpCodes.Ldnull);
-                        }
-                        else
-                        {
-                            GetTempLocal(il, ref structLocals, p.ParameterType, true);
-                        }
-                    }
+                    string proposedTypes = "(" + string.Join(", ", types.Select((t, i) => t.FullName + " " + names[i]).ToArray()) + ")";
+                    throw new InvalidOperationException($"A parameterless default constructor or one matching signature {proposedTypes} is required for {type.FullName} materialization");
+                }
 
-                    il.Emit(OpCodes.Newobj, explicitConstr);
+                if (ctor.GetParameters().Length == 0)
+                {
+                    il.Emit(OpCodes.Newobj, ctor);
                     il.Emit(OpCodes.Stloc, returnValueLocal);
                     supportInitialize = typeof(ISupportInitialize).IsAssignableFrom(type);
                     if (supportInitialize)
@@ -247,29 +229,9 @@ namespace mooSQL.data
                 }
                 else
                 {
-                    var ctor = typeMap.FindConstructor(names, types, this);
-                    if (ctor is null)
-                    {
-                        string proposedTypes = "(" + string.Join(", ", types.Select((t, i) => t.FullName + " " + names[i]).ToArray()) + ")";
-                        throw new InvalidOperationException($"A parameterless default constructor or one matching signature {proposedTypes} is required for {type.FullName} materialization");
-                    }
-
-                    if (ctor.GetParameters().Length == 0)
-                    {
-                        il.Emit(OpCodes.Newobj, ctor);
-                        il.Emit(OpCodes.Stloc, returnValueLocal);
-                        supportInitialize = typeof(ISupportInitialize).IsAssignableFrom(type);
-                        if (supportInitialize)
-                        {
-                            il.Emit(OpCodes.Ldloc, returnValueLocal);
-                            il.EmitCall(OpCodes.Callvirt, typeof(ISupportInitialize).GetMethod(nameof(ISupportInitialize.BeginInit)), null);
-                        }
-                    }
-                    else
-                    {
-                        specializedConstructor = ctor;
-                    }
+                    specializedConstructor = ctor;
                 }
+                
             }
 
             il.BeginExceptionBlock();

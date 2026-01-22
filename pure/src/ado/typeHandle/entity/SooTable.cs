@@ -4,19 +4,22 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
 
-    internal sealed class DapperTable
+    /// <summary>
+    /// 动态表对象，表示数据库查询结果的表结构（字段名和索引）
+    /// </summary>
+    internal sealed class SooTable
     {
         private string[] fieldNames;
         private readonly Dictionary<string, int> fieldNameLookup;
 
         internal string[] FieldNames => fieldNames;
 
-        public DapperTable(string[] fieldNames)
+        public SooTable(string[] fieldNames)
         {
             this.fieldNames = fieldNames ?? throw new ArgumentNullException(nameof(fieldNames));
 
             fieldNameLookup = new Dictionary<string, int>(fieldNames.Length, StringComparer.Ordinal);
-            // if there are dups, we want the **first** key to be the "winner" - so iterate backwards
+
             for (int i = fieldNames.Length - 1; i >= 0; i--)
             {
                 string key = fieldNames[i];
@@ -34,7 +37,7 @@ namespace mooSQL.data
             if (name is null) throw new ArgumentNullException(nameof(name));
             if (fieldNameLookup.ContainsKey(name)) throw new InvalidOperationException("Field already exists: " + name);
             int oldLen = fieldNames.Length;
-            Array.Resize(ref fieldNames, oldLen + 1); // yes, this is sub-optimal, but this is not the expected common case
+            Array.Resize(ref fieldNames, oldLen + 1); 
             fieldNames[oldLen] = name;
             fieldNameLookup[name] = oldLen;
             return oldLen;

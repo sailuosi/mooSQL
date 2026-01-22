@@ -29,14 +29,18 @@ namespace mooSQL.data
     {
         //由创建者传入。
         private DBInstance db;
-        private ICmdExecutor executor;
+
+        /// <summary>
+        /// 数据库执行器,用于处理事务的逻辑
+        /// </summary>
+        public DBExecutor Executor { get; private set; }
         /// <summary>
         /// 用数据库实例创建一个SQL运行器。
         /// </summary>
         /// <param name="dbInstance"></param>
         public DBRunner(DBInstance dbInstance) { 
             this.db = dbInstance;
-            this.executor = db.cmd;
+
         }
 
 
@@ -44,14 +48,22 @@ namespace mooSQL.data
 
 
 
-        private ExeContext context=null;
 
         private Paras para=null;
 
         private tranMode useTransactioned = tranMode.Off;
         private bool connectKeep=false;
-
-        private SQLBuilder sqlBuilder;
+        /// <summary>
+        /// 交由外界控制的事务
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public DBRunner useTransaction(DBExecutor executor)
+        {
+            this.Executor = executor;
+            this.useTransactioned= tranMode.Manul;
+            return this;
+        }
         /// <summary>
         /// 设置要执行的SQL(覆盖已有)
         /// </summary>
@@ -141,6 +153,11 @@ namespace mooSQL.data
         /// <returns></returns>
         public T RunCmd<T>(Func<ICmdExecutor,ExeContext,T> func)
         {
+            if (this.useTransactioned == tranMode.Manul && this.Executor !=null) {
+                var cmd = new SQLCmd(this.SQL, this.para);
+                var res = Executor.ExecuteCmd(cmd, func);
+                return res;
+            }
             using (var runner = new DBExecutor(db)) {
                 if (this.useTransactioned == tranMode.Once)
                 {

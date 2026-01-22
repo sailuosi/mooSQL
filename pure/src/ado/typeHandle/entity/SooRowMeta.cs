@@ -4,21 +4,24 @@ using System.Reflection;
 namespace mooSQL.data
 {
 
-    internal sealed partial class DapperRow : System.Dynamic.IDynamicMetaObjectProvider
+    internal sealed partial class SooRow : System.Dynamic.IDynamicMetaObjectProvider
     {
         System.Dynamic.DynamicMetaObject System.Dynamic.IDynamicMetaObjectProvider.GetMetaObject(
 System.Linq.Expressions.Expression parameter)
         {
-            return new DapperRowMetaObject(parameter, System.Dynamic.BindingRestrictions.Empty, this);
+            return new SooRowMeta(parameter, System.Dynamic.BindingRestrictions.Empty, this);
         }
     }
 
-    internal sealed class DapperRowMetaObject : System.Dynamic.DynamicMetaObject
+    /// <summary>
+    /// SooRow 的动态元对象，用于支持动态属性访问
+    /// </summary>
+    internal sealed class SooRowMeta : System.Dynamic.DynamicMetaObject
     {
         private static readonly MethodInfo getValueMethod = typeof(IDictionary<string, object>).GetProperty("Item").GetGetMethod();
-        private static readonly MethodInfo setValueMethod = typeof(DapperRow).GetMethod("SetValue", new Type[] { typeof(string), typeof(object) });
+        private static readonly MethodInfo setValueMethod = typeof(SooRow).GetMethod("SetValue", new Type[] { typeof(string), typeof(object) });
 
-        public DapperRowMetaObject(
+        public SooRowMeta(
             System.Linq.Expressions.Expression expression,
             System.Dynamic.BindingRestrictions restrictions
             )
@@ -26,7 +29,7 @@ System.Linq.Expressions.Expression parameter)
         {
         }
 
-        public DapperRowMetaObject(
+        public SooRowMeta(
             System.Linq.Expressions.Expression expression,
             System.Dynamic.BindingRestrictions restrictions,
             object value

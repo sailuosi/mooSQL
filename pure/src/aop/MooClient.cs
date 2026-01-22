@@ -125,6 +125,9 @@ namespace mooSQL.data
             }
 
         }
+        /// <summary>
+        /// 客户端实例构造函数
+        /// </summary>
         public MooClient() { 
             //默认添加内置实体类解析器。此处被业务侧覆盖的概率较小。
             this.entityAnalyseFactory= new BaseEntityAnalyseFactory();
@@ -229,7 +232,7 @@ namespace mooSQL.data
         /// </summary>
         public void initModifyMediator(System.Func<SlaveTeam, SlaveTeam> createTeam) {
             this.modifyMediator = SlaveFactory.createBase();
-            var slave = SlaveFactory.CreateSlave();
+            var slave = SlaveFactory.CreateSlave("");
             slave=createTeam(slave);
             modifyMediator.signModify(slave);
         }

@@ -1,15 +1,8 @@
 ﻿using mooSQL.data.clip;
-using mooSQL.data.utils;
-
-using mooSQL.linq;
-using mooSQL.utils;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
+
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
+
 using System.Text;
 
 
@@ -20,7 +13,18 @@ namespace mooSQL.data
     /// </summary>
     public static class MooSQLBuilderExtensions
     {
-
+        /// <summary>
+        /// 直接运行SQL，SQL的格式为string.Format格式
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="SQL"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static int exeNonQueryFmt(this SQLBuilder kit, string SQL, params object[] values)
+        {
+            var cmd = SQL.formatSQL(values);
+            return kit.exeNonQuery(cmd);
+        }
 
         /// <summary>
         /// 使用某个实体类
@@ -43,6 +47,21 @@ namespace mooSQL.data
             var tar = builder.DBLive.useRepo<T>();
             if (builder.Executor != null) { 
                 tar.useTransaction(builder.Executor);
+            }
+            return tar;
+        }
+        /// <summary>
+        /// 创建一个批量SQL实例，并继承事务上下文（如果有的话）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static BatchSQL useBatchSQL<T>(this SQLBuilder builder)
+        {
+            var tar = builder.DBLive.useBatchSQL();
+            if (builder.Executor != null)
+            {
+                tar.useTrans(builder.Executor);
             }
             return tar;
         }
@@ -72,6 +91,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="clipAction"></param>
+        /// <param name="inherit"></param>
         public static R useClip<R>(this SQLBuilder builder,Func<SQLClip,R> clipAction,bool inherit=false)
         {
             var clip = useClip(builder, inherit);
@@ -112,14 +132,14 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 执行插入，返回-1时为发生异常。
+        /// 执行插入，返回-1时为发生异常。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static int insert<T>(this SQLBuilder builder, T entity) {
-            builder.clear();
+        public static int insert<T>(this SQLBuilder kit, T entity) {
+            var builder = kit.useSQL();
             var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
             if (res.Status) {
                 return builder.doInsert();
@@ -144,15 +164,15 @@ namespace mooSQL.data
             return bk.doInsert();
         }
         /// <summary>
-        /// 按照指定的实体类型执行插入，返回-1时为发生异常。
+        /// 按照指定的实体类型执行插入，返回-1时为发生异常。独立执行环境，不干扰调用者环境
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
         /// <returns></returns>
-        public static int insertByType(this SQLBuilder builder, object entity,Type EntityType)
+        public static int insertByType(this SQLBuilder kit, object entity,Type EntityType)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res = builder.Client.Translator.prepareInsert(builder, entity, EntityType);
             if (res.Status)
             {
@@ -162,15 +182,15 @@ namespace mooSQL.data
             return -1;
         }
         /// <summary>
-        /// 创建插入命令
+        /// 创建插入命令,独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static SQLCmd toInsert<T>(this SQLBuilder builder, T entity)
+        public static SQLCmd toInsert<T>(this SQLBuilder kit, T entity)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
             if (res.Status)
                 return builder.toInsert();
@@ -179,15 +199,15 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 自动使用主键作为update条件,返回-1时为发生异常。
+        /// 自动使用主键作为update条件,返回-1时为发生异常。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static int update<T>(this SQLBuilder builder, T entity)
+        public static int update<T>(this SQLBuilder kit, T entity)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res= builder.Client.Translator.prepareUpdate(builder, entity,typeof(T));
             if (res.Status) {
                 return builder.doUpdate();
@@ -196,15 +216,15 @@ namespace mooSQL.data
             return -1;
         }
         /// <summary>
-        /// 按照指定的实体类型执行更新，返回-1时为发生异常。
+        /// 按照指定的实体类型执行更新，返回-1时为发生异常。独立执行环境，不干扰调用者环境
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
         /// <returns></returns>
-        public static int updateByType(this SQLBuilder builder, object entity,Type EntityType)
+        public static int updateByType(this SQLBuilder kit, object entity,Type EntityType)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res = builder.Client.Translator.prepareUpdate(builder, entity,EntityType);
             if (res.Status)
             {
@@ -214,15 +234,15 @@ namespace mooSQL.data
             return -1;
         }
         /// <summary>
-        /// 按照指定的实体属性更新
+        /// 按照指定的实体属性更新，独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static SQLCmd toUpdate<T>(this SQLBuilder builder, T entity)
+        public static SQLCmd toUpdate<T>(this SQLBuilder kit, T entity)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res= builder.Client.Translator. prepareUpdate(builder, entity,typeof(T));
             if (res.Status)
             {
@@ -233,29 +253,29 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 自动使用主键作为update条件
+        /// 自动使用主键作为update条件，独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static int updateBy<T>(this SQLBuilder builder, T entity,string Name)
+        public static int updateBy<T>(this SQLBuilder kit, T entity,string Name)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             return builder.Client.Translator.updateByFieild(builder, entity, Name);
         }
         /// <summary>
-        /// 按照指定的实体属性更新
+        /// 按照指定的实体属性更新，独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="updateKey"></param>
         /// <returns></returns>
-        public static int updateBy<T,R>(this SQLBuilder builder, T entity, Expression<Func<T,R>> updateKey)
+        public static int updateBy<T,R>(this SQLBuilder kit, T entity, Expression<Func<T,R>> updateKey)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var name = loadMemberName(updateKey.Body);
 
             return builder.Client.Translator.updateByFieild(builder, entity, name);
@@ -271,16 +291,16 @@ namespace mooSQL.data
             return null;
         }
         /// <summary>
-        /// 按照指定的属性名，执行保存
+        /// 按照指定的属性名，执行保存。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="Name"></param>
         /// <returns></returns>
-        public static int saveBy<T>(this SQLBuilder builder, T entity, string Name)
+        public static int saveBy<T>(this SQLBuilder kit, T entity, string Name)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var cash = builder.DBLive.client.EntityCash;
 
             var field= cash.getField(typeof(T),Name);
@@ -316,7 +336,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 保存。当禁止更新，则直接插入。当禁止插入，则直接更新。禁止保存时，直接返回0。
+        /// 保存。当禁止更新，则直接插入。当禁止插入，则直接更新。禁止保存时，直接返回0。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
@@ -330,9 +350,19 @@ namespace mooSQL.data
             }
             return 0;
         }
+        /// <summary>
+        /// 保存语句生成，不执行。独立执行环境，不干扰调用者环境，空时返回null
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static SQLCmd toSave<T>(this SQLBuilder builder, T entity)
         {
-
+            if (entity == null) {
+                return null;
+            }
             var en = builder.Client.EntityCash.getEntityInfo<T>();
 
             if (en.Insertable == false && en.Updatable == false)
@@ -368,7 +398,7 @@ namespace mooSQL.data
             return null;
         }
         /// <summary>
-        /// 转为保存语句
+        /// 转为保存语句。返回值不为null，空时为空列表
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
@@ -377,14 +407,14 @@ namespace mooSQL.data
         /// <exception cref="Exception"></exception>
         public static List<SQLCmd> toSave<T>(this SQLBuilder builder,IEnumerable<T> entity)
         {
-
+            var cmds= new List<SQLCmd>();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
 
             if (en.Insertable == false && en.Updatable == false)
             {
-                return null;
+                return cmds;
             }
-            var cmds= new List<SQLCmd>();
+            
             //检查是否存在
             var ck = builder.DBLive.useSQL();
             builder.Client.Translator.BuildFromPart(builder, en);
@@ -439,69 +469,69 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 按照主键执行删除
+        /// 按照主键执行删除,独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static int delete<T>(this SQLBuilder builder, T entity)
+        public static int delete<T>(this SQLBuilder kit, T entity)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             builder.Client.Translator.prepareDelete<T>(builder, entity);
             return builder.doDelete();
         }
         /// <summary>
-        /// 返回删除命令，但不执行
+        /// 返回删除命令，但不执行.独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static SQLCmd toDelete<T>(this SQLBuilder builder, T entity)
+        public static SQLCmd toDelete<T>(this SQLBuilder kit, T entity)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             builder.Client.Translator.prepareDelete<T>(builder, entity);
             return builder.toDelete();
         }
         /// <summary>
-        /// 按照类型执行删除，但不执行
+        /// 按照类型执行删除，但不执行。独立执行环境，不干扰调用者环境
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static SQLCmd toDeleteByType(this SQLBuilder builder, object entity,Type type)
+        public static SQLCmd toDeleteByType(this SQLBuilder kit, object entity,Type type)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             builder.Client.Translator.prepareDelete(builder, entity,type);
             return builder.toDelete();
         }
         /// <summary>
-        /// 按照类型执行删除
+        /// 按照类型执行删除。独立执行环境，不干扰调用者环境
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static int deleteByType(this SQLBuilder builder, object entity, Type type)
+        public static int deleteByType(this SQLBuilder kit, object entity, Type type)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             builder.Client.Translator.prepareDelete(builder, entity, type);
             return builder.doDelete();
         }
         /// <summary>
-        /// 批量删除的命令，如果联合主键，返回多个SQL，否则返回一个SQL。
+        /// 批量删除的命令，如果联合主键，返回多个SQL，否则返回一个SQL。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entitys"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static List<SQLCmd> toDelete<T>(this SQLBuilder builder, IEnumerable<T> entitys)
+        public static List<SQLCmd> toDelete<T>(this SQLBuilder kit, IEnumerable<T> entitys)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             var res= new List<SQLCmd>();
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
 
@@ -558,16 +588,16 @@ namespace mooSQL.data
 
         }
         /// <summary>
-        /// 批量删除
+        /// 批量删除。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
+        /// <param name="kit"></param>
         /// <param name="entitys"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static int delete<T>(this SQLBuilder builder, IEnumerable<T> entitys)
+        public static int delete<T>(this SQLBuilder kit, IEnumerable<T> entitys)
         {
-            builder.clear();
+            var builder = kit.useSQL();
             //联合主键的情况
             var bsql = builder.Client.ClientFactory.useBatchSQL(builder.DBLive);
             var sql=toDelete(builder, entitys);
@@ -602,6 +632,36 @@ namespace mooSQL.data
         { 
             return findListByIds<T>(builder, ids);
         }
+
+        /// <summary>
+        /// 查询全部数据
+        /// </summary>
+        /// <returns></returns>
+        public static List<T> findList<T>(this SQLBuilder builder)
+        {
+            var kit = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            builder.Client.Translator.BuildSelectFrom(kit, en);
+            builder.Client.Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
+            var tow = kit.query<T>();
+            return tow.ToList();
+        }
+        /// <summary>
+        /// 查询前N条数据
+        /// </summary>
+        /// <param name="top"></param>
+        /// <returns></returns>
+        public static List<T> findList<T>(this SQLBuilder builder,int top)
+        {
+            var kit = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            builder.Client.Translator.BuildSelectFrom(kit, en);
+            builder.Client.Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
+            var tow = kit.top(top)
+                .query<T>();
+            return tow.ToList();
+        }
+
         /// <summary>
         /// 快速查询单个对象
         /// </summary>
@@ -720,6 +780,21 @@ namespace mooSQL.data
         {
             var repo = builder.useRepo<T>();
             return repo.GetById(PK);
+        }
+        /// <summary>
+        /// 按主键检查是否存在记录。独立上下文
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="PK"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static bool findIsExist<T>(this SQLBuilder builder, object PK) 
+        {
+            var kit = builder.useSQL();
+            kit.Client.Translator.BuildPKFromWhere<T>(kit, PK);
+            var tow = kit.count();
+            return tow > 0;
         }
 
         /// <summary>

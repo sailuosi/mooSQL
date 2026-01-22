@@ -18,10 +18,10 @@ namespace mooSQL.data
     /// <summary>
     /// 存放成员属性部分
     /// </summary>
-    public partial class Deserializer
+    public partial class PackUp
     {
 
-        private Dictionary<Type, ITypeHandler> typeHandlers;
+        private Dictionary<Type, ITypeParser> typeHandlers;
 
         internal T Parse<T>(object value)
         {
@@ -37,7 +37,7 @@ namespace mooSQL.data
                 }
                 return (T)Enum.ToObject(type, value);
             }
-            if (typeHandlers.TryGetValue(type, out ITypeHandler handler))
+            if (typeHandlers.TryGetValue(type, out ITypeParser handler))
             {
                 return (T)handler.Parse(type, value);
             }
@@ -75,17 +75,17 @@ namespace mooSQL.data
         /// <summary>
         /// 配置类的自定义处理器
         /// </summary>
-        /// <typeparam name="T">The type to handle.</typeparam>
-        /// <param name="handler">The handler for the type <typeparamref name="T"/>.</param>
+        /// <typeparam name="T">要处理的类型。</typeparam>
+        /// <param name="handler">类型 <typeparamref name="T"/> 的处理器。</param>
         public void AddTypeHandler<T>(TypeHandler<T> handler) => AddTypeHandlerImpl(typeof(T), handler, true);
 
         /// <summary>
         /// 配置类的自定义处理器
         /// </summary>
-        /// <param name="type">The type to handle.</param>
-        /// <param name="handler">The handler to process the <paramref name="type"/>.</param>
-        /// <param name="clone">Whether to clone the current type handler map.</param>
-        public void AddTypeHandlerImpl(Type type, ITypeHandler handler, bool clone)
+        /// <param name="type">要处理的类型。</param>
+        /// <param name="handler">处理 <paramref name="type"/> 的处理器。</param>
+        /// <param name="clone">是否克隆当前类型处理器映射。</param>
+        public void AddTypeHandlerImpl(Type type, ITypeParser handler, bool clone)
         {
             if (type is null) throw new ArgumentNullException(nameof(type));
 
@@ -108,7 +108,7 @@ namespace mooSQL.data
             var snapshot = typeHandlers;
             if (snapshot.TryGetValue(type, out var oldValue) && handler == oldValue) return; // nothing to do
 
-            var newCopy = clone ? new Dictionary<Type, ITypeHandler>(snapshot) : snapshot;
+            var newCopy = clone ? new Dictionary<Type, ITypeParser>(snapshot) : snapshot;
 
 #pragma warning disable 618
             typeof(TypeHandlerCache<>).MakeGenericType(type).GetMethod(nameof(TypeHandlerCache<int>.SetHandler), BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { handler });
@@ -137,7 +137,7 @@ namespace mooSQL.data
         //[MemberNotNull(nameof(typeHandlers))]
         private void ResetTypeHandlers(bool clone)
         {
-            typeHandlers = new Dictionary<Type, ITypeHandler>();
+            typeHandlers = new Dictionary<Type, ITypeParser>();
             AddTypeHandlerImpl(typeof(DataTable), new DataTableHandler(), clone);
             AddTypeHandlerImpl(typeof(XmlDocument), new XmlDocumentHandler(), clone);
             AddTypeHandlerImpl(typeof(XDocument), new XDocumentHandler(), clone);
@@ -145,29 +145,29 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Configure the specified type to be processed by a custom handler.
+        /// 配置指定类型由自定义处理器处理。
         /// </summary>
-        /// <param name="type">The type to handle.</param>
-        /// <param name="handler">The handler to process the <paramref name="type"/>.</param>
-        public void AddTypeHandler(Type type, ITypeHandler handler) => AddTypeHandlerImpl(type, handler, true);
+        /// <param name="type">要处理的类型。</param>
+        /// <param name="handler">处理 <paramref name="type"/> 的处理器。</param>
+        public void AddTypeHandler(Type type, ITypeParser handler) => AddTypeHandlerImpl(type, handler, true);
         /// <summary>
-        /// Determine if the specified type will be processed by a custom handler.
+        /// 确定指定类型是否将由自定义处理器处理。
         /// </summary>
-        /// <param name="type">The type to handle.</param>
-        /// <returns>Boolean value specifying whether the type will be processed by a custom handler.</returns>
+        /// <param name="type">要处理的类型。</param>
+        /// <returns>布尔值，指定类型是否将由自定义处理器处理。</returns>
         public bool HasTypeHandler(Type type) => typeHandlers.ContainsKey(type);
 
 
 
         /// <summary>
-        /// OBSOLETE: For internal usage only. Lookup the DbType and handler for a given Type and member
+        /// 已过时：仅供内部使用。查找给定类型和成员的 DbType 和处理器
         /// </summary>
-        /// <param name="type">The type to lookup.</param>
-        /// <param name="name">The name (for error messages).</param>
-        /// <param name="demand">Whether to demand a value (throw if missing).</param>
-        /// <param name="handler">The handler for <paramref name="type"/>.</param>
+        /// <param name="type">要查找的类型。</param>
+        /// <param name="name">名称（用于错误消息）。</param>
+        /// <param name="demand">是否要求值（如果缺失则抛出异常）。</param>
+        /// <param name="handler"><paramref name="type"/> 的处理器。</param>
 
-        public DbType LookupDbType(Type type, string name, bool demand, out ITypeHandler handler)
+        public DbType LookupDbType(Type type, string name, bool demand, out ITypeParser handler)
         {
             handler = null;
             var nullUnderlyingType = Nullable.GetUnderlyingType(type);
@@ -204,7 +204,7 @@ namespace mooSQL.data
                     {
                         try
                         {
-                            handler = (ITypeHandler)Activator.CreateInstance(
+                            handler = (ITypeParser)Activator.CreateInstance(
                                 typeof(SqlDataRecordHandler<>).MakeGenericType(argTypes));
                             AddTypeHandlerImpl(type, handler, true);
                             return DbType.Object;

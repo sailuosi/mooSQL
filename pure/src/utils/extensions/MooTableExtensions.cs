@@ -12,7 +12,20 @@ namespace mooSQL.utils
     /// </summary>
     public static class MooTableExtensions
     {
+        public static List<T> getFieldValues<T>(this DataTable dt, Func<DataRow, T> loader)
+        {
+            List<T> list = new List<T>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var item = loader(row);
+                if (item != null && !list.Contains(item))
+                {
+                    list.Add(item);
+                }
+            }
 
+            return list;
+        }
         /// <summary>
         /// 将某个dataTable中的某一列的值存入一个list。且消除重复值。
         /// </summary>
@@ -121,6 +134,134 @@ namespace mooSQL.utils
                 res[val].Add(row);
             }
             return res;
+        }
+        /// <summary>
+        /// 完全自定义的字典生成方法
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="dt"></param>
+        /// <param name="loadKey"></param>
+        /// <param name="loadV"></param>
+        /// <returns></returns>
+        public static Dictionary<K,V> groupBy<K,V>(this DataTable dt, Func<DataRow,K> loadKey,Func<DataRow,V> loadV)
+        {
+            var res = new Dictionary<K, V>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var k = loadKey(row);
+
+                if (k == null )
+                {
+                    continue;
+                }
+                var v = loadV(row);
+                if (!res.ContainsKey(k))
+                {
+                    res.Add(k, v);
+                    continue;
+                }
+                res[k]=v;
+            }
+            return res;
+        }
+        /// <summary>
+        /// 按2个字段分组
+        /// </summary>
+        /// <typeparam name="K1"></typeparam>
+        /// <typeparam name="K2"></typeparam>
+        /// <typeparam name="K3"></typeparam>
+        /// <param name="dt"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldName2"></param>
+        /// <param name="loadVal"></param>
+        /// <returns></returns>
+        public static Dictionary<K1, Dictionary<K2,List<K3>>> groupBy<K1, K2, K3>(this DataTable dt, Func<DataRow, K1> fieldName, Func<DataRow, K2> fieldName2, Func<DataRow, K3> loadVal)
+        {
+            Dictionary<K1, Dictionary<K2, List<K3>>> dictionary = new Dictionary<K1, Dictionary<K2, List<K3>>>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var k1 = fieldName(row);
+                if (k1 == null)
+                {
+                    continue;
+                }
+                var k2 = fieldName2(row);
+                if (k2 == null)
+                {
+                    continue;
+                }
+                var val = loadVal(row);
+
+                if (!dictionary.ContainsKey(k1))
+                {
+                    dictionary.Add(k1, new Dictionary<K2, List<K3>>());
+                }
+                if (val == null || dictionary[k1][k2].Contains(val)) {
+                    continue;
+                }
+                dictionary[k1][k2].Add(val);
+            }
+
+            return dictionary;
+        }
+        public static Dictionary<K1, Dictionary<K2, K3>> groupByKV<K1, K2, K3>(this DataTable dt, Func<DataRow, K1> fieldName, Func<DataRow, K2> fieldName2, Func<DataRow, K3> loadVal)
+        {
+            Dictionary<K1, Dictionary<K2, K3>> dictionary = new Dictionary<K1, Dictionary<K2, K3>>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var k1 = fieldName(row);
+                if (k1 == null)
+                {
+                    continue;
+                }
+                var k2 = fieldName2(row);
+                if (k2 == null)
+                {
+                    continue;
+                }
+                var val = loadVal(row);
+
+                if (!dictionary.ContainsKey(k1))
+                {
+                    dictionary.Add(k1, new Dictionary<K2, K3>());
+                }
+
+                dictionary[k1][k2] = val;
+            }
+
+            return dictionary;
+        }
+        /// <summary>
+        /// 按2个字段分组
+        /// </summary>
+        /// <typeparam name="K3"></typeparam>
+        /// <param name="dt"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldName2"></param>
+        /// <param name="loadVal"></param>
+        /// <returns></returns>
+        public static Dictionary<string, Dictionary<string,List<K3>>> groupBy<K3>(this DataTable dt, string fieldName, string fieldName2, Func<DataRow, K3> loadVal) { 
+            
+            return groupBy<string,string,K3>(dt
+                ,(row)=>row.getString(fieldName)
+                ,(row)=>row.getString(fieldName2)
+                ,loadVal);
+        }
+        /// <summary>
+        /// 按2个字段分组
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldName2"></param>
+        /// <returns></returns>
+        public static Dictionary<string, Dictionary<string,List<DataRow>>> groupBy(this DataTable dt, string fieldName, string fieldName2)
+        {
+
+            return groupBy<string, string, DataRow>(dt
+                , (row) => row.getString(fieldName)
+                , (row) => row.getString(fieldName2)
+                , (row)=>row);
         }
     }
 }

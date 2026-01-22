@@ -18,6 +18,13 @@ namespace mooSQL.data
             this._onBuildFromTable = null;
             this.onBuildWherePart = null;
             this._onBuildFromPart = null;
+            this._onBeforeInsertEntity = null;
+            this._onBeforeUpdateEntity = null;
+            this._onBeforeDeleteEntity = null;
+            this._onReadyInsertEntity = null;
+            this._onReadyUpdateEntity = null;
+            this._onReadyDeleteEntity = null;
+            this._BeforeBuildQueryCondition = null;
 
             this.ignoreInsertFields.Clear();
             this.ignoreUpdateFields.Clear();
@@ -25,6 +32,74 @@ namespace mooSQL.data
             this.ignoreInsertFields.Clear();
             return this;
         }
+        /// <summary>
+        /// 注册插入实体前的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnBeforeInsertEntity(Action<SQLBuilder, object, Type, EntityInfo> act)
+        {
+            this._onBeforeInsertEntity += act;
+            return this;
+        }
+
+        /// <summary>
+        /// 注册插入实体后的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnReadyInsertEntity(Action<SQLBuilder, object, Type, EntityInfo> act){
+            this._onReadyInsertEntity += act;
+            return this;
+        }
+        /// <summary>
+        /// 注册更新实体前的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnBeforeUpdateEntity(Action<SQLBuilder, object, Type, EntityInfo> act){
+            this._onBeforeUpdateEntity += act;
+            return this;
+        }
+        /// <summary>
+        /// 注册更新实体后的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnReadyUpdateEntity(Action<SQLBuilder, object, Type, EntityInfo> act){
+            this._onReadyUpdateEntity += act;
+            return this;
+        }
+        /// <summary>
+        /// 注册删除实体前的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnBeforeDeleteEntity(Action<SQLBuilder, object, Type, EntityInfo> act){
+            this._onBeforeDeleteEntity += act;
+            return this;
+        }
+        /// <summary>
+        /// 注册删除实体后的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnReadyDeleteEntity(Action<SQLBuilder, object, Type, EntityInfo> act){
+            this._onReadyDeleteEntity += act;
+            return this;
+        }
+
+        /// <summary>
+        /// 注册查询条件构建前的处理事件
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnBeforeBuildQueryCondition(Action<QueryCondition, EntityInfo, SQLBuilder> act){
+            this._BeforeBuildQueryCondition += act;
+            return this;
+        }
+
+
         /// <summary>
         /// 设置更新的表名
         /// </summary>

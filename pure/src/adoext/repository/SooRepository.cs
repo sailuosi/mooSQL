@@ -185,6 +185,7 @@ namespace mooSQL.data
         public T GetById<K>(K id)
         {
             var kit = getKit();
+
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             var pks = en.GetPK();
             if (pks.Count != 1)
@@ -202,6 +203,20 @@ namespace mooSQL.data
                 .where(pkname, id)
                 .queryUnique<T>();
             return tow;
+        }
+        /// <summary>
+        /// 按主键检查记录是否存在
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public bool Exist<K>(K id)
+        {
+            var kit = getKit();
+            Translator.BuildPKFromWhere<T>(kit, id);
+            var tow = kit.count();
+            return tow>0;
         }
 
         public R GetFieldValueById<R>(object id,Expression<Func<T,R>> fieldselector)

@@ -7,9 +7,12 @@ using System.Text;
 namespace mooSQL.data
 {
 
-    internal class TypeDeserializerCache
+    /// <summary>
+    /// 类型打包器缓存，用于缓存类型反序列化器
+    /// </summary>
+    internal class TypePackerCache
     {
-        private TypeDeserializerCache(Type type)
+        private TypePackerCache(Type type)
         {
             this.type = type;
         }
@@ -32,17 +35,17 @@ namespace mooSQL.data
             }
         }
 
-        internal static Func<DbDataReader, DBInstance, object> GetReader(Deserializer deserializer, Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db=null)
+        internal static Func<DbDataReader, DBInstance, object> GetReader(PackUp deserializer, Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db=null)
         {
-            var found = (TypeDeserializerCache)byType[type];
+            var found = (TypePackerCache)byType[type];
             if (found is null)
             {
                 lock (byType)
                 {
-                    found = (TypeDeserializerCache)byType[type];
+                    found = (TypePackerCache)byType[type];
                     if (found is null)
                     {
-                        byType[type] = found = new TypeDeserializerCache(type);
+                        byType[type] = found = new TypePackerCache(type);
                     }
                 }
             }
@@ -135,7 +138,7 @@ namespace mooSQL.data
             }
         }
 
-        private Func<DbDataReader, DBInstance, object> GetReader(Deserializer deserializer, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db)
+        private Func<DbDataReader, DBInstance, object> GetReader(PackUp deserializer, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db)
         {
             if (length < 0) length = reader.FieldCount - startBound;
             int hash = MapperUntils.GetColumnHash(reader, startBound, length);
@@ -147,7 +150,7 @@ namespace mooSQL.data
             {
                 if (readers.TryGetValue(key, out deser)) return deser;
             }
-            deser = deserializer.GetTypeDeserializerImpl(type, reader, startBound, length, returnNullIfFirstMissing,db);
+            deser = deserializer.GetTypePackImpl(type, reader, startBound, length, returnNullIfFirstMissing,db);
             // get a more expensive key: true means copy the values down so it can be used as a key later
             key = new DeserializerKey(hash, startBound, length, returnNullIfFirstMissing, reader, true);
             lock (readers)

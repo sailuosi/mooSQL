@@ -12,6 +12,10 @@ namespace mooSQL.data.slave
     /// </summary>
     public interface IModifyListener
     {
+        /// <summary>
+        /// 唯一编码，用于在注册时判重
+        /// </summary>
+        string Code { get; }
 
         /// <summary>
         /// 听！

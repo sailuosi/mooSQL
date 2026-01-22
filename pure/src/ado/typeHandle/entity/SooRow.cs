@@ -6,14 +6,17 @@ using System.Linq;
 namespace mooSQL.data
 {
 
-    internal sealed partial class DapperRow
+    /// <summary>
+    /// 动态行对象，表示数据库查询结果的一行数据
+    /// </summary>
+    internal sealed partial class SooRow
         : IDictionary<string, object>
         , IReadOnlyDictionary<string, object>
     {
-        private readonly DapperTable table;
+        private readonly SooTable table;
         private object[] values;
 
-        public DapperRow(DapperTable table, object[] values)
+        public SooRow(SooTable table, object[] values)
         {
             this.table = table ?? throw new ArgumentNullException(nameof(table));
             this.values = values ?? throw new ArgumentNullException(nameof(values));
@@ -60,7 +63,7 @@ namespace mooSQL.data
 
         public override string ToString()
         {
-            var sb = MapperUntils.GetStringBuilder().Append("{DapperRow");
+            var sb = MapperUntils.GetStringBuilder().Append("{SooRow");
             foreach (var kv in this)
             {
                 var value = kv.Value;

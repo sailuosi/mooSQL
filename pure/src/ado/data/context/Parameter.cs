@@ -44,7 +44,7 @@ namespace mooSQL.data
         /// <summary>
         /// 参数类型处理器，用以处理数据库和C#之间的数据转换。 若为null，则使用默认的类型处理器。
         /// </summary>
-        public ITypeHandler handler { get; set; }
+        public ITypeParser handler { get; set; }
         /// <summary>
         /// 数据库映射的类型名
         /// </summary>

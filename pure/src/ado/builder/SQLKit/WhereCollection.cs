@@ -139,6 +139,16 @@ namespace mooSQL.data
             this.CurrentGroup = tar;
         }
         /// <summary>
+        /// 开启一个否定盒子，并进入其中
+        /// </summary>
+        /// <param name="connector"></param>
+        public void sinkNot(string connector = "AND")
+        {
+            this.sink(connector);
+            this.CurrentGroup.isNot = true;
+        }
+
+        /// <summary>
         /// 从当前盒子中出来，并进入到上级盒子中，最多可到顶级。
         /// </summary>
         public void rise() {

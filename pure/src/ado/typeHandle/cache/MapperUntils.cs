@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 映射器工具类，提供类型映射和转换的辅助方法
+    /// </summary>
     internal static class MapperUntils
     {
         internal const DbType EnumerableMultiParameter = (DbType)(-1);
@@ -61,9 +64,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Internal use only.
+        /// 仅供内部使用。
         /// </summary>
-        /// <param name="value">The object to convert to a character.</param>
+        /// <param name="value">要转换为字符的对象。</param>
 
         public static char ReadChar(object value)
         {
@@ -74,9 +77,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Internal use only.
+        /// 仅供内部使用。
         /// </summary>
-        /// <param name="value">The object to convert to a character.</param>
+        /// <param name="value">要转换为字符的对象。</param>
         public static char? ReadNullableChar(object value)
         {
             if (value is null || value is DBNull) return null;
@@ -145,12 +148,12 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 抛出 a data exception
+        /// 抛出数据异常
         /// </summary>
-        /// <param name="ex">The exception to throw.</param>
-        /// <param name="index">The index the exception occurred at.</param>
-        /// <param name="reader">The reader the exception occurred in.</param>
-        /// <param name="value">The value that caused the exception.</param>
+        /// <param name="ex">要抛出的异常。</param>
+        /// <param name="index">发生异常的索引。</param>
+        /// <param name="reader">发生异常的读取器。</param>
+        /// <param name="value">导致异常的值。</param>
         public static void ThrowDataException(Exception ex, int index, IDataReader reader, object value)
         {
             Exception toThrow;

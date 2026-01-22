@@ -17,12 +17,12 @@ namespace mooSQL.data
     /// <summary>
     /// 存放成员属性部分
     /// </summary>
-    public partial class Deserializer
+    public partial class PackUp
     {
 
         private Dictionary<Type, TypeMapEntry> typeMap;
         MooClient _client { get; set; }
-        public Deserializer(MooClient client)
+        public PackUp(MooClient client)
         {
             _client = client;
             typeMap = new Dictionary<Type, TypeMapEntry>(41)
@@ -73,19 +73,19 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Configure the specified type to be mapped to a given db-type.
+        /// 配置指定类型映射到给定的数据库类型。
         /// </summary>
-        /// <param name="type">The type to map from.</param>
-        /// <param name="dbType">The database type to map to.</param>
+        /// <param name="type">要映射的源类型。</param>
+        /// <param name="dbType">要映射到的数据库类型。</param>
         public void AddTypeMap(Type type, DbType dbType)
             => AddTypeMap(type, dbType, false);
 
         /// <summary>
-        /// Configure the specified type to be mapped to a given db-type.
+        /// 配置指定类型映射到给定的数据库类型。
         /// </summary>
-        /// <param name="type">The type to map from.</param>
-        /// <param name="dbType">The database type to map to.</param>
-        /// <param name="useGetFieldValue">Whether to prefer <see cref="DbDataReader.GetFieldValue{T}(int)"/> over <see cref="DbDataReader.GetValue(int)"/>.</param>
+        /// <param name="type">要映射的源类型。</param>
+        /// <param name="dbType">要映射到的数据库类型。</param>
+        /// <param name="useGetFieldValue">是否优先使用 <see cref="DbDataReader.GetFieldValue{T}(int)"/> 而不是 <see cref="DbDataReader.GetValue(int)"/>。</param>
         public void AddTypeMap(Type type, DbType dbType, bool useGetFieldValue)
         {
             // use clone, mutate, replace to avoid threading issues
@@ -116,9 +116,9 @@ namespace mooSQL.data
             }
         }
         /// <summary>
-        /// Removes the specified type from the Type/DbType mapping table.
+        /// 从类型/数据库类型映射表中移除指定类型。
         /// </summary>
-        /// <param name="type">The type to remove from the current map.</param>
+        /// <param name="type">要从当前映射中移除的类型。</param>
         public void RemoveTypeMap(Type type)
         {
             // use clone, mutate, replace to avoid threading issues
@@ -140,7 +140,7 @@ namespace mooSQL.data
             if (factory is null)
             {
                 factory = (Func<int, Func<DbDataReader, DBInstance, object>>)Delegate.CreateDelegate(
-                    typeof(Func<int, Func<DbDataReader, DBInstance, object>>), null, typeof(Deserializer).GetMethod(
+                    typeof(Func<int, Func<DbDataReader, DBInstance, object>>), null, typeof(PackUp).GetMethod(
                     nameof(UnderlyingReadViaGetFieldValueFactory), BindingFlags.Static | BindingFlags.NonPublic)
                     .MakeGenericMethod(type));
                 lock (s_ReadViaGetFieldValueCache)

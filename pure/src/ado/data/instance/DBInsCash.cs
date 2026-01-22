@@ -199,6 +199,7 @@ namespace mooSQL.data
             if (config.getDialect != null)
             {
                 db.dialect = config.getDialect();
+                db.dialect.db = config;
             }
             else {
                 db.dialect = dialectFactory.getDialect(config);

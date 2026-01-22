@@ -7,7 +7,7 @@ namespace mooSQL.data
     /// <summary>
     /// 实现本接口，以自定义参数类型和值解析
     /// </summary>
-    public interface ITypeHandler
+    public interface ITypeParser
     {
 
         /// <summary>

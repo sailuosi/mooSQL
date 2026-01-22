@@ -46,7 +46,7 @@ namespace mooSQL.data
         {
             if(para==null) para= new Paras();
             CheckDB();
-            var cmd = new SQLCmd(SQL, para);
+            var cmd = geneCmd(SQL, para);
             return exeNonQuery(cmd);
         }
 
@@ -105,7 +105,7 @@ namespace mooSQL.data
             {
                 printSQL(SQL, para);
             }
-            var cmd= new SQLCmd(SQL,para);
+            var cmd= geneCmd(SQL, para);
             return DBLive.ExeQuery(cmd, Executor);
         }
 
@@ -132,7 +132,7 @@ namespace mooSQL.data
             {
                 printSQL(SQL, para);
             }
-            var cmd = new SQLCmd(SQL, para);
+            var cmd = geneCmd(SQL, para);
             return DBLive.ExeQuery<T>(cmd, Executor);
         }
         /// <summary>
@@ -495,7 +495,10 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T queryUnique<T>()
+        public T queryUnique<T>() {
+            return queryUniqueInner<T>();
+        }
+        private T queryUniqueInner<T>()
         {
 
             if (!string.IsNullOrWhiteSpace(cacheKey))
@@ -638,6 +641,15 @@ namespace mooSQL.data
             }
             return null;
         }
+        /// <summary>
+        /// 查询唯一的一行，并转换泛型类，等效于queryUniqueT方法
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T queryRow<T>()
+        {
+            return queryUniqueInner<T>();
+        }
 
 
         /// <summary>
@@ -669,6 +681,15 @@ namespace mooSQL.data
                 return defaultVal;
             }
             return TypeAs.asInt(row[0], defaultVal);
+        }
+        public long queryRowLong(long defaultVal)
+        {
+            var row = queryRow();
+            if (row == null)
+            {
+                return defaultVal;
+            }
+            return TypeAs.asLong(row[0], defaultVal);
         }
         /// <summary>
         /// 返回字符串值
@@ -727,10 +748,31 @@ namespace mooSQL.data
             }
             return tar;
         }
+        /// <summary>
+        /// 执行大数据量的查询，返回long
+        /// </summary>
+        /// <returns></returns>
+        public long countLong()
+        {
+            var cmd = toSelectCount();
+            var tar = DBLive.ExeQueryScalar<long>(cmd, Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
+        }
 
 
 
-
+        /// <summary>
+        /// 翻页包裹，该方法已不再推荐使用，可直接使用setPage构建
+        /// </summary>
+        /// <param name="orderByPart"></param>
+        /// <param name="readsql"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="pageNum"></param>
+        /// <returns></returns>
         public DataTable exeQuery(string orderByPart, string readsql, int pageSize, int pageNum)
         {
             string sql = this.expression.wrapPageOrder(orderByPart, readsql, pageSize, pageNum);

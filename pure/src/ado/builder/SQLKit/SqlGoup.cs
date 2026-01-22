@@ -240,7 +240,7 @@ namespace mooSQL.data
             return name;
         }
 
-        private void addParaKV(string key, Object val) {
+        internal void addParaKV(string key, Object val) {
             if (ps == null) {
                 ps = new Paras();
             }
