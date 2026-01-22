@@ -10,7 +10,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using mooSQL.data.MSSQL;
 
 
 #if NET451
@@ -25,41 +25,44 @@ using Microsoft.Data.SqlClient;
 
 namespace mooSQL.data
 {
-    class MSSQLDialect : Dialect
+    /// <inheritdoc/>
+    public class MSSQLDialect : Dialect
     {
         public MSSQLDialect()
         {
             expression = new MSSQLExpress(this);
             sentence = new MSSQLSentence(this);
-
+            mapping = new MSSQLMappingPanel();
             function = new MSSQLFunction();
             initDBVersion();
         }
+        /// <inheritdoc/>
         public override DbCommand getCommand()
         {
             return new SqlCommand();
         }
-
+        /// <inheritdoc/>
         public override DbConnection getConnection()
         {
             var conn = new SqlConnection(db.DBConnectStr);
             return conn;
         }
-
+        /// <inheritdoc/>
         public override DbDataAdapter getDataAdapter()
         {
             return new SqlDataAdapter();
         }
-
+        /// <inheritdoc/>
         public override DbCommandBuilder getCmdBuilder()
         {
             return new SqlCommandBuilder();
         }
-
+        /// <inheritdoc/>
         public override DbBulkCopy GetBulkCopy()
         {
             return new MSSQBulkCopyee(this.dbInstance);
         }
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para) {
             if (cmd is SqlCommand)
             {
@@ -68,7 +71,7 @@ namespace mooSQL.data
             }
             return null;
         }
-
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn) {
             if(cmd is  SqlCommand)
             {
@@ -179,7 +182,7 @@ namespace mooSQL.data
             return cc;
         }
 
-
+        /// <inheritdoc/>
         public override int Update(EditTable tar)
         {
             int wkcount = 0;

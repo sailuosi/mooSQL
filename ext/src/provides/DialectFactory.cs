@@ -6,6 +6,8 @@
 using System.Collections.Generic;
 using System.Xml;
 using System;
+
+using System.Collections.Concurrent;
 using mooSQL.linq;
 
 
@@ -14,72 +16,30 @@ namespace mooSQL.data
     /// <summary>
     /// 方言工厂，依据方言类型，产生方言。
     /// </summary>
-    public class DialectFactory : IDialectFactory
+    public class DialectFactory : DialectFactoryBase
     {
         /// <summary>
-        /// 获取方言
+        /// 初始化，默认注册自带的10个方言
         /// </summary>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        public Dialect getDialect(DataBase db)
-        {
+        public DialectFactory() {
 
-            var dbType = db.dbType;
-            Dialect res = null;
-            if (dbType == DataBaseType.MySQL)
-            {
-                res = new MySQLDialect();
-            }
-            else if (dbType == DataBaseType.OceanBase)
-            {
-                res = new OBMySQLDialect();
-            }
-            else if (dbType == DataBaseType.MSSQL)
-            {
-                res = new MSSQLDialect();
-            }
-            else if (dbType == DataBaseType.Oracle)
-            {
-                res = new OracleDialect();
-            }
-            else if (dbType == DataBaseType.PostgreSQL)
-            {
-                res = new NpgsqlDialect();
-            }
-            else if (dbType == DataBaseType.Taos)
-            {
-                res = new TaosDialect();
-            }
-            else if (dbType == DataBaseType.GBase8a)
-            {
-                res = new GBase8aDialect();
-            }
-            else if (dbType == DataBaseType.SQLite)
-            {
-                res = new SQLiteDialect();
-            }
-            else if (dbType == DataBaseType.Oscar)
-            {
-                res = new OscarDialect();
-            }
-
-            res.db = db;
-            //检查SQL模型转换器，没有时，置入默认转译器
-            if (res.clauseTranslator == null) {
-                res.clauseTranslator = new ClauseTranslateVisitor(res);
-            }
-
-            return res;
+            this.useDialect(DataBaseType.MySQL, () => new MySQLDialect());
+            this.useDialect(DataBaseType.OceanBase, () => new OBMySQLDialect() );
+            this.useDialect(DataBaseType.MSSQL, () => new MSSQLDialect() );
+            this.useDialect(DataBaseType.Oracle, () => new OracleDialect() );
+            this.useDialect(DataBaseType.PostgreSQL, () => new NpgsqlDialect() );
+            this.useDialect(DataBaseType.Taos, () => new TaosDialect() );
+            this.useDialect(DataBaseType.GBase8a, () => new GBase8aDialect() );
+            this.useDialect(DataBaseType.SQLite, () => new SQLiteDialect() );
+            this.useDialect(DataBaseType.Oscar, () => new OscarDialect() );
         }
-
-
 
         /// <summary>
         /// 加载数据库配置，这里是UCML的xml配置方言实现。
         /// </summary>
         /// <param name="dBIns"></param>
         /// <returns></returns>
-        public Dictionary<int, DataBase> loadDBConfig(DBInsCash dBIns)
+        public override Dictionary<int, DataBase> loadDBConfig(DBInsCash dBIns)
         {
             try
             {
@@ -89,14 +49,16 @@ namespace mooSQL.data
                 {
                     return null;
                 }
-                XmlDataDocument xmlDataDocument = new XmlDataDocument();
+                var doc = new XmlDocument();
 
-                xmlDataDocument.Load(dBIns.configPath);
+                doc.Load(dBIns.configPath);
 
                 var res = new Dictionary<int, DataBase>();
 
-
-                var xmlNodeList = xmlDataDocument.DocumentElement.SelectNodes("//DBConnEx");
+                if (doc.DocumentElement == null) {
+                    return res;
+                }
+                var xmlNodeList = doc.DocumentElement.SelectNodes("//DBConnEx");
                 if (xmlNodeList != null)
                 {
                     for (int num = 0; num < xmlNodeList.Count; num++)

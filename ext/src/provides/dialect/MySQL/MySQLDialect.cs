@@ -12,12 +12,14 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    class MySQLDialect : Dialect
+    public class MySQLDialect : Dialect
     {
         public MySQLDialect()
         {
             expression = new MySQLExpress(this);
             sentence = new MySQLSentence(this);
+            clauseTranslator = new MySQLClauseTranslator(this);
+            mapping = new MySQLMappingPanel();
             function = new MySQLFunction();
             this.initDBVersion();
         }
@@ -97,17 +99,17 @@ namespace mooSQL.data
 
         public override int BulkInsert(BulkBase bk) {
             int cc = 0;
-            try { 
-                var conn = this.getConnection() as MySqlConnection;
-                using (conn) {
-                    MySqlBulkLoader bulkLoader = GetBulkLoader(conn, bk);
-                    cc=bulkLoader.Load();
-                }            
-            }
-            catch (Exception ex)
-            {
+            //try { 
+            //    var conn = this.getConnection() as MySqlConnection;
+            //    using (conn) {
+            //        MySqlBulkLoader bulkLoader = GetBulkLoader(conn, bk);
+            //        cc=bulkLoader.Load();
+            //    }            
+            //}
+            //catch (Exception ex)
+            //{
                 cc = this.BulkInsertByInsertValues(bk);
-            }
+            //}
 
             return cc;
         }

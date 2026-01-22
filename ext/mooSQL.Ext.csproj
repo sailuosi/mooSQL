@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <AssemblyName>mooSQL.Ext</AssemblyName>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <Version>1.0.2</Version>
 	  <LangVersion>12.0</LangVersion>
 	  <ApplicationIcon>bitbug_favicon.ico</ApplicationIcon>
 	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>

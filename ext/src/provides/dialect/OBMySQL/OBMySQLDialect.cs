@@ -12,13 +12,17 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    class OBMySQLDialect : Dialect
+    /// <summary>
+    /// 公开方言，以便业务册重写。
+    /// </summary>
+    public class OBMySQLDialect : Dialect
     {
         public OBMySQLDialect()
         {
             expression = new OBMySQLExpress(this);
             sentence = new MySQLSentence(this);
-
+            mapping = new MySQLMappingPanel();
+            clauseTranslator = new MySQLClauseTranslator(this);
             function = new MySQLFunction();
             this.initVersions();
         }
@@ -99,16 +103,107 @@ namespace mooSQL.data
 
         public override int BulkInsert(BulkBase bk) {
             int cc = 0;
-            try { 
-                var conn = this.getConnection() as MySqlConnection;
-                using (conn) {
-                    MySqlBulkLoader bulkLoader = GetBulkLoader(conn, bk);
-                    cc=bulkLoader.Load();
-                }            
-            }
-            catch (Exception ex)
+            cc = this.BulkInsertByInsertValues(bk);
+            return cc;
+            //
+            //Message = "To use MySqlBulkLoader.Local=true, set AllowLoadLocalInfile=true in the connection string. See https://fl.vu/mysql-load-data"
+            //try
+            //{
+            //    cc = BulkInsertByCopy(bk);
+            //}
+            //catch (Exception ex) {
+            //    if (ex.Message.Contains("AllowLoadLocalInfile=true")) {
+            //        //此时未开启配置，回退未普通插入
+            //        cc = this.BulkInsertByInsertValues(bk);
+            //        return cc;
+            //    }
+            //    throw ex;
+            //}
+            
+            return cc;
+        }
+
+        private int BulkInsertByCopy(BulkBase bk)
+        {
+            int cc = 0;
+            if (bk.Executor != null)
             {
-                cc = this.BulkInsertByInsertValues(bk);
+                cc = bk.Executor.ExecuteCmd(null, (cmd, cont) =>
+                {
+                    var conn = cont.session.connection as MySqlConnection;
+                    MySqlBulkCopy bulk = new MySqlBulkCopy(conn, cont.session.transaction as MySqlTransaction);
+                    
+                    bulk.DestinationTableName = bk.tableName;
+                    if (bk.colnames.Count == 0)
+                    {
+                        bk.addAllTargetCol();
+                    }
+                    //数据写入的来源列和目标列。
+                    foreach (var col in bk.colnames)
+                    {
+                        var f = bk.bulkTarget.Columns[col];
+                        var m = new MySqlBulkCopyColumnMapping();
+                        m.SourceOrdinal = f.Ordinal;
+                        m.DestinationColumn = f.ColumnName;
+                        bulk.ColumnMappings.Add(m);
+                    }
+
+                    bulk.WriteToServer(bk.bulkTarget);
+
+                    cc = bk.bulkTarget.Rows.Count;
+
+                    
+                    return cc;
+                });
+                return cc;
+            }
+
+            var conn = this.getConnection() as MySqlConnection;
+            using (conn)
+            {
+                var bulk = new MySqlBulkCopy(conn);
+                {
+                    bulk.DestinationTableName = bk.tableName;
+                    if (bk.colnames.Count == 0)
+                    {
+                        bk.addAllTargetCol();
+                    }
+                    //数据写入的来源列和目标列。
+                    foreach (var col in bk.colnames)
+                    {
+                        var f = bk.bulkTarget.Columns[col];
+                        var m = new MySqlBulkCopyColumnMapping();
+                        m.SourceOrdinal = f.Ordinal;
+                        m.DestinationColumn = f.ColumnName;
+                        bulk.ColumnMappings.Add(m);
+                    }
+
+                    //var cmdcount = new SqlCommand("SELECT COUNT(*) FROM " + tableName + ";", conn);
+                    try
+                    {
+                        if (conn.State != ConnectionState.Open)
+                        {
+                            conn.Open();
+                        }
+                        //var countStart = System.Convert.ToInt32(cmdcount.ExecuteScalar());
+                        bulk.WriteToServer(bk.bulkTarget);
+                        //var countEnd = System.Convert.ToInt32(cmdcount.ExecuteScalar());
+                        //wcount = countEnd - countStart;
+                        cc = bk.bulkTarget.Rows.Count;
+                        //conn.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        throw e;
+                    }
+                    finally
+                    {
+                        if (conn.State != ConnectionState.Closed)
+                        {
+                            conn.Close();
+                        }
+                    }
+                }
             }
 
             return cc;

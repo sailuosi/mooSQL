@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <inheritdoc/>
     public class OscarExpress:SQLExpression
     {
         public OscarExpress(Dialect dia):base(dia) {
@@ -16,6 +17,7 @@ namespace mooSQL.data
             _selectAutoIncrement = "";
             _provideType = "Oscar.ManagedDataAccess.Client.OscarClientFactory,Oscar.ManagedDataAccess";
         }
+        /// <inheritdoc/>
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("\"") && value.EndsWith("\""))
@@ -24,6 +26,7 @@ namespace mooSQL.data
             }
             return "\"" + value + "\"";
         }
+        /// <inheritdoc/>
         public override string buildSelect(FragSQL frag)
         {
             StringBuilder sb = new StringBuilder();
@@ -44,7 +47,7 @@ namespace mooSQL.data
 
             return sb.ToString();
         }
-
+        /// <inheritdoc/>
         public override string buildInsert(FragSQL frag)
         {
             StringBuilder sb = new StringBuilder();
@@ -119,7 +122,7 @@ namespace mooSQL.data
             }
             throw new Exception("SQL语句不完整！无法构造！");
         }
-
+        /// <inheritdoc/>
         public override string buildMergeInto(FragMergeInto frag)
         {
             //merge into table_name alias1   --目标表 可以用别名
@@ -136,23 +139,26 @@ namespace mooSQL.data
 
         #region DDL
 
-
+        /// <inheritdoc/>
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unique)
         {
             return string.Format("CREATE {3} INDEX Index_{0}_{2} ON {0}({1})", tableName, columnName, indexName, unique);
         }
+        /// <inheritdoc/>
         public override string IsAnyIndexBy(string indexName)
         {
             return string.Format("select count(1) from user_ind_columns where index_name=('{0}')", indexName);
         }
-
+        /// <inheritdoc/>
         public override string CreateDataBaseBy(string database)
         {
             return string.Format("CREATE DATABASE {0}", database);
         }
+        /// <inheritdoc/>
         public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName) { 
             return string.Format("ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY({2})", tableName, indexName, columnName);
         }
+        /// <inheritdoc/>
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ADD ({1} {2}{3} {4} {5} {6})",
@@ -160,6 +166,7 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+        /// <inheritdoc/>
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("ALTER TABLE {0} modify ({1} {2}{3} {4} {5} {6}) ",
@@ -167,10 +174,12 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+        /// <inheritdoc/>
         public override string CreateTableBy(string tableName, string detail)
         { 
             return string.Format("CREATE TABLE {0}(\r\n{1})", tableName, detail);
         }
+        /// <inheritdoc/>
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -181,62 +190,75 @@ namespace mooSQL.data
         //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
 
         //protected override string DropTableSql(){ "DROP TABLE {0}";
-
+        /// <inheritdoc/>
         public override string DropColumnToTableBy(string tableName, string columnName)
         { 
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}", tableName, columnName);
         }
+        /// <inheritdoc/>
         public override string DropConstraintBy(string tableName, string constraintName)
         { 
             return string.Format("ALTER TABLE {0} DROP CONSTRAINT  {1}", tableName, constraintName);
         }
+        /// <inheritdoc/>
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
             return string.Format("ALTER TABLE {0} rename   column  {1} to {2}", tableName, oldName, newName);
         }
+        /// <inheritdoc/>
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         { 
             return string.Format("comment on column {1}.{0} is '{2}'",
                 columnName, tableName, caption
                 );
         }
+        /// <inheritdoc/>
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("comment on column {1}.{0} is ''",
                 columnName, tableName
                 );
         }
+        /// <inheritdoc/>
         public override string IsAnyColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("select * from user_col_comments where Table_Name='{1}' AND COLUMN_NAME='{0}' order by column_name",
                 columnName, tableName
                 );
         }
+        /// <inheritdoc/>
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
             return string.Format("comment on table {0}  is  '{1}'", tableName, caption);
         }
+        /// <inheritdoc/>
         public override string DeleteTableCaptionBy(string tableName)
         { 
             return string.Format("comment on table {0}  is  ''", tableName);
         }
+        /// <inheritdoc/>
         public override string IsAnyTableCaptionBy(string tableName)
         { 
             return string.Format("select * from user_tab_comments where Table_Name='{0}'order by Table_Name", tableName);
         }
+        /// <inheritdoc/>
         public override string RenameTableBy(string oldTableName, string newTableName)
         { 
             return string.Format("alter table {0} rename to {1}", oldTableName, newTableName);
         }
+        /// <inheritdoc/>
         public override string CheckSystemTablePermissionsBy(){
             return "select  t.table_name from user_tables t  where rownum=1";
         }
+        /// <inheritdoc/>
         public override string CreateTableNullBy(){
             return "";
         }
+        /// <inheritdoc/>
         public override string CreateTableNotNullBy(){
             return " NOT NULL ";
         }
+        /// <inheritdoc/>
         public override string CreateTablePirmaryKeyBy(){
             return "PRIMARY KEY";
         }

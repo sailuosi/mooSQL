@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    class GBase8aDialect : Dialect
+    public class GBase8aDialect : Dialect
     {
         public GBase8aDialect()
         {

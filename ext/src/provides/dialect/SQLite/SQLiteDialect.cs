@@ -18,13 +18,13 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    class SQLiteDialect : Dialect
+    public class SQLiteDialect : Dialect
     {
         public SQLiteDialect()
         {
             expression = new SQLiteExpress(this);
             sentence = new SQLiteSentence(this);
-
+            clauseTranslator = new SQLiteClauseTranslator(this);
             function = new SQLLiteFunction();
 
             this.initVersions();

@@ -12,38 +12,41 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    class OscarDialect : Dialect
+    /// <inheritdoc/>
+    public class OscarDialect : Dialect
     {
         public OscarDialect()
         {
             expression = new OscarExpress(this);
             sentence = new OscarSentence(this);
-
+            clauseTranslator = new OscarClauseTranslator(this);
         }
-
+        /// <inheritdoc/>
         public override DbCommandBuilder getCmdBuilder()
         {
             return new OscarCommandBuilder();
         }
-
+        /// <inheritdoc/>
         public override DbCommand getCommand()
         {
             return new OscarCommand();
         }
-
+        /// <inheritdoc/>
         public override DbConnection getConnection()
         {
             return new OscarConnection(db.DBConnectStr);
         }
-
+        /// <inheritdoc/>
         public override DbDataAdapter getDataAdapter()
         {
             return new OscarDataAdapter();
         }
+        /// <inheritdoc/>
         public override DbBulkCopy GetBulkCopy()
         {
             return new DbBulkCopyFallback(this.dbInstance);
         }
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is OscarCommand)
@@ -53,6 +56,7 @@ namespace mooSQL.data
             }
             return null;
         }
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
             if (cmd is OscarCommand)

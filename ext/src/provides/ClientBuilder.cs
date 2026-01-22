@@ -27,12 +27,8 @@ namespace mooSQL.data
         /// <returns></returns>
         protected override void buildingCash()
         {
-
-            if (this.youCash.dialectFactory == null) {
-                useDialectFactory( new DialectFactory());
-            }
-
-            this.useEnityAnalyser(new InternalEntityParser());
+            useDialectFactory( new DialectFactory());
+            useEntityAnalyser(new InternalEntityParser());
         }
     }
 }

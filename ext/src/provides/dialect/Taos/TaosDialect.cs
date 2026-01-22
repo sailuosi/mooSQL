@@ -11,8 +11,14 @@ using mooSQL.data.taos;
 
 namespace mooSQL.data
 {
-    class TaosDialect : Dialect
+    /// <summary>
+    /// taos数据库方言
+    /// </summary>
+    public class TaosDialect : Dialect
     {
+        /// <summary>
+        /// taos数据库方言
+        /// </summary>
         public TaosDialect()
         {
             expression = new TaosExpress(this);
@@ -20,26 +26,27 @@ namespace mooSQL.data
 
             this.InitDBVersion();
         }
-
+        /// <inheritdoc/>
         public override DbCommandBuilder getCmdBuilder()
         {
             throw new NotSupportedException("不支持！");
         }
-
+        /// <inheritdoc/>
         public override DbCommand getCommand()
         {
             return new TaosCommand();
         }
-
+        /// <inheritdoc/>
         public override DbConnection getConnection()
         {
             return new TaosConnection(db.DBConnectStr);
         }
-
+        /// <inheritdoc/>
         public override DbDataAdapter getDataAdapter()
         {
             return new TaosDataAdapter();
         }
+        /// <inheritdoc/>
         public override DbBulkCopy GetBulkCopy()
         {
             return new DbBulkCopyFallback(this.dbInstance);
@@ -64,7 +71,7 @@ namespace mooSQL.data
 
         //    return msg;
         //}
-
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is TaosCommand)
@@ -80,6 +87,7 @@ namespace mooSQL.data
             }
             return null;
         }
+        /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
             if (cmd is TaosCommand)

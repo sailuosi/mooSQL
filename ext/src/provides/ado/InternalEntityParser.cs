@@ -107,6 +107,16 @@ namespace mooSQL.data.Mapping
                 }
 
             }
+
+            var fks = propertyInfo.GetCustomAttributes<SooFKAttribute>();
+            if (fks != null) {
+                foreach (var fk in fks) { 
+                    entityColumn.IsFK = true;
+                    entityColumn.thatTable = fk.thatTable;
+                    entityColumn.thatField = fk.thatField;
+                }
+
+            }
             return entityColumn;
         }
 

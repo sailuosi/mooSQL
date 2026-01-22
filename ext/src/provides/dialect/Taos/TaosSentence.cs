@@ -16,6 +16,7 @@ namespace mooSQL.data
         public TaosSentence(Dialect dia) : base(dia) { 
         
         }
+        /// <inheritdoc/>
         public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
         {
             //sql = "SELECT COLUMN_NAME FName,DATA_TYPE FType,CHARACTER_MAXIMUM_LENGTH FLen,COLUMN_COMMENT FDesc FROM information_schema.columns WHERE table_name='
@@ -28,12 +29,13 @@ namespace mooSQL.data
 
             return builder;
         }
+        /// <inheritdoc/>
         public override string GetDataBaseSql => "SHOW DATABASES";
-
+        /// <inheritdoc/>
         public override string GetColumnInfosByTableNameSql => "SELECT  column_name AS Name, CASE WHEN  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1)='' THEN COLUMN_TYPE ELSE  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1) END   AS DataType, CAST(SUBSTRING(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)+1,LOCATE(')',COLUMN_TYPE)-LOCATE('(',COLUMN_TYPE)-1) AS signed) AS ColumnLength,  numeric_scale as Scale, column_default  AS  `DefaultValue`,   column_comment  AS  `Comment`,   CASE WHEN COLUMN_KEY = 'PRI'   THEN true ELSE false END AS `IsPrimary`,    CASE WHEN EXTRA='auto_increment' THEN true ELSE false END as IsIdentity,  CASE WHEN is_nullable = 'YES'   THEN true ELSE false END AS `IsNullable`   FROM  Information_schema.columns where TABLE_NAME='{0}' and  TABLE_SCHEMA=(select database()) ORDER BY TABLE_NAME";
-
+        /// <inheritdoc/>
         public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Comment from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
-
+        /// <inheritdoc/>
         public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'\r\n                         ";
 
     }
