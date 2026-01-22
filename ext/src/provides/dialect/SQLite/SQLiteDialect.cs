@@ -24,7 +24,6 @@ namespace mooSQL.data
         {
             expression = new SQLiteExpress(this);
             sentence = new SQLiteSentence(this);
-            clauseTranslator = new SQLiteClauseTranslator(this);
             function = new SQLLiteFunction();
 
             this.initVersions();

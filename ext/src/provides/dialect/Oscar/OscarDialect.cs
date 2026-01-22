@@ -19,7 +19,7 @@ namespace mooSQL.data
         {
             expression = new OscarExpress(this);
             sentence = new OscarSentence(this);
-            clauseTranslator = new OscarClauseTranslator(this);
+
         }
         /// <inheritdoc/>
         public override DbCommandBuilder getCmdBuilder()

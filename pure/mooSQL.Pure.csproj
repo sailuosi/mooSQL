@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <AssemblyVersion>1.0.2</AssemblyVersion>
 	  <LangVersion>12.0</LangVersion>
-	  <Version>1.0.1</Version>
+	  <Version>1.0.2</Version>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>
 	  <PackageId>$(AssemblyName).Core</PackageId>
