@@ -3,12 +3,10 @@ using mooSQL.data.call;
 using mooSQL.utils;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Linq;
+
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+
+
 
 namespace mooSQL.linq
 {
@@ -34,6 +32,21 @@ namespace mooSQL.linq
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null) { 
                 _context.CurrentLayer.Current.whereLike(fie, val);
+            }
+
+            return method;
+        }
+        public override MethodCall VisitEquals(EqualsCall method)
+        {
+            var prop = method.callExpression.Object;
+
+            var fie = Buddy.VisitToGotField(prop);
+            var argu = method.Arguments[0];
+            var val = Buddy.VisitToGotValue(argu);
+
+            if (!string.IsNullOrWhiteSpace(fie) && val != null)
+            {
+                _context.CurrentLayer.Current.where(fie, val);
             }
 
             return method;

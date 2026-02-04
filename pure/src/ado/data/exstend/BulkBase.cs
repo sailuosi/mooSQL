@@ -162,6 +162,12 @@ namespace mooSQL.data
                     if (val == null) { 
                         continue;
                     }
+                    //由于DbCommand在放入枚举时，会自动转为int，因此这里转为datatable时，进行相同的处理
+                    if (col.PropertyInfo.PropertyType.IsEnum) {
+                        var vint = Convert.ToInt32(val);
+                        this.add(col.DbColumnName, vint);
+                        continue;
+                    }
                     this.add(col.DbColumnName, val);
                 }
                 this.addRow();

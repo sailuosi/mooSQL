@@ -67,7 +67,8 @@ namespace mooSQL.data.Mapping
         {
             if (result == null) { 
                 result = new EntityInfo();
-                result.Type = Entity;          
+                result.Type = Entity;     
+                result.EntityName= Entity.Name;
             }
 
             //增加对第三方特性的支持，如sqlsugar/freesql/efcore等

@@ -76,6 +76,20 @@ namespace mooSQL.data
             return DBLive.ExeNonQuery(sql, Executor);
         }
         /// <summary>
+        /// 执行异步查询
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public Task<int> exeNonQueryAsync(SQLCmd sql)
+        {
+            if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
+            if (this._printSQL)
+            {
+                printSQL(sql.sql, sql.para);
+            }
+            return DBLive.ExeNonQueryAsync(sql, Executor);
+        }
+        /// <summary>
         /// 批量执行
         /// </summary>
         /// <param name="cmds"></param>
@@ -119,6 +133,22 @@ namespace mooSQL.data
             return DBLive.ExeQuery(sql, Executor);
         }
         /// <summary>
+        /// 异步查询
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public Task<DataTable> exeQueryAsync(SQLCmd sql)
+        {
+            if (sql.para == null) sql.para = new Paras();
+            if (this._printSQL)
+            {
+                printSQL(sql.sql, sql.para);
+            }
+            
+            return DBLive.ExeQueryAsync(sql, Executor);
+        }
+
+        /// <summary>
         /// 执行一次select查询语句，返回泛型集合。
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -135,6 +165,8 @@ namespace mooSQL.data
             var cmd = geneCmd(SQL, para);
             return DBLive.ExeQuery<T>(cmd, Executor);
         }
+
+
         /// <summary>
         /// 执行一次select查询语句，返回泛型集合。
         /// </summary>
@@ -151,6 +183,23 @@ namespace mooSQL.data
 
             return DBLive.ExeQuery<T>(SQL, Executor);
         }
+        /// <summary>
+        /// 异步查询
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="SQL"></param>
+        /// <returns></returns>
+        public Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
+        {
+            if (SQL.para == null) SQL.para = new Paras();
+            if (this._printSQL)
+            {
+                printSQL(SQL.sql, SQL.para);
+            }
+
+            return DBLive.ExeQueryAsync<T>(SQL, Executor);
+        }
+
         private void printSQL(string SQL, Paras para)
         {
             if (this._printSQL)
@@ -196,6 +245,22 @@ namespace mooSQL.data
             return -1;
         }
         /// <summary>
+        /// 异步执行计数
+        /// </summary>
+        /// <param name="sqlCmd"></param>
+        /// <returns></returns>
+        public async Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
+        {
+            var dt = await exeQueryAsync(sqlCmd);
+            if (dt.Rows.Count > 0)
+            {
+                var val = dt.Rows[0][0];
+                return Convert.ToInt32(val);
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// 根据上下文创建插入语句，可以是单行插入、多行插入、select from等
         /// </summary>
         /// <returns></returns>
@@ -204,6 +269,17 @@ namespace mooSQL.data
 
             int res = exeNonQuery(toInsert());
             if (_AutoClearWay== CleanWay.AfterModify||_AutoClearWay== CleanWay.Always) clear();
+            return res;
+        }
+        /// <summary>
+        /// 异步执行插入
+        /// </summary>
+        /// <returns></returns>
+        public Task<int> doInsertAsync()
+        {
+
+            var res = exeNonQueryAsync(toInsert());
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
 
@@ -231,6 +307,16 @@ namespace mooSQL.data
         public int doUpdate()
         {
             int res = exeNonQuery(this.toUpdate());
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
+            return res;
+        }
+        /// <summary>
+        /// 异步执行更新
+        /// </summary>
+        /// <returns></returns>
+        public Task<int> doUpdateAsync()
+        {
+            var res = exeNonQueryAsync(this.toUpdate());
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -263,6 +349,17 @@ namespace mooSQL.data
             return res;
         }
         /// <summary>
+        /// 异步执行合并
+        /// </summary>
+        /// <returns></returns>
+        public Task<int> doMergeIntoAsync()
+        {
+            var res = exeNonQueryAsync(this.toMergeInto());
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
+            return res;
+        }
+
+        /// <summary>
         /// 执行 delete SQL 默认完成后自动clear
         /// </summary>
         /// <returns></returns>
@@ -277,6 +374,23 @@ namespace mooSQL.data
             var sql = this.toDelete();
 
             int res = exeNonQuery(sql);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
+            return res;
+        }
+        /// <summary>
+        /// 异步执行删除
+        /// </summary>
+        /// <returns></returns>
+        public Task<int> doDeleteAsync()
+        {
+            if (current.wherePart.Count == 0)
+            {
+                return Task.FromResult(-1);
+            }
+
+            var sql = this.toDelete();
+
+            var res = exeNonQueryAsync(sql);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -343,6 +457,36 @@ namespace mooSQL.data
             return res;
         }
         /// <summary>
+        /// 异步查询
+        /// </summary>
+        /// <returns></returns>
+        public Task<DataTable> queryAsync()
+        {
+
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                //尝试获取
+                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
+                if (dt != null)
+                {
+                    return Task.FromResult(dt);
+                }
+            }
+
+            var sql = this.toSelect();
+
+            if (string.IsNullOrEmpty(sql.sql))
+            {
+                return null;
+            }
+            var res = exeQueryAsync(sql);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
+        /// <summary>
         /// 分页查询，返回分页数据和总数。
         /// </summary>
         /// <returns></returns>
@@ -365,6 +509,8 @@ namespace mooSQL.data
             }
             return res;
         }
+
+
         /// <summary>
         /// 泛型法，分页查询，返回分页数据和总数。
         /// </summary>
@@ -375,6 +521,27 @@ namespace mooSQL.data
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
             var dt = this.query<T>();
+            var total = this.count();
+            var res = new PageOutput<T>()
+            {
+                Items = dt,
+                Total = total,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
+
+        public async Task<PageOutput<T>> queryPagedAsync<T>()
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = await this.queryAsync<T>();
             var total = this.count();
             var res = new PageOutput<T>()
             {
@@ -422,6 +589,33 @@ namespace mooSQL.data
             }
             return exeQuery<T>(sql);
         }
+        public Task<IEnumerable<T>> queryAsync<T>()
+        {
+
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                //尝试获取
+                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
+                if (dt != null)
+                {
+                    return Task.FromResult(dt);
+                }
+            }
+
+            var sql = this.toSelect();
+
+            if (string.IsNullOrEmpty(sql.sql))
+            {
+                return null;
+            }
+
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return exeQueryAsync<T>(sql);
+        }
+
         /// <summary>
         /// 查询首列的数据，并转换为某个类型
         /// </summary>
@@ -529,7 +723,41 @@ namespace mooSQL.data
             return res;
 
         }
+        public Task<T> queryUniqueAsync<T>()
+        {
+            return queryUniqueInnerAsync<T>();
+        }
+        private async Task<T> queryUniqueInnerAsync<T>()
+        {
 
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                //尝试获取
+                var dt = cacheHolder.Get<T>(cacheKey);
+                if (dt != null)
+                {
+                    return dt;
+                }
+            }
+
+            var sql = this.toSelect();
+
+            if (string.IsNullOrEmpty(sql.sql))
+            {
+                return default;
+            }
+            if (this._printSQL)
+            {
+                printSQL(sql.sql, sql.para);
+            }
+            var res =await DBLive.ExeQueryUniqueRowAsync<T>(sql, Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+
+        }
 
         /// <summary>
         /// 查询一个数据，只读第一行第一列
@@ -559,6 +787,40 @@ namespace mooSQL.data
                 printSQL(sql.sql, sql.para);
             }
             var tar= DBLive.ExeQueryScalar<T>(sql, Executor);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
+        }
+        /// <summary>
+        /// 异步查唯一值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public async Task<T> queryScalarAsync<T>()
+        {
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                //尝试获取
+                var dt = cacheHolder.Get<T>(cacheKey);
+                if (dt != null)
+                {
+                    return dt;
+                }
+            }
+
+            var sql = this.toSelect();
+
+            if (string.IsNullOrEmpty(sql.sql))
+            {
+                return default;
+            }
+            if (this._printSQL)
+            {
+                printSQL(sql.sql, sql.para);
+            }
+            var tar =await DBLive.ExeQueryScalarAsync<T>(sql,Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
                 clear();
@@ -635,6 +897,19 @@ namespace mooSQL.data
         public DataRow queryRow()
         {
             DataTable dt = this.query();
+            if (dt.Rows.Count == 1)
+            {
+                return dt.Rows[0];
+            }
+            return null;
+        }
+        /// <summary>
+        /// 异步查询唯一行
+        /// </summary>
+        /// <returns></returns>
+        public async Task<DataRow> queryRowAsync()
+        {
+            DataTable dt = await this.queryAsync();
             if (dt.Rows.Count == 1)
             {
                 return dt.Rows[0];

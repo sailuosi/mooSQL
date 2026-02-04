@@ -29,7 +29,11 @@ namespace mooSQL.data
         /// <summary>
         /// 创建数据库实例时刻
         /// </summary>
-        public event Action<DBInstance> OnDBLiveCreated; 
+        public event Action<DBInstance> OnDBLiveCreated;
+        /// <summary>
+        /// 数据库的参数加入到命令的事件
+        /// </summary>
+        public event Action<Paras> OnBeforeAddPara;
         /// <summary>
         /// 执行SQL前
         /// </summary>
@@ -119,6 +123,15 @@ namespace mooSQL.data
             if (this.OnDBLiveCreated != null)
             {
                 this.OnDBLiveCreated(db);
+            }
+
+        }
+
+        internal void FireBeforeAddPara(Paras ps)
+        {
+            if (this.OnBeforeAddPara != null)
+            {
+                this.OnBeforeAddPara(ps);
             }
 
         }

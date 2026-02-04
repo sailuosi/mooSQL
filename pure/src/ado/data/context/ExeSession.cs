@@ -89,6 +89,10 @@ namespace mooSQL.data.context
         /// </summary>
         public ExeSessionState state { get; set; }
         /// <summary>
+        /// 事务的隔离级别。
+        /// </summary>
+        public IsolationLevel? IsolationLevel { get; set; }
+        /// <summary>
         /// 数据库会话的全路径标识，用于日志记录和监控。
         /// </summary>
         public string FullSqlId{
@@ -234,7 +238,13 @@ namespace mooSQL.data.context
                 }
 
                 Open(context);
-                transaction = connection.BeginTransaction();
+                if(this.IsolationLevel.HasValue){
+                    transaction = connection.BeginTransaction(this.IsolationLevel.Value);
+                }
+                else
+                {
+                    transaction = connection.BeginTransaction(); 
+                }
 
                 this.transState = ExeSessionTransState.Executing;
                 _watchor.WriteDbSessionBeginTransactionAfter(operationId, this);

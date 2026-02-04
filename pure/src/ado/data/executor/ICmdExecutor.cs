@@ -174,6 +174,10 @@ namespace mooSQL.data.context
         /// <param name="executionContext"></param>
         /// <returns></returns>
         Task<DataSet> ExecuteQueryLotAsync(ExeContext executionContext);
+
+        Task<T> ExecuteQueryRowAsync<T>(ExeContext executionContext);
+        Task<T> ExecuteQueryUniqueRowAsync<T>(ExeContext executionContext);
+        Task<T> ExecuteQueryScalarAsync<T>(ExeContext executionContext);
         #endregion
     }
 }

@@ -64,6 +64,10 @@ namespace mooSQL.data
         /// </summary>
         public bool KeepOpen { get; set; }
         /// <summary>
+        /// 事务隔离级别
+        /// </summary>
+        public IsolationLevel? IsolationLevel { get; set; }
+        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="dbLive"></param>
@@ -72,8 +76,16 @@ namespace mooSQL.data
             OnErrBehavior = DBExecBehavior.RollbackAndBreak;
             KeepOpen = false;
         }
-
-
+        /// <summary>
+        /// 配置事务隔离级别
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public DBExecutor useIsolationLevel(IsolationLevel level)
+        {
+            this.IsolationLevel = level;
+            return this;
+        }
 
         /// <summary>
         /// 释放资源，关闭连接、事务等。
@@ -130,7 +142,10 @@ namespace mooSQL.data
             context.dialect = DBLive.dialect;
             context.session = new ExeSession();
             context.session.linkClient(DBLive.client);
-
+            if(this.IsolationLevel.HasValue)
+            {
+                context.session.IsolationLevel = this.IsolationLevel;
+            }
 
             context.cmd = new CmdBuilder();
             return context;
@@ -270,6 +285,80 @@ namespace mooSQL.data
             finally
             {
                 if(!KeepOpen){
+                    Context.session.Dispose();
+                }
+            }
+        }
+
+        public async Task<R> ExecuteCmdAsync<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext,Task<R>> executor)
+        {
+
+
+            //否则，进行一次性查询，并释放连接
+            try
+            {
+                //创建请求上下文
+                if (sql != null && string.IsNullOrWhiteSpace(sql.sql) == false)
+                {
+                    if (sql.para == null)
+                    {
+                        sql.para = new Paras();
+                    }
+                    this.prepare(sql);
+                }
+                else
+                {
+                    if (this.Context == null)
+                    {
+                        this.Context = NewContext();
+                    }
+                }
+
+                //如果存在事务，则直接使用事务
+                if (session != null && Context.session != session)
+                {
+                    Context.session = session;
+                    //return executor(DBLive.cmd, Context);
+                }
+                if (Context.session.state != ExeSessionState.Open)
+                {
+                    await Context.session.OpenAsync(Context);
+                }
+                var res = await executor(DBLive.cmd, Context);
+                return res;
+            }
+            catch (Exception e)
+            {
+                //输出错误信息，并根据配置决定是否回滚事务。
+                var sqlTxt = "无";
+                if (sql != null)
+                {
+                    sqlTxt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
+                }
+                var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sqlTxt);
+                if (this.OnErrBehavior == DBExecBehavior.RollbackAndBreak)
+                {
+                    Context.session.RollbackTransaction();
+                    this.KeepOpen = false;
+                    throw new Exception(msg + "，事务已回滚", e);
+                }
+                else if (this.OnErrBehavior == DBExecBehavior.SaveAndBreak)
+                {
+                    Context.session.CommitTransaction();
+                    this.KeepOpen = false;
+                    throw new Exception(msg + "，事务已提交", e);
+                }
+                else if (this.OnErrBehavior == DBExecBehavior.IgnoreAndContinue)
+                {
+                    return default(R);
+                }
+                //默认抛出异常
+                throw new Exception(msg + "，事务未处理", e);
+            }
+            finally
+            {
+                if (!KeepOpen)
+                {
                     Context.session.Dispose();
                 }
             }
@@ -518,9 +607,9 @@ namespace mooSQL.data
         /// <param name="sql"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(string sql, Paras para = null)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(string sql, Paras para = null)
         {
-            return ExeQueryAsyc<T>(new SQLCmd(sql, para));
+            return ExeQueryAsync<T>(new SQLCmd(sql, para));
         }
         /// <summary>
         /// 异步查询
@@ -528,7 +617,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="SQL"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(SQLCmd SQL)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL)
         {
             return ExecuteCmd(SQL, (cmd, context) =>
             {
@@ -542,7 +631,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(SQLCmd SQL, Func<DbDataReader, T> reader)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL, Func<DbDataReader, T> reader)
         {
             return ExecuteCmd(SQL, (cmd, context) =>
             {
@@ -557,9 +646,9 @@ namespace mooSQL.data
         /// <param name="para"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(string sql, Paras para, Func<DbDataReader, T> reader)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(string sql, Paras para, Func<DbDataReader, T> reader)
         {
-            return ExeQueryAsyc(new SQLCmd(sql, para), reader);
+            return ExeQueryAsync(new SQLCmd(sql, para), reader);
         }
         /// <summary>
         /// 自定义读取器，执行后不关闭连接
@@ -627,6 +716,8 @@ namespace mooSQL.data
                 return cmd.ExecuteQuery(context, onReadRow);
             });
         }
+
+
         /// <summary>
         /// 允许用户自定义行读取逻辑
         /// </summary>
@@ -676,6 +767,13 @@ namespace mooSQL.data
                 return cmd.ExecuteQueryRow<T>(cont);
             });
         }
+        public async Task<T> ExeQueryRowAsync<T>(SQLCmd SQL)
+        {
+            return await ExecuteCmdAsync(SQL, (cmd, cont) =>
+            {
+                return cmd.ExecuteQueryRowAsync<T>(cont);
+            });
+        }
         /// <summary>
         /// 查询单行
         /// </summary>
@@ -697,6 +795,19 @@ namespace mooSQL.data
             return ExecuteCmd(SQL, (cmd, cont) =>
             {
                 return cmd.ExecuteQueryUniqueRow<T>(cont);
+            });
+        }
+        /// <summary>
+        /// 查询唯一的一行，不唯一不行
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="SQL"></param>
+        /// <returns></returns>
+        public async Task<T> ExeQueryUniqueRowAsync<T>(SQLCmd SQL)
+        {
+            return await ExecuteCmdAsync<T>(SQL, (cmd, cont) =>
+            {
+                return cmd.ExecuteQueryUniqueRowAsync<T>(cont);
             });
         }
         /// <summary>
@@ -723,6 +834,14 @@ namespace mooSQL.data
                 return cmd.ExecuteQueryScalar<T>(cont);
             });
         }
+        public async Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL)
+        {
+            return await ExecuteCmdAsync(SQL, (cmd, cont) =>
+            {
+                return cmd.ExecuteQueryScalarAsync<T>(cont);
+            });
+        }
+
         /// <summary>
         /// 查询单一值，比如计数之类的。如果有多行多列，则会抛出异常。
         /// </summary>
@@ -862,6 +981,24 @@ namespace mooSQL.data
                 total += r;
             }
             return total;
+        }
+        /// <summary>
+        /// 异步执行一批命令
+        /// </summary>
+        /// <param name="SQLs"></param>
+        /// <returns></returns>
+        public async Task<int> ExeNonQueryAsync(IEnumerable<SQLCmd> SQLs)
+        {
+            var res = 0;
+            ExecuteCmds(SQLs, async (cmd, c) => {
+                res += await cmd.ExecuteNonQueryAsync(c);
+            });
+            foreach (SQLCmd SQL in SQLs)
+            {
+                fireModify(SQL);
+            }
+
+            return res;
         }
     }
 }

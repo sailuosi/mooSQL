@@ -89,6 +89,7 @@ namespace mooSQL.data.context
             }
             //触发参数绑定事件
             DB.FireBindCmdPara(cmd, context);
+            client.events.FireBeforeAddPara(context.cmd.para);
             context.dialect.addCmdPara(cmd, context.cmd.para);
 
 
@@ -692,6 +693,62 @@ namespace mooSQL.data.context
                 await context.session.OpenAsync(cancellationToken,context);
                 DbCommand dbCmd = CreateCmd(context);
                 return await dbCmd.ExecuteNonQueryAsync(cancellationToken);
+            }, context);
+        }
+
+        /// <summary>
+        /// 查询获取单行结果
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<T> ExecuteQueryRowAsync<T>(ExeContext context)
+        {
+            return await ExecuteWrapAsync<T>(async () =>
+            {
+                DbCommand dbCmd = CreateCmd(context);
+                var reader = await dbCmd.ExecuteReaderAsync();
+                using (reader)
+                {
+                    var tar = this.queryRowByType<T>(reader, typeof(T), dbCmd, context.session.connection, false, DB);
+                    return tar;
+                }
+
+            }, context);
+        }
+        /// <summary>
+        /// 查询出唯一的一行
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<T> ExecuteQueryUniqueRowAsync<T>(ExeContext context)
+        {
+            return await ExecuteWrapAsync<T>(async () =>
+            {
+                DbCommand dbCmd = CreateCmd(context);
+                var reader = await dbCmd.ExecuteReaderAsync();
+                using (reader)
+                {
+                    var tar = this.queryOnlyRowByType<T>(reader, typeof(T), dbCmd, context.session.connection, false, DB);
+                    return tar;
+                }
+
+            }, context);
+        }
+        /// <summary>
+        /// 查询获取单个结果值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<T> ExecuteQueryScalarAsync<T>(ExeContext context)
+        {
+            return await ExecuteWrapAsync<T>(async () =>
+            {
+                DbCommand dbCmd = CreateCmd(context);
+                return  DBConnectExt.queryScalarByType<T>(dbCmd, deserializer);
+
             }, context);
         }
         #endregion

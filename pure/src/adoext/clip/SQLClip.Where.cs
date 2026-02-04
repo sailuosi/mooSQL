@@ -103,10 +103,25 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 是某个值或者null
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SQLClip whereIsOrNull<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereIsOrNull(field, value);
+            }
+            return this;
+        }
+        /// <summary>
         /// 带有if的判断，如果isTrue,则执行条件，否则不执行
         /// </summary>
         /// <typeparam name="R"></typeparam>
-        /// <param name="ifJudge"></param>
         /// <param name="fieldSelector"></param>
         /// <param name="value"></param>
         /// <returns></returns>

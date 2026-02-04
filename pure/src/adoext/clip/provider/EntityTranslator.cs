@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
 
 namespace mooSQL.data
 {
@@ -349,7 +349,7 @@ namespace mooSQL.data
             }
             if (this._onBeforeDeleteEntity != null)
             {
-                this._onBeforeUpdateEntity(builder, ids, en.Type, en);
+                this._onBeforeDeleteEntity(builder, ids, en.Type, en);
             }
             var pks = en.GetPK();
             if (pks.Count != 1)
@@ -363,6 +363,31 @@ namespace mooSQL.data
             if (this._onReadyDeleteEntity != null)
             {
                 this._onReadyDeleteEntity(builder, ids, en.Type, en);
+            }
+        }
+
+        public void prepareDeleteById(SQLBuilder builder, EntityInfo en, object id)
+        {
+            if (id == null)
+            {
+                return;
+            }
+            if (this._onBeforeDeleteEntity != null)
+            {
+                this._onBeforeDeleteEntity(builder, id, en.Type, en);
+            }
+            var pks = en.GetPK();
+            if (pks.Count != 1)
+            {
+                throw new NotSupportedException("当前实体的主键信息不匹配！");
+            }
+            var pk = pks[0];
+            builder.setTable(en.DbTableName)
+                .where(pk.DbColumnName, id);
+
+            if (this._onReadyDeleteEntity != null)
+            {
+                this._onReadyDeleteEntity(builder, id, en.Type, en);
             }
         }
 

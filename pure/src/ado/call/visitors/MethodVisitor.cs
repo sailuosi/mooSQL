@@ -154,6 +154,11 @@ namespace mooSQL.data.call
         {
             return method;
         }
+        public virtual MethodCall VisitEquals(EqualsCall method)
+        {
+            return method;
+        }
+        
         public virtual MethodCall VisitExcept(ExceptCall method)
         {
             return method;

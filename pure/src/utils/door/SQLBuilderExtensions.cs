@@ -130,6 +130,19 @@ namespace mooSQL.data
             val= clipAction(clip);
             return builder;
         }
+        /// <summary>
+        /// 获取数据库初始化工具
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static DBTableCreator useDBInit(this SQLBuilder builder)
+        {
+            var tar = new DBTableCreator()
+            {
+                DBLive = builder.DBLive
+            };
+            return tar;
+        }
 
         /// <summary>
         /// 执行插入，返回-1时为发生异常。独立执行环境，不干扰调用者环境
@@ -154,7 +167,7 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static int insertList<T>(this SQLBuilder builder,List<T> entity)
+        public static int insertList<T>(this SQLBuilder builder,IEnumerable<T> entity)
         {
             var bk= builder.DBLive.useBulk();
             if (builder.Executor != null) { 
@@ -875,7 +888,19 @@ namespace mooSQL.data
             doClipFilting(clip, t);
             return clip.count();
         }
-
+        /// <summary>
+        /// 计数、所有记录数量
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static int countBy<T>(this SQLBuilder builder) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t)
+                .setFromAsName("t");
+            return clip.count();
+        }
         /// <summary>
         /// 快速修改实体，按照自定义条件，需要手写set、where部分。
         /// </summary>
@@ -916,6 +941,13 @@ namespace mooSQL.data
             var b = builder.useSQL();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
             builder.Client.Translator.prepareDelete(b, en,ids);
+            return b.doDelete();
+        }
+        public static int removeById<T>(this SQLBuilder builder, object id) where T : class, new()
+        {
+            var b = builder.useSQL();
+            var en = builder.Client.EntityCash.getEntityInfo<T>();
+            builder.Client.Translator.prepareDeleteById(b, en, id);
             return b.doDelete();
         }
         /// <summary>

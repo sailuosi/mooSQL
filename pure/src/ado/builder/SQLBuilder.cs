@@ -5,7 +5,7 @@ using mooSQL.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -324,6 +324,18 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 启动事务，同时指定隔离级别
+        /// </summary>
+        /// <param name="lv"></param>
+        /// <returns></returns>
+        public SQLBuilder beginTransaction(IsolationLevel lv)
+        {
+            this.Executor = new DBExecutor(this.DBLive);
+            Executor.useIsolationLevel(lv);
+            Executor.beginTransaction();
+            return this;
+        }
+        /// <summary>
         /// 使用一个已开启的事务执行器，此后的所有操作都在同一个事务中。
         /// </summary>
         /// <param name="executor"></param>
@@ -504,7 +516,14 @@ namespace mooSQL.data
             return this;
         }
 
-
+        public SQLBuilder ifs(bool isPass, Action whenTrue)
+        {
+            if (isPass)
+            {
+                whenTrue();
+            }
+            return this;
+        }
         /// <summary>
         /// 清空当前SQL构造器 参数体、添加列集合、选择列、from部分、翻页设置、where条件等所有信息，相当于重新获取一个SQL分组实例。
         /// 未清空的：seed,level,

@@ -302,6 +302,17 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 注册参数自定义处理事件
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public BaseClientBuilder OnBeforeAddPara(Action<Paras> handler)
+        {
+            client.events.OnBeforeAddPara += handler;
+            return this;
+        }
+        
+        /// <summary>
         /// 数据库实例创建时刻
         /// </summary>
         /// <param name="handler"></param>

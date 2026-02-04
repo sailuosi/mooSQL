@@ -34,7 +34,12 @@ namespace mooSQL.data
         /// mooSQL的实例，持有切面等信息
         /// </summary>
         public MooClient client;
-
+        public MooClient Client
+        {
+            get { 
+                return client;
+            }
+        }
         /// <summary>
         /// SQL执行器
         /// </summary>
@@ -69,6 +74,23 @@ namespace mooSQL.data
                 return cmd.ExecuteQuery(cont);
             });
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="SQL"></param>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public Task<DataTable> ExeQueryAsync(SQLCmd SQL, DBExecutor executor = null)
+        {
+            if (executor == null)
+            {
+                executor = new DBExecutor(this);
+            }
+            return executor.ExecuteCmd(SQL, (cmd, cont) => {
+                return cmd.ExecuteQueryAsync(cont);
+            });
+        }
+
         /// <summary>
         /// 执行数据查询
         /// </summary>
@@ -287,9 +309,9 @@ namespace mooSQL.data
         /// <param name="sql"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(string sql, Paras para=null)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(string sql, Paras para=null)
         {
-            return ExeQueryAsyc<T>(new SQLCmd(sql,para));
+            return ExeQueryAsync<T>(new SQLCmd(sql,para));
         }
         /// <summary>
         /// 异步查询
@@ -297,13 +319,13 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="SQL"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> ExeQueryAsyc<T>(SQLCmd SQL, DBExecutor runner = null)
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
             if (runner == null)
             {
                 runner = new DBExecutor(this);
             }
-            return runner.ExeQueryAsyc<T>(SQL);
+            return runner.ExeQueryAsync<T>(SQL);
         }
 
         /// <summary>
@@ -320,7 +342,7 @@ namespace mooSQL.data
             {
                 runner = new DBExecutor(this); 
             }
-            return runner.ExeQueryAsyc<T>(SQL,reader);
+            return runner.ExeQueryAsync<T>(SQL,reader);
         }
         /// <summary>
         /// 使用SQL/参数的重载
@@ -483,6 +505,21 @@ namespace mooSQL.data
             return runner.ExeQueryUniqueRow<T>(SQL);
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="SQL"></param>
+        /// <param name="runner"></param>
+        /// <returns></returns>
+        public Task<T> ExeQueryUniqueRowAsync<T>(SQLCmd SQL, DBExecutor runner = null)
+        {
+            if (runner == null)
+            {
+                runner = new DBExecutor(this);
+            }
+            return runner.ExeQueryUniqueRowAsync<T>(SQL);
+        }
+        /// <summary>
         /// 查询唯一的一行，不唯一null
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -501,7 +538,14 @@ namespace mooSQL.data
             }
             return runner.ExeQueryScalar<T>(SQL);
         }
-
+        public Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL, DBExecutor runner = null)
+        {
+            if (runner == null)
+            {
+                runner = new DBExecutor(this);
+            }
+            return runner.ExeQueryScalarAsync<T>(SQL);
+        }
         public T ExeQueryScalar<T>(string sql, Paras para = null) {
             return ExeQueryScalar<T>(new SQLCmd(sql, para));
         }
@@ -596,6 +640,20 @@ namespace mooSQL.data
                 runner = new DBExecutor(this);
             }
             return runner.ExeNonQuery(SQLs);
+        }
+        /// <summary>
+        /// 异步执行一批命令
+        /// </summary>
+        /// <param name="SQLs"></param>
+        /// <param name="runner"></param>
+        /// <returns></returns>
+        public Task<int> ExeNonQueryAsync(IEnumerable<SQLCmd> SQLs, DBExecutor runner = null)
+        {
+            if (runner == null)
+            {
+                runner = new DBExecutor(this);
+            }
+            return runner.ExeNonQueryAsync(SQLs);
         }
     }
 }

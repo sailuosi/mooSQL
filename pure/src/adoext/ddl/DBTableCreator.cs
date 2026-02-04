@@ -16,7 +16,41 @@ namespace mooSQL.data
 
         public DBInstance DBLive {  get; set; }
 
+        public string CreateMode { get; set; }
+        /// <summary>
+        /// 自动建表模式，如果表不存在则创建，如果存在则新增字段
+        /// </summary>
+        /// <returns></returns>
+        public DBTableCreator autoMode() {
+            this.CreateMode = "createAuto";
+            this.WorkingProgress = new StringBuilder();
+            return this;
+        }
+
+        public StringBuilder WorkingProgress { get; set; }
+
+        public DBTableCreator createTable<T>(string mode = null) { 
+            if(mode == null) {
+                mode = this.CreateMode;
+            }
+            var en = DBLive.client.EntityCash.getEntityInfo<T>();
+            var res = CreateTable(en, mode);
+            this.WorkingProgress.Append(res);
+            return this;
+        }
+
         private int defaultFieldLength = 50;
+        /// <summary>
+        /// 清空配置，恢复到初始化状态
+        /// </summary>
+        /// <returns></returns>
+        public DBTableCreator clear() {
+            this.CreateMode = "createAuto";
+            this.WorkingProgress.Clear();
+            this.defaultFieldLength = 50;
+            return this;
+        }
+
         /// <summary>
         /// 创建表
         /// </summary>
@@ -40,7 +74,7 @@ namespace mooSQL.data
 
             var isExist = ddl.hasTable(tbname);
             if (isExist) {
-                return "";
+                return string.Format("", en.EntityName);
             }
             
 
@@ -55,12 +89,16 @@ namespace mooSQL.data
                 ddl.setTable(tbname, en.TableDescription);
                 //if (tb.fCustomKey == null || tb.fCustomKey == false)
                 //{
-                    ddl.set(tbname + "OID", new DbDataType(DataFam.Guid), "主键", false, null, true);
+                    //ddl.set(tbname + "OID", new DbDataType(DataFam.Guid), "主键", false, null, true);
                 //}
 
                 foreach (var field in en.Columns)
                 {
-                    setDDLField(field, ddl);
+                    if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
+                    if (field.Kind == FieldKind.Base) {
+                        setDDLField(field, ddl);
+                    }
+                    
                 }
 
 
@@ -75,7 +113,7 @@ namespace mooSQL.data
                 else if (mode == "create" || mode == "createAuto")
                 {
                     var cc = ddl.doCreateTable();
-                    return "处理完毕";
+                    return string.Format("初始化{0}成功；",en.EntityName);
                 }
             }
             else
@@ -90,11 +128,16 @@ namespace mooSQL.data
 
                 foreach (var field in en.Columns)
                 {
+                    if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
                     if (exFNames.Contains(field.DbColumnName))
                     {
                         continue;
                     }
-                    setDDLField(field, ddl);
+                    if (field.Kind == FieldKind.Base)
+                    {
+                        setDDLField(field, ddl);
+                    }
+                        
                 }
                 //ddl.doCreateTable();
 
@@ -107,27 +150,35 @@ namespace mooSQL.data
                 else if (mode == "create" || mode == "createAuto")
                 {
                     var cc = ddl.doAddColumn();
-                    return "处理完毕";
+                    return string.Format("初始化{0}成功；", en.EntityName);
                 }
 
             }
 
-            return "未执行处理";
+            return string.Format("{0}未执行处理；", en.EntityName);
         }
         private void setDDLField(EntityColumn field, DDLBuilder ddl) {
             var dt = transDtype(field);
+            if ((dt.DataType == DataFam.VarChar || dt.DataType ==DataFam.NVarChar) && (dt.Length == 0|| dt.Length == 50)) {
+                dt.Length = this.defaultFieldLength; 
+            }
             ddl.set(field.DbColumnName, dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey);
-
+            if (!string.IsNullOrWhiteSpace(field.ColumnDescription)) { 
+                
+            }
         }
 
         private DbDataType transDtype(EntityColumn field)
         {
-            if (field.DbType != DbDataType.Undefined) { 
+            if (field.DbType != DbDataType.Undefined && field.DbType.DataType != DataFam.Undefined) { 
                 return field.DbType;
             }
             if (field.DataType == DataFam.Undefined) {
                 var valType = field.PropertyInfo.PropertyType.UnwrapNullable();
                 if (valType == typeof(string)) {
+                    if (field.Length == 0 || field.Length == null) {
+                        field.Length = this.defaultFieldLength;
+                    }
                     return new DbDataType(DataFam.VarChar, field.Length);
                 }
                 else if (valType == typeof(Guid))

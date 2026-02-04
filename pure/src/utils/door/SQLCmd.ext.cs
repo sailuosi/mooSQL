@@ -74,6 +74,49 @@ namespace mooSQL.data
             var cmd = new SQLCmd(key, ps);
             return cmd;
         }
+        /// <summary>
+        /// 按照字典格式化SQL
+        /// </summary>
+        /// <param name="SQL"></param>
+        /// <param name="dic"></param>
+        /// <returns></returns>
+        public static SQLCmd formatSQLBy(this string SQL,Dictionary<string,object> dic) 
+        {
+
+            string key = SQL;
+            string prefixName = "psfmt_";
+            var ps = new Paras();
+
+
+            var i = 0;
+            foreach (var kv in dic)
+            {
+                i++;
+                string reg = "#{" + kv.Key + "}";
+                if (SQL.Contains(reg) == false)
+                {
+                    continue;
+                }
+                //直接反射调用，消耗性能，调试时使用
+                //var v = p.GetValue(target);
+                //委托
+                var v = kv.Value;
+                if (v == null)
+                {
+                    key = key.Replace(reg, " null ");
+                }
+                else
+                {
+                    string paraName = prefixName + ps.Count + "_" + i;
+                    var holderName = "#{" + paraName + "}";
+                    key = key.Replace(reg, holderName);
+                    ps.AddRaw(paraName, holderName, v);
+                }
+
+            }
+            var cmd = new SQLCmd(key, ps);
+            return cmd;
+        }
 
         /// <summary>
         /// 树的向上查找主键方法
