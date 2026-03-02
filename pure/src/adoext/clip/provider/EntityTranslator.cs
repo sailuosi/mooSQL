@@ -655,6 +655,46 @@ namespace mooSQL.data
             }
         }
         /// <summary>
+        /// 将参数中的聚合配置，转换为SQL语句片段，并返回。该方法仅转换聚合部分，不构建完整SQL语句。调用时需要将返回的字符串放入select部分，并配合BuildSelectFrom方法构建基础查询语句。
+        /// </summary>
+        /// <param name="para"></param>
+        /// <param name="kit"></param>
+        /// <param name="en"></param>
+        /// <returns></returns>
+        public string PatchSummarySQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en) {
+            if (para.sumFields != null)
+            {
+
+                //对参数进行排序
+                para.sumFields = para.sumFields.OrderBy(x => x.idx).ToList();
+                var innerModes= new List<string> { "count", "sum", "avg", "min", "max" };
+                var res = new List<string>();
+                foreach (var ob in para.sumFields)
+                {
+                    var field = this.MatchQueryField(en, ob.field, kit);
+                    if (field == null)
+                    {
+                        continue;
+                    }
+                    if (string.IsNullOrWhiteSpace(ob.mode)) {
+                        continue;
+                    }
+                    var mode= ob.mode.Trim().ToLower();
+                    var asName = ob.asName;
+                    if(string.IsNullOrWhiteSpace(asName)) { 
+                        asName= field.Replace(".","_")+"_"+mode;
+                    }
+                    var func = string.Format("{0}({1}) as {2}", mode, field, asName);
+
+                    res.Add(func);
+                    continue;
+                }
+
+                return string.Join(",", res);
+            }
+            return string.Empty;
+        }
+        /// <summary>
         /// 根据查询参数，构建SQL语句
         /// </summary>
         /// <param name="para"></param>
@@ -742,6 +782,12 @@ namespace mooSQL.data
                         kit.orderBy(fie + " DESC ");
                     }
                 }
+            }
+            //处理汇总  
+            var sumSQL = PatchSummarySQLByQueryPara(para, kit, en);
+            if (!string.IsNullOrWhiteSpace(sumSQL))
+            {
+                kit.selectSummary(sumSQL);
             }
         }
 

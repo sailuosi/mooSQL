@@ -12,6 +12,9 @@ namespace mooSQL.data
     /// </summary>
     public class MergeBranch
     {
+        /// <summary>
+        /// 构建器
+        /// </summary>
         public MergeIntoBuilder root;
         /// <summary>
         /// 条件部分，放在这里。
@@ -26,10 +29,15 @@ namespace mooSQL.data
         /// 是否匹配，默认为null。
         /// </summary>
         public bool? IsMatched { get; set; }
-
+        /// <summary>
+        /// 符合时的动作
+        /// </summary>
         public MergeAction ThenAction { get; set; }
 
-
+        /// <summary>
+        /// 分支
+        /// </summary>
+        /// <param name="parent"></param>
         public MergeBranch(MergeIntoBuilder parent) { 
             this.root = parent;
             this.SetPart= parent.parent.getBrotherBuilder();
@@ -43,12 +51,19 @@ namespace mooSQL.data
             this.IsMatched = true;
             return this;
         }
+        /// <summary>
+        /// 为匹配条件
+        /// </summary>
+        /// <returns></returns>
         public MergeBranch whenNotMatched()
         {
             this.IsMatched = false;
             return this;
         }
-
+        /// <summary>
+        /// 获取构造器
+        /// </summary>
+        /// <returns></returns>
         public MergeBranch useSQL() {
             if (this.Condtion == null)
             {
@@ -69,6 +84,11 @@ namespace mooSQL.data
             this.IsMatched = true;
             return this;
         }
+        /// <summary>
+        /// 不符合的动作
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public MergeBranch whenNotMatched(Action<SQLBuilder> action)
         {
             if (this.Condtion == null)
@@ -80,7 +100,11 @@ namespace mooSQL.data
             this.IsMatched = false;
             return this;
         }
-
+        /// <summary>
+        /// 插入的动作
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public MergeIntoBuilder thenInsert(Action<SQLBuilder> action) {
             if (this.SetPart == null) {
                 this.SetPart = root.parent.getBrotherBuilder();
@@ -89,7 +113,11 @@ namespace mooSQL.data
             this.ThenAction = MergeAction.insert;
             return root;
         }
-
+        /// <summary>
+        /// 更新的动作
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public MergeIntoBuilder thenUpdate(Action<SQLBuilder> action)
         {
             if (this.SetPart == null)
@@ -100,7 +128,10 @@ namespace mooSQL.data
             this.ThenAction = MergeAction.update;
             return root;
         }
-
+        /// <summary>
+        /// 删除的动作
+        /// </summary>
+        /// <returns></returns>
         public MergeIntoBuilder thenDelete()
         {
 
@@ -136,8 +167,17 @@ namespace mooSQL.data
     /// merge语句的动作类型
     /// </summary>
     public enum MergeAction { 
+        /// <summary>
+        /// 插入
+        /// </summary>
         insert=0,
+        /// <summary>
+        /// 更新
+        /// </summary>
         update=1,
+        /// <summary>
+        /// 删除
+        /// </summary>
         delete=2
     }
 }

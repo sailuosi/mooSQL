@@ -89,7 +89,26 @@ namespace mooSQL.utils
             }
             return r;
         }
-
+        /// <summary>
+        /// 按条件级数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="doselect"></param>
+        /// <returns></returns>
+        public static int count<T>(this IEnumerable<T> list, Func<T, bool> doselect)
+        {
+            int r = 0;
+            foreach (var li in list)
+            {
+                var ri = doselect(li);
+                if (ri)
+                {
+                    r ++;
+                }
+            }
+            return r;
+        }
         public static double sum<T>(this IEnumerable<T> list, Func<T, double?> doselect)
         {
             double r = 0;

@@ -177,12 +177,51 @@ namespace mooSQL.data.builder
     /// merge into 语句的when 部分配置项
     /// </summary>
     public class FragMergeWhen {
+        /// <summary>
+        /// 是否匹配
+        /// </summary>
         public bool matched;
+        /// <summary>
+        /// when条件
+        /// </summary>
         public string whenWhere;
+        /// <summary>
+        /// 动作类型
+        /// </summary>
         public MergeAction action;
-
+        /// <summary>
+        /// 字段集合
+        /// </summary>
         public string fieldInner;
+        /// <summary>
+        /// 值集合
+        /// </summary>
         public string valueInner;
+        /// <summary>
+        /// 更新的字段集合
+        /// </summary>
         public List<FragSetPart> setInner;
+
+        public bool Empty
+        {
+            get {
+                switch (action) { 
+                    case MergeAction.delete:
+                        return string.IsNullOrEmpty(whenWhere);
+                    case MergeAction.insert:
+                        if (string.IsNullOrWhiteSpace(fieldInner)) {
+                            return true;
+                        }
+                        return false;
+                    case MergeAction.update:
+                        if ((setInner.Count==0))
+                        {
+                            return true;
+                        }
+                        return false;
+                }
+                return false;
+            }
+        }
     }
 }

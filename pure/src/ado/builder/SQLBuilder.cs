@@ -97,6 +97,8 @@ namespace mooSQL.data
         /// 新令，在一个信令下创建的SQL，都将持有该信令
         /// </summary>
         public string Signal { get; set; }
+
+        public SQLMakeUps _MakeUps { get; set; }
         private CleanWay _AutoClearWay { get; set; }
         /// <summary>
         /// 配置自动清理方式，默认为每次执行修改或删除后清理
@@ -309,6 +311,7 @@ namespace mooSQL.data
             this.CTECollection = new SqlCTE();
             this.unionHolder = new UnionCollection();
             this._AutoClearWay = CleanWay.AfterModify;
+            this._MakeUps = new SQLMakeUps();
             this.newGroup();
         }
 
@@ -369,6 +372,7 @@ namespace mooSQL.data
             this.unionHolder.Clear();
             this.CTECollection.Clear();
             this.ps.Clear();
+            this._MakeUps.clear();
             this.preWhere = "";
             this._AutoClearWay =  CleanWay.AfterModify;
             paraRule = "notEmpty";
@@ -544,6 +548,16 @@ namespace mooSQL.data
             }
             return this;
         }
+        /// <summary>
+        /// 清空列选择部分，保留其他信息。
+        /// </summary>
+        /// <returns></returns>
+        public SQLBuilder clearSelect()
+        {
+            this.current.selectPart.Clear();
+            return this;
+        }
+
 
         /// <summary>
         /// 清空 where条件构造器的所有成果。

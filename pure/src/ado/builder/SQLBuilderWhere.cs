@@ -455,6 +455,39 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
+        /// 一个字段like多个值，中间or条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="vals"></param>
+        /// <returns></returns>
+        public SQLBuilder whereLikesOr(string key,params string[] vals)
+        {
+            sinkOR();
+            foreach (var v in vals)
+            {
+                whereLike(key, v);
+            }
+            rise();
+            return this;
+        }
+        /// <summary>
+        /// 一个字段like多个值，中间and条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="vals"></param>
+        /// <returns></returns>
+        public SQLBuilder whereLikesAnd(string key, params string[] vals)
+        {
+            sink();
+            foreach (var v in vals)
+            {
+                whereLike(key, v);
+            }
+            rise();
+            return this;
+        }
+
+        /// <summary>
         /// 左侧开始的模糊 形成 like 'abc%' 格式语句
         /// </summary>
         /// <param name="key"></param>

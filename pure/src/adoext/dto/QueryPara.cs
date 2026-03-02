@@ -28,7 +28,12 @@ namespace mooSQL.data
         /// 排序条件列表，用于构建SQL语句时使用。
         /// </summary>
         public List<QueryOrderBy> orderBy { get; set; }
-        
+        /// <summary>
+        /// 需要求和等聚合的字段列表，用于构建SQL语句时使用。
+        /// </summary>
+        public List<SummaryField> sumFields { get; set; }
+
+
         [NonSerialized]
         private List<EntityWhere> _suckWheres;
         /// <summary>
@@ -109,5 +114,19 @@ namespace mooSQL.data
             this.field = field;
             this.order = order;
         }
+    }
+    /// <summary>
+    /// 需要聚合的字段，用于构建SQL语句时使用。
+    /// </summary>
+    public class SummaryField {
+        public int? idx { get; set; }
+        public string field { get; set; }
+        public string order { get; set; }
+
+        public string asName { get; set; }
+        /// <summary>
+        /// 模式，例如：sum, avg, max, min等。
+        /// </summary>
+        public string mode { get; set; }
     }
 }

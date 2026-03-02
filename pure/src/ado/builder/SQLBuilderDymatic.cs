@@ -1,6 +1,7 @@
 
 
 
+using mooSQL.data.call;
 using mooSQL.data.context;
 using mooSQL.utils;
 using System;
@@ -457,6 +458,34 @@ namespace mooSQL.data
             return res;
         }
         /// <summary>
+        /// 查询其它的
+        /// </summary>
+        /// <param name="queryOther"></param>
+        /// <returns></returns>
+        public SQLBuilder selectWith(Action<SQLBuilder> queryOther) {
+            this.clearSelect();
+            queryOther(this);
+            return this;
+        }
+
+        public SQLBuilder selectWith(string queryOther)
+        {
+            this.clearSelect();
+            select(queryOther);
+            return this;
+        }
+        /// <summary>
+        /// 设置汇总字段，配合分页查询使用，可以在分页查询的基础上进行汇总查询，避免重复的条件配置。
+        /// </summary>
+        /// <param name="queryOther"></param>
+        /// <returns></returns>
+        public SQLBuilder selectSummary(string queryOther)
+        {
+            this._MakeUps.addSummaryField(queryOther);
+            return this;
+        }
+
+        /// <summary>
         /// 异步查询
         /// </summary>
         /// <returns></returns>
@@ -509,6 +538,91 @@ namespace mooSQL.data
             }
             return res;
         }
+        /// <summary>
+        /// 查询翻页结果，带汇总
+        /// </summary>
+        /// <returns></returns>
+        public PagedSumDataTable queryPageSum(string selectCols)
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = this.query();
+            clearPage();
+            this.selectWith(selectCols)
+                .select("Count(*) as ToTal");
+            var sumRow = this.queryRow();
+            var res = new PagedSumDataTable()
+            {
+                Items = dt,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            if(sumRow != null)
+            {
+                int columnCount = sumRow.Table.Columns.Count;
+
+                for (int i = 0; i < columnCount; i++)
+                {
+                    DataColumn col = sumRow.Table.Columns[i];
+                    object value = sumRow[i]; // 直接通过索引访问，无查找损耗
+                    //Console.WriteLine($"列索引：{i}，列名：{col.ColumnName}，值：{value}");
+                    res[col.ColumnName] = value;
+                }
+            }
+            //进行检查，如果Total无值，走原有逻辑
+            if (res.Total == null) { 
+                res.Total= this.count();
+            }
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
+        /// <summary>
+        /// 异步查询有汇总的分页结果，selectCols参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount等，查询结果会放在返回对象的字典里，key为列名。
+        /// </summary>
+        /// <param name="selectCols"></param>
+        /// <returns></returns>
+        public async Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = await this.queryAsync();
+            clearPage();
+            this.selectWith(selectCols)
+                .select("Count(*) as ToTal");
+            var res = new PagedSumDataTable()
+            {
+                Items = dt,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            var sumRow = await this.queryRowAsync();
+            if(sumRow != null)
+            {
+                int columnCount = sumRow.Table.Columns.Count;
+
+                for (int i = 0; i < columnCount; i++)
+                {
+                    DataColumn col = sumRow.Table.Columns[i];
+                    object value = sumRow[i]; // 直接通过索引访问，无查找损耗
+                    //Console.WriteLine($"列索引：{i}，列名：{col.ColumnName}，值：{value}");
+                    res[col.ColumnName] = value;
+                }
+            }
+            //进行检查，如果Total无值，走原有逻辑
+            if (res.Total == null) { 
+                res.Total= this.count();
+            }
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
 
 
         /// <summary>
@@ -518,6 +632,11 @@ namespace mooSQL.data
         /// <returns></returns>
         public PageOutput<T> queryPaged<T>()
         {
+            var sumSQL = this._MakeUps.getSummaryFieldSQL();
+            if (!string.IsNullOrWhiteSpace(sumSQL))
+            {
+                return queryPaged<T>(sumSQL);
+            }
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
             var dt = this.query<T>();
@@ -536,6 +655,126 @@ namespace mooSQL.data
             }
             return res;
         }
+        /// <summary>
+        /// 翻页查询，为了不干扰现有仓储逻辑，聚合放在了子属性中的版本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="summSQL"></param>
+        /// <returns></returns>
+        public PageOutput<T> queryPaged<T>(string summSQL) {
+            return this.queryPaged<T>((res) =>
+            {
+                var sum = this.querySummary(summSQL,true);
+                res.Summary = sum;
+                if (sum.TryGetValue("ToTal", out var tt))
+                {
+                    if (tt is int ttt)
+                    {
+                        res.Total = ttt;
+                    }
+                    else
+                    {
+                        res.Total = this.count();
+                    }
+                }
+                else {
+                    res.Total = this.count();
+                }
+            });        
+        }
+
+        public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = this.query<T>();
+            
+            var res = new PageOutput<T>()
+            {
+                Items = dt,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            if (activeOther != null) {
+                activeOther(res);
+            }
+            if (res.Total == 0 && dt.Count() > 0) {
+                res.Total = count();
+            }
+            
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
+
+        public Dictionary<string, object> querySummary(string sumSQL,bool containToal) {
+            var res = new Dictionary<string, object>();
+            clearPage();
+            this.selectWith(sumSQL);
+            if (containToal)
+            { 
+                 select("Count(*) as ToTal");
+            }
+            var sumRow = this.queryRow();
+            if (sumRow != null)
+            {
+                int columnCount = sumRow.Table.Columns.Count;
+                for (int i = 0; i < columnCount; i++)
+                {
+                    DataColumn col = sumRow.Table.Columns[i];
+                    object value = sumRow[i]; // 直接通过索引访问，无查找损耗
+                    //Console.WriteLine($"列索引：{i}，列名：{col.ColumnName}，值：{value}");
+                    res[col.ColumnName] = value;
+                }
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// 查询含有汇总的分页结果，selectCols参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount等，查询结果会放在返回对象的字典里，key为列名。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="selectCols"></param>
+        /// <returns></returns>
+        public PageSumOutput<T> queryPageSum<T>(string selectCols)
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = this.query<T>();
+            var res = new PageSumOutput<T>()
+            {
+                Items = dt,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            clearPage();
+            this.selectWith(selectCols)
+                .select("Count(*) as ToTal");
+            var sumRow = this.queryRow();
+            if(sumRow != null)
+            {
+                int columnCount = sumRow.Table.Columns.Count;
+                for (int i = 0; i < columnCount; i++)
+                {
+                    DataColumn col = sumRow.Table.Columns[i];
+                    object value = sumRow[i]; // 直接通过索引访问，无查找损耗
+                    //Console.WriteLine($"列索引：{i}，列名：{col.ColumnName}，值：{value}");
+                    res[col.ColumnName] = value;
+                }
+            }
+
+
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
+
 
         public async Task<PageOutput<T>> queryPagedAsync<T>()
         {
@@ -557,7 +796,46 @@ namespace mooSQL.data
             }
             return res;
         }
+        /// <summary>
+        /// 异步查询分页含有汇总的结果，selectCols参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount等，查询结果会放在返回对象的字典里，key为列名。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="selectCols"></param>
+        /// <returns></returns>
+        public async Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        {
+            var oldMode = this._AutoClearWay;
+            this._AutoClearWay = CleanWay.Never;
+            var dt = await this.queryAsync<T>();
+            var res = new PageSumOutput<T>()
+            {
+                Items = dt,
+                PageNum = this.current.pageNum,
+                PageSize = current.pageSize
+            };
+            clearPage();
+            this.selectWith(selectCols)
+                .select("Count(*) as ToTal");
+            var sumRow = await this.queryRowAsync();
+            if(sumRow != null)
+            {
+                int columnCount = sumRow.Table.Columns.Count;
 
+                for (int i = 0; i < columnCount; i++)
+                {
+                    DataColumn col = sumRow.Table.Columns[i];
+                    object value = sumRow[i]; // 直接通过索引访问，无查找损耗
+                    //Console.WriteLine($"列索引：{i}，列名：{col.ColumnName}，值：{value}");
+                    res[col.ColumnName] = value;
+                }
+            }
+            this._AutoClearWay = oldMode;
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return res;
+        }
         /// <summary>
         /// 泛型法，查询多行数据
         /// </summary>
@@ -589,6 +867,11 @@ namespace mooSQL.data
             }
             return exeQuery<T>(sql);
         }
+        /// <summary>
+        /// 异步查询多行数据，返回泛型集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public Task<IEnumerable<T>> queryAsync<T>()
         {
 

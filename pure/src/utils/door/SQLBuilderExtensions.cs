@@ -692,6 +692,113 @@ namespace mooSQL.data
                 .ToList();
         }
         /// <summary>
+        /// 以某个单个where条件查询一个列表，为findList的简化版
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static List<T> findListWhere<T>(this SQLBuilder builder, Expression<Func<T,object>> fieldSelector, object value) where T : class, new()
+        {
+
+            var feildName = builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            return clip.query<T>().ToList();
+        }
+        /// <summary>
+        /// 按单个条件查询出字段集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <param name="selectfieldSelector"></param>
+        /// <returns></returns>
+        public static List<R> findFieldsWhere<T,R>(this SQLBuilder builder, Expression<Func<T, object>> fieldSelector, object value, Expression<Func<T, R>> selectfieldSelector) where T : class, new()
+        {
+
+            var feildName = builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            var sfeildName = builder.DBLive.FindFieldName(selectfieldSelector);
+            clip.select(sfeildName);
+            return clip.queryFirstField<R>().ToList();
+        }
+        /// <summary>
+        /// 查询出单个值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <param name="selectfieldSelector"></param>
+        /// <returns></returns>
+        public static R findFieldWhere<T, R>(this SQLBuilder builder, Expression<Func<T, object>> fieldSelector, object value, Expression<Func<T, R>> selectfieldSelector) where T : class, new()
+        {
+
+            var feildName = builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            var sfeildName = builder.DBLive.FindFieldName(selectfieldSelector);
+            clip.select(sfeildName);
+            return clip.queryScalar<R>();
+        }
+        /// <summary>
+        /// 查询唯一的一行
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static T findRowWhere<T>(this SQLBuilder builder, Expression<Func<T, object>> fieldSelector, object value) where T : class, new()
+        {
+
+            var feildName = builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            return clip.queryRow<T>();
+        }
+        /// <summary>
+        /// 设置2个条件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldSelector2"></param>
+        /// <param name="value2"></param>
+        /// <returns></returns>
+        public static T findRowWhere<T>(this SQLBuilder builder, Expression<Func<T, object>> fieldSelector, object value, Expression<Func<T, object>> fieldSelector2, object value2) where T : class, new()
+        {
+
+            var feildName = builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            var feildName2 = builder.DBLive.FindFieldName(fieldSelector2);
+            clip.where(feildName2, value2);
+            return clip.queryRow<T>();
+        }
+        /// <summary>
         /// 快速查询使用，手动指定表名，用于动态分表时使用。
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -888,6 +995,35 @@ namespace mooSQL.data
             doClipFilting(clip, t);
             return clip.count();
         }
+
+        public static int countByClip<T>(this SQLBuilder builder, Action<SQLClip, T> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            doClipFilting(clip, t);
+            return clip.count();
+        }
+        /// <summary>
+        /// 按照一个条件计数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="fieldSelector"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static int countByWhere<T>(this SQLBuilder builder, Expression<Func<T,object>> fieldSelector, object value) where T : class, new()
+        {
+            var feildName=builder.DBLive.FindFieldName(fieldSelector);
+            var clip = builder.useSQL();
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var tbname = builder.DBLive.client.EntityCash.getTableName(typeof(T));
+            clip.from(tbname);
+            clip.where(feildName, value);
+            return clip.count();
+        }
+
+        
+
         /// <summary>
         /// 计数、所有记录数量
         /// </summary>

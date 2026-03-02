@@ -61,7 +61,10 @@ namespace mooSQL.data
         /// <exception cref="NotImplementedException"></exception>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (IsClose) return;
+            IsClose = true;
+            SQLCommands?.Clear();
+            //throw new NotImplementedException();
         }
         /// <summary>
         /// 提交

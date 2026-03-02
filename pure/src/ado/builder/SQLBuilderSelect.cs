@@ -193,6 +193,19 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 三段式join写法，更符合大多数人的习惯，自动帮你把 on xxx=xxx 的部分拼接好。注意：onLeft 和 onRight 需要写全表名或别名，如 t1.id, t2.id等。否则可能会出现歧义错误。
+        /// </summary>
+        /// <param name="targetTable"></param>
+        /// <param name="onLeft"></param>
+        /// <param name="onRight"></param>
+        /// <returns></returns>
+        public SQLBuilder join(string targetTable,string onLeft ,string onRight)
+        {
+            var joinSQLString = string.Format(" {0} on {1}={2} ", targetTable, onLeft, onRight);
+            current.fromAppend(joinSQLString);
+            return this;
+        }
+        /// <summary>
         /// 当join语句需要参数化时使用此方法。
         /// </summary>
         /// <param name="JoinSQLPart"></param>

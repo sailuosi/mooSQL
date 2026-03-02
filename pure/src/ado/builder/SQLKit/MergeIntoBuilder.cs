@@ -268,8 +268,14 @@ namespace mooSQL.data
             {
                 return frag;
             }
-            foreach (var branch in branches) { 
-                frag.mergeWhens.Add(branch.toFrag());
+            foreach (var branch in branches) {
+                var f = branch.toFrag();
+                //修复当分支没有设置更新或插入字段时，仍然会输出一个空的分支，导致生成的SQL语法错误的问题。
+                if (f== null||f.Empty)
+                {
+                    continue;
+                }
+                frag.mergeWhens.Add(f);
             }
             return frag;
 

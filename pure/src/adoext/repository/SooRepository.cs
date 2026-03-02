@@ -41,13 +41,13 @@ namespace mooSQL.data
         /// <param name="DB"></param>
         public SooRepository(DBInstance DB) { 
             this.DBLive = DB;
-            if (DBLive.client.Translator != null)
-            {
-                this.Translator = DBLive.client.Translator;
-            }
-            else {
+            //if (DBLive.client.Translator != null)
+            //{
+            //    this.Translator = DBLive.client.Translator;
+            //}
+            //else {
                 this.Translator = DBLive.client.ClientFactory.getEntityTranslator();
-            }
+            //}
                 
         }
         /// <summary>
@@ -703,6 +703,7 @@ namespace mooSQL.data
             if (onBuildSQL != null) {
                 onBuildSQL(kit,en);
             }
+
             var t = kit.queryPaged<T>();
             return t;
         }

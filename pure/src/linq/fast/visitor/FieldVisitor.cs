@@ -33,8 +33,22 @@ namespace mooSQL.linq
                 }
 
                 var tar= this.Builder.DBLive.client.EntityCash.getFieldCol(prop,Context.EntityType);
-                if(tar==null)
+                if (tar == null) {
+                    //处理未能正确解析DbBus下的select在Group下使用的问题
+                    bool isGroupName1 = prop.DeclaringType.Name.StartsWith("IGrouping`");
+                    bool isGroupName2 = prop.DeclaringType.IsGenericType && prop.DeclaringType.GetGenericTypeDefinition() == typeof(IGrouping<,>);
+                    if ((isGroupName1||isGroupName2) && prop.Name=="Key")
+                    {
+                        //此时为group by下的select成员
+                        var groupedCols = this.Context.TopLayer.Current.current.groupbyPart;
+                        foreach (var col in groupedCols) {
+                            Context.TopLayer.Current.select(col);
+                        }
+                        return null;
+                    }
                     throw new Exception($"字段{prop.Name}找不到对应的数据库字段，请检查实体类的特性标注是否正确！当前实体类型为{prop.DeclaringType.Name}！");
+                }
+
                 
                 var field= new ParsedField();
                 field.Column = tar;
