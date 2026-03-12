@@ -10,6 +10,10 @@ namespace mooSQL.data.Mapping
 {
     internal class InternalEntityParser : BaseAttrEntityAnalyser<SooTableAttribute>
     {
+
+        public InternalEntityParser() {
+            this.InheritColumn = true;
+        }
         public override EntityColumn ParseColumn(Type entity, PropertyInfo propertyInfo, EntityInfo entityInfo, EntityColumn entityColumn)
         {
             var attrs = propertyInfo.GetCustomAttributes<SooColumnAttribute>();
@@ -36,8 +40,11 @@ namespace mooSQL.data.Mapping
 
                     entityColumn.Length = attr.Length;
                     entityColumn.IsPrimarykey = attr.IsPrimaryKey;
-                    entityColumn.IsNullable = attr.CanBeNull;         
-                    
+                    entityColumn.IsNullable = attr.CanBeNull;
+                    //主键字段不能为空
+                    if (entityColumn.IsPrimarykey){
+                        entityColumn.IsNullable = false;
+                    }
                     entityColumn.Scale = attr.Scale;
                     entityColumn.Precision = attr.Precision;
                     entityColumn.DataType = attr.DataType;
@@ -172,6 +179,7 @@ namespace mooSQL.data.Mapping
             {
                 info = new mooSQL.data.EntityInfo();
                 info.Type = entity;
+                info.EntityName = entity.Name;
             }
             var name= attr.Name;
             if (string.IsNullOrWhiteSpace(name)) { 

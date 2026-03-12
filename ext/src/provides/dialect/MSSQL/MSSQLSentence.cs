@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 
 using mooSQL.data;
@@ -154,6 +154,47 @@ public class MSSQLSentence : SQLSentence
         }
         return tar;
     }
+    public override bool? IsView(string tabelOrViewName, string dbName = null)
+    {
+        if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+        var kit = DBLive.useSQL()
+            .select("1")
+            .from("INFORMATION_SCHEMA.VIEWS")
+            .where("TABLE_NAME", tabelOrViewName);
+        if (!string.IsNullOrWhiteSpace(dbName))
+            kit = kit.where("TABLE_SCHEMA", dbName);
+        else
+            kit = kit.where("TABLE_CATALOG = DB_NAME()").where("TABLE_SCHEMA = SCHEMA_NAME()");
+        var row = kit.queryRow();
+        return row != null;
+    }
+
+    public override bool? IsExitsTableCol(string table, string col)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+        var c = DBLive.useSQL()
+            .from("INFORMATION_SCHEMA.COLUMNS")
+            .where("TABLE_NAME", table)
+            .where("COLUMN_NAME", col)
+            .where("TABLE_CATALOG = DB_NAME()")
+            .where("TABLE_SCHEMA = SCHEMA_NAME()")
+            .count();
+        return c > 0;
+    }
+
+    public override bool IsExitsTableIndex(string table, string indexName)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+        var c = DBLive.useSQL()
+            .from("sys.indexes i")
+            .innerJoin("sys.objects o ON i.object_id = o.object_id")
+            .where("o.type", "U")
+            .where("o.name", table)
+            .where("i.name", indexName)
+            .count();
+        return c > 0;
+    }
+
     public override SQLCmd buildHasTable(string TableName)
     {
         var cmd = DBLive.useSQL()
@@ -367,4 +408,14 @@ public class MSSQLSentence : SQLSentence
             .ToList();
     }
 
+    public override string GetTablePKName(string table)
+    {
+        return DBLive.useSQL()
+            .select("k.CONSTRAINT_NAME")
+            .from("INFORMATION_SCHEMA.KEY_COLUMN_USAGE k")
+            .innerJoin("INFORMATION_SCHEMA.TABLE_CONSTRAINTS c ON k.CONSTRAINT_CATALOG = c.CONSTRAINT_CATALOG AND k.CONSTRAINT_SCHEMA = c.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = c.CONSTRAINT_NAME AND k.TABLE_NAME = c.TABLE_NAME AND c.CONSTRAINT_TYPE='PRIMARY KEY'")
+            .where("k.TABLE_NAME", table)
+            .top(1)
+            .queryRowString("");
+    }
 }

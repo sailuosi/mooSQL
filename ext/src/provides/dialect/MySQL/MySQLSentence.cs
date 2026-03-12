@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using mooSQL.data;
 using mooSQL.data.model;
@@ -58,6 +58,46 @@ public class MySQLSentence :SQLSentence
             .where("table_schema = DATABASE()")
             .toSelectCount();
         return cmd;
+    }
+
+    public override bool? IsView(string tabelOrViewName, string dbName = null)
+    {
+        if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+        var kit = DBLive.useSQL()
+            .select("TABLE_TYPE")
+            .from("information_schema.TABLES")
+            .where("table_name", tabelOrViewName);
+        if (!string.IsNullOrWhiteSpace(dbName))
+            kit = kit.where("table_schema", dbName);
+        else
+            kit = kit.where("table_schema = DATABASE()");
+        var t = kit.queryRowString(null);
+        if (string.IsNullOrEmpty(t)) return false;
+        return string.Equals(t, "VIEW", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public override bool? IsExitsTableCol(string table, string col)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+        var c = DBLive.useSQL()
+            .from("information_schema.columns")
+            .where("table_schema = DATABASE()")
+            .where("table_name", table)
+            .where("column_name", col)
+            .count();
+        return c > 0;
+    }
+
+    public override bool IsExitsTableIndex(string table, string indexName)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+        var c = DBLive.useSQL()
+            .from("information_schema.statistics")
+            .where("table_schema = DATABASE()")
+            .where("table_name", table)
+            .where("index_name", indexName)
+            .count();
+        return c > 0;
     }
 
     public override List<TableInfo> GetTables(GetSchemaOptions options)
@@ -290,6 +330,17 @@ SELECT
                 };
             })
             .ToList();
+    }
+    public override string GetTablePKName(string table)
+    {
+        return DBLive.useSQL()
+            .select("k.CONSTRAINT_NAME")
+            .from("INFORMATION_SCHEMA.KEY_COLUMN_USAGE k")
+            .innerJoin("INFORMATION_SCHEMA.TABLE_CONSTRAINTS c ON c.CONSTRAINT_CATALOG = k.CONSTRAINT_CATALOG AND c.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND c.TABLE_NAME = k.TABLE_NAME AND c.CONSTRAINT_TYPE='PRIMARY KEY'")
+            .where("k.TABLE_NAME", table)
+            .where("k.TABLE_SCHEMA = DATABASE()")
+            .top(1)
+            .queryRowString("");
     }
 
 }

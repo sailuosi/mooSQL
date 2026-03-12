@@ -21,6 +21,8 @@ namespace mooSQL.data
         {
             expression = new OBMySQLExpress(this);
             sentence = new MySQLSentence(this);
+            mapping = new MySQLMappingPanel();
+            clauseTranslator = new MySQLClauseTranslator(this);
             function = new MySQLFunction();
             this.initVersions();
         }

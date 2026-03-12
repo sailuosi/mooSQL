@@ -334,7 +334,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// group by 后面跟随的内容，不用带关键字
+        /// group by 后面跟随的内容，不用带关键字，多次调用累积
         /// </summary>
         /// <param name="groupField"></param>
         /// <returns></returns>

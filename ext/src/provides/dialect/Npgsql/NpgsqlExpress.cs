@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 
 using System;
@@ -14,7 +14,7 @@ namespace mooSQL.data
         public NpgsqlExpress(Dialect dia) : base(dia) {
             _paraPrefix = ":";
             _selectAutoIncrement = "";
-            _provideType = "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess";
+            _provideType = "Npgsql.NpgsqlFactory,Npgsql";
         }
 
         public override string wrapKeyword(string value)
@@ -82,7 +82,12 @@ namespace mooSQL.data
                 }
             });
         }
-
+        /// <summary>
+        /// 生成插入的sql
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public override string buildInsert(FragSQL frag)
         {
             StringBuilder sb = new StringBuilder();
@@ -95,15 +100,8 @@ namespace mooSQL.data
 
             if (frag.insertValues != null && frag.insertValues.Count > 0)
             {
-                //多行插入
-                sb.Append(" VALUES ");
-                for(var i=0; i<frag.insertValues.Count;i++)
-                {
-                    sb.AppendFormat(" SELECT {0} from dual ", frag.insertValues[i]);
-                    if(i < frag.insertValues.Count-1) { 
-                        sb.Append("UNION"); 
-                    }
-                }
+                //多行插入（PostgreSQL: VALUES (row1), (row2), ...）
+                sb.AppendFormat(" VALUES ({0})", string.Join("),(", frag.insertValues));
                 return sb.ToString();
             }
             //如果 from 不为空，则是 insert into  select...

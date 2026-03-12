@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using mooSQL.data;
 using System;
@@ -47,7 +47,40 @@ public class SQLiteSentence :SQLSentence
     public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables " +
         "where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'";
 
+    public override string GetTablePKName(string table)
+    {
+        // SQLite 简单主键通常无约束名，返回空；若有命名 CONSTRAINT name PRIMARY KEY 可从 sqlite_master 解析，此处统一返回空
+        return string.Empty;
+    }
 
+    public override bool? IsView(string tabelOrViewName, string dbName = null)
+    {
+        if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+        var type = DBLive.useSQL()
+            .select("type")
+            .from("sqlite_master")
+            .where("type", "view")
+            .where("name", tabelOrViewName)
+            .queryRowString(null);
+        return !string.IsNullOrEmpty(type);
+    }
 
+    public override bool? IsExitsTableCol(string table, string col)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+        var kit = DBLive.useSQL();
+        kit.ps.Add("Tab", table);
+        var c = kit.from("pragma_table_info(#{Tab})").where("name", col).count();
+        return c > 0;
+    }
+
+    public override bool IsExitsTableIndex(string table, string indexName)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+        var kit = DBLive.useSQL();
+        kit.ps.Add("Tab", table);
+        var row = kit.from("pragma_index_list(#{Tab})").where("name", indexName).queryRow();
+        return row != null;
+    }
 
 }

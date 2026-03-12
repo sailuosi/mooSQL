@@ -1,4 +1,4 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,5 +38,44 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'\r\n                         ";
 
+        public override bool? IsView(string tabelOrViewName, string dbName = null)
+        {
+            if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+            var kit = DBLive.useSQL()
+                .select("TABLE_TYPE")
+                .from("information_schema.TABLES")
+                .where("table_name", tabelOrViewName);
+            if (!string.IsNullOrWhiteSpace(dbName))
+                kit = kit.where("table_schema", dbName);
+            else
+                kit = kit.where("table_schema = DATABASE()");
+            var t = kit.queryRowString(null);
+            if (string.IsNullOrEmpty(t)) return false;
+            return string.Equals(t, "VIEW", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override bool? IsExitsTableCol(string table, string col)
+        {
+            if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+            var c = DBLive.useSQL()
+                .from("information_schema.columns")
+                .where("table_schema = DATABASE()")
+                .where("table_name", table)
+                .where("column_name", col)
+                .count();
+            return c > 0;
+        }
+
+        public override bool IsExitsTableIndex(string table, string indexName)
+        {
+            if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+            // TDengine indexes metadata: information_schema.INS_INDEXES
+            var c = DBLive.useSQL()
+                .from("information_schema.INS_INDEXES")
+                .where("table_name", table)
+                .where("index_name", indexName)
+                .count();
+            return c > 0;
+        }
     }
 }

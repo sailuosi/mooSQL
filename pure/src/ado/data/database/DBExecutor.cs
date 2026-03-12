@@ -289,7 +289,14 @@ namespace mooSQL.data
                 }
             }
         }
-
+        /// <summary>
+        /// 异步执行命令
+        /// </summary>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="sql"></param>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<R> ExecuteCmdAsync<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext,Task<R>> executor)
         {
 

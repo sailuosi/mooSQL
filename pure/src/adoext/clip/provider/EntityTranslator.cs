@@ -231,7 +231,13 @@ namespace mooSQL.data
 
             return new StatusResult(true, "");
         }
-
+        /// <summary>
+        /// 设置主键条件
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="en"></param>
+        /// <exception cref="Exception"></exception>
         public  void setPKWhere(SQLBuilder builder, object entity, EntityInfo en)
         {
             bool gotWhere = false;
@@ -250,7 +256,13 @@ namespace mooSQL.data
                 throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
             }
         }
-
+        /// <summary>
+        /// 设置主键条件
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entitys"></param>
+        /// <param name="en"></param>
+        /// <exception cref="Exception"></exception>
         public void setPKWhere(SQLBuilder builder, IEnumerable<object> entitys, EntityInfo en)
         {
             bool gotWhere = false;
@@ -603,7 +615,12 @@ namespace mooSQL.data
 
             return kit;
         }
-
+        /// <summary>
+        /// 构建查询的from部分，主要用于复杂查询表，普通表和视图的from部分构建可以直接使用BuildSelectFrom方法。该方法主要用于在BuildSelectFrom方法构建基础查询后，对复杂查询表的from部分进行二次构建，以满足特殊需求。
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="en"></param>
+        /// <returns></returns>
         public SQLBuilder BuildFromPart(SQLBuilder kit, EntityInfo en)
         {
             var exp = kit.Dialect.expression;
@@ -856,7 +873,12 @@ namespace mooSQL.data
 
 
         }
-
+        /// <summary>
+        /// 处理实体条件
+        /// </summary>
+        /// <param name="wh"></param>
+        /// <param name="en"></param>
+        /// <param name="kit"></param>
         public void PatchEnWhere(EntityWhere wh, EntityInfo en, SQLBuilder kit)
         {
             //自由WHERE
@@ -903,7 +925,11 @@ namespace mooSQL.data
             }
             kit.where(fie, wh.Value, wh.Op);
         }
-
+        /// <summary>
+        /// 解析边界符
+        /// </summary>
+        /// <param name="st"></param>
+        /// <param name="kit"></param>
         public void PatchSink(SinkType st, SQLBuilder kit)
         {
             switch (st)
@@ -916,9 +942,19 @@ namespace mooSQL.data
                     kit.sink("AND NOT"); break;
                 case SinkType.OrNot:
                     kit.sink("OR NOT"); break;
+                case SinkType.NotAnd:
+                    kit.sinkNot(); break;
+                case SinkType.NotOr:
+                    kit.sinkNotOR(); break;
             }
         }
-
+        /// <summary>
+        /// 解析操作符，写入where
+        /// </summary>
+        /// <param name="cond"></param>
+        /// <param name="en"></param>
+        /// <param name="kit"></param>
+        /// <returns></returns>
         public int PatchConditionWhere(QueryCondition cond, EntityInfo en, SQLBuilder kit)
         {
             var cc = 0;

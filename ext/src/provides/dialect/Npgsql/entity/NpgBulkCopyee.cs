@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Spreadsheet;
+
 using Npgsql;
-using NPOI.SS.Formula.Functions;
+
 
 namespace mooSQL.data
 {

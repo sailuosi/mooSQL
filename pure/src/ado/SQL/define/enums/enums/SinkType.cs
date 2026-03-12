@@ -31,5 +31,13 @@ namespace mooSQL.data.model
         /// 开启子条件范围，前缀为OR NOT
         /// </summary>
         OrNot=4,
+        /// <summary>
+        /// 否定and范围组
+        /// </summary>
+        NotAnd=5,
+        /// <summary>
+        /// 否定OR范围组
+        /// </summary>
+        NotOr=6,
     }
 }

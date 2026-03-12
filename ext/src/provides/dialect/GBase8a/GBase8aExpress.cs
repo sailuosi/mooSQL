@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
@@ -16,7 +16,7 @@ namespace mooSQL.data
     public class GBase8aExpress:MySQLExpress
     {
         public GBase8aExpress(Dialect dia) : base(dia) {
-            _paraPrefix = "";
+            _paraPrefix = "?";
             _selectAutoIncrement = "Select Last_Insert_Id()";
             _provideType = "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data";
         }

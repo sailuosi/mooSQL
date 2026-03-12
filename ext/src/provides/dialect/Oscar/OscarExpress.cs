@@ -1,4 +1,4 @@
-﻿
+
 
 using mooSQL.data.builder;
 using System;
@@ -40,12 +40,32 @@ namespace mooSQL.data
 
             if (frag.toped > -1)
             {
-                sb.Append("rownum <= ");
+                sb.Append("LIMIT ");
                 sb.Append(frag.toped);
                 sb.Append(" ");
             }
 
             return sb.ToString();
+        }
+        /// <inheritdoc/>
+        public override string buildPagedSelect(FragSQL frag)
+        {
+            return this.buildPagedSelectTail(frag, (sb) => {
+                if (frag.pageSize > -1)
+                {
+                    int end = frag.pageSize * (frag.pageNum - 1);
+                    sb.Append("LIMIT ");
+                    sb.Append(frag.pageSize);
+                    sb.Append(" OFFSET ");
+                    sb.Append(end);
+                }
+                else if (frag.toped > -1)
+                {
+                    sb.Append("LIMIT ");
+                    sb.Append(frag.toped);
+                    sb.Append(" ");
+                }
+            });
         }
         /// <inheritdoc/>
         public override string buildInsert(FragSQL frag)

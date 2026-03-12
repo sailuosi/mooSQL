@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 
 using System.Text;
@@ -7,6 +7,9 @@ using System.Text.RegularExpressions;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 方言公共逻辑：构建单条插入等。
+    /// </summary>
     public partial class Dialect
     {
 

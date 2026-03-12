@@ -9,7 +9,8 @@ using System.Data.Common;
 
 using System.Linq;
 using System.Text;
-
+using System.Threading.Tasks;
+using mooSQL.data.MSSQL;
 
 
 #if NET451
@@ -31,6 +32,7 @@ namespace mooSQL.data
         {
             expression = new MSSQLExpress(this);
             sentence = new MSSQLSentence(this);
+            mapping = new MSSQLMappingPanel();
             function = new MSSQLFunction();
             initDBVersion();
         }

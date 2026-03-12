@@ -1,4 +1,4 @@
-﻿using mooSQL.data.builder;
+using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,16 +75,8 @@ namespace mooSQL.data
 
             if (frag.insertValues != null && frag.insertValues.Count > 0)
             {
-                //多行插入
-                sb.Append(" VALUES ");
-                for (var i = 0; i < frag.insertValues.Count; i++)
-                {
-                    sb.AppendFormat(" SELECT {0} from dual ", frag.insertValues[i]);
-                    if (i < frag.insertValues.Count - 1)
-                    {
-                        sb.Append("UNION");
-                    }
-                }
+                //多行插入（TDengine: VALUES (row1), (row2), ...）
+                sb.AppendFormat(" VALUES ({0})", string.Join("),(", frag.insertValues));
                 return sb.ToString();
             }
             //如果 from 不为空，则是 insert into  select...

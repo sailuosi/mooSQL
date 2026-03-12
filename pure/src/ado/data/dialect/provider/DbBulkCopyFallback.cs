@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -21,10 +21,10 @@ namespace mooSQL.data
         /// </summary>
         public int MaxParaCount = 1000;
         /// <summary>
-        /// 
+        /// 将数据行批量写入服务器。
         /// </summary>
-        /// <param name="rows"></param>
-        /// <returns></returns>
+        /// <param name="rows">要写入的数据行。</param>
+        /// <returns>批量写入结果。</returns>
         public override BulkCopyResult WriteToServer(DataRow[] rows)
         {
             if (rows == null)

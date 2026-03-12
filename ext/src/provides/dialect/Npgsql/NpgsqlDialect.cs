@@ -1,5 +1,5 @@
 ﻿using mooSQL.data;
-
+using mooSQL.data.Npgsql;
 using Npgsql;
 using NpgsqlTypes;
 using System;
@@ -17,6 +17,9 @@ namespace mooSQL.data
         public NpgsqlDialect()
         {
             expression = new NpgsqlExpress(this);
+            clauseTranslator= new NpgClauseTranslator(this);
+
+            mapping = new NpgMappingPanel();
             sentence = new NpgSentence(this);
             function = new NpgSQLFunction();
             initVersions();

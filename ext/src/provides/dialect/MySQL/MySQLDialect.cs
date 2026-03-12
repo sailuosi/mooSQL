@@ -18,6 +18,8 @@ namespace mooSQL.data
         {
             expression = new MySQLExpress(this);
             sentence = new MySQLSentence(this);
+            clauseTranslator = new MySQLClauseTranslator(this);
+            mapping = new MySQLMappingPanel();
             function = new MySQLFunction();
             this.initDBVersion();
         }

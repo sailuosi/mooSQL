@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 
 using mooSQL.data;
@@ -76,5 +76,54 @@ public class OscarSentence : SQLSentence
     public override bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
     {
         throw new NotImplementedException();
+    }
+
+    public override bool? IsView(string tabelOrViewName, string dbName = null)
+    {
+        if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+        var relkind = DBLive.useSQL()
+            .select("relkind")
+            .from("pg_class")
+            .where("relname", tabelOrViewName.ToLowerInvariant())
+            .queryRowString(null);
+        if (string.IsNullOrEmpty(relkind)) return false;
+        return relkind == "v";
+    }
+
+    public override bool? IsExitsTableCol(string table, string col)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+        var c = DBLive.useSQL()
+            .from("information_schema.columns")
+            .where("table_schema = CURRENT_SCHEMA()")
+            .where("table_name", table.ToLowerInvariant())
+            .where("column_name", col.ToLowerInvariant())
+            .count();
+        return c > 0;
+    }
+
+    public override bool IsExitsTableIndex(string table, string indexName)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+        var c = DBLive.useSQL()
+            .from("pg_indexes")
+            .where("schemaname = current_schema()")
+            .where("tablename", table.ToLowerInvariant())
+            .where("indexname", indexName.ToLowerInvariant())
+            .count();
+        return c > 0;
+    }
+
+    public override string GetTablePKName(string table)
+    {
+        if (string.IsNullOrWhiteSpace(table)) return string.Empty;
+        return DBLive.useSQL()
+            .select("pg_constraint.conname")
+            .from("pg_constraint")
+            .innerJoin("pg_class ON pg_constraint.conrelid = pg_class.oid")
+            .where("pg_class.relname", table.ToLowerInvariant())
+            .where("pg_constraint.contype", "p")
+            .top(1)
+            .queryRowString("");
     }
 }

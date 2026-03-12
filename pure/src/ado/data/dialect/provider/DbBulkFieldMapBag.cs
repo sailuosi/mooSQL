@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +11,7 @@ namespace mooSQL.data
     /// </summary>
     public class DbBulkFieldMapBag
     {
-
+        /// <summary>源列到目标列的映射列表。</summary>
         public List<DbBulkFieldMap> Maps = new List<DbBulkFieldMap>();
 
         public DbBulkFieldMapBag Add(DbBulkFieldMap tar)

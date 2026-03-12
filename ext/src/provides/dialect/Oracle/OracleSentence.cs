@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 
 using mooSQL.data;
@@ -97,6 +97,44 @@ public class OracleSentence : SQLSentence
             .toSelectCount();
         return cmd;
     }
+
+    public override bool? IsView(string tabelOrViewName, string dbName = null)
+    {
+        if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
+        var name = tabelOrViewName.IndexOf('.') >= 0 ? tabelOrViewName.Split('.')[tabelOrViewName.Split('.').Length - 1] : tabelOrViewName;
+        var row = DBLive.useSQL()
+            .select("1")
+            .from("user_objects")
+            .where("object_type", "VIEW")
+            .where("object_name", name.ToUpperInvariant())
+            .queryRow();
+        return row != null;
+    }
+
+    public override bool? IsExitsTableCol(string table, string col)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(col)) return null;
+        var tbl = table.IndexOf('.') >= 0 ? table.Split('.')[table.Split('.').Length - 1] : table;
+        var c = DBLive.useSQL()
+            .from("user_tab_columns")
+            .where("table_name", tbl.ToUpperInvariant())
+            .where("column_name", col.ToUpperInvariant())
+            .count();
+        return c > 0;
+    }
+
+    public override bool IsExitsTableIndex(string table, string indexName)
+    {
+        if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(indexName)) return false;
+        var tbl = table.IndexOf('.') >= 0 ? table.Split('.')[table.Split('.').Length - 1] : table;
+        var c = DBLive.useSQL()
+            .from("user_indexes")
+            .where("table_name", tbl.ToUpperInvariant())
+            .where("index_name", indexName.ToUpperInvariant())
+            .count();
+        return c > 0;
+    }
+
     private void LoadCurrentUser()
     {
         _currentUser ??= DBLive.ExeQueryScalar<string>("select user from dual", null);
@@ -369,6 +407,19 @@ public class OracleSentence : SQLSentence
                 IsNullable = true
             };
         }).ToList();
+    }
+
+    public override string GetTablePKName(string table)
+    {
+        if (string.IsNullOrWhiteSpace(table)) return string.Empty;
+        var tbl = table.IndexOf('.') >= 0 ? table.Split('.')[table.Split('.').Length - 1] : table;
+        return DBLive.useSQL()
+            .select("constraint_name")
+            .from("user_constraints")
+            .where("table_name", tbl.ToUpperInvariant())
+            .where("constraint_type", "P")
+            .top(1)
+            .queryRowString("");
     }
 
 }
