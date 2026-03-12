@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>bitbug_favicon.png</PackageIcon>
+    <LangVersion>12</LangVersion>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+	<VersionPrefix>8.0.1.1</VersionPrefix>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="../packfile/bitbug_favicon.png" Visible="false" Pack="true">
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="../packfile/readme.md" Link="readme.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+</Project>
