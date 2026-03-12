@@ -1,0 +1,236 @@
+﻿using System;
+using System.Linq.Expressions;
+
+namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
+{
+	using Common;
+	using SqlQuery;
+	using Linq.Translation;
+	using mooSQL.data.model;
+	using mooSQL.data;
+
+	public class PostgreSQLMemberTranslator : ProviderMemberTranslatorDefault
+	{
+		class SqlTypesTranslation : SqlTypesTranslationDefault
+		{
+			protected override Expression? ConvertTinyInt(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Int16));
+
+			protected override Expression? ConvertMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(19, 4));
+
+			protected override Expression? ConvertSmallMoney(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Decimal).WithPrecisionScale(10, 4));
+
+			protected override Expression? ConvertDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
+
+			protected override Expression? ConvertDateTime2(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
+
+			protected override Expression? ConvertSmallDateTime(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
+
+			protected override Expression? ConvertDateTimeOffset(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.Timestamp));
+
+			protected override Expression? ConvertNVarChar(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
+			{
+				if (!translationContext.TryEvaluate<int>(methodCall.Arguments[0], out var length))
+					return null;
+
+				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.VarChar));
+			}
+
+			protected override Expression? ConvertDefaultNVarChar(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
+				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.VarChar));
+		}
+
+		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
+		{
+			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			{
+				var factory      = translationContext.ExpressionFactory;
+				var intDbType    = factory.GetDbDataType(typeof(int));
+				var doubleDbType = factory.GetDbDataType(typeof(double));
+
+				string? partStr;
+
+				switch (datepart)
+				{
+					case Sql.DateParts.Year:        partStr = "year";        break;
+					case Sql.DateParts.Quarter:     partStr = "quarter";     break;
+					case Sql.DateParts.Month:       partStr = "month";       break;
+					case Sql.DateParts.DayOfYear:   partStr = "doy";         break;
+					case Sql.DateParts.Day:         partStr = "day";         break;
+					case Sql.DateParts.Week:        partStr = "week";        break;
+					case Sql.DateParts.WeekDay:     partStr = "dow";         break;
+					case Sql.DateParts.Hour:        partStr = "hour";        break;
+					case Sql.DateParts.Minute:      partStr = "minute";      break;
+					case Sql.DateParts.Second:      partStr = "second";      break;
+					case Sql.DateParts.Millisecond:
+					{
+						// Cast(To_Char({date}, 'MS') as int
+
+						var toCharExpression = factory.Function(factory.GetDbDataType(typeof(string)), "To_Char", dateTimeExpression, factory.Value("MS"));
+						var castExpression   = factory.Cast(toCharExpression, intDbType);
+
+						return castExpression;
+					}
+					default:
+						return null;
+				}
+
+                IExpWord resultExpression;
+
+				var extractDbType = doubleDbType;
+				/*if (datepart == Sql.DateParts.Hour)
+				{
+					resultExpression = factory.Function(intDbType, "Extract", factory.Fragment(intDbType, $"{partStr} From {{0}}", dateTimeExpression));
+				}
+				else*/
+				{
+					resultExpression = factory.Cast(
+						factory.Function(extractDbType, "Extract", factory.Fragment(doubleDbType, $"{partStr} From {{0}}", dateTimeExpression)),
+						intDbType);
+				}
+
+				if (datepart == Sql.DateParts.WeekDay)
+				{
+					resultExpression = factory.Increment(resultExpression);
+				}
+
+				return resultExpression;
+			}
+
+			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			{
+				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
+			}
+
+			protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
+			{
+				// date_trunc('day', dateExpression)
+
+				var factory = translationContext.ExpressionFactory;
+
+				var dateTruncExpression = factory.Function(factory.GetDbDataType(dateExpression), "Date_Trunc", factory.Value("day"), dateExpression);
+
+				return dateTruncExpression;
+			}
+
+			protected override IExpWord? TranslateDateTimeOffsetTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
+			{
+				// date_trunc('day', dateExpression AT TIME ZONE 'UTC')::date
+
+				var factory = translationContext.ExpressionFactory;
+
+				var atTimeZone = factory.Fragment(factory.GetDbDataType(dateExpression), "{0} AT TIME ZONE {1}", dateExpression, factory.Value("UTC"));
+
+				var dateTruncExpression = factory.Function(factory.GetDbDataType(dateExpression), "Date_Trunc", factory.Value("day"), atTimeZone);
+
+				dateTruncExpression = factory.Cast(dateTruncExpression, factory.GetDbDataType(typeof(DateTime)).WithDataType(DataFam.Date));
+
+				return dateTruncExpression;
+			}
+
+			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			{
+				var factory      = translationContext.ExpressionFactory;
+				var intervalType = factory.GetDbDataType(typeof(TimeSpan)).WithDataType(DataFam.Interval);
+
+                IExpWord ToInterval(IExpWord numberExpression, string intervalKind)
+				{
+					var intervalExpr = factory.Fragment(intervalType, "Interval {0}", factory.Value(intervalKind));
+
+					return factory.Multiply(intervalType, numberExpression, intervalExpr);
+				}
+
+                IExpWord intervalExpr;
+				switch (datepart)
+				{
+					case Sql.DateParts.Year:    intervalExpr = ToInterval(increment, "1 Year"); break;
+					case Sql.DateParts.Quarter: intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Month"), 3); break;
+					case Sql.DateParts.Month:   intervalExpr = ToInterval(increment, "1 Month"); break;
+					case Sql.DateParts.Week:        intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Day"), 7); break;
+					case Sql.DateParts.Hour:        intervalExpr = ToInterval(increment, "1 Hour"); break;
+					case Sql.DateParts.Minute:      intervalExpr = ToInterval(increment, "1 Minute"); break;
+					case Sql.DateParts.Second:      intervalExpr = ToInterval(increment, "1 Second"); break;
+					case Sql.DateParts.Millisecond: intervalExpr = ToInterval(increment, "1 Millisecond"); break;
+					case Sql.DateParts.DayOfYear:
+					case Sql.DateParts.WeekDay:
+					case Sql.DateParts.Day: intervalExpr = ToInterval(increment, "1 Day"); break;
+					default:
+						return null;
+				}
+
+				var resultExpression = factory.Add(factory.GetDbDataType(dateTimeExpression), dateTimeExpression, intervalExpr);
+				return resultExpression;
+			}
+
+			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			{
+				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
+			}
+
+			protected override IExpWord? TranslateMakeDateTime(
+				ITranslationContext translationContext,
+				DbDataType          resulType,
+                IExpWord      year,
+                IExpWord      month,
+                IExpWord      day,
+                IExpWord?     hour,
+                IExpWord?     minute,
+                IExpWord?     second,
+                IExpWord?     millisecond)
+			{
+				var factory        = translationContext.ExpressionFactory;
+				var dateType       = resulType;
+				var intDataType    = factory.GetDbDataType(typeof(int));
+				var doubleDataType = factory.GetDbDataType(typeof(double));
+
+                IExpWord resultExpression;
+
+				hour   = hour   == null ? factory.Value(intDataType, 0) : factory.Cast(hour, intDataType);
+				minute = minute == null ? factory.Value(intDataType, 0) : factory.Cast(minute, intDataType);
+				second = second == null ? factory.Value(doubleDataType, 0.0) : factory.Cast(second, doubleDataType);
+
+				if (millisecond != null)
+				{
+					millisecond = factory.Cast(millisecond, doubleDataType);
+					second      = factory.Add(doubleDataType, second, factory.Div(doubleDataType, millisecond, 1000));
+				}
+
+				resultExpression = factory.Function(dateType, "make_timestamp",
+					year, month, day,
+					hour,
+					minute,
+					second
+				);
+
+				return resultExpression;
+			}
+
+			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			{
+				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
+			}
+
+			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			{
+				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
+			}
+		}
+
+		protected override IMemberTranslator CreateSqlTypesTranslator()
+		{
+			return new SqlTypesTranslation();
+		}
+
+		protected override IMemberTranslator CreateDateMemberTranslator()
+		{
+			return new DateFunctionsTranslator();
+		}
+
+	}
+}
