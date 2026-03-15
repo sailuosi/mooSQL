@@ -1,0 +1,52 @@
+﻿using System;
+using System.Globalization;
+using System.Text;
+
+namespace mooSQL.linq.SqlProvider
+{
+    using mooSQL.data.model;
+    using SqlQuery;
+
+	sealed class HintWithParametersExtensionBuilder : ISqlQueryExtensionBuilder
+	{
+		void ISqlQueryExtensionBuilder.Build(NullabilityContext nullability, ISqlBuilder sqlBuilder, StringBuilder stringBuilder, QueryExtension sqlQueryExtension)
+		{
+			var args  = sqlQueryExtension.Arguments;
+			var hint  = ((ValueWord)     args["hint"]).                Value;
+			var count = (int)((ValueWord)args["hintParameters.Count"]).Value!;
+
+			var firstDelimiter = args.TryGetValue(".ExtensionArguments.0", out var extArg0) && extArg0 is ValueWord { Value : string val0 } ? val0 : ", ";
+			var nextDelimiter  = args.TryGetValue(".ExtensionArguments.1", out var extArg1) && extArg1 is ValueWord { Value : string val1 } ? val1 : null;
+
+			stringBuilder.Append(CultureInfo.InvariantCulture, $"{hint}");
+
+			if (count > 0)
+			{
+				stringBuilder.Append('(');
+
+				var delimiter = string.Empty;
+
+				for (var i = 0; i < count; i++)
+				{
+					if (i == 1)
+						delimiter = firstDelimiter;
+					else if (i > 0)
+						delimiter = nextDelimiter ?? firstDelimiter;
+
+					stringBuilder
+						.Append(delimiter);
+
+					var value = GetValue((ValueWord)args[$"hintParameters.{i}"]);
+					stringBuilder.Append(CultureInfo.InvariantCulture, $"{value}");
+				}
+
+				stringBuilder.Append(')');
+			}
+
+			object? GetValue(ValueWord value)
+			{
+				return value.Value is Sql.SqlID id ? sqlBuilder.BuildSqlID(id) : value.Value;
+			}
+		}
+	}
+}

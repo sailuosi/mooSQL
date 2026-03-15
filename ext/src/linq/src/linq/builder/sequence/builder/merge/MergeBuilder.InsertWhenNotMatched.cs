@@ -1,0 +1,76 @@
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
+
+namespace mooSQL.linq.Linq.Builder
+{
+	using Data;
+    using mooSQL.data.model;
+    using mooSQL.linq.Expressions;
+    using mooSQL.linq.ext;
+    using SqlQuery;
+
+	using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+
+	internal partial class MergeBuilder
+	{
+		[BuildsMethodCall(nameof(LinqExtensions.InsertWhenNotMatchedAnd))]
+		internal sealed class InsertWhenNotMatched : MethodCallBuilder
+		{
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+				=> call.IsSameGenericMethod(InsertWhenNotMatchedAndMethodInfo);
+
+			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+			{
+				var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+
+				var statement = mergeContext.Merge;
+				var operation = new MergeOperationClause(MergeOperateType.Insert);
+				statement.Operations.Add(operation);
+
+				var predicate = methodCall.Arguments[1];
+				var setter    = methodCall.Arguments[2];
+
+				Expression setterExpression;
+
+				if (!setter.IsNullValue())
+				{
+					var setterLambda = setter.UnwrapLambda();
+
+					setterExpression = mergeContext.SourceContext.PrepareSourceBody(setterLambda);
+
+				}
+				else
+				{
+					// build setters like QueryRunner.Insert
+
+					setterExpression = builder.BuildFullEntityExpression(
+						builder.DBLive, mergeContext.SourceContext.SourcePropAccess,
+						mergeContext.SourceContext.SourceContextRef.Type, ProjectFlags.SQL,
+						EntityConstructorBase.FullEntityPurpose.Insert);
+				}
+
+				var setterExpressions = new List<UpdateBuilder.SetExpressionEnvelope>();
+				UpdateBuilder.ParseSetter(builder,
+					mergeContext.SourceContext.TargetContextRef.WithType(setterExpression.Type), setterExpression,
+					setterExpressions);
+				UpdateBuilder.InitializeSetExpressions(builder, mergeContext.TargetContext, mergeContext.SourceContext, setterExpressions, operation.Items, createColumns : false);
+
+				if (!predicate.IsNullValue())
+				{
+					var condition = predicate.UnwrapLambda();
+
+					var conditionExpr = mergeContext.SourceContext.PrepareSourceBody(condition);
+
+					operation.Where = new SearchConditionWord();
+
+					builder.BuildSearchCondition(
+						mergeContext.SourceContext,
+						conditionExpr, ProjectFlags.SQL,
+						operation.Where);
+				}
+
+				return BuildSequenceResult.FromContext(mergeContext);
+			}
+		}
+	}
+}
