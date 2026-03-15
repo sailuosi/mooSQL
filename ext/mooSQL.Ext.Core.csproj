@@ -95,15 +95,12 @@
 	<ItemGroup>
 	  <Compile Remove="src\AI\**" />
 	  <Compile Remove="src\excel\**" />
-	  <Compile Remove="src\linq\**" />
 	  <Compile Remove="src\word\**" />
 	  <EmbeddedResource Remove="src\AI\**" />
 	  <EmbeddedResource Remove="src\excel\**" />
-	  <EmbeddedResource Remove="src\linq\**" />
 	  <EmbeddedResource Remove="src\word\**" />
 	  <None Remove="src\AI\**" />
 	  <None Remove="src\excel\**" />
-	  <None Remove="src\linq\**" />
 	  <None Remove="src\word\**" />
 	</ItemGroup>
 
