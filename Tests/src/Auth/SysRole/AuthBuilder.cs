@@ -3,7 +3,7 @@
 using HHNY.NET.Core;
 using HHNY.NET.Core.Author.SysRole;
 using mooSQL.auth;
-
+using mooSQL.Pure.Tests.src.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +13,10 @@ using System.Threading.Tasks;
 namespace HHNY.NET.Core.Author;
 public class AuthBuilder:AuthorBuilder<AuthLoader>
 {
-    public UserManager user;
+
 
     public AuthBuilder() {
-        this.factory = new HHNYAuthFactory();
+        this.factory = new MyAuthFactory();
     }
     public WordBagDialect wordBag
     {
@@ -26,30 +26,9 @@ public class AuthBuilder:AuthorBuilder<AuthLoader>
         }
     }
 
-    public AuthUser CastToUser(UserManager manager)
-    {
-        if (manager.SuperAdmin)
-        {
-            return new AuthUser()
-            {
-                Acount = manager.Account,
-                Name = manager.RealName,
-                dialect=factory.GetDialect(),
-            };
-        }
-        return this.dialect.getUser(manager.Account);
-    }
 
-    /// <summary>
-    /// 设置登录人
-    /// </summary>
-    /// <param name="loginUser"></param>
-    /// <returns></returns>
-    public AuthorBuilder<AuthLoader> setUser(UserManager loginUser)
-    {
-        this.user = loginUser;
-        return this;
-    }
+    public UserManager user { get; set; }
+
 
     /// <summary>
     /// 读取所有角色的数据范围编码
@@ -62,7 +41,7 @@ public class AuthBuilder:AuthorBuilder<AuthLoader>
             wordBag.addAll();
             return;
         }
-        var au = CastToUser(user);
+        AuthUser au = null;
         foreach (AuthWord roleScope in this.dataScopes)
         {
             readRole(roleScope, au);

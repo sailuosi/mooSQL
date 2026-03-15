@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TestMooSQL.src;
 
 
 namespace HHNY.NET.Core
@@ -20,8 +21,8 @@ namespace HHNY.NET.Core
             tableName = tbname;
             //keyCol = tbname + "OID";
             this.position = position;
-            this.bulk = DBCash.newBulk(tbname, position);
-            this.batchSQL = DBCash.newBatchSQL(position);
+            this.bulk = new BulkTable(tbname, position);
+            this.batchSQL = DBTest.newBatchSQL(position);
         }
 
         public int position = 0;

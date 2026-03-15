@@ -2,6 +2,7 @@
 
 using mooSQL.auth;
 using mooSQL.data;
+using mooSQL.Pure.Tests.src.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ public static class AuthExtension
     public static SQLBuilder useAuthor(this SQLBuilder kit, UserManager userManager,Action<AuthBuilder> buildAuth) { 
         var tar= new AuthBuilder();
         
-        tar.setUser(userManager);
+        tar.user=(userManager);
         tar.useSQLBuilder(kit);
         buildAuth(tar);
         return kit;

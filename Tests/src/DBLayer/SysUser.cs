@@ -1,5 +1,9 @@
 
 
+using Newtonsoft.Json;
+using SqlSugar;
+using System.ComponentModel.DataAnnotations;
+
 namespace HHNY.NET.Core;
 
 /// <summary>
@@ -215,11 +219,7 @@ public class SysUser : EntityTenant
     [SugarColumn(ColumnDescription = "职位Id")]
     public long PosId { get; set; }
 
-    /// <summary>
-    /// 职位
-    /// </summary>
-    [Navigate(NavigateType.OneToOne, nameof(PosId))]
-    public SysPos SysPos { get; set; }
+
 
     /// <summary>
     /// 工号

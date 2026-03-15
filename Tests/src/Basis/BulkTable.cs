@@ -5,6 +5,7 @@ using mooSQL.data;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using TestMooSQL.src;
 
 namespace HHNY.NET.Core
 {
@@ -28,7 +29,7 @@ namespace HHNY.NET.Core
             this.tableName = tableName;
             this.caption = tableName;
             this.position = position;
-            this.DB = DBCash.GetDBInstance(position);
+            this.DB = DBTest.GetDBInstance(position);
             this.colnames = new List<string>();
             this.bulkTarget = this.getBulkTable();
         }

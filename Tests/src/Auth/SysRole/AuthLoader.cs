@@ -1,14 +1,16 @@
 ﻿// 基础功能说明：
 
-using HHNY.NET.Core.AuthBag;
+
 using HHNY.NET.Core.Author.SysRole;
 using mooSQL.auth;
 using mooSQL.data;
+using mooSQL.Pure.Tests.src.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TestMooSQL.src;
 
 namespace HHNY.NET.Core.Author;
 /// <summary>
@@ -37,7 +39,7 @@ public class AuthLoader:AuthDialect
 
     public override AuthOrg getOrgByOID(string oid)
     {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         //select UCML_OrganizeOID,OrgNO,OrgName,Varchar1        from ucml_organize
         var row = kit.select("UCML_OrganizeOID,OrgNO,OrgName,Varchar1").from("UCML_Organize").where("UCML_OrganizeOID", oid).queryRow();
         if (row != null)
@@ -55,7 +57,7 @@ public class AuthLoader:AuthDialect
 
     public override List<AuthOrg> getOrgByOIDs(List<string> oid)
     {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         //select UCML_OrganizeOID,OrgNO,OrgName,Varchar1        from ucml_organize
         var res = kit.select("UCML_OrganizeOID,OrgNO,OrgName,Varchar1").from("UCML_Organize")
             .whereIn("UCML_OrganizeOID", oid)
@@ -77,7 +79,7 @@ public class AuthLoader:AuthDialect
     /// <param name="onloading"></param>
     /// <returns></returns>
     public List<AuthWord> loadRole( UserManager user,Action<SQLBuilder> onloading) {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         kit.select("Id,`Name`,`Code`,DataScope")
             .from("hh_sysrole r")
             //.pinLeft().or()
@@ -114,7 +116,7 @@ public class AuthLoader:AuthDialect
     }
 
     public override List<AuthWord> getDefaultRole() {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         return kit.select("Id,`Name`,`Code`,DataScope")
             .from("hh_sysrole r")
             .where("r.Code", "sys_default")
@@ -155,7 +157,7 @@ public class AuthLoader:AuthDialect
 
     public override AuthOrg getOrg(Action<SQLBuilder> whereBuilder)
     {
-        var kit= DBCash.useSQL(0);
+        var kit= DBTest.useSQL(0);
         //select UCML_OrganizeOID,ParentOID,Varchar1,OrgNO,OrgName from ucml_organize
         whereBuilder(kit);
         return kit.select("UCML_OrganizeOID,ParentOID,Varchar1,OrgNO,OrgName")
@@ -174,7 +176,7 @@ public class AuthLoader:AuthDialect
 
     public override AuthPost getPost(Action<SQLBuilder> whereBuilder)
     {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         //select UCML_OrganizeOID,ParentOID,Varchar1,OrgNO,OrgName from ucml_organize
         whereBuilder(kit);
         return kit.select("HR_PostOID,Po_ID,PO_Name,Post_ParentOID,Po_Number")
@@ -202,7 +204,7 @@ public class AuthLoader:AuthDialect
 
     public override AuthUser getUser(Action<SQLBuilder> whereBuilder)
     {
-        var kit = DBCash.useSQL(0);
+        var kit = DBTest.useSQL(0);
         //select UCML_OrganizeOID,ParentOID,Varchar1,OrgNO,OrgName from ucml_organize
         whereBuilder(kit);
         return kit.select("UCML_CONTACTOID,CON_EMP_NUM,PersonName,PostCode,HR_division_FK,HR_org_FK,UCML_UserOID")

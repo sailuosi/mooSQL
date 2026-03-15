@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mooSQL.data;
+using TestMooSQL.src;
 
 namespace HHNY.NET.Core
 {
@@ -20,7 +21,7 @@ namespace HHNY.NET.Core
             this.selectStr = selectStr;
             this.tableName = tableName;
             this.keyColName = tableName + "OID";
-            this.db = DBCash.GetDBInstance(position);
+            this.db = DBTest.GetDBInstance(position);
             //this.init();
         }
         public UpdateTable(string tableName,int position):base(tableName) 
@@ -28,7 +29,7 @@ namespace HHNY.NET.Core
             this.selectStr = string.Format("select * from {0}", tableName);
             this.tableName = tableName;
             this.keyColName = tableName + "OID";
-            this.db = DBCash.GetDBInstance(position);
+            this.db = DBTest.GetDBInstance(position);
             //this.init();
         }
 

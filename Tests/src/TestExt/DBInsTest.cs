@@ -9,6 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace TestMooSQL.src;
 public class DBInsTest
@@ -63,16 +64,16 @@ public class DBInsTest
         //使用实体查询
         var clip = db.useClip();
         //执行查询
-        IEnumerable<KBTask> tasklist=clip
-            .from<KBTask>(out var t)
-            .where(()=>t.KB_RootNo,"1")
+        IEnumerable<HHDutyItem> tasklist=clip
+            .from<HHDutyItem>(out var t)
+            .where(()=>t.Di_Code,"1")
             .select(t)
             .queryList();
         //执行修改
         int count= clip
-             .setTable<KBTask>(out var t)
-             .set(() => t.KB_Note, "")
-             .where(() => t.KB_ID, "")
+             .setTable<HHDutyItem>(out t)
+             .set(() => t.Di_Code, "1")
+             .where(() => t.Di_Name, "")
              .doUpdate();
 
 

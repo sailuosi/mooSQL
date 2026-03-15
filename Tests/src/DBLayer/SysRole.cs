@@ -1,5 +1,8 @@
 
 
+using SqlSugar;
+using System.ComponentModel.DataAnnotations;
+
 namespace HHNY.NET.Core;
 
 /// <summary>
