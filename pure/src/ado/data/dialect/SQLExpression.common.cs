@@ -56,7 +56,14 @@ namespace mooSQL.data
         /// <param name="value"></param>
         /// <returns></returns>
         public abstract string wrapKeyword(string value);
-
+        /// <summary>
+        /// 获取whereIn的参数数量限制，默认为null不限制
+        /// </summary>
+        /// <returns></returns>
+        public virtual int? getWhereInLimit()
+        {
+            return null;
+        }
         /// <summary>
         /// 对成员进行包裹，以规避字段为关键字等的问题
         /// </summary>

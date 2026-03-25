@@ -1062,26 +1062,63 @@ namespace mooSQL.data {
         private SQLBuilder whereListInner(WhereListBag bag)
         {
 
-            WhereFrag field = new WhereFrag();
-            field.setConnect(current.whereSeprator);
-            field.key = bag.field;
+
             //                frag.paramKey = string.Format("{0}wh_{1}_{2}_{3}", root.paraSeed,this.key,conditions.Count,_whfragIndex) ;
             var paraKey = paraSeed + "whin_" + current.key + "_" + current.wherePart.Count + "_";
 
 
             List<string> names = addListPara(bag.unSafeValues, paraKey);
-            var innerSQL = bag.toWhereIn(names);
-            if (!string.IsNullOrWhiteSpace(innerSQL))
+            var limit = this.DBLive.expression.getWhereInLimit();
+            if (limit != null && limit > 0)
             {
-                field.value = "(" + innerSQL + ")";
-                field.paramed = false;
-                field.op = bag.op;
-
-                current.where(field);
+                var parts = bag.toWhereIn(names,limit);
+                if (parts.Count == 0) {
+                    where("1=2");
+                    return this;
+                }
+                if (parts.Count == 1)
+                {
+                    WhereFrag field = new WhereFrag();
+                    field.setConnect(current.whereSeprator);
+                    field.key = bag.field;
+                    field.value = "(" + parts[0] + ")";
+                    field.paramed = false;
+                    field.op = bag.op;
+                    current.where(field);
+                    return this;
+                }
+                //分批构建多个 or 连接的 where in 条件
+                this.sinkOR();
+                foreach (var part in parts) {
+                    WhereFrag field = new WhereFrag();
+                    field.setConnect(current.whereSeprator);
+                    field.key = bag.field;
+                    field.value = "(" + part + ")";
+                    field.paramed = false;
+                    field.op = bag.op;
+                    current.where(field);
+                }
+                this.rise();
             }
             else {
-                where("1=2");
+                WhereFrag field = new WhereFrag();
+                field.setConnect(current.whereSeprator);
+                field.key = bag.field;
+                var innerSQL = bag.toWhereIn(names);
+                if (!string.IsNullOrWhiteSpace(innerSQL))
+                {
+                    field.value = "(" + innerSQL + ")";
+                    field.paramed = false;
+                    field.op = bag.op;
+
+                    current.where(field);
+                }
+                else
+                {
+                    where("1=2");
+                }
             }
+
 
             return this;
         }

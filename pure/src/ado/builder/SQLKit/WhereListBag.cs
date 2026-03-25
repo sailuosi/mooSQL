@@ -251,11 +251,63 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="unSafeParaedNames"></param>
         /// <returns></returns>
-        public string toWhereIn(IEnumerable<string> unSafeParaedNames) { 
-            
-            var vals= new List<string>();
-            if (isNumberBag) {
-            vals.AddRange(numValues);
+        public string toWhereIn(IEnumerable<string> unSafeParaedNames) {
+
+            var vals = this.toWhereInValues(unSafeParaedNames);
+            return string.Join(",", vals);
+        }
+        /// <summary>
+        /// 支持自动分组的where in参数列表，size为每组的数量，超过则自动分组返回多条结果
+        /// </summary>
+        /// <param name="unSafeParaedNames"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public List<string> toWhereIn(IEnumerable<string> unSafeParaedNames,int? size)
+        {
+            var tstr=new List<string>();
+            var vals = this.toWhereInValues(unSafeParaedNames);
+            if (size == null || size < 1) {
+
+                var t= string.Join(",", vals);
+                if (!string.IsNullOrWhiteSpace(t)) { 
+                    tstr.Add(t);
+                }
+                return tstr;
+            }
+
+            int cc = 0;
+            var groupValues = new List<string>();
+            foreach (string str in vals)
+            {
+                groupValues.Add(str);
+                cc++;
+                if (cc >= size)
+                {
+                    var part = string.Join(",", groupValues);
+                    tstr.AddNotEmpty(part);
+                    cc = 0;
+                    groupValues.Clear();
+                }
+            }
+            if (groupValues.Count >0)
+            {
+                var part = string.Join(",", groupValues);
+                tstr.AddNotEmpty(part);
+            }
+            return tstr;
+        }
+        /// <summary>
+        /// 返回参数列表
+        /// </summary>
+        /// <param name="unSafeParaedNames"></param>
+        /// <returns></returns>
+        public List<string> toWhereInValues(IEnumerable<string> unSafeParaedNames)
+        {
+
+            var vals = new List<string>();
+            if (isNumberBag)
+            {
+                vals.AddRange(numValues);
             }
             else
             {
@@ -265,14 +317,15 @@ namespace mooSQL.data
                 }
             }
 
-            foreach (var v in safedStrValues) { 
-                vals.Add("'"+v+"'");
+            foreach (var v in safedStrValues)
+            {
+                vals.Add("'" + v + "'");
             }
             foreach (var v in unSafeParaedNames)
             {
-                vals.Add( v );
+                vals.Add(v);
             }
-            return string.Join(",", vals);
+            return vals;
         }
     }
 }

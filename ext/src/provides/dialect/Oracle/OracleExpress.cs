@@ -43,7 +43,14 @@ namespace mooSQL.data
             }
             return "\"" + value + "\"";
         }
-
+        /// <summary>
+        /// Oracle：IN子句最多支持1000个表达式，超过则抛出ORA-01795错误。
+        /// </summary>
+        /// <returns></returns>
+        public override int? getWhereInLimit()
+        {
+            return 1000;
+        }
         #region DML语句
         /// <summary>
         /// 构建Select语句，Oracle特有的分页方式。

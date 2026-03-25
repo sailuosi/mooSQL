@@ -110,7 +110,7 @@ namespace mooSQL.data
         public SQLBuilder selectFormat(string selectSQLPart, params object[] paras)
         {
             var fromPart = ps.formatSQL(selectSQLPart, paras);
-            from(fromPart);
+            select(fromPart);
             return this;
         }
         /// <summary>

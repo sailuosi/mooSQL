@@ -25,6 +25,14 @@ namespace mooSQL.data
             }
             return "[" + value + "]";
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override int? getWhereInLimit()
+        {
+            return 2500;
+        }
 
         #region DML 修改数据语句
         private string dealValsPivot(List<string> strings) { 

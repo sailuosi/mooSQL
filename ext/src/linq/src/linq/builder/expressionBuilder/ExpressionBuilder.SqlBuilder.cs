@@ -4368,11 +4368,535 @@ namespace mooSQL.linq.Linq.Builder
 		public Expression MakeExpression(IBuildContext? forContext, Expression path, ProjectFlags flags)
 		{
 			//迁移走
-			throw new NotImplementedException();
-			//return expression;
-		}
+			//throw new NotImplementedException();
+            var currentContext = forContext;
+#if DEBUG
+            Expression ExecuteMake(IBuildContext context, Expression expr, ProjectFlags projectFlags)
+            {
+                var counter = ++_makeCounter;
 
-		public bool IsSimpleForCompilation(IBuildContext context, Expression expr)
+                Debug.WriteLine($"({counter.ToString(CultureInfo.InvariantCulture)})ExecuteMake ({projectFlags}):");
+                Debug.WriteLine($"\tCtx: {BuildContextDebuggingHelper.GetContextInfo(currentContext)}");
+                Debug.WriteLine($"\tPath: {path}");
+                Debug.WriteLine($"\tExpr: {expr}");
+
+                var result = context.MakeExpression(expr, projectFlags);
+
+                Debug.WriteLine($"({counter.ToString(CultureInfo.InvariantCulture)})Result ({projectFlags}): {result}");
+                Debug.WriteLine("");
+
+                return result;
+            }
+#else
+			static Expression ExecuteMake(IBuildContext context, Expression expr, ProjectFlags projectFlags)
+			{
+				return context.MakeExpression(expr, projectFlags);
+			}
+#endif
+
+#if DEBUG
+            static void DebugCacheHit(IBuildContext? context, Expression original, Expression cached, ProjectFlags projectFlags)
+            {
+                Debug.WriteLine($"Cache hit for: {original}, {projectFlags}");
+                Debug.WriteLine($"\tResult: {cached}");
+
+                if (!projectFlags.IsTest() && (projectFlags.IsExpression() || projectFlags.IsSql()))
+                {
+                }
+            }
+#endif
+
+            ContextRefExpression? CalcRootContext(Expression expressionToCheck)
+            {
+                expressionToCheck = expressionToCheck.UnwrapConvert();
+
+                if (expressionToCheck is ContextRefExpression contextRef)
+                    return contextRef;
+
+                if (expressionToCheck is MemberExpression me)
+                {
+                    if (me.Expression is null)
+                        return null;
+                    return CalcRootContext(me.Expression);
+                }
+
+                if (expressionToCheck is MethodCallExpression mc && mc.IsQueryable())
+                {
+                    return CalcRootContext(mc.Arguments[0]);
+                }
+
+                return null;
+            }
+
+            // 这里没有什么可投射的
+            if (path.NodeType == ExpressionType.Parameter
+                || path.NodeType == ExpressionType.Lambda
+                || path.NodeType == ExpressionType.Extension && path is SqlPlaceholderExpression or SqlGenericConstructorExpression)
+            {
+                return path;
+            }
+
+            if ((flags & (ProjectFlags.Root | ProjectFlags.AggregationRoot | ProjectFlags.AssociationRoot | ProjectFlags.ExtractProjection | ProjectFlags.Table)) == 0)
+            {
+                // 尝试找到已经转换为SQL的
+                var sqlKey = new SqlCacheKey(path, null, null, forContext?.SelectQuery, flags.SqlFlag());
+                if (_cachedSql.TryGetValue(sqlKey, out var cachedSql) && cachedSql is SqlPlaceholderExpression)
+                {
+                    return cachedSql;
+                }
+            }
+
+            var shouldCache = !flags.IsTest() && null != path.Find(1, (_, e) => e is ContextRefExpression);
+
+            var key = new SqlCacheKey(path, null, null, forContext?.SelectQuery, flags);
+
+            Expression? expression;
+
+            if (shouldCache && _expressionCache.TryGetValue(key, out expression) && expression.Type == path.Type && expression is not SqlErrorExpression)
+            {
+                if (!ExpressionEqualityComparer.Instance.Equals(path, expression))
+                {
+#if DEBUG
+                    DebugCacheHit(currentContext, path, expression, flags);
+#endif
+                    return expression;
+                }
+            }
+
+            var doNotProcess = false;
+            expression = null;
+
+            ContextRefExpression? rootContext = null;
+
+            if (path is MemberExpression { Expression: not null } memberExpression)
+            {
+                var declaringType = memberExpression.Member.DeclaringType;
+                if (declaringType != null && declaringType != memberExpression.Expression.Type)
+                {
+                    memberExpression = memberExpression.Update(SequenceHelper.EnsureType(memberExpression.Expression, declaringType));
+                    return MakeExpression(currentContext, memberExpression, flags);
+                }
+
+                if (memberExpression.Member.IsNullableValueMember())
+                {
+                    var corrected = MakeExpression(currentContext, memberExpression.Expression, flags);
+                    if (corrected.Type != path.Type)
+                    {
+                        corrected = Expression.Convert(corrected, path.Type);
+                    }
+                    return MakeExpression(currentContext, corrected, flags);
+                }
+
+                if (memberExpression.Expression.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked)
+                {
+                    var unary = (UnaryExpression)memberExpression.Expression;
+                    if (unary.Operand is ContextRefExpression contextRef)
+                    {
+                        memberExpression = memberExpression.Update(contextRef.WithType(memberExpression.Expression.Type));
+                        return MakeExpression(currentContext, memberExpression, flags);
+                    }
+                }
+
+                rootContext = CalcRootContext(memberExpression.Expression);
+
+                if (rootContext != null)
+                {
+                    currentContext = rootContext.BuildContext;
+
+                    // SetOperationContext可以不需要准备就知道如何处理这样的路径
+
+                    var corrected = ExecuteMake(rootContext.BuildContext, path, flags);
+
+                    if (!ExpressionEqualityComparer.Instance.Equals(corrected, path) &&
+                        corrected is not DefaultValueExpression && corrected is not SqlErrorExpression)
+                    {
+                        var newCorrected = MakeExpression(rootContext.BuildContext, corrected, flags);
+
+                        if (newCorrected is SqlErrorExpression sqlError)
+                        {
+                            if (sqlError.IsCritical)
+                                return sqlError;
+                            newCorrected = corrected;
+                        }
+
+                        if (newCorrected is SqlPlaceholderExpression placeholder)
+                        {
+                            newCorrected = placeholder.WithTrackingPath(path);
+                        }
+
+                        if (ExpressionEqualityComparer.Instance.Equals(corrected, newCorrected))
+                            return corrected;
+
+                        return MakeExpression(rootContext.BuildContext, newCorrected, flags);
+                    }
+                }
+
+                var root = MakeExpression(currentContext, memberExpression.Expression, flags.RootFlag());
+
+                // 关联可能导致这种情况
+                if (root is SqlErrorExpression rootError)
+                {
+                    return rootError.WithType(path.Type);
+                }
+
+                if (root is MethodCallExpression mce && mce.IsQueryable() && currentContext != null)
+                {
+                    var subqueryExpression = TryGetSubQueryExpression(currentContext, root, null, flags, out var isSequence, out var corrected);
+                    if (subqueryExpression != null)
+                    {
+                        root = subqueryExpression;
+                        if (subqueryExpression.Type != root.Type)
+                        {
+                            root = SqlAdjustTypeExpression.AdjustType(root, root.Type, DBLive);
+                        }
+                    }
+                    else if (isSequence)
+                    {
+                        if (corrected != null)
+                        {
+                            // 构建序列失败，但我们转换了First/FirstOrDefault。
+                            return memberExpression.Update(corrected);
+                        }
+
+                        // 构建序列失败。不要继续。
+                        return memberExpression;
+                    }
+
+                }
+
+                var newPath = memberExpression;
+                if (!ReferenceEquals(root, memberExpression.Expression))
+                {
+                    newPath = memberExpression.Update(SequenceHelper.EnsureType(root, memberExpression.Expression.Type));
+                }
+
+                path = newPath;
+
+                if (!flags.IsTraverse() && IsAssociation(newPath, out _))
+                {
+                    if (root is ContextRefExpression contextRef)
+                    {
+                        expression = TryCreateAssociation(newPath, contextRef, currentContext, flags);
+                        if (expression is SqlErrorExpression)
+                            return expression;
+                    }
+                }
+
+                rootContext = CalcRootContext(root);
+            }
+            else if (path is MethodCallExpression mc)
+            {
+                if (mc.Method.IsSqlPropertyMethodEx())
+                {
+                    var memberInfo = MemberHelper.GetMemberInfo(mc);
+                    var memberAccess = Expression.MakeMemberAccess(mc.Arguments[0], memberInfo);
+                    return MakeExpression(currentContext, memberAccess, flags);
+                }
+
+                if (mc.Method.Name == nameof(Sql.Alias) && mc.Method.DeclaringType == typeof(Sql))
+                {
+                    var translated = MakeExpression(currentContext, mc.Arguments[0], flags);
+                    if (ReferenceEquals(mc.Arguments[0], translated))
+                    {
+                        translated = mc;
+                    }
+                    else if (translated is SqlPlaceholderExpression placeholder)
+                    {
+                        translated = placeholder.WithAlias(mc.Arguments[1].EvaluateExpression() as string);
+                    }
+                    else
+                    {
+                        if (!flags.IsRoot())
+                        {
+                            var args = mc.Arguments.ToArray();
+                            args[0] = translated;
+                            translated = mc.Update(mc.Object, args);
+                        }
+                    }
+
+                    return translated;
+                }
+
+                if (IsAssociation(mc, out _))
+                {
+                    var arguments = mc.Arguments;
+                    if (arguments.Count == 0)
+                        throw new InvalidOperationException("Association methods should have at least one parameter");
+
+                    var firstArgument = mc.Method.IsStatic ? arguments[0] : mc.Object!;
+
+                    if (firstArgument == null)
+                        throw new InvalidOperationException();
+
+                    var rootArgument = MakeExpression(currentContext, firstArgument, flags.RootFlag());
+
+                    if (!ReferenceEquals(rootArgument, firstArgument))
+                    {
+                        if (mc.Method.IsStatic)
+                        {
+                            var argumentsArray = arguments.ToArray();
+                            argumentsArray[0] = rootArgument;
+
+                            mc = mc.Update(mc.Object, argumentsArray);
+                        }
+                        else
+                        {
+                            mc = mc.Update(rootArgument, mc.Arguments);
+                        }
+                    }
+
+                    if (rootArgument is ContextRefExpression contextRef)
+                    {
+                        expression = TryCreateAssociation(mc, contextRef, currentContext, flags);
+                        rootContext = expression as ContextRefExpression;
+                    }
+                }
+            }
+            else if (path is ContextRefExpression contextRef)
+            {
+                rootContext = contextRef;
+            }
+            else if (path is SqlGenericParamAccessExpression paramAccessExpression)
+            {
+                var root = paramAccessExpression.Constructor;
+                while (root is SqlGenericParamAccessExpression pa)
+                {
+                    root = pa.Constructor;
+                }
+
+                if (root is ContextRefExpression contextRefExpression)
+                {
+                    rootContext = contextRefExpression;
+                }
+            }
+            else if (path.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked)
+            {
+                var unary = (UnaryExpression)path;
+
+                expression = MakeExpression(currentContext, unary.Operand, flags);
+                if (!flags.IsTable() && expression.Type != path.Type)
+                {
+                    expression = Expression.MakeUnary(path.NodeType, expression, unary.Type, unary.Method);
+                }
+                doNotProcess = true;
+            }
+            else if (path.NodeType == ExpressionType.TypeAs && currentContext != null)
+            {
+                var unary = (UnaryExpression)path;
+                var testExpr = MakeIsPredicateExpression(currentContext, Expression.TypeIs(unary.Operand, unary.Type));
+                var trueCase = Expression.Convert(unary.Operand, unary.Type);
+                var falseCase = new DefaultValueExpression(DBLive, unary.Type);
+
+                if (testExpr is ConstantExpression constExpr)
+                {
+                    if (constExpr.Value is true)
+                        expression = trueCase;
+                    else
+                        expression = falseCase;
+                }
+                else
+                {
+                    doNotProcess = true;
+                    expression = Expression.Condition(testExpr, trueCase, falseCase);
+                }
+            }
+            else if (path.NodeType == ExpressionType.TypeIs && currentContext != null)
+            {
+                var typeBinary = (TypeBinaryExpression)path;
+                expression = MakeIsPredicateExpression(currentContext, typeBinary);
+                doNotProcess = true;
+            }
+
+            if (expression == null)
+            {
+                if (rootContext != null)
+                {
+                    currentContext = rootContext.BuildContext;
+                    expression = ExecuteMake(currentContext, path, flags);
+                }
+                else
+                    expression = path;
+            }
+
+            if (!doNotProcess)
+            {
+                if (!ExpressionEqualityComparer.Instance.Equals(expression, path))
+                {
+                    // Do recursive again
+                    var convertedAgain = MakeExpression(currentContext, expression, flags);
+                    if (convertedAgain is not SqlErrorExpression)
+                        expression = convertedAgain;
+                }
+                else
+                {
+                    var handled = false;
+
+                    if (flags.IsExpression() && path.NodeType == ExpressionType.NewArrayInit)
+                    {
+                        expression = path;
+                        handled = true;
+                    }
+
+                    if (!handled && (flags.IsSql() || flags.IsExpression()))
+                    {
+                        // Handling subqueries
+                        //
+
+                        var ctx = rootContext?.BuildContext ?? currentContext;
+                        if (ctx != null)
+                        {
+                            var subqueryExpression = TryGetSubQueryExpression(ctx, path, null, flags, out var isSequence, out var corrected);
+                            if (subqueryExpression != null)
+                            {
+                                if (subqueryExpression is SqlErrorExpression)
+                                {
+                                    expression = subqueryExpression;
+                                }
+                                else
+                                {
+                                    expression = MakeExpression(ctx, subqueryExpression, flags);
+                                    if (expression.Type != path.Type)
+                                    {
+                                        expression = SqlAdjustTypeExpression.AdjustType(expression, path.Type, DBLive);
+                                    }
+                                }
+
+                                handled = true;
+                            }
+                            else if (isSequence)
+                            {
+                                if (corrected != null)
+                                {
+                                    // Failed to build sequence, but we transformed First/FirstOrDefault.
+                                    expression = corrected;
+                                }
+
+                                handled = true;
+                            }
+                        }
+                    }
+
+                    if (!handled && flags.HasFlag(ProjectFlags.Expression) && CanBeCompiled(path, true))
+                    {
+                        expression = path;
+                        handled = true;
+                    }
+
+                }
+            }
+
+            if (expression is SqlPlaceholderExpression placeholderExpression)
+            {
+                expression = placeholderExpression.WithTrackingPath(path);
+            }
+
+            if (shouldCache)
+            {
+                _expressionCache[key] = expression;
+
+                if (!flags.HasFlag(ProjectFlags.Test))
+                {
+                    if ((flags.HasFlag(ProjectFlags.SQL) ||
+                         flags.HasFlag(ProjectFlags.Keys)) && expression is SqlPlaceholderExpression)
+                    {
+                        var anotherKey = new SqlCacheKey(path, null, null, forContext?.SelectQuery, ProjectFlags.Expression);
+                        _expressionCache[anotherKey] = expression;
+
+                        if (flags.HasFlag(ProjectFlags.Keys))
+                        {
+                            anotherKey = new SqlCacheKey(path, null, null, forContext?.SelectQuery, ProjectFlags.Expression | ProjectFlags.Keys);
+                            _expressionCache[anotherKey] = expression;
+                        }
+                    }
+                }
+            }
+
+            return expression;
+        }
+        public Expression? TryGetSubQueryExpression(IBuildContext context, Expression expr, string? alias, ProjectFlags flags, out bool isSequence, out Expression? corrected)
+        {
+            isSequence = false;
+            corrected = null;
+
+            if (flags.IsTraverse())
+                return null;
+
+            var unwrapped = expr.Unwrap();
+
+            if (unwrapped is SqlErrorExpression)
+                return expr;
+
+            if (unwrapped is BinaryExpression or ConditionalExpression or DefaultExpression or DefaultValueExpression or SqlDefaultIfEmptyExpression)
+                return null;
+
+            if (unwrapped is SqlGenericConstructorExpression or ConstantExpression or SqlEagerLoadExpression)
+                return null;
+
+            if (unwrapped is ContextRefExpression contextRef && contextRef.BuildContext.ElementType == expr.Type)
+                return null;
+
+            if (SequenceHelper.IsSpecialProperty(unwrapped, out _, out _))
+                return null;
+
+            if (!flags.IsSubquery())
+            {
+                if (CanBeCompiled(unwrapped, true))
+                    return null;
+
+                if (unwrapped is MemberInitExpression or NewExpression or NewArrayExpression)
+                {
+                    var withDetails = TranslateDetails(context, unwrapped, flags);
+                    if (CanBeCompiled(withDetails, true))
+                        return null;
+                }
+            }
+
+            if (unwrapped is MemberExpression me)
+            {
+                var attr = me.Member.GetExpressionAttribute(DBLive);
+                if (attr != null)
+                    return null;
+            }
+
+            var info = GetSubQueryContext(context, ref context, unwrapped, flags);
+            isSequence = info.IsSequence;
+
+            if (info.Context == null)
+            {
+                if (isSequence)
+                {
+                    if (flags.IsExpression())
+                    {
+                        // Trying to relax eager for First[OrDefault](predicate)
+                        var prepared = PrepareSubqueryExpression(expr);
+                        if (!ReferenceEquals(prepared, expr))
+                        {
+                            corrected = prepared;
+                        }
+
+                        return null;
+                    }
+
+                    return new SqlErrorExpression(expr, info.ErrorMessage, expr.Type);
+                }
+
+                return null;
+            }
+
+            if (!IsSingleElementContext(info.Context) && expr.Type.IsEnumerableType(info.Context.ElementType) && !flags.IsExtractProjection())
+            {
+                var eager = (Expression)new SqlEagerLoadExpression(unwrapped);
+                eager = SqlAdjustTypeExpression.AdjustType(eager, expr.Type, DBLive);
+
+                return eager;
+            }
+
+            var resultExpr = (Expression)new ContextRefExpression(unwrapped.Type, info.Context);
+
+            return resultExpr;
+        }
+
+        public bool IsSimpleForCompilation(IBuildContext context, Expression expr)
 		{
 			if (CanBeConstant(expr))
 				return true;
