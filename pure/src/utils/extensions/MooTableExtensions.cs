@@ -165,6 +165,27 @@ namespace mooSQL.utils
             }
             return res;
         }
+        public static Dictionary<K,List<V>> groupByAsList<K, V>(this DataTable dt, Func<DataRow, K> loadKey, Func<DataRow, V> loadV)
+        {
+            var res = new Dictionary<K, List<V>>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var k = loadKey(row);
+
+                if (k == null)
+                {
+                    continue;
+                }
+                var v = loadV(row);
+                if (!res.ContainsKey(k))
+                {
+                    res.Add(k, new List<V>() {v});
+                    continue;
+                }
+                res[k].AddNotRepeat(v);
+            }
+            return res;
+        }
         /// <summary>
         /// 按2个字段分组
         /// </summary>
