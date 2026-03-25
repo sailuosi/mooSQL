@@ -54,4 +54,14 @@ public class LINQTest
         var t3=($"执行耗时: {sw.ElapsedTicks}ms");
         Assert.Equal(fieldName2, fieldName);
     }
+
+
+    [Fact]
+    public void useBus1()
+    {
+        var kit = DBTest.useBus<HHDutyItem>(0);
+
+        var fieldName = kit.Where((d) => d.Di_Idx > 1).ToList();
+        Assert.True(fieldName.Count>0);
+    }
 }

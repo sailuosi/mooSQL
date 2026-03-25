@@ -50,6 +50,13 @@ public class DBTest
         cash = builder
             //.useCache(cache)
             .useEntityAnalyser(new SugarEnitiyParser())
+            .onExecuteError((cont, ex, sql) => {
+                var ttile = "执行SQL发生错误";
+                var val =  sql;
+                var sq = cont.cmd.cmd.toRawSQL();
+                Console.WriteLine(sq);
+                return "";
+            })
             .doBuild();
 
         loadDBConfig();
