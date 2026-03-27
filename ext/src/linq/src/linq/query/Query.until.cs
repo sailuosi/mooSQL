@@ -64,7 +64,7 @@ namespace mooSQL.linq.Linq
 
                 var Opti = DB.dialect.Option;
 
-                //useCache = !Opti.DisableQueryCache;
+                useCache = !Opti.DisableQueryCache;
 
                 //if (useCache)
                 //{

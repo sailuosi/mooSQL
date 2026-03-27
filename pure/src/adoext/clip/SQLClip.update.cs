@@ -10,7 +10,12 @@ namespace mooSQL.data
     public partial class SQLClip
     {
 
-
+        /// <summary>
+        /// 设置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="table"></param>
+        /// <returns></returns>
         public SQLClip<T> setTable<T>(out T table) where T : class, new()
         {
             table= new T();

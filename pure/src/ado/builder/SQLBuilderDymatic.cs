@@ -70,10 +70,7 @@ namespace mooSQL.data
         public int exeNonQuery(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
             return DBLive.ExeNonQuery(sql, Executor);
         }
         /// <summary>
@@ -84,10 +81,7 @@ namespace mooSQL.data
         public Task<int> exeNonQueryAsync(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
             return DBLive.ExeNonQueryAsync(sql, Executor);
         }
         /// <summary>
@@ -127,10 +121,7 @@ namespace mooSQL.data
         public DataTable exeQuery(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            };
+            doPrintSQL(sql);
             return DBLive.ExeQuery(sql, Executor);
         }
         /// <summary>
@@ -141,11 +132,8 @@ namespace mooSQL.data
         public Task<DataTable> exeQueryAsync(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
-            
+            doPrintSQL(sql);
+
             return DBLive.ExeQueryAsync(sql, Executor);
         }
 
@@ -159,11 +147,8 @@ namespace mooSQL.data
         public IEnumerable<T> exeQuery<T>(string SQL, Paras? para=null)
         {
             if (para == null) para = new Paras();
-            if (this._printSQL)
-            {
-                printSQL(SQL, para);
-            }
             var cmd = geneCmd(SQL, para);
+            doPrintSQL(cmd);
             return DBLive.ExeQuery<T>(cmd, Executor);
         }
 
@@ -177,11 +162,7 @@ namespace mooSQL.data
         public IEnumerable<T> exeQuery<T>(SQLCmd SQL)
         {
             if (SQL.para == null) SQL.para = new Paras();
-            if (this._printSQL)
-            {
-                printSQL(SQL.sql, SQL.para);
-            }
-
+            doPrintSQL(SQL);
             return DBLive.ExeQuery<T>(SQL, Executor);
         }
         /// <summary>
@@ -193,10 +174,7 @@ namespace mooSQL.data
         public Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
         {
             if (SQL.para == null) SQL.para = new Paras();
-            if (this._printSQL)
-            {
-                printSQL(SQL.sql, SQL.para);
-            }
+            doPrintSQL(SQL);
 
             return DBLive.ExeQueryAsync<T>(SQL, Executor);
         }
@@ -923,6 +901,7 @@ namespace mooSQL.data
             {
                 return null;
             }
+            doPrintSQL(sql);
             var res= DBLive.ExeQueryFirstField<T>(sql,Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -954,10 +933,7 @@ namespace mooSQL.data
             {
                 return default;
             }
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
             var res= DBLive.ExeQueryRow<T>(sql,Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -994,10 +970,8 @@ namespace mooSQL.data
             {
                 return default;
             }
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
+
             var res= DBLive.ExeQueryUniqueRow<T>(sql,Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -1005,6 +979,13 @@ namespace mooSQL.data
             }
             return res;
 
+        }
+        private void doPrintSQL(SQLCmd cmd)
+        {
+            if (this._printSQL && cmd !=null)
+            {
+                printSQL(cmd.sql, cmd.para);
+            }
         }
         public Task<T> queryUniqueAsync<T>()
         {
@@ -1029,10 +1010,8 @@ namespace mooSQL.data
             {
                 return default;
             }
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
+
             var res =await DBLive.ExeQueryUniqueRowAsync<T>(sql, Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -1065,10 +1044,8 @@ namespace mooSQL.data
             {
                 return default;
             }
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
+
             var tar= DBLive.ExeQueryScalar<T>(sql, Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -1099,10 +1076,8 @@ namespace mooSQL.data
             {
                 return default;
             }
-            if (this._printSQL)
-            {
-                printSQL(sql.sql, sql.para);
-            }
+            doPrintSQL(sql);
+
             var tar =await DBLive.ExeQueryScalarAsync<T>(sql,Executor);
             if (this._AutoClearWay == CleanWay.Always)
             {
@@ -1135,6 +1110,7 @@ namespace mooSQL.data
             {
                 return default(TResult);
             }
+            doPrintSQL(sql);
             var tar= DBLive.ExecuteCmd(sql, (cmd, cont) =>
             {
                 return onRuning(cont, typeof(T));

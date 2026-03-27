@@ -8,11 +8,14 @@ using mooSQL.data.clip;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// SQLClip的上下文
+    /// </summary>
     public partial class ClipContext
     {
 
         public ClipContext(SQLBuilder builder) { 
-            _builder = builder;
+            _builder = builder.useSQL();
             Joins = new List<ClipJoinData>();
             _bindTables = new Dictionary<object, ClipTable>();
             FieldCount = 0;
@@ -23,11 +26,16 @@ namespace mooSQL.data
         internal BuildSQLType BType { get; set; }
 
         internal SQLBuilder _builder;
+        /// <summary>
+        /// 构建器
+        /// </summary>
         public SQLBuilder Builder { 
             get { return _builder; }
             set { _builder = value; }
         }
-
+        /// <summary>
+        /// 字段数量
+        /// </summary>
         public int FieldCount { get; internal set; }
         /// <summary>
         /// from绑定的实例对象

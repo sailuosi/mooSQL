@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static NPOI.HSSF.UserModel.HeaderFooter;
 
 namespace mooSQL.data
 {
@@ -60,6 +61,11 @@ namespace mooSQL.data
 
         public override string Day(string FieldSQL) { 
             return string.Concat("DAY(", FieldSQL, ")");
+        }
+
+        public override string Concat(string left, string right)
+        {
+            return string.Concat("CONCAT(",left,",",right, ")");
         }
     }
 }

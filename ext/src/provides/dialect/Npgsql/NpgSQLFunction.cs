@@ -41,5 +41,10 @@ namespace mooSQL.data
         {
             return string.Concat("EXTRACT(DAY  FROM", FieldSQL, ")");
         }
+
+        public override string Concat(string left, string right)
+        {
+            return string.Concat(left, " || ", right);
+        }
     }
 }
