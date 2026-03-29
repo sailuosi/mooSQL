@@ -42,9 +42,13 @@ namespace mooSQL.data
                 return (T)handler.Parse(type, value);
             }
             if (type.Name == "String") {
-                String strVal = Convert.ToString(value) ?? string.Empty;
-                Object vv = strVal;
-                return (T)vv;
+                if (value == null) { 
+                    return default;
+                }
+                return (T)(object)value.ToString();
+                //String strVal = Convert.ToString(value) ?? string.Empty;
+                //Object vv = strVal;
+                //return (T)vv;
             }
             if (type.Name == "Guid") {
                 if (value is Guid gval) { 

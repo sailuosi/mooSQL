@@ -63,6 +63,13 @@ namespace mooSQL.data.reader
             return default;
 
         }
+        /// <summary>
+        /// 此处为类型转换的兜底分支，如果有未处理的异常，可以在这里进行扩展处理。ToExtesion
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="conversionType"></param>
+        /// <param name="provider"></param>
+        /// <returns></returns>
         public static object ChangeType(object value, Type conversionType, IFormatProvider provider) { 
             return System.Convert.ChangeType(value, conversionType, provider);
         

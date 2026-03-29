@@ -1259,6 +1259,26 @@ namespace mooSQL.data {
         {
             return where(key, val, "=", true);
         }
+        public SQLBuilder whereGreaterThan(string key, Object val)
+        {
+            return where(key, val, ">", true);
+        }
+        public SQLBuilder whereLessThan(string key, Object val)
+        {
+            return where(key, val, "<", true);
+        }
+        public SQLBuilder whereGreaterThanOrEqual(string key, Object val)
+        {
+            return where(key, val, ">=", true);
+        }
+        public SQLBuilder whereLessThanOrEqual(string key, Object val)
+        {
+            return where(key, val, "<=", true);
+        }
+        public SQLBuilder whereNotEqual(string key, Object val)
+        {
+            return where(key, val, "<>", true);
+        }
         /// <summary>
         /// 带条件判断的 where 条件添加，如果 isTrue 为false或null,则忽略本次条件添加。
         /// </summary>

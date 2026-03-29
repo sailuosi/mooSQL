@@ -15,7 +15,7 @@ namespace mooSQL.data
     {
 
         public ClipContext(SQLBuilder builder) { 
-            _builder = builder.useSQL();
+            _builder = builder;
             Joins = new List<ClipJoinData>();
             _bindTables = new Dictionary<object, ClipTable>();
             FieldCount = 0;
