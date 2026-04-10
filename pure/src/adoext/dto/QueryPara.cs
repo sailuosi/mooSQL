@@ -89,13 +89,17 @@ namespace mooSQL.data
         /// </summary>
         public string field { get; set; }
         /// <summary>
-        /// 操作符，例如：=, >,<LIKE等
+        /// 操作符，例如：=, ,LIKE等
         /// </summary>
         public string op { get; set; }
         /// <summary>
         /// 条件值，例如：1, 'abc', '2023-04-01'等。
         /// </summary>
         public object value { get; set; }
+        /// <summary>
+        /// 值的类型，默认不处理，如果设置，则按指定类型进行转换处理。
+        /// </summary>
+        public string vtype { get; set; } 
     }
     /// <summary>
     /// 排序条件，用于构建SQL语句时使用。
@@ -106,9 +110,19 @@ namespace mooSQL.data
         /// 序号
         /// </summary>
         public int? idx { get; set; }
+        /// <summary>
+        /// 字段名
+        /// </summary>
         public string field { get; set; }
+        /// <summary>
+        /// 排序说明如ASC
+        /// </summary>
         public string order { get; set; }
-
+        /// <summary>
+        /// 排序定义
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="order"></param>
         public QueryOrderBy(string field, string order)
         {
             this.field = field;
@@ -119,10 +133,21 @@ namespace mooSQL.data
     /// 需要聚合的字段，用于构建SQL语句时使用。
     /// </summary>
     public class SummaryField {
+        /// <summary>
+        /// 排序
+        /// </summary>
         public int? idx { get; set; }
+        /// <summary>
+        /// 字段名称
+        /// </summary>
         public string field { get; set; }
+        /// <summary>
+        /// 聚合的排序
+        /// </summary>
         public string order { get; set; }
-
+        /// <summary>
+        /// 别名
+        /// </summary>
         public string asName { get; set; }
         /// <summary>
         /// 模式，例如：sum, avg, max, min等。

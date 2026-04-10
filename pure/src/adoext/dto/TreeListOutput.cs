@@ -10,7 +10,6 @@ namespace mooSQL.data
     {
         public List<TreeNodeOutput<R>> Nodes { get; set; }
 
-        public int Count { get; set; }
 
         public List<T2> map<T2>(Func<TreeNodeOutput<R>, T2, T2> domapping) { 
             var result = new List<T2>();
