@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.data.utils;
 
 using System;
@@ -987,90 +987,121 @@ namespace mooSQL.data
                 kit.where(field, cond.value, cond.op);
                 cc++;
             }
-
-            else if (op == "in")
+            else
             {
-                if (cond.value is string valstr)
+                switch (op)
                 {
-                    kit.whereIn(field, Regex.Split(valstr, @"[,;|]"));
-                }
-                else if (cond.value is IEnumerable<string> vals)
-                {
-                    kit.whereIn(field, vals);
-                }
-                else if (cond.value is IEnumerable vals2)
-                {
-                    kit.whereIn(field, vals2);
-                }
-                return cc;
-            }
-            else if (op == "notin")
-            {
-                if (cond.value is string valstr)
-                {
-                    kit.whereNotIn(field, Regex.Split(valstr, @"[,;|]"));
-                }
-                else if (cond.value is IEnumerable<string> vals)
-                {
-                    kit.whereNotIn(field, vals);
-                }
-                else if (cond.value is IEnumerable vals2)
-                {
-                    kit.whereNotIn(field, vals2);
-                }
-                return cc;
-            }
-            else if (op == "like")
-            {
-                //只支持字符型值参数
-                if (cond.value is string valstr)
-                {
-                    kit.whereLike(field, valstr);
-                }
-                return cc;
-            }
-            else if (op == "notlike")
-            {
-                if (cond.value is string valstr)
-                {
-                    kit.whereNotLike(field, valstr);
-                }
-                return cc;
-            }
-            else if (op == "likeleft")
-            {
-                //只支持字符型值参数
-                if (cond.value is string valstr)
-                {
-                    kit.whereLikeLeft(field, valstr);
-                }
-                return cc;
-            }
-            else if (op == "isnull") {
-                kit.whereIsNull(field);
-                return cc;
-            }
-            else if (op == "notnull")
-            {
-                kit.whereIsNotNull(field);
-                return cc;
-            }
-            else if (op == "between")
-            {
-                if (cond.value is string valstr)
-                {
-                    var vals = Regex.Split(valstr, @"[,;|]");
-                    if (vals.Length > 1) {
-                        kit.whereBetween(field, vals[0], vals[1]);
+                    case "in":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereIn(field, Regex.Split(valstr, @"[,;|]"));
+                        }
+                        else if (cond.value is IEnumerable<string> vals)
+                        {
+                            kit.whereIn(field, vals);
+                        }
+                        else if (cond.value is IEnumerable vals2)
+                        {
+                            kit.whereIn(field, vals2);
+                        }
+                        return cc;
                     }
-                    
+                    case "notin":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereNotIn(field, Regex.Split(valstr, @"[,;|]"));
+                        }
+                        else if (cond.value is IEnumerable<string> vals)
+                        {
+                            kit.whereNotIn(field, vals);
+                        }
+                        else if (cond.value is IEnumerable vals2)
+                        {
+                            kit.whereNotIn(field, vals2);
+                        }
+                        return cc;
+                    }
+                    case "like":
+                    {
+                        //只支持字符型值参数
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereLike(field, valstr);
+                        }
+                        return cc;
+                    }
+                    //多元like的组合
+                    case "likes":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereLikes(field, Regex.Split(valstr, @"[,;|]"));
+                        }
+                        else if (cond.value is IEnumerable<string> vals)
+                        {
+                            kit.whereLikes(field, vals);
+                        }
+                        return cc;
+                    }
+                    case "notlike":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereNotLike(field, valstr);
+                        }
+                        return cc;
+                    }
+                    case "likeleft":
+                    {
+                        //只支持字符型值参数
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereLikeLeft(field, valstr);
+                        }
+                        return cc;
+                    }
+                    case "likelefts":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            kit.whereLikeLefts(field, Regex.Split(valstr, @"[,;|]"));
+                        }
+                        else if (cond.value is IEnumerable<string> vals)
+                        {
+                            kit.whereLikeLefts(field, vals);
+                        }
+                        return cc;
+                    }
+                    case "isnull":
+                    {
+                        kit.whereIsNull(field);
+                        return cc;
+                    }
+                    case "notnull":
+                    {
+                        kit.whereIsNotNull(field);
+                        return cc;
+                    }
+                    case "between":
+                    {
+                        if (cond.value is string valstr)
+                        {
+                            var vals = Regex.Split(valstr, @"[,;|]");
+                            if (vals.Length > 1) {
+                                kit.whereBetween(field, vals[0], vals[1]);
+                            }
+
+                        }
+                        else if (cond.value is IEnumerable<string> vals && vals.Count()>1)
+                        {
+                            var t = vals.ToList();
+                            kit.whereBetween(field, t[0], t[1]);
+                        }
+                        return cc;
+                    }
                 }
-                else if (cond.value is IEnumerable<string> vals && vals.Count()>1)
-                {
-                    var t = vals.ToList();
-                    kit.whereBetween(field, t[0], t[1]);
-                }
-                return cc;
             }
             return cc;
         }

@@ -297,7 +297,16 @@ public class TestSQLBuilderSelect
 
         Assert.NotNull(list);
     }
+    [Fact]
+    public void findField1()
+    {
 
+        var kit = DBTest.useSQL(0);
+        var oid = Guid.Empty;
+        var val = kit.findField((SQLClip c, HHDutyItem h) => c.select(() =>new { h.HH_DutyItemOID }));
+
+        Assert.NotNull(val);
+    }
     [Fact]
     public void findFieldValue()
     {
