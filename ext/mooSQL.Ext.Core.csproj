@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <LangVersion>12.0</LangVersion>
 	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>
+	  <PackageId>mooSQL.Ext.Core</PackageId>
   </PropertyGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
 		<Reference Include="Microsoft.CSharp" />
