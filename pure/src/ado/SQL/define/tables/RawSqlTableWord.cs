@@ -7,18 +7,22 @@ namespace mooSQL.data.model
 
 
     /// <summary>
-    /// 直接用SQL配置的一个来源表 SqlRawSqlTable
+    /// 由原始 SQL 片段与参数构成的表来源（<c>SqlRawSqlTable</c>），常用于内联视图或方言特定片段。
     /// </summary>
     public class RawSqlTableWord : TableWord
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitRawSqlTable(this);
         }
+		/// <summary>括号内嵌入的 SQL 文本。</summary>
 		public string SQL { get; }
 
+		/// <summary>与 SQL 中占位符对应的参数表达式。</summary>
 		public IExpWord[] Parameters { get; private set; }
 
+		/// <summary>绑定实体元数据、SQL 文本与参数列表。</summary>
 		public RawSqlTableWord(EntityInfo endtityDescriptor,string sql,IExpWord[] parameters)
             : base(endtityDescriptor)
         {
@@ -30,6 +34,7 @@ namespace mooSQL.data.model
 		}
 
 
+		/// <summary>复制表结构并替换参数列表。</summary>
 		public RawSqlTableWord(RawSqlTableWord table, IExpWord[] parameters)
 			: base(table.ObjectType, null, table.TableName)
 		{
@@ -44,8 +49,10 @@ namespace mooSQL.data.model
 		}
 
 
+		/// <inheritdoc />
 		public override ClauseType NodeType  => ClauseType.SqlRawSqlTable;
 
+		/// <inheritdoc />
 		public IElementWriter ToString(IElementWriter writer)
 		{
 			writer
@@ -60,6 +67,7 @@ namespace mooSQL.data.model
 
 		#region IQueryElement Members
 
+		/// <summary>调试/展示用的完整 SQL 文本。</summary>
 		public string SqlText => this.ToDebugString();
 
 		#endregion

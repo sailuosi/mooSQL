@@ -169,6 +169,7 @@ namespace mooSQL.data.model
 		SqlRawSqlTable,
 		SqlValuesTable,
 
+		/// <summary>OUTPUT 子句节点（如 SQL Server）。</summary>
 		OutputClause,
 
 		SelectStatement,

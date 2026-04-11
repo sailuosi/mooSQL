@@ -51,6 +51,7 @@ namespace mooSQL.data.model
 		public override QueryType            QueryType         => QueryType.Merge;
 		public override ClauseType     NodeType       => ClauseType.MergeStatement;
 
+		/// <summary>更新目标表、源、ON 条件与可选 <c>OUTPUT</c> 子句。</summary>
 		public void Update(ITableNode target, ITableNode source, SearchConditionWord on, OutputClause? output)
 		{
 			Target = target;

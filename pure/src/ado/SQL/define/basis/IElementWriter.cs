@@ -26,6 +26,7 @@ namespace mooSQL.data.model
 
         IElementWriter DebugAppendUniqueId<T>(T element, SelectQueryClause? selectQuery = null);
 
+        /// <summary>输出元素并可附带行内 SQL 注释块。</summary>
         IElementWriter AppendTag<T>(T element, CommentWord? comment = null);
 
         IElementWriter AppendElement<T>(T? comment ) where T : ISQLNode;
