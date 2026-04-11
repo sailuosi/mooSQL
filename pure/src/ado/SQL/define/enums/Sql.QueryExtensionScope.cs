@@ -2,7 +2,6 @@
 
 namespace mooSQL.data
 {
-	using SqlProvider;
 
 
 		/// <summary>

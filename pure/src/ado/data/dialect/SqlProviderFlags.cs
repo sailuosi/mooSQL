@@ -22,27 +22,23 @@ namespace mooSQL.data
 		public List<string> CustomFlags { get; set; } = new List<string>();
 
 		/// <summary>
-		/// 表示提供程序（非数据库）使用位置参数而非命名参数（按在查询中的出现顺序赋值，而非按参数名）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 表示提供程序（非数据库）使用位置参数而非命名参数（按在查询中的出现顺序赋值，而非按参数名）
 		/// </summary>
 		[DataMember(Order =  2)]
 		public bool        IsParameterOrderDependent      { get; set; }
 
 		/// <summary>
-		/// 表示 TAKE/TOP/LIMIT 可接受参数。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示 TAKE/TOP/LIMIT 可接受参数
 		/// </summary>
 		[DataMember(Order =  3)]
 		public bool        AcceptsTakeAsParameter         { get; set; }
 		/// <summary>
-		/// 表示仅当同时指定了 SKIP/OFFSET 时，TAKE/LIMIT 才可接受参数。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 表示仅当同时指定了 SKIP/OFFSET 时，TAKE/LIMIT 才可接受参数
 		/// </summary>
 		[DataMember(Order =  4)]
 		public bool        AcceptsTakeAsParameterIfSkip   { get; set; }
 		/// <summary>
-		/// 表示支持 TOP/TAKE/LIMIT 分页子句。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示支持 TOP/TAKE/LIMIT 分页子句
 		/// </summary>
 		[DataMember(Order =  5)]
 		public bool        IsTakeSupported                { get; set; }
@@ -50,13 +46,11 @@ namespace mooSQL.data
 		/// 表示在无 TAKE 子句时也支持 SKIP/OFFSET 分页子句（参数）。
 		/// 若提供程序模拟该能力，即使数据库不支持也可设置此标志。
 		/// 例如：<c>TAKE [MAX_ALLOWED_VALUE] SKIP skip_value </c>
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
 		/// </summary>
 		[DataMember(Order =  6)]
 		public bool        IsSkipSupported                { get; set; }
 		/// <summary>
-		/// 表示仅当同时指定了 TAKE/LIMIT 时才支持 SKIP/OFFSET 分页子句（参数）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 表示仅当同时指定了 TAKE/LIMIT 时才支持 SKIP/OFFSET 分页子句（参数）
 		/// </summary>
 		[DataMember(Order =  7)]
 		public bool        IsSkipSupportedIfTake          { get; set; }
@@ -67,8 +61,7 @@ namespace mooSQL.data
 		[DataMember(Order =  8)]
 		public TakeHintType?  TakeHintsSupported              { get; set; }
 		/// <summary>
-		/// 表示子查询中支持分页子句。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示子查询中支持分页子句
 		/// </summary>
 		[DataMember(Order =  9)]
 		public bool        IsSubQueryTakeSupported        { get; set; }
@@ -82,22 +75,19 @@ namespace mooSQL.data
 		public bool IsJoinDerivedTableWithTakeInvalid { get; set; }
 
 		/// <summary>
-		/// 表示相关子查询中支持分页子句。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示相关子查询中支持分页子句
 		/// </summary>
 		[DataMember(Order = 11)]
 		public bool IsCorrelatedSubQueryTakeSupported { get; set; }
 
 		/// <summary>
-		/// 表示提供程序支持无条件的 JOIN（如 ON 1=1）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示提供程序支持无条件的 JOIN（如 ON 1=1）
 		/// </summary>
 		[DataMember(Order = 12)]
 		public bool IsSupportsJoinWithoutCondition { get; set; }
 		
 		/// <summary>
-		/// 表示列表达式子查询中支持 skip 子句。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示列表达式子查询中支持 skip 子句
 		/// </summary>
 		[DataMember(Order =  13)]
 		public bool        IsSubQuerySkipSupported        { get; set; }
@@ -105,90 +95,76 @@ namespace mooSQL.data
 		/// <summary>
 		/// 表示 select 列表中支持标量子查询。
 		/// 例如 <c>SELECT (SELECT TOP 1 value FROM some_table) AS MyColumn, ...</c>
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
 		/// </summary>
 		[DataMember(Order = 14)]
 		public bool        IsSubQueryColumnSupported      { get; set; }
 		/// <summary>
 		/// 表示子查询中支持 <c>ORDER BY</c> 子句。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 15)]
 		public bool        IsSubQueryOrderBySupported     { get; set; }
 		/// <summary>
 		/// 表示数据库支持将 count 子查询作为列中的标量。
 		/// <code>SELECT (SELECT COUNT(*) FROM some_table) FROM ...</code>
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
 		/// </summary>
 		[DataMember(Order = 16)]
 		public bool        IsCountSubQuerySupported       { get; set; }
 
 		/// <summary>
 		/// 表示带自增的插入查询需要显式输出参数才能从数据库获取自增值。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 17)]
 		public bool        IsIdentityParameterRequired    { get; set; }
 		/// <summary>
 		/// 表示支持 OUTER/CROSS APPLY。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 18)]
 		public bool        IsApplyJoinSupported           { get; set; }
 		/// <summary>
 		/// 表示 CROSS APPLY 支持条件，例如 LATERAL JOIN。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 19)]
 		public bool IsCrossApplyJoinSupportsCondition { get; set; }
 		/// <summary>
 		/// 表示 OUTER APPLY 支持条件，例如 LATERAL JOIN。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 20)]
 		public bool IsOuterApplyJoinSupportsCondition { get; set; }
 		/// <summary>
 		/// 表示支持单条查询的“插入或更新”操作。
 		/// 否则将用两条查询模拟（先更新，若无更新则再插入）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
 		/// </summary>
 		[DataMember(Order = 21)]
 		public bool        IsInsertOrUpdateSupported      { get; set; }
 		/// <summary>
 		/// 表示多语句批处理中提供程序可在语句间共享参数。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
 		/// </summary>
 		[DataMember(Order = 22)]
 		public bool        CanCombineParameters           { get; set; }
 		/// <summary>
 		/// 单个 <c>IN</c> 谓词中值的数量上限（不拆成多个 IN 时）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>int.MaxValue</c>（表示基本无限制）。
 		/// </summary>
 		[DataMember(Order = 23)]
 		public int         MaxInListValuesCount           { get; set; }
 
 		/// <summary>
-		/// 若为 <c>true</c>，DELETE 语句 OUTPUT 子句中的已删除记录字段应通过特殊表名（如 DELETED 或 OLD）引用；否则用目标表引用。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 若为 <c>true</c>，DELETE 语句 OUTPUT 子句中的已删除记录字段应通过特殊表名（如 DELETED 或 OLD）引用；否则用目标表引用
 		/// </summary>
 		[DataMember(Order = 24)]
 		public bool        OutputDeleteUseSpecialTable    { get; set; }
 		/// <summary>
-		/// 若为 <c>true</c>，INSERT 语句 OUTPUT 子句中的新增记录字段应通过特殊表名（如 INSERTED 或 NEW）引用；否则用目标表引用。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 若为 <c>true</c>，INSERT 语句 OUTPUT 子句中的新增记录字段应通过特殊表名（如 INSERTED 或 NEW）引用；否则用目标表引用
 		/// </summary>
 		[DataMember(Order = 25)]
 		public bool        OutputInsertUseSpecialTable    { get; set; }
 		/// <summary>
-		/// 若为 <c>true</c>，UPDATE 语句的 OUTPUT 子句通过特殊表名同时支持 OLD 与 NEW 数据；否则仅能通过目标表引用更新后的当前记录字段。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 若为 <c>true</c>，UPDATE 语句的 OUTPUT 子句通过特殊表名同时支持 OLD 与 NEW 数据；否则仅能通过目标表引用更新后的当前记录字段
 		/// </summary>
 		[DataMember(Order = 26)]
 		public bool        OutputUpdateUseSpecialTables   { get; set; }
 
 		/// <summary>
-		/// 表示支持 CROSS JOIN。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示支持 CROSS JOIN
 		/// </summary>
 		[DataMember(Order = 27)]
 		public bool        IsCrossJoinSupported              { get; set; }
@@ -196,28 +172,24 @@ namespace mooSQL.data
 		/// <summary>
 		/// 表示支持 CTE（公用表表达式）。
 		/// 若提供程序不支持 CTE，使用 CTE 时将抛出不支持异常。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
 		/// </summary>
 		[DataMember(Order = 28)]
 		public bool IsCommonTableExpressionsSupported     { get; set; }
 
 		/// <summary>
-		/// 表示 ORDER BY 语句中支持聚合函数。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 表示 ORDER BY 语句中支持聚合函数
 		/// </summary>
 		[DataMember(Order = 29)]
 		public bool IsOrderByAggregateFunctionsSupported  { get; set; }
 
 		/// <summary>
-		/// 提供程序支持 EXCEPT ALL、INTERSECT ALL 集合运算符；否则将模拟实现。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 提供程序支持 EXCEPT ALL、INTERSECT ALL 集合运算符；否则将模拟实现
 		/// </summary>
 		[DataMember(Order = 30)]
 		public bool IsAllSetOperationsSupported           { get; set; }
 
 		/// <summary>
-		/// 提供程序支持 EXCEPT、INTERSECT 集合运算符；否则将模拟实现。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 提供程序支持 EXCEPT、INTERSECT 集合运算符；否则将模拟实现
 		/// </summary>
 		[DataMember(Order = 31)]
 		public bool IsDistinctSetOperationsSupported      { get; set; }
@@ -232,8 +204,7 @@ namespace mooSQL.data
 		/// ) AS Sum_Column
 		/// FROM table1 outer
 		///</code>
-		/// 否则聚合表达式会被包装在子查询中，再对子查询列应用聚合函数。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 否则聚合表达式会被包装在子查询中，再对子查询列应用聚合函数
 		/// </summary>
 		[DataMember(Order = 32)]
 		public bool AcceptsOuterExpressionInAggregate { get; set; }
@@ -245,14 +216,13 @@ namespace mooSQL.data
 		/// SET ...
 		/// FROM B
 		/// </code>
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		
 		/// </summary>
 		[DataMember(Order = 33)]
 		public bool IsUpdateFromSupported             { get; set; }
 
 		/// <summary>
-		/// 提供程序支持命名查询块 QB_NAME(qb)。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 提供程序支持命名查询块 QB_NAME(qb)
 		/// </summary>
 		[DataMember(Order = 34)]
 		public bool IsNamingQueryBlockSupported       { get; set; }
@@ -266,14 +236,12 @@ namespace mooSQL.data
 
 		/// <summary>
 		/// 当查询需要多次数据库请求才能完成时使用的隔离级别（如预加载或客户端 GroupBy）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<see cref="IsolationLevel.RepeatableRead"/>。
 		/// </summary>
 		[DataMember(Order = 36)]
 		public IsolationLevel DefaultMultiQueryIsolationLevel { get; set; }
 
 		/// <summary>
 		/// 提供程序在不同位置对行构造器 (1, 2, 3) 的支持（标志位）。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<see cref="RowFeature.None"/>。
 		/// </summary>
 		[DataMember(Order = 37), DefaultValue(RowFeature.None)]
 		public RowFeature RowConstructorSupport { get; set; }
@@ -380,67 +348,73 @@ namespace mooSQL.data
 		public bool SupportsBooleanComparison { get; set; }
 
 		/// <summary>
-		/// 提供程序支持嵌套 JOIN（如 A JOIN (B JOIN C ON ?) ON ?），否则会替换为子查询形式。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 提供程序支持嵌套 JOIN（如 A JOIN (B JOIN C ON ?) ON ?），否则会替换为子查询形式
 		/// </summary>
 		[DataMember(Order = 51), DefaultValue(true)]
 		public bool IsNestedJoinsSupported { get; set; } = true;
 
 		/// <summary>
-		/// 提供程序支持 COUNT(DISTINCT column)；否则将模拟实现。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 提供程序支持 COUNT(DISTINCT column)；否则将模拟实现
 		/// </summary>
 		[DataMember(Order = 52)]
 		public bool IsCountDistinctSupported { get; set; }
 
 		/// <summary>
-		/// 提供程序支持 SUM/AVG/MIN/MAX(DISTINCT column)；否则将模拟实现。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 提供程序支持 SUM/AVG/MIN/MAX(DISTINCT column)；否则将模拟实现
 		/// </summary>
 		[DataMember(Order = 53)]
 		public bool IsAggregationDistinctSupported { get; set; }
 
 		/// <summary>
-		/// 提供程序支持派生表中的 ORDER BY；否则将模拟实现。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>true</c>。
+		/// 提供程序支持派生表中的 ORDER BY；否则将模拟实现
 		/// </summary>
 		[DataMember(Order = 54)]
 		public bool IsDerivedTableOrderBySupported { get; set; }
 
 		/// <summary>
-		/// 提供程序支持 UPDATE 查询的 TAKE 限制。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 提供程序支持 UPDATE 查询的 TAKE 限制
 		/// </summary>
 		[DataMember(Order = 55)]
 		public bool IsUpdateTakeSupported { get; set; }
 
 		/// <summary>
-		/// 提供程序支持 UPDATE 查询的 SKIP+TAKE 限制。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 提供程序支持 UPDATE 查询的 SKIP+TAKE 限制
 		/// </summary>
 		[DataMember(Order = 56)]
 		public bool IsUpdateSkipTakeSupported { get; set; }
 
 		/// <summary>
-		/// 提供程序支持可简单转换为 JOIN 的相关子查询。
-		/// 默认（由 <see cref="DataProviderBase"/> 设置）：<c>false</c>。
+		/// 提供程序支持可简单转换为 JOIN 的相关子查询
 		/// </summary>
 		/// <remarks>
 		/// 仅用于 ClickHouse 提供程序。
 		/// </remarks>
 		[DataMember(Order = 57)]
 		public bool IsSupportedSimpleCorrelatedSubqueries { get; set; }
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="selectQuery"></param>
+		/// <returns></returns>
 		public bool GetAcceptsTakeAsParameterFlag(SelectQueryClause selectQuery)
 		{
 			return AcceptsTakeAsParameter || AcceptsTakeAsParameterIfSkip && selectQuery.Select.SkipValue != null;
 		}
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="takeExpression"></param>
+		/// <param name="skipExpression"></param>
+		/// <returns></returns>
 		public bool GetIsSkipSupportedFlag(IExpWord? takeExpression, IExpWord? skipExpression)
 		{
 			return IsSkipSupported || IsSkipSupportedIfTake && takeExpression != null;
 		}
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="hints"></param>
+		/// <returns></returns>
 		public bool GetIsTakeHintsSupported(TakeHintType hints)
 		{
 			if (TakeHintsSupported == null)
@@ -450,8 +424,10 @@ namespace mooSQL.data
 		}
 
 		#region Equality
-		// 当前需要相等性支持以便在远程上下文中避免错误使用带有不同标志的缓存依赖类型
-		// https://github.com/linq2db/linq2db/issues/1445
+		/// <summary>
+		/// 当前需要相等性支持以便在远程上下文中避免错误使用带有不同标志的缓存依赖类型
+		/// </summary>
+		/// <returns></returns>
 		public override int GetHashCode()
 		{
 			return IsParameterOrderDependent                           .GetHashCode()
@@ -512,7 +488,11 @@ namespace mooSQL.data
 				^ IsSupportedSimpleCorrelatedSubqueries                .GetHashCode()
 				^ CustomFlags.Aggregate(0, (hash, flag) => flag.GetHashCode() ^ hash);
 	}
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
 		public override bool Equals(object? obj)
 		{
 			return obj is SQLProviderFlags other
