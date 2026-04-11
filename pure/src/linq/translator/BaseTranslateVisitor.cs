@@ -14,14 +14,19 @@ namespace mooSQL.linq
     public class BaseTranslateVisitor:ExpressionVisitor
     {
 
+        /// <summary>处理方法调用节点的访问器（生成 SQL 片段）。</summary>
         protected MethodVisitor methodVisitor;
 
+        /// <summary>
+        /// 使用指定 <see cref="MethodVisitor"/> 构造翻译访问器。
+        /// </summary>
         public BaseTranslateVisitor(MethodVisitor visitor) { 
             this.methodVisitor = visitor;
         }
 
 
 
+        /// <inheritdoc />
         protected override Expression VisitMethodCall(MethodCallExpression node) { 
 
             var method=node.Method;

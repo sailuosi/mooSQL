@@ -14,10 +14,13 @@ namespace mooSQL.linq
     public class DbContext
     {
 
+        /// <summary>底层数据库访问实例。</summary>
         public DBInstance DB;
 
+        /// <summary>LINQ 查询编译与实体提供程序的工厂。</summary>
         public LinqDbFactory Factory {  get; set; }
 
+        /// <summary>当前库对应的实体查询提供程序（由 <see cref="Factory"/> 创建）。</summary>
         public EntityQueryProvider EntityProvider
         {
             get {

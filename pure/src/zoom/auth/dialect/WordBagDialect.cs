@@ -129,8 +129,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加一个用户
         /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
+        /// <param name="user">用户对象。</param>
+        /// <param name="group">权限分组标识，默认 <c>_empty</c>。</param>
+        /// <returns>新增条数。</returns>
         public int addMan(AuthUser user, string group = "_empty")
         {
             if (user == null) return 0;
@@ -142,9 +143,10 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加一组单位到权限集合
         /// </summary>
-        /// <param name="orgs"></param>
-        /// <param name="haschild"></param>
-        /// <returns></returns>
+        /// <param name="orgs">组织列表。</param>
+        /// <param name="haschild">是否包含下级。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>新增条数。</returns>
         public int addOrgs(List<AuthOrg> orgs, bool haschild, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -153,9 +155,10 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加单位权限
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="contains"></param>
-        /// <returns></returns>
+        /// <param name="org">组织。</param>
+        /// <param name="contains">是否包含下级范围。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>新增条数。</returns>
         public int addOrg(AuthOrg org, bool contains, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -164,8 +167,9 @@ namespace mooSQL.auth
         /// <summary>
         /// /添加指定单位权限
         /// </summary>
-        /// <param name="org"></param>
-        /// <returns></returns>
+        /// <param name="org">组织。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>是否添加成功。</returns>
         public bool addBindOrg(AuthOrg org, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -174,8 +178,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加指定单位及其下级权限
         /// </summary>
-        /// <param name="org"></param>
-        /// <returns></returns>
+        /// <param name="org">组织。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>是否添加成功。</returns>
         public bool addContainOrg(AuthOrg org, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -185,8 +190,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加一个动态语义
         /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
+        /// <param name="word">权限词条。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>当前方言实例。</returns>
         public WordBagDialect addLiveWord(AuthWord word, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -197,8 +203,9 @@ namespace mooSQL.auth
         /// <summary>
         /// /添加指定岗位权限
         /// </summary>
-        /// <param name="post"></param>
-        /// <returns></returns>
+        /// <param name="post">岗位。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>是否添加成功。</returns>
         public bool addBindPost(AuthPost post, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -207,8 +214,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 添加指定岗位及其下级权限
         /// </summary>
-        /// <param name="post"></param>
-        /// <returns></returns>
+        /// <param name="post">岗位。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>是否添加成功。</returns>
         public bool addContainPost(AuthPost post, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -216,6 +224,11 @@ namespace mooSQL.auth
 
         }
 
+        /// <summary>
+        /// 添加延迟解析的权限词条（在解析阶段再展开）。
+        /// </summary>
+        /// <param name="word">权限词条。</param>
+        /// <param name="group">权限分组标识。</param>
         public void addLazyWord(AuthWord word, string group = "_empty")
         {
             var grou = this.getGroup(group);
@@ -223,6 +236,10 @@ namespace mooSQL.auth
             
         }
 
+        /// <summary>
+        /// 对各分组下的 <see cref="WordTranslator"/> 执行词条解析。
+        /// </summary>
+        /// <param name="dialect">当前认证方言。</param>
         public void parseWord(AuthDialect dialect) {
             foreach (var group in this.groups)
             {
@@ -363,6 +380,11 @@ namespace mooSQL.auth
 
             return this;
         }
+        /// <summary>
+        /// 为所有分组注册组织范围（<see cref="CodeRange{AuthOrg}"/>）整体生成 SQL 的过滤委托。
+        /// </summary>
+        /// <param name="doOrgFilter">根据组织范围生成 WHERE 片段。</param>
+        /// <returns>当前方言实例。</returns>
         public WordBagDialect whereOrgBag(Func<CodeRange<AuthOrg>, string> doOrgFilter)
         {
             foreach (var kv in this.groups)
@@ -436,8 +458,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 编织一组条件。可重写
         /// </summary>
-        /// <param name="wh"></param>
-        /// <returns></returns>
+        /// <param name="wh">已收集的条件片段列表。</param>
+        /// <param name="kit">用于参数化或嵌套 WHERE 的 SQL 构造器。</param>
+        /// <returns>合并后的条件片段列表。</returns>
         public virtual List<string> buildWhere(List<string> wh, SQLBuilder kit)
         {
             checkAction();
@@ -459,6 +482,11 @@ namespace mooSQL.auth
             }
         }
 
+        /// <summary>
+        /// 在合并各分组条件后调用，可重写以追加或修改最终片段。
+        /// </summary>
+        /// <param name="wh">已收集的条件片段列表。</param>
+        /// <returns>处理后的列表。</returns>
         protected virtual List<string> onBuildWhere(List<string> wh)
         {
             return wh;
@@ -501,8 +529,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 检查某个层次码是否子码
         /// </summary>
-        /// <param name="org"></param>
-        /// <returns></returns>
+        /// <param name="org">待检查的组织。</param>
+        /// <param name="group">权限分组标识。</param>
+        /// <returns>是否在范围内。</returns>
         public bool checkOrgInScope(AuthOrg org, string group = "empty")
         {
             var grou = this.getGroup(group);
@@ -512,6 +541,9 @@ namespace mooSQL.auth
 
 
 
+        /// <summary>
+        /// 是否任一分组为“全部数据”且未额外叠加（仅否定式添加）。
+        /// </summary>
         public bool isAll {
             get { 
                 //在所有的或分组中，如果有任意一个是所有数据，则就是所有数据

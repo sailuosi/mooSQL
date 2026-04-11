@@ -288,8 +288,9 @@ namespace mooSQL.auth
         /// <summary>
         /// 编织一组条件。可重写
         /// </summary>
-        /// <param name="wh"></param>
-        /// <returns></returns>
+        /// <param name="wh">已收集的条件片段列表。</param>
+        /// <param name="kit">用于 sink/rise 嵌套条件的 SQL 构造器；可为空则仅生成字符串条件。</param>
+        /// <returns>合并后的条件片段列表。</returns>
         public virtual List<string> buildWhere(List<string> wh, SQLBuilder? kit)
         {
 
@@ -419,6 +420,11 @@ namespace mooSQL.auth
             orgRange.useOneBuilder(doOrgFilter);
             return this;
         }
+        /// <summary>
+        /// 注册组织范围整体的 SQL 生成委托（对应 CodeRange 全量编织）。
+        /// </summary>
+        /// <param name="doOrgFilter">根据组织范围生成 WHERE 片段。</param>
+        /// <returns>当前分组包。</returns>
         public WordGroupBag whereOrgBag(Func<CodeRange<AuthOrg>, string> doOrgFilter)
         {
             orgRange.useAllBuilder(doOrgFilter);

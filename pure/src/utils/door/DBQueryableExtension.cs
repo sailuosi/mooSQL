@@ -112,8 +112,9 @@ namespace mooSQL.data
         /// <summary>
         /// 创建一个支持实体解析的SQL片段构建器
         /// </summary>
-        /// <param name="DB"></param>
-        /// <returns></returns>
+        /// <param name="DB">数据库实例。</param>
+        /// <param name="kit">可选父级 <see cref="SQLBuilder"/>，用于共享执行环境。</param>
+        /// <returns>SQL 片段构建器。</returns>
         public static SQLClip useClip(this DBInstance DB,SQLBuilder kit=null)
         {
             return DB.client.ClientFactory.useClip(DB, kit);

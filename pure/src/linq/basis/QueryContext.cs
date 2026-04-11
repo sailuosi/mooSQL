@@ -12,8 +12,10 @@ namespace mooSQL.linq
     /// </summary>
     public class QueryContext
     {
+        /// <summary>可选取消标记，用于长时间查询。</summary>
         public CancellationToken? cancellationToken;
 
+        /// <summary>当前查询使用的数据库实例。</summary>
         public DBInstance DB;
     }
 }

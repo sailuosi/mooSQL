@@ -7,10 +7,15 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.linq
 {
+    /// <summary>
+    /// 快速 LINQ 编译中使用的字段描述（列元数据 + 表别名）。
+    /// </summary>
     public class FastBusField
     {
+        /// <summary>列映射信息。</summary>
         public EntityColumn Column { get; set; }
 
+        /// <summary>来源表别名（用于生成带前缀的列名）。</summary>
         public string CallerNick { get; set; }
 
         /// <summary>

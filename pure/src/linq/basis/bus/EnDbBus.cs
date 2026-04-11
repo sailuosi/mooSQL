@@ -19,12 +19,24 @@ namespace mooSQL.linq
         private string _entityTypeName;
         private Type _entityType;
 
+        /// <summary>
+        /// 按实体类型名称（字符串）构造查询总线。
+        /// </summary>
+        /// <param name="context">数据库上下文。</param>
+        /// <param name="entityTypeName">实体类型全名。</param>
+        /// <param name="factory">LINQ 工厂。</param>
         public EnDbBus(DbContext context,string entityTypeName,LinqDbFactory factory)
             :base(factory)
         { 
             _context = context;
             _entityTypeName = entityTypeName;
         }
+        /// <summary>
+        /// 按实体 <see cref="Type"/> 构造查询总线。
+        /// </summary>
+        /// <param name="context">数据库上下文。</param>
+        /// <param name="entityType">实体类型。</param>
+        /// <param name="factory">LINQ 工厂。</param>
         public EnDbBus(DbContext context, Type entityType, LinqDbFactory factory)
     : base(factory)
         {
@@ -45,14 +57,19 @@ namespace mooSQL.linq
             }
         }
 
+        /// <inheritdoc />
         public override Expression Expression => EntityQueryable.Expression;
 
+        /// <inheritdoc />
         public override Type ElementType => EntityQueryable.ElementType;
 
+        /// <inheritdoc />
         public override IQueryProvider Provider => EntityQueryable.Provider;
 
+        /// <inheritdoc />
         public override IDbBusProvider BusProvider => EntityQueryable.BusProvider;
 
+        /// <inheritdoc />
         public override Type EntityType
         {
             get {
@@ -63,6 +80,7 @@ namespace mooSQL.linq
             }
         }
 
+        /// <inheritdoc />
         public override IEnumerator<T> GetEnumerator()
         {
             return EntityQueryable.GetEnumerator();

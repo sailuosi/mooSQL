@@ -15,6 +15,7 @@ namespace mooSQL.linq
     public class EntityQueryProvider : IAsyncQueryProvider
     {
         //发动机
+        /// <summary>将表达式编译为 SQL 并执行的编译器。</summary>
         protected readonly IQueryCompiler _queryCompiler;
 
         //缓存引用1
@@ -22,6 +23,10 @@ namespace mooSQL.linq
         //缓存引用2
         private MethodInfo? _genericExecuteMethod;
 
+        /// <summary>
+        /// 使用指定查询编译器创建提供程序。
+        /// </summary>
+        /// <param name="queryCompiler">查询编译器。</param>
         public EntityQueryProvider(IQueryCompiler queryCompiler)
         {
             _queryCompiler = queryCompiler;
@@ -48,6 +53,7 @@ namespace mooSQL.linq
 
 
 
+        /// <inheritdoc />
         public IQueryable CreateQuery(Expression expression)
         {
             if (expression == null)
@@ -60,27 +66,34 @@ namespace mooSQL.linq
             .Invoke(this, [expression])!;
         }
 
+        /// <inheritdoc />
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             return new EntityQueryable<TElement>(this,expression);
         }
 
+        /// <inheritdoc />
         public object Execute(Expression expression)
         {
             return GenericExecuteMethod.MakeGenericMethod(expression.Type)
             .Invoke(_queryCompiler, [expression])!;
         }
 
+        /// <inheritdoc />
         public TResult Execute<TResult>(Expression expression)
         {
             return _queryCompiler.Execute<TResult>(expression);
         }
 
+        /// <inheritdoc />
         public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
         {
             return _queryCompiler.ExecuteAsync<TResult>(expression, cancellationToken);
         }
 
+        /// <summary>
+        /// 由表达式创建 <see cref="IDbBus{TElement}"/> 总线封装。
+        /// </summary>
         public IDbBus<TElement> CreateBus<TElement>(Expression expression)
         {
             return new EntityQueryable<TElement>(this, expression);

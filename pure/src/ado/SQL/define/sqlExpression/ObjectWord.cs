@@ -6,14 +6,22 @@ namespace mooSQL.linq.SqlQuery
 
 	using mooSQL.data.model;
 
+	/// <summary>
+	/// 表示由多个 <see cref="SqlGetValue"/> 组成的对象表达式（如行构造）。
+	/// </summary>
 	public class ObjectWord :Clause, IExpWord
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitObjectExpression(this);
         }
+        /// <summary>组成对象各属性的取值表达式。</summary>
         public readonly SqlGetValue[] _infoParameters;
 
+		/// <summary>
+		/// 使用各属性取值列表构造对象表达式。
+		/// </summary>
 		public ObjectWord( SqlGetValue[] infoParameters) : base(ClauseType.SqlObjectExpression, null)
         {
 			//MappingSchema   = mappingSchema;
@@ -22,7 +30,9 @@ namespace mooSQL.linq.SqlQuery
 
 
 
+		/// <inheritdoc />
 		public Type? SystemType => null;
+		/// <inheritdoc />
 		public int Precedence => PrecedenceLv.Unknown;
 
 		#region Overrides
@@ -49,6 +59,7 @@ namespace mooSQL.linq.SqlQuery
 
 		private bool? _canBeNull;
 
+		/// <inheritdoc />
 		public bool CanBeNull
 		{
 			get
@@ -64,11 +75,13 @@ namespace mooSQL.linq.SqlQuery
 
 		internal static Func<IExpWord,IExpWord,bool> DefaultComparer = (x, y) => true;
 
+		/// <inheritdoc />
 		public override int GetHashCode()
 		{
 			return RuntimeHelpers.GetHashCode(this);
 		}
 
+		/// <inheritdoc />
 		public bool Equals(IExpWord? other, Func<IExpWord, IExpWord, bool> comparer)
 		{
 			return ReferenceEquals(this, other);
@@ -79,8 +92,10 @@ namespace mooSQL.linq.SqlQuery
 
 
 #if DEBUG
+		/// <summary>调试输出文本。</summary>
 		public string DebugText => this.ToDebugString();
 #endif
+		/// <inheritdoc />
 		public ClauseType NodeType => ClauseType.SqlObjectExpression;
 
 
@@ -89,6 +104,7 @@ namespace mooSQL.linq.SqlQuery
 
 		//public MappingSchema MappingSchema { get; }
 
+        /// <summary>组成对象的各属性取值。</summary>
         public SqlGetValue[] InfoParameters => _infoParameters;
 	}
 }

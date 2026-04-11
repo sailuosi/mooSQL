@@ -75,8 +75,9 @@ namespace mooSQL.data
         /// <summary>
         /// 创建SQLClip对象。
         /// </summary>
-        /// <param name="DB"></param>
-        /// <returns></returns>
+        /// <param name="DB">数据库实例。</param>
+        /// <param name="kit">可选的父级 <see cref="SQLBuilder"/>，用于共享执行环境。</param>
+        /// <returns>SQL 片段构建器。</returns>
         public virtual SQLClip useClip(DBInstance DB,SQLBuilder kit)
         {
             var t = new SQLClip(DB,kit);
@@ -94,6 +95,9 @@ namespace mooSQL.data
             return t;
         }
 
+        /// <summary>
+        /// 获取默认的实体与 SQL 互译器实例。
+        /// </summary>
         public virtual EntityTranslator getEntityTranslator() { 
             return new EntityTranslator();
         }

@@ -271,6 +271,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="Name">作为更新条件的字段名。</param>
         /// <returns></returns>
         public static int updateBy<T>(this SQLBuilder kit, T entity,string Name)
         {
@@ -662,7 +663,8 @@ namespace mooSQL.data
         /// <summary>
         /// 查询前N条数据
         /// </summary>
-        /// <param name="top"></param>
+        /// <param name="builder">查询构造器。</param>
+        /// <param name="top">最大行数。</param>
         /// <returns></returns>
         public static List<T> findList<T>(this SQLBuilder builder,int top)
         {
@@ -996,6 +998,9 @@ namespace mooSQL.data
             return clip.count();
         }
 
+        /// <summary>
+        /// 与 <c>countBy&lt;T&gt;</c> 相同，方法名强调通过 <see cref="SQLClip"/> 条件计数。
+        /// </summary>
         public static int countByClip<T>(this SQLBuilder builder, Action<SQLClip, T> doClipFilting) where T : class, new()
         {
             var clip = builder.useClip();
@@ -1079,6 +1084,9 @@ namespace mooSQL.data
             builder.Client.Translator.prepareDelete(b, en,ids);
             return b.doDelete();
         }
+        /// <summary>
+        /// 按主键单条删除。
+        /// </summary>
         public static int removeById<T>(this SQLBuilder builder, object id) where T : class, new()
         {
             var b = builder.useSQL();
@@ -1304,6 +1312,9 @@ namespace mooSQL.data
             var guide= new NavGuideSave<T>(builder, list);
             return guide;
         }
+        /// <summary>
+        /// 对单条实体启用导航保存（包装为单元素列表）。
+        /// </summary>
         public static NavGuideSave<T> useNavSave<T>(this SQLBuilder builder, T row)
         {
             var list= new List<T>() { row};

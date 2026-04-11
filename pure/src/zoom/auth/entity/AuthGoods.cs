@@ -53,6 +53,9 @@ namespace mooSQL.auth
         /// </summary>
         public string group;
 
+        /// <summary>
+        /// 由类型与 oid/code/id 拼成的资源唯一键，用于去重与索引。
+        /// </summary>
         public string Key {
             get {
                 var k1 = "t" + type;
@@ -73,14 +76,23 @@ namespace mooSQL.auth
     public class AuthGoodsBag
     {
 
+        /// <summary>
+        /// 初始化空资源列表。
+        /// </summary>
         public AuthGoodsBag()
         {
             this.Goods = new List<AuthGoods>();
         }
 
+        /// <summary>已登记的资源项集合。</summary>
         public List<AuthGoods> Goods;
 
 
+        /// <summary>
+        /// 按编码去重后追加一条资源。
+        /// </summary>
+        /// <param name="goods">资源项。</param>
+        /// <returns>是否添加成功。</returns>
         public virtual bool addGoods(AuthGoods goods)
         {
             if (goods == null || string.IsNullOrWhiteSpace(goods.code))

@@ -20,11 +20,21 @@ namespace mooSQL.linq
         /// <summary>
         /// 
         /// </summary>
+        /// <summary>
+        /// 由表达式树构造实体查询。
+        /// </summary>
+        /// <param name="queryProvider">异步查询提供程序。</param>
+        /// <param name="expression">表达式树根。</param>
         public EntityQueryable(IAsyncQueryProvider queryProvider, Expression expression)
         {
             _queryProvider = queryProvider;
             Expression = expression;
         }
+        /// <summary>
+        /// 由实体类型构造根查询（常量为当前实例占位）。
+        /// </summary>
+        /// <param name="queryProvider">异步查询提供程序。</param>
+        /// <param name="entityType">实体类型。</param>
         public EntityQueryable(IAsyncQueryProvider queryProvider, Type entityType)
         {
             _queryProvider = queryProvider;
@@ -47,6 +57,7 @@ namespace mooSQL.linq
         public override IQueryProvider Provider
             => _queryProvider;
 
+        /// <inheritdoc />
         public override IDbBusProvider BusProvider
              => _queryProvider;
         /// <summary>

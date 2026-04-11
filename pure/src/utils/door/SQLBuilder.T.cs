@@ -16,15 +16,22 @@ namespace mooSQL.data
     public class SQLBuilder<T>:SQLBuilder
     {
 
+        /// <summary>
+        /// 绑定数据库实例并指定实体类型 <typeparamref name="T"/>。
+        /// </summary>
         public SQLBuilder(DBInstance DB) { 
             this.setDBInstance(DB);
         }
 
+        /// <summary>SET 子句表达式访问器。</summary>
         protected SetExpressionSQLBuildVisitor setVisitor;
+        /// <summary>WHERE 表达式访问器。</summary>
         protected WhereExpressionVisitor whereVisitor;
+        /// <summary>SELECT 表达式访问器。</summary>
         protected SelectExpressionVisitor selectVisitor;
 
         private FastCompileContext _context;
+        /// <summary>快速编译上下文（懒加载）。</summary>
         public FastCompileContext CompileContext
         {
             get {
@@ -64,6 +71,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 使用 Lambda 追加 WHERE 条件。
+        /// </summary>
         public SQLBuilder<T> where(Expression<Func<T, bool>> howIsWhere) {
             if (whereVisitor == null) {
                 this.whereVisitor = new WhereExpressionVisitor(CompileContext);
@@ -74,8 +84,9 @@ namespace mooSQL.data
         /// <summary>
         /// 字段选择
         /// </summary>
-        /// <param name="selector"></param>
-        /// <returns></returns>
+        /// <param name="selector">投影表达式。</param>
+        /// <param name="autoFrom">为 true 时自动根据实体类型追加 FROM 子句。</param>
+        /// <returns>当前构造器。</returns>
         public SQLBuilder<T> select(Expression<Func<T, IEnumerable<object>>> selector, bool autoFrom = true) {
             if (selectVisitor == null)
             {

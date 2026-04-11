@@ -17,9 +17,12 @@ namespace mooSQL.auth
     /// </summary>
     public class Condition
     {
+        /// <summary>条件字段或占位键。</summary>
         public string Key { get; set; }
+        /// <summary>原始条件值字符串。</summary>
         public string Value { get; set; }
 
+        /// <summary>解析后的强类型值（若有）。</summary>
         public Object parsedValue { get; set; }
         /// <summary>
         /// 操作符，如 = like > < 等

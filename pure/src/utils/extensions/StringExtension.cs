@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 字符串与可空日期等常用扩展。
+    /// </summary>
     public static class StringExtension
     {
         /// <summary>

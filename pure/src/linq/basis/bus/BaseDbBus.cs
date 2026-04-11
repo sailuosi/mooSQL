@@ -44,13 +44,11 @@ namespace mooSQL.linq
         }
 
         /// <summary>
-        /// .LeftJoin((a,b)=>a.id==b.id)
+        /// 左连接：.LeftJoin((a,b)=&gt;a.id==b.id)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="E"></typeparam>
-        /// <param name="src"></param>
-        /// <param name="onCondition"></param>
-        /// <returns></returns>
+        /// <typeparam name="E">右表实体类型。</typeparam>
+        /// <param name="onCondition">连接条件。</param>
+        /// <returns>新的查询总线。</returns>
         public IDbBus<T> LeftJoin<E>( Expression<Func<T, E, bool>> onCondition)
         {
 
@@ -63,14 +61,12 @@ namespace mooSQL.linq
                     ));
         }
         /// <summary>
-        /// 内连接
+        /// 内连接。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="E"></typeparam>
-        /// <param name="src"></param>
-        /// <param name="onCondition"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <typeparam name="E">右表实体类型。</typeparam>
+        /// <param name="onCondition">连接条件。</param>
+        /// <returns>新的查询总线。</returns>
+        /// <exception cref="ArgumentNullException">条件为 null 时抛出。</exception>
         public IDbBus<T> InnerJoin<E>( Expression<Func<T, E, bool>> onCondition)
         {
 
@@ -84,14 +80,12 @@ namespace mooSQL.linq
                     ));
         }
         /// <summary>
-        /// 右连接
+        /// 右连接。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="E"></typeparam>
-        /// <param name="src"></param>
-        /// <param name="onCondition"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <typeparam name="E">右表实体类型。</typeparam>
+        /// <param name="onCondition">连接条件。</param>
+        /// <returns>新的查询总线。</returns>
+        /// <exception cref="ArgumentNullException">条件为 null 时抛出。</exception>
         public IDbBus<T> RightJoin<E>( Expression<Func<T, E, bool>> onCondition)
         {
             var t = new Func<Expression<Func<T, E, bool>>, IDbBus<T>>(RightJoin);

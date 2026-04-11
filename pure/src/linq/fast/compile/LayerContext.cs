@@ -34,11 +34,18 @@ namespace mooSQL.linq
 
         private Dictionary<string, EntityOrigin> registed=new Dictionary<string, EntityOrigin>();
 
+        /// <summary>
+        /// 从另一层上下文复制来源表与实体映射（浅拷贝引用）。
+        /// </summary>
+        /// <param name="src">源层。</param>
         public void Copy(LayerContext src) { 
             this.OriginTables = src.OriginTables;
             this.entityMap = src.entityMap;
         }
 
+        /// <summary>
+        /// 将实体按昵称注册到当前 SQL，并生成 FROM 片段。
+        /// </summary>
         public void register(string nick, Type entityType,LayerRunType type) {
             if (registed.ContainsKey(nick)) return;
             var org= entityMap[entityType];
@@ -50,6 +57,9 @@ namespace mooSQL.linq
             registed.Add(nick, org);
         }
 
+        /// <summary>
+        /// 将实体以 JOIN 形式注册到当前 SQL。
+        /// </summary>
         public void registerJoin(string nick,string joinType, string onPart,Type entityType, LayerRunType type)
         {
             if (registed.ContainsKey(nick)) return;
@@ -72,9 +82,10 @@ namespace mooSQL.linq
         }
 
         /// <summary>
-        /// 吸入一个实体，作为来源表
+        /// 将实体类型登记为当前层的来源表（去重）。
         /// </summary>
-        /// <param name="entity"></param>
+        /// <param name="entityType">实体 CLR 类型。</param>
+        /// <param name="nick">表别名，可选。</param>
         public void suck(Type entityType,string nick=null) {
             if (entityMap.ContainsKey(entityType)) {
                 return;
@@ -152,10 +163,17 @@ namespace mooSQL.linq
 
     }
 
+    /// <summary>
+    /// 单层编译时的语句类型（SELECT/UPDATE/DELETE）。
+    /// </summary>
     public enum LayerRunType { 
+        /// <summary>未指定。</summary>
         none=0,
+        /// <summary>查询。</summary>
         select=1,
+        /// <summary>更新。</summary>
         update=2, 
+        /// <summary>删除。</summary>
         delete=3,
     }
 }

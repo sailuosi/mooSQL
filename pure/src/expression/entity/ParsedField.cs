@@ -38,8 +38,10 @@ namespace mooSQL.data.linq
         /// </summary>
         public string CallerNick { get; set; }
 
+        /// <summary>对应的成员反射信息。</summary>
         public MemberInfo Member { get; set; }
 
+        /// <summary>解析得到的表达式节点。</summary>
         public Expression Exp { get; set; }
     }
 }

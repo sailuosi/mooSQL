@@ -12,12 +12,16 @@ namespace mooSQL.data
     /// <typeparam name="T"></typeparam>
     public class PageOutput<T>
     {
+        /// <summary>当前页数据行。</summary>
         public IEnumerable<T> Items { get; set; } = default!;
 
+        /// <summary>总记录数。</summary>
         public int Total { get; set; }
 
+        /// <summary>每页条数。</summary>
         public int PageSize { get; set; }
 
+        /// <summary>当前页码（从 1 或 0 依实现约定）。</summary>
         public int PageNum { get; set; }
         /// <summary>
         /// 汇总行
@@ -30,6 +34,7 @@ namespace mooSQL.data
     /// <typeparam name="T"></typeparam>
     public class PageSumOutput<T>:Dictionary<string,object>
     {
+        /// <summary>当前页数据行。</summary>
         public IEnumerable<T> Items {
             get { 
                 return this["Items"] as IEnumerable<T> ?? new List<T>();
@@ -38,6 +43,7 @@ namespace mooSQL.data
                 this["Items"] = value;
             }
         }
+        /// <summary>总记录数。</summary>
         public int Total { 
             get { 
                 return this["Total"] as int? ?? 0;
@@ -46,6 +52,7 @@ namespace mooSQL.data
                 this["Total"] = value;
             }
         }
+        /// <summary>每页条数。</summary>
         public int PageSize { 
             get { 
                 return this["PageSize"] as int? ?? 0;
@@ -54,6 +61,7 @@ namespace mooSQL.data
                 this["PageSize"] = value;
             }
         }
+        /// <summary>当前页码。</summary>
         public int PageNum { 
             get { 
                 return this["PageNum"] as int? ?? 0;

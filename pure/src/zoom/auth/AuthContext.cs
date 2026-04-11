@@ -23,6 +23,9 @@ namespace mooSQL.auth
         /// </summary>
         public Dialect dialect;
 
+        /// <summary>
+        /// 用于创建当前方言下认证器实例的工厂。
+        /// </summary>
         public AuthFactory<Dialect> factory;
     }
 }

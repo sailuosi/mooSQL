@@ -143,6 +143,9 @@ namespace mooSQL.linq
                     new Func<IQueryable<T>, IQueryable<T>>(Sink).Method,
                     source.Expression));
         }
+        /// <summary>
+        /// 在条件栈上压入 OR 分组（与 <see cref="Sink{T}(IQueryable{T})"/> 相对）。
+        /// </summary>
         public static IQueryable<T> SinkOR<T>(this IQueryable<T> source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -153,6 +156,9 @@ namespace mooSQL.linq
                     new Func<IQueryable<T>, IQueryable<T>>(SinkOR).Method,
                     source.Expression));
         }
+        /// <summary>
+        /// 结束当前嵌套条件块，与 <see cref="Sink{T}(IQueryable{T})"/> 配对。
+        /// </summary>
         public static IQueryable<T> Rise<T>(this IQueryable<T> source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -186,6 +192,9 @@ namespace mooSQL.linq
                     ));
         }
 
+        /// <summary>
+        /// 取前 <paramref name="pageSize"/> 条（TOP/LIMIT 语义由编译器生成）。
+        /// </summary>
         public static IQueryable<T> Top<T>(this IQueryable<T> source, int pageSize)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -198,6 +207,9 @@ namespace mooSQL.linq
                     ));
         }
 
+        /// <summary>
+        /// 执行分页查询，页码与页大小由表达式中的 <c>SetPage</c> 等约定。
+        /// </summary>
         public static PageOutput<T> ToPageList<T>(this IQueryable<T> source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -209,6 +221,9 @@ namespace mooSQL.linq
                     source.Expression
                     ));
         }
+        /// <summary>
+        /// 按页大小与页码执行分页查询。
+        /// </summary>
         public static PageOutput<T> ToPageList<T>(this IQueryable<T> source, int pageSize,int pageNum)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -330,6 +345,9 @@ namespace mooSQL.linq
         //            source.Expression, setter));
         //}
 
+        /// <summary>
+        /// 标记集合导航属性预加载（由编译器展开为 JOIN 或分批查询）。
+        /// </summary>
         public static IQueryable<T> Includes<T, R>(this IQueryable<T> src, Expression<Func<T, List<R>>> selector) {
             if (src == null) throw new ArgumentNullException(nameof(src));
             if (selector == null) throw new ArgumentNullException(nameof(selector));
@@ -342,6 +360,9 @@ namespace mooSQL.linq
                     ));
         }
 
+        /// <summary>
+        /// 无参数布尔条件（用于捕获外部闭包变量的 WHERE）。
+        /// </summary>
         public static IQueryable<T> Where<T>(this IQueryable<T> src, Expression<Func<bool>> Condition)
         {
             if (src == null) throw new ArgumentNullException(nameof(src));

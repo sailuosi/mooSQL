@@ -324,6 +324,10 @@ namespace mooSQL.auth
 
         private Func<List<T>, string> onbuildManyLike;
 
+        /// <summary>
+        /// 从另一范围对象复制尚未设置的委托（编织器），用于默认分组拷贝配置。
+        /// </summary>
+        /// <param name="src">源范围对象。</param>
         public void CopyFunc(CodeRange<T> src) {
             if (this.onBuildAll == null && src.onBuildAll != null) { 
                 this.onBuildAll = src.onBuildAll;
@@ -346,33 +350,63 @@ namespace mooSQL.auth
             }
         }
 
+        /// <summary>
+        /// 注册“整体范围”条件编织器（传入当前 CodeRange 实例生成 SQL）。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useAllBuilder(Func<CodeRange<T>, string> builder)
         {
             this.onBuildAll = builder;
             return this;
         }
 
+        /// <summary>
+        /// 注册单条项条件（含是否包含下级等布尔语义）。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useOneBuilder(Func<T, bool, string> builder)
         {
             this.onbuildOne = builder;
             return this;
         }
+        /// <summary>
+        /// 注册 IN 列表条件编织器。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useInBuilder(Func<List<T>, string> builder)
         {
             this.onbuildManyIn = builder;
             return this;
         }
+        /// <summary>
+        /// 注册 LIKE/前缀 类条件编织器。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useLikeBuilder(Func<T, string> builder)
         {
             this.onbuildLike = builder;
             return this;
         }
 
+        /// <summary>
+        /// 注册等值（IS）条件编织器。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useIsBuilder(Func<T, string> builder)
         {
             this.onbuildIs = builder;
             return this;
         }
+        /// <summary>
+        /// 注册多值 LIKE 组合条件编织器。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
         public CodeRange<T> useManyLikeBuilder(Func<List<T>, string> builder)
         {
             this.onbuildManyLike = builder;

@@ -19,9 +19,8 @@ namespace mooSQL.auth
     {
 
         /// <summary>
-        /// 
+        /// 构造语义翻译器（词条与解析结果在后续填充）。
         /// </summary>
-        /// <param name="authRange"></param>
         public WordTranslator() { 
 
         }
@@ -41,6 +40,9 @@ namespace mooSQL.auth
         /// </summary>
         public Dictionary<string,Object> para = new Dictionary<string,Object>();
 
+        /// <summary>
+        /// 是否尚未添加任何待解析词条。
+        /// </summary>
         public bool Empty
         {
             get { 

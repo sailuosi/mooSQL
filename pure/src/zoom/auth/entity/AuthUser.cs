@@ -26,13 +26,18 @@ namespace mooSQL.auth
         /// 账号
         /// </summary>
         public string Acount;
+        /// <summary>业务主键或账号体系中的 Id。</summary>
         public string Id;
+        /// <summary>用户 OID 主键。</summary>
         public string UserOID;
 
+        /// <summary>当前所属事业部/分区 OID。</summary>
         public string divisionOID;
 
+        /// <summary>当前所属组织 OID。</summary>
         public string orgOID;
 
+        /// <summary>当前岗位编号。</summary>
         public string postNo;
         /// <summary>
         /// 代表当前正在作为权限过滤所使用的角色主键
@@ -40,6 +45,7 @@ namespace mooSQL.auth
         public List<string> dutyOIDs= new List<string>();
         //扩展属性
 
+        /// <summary>扩展属性键值（如业务自定义字段）。</summary>
         public Dictionary<string, string> attrs;
 
         //所属身份部分
@@ -48,6 +54,7 @@ namespace mooSQL.auth
         private AuthOrg _mandiv;
         private AuthPost _manpost;
 
+        /// <summary>懒加载的当前事业部。</summary>
         public AuthOrg HisDivision
         {
             get {
@@ -58,6 +65,7 @@ namespace mooSQL.auth
             }
         }
 
+        /// <summary>懒加载的当前组织。</summary>
         public AuthOrg HisOrg
         {
             get {
@@ -69,6 +77,7 @@ namespace mooSQL.auth
             }
         }
 
+        /// <summary>懒加载的当前岗位。</summary>
         public AuthPost HisPost
         {
             get {
@@ -81,6 +90,10 @@ namespace mooSQL.auth
         }
 
 
+        /// <summary>
+        /// 是否与另一用户在账号、Id 或 UserOID 上相同。
+        /// </summary>
+        /// <param name="a">另一用户。</param>
         public bool isSame(Samable a)
         {
             var t = a as AuthUser;

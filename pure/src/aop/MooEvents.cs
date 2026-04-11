@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 全局 SQL 执行与构建生命周期事件注册表（内部由 <see cref="DBInstance"/> 使用）。
+    /// </summary>
     public class MooEvents
     {
         //public delegate string SQLExeHandler(ExeContext context, string oprationID);

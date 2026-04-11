@@ -29,6 +29,9 @@ namespace mooSQL.linq
 
 
 
+        /// <summary>
+        /// 当前总线对应的实体 CLR 类型。
+        /// </summary>
         public abstract Type EntityType { get; }
 
     }

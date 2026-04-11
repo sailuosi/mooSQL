@@ -247,6 +247,11 @@ namespace mooSQL.auth
             wordBag.whereOrgOne(doOrgFilter);
             return this;
         }
+        /// <summary>
+        /// 注册按组织编码范围（<see cref="CodeRange{AuthOrg}"/>）整体生成 SQL 的组织过滤条件。
+        /// </summary>
+        /// <param name="doOrgFilter">根据组织范围对象生成 WHERE 片段的委托。</param>
+        /// <returns>当前构建器。</returns>
         public AuthorBuilder<RealDialect> whereOrgBag(Func<CodeRange<AuthOrg>, string> doOrgFilter)
         {
             wordBag.whereOrgBag(doOrgFilter);
@@ -486,6 +491,11 @@ namespace mooSQL.auth
             return this;
         }
 
+        /// <summary>
+        /// 使用用户主键外键列：等值与 IN 条件同时注册到 <see cref="SQLBuilder"/> 与词条语义。
+        /// </summary>
+        /// <param name="fk">用户 OID 对应的数据库字段名。</param>
+        /// <returns>当前构建器。</returns>
         public AuthorBuilder<RealDialect> useUseOIDFK(string fk)
         {
 
@@ -504,6 +514,11 @@ namespace mooSQL.auth
             return this;
         }
 
+        /// <summary>
+        /// 使用组织主键外键列：等值与 IN 条件绑定到组织 OID 字段。
+        /// </summary>
+        /// <param name="fk">组织 OID 对应的数据库字段名。</param>
+        /// <returns>当前构建器。</returns>
         public AuthorBuilder<RealDialect> useOrgOIDFK(string fk)
         {
 
@@ -528,6 +543,11 @@ namespace mooSQL.auth
             return this;
         }
 
+        /// <summary>
+        /// 按组织层次码字段做左匹配（如 <c>like '前缀%'</c>），用于组织树权限。
+        /// </summary>
+        /// <param name="classCodeField">存储组织层次码的数据库列名。</param>
+        /// <returns>当前构建器。</returns>
         public AuthorBuilder<RealDialect> useOrgCode(string classCodeField)
         {
 

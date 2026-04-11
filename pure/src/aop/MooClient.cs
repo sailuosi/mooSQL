@@ -100,6 +100,9 @@ namespace mooSQL.data
                 return _cache;
             }
         }
+        /// <summary>
+        /// 主从写/改库协调器（由 <c>initModifyMediator</c> 等初始化）。
+        /// </summary>
         public ModifyMediator modifyMediator;
         /// <summary>
         /// 数据库设置委托。
@@ -237,6 +240,10 @@ namespace mooSQL.data
             modifyMediator.signModify(slave);
         }
 
+        /// <summary>
+        /// 按连接位解析并返回已注册的 <see cref="DataBase"/> 配置。
+        /// </summary>
+        /// <param name="position">连接位索引。</param>
         public DataBase loadDBConfig(int position) {
             if (dbConfigs.ContainsKey(position))
             {

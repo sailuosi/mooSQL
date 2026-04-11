@@ -23,10 +23,16 @@ namespace mooSQL.linq
 
 
         #region 扩展的linq方法
+        /// <summary>左连接，条件为两表字段关系。</summary>
+        /// <typeparam name="E">右表实体类型。</typeparam>
         IDbBus<T> LeftJoin<E>(Expression<Func<T, E, bool>> onCondition);
 
+        /// <summary>内连接。</summary>
+        /// <typeparam name="E">右表实体类型。</typeparam>
         IDbBus<T> InnerJoin<E>(Expression<Func<T, E, bool>> onCondition);
 
+        /// <summary>右连接。</summary>
+        /// <typeparam name="E">右表实体类型。</typeparam>
         IDbBus<T> RightJoin<E>(Expression<Func<T, E, bool>> onCondition);
         #endregion
     }

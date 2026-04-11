@@ -37,10 +37,11 @@ namespace mooSQL.data
             }
         }
         /// <summary>
-        /// 获取字段明
+        /// 根据成员信息解析列名（优先映射后的数据库列名）。
         /// </summary>
-        /// <param name="memberInfo"></param>
-        /// <returns></returns>
+        /// <param name="memberInfo">属性或字段成员。</param>
+        /// <param name="motherType">所属实体类型；为空则使用成员的声明类型。</param>
+        /// <returns>数据库列名。</returns>
         public string getFieldName(MemberInfo memberInfo, Type motherType = null) {
             if (motherType == null) {
                 motherType = memberInfo.DeclaringType;
@@ -58,6 +59,11 @@ namespace mooSQL.data
             }
             return name;
         }
+        /// <summary>
+        /// 获取成员对应的 <see cref="EntityColumn"/> 元数据。
+        /// </summary>
+        /// <param name="memberInfo">属性或字段成员。</param>
+        /// <param name="motherType">所属实体类型；为空则使用成员的声明类型。</param>
         public EntityColumn getFieldCol(MemberInfo memberInfo, Type motherType = null)
         {
             if (motherType == null)
@@ -81,10 +87,11 @@ namespace mooSQL.data
             return null;
         }
         /// <summary>
-        /// 获取字段明
+        /// 按实体类型与 CLR 属性名解析数据库列名。
         /// </summary>
-        /// <param name="memberInfo"></param>
-        /// <returns></returns>
+        /// <param name="entityType">实体 CLR 类型。</param>
+        /// <param name="propertyName">属性名。</param>
+        /// <returns>映射后的列名。</returns>
         public string getFieldName(Type entityType,string propertyName)
         {
 
@@ -103,10 +110,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 获取字段明
+        /// 按实体类型与属性名获取列元数据。
         /// </summary>
-        /// <param name="memberInfo"></param>
-        /// <returns></returns>
+        /// <param name="entityType">实体 CLR 类型。</param>
+        /// <param name="propertyName">属性名。</param>
         public EntityColumn getField(Type entityType, string propertyName)
         {
 
@@ -134,6 +141,9 @@ namespace mooSQL.data
             return dic.EntityInfo.DbTableName;
         }
 
+        /// <summary>
+        /// 获取指定类型的实体映射信息。
+        /// </summary>
         public EntityInfo getEntityInfo(Type type)
         {
             checkType(type);
@@ -141,6 +151,9 @@ namespace mooSQL.data
             return dic.EntityInfo;
         }
 
+        /// <summary>
+        /// 泛型形式获取实体映射信息。
+        /// </summary>
         public EntityInfo getEntityInfo<T>()
         {
             var t= typeof(T);
