@@ -14,20 +14,24 @@ namespace mooSQL.data.model
 	[DebuggerDisplay("DbDataType: {ToString()}")]
 	public struct DbDataType : IEquatable<DbDataType>
 	{
+		/// <summary>未指定具体映射时的占位类型。</summary>
 		public static readonly DbDataType Undefined = new (typeof(object), DataFam.Undefined);
 
+		/// <summary>仅指定 CLR 类型。</summary>
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType) : this()
 		{
 			SystemType = systemType;
 		}
 
+		/// <summary>指定 CLR 类型与逻辑数据族。</summary>
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType, DataFam dataType) : this(systemType)
 		{
 			DataType   = dataType;
 		}
 
+		/// <summary>附加数据库类型名字符串（方言相关）。</summary>
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType, DataFam dataType, string? dbType) : this(systemType)
 		{
@@ -35,6 +39,7 @@ namespace mooSQL.data.model
 			DbType     = dbType;
 		}
 
+		/// <summary>含最大长度（如 varchar(n)）。</summary>
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType, DataFam dataType, string? dbType, int? length) : this(systemType)
 		{
@@ -43,6 +48,7 @@ namespace mooSQL.data.model
 			Length     = length;
 		}
 
+		/// <summary>含长度、精度、标度（decimal 等）。</summary>
 		[DebuggerStepThrough]
 		public DbDataType(Type systemType, DataFam dataType, string? dbType, int? length, int? precision, int? scale) : this(systemType)
 		{
@@ -52,6 +58,7 @@ namespace mooSQL.data.model
 			Precision = precision;
 			Scale     = scale;
 		}
+		/// <summary>无 CLR 类型时仅用数据族与尺度信息构造（如仅从元数据反推）。</summary>
         public DbDataType( DataFam dataType, int? length=0, int? precision = 0, int? scale = 0) 
         {
             DataType = dataType;
@@ -60,6 +67,7 @@ namespace mooSQL.data.model
             Scale = scale;
         }
 
+		/// <summary>用方言类型名覆盖（如 <c>nvarchar</c>）。</summary>
         [DebuggerStepThrough]
 		public DbDataType(Type systemType, string dbType) : this(systemType)
 		{
@@ -92,6 +100,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <summary>用 <paramref name="from"/> 中非默认值覆盖本实例对应字段。</summary>
         public readonly DbDataType WithSetValues(DbDataType from)
 		{
 			return new DbDataType(
@@ -115,17 +124,26 @@ namespace mooSQL.data.model
 		/// </summary>
 		public bool NeedScale;
 
+		/// <summary>保留本实例 <see cref="SystemType"/>，其余尺度字段取自 <paramref name="from"/>。</summary>
 		public readonly DbDataType WithoutSystemType(DbDataType       from) => new (SystemType, from.DataType, from.DbType, from.Length, from.Precision, from.Scale);
 		//public readonly DbDataType WithoutSystemType(ColumnDescriptor from) => new (SystemType, from.DataType, from.DbType, from.Length, from.Precision, from.Scale);
 
+		/// <summary>复制并替换 CLR 类型。</summary>
 		public readonly DbDataType WithSystemType    (Type     systemType           ) => new (systemType, DataType, DbType, Length, Precision, Scale);
+		/// <summary>复制并替换逻辑数据族。</summary>
 		public readonly DbDataType WithDataType      (DataFam dataType             ) => new (SystemType, dataType, DbType, Length, Precision, Scale);
+		/// <summary>复制并替换数据库类型名。</summary>
 		public readonly DbDataType WithDbType        (string?  dbName               ) => new (SystemType, DataType, dbName, Length, Precision, Scale);
+		/// <summary>复制并替换长度。</summary>
 		public readonly DbDataType WithLength        (int?     length               ) => new (SystemType, DataType, DbType, length, Precision, Scale);
+		/// <summary>复制并替换精度。</summary>
 		public readonly DbDataType WithPrecision     (int?     precision            ) => new (SystemType, DataType, DbType, Length, precision, Scale);
+		/// <summary>复制并替换标度。</summary>
 		public readonly DbDataType WithScale         (int?     scale                ) => new (SystemType, DataType, DbType, Length, Precision, scale);
+		/// <summary>同时设置精度与标度。</summary>
 		public readonly DbDataType WithPrecisionScale(int?     precision, int? scale) => new (SystemType, DataType, DbType, Length, precision, scale);
 
+		/// <inheritdoc />
 		public readonly override string ToString()
 		{
 			var dataTypeStr  = DataType == DataFam.Undefined ? string.Empty : $", {DataType}";
@@ -183,6 +201,7 @@ namespace mooSQL.data.model
 
 		#region Equality members
 
+		/// <inheritdoc />
 		public readonly bool Equals(DbDataType other)
 		{
 			return SystemType == other.SystemType
@@ -193,6 +212,7 @@ namespace mooSQL.data.model
 				&& string.Equals(DbType, other.DbType, StringComparison.Ordinal);
 		}
 
+		/// <summary>忽略 <see cref="SystemType"/>，仅比较数据库侧类型与尺度。</summary>
 		public readonly bool EqualsDbOnly(DbDataType other)
 		{
 			return DataType   == other.DataType
@@ -202,6 +222,7 @@ namespace mooSQL.data.model
 				&& string.Equals(DbType, other.DbType, StringComparison.Ordinal);
 		}
 
+		/// <inheritdoc />
 		public override bool Equals(object? obj)
 		{
 			if (obj is null) return false;
@@ -210,6 +231,7 @@ namespace mooSQL.data.model
 
 		int? _hashCode;
 
+		/// <inheritdoc />
 		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode()
 		{
@@ -234,11 +256,13 @@ namespace mooSQL.data.model
 
 		#region Operators
 
+		/// <summary>值相等比较。</summary>
 		public static bool operator ==(DbDataType t1, DbDataType t2)
 		{
 			return t1.Equals(t2);
 		}
 
+		/// <summary>值不等比较。</summary>
 		public static bool operator !=(DbDataType t1, DbDataType t2)
 		{
 			return !(t1 == t2);

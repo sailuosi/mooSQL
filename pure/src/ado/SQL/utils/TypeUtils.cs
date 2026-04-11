@@ -25,8 +25,8 @@ namespace mooSQL.data.model
 
 
         /// <summary>
-        /// This is an alternative to <see cref="GetNullableType" /> that will throw
-        /// if dynamic code is required. Some common primitive types are special-cased.
+        /// 将值类型提升为可空类型的替代实现；在需要动态生成代码时可能抛出。
+        /// 常见基元类型有特判路径。
         /// </summary>
         public static Type LiftPrimitiveOrThrow(this Type type)
         {
