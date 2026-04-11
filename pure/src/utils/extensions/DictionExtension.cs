@@ -120,6 +120,12 @@ namespace mooSQL.utils
             return res;
         }
 
+        /// <summary>
+        /// 若 value 非 null 则写入字典；已存在键则覆盖。
+        /// </summary>
+        /// <param name="map">目标字典。</param>
+        /// <param name="key">键。</param>
+        /// <param name="value">值；为 null 时不写入。</param>
         public static void AddNotNull(this Dictionary<string, string> map, string key, string value)
         {
             if (value == null) { return; }
@@ -201,6 +207,16 @@ namespace mooSQL.utils
             return map;
         }
 
+        /// <summary>
+        /// 按两个键函数将序列分组为「R1 → R2 → 元素列表」的嵌套字典。
+        /// </summary>
+        /// <typeparam name="T">元素类型。</typeparam>
+        /// <typeparam name="R1">第一层键类型。</typeparam>
+        /// <typeparam name="R2">第二层键类型。</typeparam>
+        /// <param name="list">源序列。</param>
+        /// <param name="func1">第一层键选择器。</param>
+        /// <param name="func2">第二层键选择器。</param>
+        /// <returns>嵌套分组字典。</returns>
         public static Dictionary<R1, Dictionary<R2, List<T>>> groupBy<T, R1, R2>(this IEnumerable<T> list, Func<T, R1> func1, Func<T, R2> func2)
         {
             var map = new Dictionary<R1, Dictionary<R2, List<T>>>();
@@ -223,6 +239,16 @@ namespace mooSQL.utils
             return map;
         }
 
+        /// <summary>
+        /// 将序列折叠为字典：每个键对应首次出现的值（后续同键项跳过）。
+        /// </summary>
+        /// <typeparam name="T">元素类型。</typeparam>
+        /// <typeparam name="K">键类型。</typeparam>
+        /// <typeparam name="V">值类型。</typeparam>
+        /// <param name="list">源序列。</param>
+        /// <param name="keyFunc">键选择器。</param>
+        /// <param name="valFunc">值选择器。</param>
+        /// <returns>键值字典。</returns>
         public static Dictionary<K, V> groupByKV<T, K, V>(this IEnumerable<T> list, Func<T, K> keyFunc, Func<T, V> valFunc)
         {
             var dictionary = new Dictionary<K, V>();

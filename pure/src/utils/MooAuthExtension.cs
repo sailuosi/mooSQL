@@ -59,6 +59,9 @@ namespace mooSQL.utils
             return res;
         }
 
+        /// <summary>
+        /// 对序列做类 fold 归约（跳过首元素作为种子，再逐元素累积）。
+        /// </summary>
         public static R reduece<T,R>(this IEnumerable<T> list, Func<R,T, R> doreduce)
         {
             T pre ;
@@ -78,6 +81,9 @@ namespace mooSQL.utils
             return res;
         }
 
+        /// <summary>
+        /// 对可空 int 列求和（忽略 null）。
+        /// </summary>
         public static int sum<T>(this IEnumerable<T> list, Func<T, int?> doselect)
         {
             int r = 0;
@@ -109,6 +115,9 @@ namespace mooSQL.utils
             }
             return r;
         }
+        /// <summary>
+        /// 对可空 double 列求和（忽略 null）。
+        /// </summary>
         public static double sum<T>(this IEnumerable<T> list, Func<T, double?> doselect)
         {
             double r = 0;
@@ -123,6 +132,9 @@ namespace mooSQL.utils
             return r;
         }
 
+        /// <summary>
+        /// 对可空 decimal 列求和（忽略 null）。
+        /// </summary>
         public static decimal sum<T>(this IEnumerable<T> list, Func<T, decimal?> doselect)
         {
             decimal r = 0;
@@ -137,6 +149,9 @@ namespace mooSQL.utils
             return r;
         }
 
+        /// <summary>
+        /// 对可空 float 列求和（忽略 null）。
+        /// </summary>
         public static float sum<T>(this IEnumerable<T> list, Func<T, float?> doselect)
         {
             float r = 0;

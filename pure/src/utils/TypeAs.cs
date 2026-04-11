@@ -71,6 +71,9 @@ namespace mooSQL.utils
             return defaultVal;
         }
 
+        /// <summary>
+        /// 将对象转为 long，失败时返回默认值。
+        /// </summary>
         public static long asLong(object src, long defaultVal)
         {
             var val = asString(src, "");

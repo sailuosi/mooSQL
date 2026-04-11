@@ -12,6 +12,13 @@ namespace mooSQL.utils
     /// </summary>
     public static class MooTableExtensions
     {
+        /// <summary>
+        /// 遍历表行，用 <paramref name="loader"/> 提取值并去重后加入列表（跳过 null）。
+        /// </summary>
+        /// <typeparam name="T">提取值类型。</typeparam>
+        /// <param name="dt">数据表。</param>
+        /// <param name="loader">从行映射到值的委托。</param>
+        /// <returns>去重后的值列表。</returns>
         public static List<T> getFieldValues<T>(this DataTable dt, Func<DataRow, T> loader)
         {
             List<T> list = new List<T>();
@@ -165,6 +172,15 @@ namespace mooSQL.utils
             }
             return res;
         }
+        /// <summary>
+        /// 按键分组，每组值为多值列表（同键下值通过 <c>AddNotRepeat</c> 去重追加）。
+        /// </summary>
+        /// <typeparam name="K">键类型。</typeparam>
+        /// <typeparam name="V">值类型。</typeparam>
+        /// <param name="dt">数据表。</param>
+        /// <param name="loadKey">键选择器。</param>
+        /// <param name="loadV">值选择器。</param>
+        /// <returns>键到值列表的映射。</returns>
         public static Dictionary<K,List<V>> groupByAsList<K, V>(this DataTable dt, Func<DataRow, K> loadKey, Func<DataRow, V> loadV)
         {
             var res = new Dictionary<K, List<V>>();
@@ -226,6 +242,17 @@ namespace mooSQL.utils
 
             return dictionary;
         }
+        /// <summary>
+        /// 按两级键生成嵌套字典，叶节点为单值（后写覆盖先写）。
+        /// </summary>
+        /// <typeparam name="K1">外层键类型。</typeparam>
+        /// <typeparam name="K2">内层键类型。</typeparam>
+        /// <typeparam name="K3">值类型。</typeparam>
+        /// <param name="dt">数据表。</param>
+        /// <param name="fieldName">外层键选择器。</param>
+        /// <param name="fieldName2">内层键选择器。</param>
+        /// <param name="loadVal">值选择器。</param>
+        /// <returns>两级嵌套字典。</returns>
         public static Dictionary<K1, Dictionary<K2, K3>> groupByKV<K1, K2, K3>(this DataTable dt, Func<DataRow, K1> fieldName, Func<DataRow, K2> fieldName2, Func<DataRow, K3> loadVal)
         {
             Dictionary<K1, Dictionary<K2, K3>> dictionary = new Dictionary<K1, Dictionary<K2, K3>>();

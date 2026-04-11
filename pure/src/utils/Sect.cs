@@ -50,6 +50,9 @@ namespace mooSQL.utils
         /// </summary>
         public Func<T, T, int> compare;
 
+        /// <summary>
+        /// 区间上下界是否均已通过有效性校验。
+        /// </summary>
         public bool closed
         {
             get

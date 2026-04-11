@@ -8,10 +8,19 @@ using System.Threading.Tasks;
 
 namespace mooSQL.utils
 {
+    /// <summary>
+    /// 基于 <see cref="MemoryCache"/> 的进程内键值缓存工具。
+    /// </summary>
     public class LocalCache
     {
         private static MemoryCache cache = MemoryCache.Default;
 
+        /// <summary>
+        /// 按键读取缓存并转换为 <typeparamref name="T"/>；缺失或类型不匹配时返回 default。
+        /// </summary>
+        /// <typeparam name="T">期望类型。</typeparam>
+        /// <param name="key">缓存键。</param>
+        /// <returns>缓存值或 default(T)。</returns>
         public static T Get<T>(string key){
             var val= cache.Get(key);
             if (val == null) {
@@ -23,6 +32,11 @@ namespace mooSQL.utils
             return default(T);
         }
 
+        /// <summary>
+        /// 按键读取缓存为 object；无项时返回 null。
+        /// </summary>
+        /// <param name="key">缓存键。</param>
+        /// <returns>缓存对象。</returns>
         public static object Get(string key)
         {
             var val = cache.Get(key);
@@ -39,6 +53,10 @@ namespace mooSQL.utils
             cache.Set(key, val, DateTime.Now.AddMinutes(minites));
         }
 
+        /// <summary>
+        /// 移除指定键的缓存项。
+        /// </summary>
+        /// <param name="key">缓存键。</param>
         public static void Remove(string key) { 
             cache.Remove(key);
         }
@@ -58,10 +76,9 @@ namespace mooSQL.utils
             return res;
         }
         /// <summary>
-        /// 删除全部缓存
+        /// 删除全部缓存项。
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>已删除的项数量。</returns>
         public static int RemoveAll()
         {
             var res = 0;

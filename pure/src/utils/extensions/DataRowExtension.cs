@@ -41,6 +41,12 @@ namespace mooSQL.utils
             return defaultVal;
         }
 
+        /// <summary>
+        /// 读取指定列的字符串；DBNull 或缺失列返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>字符串或 null。</returns>
         public static string getString(this DataRow row, string key)
         {
             if (row == null) return null;
@@ -73,6 +79,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 int；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空整型。</returns>
         public static int? getInt(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -102,6 +114,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 long；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空长整型。</returns>
         public static long? getLong(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -132,6 +150,12 @@ namespace mooSQL.utils
             return defaultVal;
         }
 
+        /// <summary>
+        /// 读取指定列为可空 <see cref="DateTime"/>；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空日期时间。</returns>
         public static DateTime? getDateTime(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -197,6 +221,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 double；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空双精度。</returns>
         public static double? getDouble(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -209,6 +239,13 @@ namespace mooSQL.utils
             return null;
         }
 
+        /// <summary>
+        /// 读取指定列为 decimal；空或解析失败返回默认值。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <param name="defaultVal">解析失败时的默认值。</param>
+        /// <returns>decimal 值。</returns>
         public static decimal getDecimal(this DataRow row, string key, decimal defaultVal)
         {
             var val = row.getString(key, "");
@@ -220,6 +257,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 decimal；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空小数。</returns>
         public static decimal? getDecimal(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -249,6 +292,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 <see cref="Guid"/>；空或解析失败返回 null。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空 GUID。</returns>
         public static Guid? getGuid(this DataRow row, string key)
         {
             var val = row.getString(key, "");
@@ -282,6 +331,12 @@ namespace mooSQL.utils
             }
             return defaultVal;
         }
+        /// <summary>
+        /// 读取指定列为可空 bool；支持 1/true 等常见存储形式。
+        /// </summary>
+        /// <param name="row">数据行。</param>
+        /// <param name="key">列名。</param>
+        /// <returns>可空布尔。</returns>
         public static bool? getBoolean(this DataRow row, string key)
         {
             var val = row.getString(key, "");

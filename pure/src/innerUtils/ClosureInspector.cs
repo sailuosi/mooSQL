@@ -102,6 +102,11 @@ namespace mooSQL.utils
             return Expression.Lambda<Func<object, Dictionary<string, object>>>(block, param).Compile();
         }
 
+        /// <summary>
+        /// 判断类型是否为编译器生成的闭包/展示类（密封类且带 <see cref="CompilerGeneratedAttribute"/>，名称含 DisplayClass 或 Closure）。
+        /// </summary>
+        /// <param name="type">待判断类型。</param>
+        /// <returns>为闭包相关生成类时返回 true。</returns>
         public static bool IsClosureClass(Type type) =>
             type.IsClass &&
             type.IsSealed &&

@@ -51,6 +51,11 @@ namespace mooSQL.utils
 
             return default(T)!;
         }
+        /// <summary>
+        /// 按运行时类型从内部字典读取已缓存的隐式值；未设置时返回 null。
+        /// </summary>
+        /// <param name="type">目标类型。</param>
+        /// <returns>已存储的对象；不存在则为 null。</returns>
         public static object GetValue(Type type)
         {
             if (_values.TryGetValue(type, out var value))

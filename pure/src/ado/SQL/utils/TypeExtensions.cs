@@ -104,6 +104,9 @@ namespace mooSQL.utils
             }
         }
     }
+    /// <summary>
+    /// <see cref="Type"/> 与 <see cref="MethodBase"/> 的反射辅助扩展（供表达式/LINQ 等内部使用）。
+    /// </summary>
     public static class TypeExtensions
 	{
 
@@ -163,6 +166,11 @@ namespace mooSQL.utils
             return true;
         }
 
+        /// <summary>
+        /// 获取方法或构造函数的“返回类型”：构造函数返回声明类型，方法返回 <see cref="MethodInfo.ReturnType"/>。
+        /// </summary>
+        /// <param name="mi">方法或构造函数。</param>
+        /// <returns>返回类型。</returns>
         public static Type GetReturnType(this MethodBase mi) => mi.IsConstructor ? mi.DeclaringType! : ((MethodInfo)mi).ReturnType;
 
 

@@ -37,6 +37,11 @@ namespace mooSQL.utils
                    || type == typeof(sbyte);
         }
 
+        /// <summary>
+        /// 判断类型是否为有符号数值类型（含可空展开后的 int/long/short/sbyte/decimal/double/float）。
+        /// </summary>
+        /// <param name="type">可为 null 的类型。</param>
+        /// <returns>属于有符号数值范畴时返回 true。</returns>
         public static bool IsSignedType(this Type? type)
         {
             return type != null &&

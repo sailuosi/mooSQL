@@ -103,6 +103,12 @@ namespace mooSQL.utils
             return dicList.DicToIEnumerable<T>().ToList();
         }
 
+        /// <summary>
+        /// 将字典列表反射调用泛型 <see cref="DicToList{T}"/>，得到指定 <paramref name="type"/> 的元素列表。
+        /// </summary>
+        /// <param name="dicList">每行一条字典的数据。</param>
+        /// <param name="type">列表元素类型。</param>
+        /// <returns>装箱前的强类型列表（object 引用）。</returns>
         public static object DicToList(this List<Dictionary<string, object>> dicList, Type type)
         {
             return typeof(ObjectExtension).GetMethod("DicToList")
@@ -110,6 +116,12 @@ namespace mooSQL.utils
                .Invoke(typeof(ObjectExtension), new object[] { dicList });
         }
 
+        /// <summary>
+        /// 将字典序列按属性名填充为 <typeparamref name="T"/> 实例并逐条产出（用于动态行转实体）。
+        /// </summary>
+        /// <typeparam name="T">目标类型，需有无参构造与可写属性。</typeparam>
+        /// <param name="dicList">字典列表。</param>
+        /// <returns>延迟枚举的实体序列。</returns>
         public static IEnumerable<T> DicToIEnumerable<T>(this List<Dictionary<string, object>> dicList)
         {
             foreach (Dictionary<string, object> dic in dicList)
@@ -845,10 +857,10 @@ namespace mooSQL.utils
         private static Regex BoolRegex = new Regex("(?<info>(true|false))", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         /// <summary>
-        /// 从object中获取bool类型信息。
+        /// 将字符串解析为 bool（失败则为 false）。
         /// </summary>
-        /// <param name="o">object。</param>
-        /// <returns>bool。</returns>
+        /// <param name="value">待解析文本。</param>
+        /// <returns>解析结果。</returns>
         public static bool GetBool(this string value)
         {
             bool.TryParse(value, out bool result);
@@ -1284,10 +1296,10 @@ namespace mooSQL.utils
 
 
         /// <summary>
-        /// 判断是否是匿名类型
+        /// 判断类型是否为编译器生成的匿名类型（含 CompilerGenerated、名称特征等）。
         /// </summary>
-        /// <param name="obj">对象</param>
-        /// <returns></returns>
+        /// <param name="type">待判断类型。</param>
+        /// <returns>为匿名类型时返回 true。</returns>
         internal static bool IsAnonymous(this Type type)
         {
 

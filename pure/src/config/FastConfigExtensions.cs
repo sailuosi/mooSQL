@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.config
 {
+    /// <summary>
+    /// 快速配置与内部 <see cref="DataBase"/> 等类型的转换扩展。
+    /// </summary>
     public static class FastConfigExtensions
     {
         /// <summary>

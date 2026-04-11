@@ -37,8 +37,14 @@ namespace mooSQL.config
         /// </summary>
         public bool? Pooling;
 
+        /// <summary>
+        /// 连接池最小连接数（可空表示未指定）。
+        /// </summary>
         public int? MiniPoolSize;
 
+        /// <summary>
+        /// 连接池最大连接数（可空表示未指定）。
+        /// </summary>
         public int? MaxPoolSize;
         /// <summary>
         /// 附加自定义配置

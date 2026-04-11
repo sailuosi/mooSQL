@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.utils
 {
+    /// <summary>
+    /// 随机字符串等轻量随机工具。
+    /// </summary>
     public class RandomUtils
     {
         /// <summary>

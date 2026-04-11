@@ -149,6 +149,12 @@ namespace mooSQL.utils
             return Regex.IsMatch(val, @"^[0-9a-zA-Z_.-]+$");
         }
 
+        /// <summary>
+        /// SQL 注入关键字过滤与危险片段替换（可按仅写模式弱化部分替换）。
+        /// </summary>
+        /// <param name="source">原始字符串。</param>
+        /// <param name="onlyWrite">为 true 时跳过部分读安全替换逻辑。</param>
+        /// <returns>过滤后的字符串。</returns>
         public static string SqlFilter(string source, bool onlyWrite)
         {
             //sql注入过滤
