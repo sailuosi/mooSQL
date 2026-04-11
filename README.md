@@ -94,10 +94,10 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 #### Install
 
 ```bash
-dotnet add package mooSQL.Ext.Core
+dotnet add package mooSQL.Ext
 ```
 
-| Package | Role |
+| NuGet package | Role |
 |--------|------|
 | **mooSQL.Pure.Core** | Core “pure” library |
 | **mooSQL.Ext.Core** | Dialects and extended database support (**recommended**) |
@@ -197,7 +197,10 @@ See the Chinese section below for longer examples (bulk operations, auth integra
 
 ### Documentation
 
-Tutorials live under `doc/` (Chinese):
+- **Source repository**: [github.com/sailuosi/mooSQL](https://github.com/sailuosi/mooSQL)
+- **Online documentation** (site): [sailuosi.github.io/moosql-doc](https://sailuosi.github.io/moosql-doc/)
+
+Tutorials also live under `doc/` in this repo (Chinese):
 
 - [SQLBuilder 完整教程](doc/SQLBuilder完整教程.md)
 - [基础查询](doc/基础查询.md)
@@ -341,12 +344,12 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 #### 安装
 
 ```bash
-dotnet add package mooSQL.Ext.Core
+dotnet add package mooSQL.Ext
 ```
 
-**包说明**
+**包说明**（NuGet 上的包名为程序集名；`.Core.csproj` 为仓库中的项目文件名）
 
-| 包 | 说明 |
+| NuGet 包名 | 说明 |
 |----|------|
 | **mooSQL.Pure.Core** | 核心纯净能力 |
 | **mooSQL.Ext.Core** | 多数据库方言与扩展（**推荐**） |
@@ -685,6 +688,9 @@ var orders = kit
 **多级别抽象**：执行层、SQL 编织层、仓库层、表达式层；方言抹平数据库差异，扩展成本低。
 
 ### 文档
+
+- **源码仓库**：[github.com/sailuosi/mooSQL](https://github.com/sailuosi/mooSQL)
+- **在线文档**：[sailuosi.github.io/moosql-doc](https://sailuosi.github.io/moosql-doc/)
 
 - [SQLBuilder 完整教程](doc/SQLBuilder完整教程.md)
 - [基础查询](doc/基础查询.md)
