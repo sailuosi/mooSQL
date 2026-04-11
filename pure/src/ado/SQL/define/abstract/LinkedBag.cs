@@ -12,11 +12,13 @@ namespace mooSQL.data.model
     /// <typeparam name="T"></typeparam>
     public class LinkedBag<T>
     {
-
+        /// <summary>链类型标识（方言/场景用）。</summary>
         public string typeCode;
 
+        /// <summary>链式成员列表。</summary>
         public List<LinkedItem<T>> items;
 
+        /// <summary>初始化空链。</summary>
         public LinkedBag() { 
             this.items = new List<LinkedItem<T>>();
         }

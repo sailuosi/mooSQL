@@ -10,11 +10,13 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class BinaryWord : ExpWordBase
 	{
+		/// <inheritdoc />
 		public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitBinaryExpression(this);
         }
 		
+		/// <summary>使用 <see cref="DbDataType"/> 指定结果类型。</summary>
 		public BinaryWord(DbDataType dbDataType, IExpWord expr1, string operation, IExpWord expr2, int precedence = PrecedenceLv.Unknown, Type type=null) : base(ClauseType.SqlBinaryExpression, type)
         {
 			_expr1     = expr1     ?? throw new ArgumentNullException(nameof(expr1));
@@ -24,6 +26,7 @@ namespace mooSQL.data.model
 			Precedence = precedence;
 		}
 
+		/// <summary>使用 CLR 类型推断 <see cref="DbDataType"/>。</summary>
 		public BinaryWord(Type systemType, IExpWord expr1, string operation, IExpWord expr2, int precedence = PrecedenceLv.Unknown)
 			: this(new DbDataType(systemType), expr1, operation, expr2, precedence)
 		{
@@ -31,6 +34,7 @@ namespace mooSQL.data.model
 
 		private IExpWord _expr1;
 
+		/// <summary>左操作数。</summary>
 		public IExpWord Expr1
 		{
 			get => _expr1;
@@ -41,10 +45,12 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <summary>运算符/关键字文本（如 <c>+</c>、<c>AND</c>）。</summary>
 		public string         Operation  { get; }
 
 		private IExpWord _expr2;
 
+		/// <summary>右操作数。</summary>
 		public IExpWord Expr2
 		{
 			get => _expr2;
@@ -55,15 +61,20 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <inheritdoc />
 		public override ClauseType NodeType => ClauseType.SqlBinaryExpression;
 
+		/// <summary>结果 SQL 类型信息。</summary>
 		public DbDataType Type { get; }
 
 
+		/// <inheritdoc />
 		public override int  Precedence { get; }
 
 		int?                   _hashCode;
+        /// <inheritdoc />
         public override Type SystemType => Type.SystemType;
+        /// <inheritdoc />
         public override int GetHashCode()
 		{
 			// ReSharper disable NonReadonlyMemberInGetHashCode
@@ -84,6 +95,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <inheritdoc />
 		public override bool Equals(IExpWord? other, Func<IExpWord,IExpWord,bool> comparer)
 		{
 			if (this == other)
@@ -102,6 +114,7 @@ namespace mooSQL.data.model
 
 		#region IQueryElement Members
 
+		/// <inheritdoc />
 		public  IElementWriter ToString(IElementWriter writer)
 		{
 			writer
@@ -117,6 +130,7 @@ namespace mooSQL.data.model
 
 		#endregion
 
+		/// <summary>解构为左右操作数与运算符。</summary>
 		public void Deconstruct( out IExpWord expr1, out string operation, out IExpWord expr2)
 		{
 

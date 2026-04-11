@@ -12,10 +12,12 @@ namespace mooSQL.data.model.affirms
     /// </summary>
     public class Like : BaseNotExpr
     {
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitAffirmLike(this);
         }
+        /// <summary>模式匹配；<paramref name="functionName"/> 可覆盖为 LIKE/ILIKE 等。</summary>
         public Like(IExpWord exp1, bool isNot, IExpWord exp2, IExpWord? escape, string? functionName = null)
             : base(exp1, isNot, PrecedenceLv.Comparison)
         {
@@ -24,10 +26,14 @@ namespace mooSQL.data.model.affirms
             FunctionName = functionName;
         }
 
+        /// <summary>模式串。</summary>
         public IExpWord Expr2 { get; set; }
+        /// <summary>转义字符表达式。</summary>
         public IExpWord? Escape { get; set; }
+        /// <summary>方言函数名（默认 LIKE）。</summary>
         public string? FunctionName { get; set; }
 
+        /// <inheritdoc />
         public override bool Equals(IAffirmWord other, Func<IExpWord, IExpWord, bool> comparer)
         {
             return other is Like expr
@@ -38,13 +44,16 @@ namespace mooSQL.data.model.affirms
                 && base.Equals(other, comparer);
         }
 
+        /// <inheritdoc />
         public override IAffirmWord Invert(ISQLNode nullability)
         {
             return new Like(Expr1, !IsNot, Expr2, Escape);
         }
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.LikePredicate;
 
+        /// <inheritdoc />
         protected override void WritePredicate(IElementWriter writer)
         {
             writer.AppendElement(Expr1);

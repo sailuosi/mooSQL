@@ -8,16 +8,19 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class MergeOperationClause :Clause, ISQLNode
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitMergeOperationClause(this);
         }
 		
+		/// <summary>仅指定动作类型。</summary>
 		public MergeOperationClause(MergeOperateType type) : base(ClauseType.MergeOperationClause, null)
         {
 			OperationType = type;
 		}
 
+        /// <summary>指定动作类型、可选条件与 SET 项列表。</summary>
         public MergeOperationClause(
 			MergeOperateType            type,
 			SearchConditionWord?           where,
@@ -32,22 +35,29 @@ namespace mooSQL.data.model
 				Items.Add(item);
 		}
 
+		/// <summary>WHEN 分支种类。</summary>
 		public MergeOperateType     OperationType { get; }
 
+		/// <summary>匹配/非匹配时的附加 AND 条件。</summary>
 		public SearchConditionWord?    Where         { get; set; }
 
+		/// <summary><see cref="MergeOperateType.UpdateWithDelete"/> 时 DELETE WHERE 条件。</summary>
 		public SearchConditionWord?    WhereDelete   { get;  set; }
 
+		/// <summary>INSERT/UPDATE 的列赋值列表。</summary>
 		public List<SetWord> Items         { get; } = new List<SetWord>();
 
 		#region IQueryElement
 
 #if DEBUG
+		/// <summary>调试文本。</summary>
 		public string DebugText => this.ToDebugString();
 #endif
+		/// <inheritdoc />
 		ClauseType ISQLNode.NodeType => ClauseType.MergeOperationClause;
 
-		IElementWriter ToString(IElementWriter writer)
+		/// <inheritdoc />
+		public IElementWriter ToString(IElementWriter writer)
 		{
 			switch (OperationType)
 			{

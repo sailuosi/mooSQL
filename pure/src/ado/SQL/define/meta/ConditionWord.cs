@@ -7,10 +7,12 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class ConditionWord : ExpWordBase
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitConditionExpression(this);
         }
+		/// <summary>类三元 <c>IIF</c> 条件表达式。</summary>
 		public ConditionWord(IAffirmWord condition, IExpWord trueValue, IExpWord falseValue, Type type = null) : base(ClauseType.SqlCondition, type)
         {
 			Condition  = condition;
@@ -18,14 +20,21 @@ namespace mooSQL.data.model
 			FalseValue = falseValue;
 		}
 
+		/// <summary>条件谓词。</summary>
 		public IAffirmWord  Condition  { get; private set; }
+		/// <summary>为真时的值。</summary>
 		public IExpWord TrueValue  { get; private set; }
+		/// <summary>为假时的值。</summary>
 		public IExpWord FalseValue { get; private set; }
 
+		/// <inheritdoc />
 		public override int                    Precedence  => PrecedenceLv.Primary;
+        /// <inheritdoc />
         public override Type? SystemType => TrueValue.SystemType;
+        /// <inheritdoc />
         public override ClauseType       NodeType => ClauseType.SqlCondition;
 
+		/// <inheritdoc />
 		public IElementWriter ToString(IElementWriter writer)
 		{
 			writer
@@ -41,6 +50,7 @@ namespace mooSQL.data.model
 			return writer;
 		}
 
+		/// <inheritdoc />
 		public override bool Equals(IExpWord  other, Func<IExpWord, IExpWord, bool> comparer)
 		{
 			if (ReferenceEquals(other, this))
@@ -56,6 +66,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <summary>替换条件与两个分支。</summary>
 		public void Modify(IAffirmWord predicate, IExpWord trueValue, IExpWord falseValue)
 		{
 			Condition  = predicate;

@@ -13,16 +13,18 @@ namespace mooSQL.data.model
     using mooSQL.data.Mapping;
     using mooSQL.data.model;
 	/// <summary>
-	/// 代表某个实体类对应的表，含有实体映射信息。
+	/// ??????????????????????????????????
 	/// </summary>
 	public class TableWord : ExpWordBase,ITableNode
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitTableWord(this);
         }
         #region Init
 
+        /// <summary>?????????????? Id ???????????</summary>
         public TableWord(Type objectType, int? sourceId, SqlObjectName tableName, Type type = null) : base(ClauseType.SqlTable, type)
         {
 			SourceID   = sourceId ?? Interlocked.Increment(ref SelectQueryClause.SourceIDCounter);
@@ -31,6 +33,7 @@ namespace mooSQL.data.model
 			_all       = FieldWord.All(this);
 		}
 
+		/// <summary>????????????????????????????????????????????????</summary>
 		public TableWord(
 			int                      id,
 			string?                  expression,
@@ -63,6 +66,7 @@ namespace mooSQL.data.model
 
 		#region Init from type
 
+		/// <summary>?? <see cref="EntityInfo"/> ???????????</summary>
 		public TableWord(EntityInfo entityDescriptor, string? physicalName = null)
 			: this(entityDescriptor.Type, (int?)null, new(string.Empty))
 		{
@@ -141,6 +145,7 @@ namespace mooSQL.data.model
 
 		#region Init from Table
 
+		/// <summary>?????????????????????????</summary>
 		public TableWord(TableWord table)
 			: this(table.ObjectType, null, table.TableName)
 		{
@@ -159,6 +164,7 @@ namespace mooSQL.data.model
 			_all ??= FieldWord.All(this);
 		}
 
+		/// <summary>?????????I????????????????</summary>
 		public TableWord(TableWord table, IEnumerable<FieldWord> fields, IExpWord[] tableArguments)
 			: this(table.ObjectType, null, table.TableName)
 		{
@@ -180,10 +186,12 @@ namespace mooSQL.data.model
 
 		#region Overrides
 
+		/// <inheritdoc />
 		public override ClauseType NodeType => ClauseType.SqlTable;
 
 
 
+		/// <inheritdoc />
 		public override bool Equals(IExpWord? other, Func<IExpWord, IExpWord, bool> comparer)
 		{
 			if (ReferenceEquals(this, other))
@@ -199,6 +207,7 @@ namespace mooSQL.data.model
 
 		//public override bool CanBeNullable(NullabilityContext nullability) => CanBeNull;
 
+		/// <inheritdoc />
 		public override int Precedence => PrecedenceLv.Primary;
 		//public override Type SystemType => ObjectType;
 		
@@ -216,13 +225,20 @@ namespace mooSQL.data.model
 			return field;
 		}
 
+		/// <summary>????????</summary>
 		public         string?           Alias          { get; set; }
+		/// <summary>????/????????????</summary>
 		public virtual SqlObjectName     TableName      { get; set; }
+		/// <summary>???? CLR ????????</summary>
 		public         Type              ObjectType     { get; protected internal set; }
+		/// <summary>???????????????????</summary>
 		public virtual SqlTableType      SqlTableType   { get; set; }
+		/// <summary>????/???????????????</summary>
 		public         TableOptions      TableOptions   { get; set; }
+		/// <summary>?????????????????????????</summary>
 		public virtual string?           ID             { get; set; }
 
+		/// <summary>??????????????</summary>
 		public bool CanBeNull { get; set; } = true;
 
 		/// <summary>
@@ -236,19 +252,24 @@ namespace mooSQL.data.model
 		/// </list>
 		/// </summary>
 		public string?           Expression     { get; set; }
+		/// <summary><see cref="Expression"/> ??????????????</summary>
 		public IExpWord[]? TableArguments { get; set; }
 
+        /// <summary>?????????????????</summary>
         public string NameForLogging => Expression ?? TableName.Name;
 
 		// list user to preserve order of fields in queries
 		internal readonly List<FieldWord>              _orderedFields = new();
 		readonly          Dictionary<string,FieldWord> _fieldsLookup  = new();
 
+		/// <summary>?????????????????</summary>
 		public           List<FieldWord> Fields => _orderedFields;
+		/// <summary>?????????hint ?????</summary>
 		public List<QueryExtension>? SqlQueryExtensions { get; set; }
 
 		// identity fields cached, as it is most used fields filter
 		private readonly List<FieldWord>                  _identityFields = new ();
+		/// <summary>???????????????</summary>
 		public IReadOnlyList<FieldWord> IdentityFields => _identityFields;
 
 		internal void ClearFields()
@@ -258,11 +279,14 @@ namespace mooSQL.data.model
 			_identityFields.Clear();
 		}
 
+		/// <summary>????/?????????????</summary>
 		public SequenceNameAttribute[]? SequenceAttributes { get; protected set; }
 
 		FieldWord?       _all;
+		/// <summary><c>*</c> ????????</summary>
 		public FieldWord All => _all!;
 
+		/// <summary>???????????????????????????????</summary>
 		public FieldWord? GetIdentityField()
 		{
 			foreach (var field in Fields)
@@ -277,6 +301,7 @@ namespace mooSQL.data.model
 			return null;
 		}
 
+		/// <summary>?????????????????????</summary>
 		public void Add(FieldWord field)
 		{
 			//if (field.Table != null) throw new InvalidOperationException("Invalid parent table.");
@@ -295,6 +320,7 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <summary>???? <see cref="Add"/>??</summary>
 		public void AddRange(IEnumerable<FieldWord> collection)
 		{
 			foreach (var item in collection)
@@ -305,12 +331,16 @@ namespace mooSQL.data.model
 
 		#region ISqlTableSource Members
 
+		/// <inheritdoc />
 		public int SourceID { get; }
 
+        /// <inheritdoc />
         public string Name => TableName.Name;
 
         List<IExpWord>? _keyFields;
+        /// <inheritdoc />
         public override Type SystemType => ObjectType;
+        /// <inheritdoc />
         public virtual IList<IExpWord>? GetKeys(bool allIfEmpty)
 		{
 			_keyFields ??=
@@ -332,6 +362,7 @@ namespace mooSQL.data.model
 
 		#region System tables
 
+		/// <summary>OUTPUT ???????е? INSERTED α????</summary>
 		public static TableWord Inserted(EntityInfo entityDescriptor)
 			=> new (entityDescriptor)
 			{
@@ -339,6 +370,7 @@ namespace mooSQL.data.model
 				SqlTableType = SqlTableType.SystemTable,
 			};
 
+        /// <summary>OUTPUT 上下文中的 DELETED 伪表。</summary>
         public static TableWord Deleted(EntityInfo entityDescriptor)
 			=> new (entityDescriptor)
 			{

@@ -12,9 +12,10 @@ namespace mooSQL.data.model
     /// <typeparam name="T"></typeparam>
     public class Nickable<T>
     {
-
+        /// <summary>主体对象。</summary>
         public T Body { get; set; }
 
+        /// <summary>别名或显示名。</summary>
         public virtual string NickName { get; set; }
     }
 }

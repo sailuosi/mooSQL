@@ -8,19 +8,25 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class InsertClause :Clause, ISQLNode
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitInsertClause(this);
         }
+		/// <summary>初始化空 VALUES 列表。</summary>
 		public InsertClause() : base(ClauseType.InsertClause, null)
         {
 			Items        = new List<SetWord>();
 		}
 
+		/// <summary>各列赋值（SET/VALUES 行）。</summary>
 		public List<SetWord> Items        { get; set; }
+		/// <summary>目标表。</summary>
 		public ITableNode?              Into         { get; set; }
+		/// <summary>是否请求返回标识列（OUTPUT/RETURNING）。</summary>
 		public bool                   WithIdentity { get; set; }
 
+		/// <summary>替换目标表。</summary>
 		public void Update(ITableNode? into)
 		{
 			Into  = into;
@@ -42,11 +48,14 @@ namespace mooSQL.data.model
 		#region IQueryElement Members
 
 #if DEBUG
+		/// <summary>调试文本。</summary>
 		public string DebugText => this.ToDebugString();
 #endif
+		/// <inheritdoc />
 		public ClauseType NodeType => ClauseType.InsertClause;
 
-		IElementWriter ToString(IElementWriter writer)
+		/// <inheritdoc />
+		public IElementWriter ToString(IElementWriter writer)
 		{
 			writer
 				.Append("INSERT ")

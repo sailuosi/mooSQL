@@ -14,7 +14,9 @@ namespace mooSQL.data
 	
 	public enum TableOptions
 	{
+		/// <summary>未设置任何选项。</summary>
 		NotSet                     = 0b000000000,
+		/// <summary>占位基础位（无额外语义）。</summary>
 		None                       = 0b000000001,
 		/// <summary>
 		/// 不存在则创建
@@ -49,7 +51,9 @@ namespace mooSQL.data
 		/// </summary>
 		IsTransactionTemporaryData = 0b100000000,
 
+		/// <summary>存在性检查相关选项组合。</summary>
 		CheckExistence             = CreateIfNotExists | DropIfExists,
+		/// <summary>任一类临时表选项已设置。</summary>
 		IsTemporaryOptionSet       = IsTemporary | IsLocalTemporaryStructure | IsGlobalTemporaryStructure | IsLocalTemporaryData | IsGlobalTemporaryData | IsTransactionTemporaryData,
 	}
 

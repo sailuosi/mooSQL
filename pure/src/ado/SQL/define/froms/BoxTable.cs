@@ -12,6 +12,7 @@ namespace mooSQL.data.model
     /// </summary>
     public class BoxTable:Clause,ITableNode
     {
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitBoxTable(this);
@@ -19,6 +20,7 @@ namespace mooSQL.data.model
 
         private LinkBox<ITableNode, JoinKind, JoinOnWord> _content;
 
+        /// <summary>初始化根级表连接图。</summary>
         public BoxTable() : base(ClauseType.SqlTable, null)
         {
             _content = new LinkBox<ITableNode, JoinKind, JoinOnWord>();
@@ -30,6 +32,7 @@ namespace mooSQL.data.model
 
         }
 
+        /// <summary>内部连接图（表与 JOIN 边）。</summary>
         public LinkBox<ITableNode, JoinKind, JoinOnWord> Content
         {
             get { 
@@ -37,21 +40,28 @@ namespace mooSQL.data.model
             }
         }
 
+        /// <inheritdoc />
         public ClauseType  NodeType => ClauseType.SqlTable;
 
+        /// <inheritdoc />
         public string Name => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public FieldWord All => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public int SourceID => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public SqlTableType SqlTableType => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public IList<IExpWord>? GetKeys(bool allIfEmpty)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>将表以派生别名形式加入连接图。</summary>
         public ITableNode Join(JoinKind joinType, ITableNode table, string asName, JoinOnWord onCondition) {
 
             var item = new DerivatedTableWord(table, asName);

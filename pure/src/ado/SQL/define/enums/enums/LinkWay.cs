@@ -11,6 +11,7 @@ namespace mooSQL.data
     /// </summary>
     public enum LinkWay
     {
+        /// <summary>未指定关联基数。</summary>
         None=0,
         /// <summary>
         /// 一对一关系

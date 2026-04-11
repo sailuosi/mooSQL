@@ -13,10 +13,12 @@ namespace mooSQL.data.model.affirms
     /// </summary>
     public class ExprExpr : Expr
     {
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitAffirmExprExpr(this);
         }
+        /// <summary>二元比较谓词。</summary>
         public ExprExpr(IExpWord exp1, Operator op, IExpWord exp2, bool? withNull)
             : base(exp1, PrecedenceLv.Comparison)
         {
@@ -25,11 +27,15 @@ namespace mooSQL.data.model.affirms
             WithNull = withNull;
         }
 
+        /// <summary>比较运算符。</summary>
         public new Operator Operator { get; }
+        /// <summary>右操作数。</summary>
         public IExpWord Expr2 { get;  set; }
 
+        /// <summary>三值逻辑扩展（可空比较语义）。</summary>
         public bool? WithNull { get; }
 
+        /// <inheritdoc />
         public override bool Equals(IAffirmWord other, Func<IExpWord, IExpWord, bool> comparer)
         {
             return other is ExprExpr expr
@@ -39,8 +45,10 @@ namespace mooSQL.data.model.affirms
                 && base.Equals(other, comparer);
         }
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.ExprExprPredicate;
 
+        /// <inheritdoc />
         protected override void WritePredicate(IElementWriter writer)
         {
             //writer.DebugAppendUniqueId(this);
@@ -62,6 +70,7 @@ namespace mooSQL.data.model.affirms
                 .AppendElement(Expr2);
         }
 
+        /// <summary>取反比较运算符（用于 <see cref="Invert"/>）。</summary>
         static Operator InvertOperator(Operator op)
         {
             switch (op)
@@ -78,6 +87,7 @@ namespace mooSQL.data.model.affirms
             }
         }
 
+        /// <summary>交换左右操作数时对应的运算符（对称化）。</summary>
         public static Operator SwapOperator(Operator op)
         {
             switch (op)
@@ -95,8 +105,10 @@ namespace mooSQL.data.model.affirms
             }
         }
 
+        /// <inheritdoc />
         public override bool CanInvert(ISQLNode nullability) => true;
 
+        /// <inheritdoc />
         public override IAffirmWord Invert(ISQLNode nullability)
         {
             return new ExprExpr(Expr1, InvertOperator(Operator), Expr2, !WithNull);
@@ -193,6 +205,7 @@ namespace mooSQL.data.model.affirms
         //	}
         //}
 
+        /// <summary>解构为左操作数、运算符、右操作数与可空语义标志。</summary>
         public void Deconstruct(out IExpWord expr1, out Operator @operator, out IExpWord expr2, out bool? withNull)
         {
             expr1 = Expr1;

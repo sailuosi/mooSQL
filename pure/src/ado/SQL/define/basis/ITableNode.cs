@@ -22,6 +22,7 @@ namespace mooSQL.data.model
         /// 全部字段
         /// </summary>
         FieldWord All { get; }
+        /// <summary>来源表在查询中的稳定编号（用于关联/优化）。</summary>
         int SourceID { get; }
         /// <summary>
         /// 表类型

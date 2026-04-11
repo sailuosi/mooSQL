@@ -8,18 +8,27 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class JoinTableWord : Clause, ITableNode
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitJoinedTable(this);
         }
+		/// <summary>JOIN 种类。</summary>
 		public JoinKind                 JoinType           { get; set; }
+		/// <summary>右侧表或派生表。</summary>
 		public ITableNode           Table              { get; set; }
+		/// <summary>ON 条件（CROSS 时可为空）。</summary>
 		public SearchConditionWord       Condition          { get; set; }
+		/// <summary>弱 JOIN（优化/语义提示）。</summary>
 		public bool                     IsWeak             { get; set; }
+		/// <summary>是否允许转换为 APPLY 形式。</summary>
 		public bool                     CanConvertApply    { get; set; }
+		/// <summary>方言扩展（hint 等）。</summary>
 		public List<QueryExtension>? SqlQueryExtensions { get; set; }
+		/// <summary>估计的关联基数。</summary>
 		public SourceCardinality        Cardinality        { get; set; }
 
+		/// <summary>完整指定 JOIN 与条件。</summary>
 		public JoinTableWord(JoinKind joinType, ITableNode table, bool isWeak, SearchConditionWord searchCondition) : base(ClauseType.JoinedTable, null)
         {
 			JoinType        = joinType;
@@ -29,27 +38,35 @@ namespace mooSQL.data.model
 			CanConvertApply = true;
 		}
 
+		/// <summary>使用空 ON 条件构造。</summary>
 		public JoinTableWord(JoinKind joinType, ITableNode table, bool isWeak)
 			: this(joinType, table, isWeak, new SearchConditionWord())
 		{
 		}
 
+		/// <summary>为右侧表自动包一层 <see cref="DerivatedTableWord"/> 别名。</summary>
 		public JoinTableWord(JoinKind joinType, ITableNode table, string? alias, bool isWeak)
 			: this(joinType, new DerivatedTableWord(table, alias), isWeak)
 		{
 		}
 
 
+		/// <inheritdoc />
 		public override ClauseType NodeType => ClauseType.JoinedTable;
 
+        /// <inheritdoc />
         public string Name => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public FieldWord All => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public int SourceID => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public SqlTableType SqlTableType => throw new NotImplementedException();
 
+        /// <inheritdoc />
         public  IElementWriter ToString(IElementWriter writer)
 		{
 			if (!writer.AddVisited(this))
@@ -92,6 +109,7 @@ namespace mooSQL.data.model
 			return writer;
 		}
 
+        /// <inheritdoc />
         public IList<IExpWord>? GetKeys(bool allIfEmpty)
         {
             throw new NotImplementedException();

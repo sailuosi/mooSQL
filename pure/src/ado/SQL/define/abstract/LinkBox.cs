@@ -11,7 +11,7 @@ namespace mooSQL.data.model
     /// </summary>
     public class LinkBox<T, PreT, subT>
     {
-
+        /// <summary>初始化空子节点列表。</summary>
         public LinkBox(){
             this.children = new List<LinkBox<T, PreT, subT>>();
         }
@@ -24,14 +24,17 @@ namespace mooSQL.data.model
         /// </summary>
         public List<LinkBox<T, PreT, subT>> children;
 
+        /// <summary>整棵结构的根节点引用。</summary>
         public LinkBox<T, PreT, subT> root;
 
+        /// <summary>当前焦点节点（遍历/构建游标）。</summary>
         public LinkBox<T, PreT, subT> focus;
         /// <summary>
         /// 是否为盒子
         /// </summary>
         public bool isBox;
 
+        /// <summary>叶子节点承载的值（非盒子时有效）。</summary>
         public T value;
 
         /// <summary>
@@ -51,6 +54,7 @@ namespace mooSQL.data.model
         /// </summary>
         private subT _subfix;
 
+        /// <summary>链接前缀（叶子节点）。</summary>
         public PreT Prefix
         {
             get {
@@ -60,6 +64,7 @@ namespace mooSQL.data.model
                 return this._prefix;
             }        
         }
+        /// <summary>链接后缀（叶子节点）。</summary>
         public subT Subfix
         {
             get
@@ -74,9 +79,10 @@ namespace mooSQL.data.model
 
 
         /// <summary>
-        /// 创建一个新盒子，并进入其中
+        /// 创建子节点并下移焦点（进入更深层）。
         /// </summary>
-        /// <param name="connector"></param>
+        /// <param name="prefix">链接前缀。</param>
+        /// <param name="subfix">链接后缀。</param>
         public LinkBox<T, PreT, subT> sink(PreT prefix, subT subfix )
         {
             var tar = new LinkBox<T, PreT, subT>();
@@ -100,6 +106,7 @@ namespace mooSQL.data.model
             return focus;
         }
 
+        /// <summary>在焦点下添加叶子子节点。</summary>
         public LinkBox<T, PreT, subT> add(T item,PreT prefix,subT subfix)
         {
 
@@ -114,6 +121,7 @@ namespace mooSQL.data.model
             return focus;
         }
 
+        /// <summary>对当前节点执行访问委托。</summary>
         public R Visit<R>(Func<LinkBox<T, PreT, subT>, R> onVisit) {
             return onVisit(this);
         }

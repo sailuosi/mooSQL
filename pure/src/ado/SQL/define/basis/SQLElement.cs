@@ -15,16 +15,19 @@ namespace mooSQL.data.model
 		/// <summary>
 		/// 引用比较器.
 		/// </summary>
+		/// <summary>按引用比较 SQL 节点的比较器。</summary>
 		public static readonly IEqualityComparer<ISQLNode> ReferenceComparer = ObjectReferenceEqualityComparer<ISQLNode>.Default;
 
 #if DEBUG
 		static long IdCounter;
 
+		/// <inheritdoc />
 		public virtual string DebugText => this.ToString();
 
-		// 调试用，帮助理解创建时机
+		/// <summary>调试：节点创建顺序编号。</summary>
 		public long UniqueId { get; }
 
+		/// <summary>由子类指定子句类型与 CLR 类型。</summary>
 		protected SQLElement(ClauseType clauseType,Type type) : base(clauseType,type)
         {
 			UniqueId = Interlocked.Increment(ref IdCounter);
@@ -36,12 +39,14 @@ namespace mooSQL.data.model
 			}
 		}
 #else
+        /// <summary>由子类指定子句类型与 CLR 类型。</summary>
         protected SQLElement(ClauseType clauseType, Type type) : base(clauseType, type)
         {
         }
 
 #endif
 
+        /// <inheritdoc />
         public abstract ClauseType       NodeType { get; }
 
 

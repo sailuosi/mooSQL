@@ -15,17 +15,23 @@ namespace mooSQL.data.model.affirms
     public class SearchString : BaseNotExpr
     {
 
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitSearchStringPredicate(this);
         }
+        /// <summary>字符串包含类谓词的种类。</summary>
         public enum SearchKind
         {
+            /// <summary>前缀匹配。</summary>
             StartsWith,
+            /// <summary>后缀匹配。</summary>
             EndsWith,
+            /// <summary>子串包含。</summary>
             Contains
         }
 
+        /// <summary>构造虚拟字符串搜索谓词（可映射到方言函数）。</summary>
         public SearchString(IExpWord exp1, bool isNot, IExpWord exp2, SearchKind searchKind, IExpWord caseSensitive)
             : base(exp1, isNot, PrecedenceLv.Comparison)
         {
@@ -34,10 +40,14 @@ namespace mooSQL.data.model.affirms
             CaseSensitive = caseSensitive;
         }
 
+        /// <summary>搜索模式/子串。</summary>
         public IExpWord Expr2 { get; internal set; }
+        /// <summary>匹配方式。</summary>
         public SearchKind Kind { get; }
+        /// <summary>是否区分大小写等选项。</summary>
         public IExpWord CaseSensitive { get; private set; }
 
+        /// <inheritdoc />
         public override bool Equals(IAffirmWord other, Func<IExpWord, IExpWord, bool> comparer)
         {
             return other is SearchString expr
@@ -47,13 +57,16 @@ namespace mooSQL.data.model.affirms
                 && base.Equals(other, comparer);
         }
 
+        /// <inheritdoc />
         public override IAffirmWord Invert(ISQLNode nullability)
         {
             return new SearchString(Expr1, !IsNot, Expr2, Kind, CaseSensitive);
         }
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.SearchStringPredicate;
 
+        /// <inheritdoc />
         protected override void WritePredicate(IElementWriter writer)
         {
             writer.AppendElement(Expr1);
@@ -77,6 +90,7 @@ namespace mooSQL.data.model.affirms
             writer.AppendElement(Expr2);
         }
 
+        /// <summary>就地替换左操作数、模式与大小写选项。</summary>
         public void Modify(IExpWord expr1, IExpWord expr2, IExpWord caseSensitive)
         {
             Expr1 = expr1;

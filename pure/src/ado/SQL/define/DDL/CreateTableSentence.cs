@@ -7,6 +7,7 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class CreateTableSentence : BaseSentence
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitCreateTableSentence(this);
@@ -27,6 +28,7 @@ namespace mooSQL.data.model
 		/// 默认可空
 		/// </summary>
 		public DefaultNullable DefaultNullable { get; set; }
+		/// <summary>指定目标表元数据。</summary>
 		public CreateTableSentence(ITableNode sqlTable) : base(ClauseType.CreateTableStatement, null)
         {
 			Table = sqlTable;
@@ -34,22 +36,28 @@ namespace mooSQL.data.model
 
 
 
+		/// <inheritdoc />
 		public override QueryType        QueryType   => QueryType.CreateTable;
+		/// <inheritdoc />
 		public override ClauseType NodeType => ClauseType.CreateTableStatement;
 
+		/// <inheritdoc />
 		public override bool             IsParameterDependent
 		{
 			get => false;
 			set {}
 		}
 
+		/// <summary>替换目标表节点。</summary>
 		public void Update(ITableNode table)
 		{
 			Table = table;
 		}
 
+		/// <inheritdoc />
 		public override SelectQueryClause? SelectQuery { get => null; set {}}
 
+		/// <inheritdoc />
 		public override IElementWriter ToString(IElementWriter writer)
 		{
 			writer

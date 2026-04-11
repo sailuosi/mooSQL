@@ -4,8 +4,10 @@ using System.Linq;
 
 namespace mooSQL.data.model
 {
+	/// <summary>附在查询或表片段上的方言扩展（hint、优化器指令等）。</summary>
 	public sealed class QueryExtension :Clause, ISQLNode
 	{
+		/// <summary>构造空扩展节点。</summary>
 		public QueryExtension() : base(ClauseType.SqlQueryExtension, null)
         {
 		}
@@ -28,11 +30,14 @@ namespace mooSQL.data.model
 		public Type?                              BuilderType        { get; set; }
 
 #if DEBUG
+		/// <summary>调试文本。</summary>
 		public string           DebugText   => this.ToDebugString();
 #endif
 
+		/// <inheritdoc />
 		public ClauseType NodeType => ClauseType.SqlQueryExtension;
 
+		/// <inheritdoc />
 		public IElementWriter ToString(IElementWriter writer)
 		{
 			return writer.Append("extension");

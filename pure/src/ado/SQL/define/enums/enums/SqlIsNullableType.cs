@@ -40,6 +40,9 @@
 		/// Expression could return NULL if last parameter of expression could contain NULL.
 		/// </summary>
 		SameAsLastParameter,
+		/// <summary>
+		/// 当且当所有参数均可为 NULL 时，表达式结果可为 NULL。
+		/// </summary>
 		IfAllParametersNullable,
 	}
 

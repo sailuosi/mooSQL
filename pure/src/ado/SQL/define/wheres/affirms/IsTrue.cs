@@ -12,15 +12,20 @@ namespace mooSQL.data.model.affirms
     /// </summary>
     public class IsTrue : BaseNotExpr
     {
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitAffirmIsTrue(this);
         }
 
+        /// <summary>表示“真”的常量表达式（如 1）。</summary>
         public IExpWord TrueValue { get; set; }
+        /// <summary>表示“假”的常量表达式（如 0）。</summary>
         public IExpWord FalseValue { get; set; }
+        /// <summary>可空三值语义扩展。</summary>
         public bool? WithNull { get; }
 
+        /// <summary>构造与真假常量比较的布尔谓词。</summary>
         public IsTrue(IExpWord exp1, IExpWord trueValue, IExpWord falseValue, bool? withNull, bool isNot)
             : base(exp1, isNot, PrecedenceLv.Comparison)
         {
@@ -29,6 +34,7 @@ namespace mooSQL.data.model.affirms
             WithNull = withNull;
         }
 
+        /// <inheritdoc />
         public override bool Equals(IAffirmWord other, Func<IExpWord, IExpWord, bool> comparer)
         {
             return other is IsTrue expr
@@ -38,6 +44,7 @@ namespace mooSQL.data.model.affirms
                 && base.Equals(other, comparer);
         }
 
+        /// <inheritdoc />
         protected override void WritePredicate(IElementWriter writer)
         {
             //writer.AppendElement(Reduce(writer.Nullability, true));
@@ -75,11 +82,13 @@ namespace mooSQL.data.model.affirms
 
         //}
 
+        /// <inheritdoc />
         public override IAffirmWord Invert(ISQLNode nullability)
         {
             return new IsTrue(Expr1, TrueValue, FalseValue, !WithNull, !IsNot);
         }
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.IsTruePredicate;
     }
 

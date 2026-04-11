@@ -26,18 +26,21 @@ namespace mooSQL.data.model
     /// </summary>
     public abstract class ClauseVisitor
     {
-
+        /// <summary>初始化访问器。</summary>
         protected ClauseVisitor() {
 
         }
 
+        /// <summary>当前数据库实例上下文（连接/方言等）。</summary>
         public DBInstance DBLive { get; set; }
 
+        /// <summary>扩展节点默认实现：递归子节点。</summary>
         protected internal virtual Clause VisitExtension(Clause node)
         {
             return node.VisitChildren(this);
         }
 
+        /// <summary>逐个访问只读子句集合，有变更时返回新集合。</summary>
         public ReadOnlyCollection<Clause> Visit(ReadOnlyCollection<Clause> nodes)
         {
 #if NET6_0_OR_GREATER
@@ -69,6 +72,7 @@ namespace mooSQL.data.model
             }
             return new ReadOnlyCollection<Clause>(newNodes);
         }
+        /// <summary>逐个访问可变子句列表。</summary>
         public List<Clause> VisitList(List<Clause> nodes)
         {
 #if NET6_0_OR_GREATER
@@ -100,6 +104,7 @@ namespace mooSQL.data.model
             }
             return newNodes;
         }
+        /// <summary>对列表中每个子句调用 <see cref="Visit(Clause)"/>。</summary>
         public List<T> VisitEach<T>(List<T> nodes) where T : Clause
         {
             if (nodes == null) return nodes;
@@ -113,6 +118,7 @@ namespace mooSQL.data.model
             }
             return nodes;
         }
+        /// <summary>使用自定义委托替换列表中各元素。</summary>
         public List<T> VisitEach<T>(List<T> nodes, Func<T, T> func) where T : Clause
         {
             if (nodes == null) return nodes;
@@ -128,7 +134,7 @@ namespace mooSQL.data.model
             return nodes;
         }
 
-
+        /// <summary>静态辅助：用给定访问函数重写列表。</summary>
         public static List<T> Visit<T>(List<T> nodes, Func<T, T> elementVisitor)
         {
 #if NET6_0_OR_GREATER
@@ -161,6 +167,7 @@ namespace mooSQL.data.model
             return new List<T>(newNodes);
         }
 
+        /// <summary>访问单节点并断言结果仍为 <typeparamref name="T"/>。</summary>
         public T? VisitAndConvert<T>(T? node, string? callerName) where T : Clause
         {
             if (node == null)
@@ -175,6 +182,7 @@ namespace mooSQL.data.model
             return node;
         }
 
+        /// <summary>访问只读集合中各节点并保持类型。</summary>
         public ReadOnlyCollection<T> VisitAndConvert<T>(ReadOnlyCollection<T> nodes, string? callerName) where T : Clause
         {
 #if NET6_0_OR_GREATER
@@ -212,18 +220,22 @@ namespace mooSQL.data.model
         }
 
         #region 抽象访问者,禁止表达式调用
+        /// <summary>入口：转调 <see cref="Clause.Accept"/>。</summary>
         public virtual Clause Visit(Clause node)
         {
             return node.Accept(this);
         }
+        /// <summary>访问谓词接口。</summary>
         public virtual Clause VisitAffirmWord(IAffirmWord affirmWord) { 
             return affirmWord.Accept(this);
         }
+        /// <summary>访问表达式接口。</summary>
         public virtual Clause VisitIExpWord(IExpWord field)
         {
             return field.Accept(this);
         }
 
+        /// <summary>访问表来源接口。</summary>
         public virtual Clause VisitTableNode(ITableNode clause)
         {
             return clause.Accept(this);
@@ -332,6 +344,7 @@ namespace mooSQL.data.model
             return clause;
         }
 
+        /// <summary>访问派生表/子查询别名包装。</summary>
         public virtual Clause VisitDerivatedTable(DerivatedTableWord clause)
         {
             return clause;
@@ -491,6 +504,7 @@ namespace mooSQL.data.model
         {
             return clause;
         }
+        /// <summary>访问 SELECT 查询块。</summary>
         public virtual Clause VisitSqlQuery(SelectQueryClause clause)
         {
             return clause;
@@ -1043,6 +1057,7 @@ namespace mooSQL.data.model
         public virtual Clause VisitSQLBuilder(SQLBuilderClause clause) { 
             return clause;
         }
+        /// <summary>访问多段 SQL Builder 片段容器。</summary>
         public virtual Clause VisitSQLBuilders(SQLBuildersClause clause)
         {
             return clause;

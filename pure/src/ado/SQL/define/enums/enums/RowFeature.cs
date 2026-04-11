@@ -11,6 +11,7 @@ namespace mooSQL.data
 	[Flags]
 	public enum RowFeature
 	{
+		/// <summary>无特殊能力。</summary>
 		None            = 0,
 		/// <summary>
 		/// Provider supports for IS NULL operator: <c>(1, 2) IS NULL</c>.

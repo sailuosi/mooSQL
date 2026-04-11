@@ -10,6 +10,7 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class ColumnWord : ExpWordBase,IField
 	{
+		/// <summary>SELECT 列表中的输出列（表达式 + 可选别名）。</summary>
 		public ColumnWord(SelectQueryClause? parent, IExpWord expression, string? alias, Type type = null) : base(ClauseType.Column, type)
         {
 			if (expression is SearchConditionWord)
@@ -32,12 +33,14 @@ namespace mooSQL.data.model
 #endif
 		}
 
+		/// <summary>无别名构造。</summary>
 		public ColumnWord(SelectQueryClause builder, IExpWord expression)
 			: this(builder, expression, null)
 		{
 		}
 
 #if DEBUG
+		/// <summary>调试：列序号。</summary>
 		public int Number { get; }
 
 		static   int _columnCounter;
@@ -46,6 +49,7 @@ namespace mooSQL.data.model
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
         IExpWord _expression;
 
+        /// <summary>列值表达式。</summary>
         public IExpWord Expression
         {
             get => _expression;
@@ -58,6 +62,7 @@ namespace mooSQL.data.model
                 _expression = value;
             }
         }
+        /// <summary>同 <see cref="Expression"/>（<see cref="IField"/> 语义）。</summary>
         public IExpWord FieldValue
 		{
 			get => _expression;
@@ -71,12 +76,15 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <summary>所属 SELECT 查询体。</summary>
 		public SelectQueryClause? Parent { get; set; }
 
+        /// <summary>原始别名文本。</summary>
         public string? RawAlias   { get; set; }
 
 
 
+		/// <inheritdoc />
 		public string? Alias
 		{
 			get
@@ -88,6 +96,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 #if OVERRIDETOSTRING
@@ -129,6 +138,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <inheritdoc />
 		public override bool Equals(IExpWord other, Func<IExpWord,IExpWord,bool> comparer)
 		{
 			if (this == other)
@@ -146,13 +156,17 @@ namespace mooSQL.data.model
 			return	comparer(this, other);
 		}
 
+		/// <inheritdoc />
 		public override int   Precedence => PrecedenceLv.Primary;
 
+        /// <inheritdoc />
         public override Type? SystemType => Expression .SystemType;
         #endregion
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.Column;
 
+        /// <summary>列所属的表节点（若有）。</summary>
         public ITableNode BelongTable {
 			get; set;
 		}

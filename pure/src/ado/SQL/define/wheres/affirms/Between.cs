@@ -13,11 +13,13 @@ namespace mooSQL.data.model.affirms
     /// </summary>
     public class Between : BaseNotExpr
     {
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitAffirmBetween(this);
         }
 
+        /// <summary>构造 <c>BETWEEN</c> 范围谓词。</summary>
         public Between(IExpWord exp1, bool isNot, IExpWord exp2, IExpWord exp3)
             : base(exp1, isNot, PrecedenceLv.Comparison)
         {
@@ -25,9 +27,12 @@ namespace mooSQL.data.model.affirms
             Expr3 = exp3;
         }
 
+        /// <summary>范围下界。</summary>
         public IExpWord Expr2 { get; set; }
+        /// <summary>范围上界。</summary>
         public IExpWord Expr3 { get; set; }
 
+        /// <inheritdoc />
         public override bool Equals(IAffirmWord other, Func<IExpWord, IExpWord, bool> comparer)
         {
             return other is Between expr
@@ -36,13 +41,16 @@ namespace mooSQL.data.model.affirms
                 && base.Equals(other, comparer);
         }
 
+        /// <inheritdoc />
         public override IAffirmWord Invert(ISQLNode nullability)
         {
             return new Between(Expr1, !IsNot, Expr2, Expr3);
         }
 
+        /// <inheritdoc />
         public override ClauseType NodeType => ClauseType.BetweenPredicate;
 
+        /// <inheritdoc />
         protected override void WritePredicate(IElementWriter writer)
         {
             writer.AppendElement(Expr1);

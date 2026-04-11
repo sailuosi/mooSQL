@@ -4,26 +4,33 @@ using System.Collections.Generic;
 
 namespace mooSQL.data.model
 {
+	/// <summary>语句顶层的 <c>WITH</c> 子句，包含若干 <see cref="CTEClause"/>。</summary>
 	public class WithClause :Clause, ISQLNode
 	{
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitWithClause(this);
         }
 
+		/// <summary>构造空的 WITH 子句容器。</summary>
 		public WithClause() : base(ClauseType.WithClause, null)
         { 
 		
 		}
 
+        /// <summary>按书写顺序排列的 CTE 定义。</summary>
         public List<CTEClause> Clauses { get; set; } = new List<CTEClause>();
 
 #if DEBUG
+        /// <summary>调试文本。</summary>
         public string DebugText => this.ToDebugString();
 #endif
 
+		/// <inheritdoc />
 		public ClauseType NodeType => ClauseType.WithClause;
 
+		/// <inheritdoc />
 		public IElementWriter ToString(IElementWriter writer)
 		{
 			if (Clauses.Count > 0)
@@ -110,6 +117,7 @@ namespace mooSQL.data.model
 
 
 
+		/// <summary>在嵌套查询中解析表引用对应的 <see cref="ITableNode"/>。</summary>
 		public ITableNode? GetTableSource(ITableNode table)
 		{
 			foreach (var cte in Clauses)
@@ -122,6 +130,7 @@ namespace mooSQL.data.model
 			return null;
 		}
 
+		/// <summary>对每个 CTE 的 <see cref="CTEClause.Body"/> 执行变换。</summary>
 		public void WalkQueries<TContext>(TContext context, Func<TContext, SelectQueryClause, SelectQueryClause> func)
 		{
 			foreach (var c in Clauses)

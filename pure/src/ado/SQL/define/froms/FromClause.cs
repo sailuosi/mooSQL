@@ -10,18 +10,22 @@ namespace mooSQL.data.model
 	public class FromClause : ClauseBase
 	{
 
+        /// <inheritdoc />
         public override Clause Accept(ClauseVisitor visitor)
         {
             return visitor.VisitFromClause(this);
         }
+        /// <summary>FROM 列表中出现的表节点（含派生/连接包装）。</summary>
         public List<ITableNode> Tables { get; } = new List<ITableNode>();
 
+		/// <summary>维护 JOIN 图与追加顺序的容器。</summary>
 		public BoxTable focus;
 
 
 
         #region Join的快捷方法
 
+        /// <summary>以自动 JOIN 方式添加表并返回派生节点。</summary>
         public ITableNode Add( ITableNode table, string? alias)
         {
             var t= focus.Join(JoinKind.Auto, table, alias, null);
@@ -29,6 +33,7 @@ namespace mooSQL.data.model
             return t;
         }
 
+        /// <summary>追加显式 JOIN。</summary>
         public FromClause Join(JoinKind joinType, ITableNode table, string? alias, JoinOnWord joinOn)
         {
             var t= focus.Join(joinType, table,alias, joinOn);
@@ -37,11 +42,13 @@ namespace mooSQL.data.model
         }
 
 
+        /// <summary>内连接。</summary>
         public FromClause InnerJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Inner, table, alias, joinOn);
         }
 
+        /// <summary>左外连接。</summary>
         public FromClause LeftJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Left, table, alias, joinOn);
@@ -49,6 +56,7 @@ namespace mooSQL.data.model
 
 
 
+        /// <summary>交叉 APPLY。</summary>
         public FromClause CrossApply(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.CrossApply, table, alias, joinOn);
@@ -56,12 +64,14 @@ namespace mooSQL.data.model
 
 
 
+        /// <summary>外部 APPLY。</summary>
         public FromClause OuterApply(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.OuterApply, table, alias, joinOn);
         }
 
 
+        /// <summary>弱语义内连接（优化提示）。</summary>
         public FromClause WeakInnerJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Inner, table, alias, joinOn);
@@ -70,6 +80,7 @@ namespace mooSQL.data.model
 
 
 
+        /// <summary>弱语义左连接。</summary>
         public FromClause WeakLeftJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Left, table, alias, joinOn);
@@ -77,6 +88,7 @@ namespace mooSQL.data.model
 
 
 
+        /// <summary>右外连接。</summary>
         public FromClause RightJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Right, table, alias, joinOn);
@@ -84,6 +96,7 @@ namespace mooSQL.data.model
 
 
 
+        /// <summary>全外连接。</summary>
         public FromClause   FullJoin(ITableNode table, string? alias, JoinOnWord joinOn)
         {
             return Join(JoinKind.Full, table, alias, joinOn);
@@ -92,6 +105,7 @@ namespace mooSQL.data.model
 
         #endregion
 
+        /// <summary>绑定到所属 SELECT 查询体。</summary>
         public FromClause(SelectQueryClause selectQuery, Type type = null) : base(selectQuery, ClauseType.FromClause, type)
         {
             this.focus = new BoxTable();
@@ -111,6 +125,7 @@ namespace mooSQL.data.model
 			return null;
 		}
 
+        /// <summary>若已存在则返回，否则添加。</summary>
         public ITableNode AddOrGetTable(ITableNode table, string? alias)
 		{
 			var ts = GetTable(table, alias);
@@ -126,8 +141,10 @@ namespace mooSQL.data.model
 
 		#region QueryElement Members
 
+		/// <inheritdoc />
 		public override ClauseType NodeType => ClauseType.FromClause;
 
+		/// <inheritdoc />
 		public IElementWriter ToString(IElementWriter writer)
 		{
 			writer
@@ -153,6 +170,7 @@ namespace mooSQL.data.model
 
 		#endregion
 
+		/// <summary>清空表列表并重置连接图。</summary>
 		public void Cleanup()
 		{
 			Tables.Clear();
