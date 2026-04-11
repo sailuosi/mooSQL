@@ -14,16 +14,28 @@ namespace mooSQL.auth
     /// </summary>
     public abstract class AuthDialect
     {
-
+        /// <summary>
+        /// 处理管线定义
+        /// </summary>
+        /// <returns></returns>
         public abstract PipelineDialect getPipeLine();
-
+        /// <summary>
+        /// 词条集合定义
+        /// </summary>
+        /// <returns></returns>
         public abstract WordBagDialect getWordBag();
-
+        /// <summary>
+        /// 词条解释器获取
+        /// </summary>
+        /// <returns></returns>
         public virtual WordTranslator getWordTranslator() { 
             var tar= new WordTranslator();
             tar.dialect = this;
             return tar;
         }
+        /// <summary>
+        /// 词条翻译器
+        /// </summary>
         private WordTranslator _wordTranslator;
 
         internal WordTranslator wordTranslator

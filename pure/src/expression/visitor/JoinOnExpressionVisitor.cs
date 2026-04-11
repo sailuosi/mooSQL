@@ -31,6 +31,10 @@ namespace mooSQL.linq
             this.whereExpressionVisitor = new WhereExpressionVisitor(context);
         }
 
+        /// <summary>
+        /// 将外部层的别名/参数等上下文复制到内部 WHERE 访问器的当前层，以便 JOIN ON 与主查询共享状态。
+        /// </summary>
+        /// <param name="layer">要复制的层上下文。</param>
         public void CopyLayer(LayerContext layer) { 
             this.whereExpressionVisitor.Context.CurrentLayer.Copy(layer);
         }

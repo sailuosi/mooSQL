@@ -22,7 +22,9 @@ namespace mooSQL.auth
         public AuthFactory<RealDialect> factory;
 
         private RealDialect _realDialect;
-
+        /// <summary>
+        /// SQL主体
+        /// </summary>
         public SQLBuilder kit;
         /// <summary>
         /// 方言对象
@@ -78,16 +80,23 @@ namespace mooSQL.auth
         /// 是否使用登录人的访客集合
         /// </summary>
         protected bool _useLoginVisitorBag = true;
-
+        /// <summary>
+        /// 是否admin用户看所有
+        /// </summary>
         protected bool adminAll = false;
-
+        /// <summary>
+        /// 入口
+        /// </summary>
         public AuthorBuilder()
         {
             this.goodsBag = new AuthGoodsBag();
             this.roleIds = new List<string>();
             this.dataScopes = new List<AuthWord>();
         }
-
+        /// <summary>
+        /// 设置角色
+        /// </summary>
+        /// <param name="roleOIDs"></param>
         protected void setUsingRoles(List<string> roleOIDs) { 
             this.roleIds = roleOIDs;
             if (this.authUser != null) { 

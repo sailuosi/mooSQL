@@ -147,7 +147,7 @@ namespace mooSQL.data.context
                 if (_logger.IsEnabled(LogLv.Debug))
                 {
                     _logger.LogDebug(
-                        $"Operation:{operation} Statement.Id:{context.session.FullSqlId} Execute Taken:{stopwatch?.ElapsedMilliseconds}.");
+                        $"操作:{operation} 语句Id:{context.session.FullSqlId} 执行耗时:{stopwatch?.ElapsedMilliseconds}.");
                 }
             }
         }
@@ -193,7 +193,7 @@ namespace mooSQL.data.context
                 if (_logger.IsEnabled(LogLv.Debug))
                 {
                     _logger.LogDebug(
-                        $"Operation:{operation} Statement.Id:{context.session.FullSqlId} Execute Taken:{stopwatch?.ElapsedMilliseconds}.");
+                        $"操作:{operation} 语句Id:{context.session.FullSqlId} 执行耗时:{stopwatch?.ElapsedMilliseconds}.");
                 }
             }
         }

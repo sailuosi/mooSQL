@@ -18,6 +18,9 @@ namespace mooSQL.linq;
 public sealed class ClipExpSameCheckor : IEqualityComparer<Expression?>
 {
 
+    /// <summary>
+    /// 在计算哈希过程中遇到的常量表达式收集列表（用于与相等比较逻辑配合）。
+    /// </summary>
     public List<ConstantExpression> constantVals {  get; private set; }
     /// <summary>
     /// 私有构造函数，防止外部实例化。
@@ -28,6 +31,11 @@ public sealed class ClipExpSameCheckor : IEqualityComparer<Expression?>
     }
 
 
+    /// <summary>
+    /// 计算表达式结构的哈希码；常量节点主要参与类型信息而非具体值（与相等语义一致）。
+    /// </summary>
+    /// <param name="obj">表达式实例。</param>
+    /// <returns>哈希码；<paramref name="obj"/> 为 null 时返回 0。</returns>
     public int GetHashCode(Expression obj)
     {
 

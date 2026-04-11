@@ -48,6 +48,7 @@ namespace mooSQL.auth
         /// 唤起最终构建时刻的解析器。
         /// </summary>
         /// <param name="wh"></param>
+        /// <param name="kit"></param>
         /// <returns></returns>
         internal List<string> invokeLazyReador(List<string> wh, SQLBuilder kit)
         {

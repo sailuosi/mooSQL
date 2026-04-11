@@ -10,8 +10,15 @@ using System.Threading.Tasks;
 namespace mooSQL.linq
 {
 
+    /// <summary>
+    /// 将投影/成员访问表达式转换为 SQLBuilder 的 select 片段调用的访问器。
+    /// </summary>
     public class SelectExpressionVisitor : BaseExpressionSQLBuildVisitor
     {
+        /// <summary>
+        /// 使用指定的编译上下文创建 SELECT 表达式访问器。
+        /// </summary>
+        /// <param name="builder">快速编译上下文。</param>
         public SelectExpressionVisitor(FastCompileContext builder) : base(builder)
         {
             valueVisitor = new ValueExpressionVisitor();
@@ -20,6 +27,9 @@ namespace mooSQL.linq
         private ValueExpressionVisitor valueVisitor;
 
             
+        /// <summary>
+        /// 当前数据库客户端上的实体映射上下文（列名解析等）。
+        /// </summary>
         public EntityContext EntityContext
         {
             get
@@ -28,6 +38,11 @@ namespace mooSQL.linq
             }
         }
         private string asName;
+        /// <summary>
+        /// 在指定表/子查询别名前缀下访问 FROM 侧表达式（影响生成的列引用前缀）。
+        /// </summary>
+        /// <param name="node">FROM 表达式。</param>
+        /// <param name="asName">表或子查询别名。</param>
         public void VisitFrom(Expression node, string asName)
         {
             this.asName = asName;

@@ -15,11 +15,21 @@ namespace mooSQL.linq
     /// </summary>
     public abstract class ConditionVisitor : BaseExpressionSQLBuildVisitor
     {
+        /// <summary>
+        /// 使用指定的编译上下文初始化条件访问器。
+        /// </summary>
+        /// <param name="context">快速编译上下文。</param>
         protected ConditionVisitor(FastCompileContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// 用于将表达式侧的值折叠为常量的子访问器。
+        /// </summary>
         protected ExpressionVisitor ValueVisitor { get; set; }
+        /// <summary>
+        /// 用于处理方法调用并映射为 SQL/中间表示的子访问器。
+        /// </summary>
         protected MethodVisitor MethodVisitor { get; set; }
 
 
@@ -38,6 +48,11 @@ namespace mooSQL.linq
             return base.Visit(node);
         }
 
+        /// <summary>
+        /// 处理方法调用：交由 <see cref="MethodVisitor"/> 解析，必要时折叠为常量或表达式调用结果。
+        /// </summary>
+        /// <param name="node">方法调用表达式。</param>
+        /// <returns>折叠后的表达式或原节点。</returns>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
 
@@ -57,6 +72,12 @@ namespace mooSQL.linq
             return node;
         }
 
+        /// <summary>
+        /// 访问 Lambda：将首个参数注册为当前层的实体昵称/类型绑定，再继续访问主体。
+        /// </summary>
+        /// <typeparam name="T">委托类型。</typeparam>
+        /// <param name="node">Lambda 表达式。</param>
+        /// <returns>基类访问结果。</returns>
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             if (node.Parameters.Count > 0)
@@ -67,11 +88,21 @@ namespace mooSQL.linq
             return base.VisitLambda(node);
         }
 
+        /// <summary>
+        /// 访问代码块表达式（默认委托给基类实现）。
+        /// </summary>
+        /// <param name="node">块表达式。</param>
+        /// <returns>基类访问结果。</returns>
         protected override Expression VisitBlock(BlockExpression node)
         {
             return base.VisitBlock(node);
         }
 
+        /// <summary>
+        /// 访问一元表达式；对 <see cref="ExpressionType.Quote"/> 在进入/离开操作数时同步 Builder 的 sink/rise。
+        /// </summary>
+        /// <param name="node">一元表达式。</param>
+        /// <returns>处理后的表达式。</returns>
         protected override Expression VisitUnary(UnaryExpression node)
         {
 
@@ -87,10 +118,26 @@ namespace mooSQL.linq
             return base.VisitUnary(node);
         }
 
+        /// <summary>
+        /// 将表达式解析为 WHERE 中可用的字段/SQL 片段字符串。
+        /// </summary>
+        /// <param name="node">待解析表达式。</param>
+        /// <returns>字段名或 SQL 文本；无法解析时返回 null。</returns>
         public abstract string VisitToGotField(Expression node);
 
+        /// <summary>
+        /// 将表达式解析为字段/SQL 片段，并同时输出对应的 <see cref="MemberInfo"/>（若可识别）。
+        /// </summary>
+        /// <param name="node">待解析表达式。</param>
+        /// <param name="member">解析到的成员；无法确定时为默认值。</param>
+        /// <returns>字段名或 SQL 文本；无法解析时返回 null。</returns>
         public abstract string VisitToGotField(Expression node, out MemberInfo member);
 
+        /// <summary>
+        /// 将表达式尽量折叠为运行时常量值（用于比较右侧等场景）。
+        /// </summary>
+        /// <param name="node">待求值表达式。</param>
+        /// <returns>常量值；无法折叠时返回 null。</returns>
         public virtual object VisitToGotValue(Expression node)
         {
             try

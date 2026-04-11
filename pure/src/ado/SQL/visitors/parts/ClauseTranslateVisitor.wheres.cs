@@ -49,6 +49,11 @@ namespace mooSQL.linq
             return clause;
         }
 
+        /// <summary>
+        /// 访问可空性包装（如 IS NULL 等）对应的表达式，并继续转译其内部 SQL 表达式。
+        /// </summary>
+        /// <param name="clause">可空性语义节点。</param>
+        /// <returns>转译后的子句。</returns>
         public override Clause VisitNullabilityExpression(NullabilityWord clause)
         {
             var tar = clause.SqlExpression;

@@ -22,13 +22,19 @@ namespace mooSQL.auth
         /// </summary>
         public AuthDialect rootDialect;
         WordGroupBag defaultBag;
+        /// <summary>
+        /// 单词分组包
+        /// </summary>
+        /// <param name="root"></param>
         public WordBagDialect(AuthDialect root) { 
             this.rootDialect = root;
             this.defaultBag= this.getGroup(EmptyKey);
         }
 
 
-
+        /// <summary>
+        /// 组别
+        /// </summary>
 
         public Dictionary<string, WordGroupBag> groups = new Dictionary<string, WordGroupBag>();
 

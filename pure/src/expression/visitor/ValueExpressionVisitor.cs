@@ -85,6 +85,11 @@ namespace mooSQL.linq
             return base.Visit(op);
         }
 
+        /// <summary>
+        /// 访问成员表达式：在可能时将属性/字段读取折叠为 <see cref="ConstantExpression"/>，用于求常量侧的值。
+        /// </summary>
+        /// <param name="node">成员表达式。</param>
+        /// <returns>折叠后的常量表达式或继续访问的结果。</returns>
         protected override Expression VisitMember(MemberExpression node)
         {
             var mem = node.Member;

@@ -73,6 +73,9 @@ namespace mooSQL.linq
 
         public virtual bool DisableAlias { get; set; }
 
+        /// <summary>
+        /// 复用的表别名访问器，用于从字段所属表节点解析表别名或表名片段。
+        /// </summary>
         protected TableAliasVisitor TableAliasVisitor = new TableAliasVisitor();
         /// <summary>
         /// 字段

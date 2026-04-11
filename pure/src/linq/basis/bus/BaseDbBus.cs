@@ -15,11 +15,27 @@ namespace mooSQL.linq
     /// <typeparam name="T"></typeparam>
     public abstract class BaseDbBus<T> : IDbBus<T>
     {
+        /// <summary>
+        /// 用于创建子查询/连接等操作的总线提供者。
+        /// </summary>
         public abstract IDbBusProvider BusProvider { get; }
+        /// <summary>
+        /// 描述当前总线所表示查询的表达式树。
+        /// </summary>
         public abstract Expression Expression { get; }
+        /// <summary>
+        /// 序列元素类型（实体或投影类型）。
+        /// </summary>
         public abstract Type ElementType { get; }
+        /// <summary>
+        /// 关联的 LINQ 查询提供程序。
+        /// </summary>
         public abstract IQueryProvider Provider { get; }
 
+        /// <summary>
+        /// 返回用于枚举查询结果的迭代器。
+        /// </summary>
+        /// <returns>元素类型为 <typeparamref name="T"/> 的枚举器。</returns>
         public abstract IEnumerator<T> GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()

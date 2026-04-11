@@ -2,6 +2,9 @@
 
 namespace mooSQL.linq
 {
+	/// <summary>
+	/// 标识在生成 SQL / 命令时，如何将逻辑名称转换为各类数据库标识（参数名、字段名、表名等）。
+	/// </summary>
 	public enum ConvertType
 	{
 		/// <summary>

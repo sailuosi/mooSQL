@@ -14,6 +14,10 @@ namespace mooSQL.linq
     /// </summary>
     public class SetExpressionSQLBuildVisitor : BaseExpressionSQLBuildVisitor
     {
+        /// <summary>
+        /// 使用指定的编译上下文创建 SET（UPDATE 赋值等）表达式访问器。
+        /// </summary>
+        /// <param name="builder">快速编译上下文。</param>
         public SetExpressionSQLBuildVisitor(FastCompileContext builder) : base(builder)
         {
             valueVisitor = new ValueExpressionVisitor();
@@ -22,6 +26,9 @@ namespace mooSQL.linq
         private ValueExpressionVisitor valueVisitor;
 
 
+        /// <summary>
+        /// 当前数据库客户端上的实体映射上下文（列名解析等）。
+        /// </summary>
         public EntityContext EntityContext { get {
                 return Builder.DBLive.client.EntityCash;
             }  
