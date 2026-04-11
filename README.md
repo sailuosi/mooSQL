@@ -1,5 +1,5 @@
 # mooSQL
-
+[![NuGet](https://img.shields.io/nuget/v/mooSQL.Ext.Core.svg)](https://www.nuget.org/packages/mooSQL.Ext.Core/)
 <div align="center">
 
 **Lightweight .NET ORM — database-first, SQL-centric design**
