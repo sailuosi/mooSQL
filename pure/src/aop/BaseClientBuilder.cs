@@ -405,6 +405,13 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <inheritdoc cref="MooEvents.useChannelDispatchForModifySqlAudit(bool)" />
+        public BaseClientBuilder useChannelDispatchForModifySqlAudit(bool enable = true)
+        {
+            client.events.useChannelDispatchForModifySqlAudit(enable);
+            return this;
+        }
+
         /// <inheritdoc cref="MooEvents.includeInsertInModifySqlAudit(bool)" />
         public BaseClientBuilder includeInsertInModifySqlAudit(bool include = true)
         {

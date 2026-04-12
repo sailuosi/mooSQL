@@ -32,6 +32,11 @@ namespace mooSQL.data
         private HashSet<string>? modifySqlAuditTableFilter;
         internal volatile bool modifySqlAuditEnabled = true;
         internal bool modifySqlAuditSynchronous;
+        /// <summary>
+        /// 为 true 时，异步删改审计经单消费者 Channel（net462+）或等价的 <c>BlockingCollection</c>（net451）派发；为 false 时使用 <c>Task.Run</c>。
+        /// 当 <see cref="useModifySqlAuditSynchronous"/> 为 true 时，本开关无效（仍在调用线程同步执行）。
+        /// </summary>
+        internal volatile bool modifySqlAuditUseChannelDispatch;
         internal bool modifySqlAuditIncludeInsert;
         internal bool modifySqlAuditIncludeComposite;
         /// <summary>
@@ -157,6 +162,16 @@ namespace mooSQL.data
         public MooEvents useModifySqlAuditSynchronous(bool synchronous = true)
         {
             modifySqlAuditSynchronous = synchronous;
+            return this;
+        }
+
+        /// <summary>
+        /// 为 true 时使用 Channel/单消费者队列异步派发删改审计（默认 false，与既有 <c>Task.Run</c> 行为一致）。
+        /// 优先级：若已启用 <see cref="useModifySqlAuditSynchronous"/>，则始终同步执行，本项不生效。
+        /// </summary>
+        public MooEvents useChannelDispatchForModifySqlAudit(bool enable = true)
+        {
+            modifySqlAuditUseChannelDispatch = enable;
             return this;
         }
 

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
@@ -53,6 +54,10 @@ namespace mooSQL.data
         /// 事件注册器。
         /// </summary>
         public MooEvents events { get { return _events; } }
+
+        private readonly object _modifySqlAuditDispatcherLock = new object();
+        private ModifySqlAuditChannelDispatcher? _modifySqlAuditDispatcher;
+
         private IWatchor watchor = null;
         /// <summary>
         /// 监听器实例
@@ -454,6 +459,23 @@ namespace mooSQL.data
             {
                 if (events.modifySqlAuditSynchronous)
                     runHandlers();
+                else if (events.modifySqlAuditUseChannelDispatch)
+                {
+                    try
+                    {
+                        GetOrCreateModifySqlAuditDispatcher().Enqueue(ctx, handlers, runHandlers);
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            if (Loggor.IsEnabled(LogLv.Error))
+                                Loggor.LogError("ModifySqlAudit channel dispatch: " + ex.Message);
+                        }
+                        catch { /* ignore */ }
+                        _ = Task.Run(runHandlers);
+                    }
+                }
                 else
                     _ = Task.Run(runHandlers);
             }
@@ -467,6 +489,53 @@ namespace mooSQL.data
                 catch { /* ignore */ }
             }
         }
+
+        private ModifySqlAuditChannelDispatcher GetOrCreateModifySqlAuditDispatcher()
+        {
+            var d = _modifySqlAuditDispatcher;
+            if (d != null)
+                return d;
+            lock (_modifySqlAuditDispatcherLock)
+            {
+                return _modifySqlAuditDispatcher ??= new ModifySqlAuditChannelDispatcher(Loggor);
+            }
+        }
+
+        /// <summary>
+        /// 关闭删改审计的 Channel/队列派发器并等待消费者退出。未启用过 Channel 模式时为 no-op。
+        /// 进程被强制终止时，队列内未处理项仍可能丢失；宜在应用关停时调用并配合合理超时。
+        /// </summary>
+        /// <param name="waitForConsumer">等待消费者结束的时间；为 null 时表示无限等待。</param>
+        public void ShutdownModifySqlAuditChannelDispatcher(TimeSpan? waitForConsumer = null)
+        {
+            ModifySqlAuditChannelDispatcher? d;
+            lock (_modifySqlAuditDispatcherLock)
+            {
+                d = _modifySqlAuditDispatcher;
+                _modifySqlAuditDispatcher = null;
+            }
+
+            d?.Shutdown(waitForConsumer ?? Timeout.InfiniteTimeSpan);
+        }
+
+        /// <summary>
+        /// 读取 Channel 派发度量；若尚未创建派发器则返回 false 且输出全 0。
+        /// </summary>
+        public bool TryGetModifySqlAuditChannelMetrics(out long enqueued, out long processed, out long enqueueFallback)
+        {
+            var d = _modifySqlAuditDispatcher;
+            if (d == null)
+            {
+                enqueued = processed = enqueueFallback = 0;
+                return false;
+            }
+
+            enqueued = d.ModifySqlAuditChannelEnqueuedCount;
+            processed = d.ModifySqlAuditChannelProcessedCount;
+            enqueueFallback = d.ModifySqlAuditChannelEnqueueFallbackCount;
+            return true;
+        }
+
         #endregion
 
     }
