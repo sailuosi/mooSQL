@@ -402,7 +402,7 @@ namespace mooSQL.data
             Action<ModifySqlAuditContext>[] handlers;
             try
             {
-                handlers = events.GetModifySqlAuditHandlersSnapshot();
+                handlers = events.GetModifySqlAuditHandlersMatching(ctx);
             }
             catch (Exception ex)
             {

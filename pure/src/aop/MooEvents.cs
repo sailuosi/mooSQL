@@ -28,7 +28,7 @@ namespace mooSQL.data
         internal List<Action<string,SQLBuilder>> onCreatedSQLHandlers = new List<Action<string, SQLBuilder>>();
 
         private readonly object modifySqlAuditLock = new object();
-        internal List<Action<ModifySqlAuditContext>> modifySqlAuditHandlers = new List<Action<ModifySqlAuditContext>>();
+        private List<ModifySqlAuditEntry> modifySqlAuditEntries = new List<ModifySqlAuditEntry>();
         private HashSet<string>? modifySqlAuditTableFilter;
         internal volatile bool modifySqlAuditEnabled = true;
         internal bool modifySqlAuditSynchronous;
@@ -124,17 +124,24 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 注册在 <c>ExeNonQuery</c> 成功之后触发的删/改类语句审计（默认异步、异常隔离）。依赖 <see cref="SQLCmd.type"/> 与 <see cref="SQLCmd.TargetTable"/>。
+        /// 注册在 <c>ExeNonQuery</c> 成功之后触发的删/改类语句审计（默认异步、异常隔离）。
+        /// 未指定 <paramref name="queryTypes"/> / <paramref name="targetTables"/> 时：类型使用全局默认（Update/Delete/Merge，及 <see cref="includeInsertInModifySqlAudit"/> / <see cref="includeCompositeInModifySqlAudit"/>）；表名不限（仍受 <see cref="restrictModifySqlAuditToTables"/> 约束）。
         /// </summary>
-        public MooEvents onModifySqlAudit(Action<ModifySqlAuditContext> handler)
+        /// <param name="handler">回调。</param>
+        /// <param name="queryTypes">可选；指定一个或多个 <see cref="QueryType"/>，仅当 <see cref="SQLCmd.type"/> 命中其中之一时调用。</param>
+        /// <param name="targetTables">可选；指定一个或多个表名（与 <see cref="SQLCmd.TargetTable"/> 比较，忽略大小写），仅命中时调用。</param>
+        public MooEvents onSQLRuned(Action<ModifySqlAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
         {
             if (handler == null) return this;
+            var qt = NormalizeQueryTypes(queryTypes);
+            var tb = NormalizeTargetTables(targetTables);
             lock (modifySqlAuditLock)
             {
-                var next = new List<Action<ModifySqlAuditContext>>(modifySqlAuditHandlers);
-                if (!next.Contains(handler))
-                    next.Add(handler);
-                modifySqlAuditHandlers = next;
+                var next = new List<ModifySqlAuditEntry>(modifySqlAuditEntries)
+                {
+                    new ModifySqlAuditEntry(handler, qt, tb)
+                };
+                modifySqlAuditEntries = next;
             }
             return this;
         }
@@ -186,38 +193,130 @@ namespace mooSQL.data
         {
             if (!modifySqlAuditEnabled || cmd == null)
                 return false;
+            ModifySqlAuditEntry[] snapshot;
             lock (modifySqlAuditLock)
             {
-                if (modifySqlAuditHandlers.Count == 0)
+                if (modifySqlAuditEntries.Count == 0)
                     return false;
+                snapshot = modifySqlAuditEntries.ToArray();
             }
 
-            var qt = cmd.type;
-            var match = qt == QueryType.Update || qt == QueryType.Delete || qt == QueryType.Merge;
-            if (!match && modifySqlAuditIncludeInsert && qt == QueryType.Insert)
-                match = true;
-            if (!match && modifySqlAuditIncludeComposite && qt == QueryType.Composite)
-                match = true;
-            if (!match)
+            if (!PassesGlobalModifySqlAuditTableFilter(cmd.TargetTable))
                 return false;
 
-            if (modifySqlAuditTableFilter != null && modifySqlAuditTableFilter.Count > 0)
+            var qt = cmd.type;
+            var tt = cmd.TargetTable ?? "";
+            foreach (var entry in snapshot)
             {
-                var t = cmd.TargetTable ?? "";
-                if (string.IsNullOrEmpty(t) || !modifySqlAuditTableFilter.Contains(t))
-                    return false;
+                if (entry.Matches(qt, tt, this))
+                    return true;
             }
 
-            return true;
+            return false;
         }
 
-        internal Action<ModifySqlAuditContext>[] GetModifySqlAuditHandlersSnapshot()
+        /// <summary>
+        /// 按当前上下文筛选应执行的监听（已含全局表名限制）。
+        /// </summary>
+        internal Action<ModifySqlAuditContext>[] GetModifySqlAuditHandlersMatching(ModifySqlAuditContext ctx)
         {
+            if (ctx == null)
+                return new Action<ModifySqlAuditContext>[0];
+
+            ModifySqlAuditEntry[] snapshot;
             lock (modifySqlAuditLock)
             {
-                if (modifySqlAuditHandlers.Count == 0)
+                if (modifySqlAuditEntries.Count == 0)
                     return new Action<ModifySqlAuditContext>[0];
-                return modifySqlAuditHandlers.ToArray();
+                snapshot = modifySqlAuditEntries.ToArray();
+            }
+
+            if (!PassesGlobalModifySqlAuditTableFilter(ctx.TargetTable))
+                return new Action<ModifySqlAuditContext>[0];
+
+            var qt = ctx.QueryType;
+            var tt = ctx.TargetTable ?? "";
+            var list = new List<Action<ModifySqlAuditContext>>(snapshot.Length);
+            foreach (var entry in snapshot)
+            {
+                if (entry.Matches(qt, tt, this))
+                    list.Add(entry.Handler);
+            }
+
+            return list.ToArray();
+        }
+
+        private bool PassesGlobalModifySqlAuditTableFilter(string? targetTable)
+        {
+            if (modifySqlAuditTableFilter == null || modifySqlAuditTableFilter.Count == 0)
+                return true;
+            var t = targetTable ?? "";
+            return !string.IsNullOrEmpty(t) && modifySqlAuditTableFilter.Contains(t);
+        }
+
+        private static HashSet<QueryType>? NormalizeQueryTypes(IEnumerable<QueryType>? queryTypes)
+        {
+            if (queryTypes == null)
+                return null;
+            var set = new HashSet<QueryType>();
+            foreach (var q in queryTypes)
+                set.Add(q);
+            return set.Count == 0 ? null : set;
+        }
+
+        private static HashSet<string>? NormalizeTargetTables(IEnumerable<string>? tables)
+        {
+            if (tables == null)
+                return null;
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var t in tables)
+            {
+                if (!string.IsNullOrWhiteSpace(t))
+                    set.Add(t.Trim());
+            }
+            return set.Count == 0 ? null : set;
+        }
+
+        private sealed class ModifySqlAuditEntry
+        {
+            internal readonly Action<ModifySqlAuditContext> Handler;
+            private readonly HashSet<QueryType>? _queryTypes;
+            private readonly HashSet<string>? _targetTables;
+
+            internal ModifySqlAuditEntry(Action<ModifySqlAuditContext> handler, HashSet<QueryType>? queryTypes, HashSet<string>? targetTables)
+            {
+                Handler = handler;
+                _queryTypes = queryTypes;
+                _targetTables = targetTables;
+            }
+
+            internal bool Matches(QueryType queryType, string targetTable, MooEvents options)
+            {
+                if (!MatchesQueryType(queryType, options))
+                    return false;
+                return MatchesTargetTables(targetTable);
+            }
+
+            private bool MatchesQueryType(QueryType queryType, MooEvents options)
+            {
+                if (_queryTypes != null && _queryTypes.Count > 0)
+                    return _queryTypes.Contains(queryType);
+
+                if (queryType == QueryType.Update || queryType == QueryType.Delete || queryType == QueryType.Merge)
+                    return true;
+                if (options.modifySqlAuditIncludeInsert && queryType == QueryType.Insert)
+                    return true;
+                if (options.modifySqlAuditIncludeComposite && queryType == QueryType.Composite)
+                    return true;
+                return false;
+            }
+
+            private bool MatchesTargetTables(string targetTable)
+            {
+                if (_targetTables == null || _targetTables.Count == 0)
+                    return true;
+                var t = targetTable ?? "";
+                return !string.IsNullOrEmpty(t) && _targetTables.Contains(t);
             }
         }
 

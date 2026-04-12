@@ -3,7 +3,7 @@ using mooSQL.data.model;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 非查询执行成功后，用于 <see cref="MooEvents.onModifySqlAudit"/> 的快照上下文（异步派发时避免复用可变 <see cref="SQLCmd"/>）。
+    /// 非查询执行成功后，用于 <see cref="MooEvents.onSQLRuned"/> 的快照上下文（异步派发时避免复用可变 <see cref="SQLCmd"/>）。
     /// </summary>
     public sealed class ModifySqlAuditContext
     {

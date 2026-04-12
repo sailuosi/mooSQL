@@ -1,6 +1,7 @@
 ﻿using mooSQL.config;
 using mooSQL.data.context;
 using mooSQL.data.Mapping;
+using mooSQL.data.model;
 using mooSQL.data.slave;
 using System;
 using System.Collections.Generic;
@@ -373,6 +374,56 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 配置 <see cref="MooClient.builderOption"/>（SQLBuilder 行为选项）。
+        /// </summary>
+        public BaseClientBuilder useSQLBuilderOption(Action<SQLBuilderOption> configure)
+        {
+            if (configure != null)
+                configure(client.builderOption);
+            return this;
+        }
 
+        /// <inheritdoc cref="MooEvents.onSQLRuned(Action{ModifySqlAuditContext}, IEnumerable{QueryType}?, IEnumerable{string}?)" />
+        public BaseClientBuilder onSQLRuned(Action<ModifySqlAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
+        {
+            client.events.onSQLRuned(handler, queryTypes, targetTables);
+            return this;
+        }
+
+        /// <inheritdoc cref="MooEvents.enableModifySqlAudit(bool)" />
+        public BaseClientBuilder enableModifySqlAudit(bool enabled = true)
+        {
+            client.events.enableModifySqlAudit(enabled);
+            return this;
+        }
+
+        /// <inheritdoc cref="MooEvents.useModifySqlAuditSynchronous(bool)" />
+        public BaseClientBuilder useModifySqlAuditSynchronous(bool synchronous = true)
+        {
+            client.events.useModifySqlAuditSynchronous(synchronous);
+            return this;
+        }
+
+        /// <inheritdoc cref="MooEvents.includeInsertInModifySqlAudit(bool)" />
+        public BaseClientBuilder includeInsertInModifySqlAudit(bool include = true)
+        {
+            client.events.includeInsertInModifySqlAudit(include);
+            return this;
+        }
+
+        /// <inheritdoc cref="MooEvents.includeCompositeInModifySqlAudit(bool)" />
+        public BaseClientBuilder includeCompositeInModifySqlAudit(bool include = true)
+        {
+            client.events.includeCompositeInModifySqlAudit(include);
+            return this;
+        }
+
+        /// <inheritdoc cref="MooEvents.restrictModifySqlAuditToTables(string[]?)" />
+        public BaseClientBuilder restrictModifySqlAuditToTables(params string[]? tables)
+        {
+            client.events.restrictModifySqlAuditToTables(tables);
+            return this;
+        }
     }
 }
