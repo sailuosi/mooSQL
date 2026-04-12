@@ -35,6 +35,9 @@ namespace mooSQL.data
         /// mooSQL的实例，持有切面等信息
         /// </summary>
         public MooClient client;
+        /// <summary>
+        /// 对外暴露的 <see cref="MooClient"/>，与 <see cref="client"/> 字段指向同一实例。
+        /// </summary>
         public MooClient Client
         {
             get { 
@@ -66,21 +69,21 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public DataTable ExeQuery(SQLCmd SQL,DBExecutor executor=null)
+        public DataTable ExeQuery(SQLCmd cmd, DBExecutor executor=null)
         {
             if (executor == null) {
                 executor = new DBExecutor(this);
             }
-            return executor.ExecuteCmd(SQL, (cmd, cont) => {
+            return executor.ExecuteCmd(cmd, (cmd, cont) => {
                 return cmd.ExecuteQuery(cont);
             });
         }
         /// <summary>
-        /// 
+        /// 异步执行查询类 SQL，结果填充为 <see cref="DataTable"/>。
         /// </summary>
-        /// <param name="SQL"></param>
-        /// <param name="executor"></param>
-        /// <returns></returns>
+        /// <param name="SQL">命令与参数。</param>
+        /// <param name="executor">可选的执行器；为 null 时使用默认 <see cref="DBExecutor"/>。</param>
+        /// <returns>查询结果表。</returns>
         public Task<DataTable> ExeQueryAsync(SQLCmd SQL, DBExecutor executor = null)
         {
             if (executor == null)
@@ -161,6 +164,9 @@ namespace mooSQL.data
             return runner.ExecuteCmd<R>(sql, executor);
         }
 
+        /// <summary>
+        /// 在临时会话中执行回调：创建 <see cref="DBExecutor"/>，打开连接后调用 <paramref name="onrun"/>，用完释放资源。
+        /// </summary>
         private R PrepareSession<R>(Func<ExeContext, R> onrun)
         {
             using (var runner = new DBExecutor(this)) { 
@@ -218,6 +224,10 @@ namespace mooSQL.data
             });
         }
 #if NET5_0_OR_GREATER
+        /// <summary>
+        /// 异步获取数据库架构信息（等价于无集合名参数的 <c>GetSchema</c>，需目标提供方支持）。
+        /// </summary>
+        /// <returns>架构信息表。</returns>
         public Task<DataTable> GetSchemaAsync()
         {
             return PrepareSession((context) =>
@@ -265,6 +275,9 @@ namespace mooSQL.data
             return runner.Execute<R>(SQL, executor);
         }
 
+        /// <summary>
+        /// 使用 SQL 与参数构建命令，通过仅含 <see cref="DbCommand"/> 的委托执行并返回结果（无 <see cref="ExeContext"/>）。
+        /// </summary>
         public R Execute<R>(string sql, Paras para, Func<DbCommand, R> executor) {
             return Execute<R>(new SQLCmd(sql, para), executor);
         }
@@ -398,6 +411,9 @@ namespace mooSQL.data
             }
             return runner.ExeQueryReaderAsync(SQL);
         }
+        /// <summary>
+        /// 异步执行查询并返回可包装的 <see cref="DataReaderWrapper"/>（由 SQL 与参数构建命令）。
+        /// </summary>
         public Task<DataReaderWrapper> ExeQueryReaderAsync(string sql, Paras para)
         {
             return ExeQueryReaderAsync(new SQLCmd(sql,para));
@@ -506,12 +522,12 @@ namespace mooSQL.data
             return runner.ExeQueryUniqueRow<T>(SQL);
         }
         /// <summary>
-        /// 
+        /// 异步查询并期望唯一一行；若零行或多行，行为由底层 <see cref="DBExecutor"/> 实现决定（通常抛错或返回默认值）。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="SQL"></param>
-        /// <param name="runner"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">行映射类型。</typeparam>
+        /// <param name="SQL">命令与参数。</param>
+        /// <param name="runner">可选执行器。</param>
+        /// <returns>映射后的单行结果。</returns>
         public Task<T> ExeQueryUniqueRowAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
             if (runner == null)
@@ -542,7 +558,10 @@ namespace mooSQL.data
         }
 
 
-        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)"/>
+        /// <summary>
+        /// 异步执行多结果集查询；在 <paramref name="read"/> 中通过 <see cref="IMultiReader"/> 顺序异步消费每个结果集。
+        /// </summary>
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)" path="/param"/>
         public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
         {
             if (runner == null)
@@ -550,7 +569,10 @@ namespace mooSQL.data
             return runner.ExeQueryMultipleAsync(SQL, read, cancellationToken);
         }
 
-        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)"/>
+        /// <summary>
+        /// 异步打开多结果集查询；在 <paramref name="read"/> 中同步委托内顺序消费 <see cref="IMultiReader"/>（在异步管线中执行）。
+        /// </summary>
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)" path="/param"/>
         public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
         {
             if (runner == null)
@@ -559,6 +581,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// 执行查询，取首行首列并转换为 <typeparamref name="T"/>（标量）。
+        /// </summary>
         public T ExeQueryScalar<T>(SQLCmd SQL, DBExecutor runner = null)
         {
             if (runner == null)
@@ -567,6 +592,9 @@ namespace mooSQL.data
             }
             return runner.ExeQueryScalar<T>(SQL);
         }
+        /// <summary>
+        /// 异步执行标量查询，取首行首列并转换为 <typeparamref name="T"/>。
+        /// </summary>
         public Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
             if (runner == null)
@@ -575,9 +603,15 @@ namespace mooSQL.data
             }
             return runner.ExeQueryScalarAsync<T>(SQL);
         }
+        /// <summary>
+        /// 使用 SQL 与参数执行标量查询，取首行首列并转换为 <typeparamref name="T"/>。
+        /// </summary>
         public T ExeQueryScalar<T>(string sql, Paras para = null) {
             return ExeQueryScalar<T>(new SQLCmd(sql, para));
         }
+        /// <summary>
+        /// 执行查询，取首行首列为 <see cref="object"/>（标量）。
+        /// </summary>
         public object ExeQueryScalar(SQLCmd SQL, DBExecutor runner = null) {
             if (runner == null)
             {
@@ -597,6 +631,12 @@ namespace mooSQL.data
             return ExeQueryScalar(new SQLCmd(sql, para));
         }
 
+        /// <summary>
+        /// 异步执行标量查询，支持取消；取首行首列（可空引用类型）。
+        /// </summary>
+        /// <param name="cmd">命令与参数。</param>
+        /// <param name="cancellationToken">取消标记。</param>
+        /// <param name="runner">可选执行器。</param>
         public Task<object?> ExeQueryScalarAsync(SQLCmd cmd,CancellationToken cancellationToken, DBExecutor runner = null) {
             if (runner == null)
             {
