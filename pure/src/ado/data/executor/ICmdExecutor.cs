@@ -107,6 +107,11 @@ namespace mooSQL.data.context
         /// <param name="executionContext"></param>
         /// <returns></returns>
         DataSet ExecuteQueryLot(ExeContext executionContext);
+
+        /// <summary>
+        /// 执行返回多结果集的命令，在回调中通过 <see cref="IMultiReader"/> 按顺序消费每个结果集。
+        /// </summary>
+        TResult ExecuteQueryMultiple<TResult>(ExeContext executionContext, Func<IMultiReader, TResult> read);
         #region Async
         /// <summary>
         /// 异步执行非查询类的SQL命令
@@ -178,6 +183,16 @@ namespace mooSQL.data.context
         Task<T> ExecuteQueryRowAsync<T>(ExeContext executionContext);
         Task<T> ExecuteQueryUniqueRowAsync<T>(ExeContext executionContext);
         Task<T> ExecuteQueryScalarAsync<T>(ExeContext executionContext);
+
+        /// <summary>
+        /// 异步执行返回多结果集的命令，在回调中通过 <see cref="IMultiReader"/> 按顺序消费每个结果集。
+        /// </summary>
+        Task<TResult> ExecuteQueryMultipleAsync<TResult>(ExeContext executionContext, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 异步执行返回多结果集的命令（同步映射回调）。
+        /// </summary>
+        Task<TResult> ExecuteQueryMultipleAsync<TResult>(ExeContext executionContext, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default);
         #endregion
     }
 }

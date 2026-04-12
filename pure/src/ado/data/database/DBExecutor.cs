@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
@@ -828,6 +829,33 @@ namespace mooSQL.data
         {
             return ExeQueryUniqueRow<T>(new SQLCmd(sql, para));
         }
+
+        /// <summary>
+        /// 执行返回多结果集的查询；在 <paramref name="read"/> 中通过 <see cref="IMultiReader"/> 按顺序消费每个结果集（例如存储过程返回多个 SELECT 或批处理多条查询）。
+        /// </summary>
+        public TResult ExeQueryMultiple<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read)
+        {
+            return ExecuteCmd(SQL, (cmd, cont) => cmd.ExecuteQueryMultiple(cont, read));
+        }
+
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult})"/>
+        public TResult ExeQueryMultiple<TResult>(string sql, Paras para, Func<IMultiReader, TResult> read)
+        {
+            return ExeQueryMultiple(new SQLCmd(sql, para), read);
+        }
+
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult})"/>
+        public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default)
+        {
+            return ExecuteCmdAsync(SQL, (cmd, cont) => cmd.ExecuteQueryMultipleAsync(cont, read, cancellationToken));
+        }
+
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult})"/>
+        public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default)
+        {
+            return ExecuteCmdAsync(SQL, (cmd, cont) => cmd.ExecuteQueryMultipleAsync(cont, read, cancellationToken));
+        }
+
         /// <summary>
         /// 查询单一值，比如计数之类的。如果有多行多列，则会抛出异常。
         /// </summary>

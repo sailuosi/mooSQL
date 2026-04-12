@@ -445,6 +445,30 @@ namespace mooSQL.data.context
 
             }, context);
         }
+
+        /// <inheritdoc />
+        public TResult ExecuteQueryMultiple<TResult>(ExeContext context, Func<IMultiReader, TResult> read)
+        {
+            if (read == null)
+                throw new ArgumentNullException(nameof(read));
+            return ExecuteWrap(() =>
+            {
+                DbCommand dbCmd = CreateCmd(context);
+                using (var reader = dbCmd.ExecuteReader())
+                {
+                    try
+                    {
+                        var multi = new MultiReader(reader, dbCmd, this, context, DB);
+                        return read(multi);
+                    }
+                    finally
+                    {
+                        MultiReader.DrainReader(reader);
+                    }
+                }
+            }, context);
+        }
+
         /// <summary>
         /// 执行非查询命令
         /// </summary>
@@ -750,6 +774,36 @@ namespace mooSQL.data.context
                 return  DBConnectExt.queryScalarByType<T>(dbCmd, deserializer);
 
             }, context);
+        }
+
+        /// <inheritdoc />
+        public async Task<TResult> ExecuteQueryMultipleAsync<TResult>(ExeContext context, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default)
+        {
+            if (read == null)
+                throw new ArgumentNullException(nameof(read));
+            return await ExecuteWrapAsync(async () =>
+            {
+                DbCommand dbCmd = CreateCmd(context);
+                var reader = await dbCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var multi = new MultiReader(reader, dbCmd, this, context, DB);
+                    return await read(multi).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await MultiReader.DrainReaderAsync(reader, cancellationToken).ConfigureAwait(false);
+                    reader.Dispose();
+                }
+            }, context);
+        }
+
+        /// <inheritdoc />
+        public Task<TResult> ExecuteQueryMultipleAsync<TResult>(ExeContext context, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default)
+        {
+            if (read == null)
+                throw new ArgumentNullException(nameof(read));
+            return ExecuteQueryMultipleAsync(context, r => Task.FromResult(read(r)), cancellationToken);
         }
         #endregion
     }

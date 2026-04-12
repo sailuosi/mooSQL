@@ -12,7 +12,8 @@ using System;
 
 using System.Data;
 using System.Data.Common;
-
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace mooSQL.data
@@ -529,6 +530,34 @@ namespace mooSQL.data
         public T ExeQueryUniqueRow<T>(string sql, Paras para=null) {
             return ExeQueryUniqueRow<T>(new SQLCmd(sql, para));
         }
+
+        /// <summary>
+        /// 执行返回多结果集的查询；在 <paramref name="read"/> 中通过 <see cref="IMultiReader"/> 顺序消费每个结果集。
+        /// </summary>
+        public TResult ExeQueryMultiple<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, DBExecutor runner = null)
+        {
+            if (runner == null)
+                runner = new DBExecutor(this);
+            return runner.ExeQueryMultiple(SQL, read);
+        }
+
+
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)"/>
+        public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
+        {
+            if (runner == null)
+                runner = new DBExecutor(this);
+            return runner.ExeQueryMultipleAsync(SQL, read, cancellationToken);
+        }
+
+        /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)"/>
+        public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
+        {
+            if (runner == null)
+                runner = new DBExecutor(this);
+            return runner.ExeQueryMultipleAsync(SQL, read, cancellationToken);
+        }
+
 
         public T ExeQueryScalar<T>(SQLCmd SQL, DBExecutor runner = null)
         {
