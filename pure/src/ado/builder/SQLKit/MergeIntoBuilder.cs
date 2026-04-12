@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using mooSQL.data.builder;
+using mooSQL.data.model;
 
 namespace mooSQL.data
 {
@@ -296,7 +297,13 @@ namespace mooSQL.data
         public SQLCmd toMergeInto()
         {
             string sql = buildMergeInto();
-            return new SQLCmd(sql, parent.ps);
+            var cmd = new SQLCmd(sql, parent.ps);
+            cmd.type = QueryType.Merge;
+            cmd.TargetTable = !string.IsNullOrEmpty(intoTable)
+                ? intoTable
+                : (parent.current != null ? (parent.current.tableName ?? "") : "");
+            cmd.signal = parent.Signal;
+            return cmd;
         }
         /// <summary>
         /// 执行最终的SQL语句。

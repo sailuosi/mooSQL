@@ -1,4 +1,5 @@
 ﻿using mooSQL.data.context;
+using mooSQL.data.model;
 using mooSQL.data.slave;
 using System;
 using System.Collections;
@@ -379,7 +380,7 @@ namespace mooSQL.data
         /// <param name="executor"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public IEnumerable<R> ExecuteCmds<R>(IEnumerable<SQLCmd> cmds, Func<ICmdExecutor, ExeContext, R> executor)
+        public IEnumerable<R> ExecuteCmds<R>(IEnumerable<SQLCmd> cmds, Func<SQLCmd,ICmdExecutor, ExeContext, R> executor)
         {
             SQLCmd sql = null;
             var res = new List<R>();
@@ -407,7 +408,7 @@ namespace mooSQL.data
                 foreach (var cmd in cmds) {
                     sql = cmd;
                     this.prepare(cmd);
-                    var t = executor(DBLive.cmd, Context);
+                    var t = executor(cmd,DBLive.cmd, Context);
                     res.Add(t);                
                 }
                 return res;
@@ -930,21 +931,79 @@ namespace mooSQL.data
         /// 触发修改语句的时间
         /// </summary>
         /// <param name="cmd"></param>
-        private void fireModify(SQLCmd cmd)
+        /// <param name="rowsAffected">影响行数；未知时传 -1。</param>
+        private void fireModify(SQLCmd cmd, int rowsAffected = -1)
         {
-            if (DBLive.client.modifyMediator == null)
-            {
+            if (cmd == null)
                 return;
-            }
-            var para = new ModifyPara();
-            para.cmd = cmd;
-            para.DB = DBLive;
-            para.position = DBLive.config.index;
-            Task.Run(() =>
-            {
-                DBLive.client.modifyMediator.emitModify(para);
-            });
 
+            var client = DBLive.client;
+            var mediator = client.modifyMediator;
+            var needMediator = mediator != null;
+            var needAudit = client.events.ShouldDispatchModifySqlAudit(cmd);
+
+            if (!needMediator && !needAudit)
+                return;
+
+            if (needMediator)
+            {
+                var para = new ModifyPara();
+                para.cmd = cmd;
+                para.DB = DBLive;
+                para.position = DBLive.config.index;
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        mediator.emitModify(para);
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            if (client.Loggor.IsEnabled(LogLv.Error))
+                                client.Loggor.LogError("ModifyMediator.emitModify: " + ex.Message);
+                        }
+                        catch { /* ignore */ }
+                    }
+                });
+            }
+
+            if (needAudit)
+            {
+                ModifySqlAuditContext ctx;
+                try
+                {
+                    ctx = CreateModifySqlAuditSnapshot(cmd, DBLive, rowsAffected);
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        if (client.Loggor.IsEnabled(LogLv.Error))
+                            client.Loggor.LogError("ModifySqlAudit snapshot: " + ex.Message);
+                    }
+                    catch { /* ignore */ }
+                    return;
+                }
+
+                client.fireModifySqlAudit(ctx);
+            }
+        }
+
+        private static ModifySqlAuditContext CreateModifySqlAuditSnapshot(SQLCmd cmd, DBInstance dbLive, int rowsAffected)
+        {
+            var ps = new Paras();
+            if (cmd.para != null)
+                ps.Copy(cmd.para);
+            return new ModifySqlAuditContext(
+                cmd.sql ?? "",
+                cmd.type,
+                cmd.TargetTable ?? "",
+                rowsAffected,
+                dbLive.config.index,
+                ps,
+                dbLive);
         }
 
 
@@ -953,12 +1012,10 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public Task<int> ExeNonQueryAsync(SQLCmd cmd)
+        public async Task<int> ExeNonQueryAsync(SQLCmd cmd)
         {
-            var res = Execute(cmd.sql, cmd.para, (cmd, c) => {
-                return cmd.ExecuteNonQueryAsync();
-            });
-            fireModify(cmd);
+            var res = await Execute(cmd, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync());
+            fireModify(cmd, res);
             return res;
         }
         /// <summary>
@@ -967,12 +1024,10 @@ namespace mooSQL.data
         /// <param name="cmd"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task<int> ExeNonQueryAsync(SQLCmd cmd, CancellationToken token)
+        public async Task<int> ExeNonQueryAsync(SQLCmd cmd, CancellationToken token)
         {
-            var res = Execute(cmd.sql, cmd.para, (cmd, c) => {
-                return cmd.ExecuteNonQueryAsync(token);
-            });
-            fireModify(cmd);
+            var res = await Execute(cmd, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync(token));
+            fireModify(cmd, res);
             return res;
         }
         /// <summary>
@@ -995,7 +1050,7 @@ namespace mooSQL.data
             var res = ExecuteCmd(SQL, (cmd, c) => {
                 return cmd.ExecuteNonQuery(c);
             });
-            fireModify(SQL);
+            fireModify(SQL, res);
             return res;
         }
         /// <summary>
@@ -1005,17 +1060,14 @@ namespace mooSQL.data
         /// <returns></returns>
         public int ExeNonQuery(IEnumerable<SQLCmd> SQLs)
         {
-            var res = ExecuteCmds(SQLs, (cmd, c) => {
-                return cmd.ExecuteNonQuery(c);
+            var res = 0;
+            ExecuteCmds(SQLs, (sql,cmd, c) => {
+                var cc= cmd.ExecuteNonQuery(c);
+                fireModify(sql, cc);
+                res += cc;
+                return cc;
             });
-            foreach (SQLCmd SQL in SQLs) {
-                fireModify(SQL);
-            }
-            var total= 0;
-            foreach (var r in res) {
-                total += r;
-            }
-            return total;
+            return res;
         }
         /// <summary>
         /// 异步执行一批命令
@@ -1025,14 +1077,12 @@ namespace mooSQL.data
         public async Task<int> ExeNonQueryAsync(IEnumerable<SQLCmd> SQLs)
         {
             var res = 0;
-            ExecuteCmds(SQLs, async (cmd, c) => {
-                res += await cmd.ExecuteNonQueryAsync(c);
+            ExecuteCmds(SQLs, async (SQL, cmd, c) => {
+                var cc = await cmd.ExecuteNonQueryAsync(c);
+                fireModify(SQL, cc);
+                res += cc;
+                return cc;
             });
-            foreach (SQLCmd SQL in SQLs)
-            {
-                fireModify(SQL);
-            }
-
             return res;
         }
     }

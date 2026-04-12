@@ -25,5 +25,9 @@ namespace mooSQL.data.model
 		Merge,
 		/// <summary>多行/多目标插入。</summary>
 		MultiInsert,
+		/// <summary>未归类（如手写 SQL 未设置类型）。</summary>
+		Unknown,
+		/// <summary>多语句或无法单一归类。</summary>
+		Composite,
 	}
 }

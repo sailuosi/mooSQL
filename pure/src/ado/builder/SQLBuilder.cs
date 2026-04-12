@@ -1,5 +1,6 @@
 ﻿
 using mooSQL.data.builder;
+using mooSQL.data.model;
 using mooSQL.utils;
 
 using System;
@@ -694,7 +695,13 @@ namespace mooSQL.data
 
         #region 秋天的收获 ---SQL的最终生成，以 to开头的一组方法
         private SQLCmd geneCmd(string sql, Paras ps) {
+            return geneCmd(sql, ps, QueryType.Unknown);
+        }
+
+        private SQLCmd geneCmd(string sql, Paras ps, QueryType statementType) {
             var cmd = new SQLCmd(sql, ps);
+            cmd.type = statementType;
+            cmd.TargetTable = current != null ? (current.tableName ?? "") : "";
             cmd.signal = this.Signal;
             return cmd;
         }
@@ -722,7 +729,7 @@ namespace mooSQL.data
                 }
             }
 
-            return geneCmd(sql,ps);
+            return geneCmd(sql, ps, QueryType.Select);
         }
 
 
@@ -736,12 +743,12 @@ namespace mooSQL.data
             if (this.unionHolder.Count == 0)
             {
                 string cksql = this.buildCountSQL();
-                return geneCmd(cksql, ps);
+                return geneCmd(cksql, ps, QueryType.Select);
             }
             else
             {
                 string sql = unionHolder.buildCount();
-                return geneCmd(sql, ps);
+                return geneCmd(sql, ps, QueryType.Select);
             }
         }
         /// <summary>
@@ -750,7 +757,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toInsert() {
             string sql = current.buildInsert();
-            return geneCmd(sql, ps);
+            return geneCmd(sql, ps, QueryType.Insert);
         }
         /// <summary>
         /// 创建 insert from语句
@@ -759,7 +766,7 @@ namespace mooSQL.data
         public SQLCmd toInsertFrom()
         {
             var sql =  current.buildInsertFrom();
-            return geneCmd(sql, ps); 
+            return geneCmd(sql, ps, QueryType.Insert); 
         }
         /// <summary>
         /// 创建update 语句
@@ -772,7 +779,7 @@ namespace mooSQL.data
             sql = current.buildUpdate();
                 
             
-            return geneCmd(sql, ps);
+            return geneCmd(sql, ps, QueryType.Update);
 
         }
         /// <summary>
@@ -783,11 +790,15 @@ namespace mooSQL.data
         {
             if (current.wherePart.Count == 0)
             {
-                return new SQLCmd();
+                var empty = new SQLCmd();
+                empty.type = QueryType.Update;
+                empty.TargetTable = current != null ? (current.tableName ?? "") : "";
+                empty.signal = this.Signal;
+                return empty;
             }
 
             string sql = current.buildUpdateFrom();
-            return geneCmd(sql, ps);
+            return geneCmd(sql, ps, QueryType.Update);
         }
         /// <summary>
         /// 创建 delete from 语句
@@ -797,7 +808,7 @@ namespace mooSQL.data
         public SQLCmd toDelete()
         {
             string sql = current.buildDelete();
-            return geneCmd(sql, ps);
+            return geneCmd(sql, ps, QueryType.Delete);
         }
         /// <summary>
         /// 创建 merge into语句
@@ -806,7 +817,7 @@ namespace mooSQL.data
         public SQLCmd toMergeInto()
         {
             string sql = current.buildMerge();
-            return geneCmd(sql, ps);
+            return geneCmd(sql, ps, QueryType.Merge);
         }
 
         #endregion

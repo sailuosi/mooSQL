@@ -393,6 +393,80 @@ namespace mooSQL.data
             }
 
         }
+
+        /// <summary>
+        /// 派发删改审计监听；异常与主 SQL 隔离。
+        /// </summary>
+        internal void fireModifySqlAudit(ModifySqlAuditContext ctx)
+        {
+            Action<ModifySqlAuditContext>[] handlers;
+            try
+            {
+                handlers = events.GetModifySqlAuditHandlersSnapshot();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    if (Loggor.IsEnabled(LogLv.Error))
+                        Loggor.LogError("ModifySqlAudit: snapshot failed: " + ex.Message);
+                }
+                catch { /* ignore */ }
+                return;
+            }
+
+            if (handlers.Length == 0)
+                return;
+
+            void runHandlers()
+            {
+                try
+                {
+                    foreach (var h in handlers)
+                    {
+                        try
+                        {
+                            h?.Invoke(ctx);
+                        }
+                        catch (Exception ex)
+                        {
+                            try
+                            {
+                                if (Loggor.IsEnabled(LogLv.Error))
+                                    Loggor.LogError("ModifySqlAudit handler: " + ex.Message);
+                            }
+                            catch { /* ignore */ }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        if (Loggor.IsEnabled(LogLv.Error))
+                            Loggor.LogError("ModifySqlAudit: " + ex.Message);
+                    }
+                    catch { /* ignore */ }
+                }
+            }
+
+            try
+            {
+                if (events.modifySqlAuditSynchronous)
+                    runHandlers();
+                else
+                    _ = Task.Run(runHandlers);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    if (Loggor.IsEnabled(LogLv.Error))
+                        Loggor.LogError("ModifySqlAudit dispatch: " + ex.Message);
+                }
+                catch { /* ignore */ }
+            }
+        }
         #endregion
 
     }

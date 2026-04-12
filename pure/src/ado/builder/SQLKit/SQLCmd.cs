@@ -15,6 +15,7 @@ namespace mooSQL.data
         /// </summary>
         public SQLCmd() { 
             this.para= new Paras();
+            this.type = QueryType.Unknown;
         }
         /// <summary>
         /// 创建预执行的命令
@@ -23,6 +24,7 @@ namespace mooSQL.data
         public SQLCmd(string sql) {
             this.sql = sql;
             this.para = new Paras();
+            this.type = QueryType.Unknown;
         }
         /// <summary>
         /// 创建预执行的命令
@@ -31,10 +33,11 @@ namespace mooSQL.data
         /// <param name="paras"></param>
         public SQLCmd(string sql,Paras paras) {
             this.sql=sql;
-            if (para == null) {
-                para = new Paras();
+            this.para = new Paras();
+            this.type = QueryType.Unknown;
+            if (paras != null) {
+                this.para.Copy(paras);
             }
-            this.para.Copy(paras);
         }
         /// <summary>
         /// 创建预执行的SQL
@@ -52,6 +55,10 @@ namespace mooSQL.data
         /// SQL语句类型
         /// </summary>
         public QueryType type { get; set; }
+        /// <summary>
+        /// 主写入/删除/合并目标表名（由 SQLBuilder 生成时填充；手写 SQL 需自行设置以参与按表过滤的监听）。
+        /// </summary>
+        public string TargetTable { get; set; }
         /// <summary>
         /// SQL语句的超时设置
         /// </summary>
