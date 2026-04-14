@@ -313,16 +313,27 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
-        public void prepareDelete<T>(SQLBuilder builder, T entity)
+        /// <param name="en"></param>
+        public bool prepareDelete<T>(SQLBuilder builder, T entity,EntityInfo en)
         {
             if (entity == null)
             {
-                return;
+                return false;
             }
-            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             builder.setTable(parseTableName(en,entity));
             setPKWhere(builder, entity, en);
-
+            return true;
+        }
+        public bool prepareDelete<T>(SQLBuilder builder, T entity)
+        {
+            if (entity == null)
+            {
+                return false;
+            }
+            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            builder.setTable(parseTableName(en, entity));
+            setPKWhere(builder, entity, en);
+            return true;
         }
         /// <summary>
         /// 构建删除语句

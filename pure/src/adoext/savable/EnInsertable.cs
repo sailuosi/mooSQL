@@ -9,23 +9,37 @@ using System.Threading.Tasks;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 增强的插入
+    /// 基于实体元数据的批量插入构建器：可链式添加实体、配置表名与字段，最后通过 <see cref="doInsert"/> 执行。
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">映射到数据库表的实体类型。</typeparam>
     public class EnInsertable<T> : EntitySaveBase<EnInsertable<T>>
     {
         private List<T> entity;
 
+        /// <summary>
+        /// 使用指定数据库实例创建插入构建器。
+        /// </summary>
+        /// <param name="DB">数据库实例。</param>
         public EnInsertable(DBInstance DB) : base(DB)
         {
             this.entity = new List<T>();
         }
 
+        /// <summary>
+        /// 向待插入集合追加单个实体。
+        /// </summary>
+        /// <param name="en">要插入的实体。</param>
+        /// <returns>当前实例，用于链式调用。</returns>
         public EnInsertable<T> useEntity(T en)
         {
             this.entity.Add( en);
             return this;
         }
+        /// <summary>
+        /// 批量追加实体；相同引用或相等项是否去重由 <c>AddNotRepeat</c> 扩展行为决定。
+        /// </summary>
+        /// <param name="en">实体序列。</param>
+        /// <returns>当前实例，用于链式调用。</returns>
         public EnInsertable<T> useEntitys(IEnumerable<T> en)
         {
             foreach (var row in en)
@@ -37,9 +51,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 执行插入
+        /// 按当前集合逐条构建并执行 INSERT，返回累计影响行数；单条失败时记录日志并跳过该条。
         /// </summary>
-        /// <returns></returns>
+        /// <returns>成功执行的插入语句影响行数之和。</returns>
         public int doInsert()
         {
             var builder = this.DBLive.useSQL();
@@ -51,7 +65,7 @@ namespace mooSQL.data
             var en = DBLive.client.EntityCash.getEntityInfo<T>();
             int cc = 0;
             foreach (var row in this.entity) { 
-                var res = this.translator.prepareInsert(builder, entity, enType,en);
+                var res = this.translator.prepareInsert(builder, row, enType,en);
                 if (res.Status)
                 {
                     cc+= builder.doInsert();
