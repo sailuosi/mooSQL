@@ -113,7 +113,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="kit"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useSQLBuilder(SQLBuilder kit)
+        public virtual AuthorBuilder<RealDialect> useSQLBuilder(SQLBuilder kit)
         {
             this.kit = kit;
             return this;
@@ -123,7 +123,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="onload"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> onloadRole(Action<SQLBuilder> onload)
+        public virtual AuthorBuilder<RealDialect> onloadRole(Action<SQLBuilder> onload)
         {
             _loadRoles = onload;
             return this;
@@ -133,7 +133,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="whenRoleIsEmpty"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> onEmpty(Func<AuthorBuilder<RealDialect>,string> whenRoleIsEmpty)
+        public virtual AuthorBuilder<RealDialect> onEmpty(Func<AuthorBuilder<RealDialect>,string> whenRoleIsEmpty)
         {
             _OnRoleEmpty = whenRoleIsEmpty;
             return this;
@@ -148,7 +148,7 @@ namespace mooSQL.auth
         /// <param name="group"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useGoods(long id=0,string code="",string type="", string group = "2",string name="")
+        public virtual AuthorBuilder<RealDialect> useGoods(long id=0,string code="",string type="", string group = "2",string name="")
         {
             var tar = new AuthGoods {
                 id = id,
@@ -169,7 +169,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="userFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereUserIs(Func<AuthUser, string> userFilter)
+        public virtual AuthorBuilder<RealDialect> whereUserIs(Func<AuthUser, string> userFilter)
         {
             wordBag.whereMan(userFilter);
             return this;
@@ -180,7 +180,7 @@ namespace mooSQL.auth
         /// <param name="key"></param>
         /// <param name="val"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useWordPara(string key,object val)
+        public virtual AuthorBuilder<RealDialect> useWordPara(string key,object val)
         {
             wordBag.useWordPara(key, val);
             return this;
@@ -190,7 +190,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="registerBuilder"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> onBuildLiveWord(Action<ConditionGroup, SQLBuilder> registerBuilder)
+        public virtual AuthorBuilder<RealDialect> onBuildLiveWord(Action<ConditionGroup, SQLBuilder> registerBuilder)
         {
             wordBag.onBuildLiveWord(registerBuilder);
             return this;
@@ -200,7 +200,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="userFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereUserIn(Func<List<AuthUser>, string> userFilter)
+        public virtual AuthorBuilder<RealDialect> whereUserIn(Func<List<AuthUser>, string> userFilter)
         {
             wordBag.whereMan(userFilter);
             return this;
@@ -212,7 +212,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doOrgFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereOrgIs(Func<AuthOrg, string> doOrgFilter)
+        public virtual AuthorBuilder<RealDialect> whereOrgIs(Func<AuthOrg, string> doOrgFilter)
         {
             wordBag.whereOrgIs(doOrgFilter);
             return this;
@@ -222,7 +222,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doOrgFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereOrgIn(Func<List<AuthOrg>, string> doOrgFilter)
+        public virtual AuthorBuilder<RealDialect> whereOrgIn(Func<List<AuthOrg>, string> doOrgFilter)
         {
             wordBag.whereOrgIn(doOrgFilter);
             return this;
@@ -232,17 +232,45 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doOrgFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereOrgLike(Func<AuthOrg, string> doOrgFilter)
+        public virtual AuthorBuilder<RealDialect> whereOrgLike(Func<AuthOrg, string> doOrgFilter)
         {
             wordBag.whereOrgLike(doOrgFilter);
             return this;
         }
         /// <summary>
+        /// 按外键实现层次码的方法
+        /// </summary>
+        /// <param name="doOrgFilter"></param>
+        /// <returns></returns>
+        public virtual AuthorBuilder<RealDialect> whereOrgLikeByPK(Func<AuthOrg, string> doOrgFilter)
+        {
+            foreach (var kv in wordBag.groups)
+            {
+                kv.Value.orgRange.useLikePKBuilder(doOrgFilter);
+            }
+
+            return this;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="doOrgFilter"></param>
+        /// <returns></returns>
+        public virtual AuthorBuilder<RealDialect> whereOrgLikesByPK(Func<List<AuthOrg>, string> doOrgFilter)
+        {
+            foreach (var kv in wordBag.groups)
+            {
+                kv.Value.orgRange.useLikesPKBuilder(doOrgFilter);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// 组织的过滤条件
         /// </summary>
         /// <param name="doOrgFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> whereOrgOne(Func<AuthOrg, bool, string> doOrgFilter)
+        public virtual AuthorBuilder<RealDialect> whereOrgOne(Func<AuthOrg, bool, string> doOrgFilter)
         {
             wordBag.whereOrgOne(doOrgFilter);
             return this;
@@ -252,7 +280,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doOrgFilter">根据组织范围对象生成 WHERE 片段的委托。</param>
         /// <returns>当前构建器。</returns>
-        public AuthorBuilder<RealDialect> whereOrgBag(Func<CodeRange<AuthOrg>, string> doOrgFilter)
+        public virtual AuthorBuilder<RealDialect> whereOrgBag(Func<CodeRange<AuthOrg>, string> doOrgFilter)
         {
             wordBag.whereOrgBag(doOrgFilter);
             return this;
@@ -263,7 +291,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doPostFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> wherePostIs(Func<AuthPost, string> doPostFilter)
+        public virtual AuthorBuilder<RealDialect> wherePostIs(Func<AuthPost, string> doPostFilter)
         {
             wordBag.wherePostIs(doPostFilter);
             return this;
@@ -273,7 +301,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doPostFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> wherePostIn(Func<List<AuthPost>, string> doPostFilter)
+        public virtual AuthorBuilder<RealDialect> wherePostIn(Func<List<AuthPost>, string> doPostFilter)
         {
             wordBag.wherePostIn(doPostFilter);
             return this;
@@ -283,7 +311,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doPostFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> wherePostLike(Func<AuthPost, string> doPostFilter)
+        public virtual AuthorBuilder<RealDialect> wherePostLike(Func<AuthPost, string> doPostFilter)
         {
             wordBag.wherePostLike(doPostFilter);
             return this;
@@ -294,7 +322,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="doPostFilter"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> wherePost(Func<AuthPost, bool, string> doPostFilter)
+        public virtual AuthorBuilder<RealDialect> wherePost(Func<AuthPost, bool, string> doPostFilter)
         {
             wordBag.wherePost(doPostFilter);
             return this;
@@ -303,7 +331,7 @@ namespace mooSQL.auth
         /// <summary>
         /// 执行权限条件生成。没有角色时返回1=2，或者执行空事件。
         /// </summary>
-        public string doBuild()
+        public virtual string doBuild()
         {
             //加载角色
             if (this.dataScopes.Count == 0)
@@ -386,7 +414,7 @@ namespace mooSQL.auth
         /// 清空注册的条件生成器，不包含角色加载条件。
         /// </summary>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> reset()
+        public virtual AuthorBuilder<RealDialect> reset()
         {
             wordBag.resetBuilder();
             return this;
@@ -421,7 +449,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useUseIsField(string fieldName)
+        public virtual AuthorBuilder<RealDialect> useUseIsField(string fieldName)
         {
 
             this.whereUserIs((user) =>
@@ -448,7 +476,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useOrgIsField(string fieldName)
+        public virtual AuthorBuilder<RealDialect> useOrgIsField(string fieldName)
         {
 
             this.whereOrgIs((org) =>
@@ -476,7 +504,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="classCodeField"></param>
         /// <returns></returns>
-        public AuthorBuilder<RealDialect> useOrgLikeField(string classCodeField)
+        public virtual AuthorBuilder<RealDialect> useOrgLikeField(string classCodeField)
         {
 
             this.whereOrgLike((org) =>
@@ -496,7 +524,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="fk">用户 OID 对应的数据库字段名。</param>
         /// <returns>当前构建器。</returns>
-        public AuthorBuilder<RealDialect> useUseOIDFK(string fk)
+        public virtual AuthorBuilder<RealDialect> useUseOIDFK(string fk)
         {
 
             this.whereUserIs((user) =>
@@ -519,7 +547,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="fk">组织 OID 对应的数据库字段名。</param>
         /// <returns>当前构建器。</returns>
-        public AuthorBuilder<RealDialect> useOrgOIDFK(string fk)
+        public virtual AuthorBuilder<RealDialect> useOrgOIDFK(string fk)
         {
 
             this.whereOrgIs((org) =>
@@ -548,7 +576,7 @@ namespace mooSQL.auth
         /// </summary>
         /// <param name="classCodeField">存储组织层次码的数据库列名。</param>
         /// <returns>当前构建器。</returns>
-        public AuthorBuilder<RealDialect> useOrgCode(string classCodeField)
+        public virtual AuthorBuilder<RealDialect> useOrgCode(string classCodeField)
         {
 
             this.whereOrgLike((org) =>

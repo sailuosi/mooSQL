@@ -219,30 +219,33 @@ namespace mooSQL.auth
             }
             return wh;
         }
-        /// <summary>
-        /// 执行条件编制，检查注册的编织器。
-        /// </summary>
-        /// <param name="wh"></param>
-        /// <returns></returns>
-        public List<string> buildWhere(List<string> wh)
-        {
 
-            if (containValues.Count == 0 && bindValues.Count == 0) return wh;
-            if (onBuildAll != null) { 
-                var t = onBuildAll(this);
-                if (!string.IsNullOrWhiteSpace(t) && !wh.Contains(t)) { 
-                    wh.Add(t);
-                }            
+        private List<string> buildContainWhere(List<string> wh) {
+            if (containValues == null || containValues.Count == 0)
+            {
+                return wh;
             }
 
-            if(this.onbuildManyLike != null && containValues.Count > 0)
+            if (this.onbuildManyLike != null)
             {
                 var mval = onbuildManyLike(containValues);
-                if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval)) { 
+                if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval))
+                {
                     wh.Add(mval);
                 }
                 return wh;
             }
+
+            //在没有单个处理器的情况下，检查保底的多个处理器
+            if (onbuildLike == null && this.onbuildLikesByPK != null) {
+                var val = this.onbuildLikesByPK(this.containValues);
+                if (!string.IsNullOrWhiteSpace(val) && !wh.Contains(val))
+                {
+                    wh.Add(val);
+                }
+                return wh;
+            }
+
             foreach (var org in containValues)
             {
 
@@ -257,6 +260,16 @@ namespace mooSQL.auth
                     }
                     continue;
                 }
+                if (onbuildLikeByPK != null)
+                {
+                    res = onbuildLikeByPK(org);
+                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+                    {
+                        wh.Add(res);
+                    }
+                    continue;
+                }
+
                 if (onbuildOne != null)
                 {
                     res = onbuildOne(org, true);
@@ -268,6 +281,11 @@ namespace mooSQL.auth
                 }
 
             }
+            return wh;
+        }
+
+        private List<string> buildBindWhere(List<string> wh) {
+            if (this.bindValues == null || bindValues.Count == 0) return wh;
 
             if (onbuildManyIn != null && bindValues.Count > 0)
             {
@@ -306,23 +324,50 @@ namespace mooSQL.auth
             return wh;
         }
 
+        /// <summary>
+        /// 执行条件编制，检查注册的编织器。
+        /// </summary>
+        /// <param name="wh"></param>
+        /// <returns></returns>
+        public List<string> buildWhere(List<string> wh)
+        {
 
-        private Func<CodeRange<T>, string> onBuildAll;
+            if (containValues.Count == 0 && bindValues.Count == 0) return wh;
+            if (onBuildAll != null) { 
+                var t = onBuildAll(this);
+                if (!string.IsNullOrWhiteSpace(t) && !wh.Contains(t)) { 
+                    wh.Add(t);
+                }
+            }
+
+            wh = this.buildContainWhere(wh);
+
+            wh = this.buildBindWhere(wh);
+
+            return wh;
+        }
+
+
+        private Func<CodeRange<T>, string>? onBuildAll;
 
         /// <summary>
         /// 执行一个的条件处理。
         /// </summary>
-        private Func<T, bool, string> onbuildOne;
+        private Func<T, bool, string>? onbuildOne;
 
-        private Func<T, string> onbuildLike;
+        private Func<T, string>? onbuildLike;
 
-        private Func<T, string> onbuildIs;
+        private Func<T, string>? onbuildLikeByPK;
+
+        private Func<T, string>? onbuildIs;
         /// <summary>
         /// 执行多个指定范围的处理。
         /// </summary>
-        private Func<List<T>, string> onbuildManyIn;
+        private Func<List<T>, string>? onbuildManyIn;
 
-        private Func<List<T>, string> onbuildManyLike;
+        private Func<List<T>, string>? onbuildManyLike;
+
+        private Func<List<T>, string>? onbuildLikesByPK;
 
         /// <summary>
         /// 从另一范围对象复制尚未设置的委托（编织器），用于默认分组拷贝配置。
@@ -348,6 +393,15 @@ namespace mooSQL.auth
             {
                 this.onbuildManyIn = src.onbuildManyIn;
             }
+            if (this.onbuildLikeByPK == null && src.onbuildLikeByPK != null)
+            {
+                this.onbuildLikeByPK = src.onbuildLikeByPK;
+            }
+            if (this.onbuildLikesByPK == null && src.onbuildLikesByPK != null)
+            {
+                this.onbuildLikesByPK = src.onbuildLikesByPK;
+            }
+
         }
 
         /// <summary>
@@ -391,6 +445,27 @@ namespace mooSQL.auth
             this.onbuildLike = builder;
             return this;
         }
+        /// <summary>
+        /// 非code版本的包含权限构造器
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public CodeRange<T> useLikePKBuilder(Func<T, string> builder)
+        {
+            this.onbuildLikeByPK = builder;
+            return this;
+        }
+        /// <summary>
+        /// 多个处理
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public CodeRange<T> useLikesPKBuilder(Func<List<T>, string> builder)
+        {
+            this.onbuildLikesByPK = builder;
+            return this;
+        }
+        
 
         /// <summary>
         /// 注册等值（IS）条件编织器。
