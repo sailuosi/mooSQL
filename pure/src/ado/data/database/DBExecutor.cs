@@ -940,7 +940,7 @@ namespace mooSQL.data
             var client = DBLive.client;
             var mediator = client.modifyMediator;
             var needMediator = mediator != null;
-            var needAudit = client.events.ShouldDispatchModifySqlAudit(cmd);
+            var needAudit = client.events.ShouldDispatchSQLAudit(cmd);
 
             if (!needMediator && !needAudit)
                 return;
@@ -971,7 +971,7 @@ namespace mooSQL.data
 
             if (needAudit)
             {
-                ModifySqlAuditContext ctx;
+                SQLAuditContext ctx;
                 try
                 {
                     ctx = CreateModifySqlAuditSnapshot(cmd, DBLive, rowsAffected);
@@ -991,13 +991,13 @@ namespace mooSQL.data
             }
         }
 
-        private static ModifySqlAuditContext CreateModifySqlAuditSnapshot(SQLCmd cmd, DBInstance dbLive, int rowsAffected)
+        private static SQLAuditContext CreateModifySqlAuditSnapshot(SQLCmd cmd, DBInstance dbLive, int rowsAffected)
         {
             var ps = new Paras();
             if (cmd.para != null)
                 ps.Copy(cmd.para);
-            return new ModifySqlAuditContext(
-                cmd.sql ?? "",
+            return new SQLAuditContext(
+                cmd,
                 cmd.type,
                 cmd.TargetTable ?? "",
                 rowsAffected,

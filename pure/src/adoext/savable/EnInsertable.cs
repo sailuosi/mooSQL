@@ -8,13 +8,17 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 增强的插入
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class EnInsertable<T> : EntitySaveBase<EnInsertable<T>>
     {
         private List<T> entity;
 
         public EnInsertable(DBInstance DB) : base(DB)
         {
-
+            this.entity = new List<T>();
         }
 
         public EnInsertable<T> useEntity(T en)

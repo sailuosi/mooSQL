@@ -49,7 +49,7 @@ namespace mooSQL.data
         /// <summary>
         /// 将已快照的上下文与 handlers 入队；失败时调用 <paramref name="fallbackTaskRunBody"/>（由调用方用 <c>Task.Run</c> 执行）。
         /// </summary>
-        public void Enqueue(ModifySqlAuditContext ctx, Action<ModifySqlAuditContext>[] handlers, Action fallbackTaskRunBody)
+        public void Enqueue(SQLAuditContext ctx, Action<SQLAuditContext>[] handlers, Action fallbackTaskRunBody)
         {
             if (fallbackTaskRunBody == null)
                 throw new ArgumentNullException(nameof(fallbackTaskRunBody));
@@ -266,10 +266,10 @@ namespace mooSQL.data
 
     internal sealed class ModifySqlAuditWorkItem
     {
-        public ModifySqlAuditContext Context { get; }
-        public Action<ModifySqlAuditContext>[] Handlers { get; }
+        public SQLAuditContext Context { get; }
+        public Action<SQLAuditContext>[] Handlers { get; }
 
-        public ModifySqlAuditWorkItem(ModifySqlAuditContext context, Action<ModifySqlAuditContext>[] handlers)
+        public ModifySqlAuditWorkItem(SQLAuditContext context, Action<SQLAuditContext>[] handlers)
         {
             Context = context;
             Handlers = handlers;

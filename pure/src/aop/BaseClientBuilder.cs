@@ -384,52 +384,52 @@ namespace mooSQL.data
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.onSQLRuned(Action{ModifySqlAuditContext}, IEnumerable{QueryType}?, IEnumerable{string}?)" />
-        public BaseClientBuilder onSQLRuned(Action<ModifySqlAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
+        /// <inheritdoc cref="MooEvents.onSQLRuned(Action{SQLAuditContext}, IEnumerable{QueryType}?, IEnumerable{string}?)" />
+        public BaseClientBuilder onSQLRuned(Action<SQLAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
         {
             client.events.onSQLRuned(handler, queryTypes, targetTables);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.enableModifySqlAudit(bool)" />
+        /// <inheritdoc cref="MooEvents.enableSQLAudit(bool)" />
         public BaseClientBuilder enableModifySqlAudit(bool enabled = true)
         {
-            client.events.enableModifySqlAudit(enabled);
+            client.events.enableSQLAudit(enabled);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.useModifySqlAuditSynchronous(bool)" />
+        /// <inheritdoc cref="MooEvents.useSQLAuditSync(bool)" />
         public BaseClientBuilder useModifySqlAuditSynchronous(bool synchronous = true)
         {
-            client.events.useModifySqlAuditSynchronous(synchronous);
+            client.events.useSQLAuditSync(synchronous);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.useChannelDispatchForModifySqlAudit(bool)" />
+        /// <inheritdoc cref="MooEvents.useChannelForAudit(bool)" />
         public BaseClientBuilder useChannelDispatchForModifySqlAudit(bool enable = true)
         {
-            client.events.useChannelDispatchForModifySqlAudit(enable);
+            client.events.useChannelForAudit(enable);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.includeInsertInModifySqlAudit(bool)" />
+        /// <inheritdoc cref="MooEvents.includeInsertInSQLAudit(bool)" />
         public BaseClientBuilder includeInsertInModifySqlAudit(bool include = true)
         {
-            client.events.includeInsertInModifySqlAudit(include);
+            client.events.includeInsertInSQLAudit(include);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.includeCompositeInModifySqlAudit(bool)" />
+        /// <inheritdoc cref="MooEvents.includeCompositeInSQLAudit(bool)" />
         public BaseClientBuilder includeCompositeInModifySqlAudit(bool include = true)
         {
-            client.events.includeCompositeInModifySqlAudit(include);
+            client.events.includeCompositeInSQLAudit(include);
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.restrictModifySqlAuditToTables(string[]?)" />
+        /// <inheritdoc cref="MooEvents.restrictSQLAuditToTables(string[]?)" />
         public BaseClientBuilder restrictModifySqlAuditToTables(params string[]? tables)
         {
-            client.events.restrictModifySqlAuditToTables(tables);
+            client.events.restrictSQLAuditToTables(tables);
             return this;
         }
     }

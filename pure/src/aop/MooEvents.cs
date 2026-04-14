@@ -28,16 +28,16 @@ namespace mooSQL.data
         internal List<Action<string,SQLBuilder>> onCreatedSQLHandlers = new List<Action<string, SQLBuilder>>();
 
         private readonly object modifySqlAuditLock = new object();
-        private List<ModifySqlAuditEntry> modifySqlAuditEntries = new List<ModifySqlAuditEntry>();
+        private List<SQLAuditEntry> modifySqlAuditEntries = new List<SQLAuditEntry>();
         private HashSet<string>? modifySqlAuditTableFilter;
-        internal volatile bool modifySqlAuditEnabled = true;
-        internal bool modifySqlAuditSynchronous;
+        internal volatile bool SqlAuditEnabled = true;
+        internal bool SQLAuditSync;
         /// <summary>
         /// 为 true 时，异步删改审计经单消费者 Channel（net462+）或等价的 <c>BlockingCollection</c>（net451）派发；为 false 时使用 <c>Task.Run</c>。
-        /// 当 <see cref="useModifySqlAuditSynchronous"/> 为 true 时，本开关无效（仍在调用线程同步执行）。
+        /// 当 <see cref="useSQLAuditSync"/> 为 true 时，本开关无效（仍在调用线程同步执行）。
         /// </summary>
-        internal volatile bool modifySqlAuditUseChannelDispatch;
-        internal bool modifySqlAuditIncludeInsert;
+        internal volatile bool SQLAuditUseChannel;
+        internal bool SQLAuditInsert;
         internal bool modifySqlAuditIncludeComposite;
         /// <summary>
         /// 慢SQL监控事件
@@ -130,21 +130,21 @@ namespace mooSQL.data
 
         /// <summary>
         /// 注册在 <c>ExeNonQuery</c> 成功之后触发的删/改类语句审计（默认异步、异常隔离）。
-        /// 未指定 <paramref name="queryTypes"/> / <paramref name="targetTables"/> 时：类型使用全局默认（Update/Delete/Merge，及 <see cref="includeInsertInModifySqlAudit"/> / <see cref="includeCompositeInModifySqlAudit"/>）；表名不限（仍受 <see cref="restrictModifySqlAuditToTables"/> 约束）。
+        /// 未指定 <paramref name="queryTypes"/> / <paramref name="targetTables"/> 时：类型使用全局默认（Update/Delete/Merge，及 <see cref="includeInsertInSQLAudit"/> / <see cref="includeCompositeInSQLAudit"/>）；表名不限（仍受 <see cref="restrictSQLAuditToTables"/> 约束）。
         /// </summary>
         /// <param name="handler">回调。</param>
         /// <param name="queryTypes">可选；指定一个或多个 <see cref="QueryType"/>，仅当 <see cref="SQLCmd.type"/> 命中其中之一时调用。</param>
         /// <param name="targetTables">可选；指定一个或多个表名（与 <see cref="SQLCmd.TargetTable"/> 比较，忽略大小写），仅命中时调用。</param>
-        public MooEvents onSQLRuned(Action<ModifySqlAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
+        public MooEvents onSQLRuned(Action<SQLAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
         {
             if (handler == null) return this;
             var qt = NormalizeQueryTypes(queryTypes);
             var tb = NormalizeTargetTables(targetTables);
             lock (modifySqlAuditLock)
             {
-                var next = new List<ModifySqlAuditEntry>(modifySqlAuditEntries)
+                var next = new List<SQLAuditEntry>(modifySqlAuditEntries)
                 {
-                    new ModifySqlAuditEntry(handler, qt, tb)
+                    new SQLAuditEntry(handler, qt, tb)
                 };
                 modifySqlAuditEntries = next;
             }
@@ -152,38 +152,38 @@ namespace mooSQL.data
         }
 
         /// <summary>总开关；关闭后与「无监听」同样短路。</summary>
-        public MooEvents enableModifySqlAudit(bool enabled = true)
+        public MooEvents enableSQLAudit(bool enabled = true)
         {
-            modifySqlAuditEnabled = enabled;
+            SqlAuditEnabled = enabled;
             return this;
         }
 
         /// <summary>为 true 时在调用线程同步执行监听（可能影响延迟；默认 false 使用 <c>Task.Run</c>）。</summary>
-        public MooEvents useModifySqlAuditSynchronous(bool synchronous = true)
+        public MooEvents useSQLAuditSync(bool synchronous = true)
         {
-            modifySqlAuditSynchronous = synchronous;
+            SQLAuditSync = synchronous;
             return this;
         }
 
         /// <summary>
         /// 为 true 时使用 Channel/单消费者队列异步派发删改审计（默认 false，与既有 <c>Task.Run</c> 行为一致）。
-        /// 优先级：若已启用 <see cref="useModifySqlAuditSynchronous"/>，则始终同步执行，本项不生效。
+        /// 优先级：若已启用 <see cref="useSQLAuditSync"/>，则始终同步执行，本项不生效。
         /// </summary>
-        public MooEvents useChannelDispatchForModifySqlAudit(bool enable = true)
+        public MooEvents useChannelForAudit(bool enable = true)
         {
-            modifySqlAuditUseChannelDispatch = enable;
+            SQLAuditUseChannel = enable;
             return this;
         }
 
         /// <summary>是否将 <see cref="QueryType.Insert"/> 纳入审计（默认仅 Update/Delete/Merge）。</summary>
-        public MooEvents includeInsertInModifySqlAudit(bool include = true)
+        public MooEvents includeInsertInSQLAudit(bool include = true)
         {
-            modifySqlAuditIncludeInsert = include;
+            SQLAuditInsert = include;
             return this;
         }
 
         /// <summary>是否将 <see cref="QueryType.Composite"/> 纳入审计。</summary>
-        public MooEvents includeCompositeInModifySqlAudit(bool include = true)
+        public MooEvents includeCompositeInSQLAudit(bool include = true)
         {
             modifySqlAuditIncludeComposite = include;
             return this;
@@ -192,7 +192,7 @@ namespace mooSQL.data
         /// <summary>
         /// 仅当 <see cref="SQLCmd.TargetTable"/> 命中集合时才触发审计；<paramref name="tables"/> 为 null 或空则取消限制。
         /// </summary>
-        public MooEvents restrictModifySqlAuditToTables(params string[]? tables)
+        public MooEvents restrictSQLAuditToTables(params string[]? tables)
         {
             lock (modifySqlAuditLock)
             {
@@ -204,11 +204,11 @@ namespace mooSQL.data
             return this;
         }
 
-        internal bool ShouldDispatchModifySqlAudit(SQLCmd cmd)
+        internal bool ShouldDispatchSQLAudit(SQLCmd cmd)
         {
-            if (!modifySqlAuditEnabled || cmd == null)
+            if (!SqlAuditEnabled || cmd == null)
                 return false;
-            ModifySqlAuditEntry[] snapshot;
+            SQLAuditEntry[] snapshot;
             lock (modifySqlAuditLock)
             {
                 if (modifySqlAuditEntries.Count == 0)
@@ -216,7 +216,7 @@ namespace mooSQL.data
                 snapshot = modifySqlAuditEntries.ToArray();
             }
 
-            if (!PassesGlobalModifySqlAuditTableFilter(cmd.TargetTable))
+            if (!PassesAuditTable(cmd.TargetTable))
                 return false;
 
             var qt = cmd.type;
@@ -233,25 +233,25 @@ namespace mooSQL.data
         /// <summary>
         /// 按当前上下文筛选应执行的监听（已含全局表名限制）。
         /// </summary>
-        internal Action<ModifySqlAuditContext>[] GetModifySqlAuditHandlersMatching(ModifySqlAuditContext ctx)
+        internal Action<SQLAuditContext>[] GetSQLAuditHandlersMatching(SQLAuditContext ctx)
         {
             if (ctx == null)
-                return new Action<ModifySqlAuditContext>[0];
+                return new Action<SQLAuditContext>[0];
 
-            ModifySqlAuditEntry[] snapshot;
+            SQLAuditEntry[] snapshot;
             lock (modifySqlAuditLock)
             {
                 if (modifySqlAuditEntries.Count == 0)
-                    return new Action<ModifySqlAuditContext>[0];
+                    return new Action<SQLAuditContext>[0];
                 snapshot = modifySqlAuditEntries.ToArray();
             }
 
-            if (!PassesGlobalModifySqlAuditTableFilter(ctx.TargetTable))
-                return new Action<ModifySqlAuditContext>[0];
+            if (!PassesAuditTable(ctx.Sql.TargetTable))
+                return new Action<SQLAuditContext>[0];
 
-            var qt = ctx.QueryType;
-            var tt = ctx.TargetTable ?? "";
-            var list = new List<Action<ModifySqlAuditContext>>(snapshot.Length);
+            var qt = ctx.Sql.type;
+            var tt = ctx.Sql.TargetTable ?? "";
+            var list = new List<Action<SQLAuditContext>>(snapshot.Length);
             foreach (var entry in snapshot)
             {
                 if (entry.Matches(qt, tt, this))
@@ -261,7 +261,7 @@ namespace mooSQL.data
             return list.ToArray();
         }
 
-        private bool PassesGlobalModifySqlAuditTableFilter(string? targetTable)
+        private bool PassesAuditTable(string? targetTable)
         {
             if (modifySqlAuditTableFilter == null || modifySqlAuditTableFilter.Count == 0)
                 return true;
@@ -292,13 +292,13 @@ namespace mooSQL.data
             return set.Count == 0 ? null : set;
         }
 
-        private sealed class ModifySqlAuditEntry
+        private sealed class SQLAuditEntry
         {
-            internal readonly Action<ModifySqlAuditContext> Handler;
+            internal readonly Action<SQLAuditContext> Handler;
             private readonly HashSet<QueryType>? _queryTypes;
             private readonly HashSet<string>? _targetTables;
 
-            internal ModifySqlAuditEntry(Action<ModifySqlAuditContext> handler, HashSet<QueryType>? queryTypes, HashSet<string>? targetTables)
+            internal SQLAuditEntry(Action<SQLAuditContext> handler, HashSet<QueryType>? queryTypes, HashSet<string>? targetTables)
             {
                 Handler = handler;
                 _queryTypes = queryTypes;
@@ -319,7 +319,7 @@ namespace mooSQL.data
 
                 if (queryType == QueryType.Update || queryType == QueryType.Delete || queryType == QueryType.Merge)
                     return true;
-                if (options.modifySqlAuditIncludeInsert && queryType == QueryType.Insert)
+                if (options.SQLAuditInsert && queryType == QueryType.Insert)
                     return true;
                 if (options.modifySqlAuditIncludeComposite && queryType == QueryType.Composite)
                     return true;

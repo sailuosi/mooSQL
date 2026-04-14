@@ -402,12 +402,12 @@ namespace mooSQL.data
         /// <summary>
         /// 派发删改审计监听；异常与主 SQL 隔离。
         /// </summary>
-        internal void fireModifySqlAudit(ModifySqlAuditContext ctx)
+        internal void fireModifySqlAudit(SQLAuditContext ctx)
         {
-            Action<ModifySqlAuditContext>[] handlers;
+            Action<SQLAuditContext>[] handlers;
             try
             {
-                handlers = events.GetModifySqlAuditHandlersMatching(ctx);
+                handlers = events.GetSQLAuditHandlersMatching(ctx);
             }
             catch (Exception ex)
             {
@@ -457,9 +457,9 @@ namespace mooSQL.data
 
             try
             {
-                if (events.modifySqlAuditSynchronous)
+                if (events.SQLAuditSync)
                     runHandlers();
-                else if (events.modifySqlAuditUseChannelDispatch)
+                else if (events.SQLAuditUseChannel)
                 {
                     try
                     {
