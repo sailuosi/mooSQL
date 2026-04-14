@@ -732,10 +732,8 @@ namespace mooSQL.data
         {
             BuildSelectFrom(kit, en);
             BeforeBuildWhere(kit, en, QueryAction.QueryList);
-            if (para.onBuildingSQL != null)
-            {
-                para.onBuildingSQL(kit);
-            }
+
+            para.fireBuildSQL(kit);
 
             if (para.pageSize != null && para.pageNum != null)
             {

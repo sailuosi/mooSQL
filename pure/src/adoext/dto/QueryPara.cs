@@ -45,8 +45,8 @@ namespace mooSQL.data
             get { return _suckWheres; }
         }
 
-        [NonSerialized]
-        private Action<SQLBuilder> _OnBuildSQL;
+
+        private event Action<SQLBuilder> _OnBuildSQL;
         /// <summary>
         /// 附加条件，用于构建SQL语句时使用，只允许调用方法赋值，不允许自动通过接口接收web参数赋值。
         /// </summary>
@@ -61,13 +61,19 @@ namespace mooSQL.data
              this._suckWheres = entityWheres;
             return this;
         }
+
+        public void fireBuildSQL(SQLBuilder kit) {
+            if (this._OnBuildSQL != null) {
+                this._OnBuildSQL(kit);
+            }
+        }
         /// <summary>
         /// 附加条件，用于构建SQL语句时使用。
         /// </summary>
         /// <param name="onBuild"></param>
         /// <returns></returns>
         public QueryPara OnBuildSQL(Action<SQLBuilder> onBuild) { 
-            this._OnBuildSQL = onBuild;
+            this._OnBuildSQL += onBuild;
             return this;
         }
     }
