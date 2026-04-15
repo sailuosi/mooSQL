@@ -532,7 +532,7 @@ namespace mooSQL.auth
         /// <param name="org">待检查的组织。</param>
         /// <param name="group">权限分组标识。</param>
         /// <returns>是否在范围内。</returns>
-        public bool checkOrgInScope(AuthOrg org, string group = "empty")
+        public bool checkOrgInScope(AuthOrg org, string group = "_empty")
         {
             var grou = this.getGroup(group);
             var t= grou.checkOrgInScope(org);

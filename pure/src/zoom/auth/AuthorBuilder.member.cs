@@ -89,17 +89,14 @@ namespace mooSQL.auth
         {
             if (customPreWorkReads.Count > 0)
             {
-                foreach (var reader in customLazyWorkReads)
+                foreach (var reader in customPreWorkReads)
                 {
-                    foreach (var kv in wordBag.groups) { 
+                    foreach (var kv in wordBag.groups)
+                    {
                         foreach (var word in kv.Value.lazyWords)
                         {
-                            var readOutput = reader(word, dialect);
-                            if (!string.IsNullOrWhiteSpace(readOutput))
-                            {
-
-                            }
-                        }                    
+                            reader(word, dialect);
+                        }
                     }
 
                 }

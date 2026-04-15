@@ -20,12 +20,23 @@ namespace mooSQL.auth
         /// </summary>
         public static SQLBuilder generateCondition(this SQLBuilder builder, Condition filterObj)
         {
-            if (filterObj == null || string.IsNullOrWhiteSpace(filterObj.Key) || string.IsNullOrWhiteSpace(filterObj.Contrast) || string.IsNullOrWhiteSpace(filterObj.Text))
-                if (filterObj.Paramed == false)
-                {
-                    //非参数化时，执行SQL注入过滤
-                    filterObj.Text = RegxUntils.SqlFilter(filterObj.Text, true);
-                }
+            if (builder == null || filterObj == null)
+            {
+                return builder;
+            }
+
+            if (string.IsNullOrWhiteSpace(filterObj.Key) ||
+                string.IsNullOrWhiteSpace(filterObj.Contrast) ||
+                (string.IsNullOrWhiteSpace(filterObj.Text) && string.IsNullOrWhiteSpace(filterObj.Value) && filterObj.parsedValue == null))
+            {
+                return builder;
+            }
+
+            if (filterObj.Paramed == false)
+            {
+                //非参数化时，执行SQL注入过滤
+                filterObj.Text = RegxUntils.SqlFilter(filterObj.Text, true);
+            }
             //键部分执行严格的SQL过滤。
             filterObj.Key = RegxUntils.SqlFilter(filterObj.Key, false);
 
@@ -50,31 +61,17 @@ namespace mooSQL.auth
                     break;
                 case "not in":
                     var notinlist = filterObj.getListValue(); //数组
-                    builder.whereIn(filterObj.Key, notinlist);
+                    builder.whereNotIn(filterObj.Key, notinlist);
                     break;
                 //交集，使用交集时左值必须时固定的值
                 case "between": //交集
                     var btlist = filterObj.getListValue(); //数组
-                    var cc = 0;
-                    object val1=null;
-                    object val2=null;
-                    foreach (var item in btlist)
+                    var vals = btlist.Cast<object>().Take(2).ToArray();
+                    if (vals.Length != 2)
                     {
-                        if (cc == 0) { 
-                            val1 = item;
-                        }
-                        else if(cc == 1) { }
-                        {
-                            val2 = item;
-                        }
-                        cc++;
+                        return builder;
                     }
-                    if (cc != 2)
-                    {
-                        return null;
-                    }
-
-                    builder.whereBetween(filterObj.Key, val1, val2);
+                    builder.whereBetween(filterObj.Key, vals[0], vals[1]);
                     break;
             }
 

@@ -20,10 +20,11 @@ namespace mooSQL.utils
         public static List<R> map<T, R>(this IEnumerable<T> list, Func<T, R> onfilter)
         {
             var res = new List<R>();
+            var seen = new HashSet<R>();
             foreach (T item in list)
             {
                 var t = onfilter(item);
-                if (!res.Contains(t))
+                if (!seen.Contains(t))
                 {
                     if (typeof(T) == typeof(string))
                     {
@@ -34,6 +35,7 @@ namespace mooSQL.utils
                         }
                     }
                     res.Add(t);
+                    seen.Add(t);
                 }
             }
             return res;
@@ -176,9 +178,14 @@ namespace mooSQL.utils
         public static ICollection<T> writeTo<T>(this IEnumerable<T> list, ICollection<T> target)
         {
 
-            foreach (T item in target)
+            if (list == null || target == null)
             {
-                if (target.Contains(item)==false)
+                return target;
+            }
+
+            foreach (T item in list)
+            {
+                if (target.Contains(item) == false)
                 {
                     target.Add(item);
                 }
