@@ -6,9 +6,9 @@
 
 ## Links / 链接
 
-| | |
-|--|--|
-| **Source / 源码** | [https://github.com/sailuosi/mooSQL](https://github.com/sailuosi/mooSQL) |
+|                        |                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| **Source / 源码**        | [https://github.com/sailuosi/mooSQL](https://github.com/sailuosi/mooSQL)         |
 | **Documentation / 文档** | [https://sailuosi.github.io/moosql-doc/](https://sailuosi.github.io/moosql-doc/) |
 
 ## Install / 安装
@@ -21,27 +21,24 @@ dotnet add package mooSQL.Ext
 
 ## Packages / 包说明
 
-| NuGet 包名 | Role / 说明 |
-|--------|-------------|
-| **mooSQL.Pure** | Core library / 核心纯净能力 |
-| **mooSQL.Ext** | Dialects and extended DB support (**recommended**) / 多数据库方言与扩展（**推荐**） |
+发布包分为全功能包和核心包两种。
+
+核心包为精简掉历史依赖后，以ORM为核心的包。
+
+全功能包为包含所有功能的包，是原始迭代以来的版本，含有一些历史依赖功能。
+
+### 全功能包 v8.xxxx
+
+| NuGet 包名        | Role / 说明                                                              |
+| --------------- | ---------------------------------------------------------------------- |
+| **mooSQL.Pure** | Core library / 核心纯净能力                                                  |
+| **mooSQL.Ext**  | Dialects and extended DB support (**recommended**) / 多数据库方言与扩展（**推荐**） |
+
+### 核心包 v1.xxx
+
+| NuGet 包名        | Role / 说明                                                              |
+| --------------- | ---------------------------------------------------------------------- |
+| **mooSQL.Pure.Core.** | Core library / 核心纯净能力                                                  |
+| **mooSQL.Ext.Core.**  | Dialects and extended DB support (**recommended**) / 多数据库方言与扩展（**推荐**） |
 
 > Local NuGet cache folder (typical on Windows): `C:\Users\<username>\.nuget\packages`
-
-## Maintainer: pack & publish / 维护者：打包与发布
-
-From the repository root / 在仓库根目录执行：
-
-```bash
-dotnet pack pure/mooSQL.Pure.Core.csproj -c Release
-dotnet pack ext/mooSQL.Ext.Core.csproj -c Release
-```
-
-Push to nuget.org (replace paths and API key) / 推送到 nuget.org（按实际版本号调整文件名）：
-
-```bash
-dotnet nuget push ext/bin/Release/mooSQL.Ext.*.nupkg --source https://api.nuget.org/v3/index.json --api-key <YOUR_API_KEY>
-dotnet nuget push pure/bin/Release/mooSQL.Pure.*.nupkg --source https://api.nuget.org/v3/index.json --api-key <YOUR_API_KEY>
-```
-
-Package metadata (version, icon, this readme) is wired via `Directory.Build.props` and `packfile/` assets.
