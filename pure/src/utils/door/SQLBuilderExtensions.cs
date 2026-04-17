@@ -357,6 +357,8 @@ namespace mooSQL.data
         /// <param name="entity"></param>
         /// <returns></returns>
         public static int save<T>(this SQLBuilder builder, T entity) {
+            //增加兼容性判定，如果传入的是列表，则内部转为列表的调用
+            //IEnumerable<T>
 
             var cmd = toSave(builder, entity);
             if (cmd != null) { 
@@ -364,6 +366,7 @@ namespace mooSQL.data
             }
             return 0;
         }
+
         /// <summary>
         /// 保存语句生成，不执行。独立执行环境，不干扰调用者环境，空时返回null
         /// </summary>
@@ -419,7 +422,7 @@ namespace mooSQL.data
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static List<SQLCmd> toSave<T>(this SQLBuilder builder,IEnumerable<T> entity)
+        public static List<SQLCmd> toSaveList<T>(this SQLBuilder builder,IEnumerable<T> entity)
         {
             var cmds= new List<SQLCmd>();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
@@ -473,8 +476,8 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static int save<T>(this SQLBuilder builder, IEnumerable<T> entity) {
-            var cmds = toSave(builder, entity);
+        public static int saveList<T>(this SQLBuilder builder, IEnumerable<T> entity) {
+            var cmds = toSaveList(builder, entity);
             if (cmds.Count > 0) {
                 return builder.exeNonQuery(cmds);
             }

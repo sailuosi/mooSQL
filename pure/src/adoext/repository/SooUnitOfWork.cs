@@ -197,7 +197,7 @@ namespace mooSQL.data
         {
             if (entity == null) return this;
             var kit = DB.useSQL();
-            var cmds= kit.toSave(entity);
+            var cmds= kit.toSaveList(entity);
             this.AddSQLs(cmds);
             return this;
         }
