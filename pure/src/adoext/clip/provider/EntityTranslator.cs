@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -87,6 +88,16 @@ namespace mooSQL.data
             }
             return en.DbTableName;
         }
+
+        /// <summary>
+        /// 表名解析：若提供 <paramref name="loadName"/> 则优先取其返回值，否则按实体配置解析（含 LiveName / 全局回调）。
+        /// </summary>
+        private string resolveTableName(EntityInfo en, Func<string> loadName, object row)
+        {
+            if (loadName != null)
+                return loadName() ?? string.Empty;
+            return row != null ? parseTableName(en, row) : parseTableName(en);
+        }
         /// <summary>
         /// 构建插入语句  
         /// </summary>
@@ -112,14 +123,7 @@ namespace mooSQL.data
             if (this._onBeforeInsertEntity != null) { 
                 this._onBeforeInsertEntity(builder, entity,EntityType, en);
             }
-            string tbname = string.Empty;
-            if (loadName != null)
-            {
-                tbname = loadName();
-            }
-            else {
-                tbname = parseTableName(en, entity);
-            }
+            string tbname = resolveTableName(en, loadName, entity);
             if (tbname.HasText()) {
                 builder.setTable(tbname);
             }
@@ -195,15 +199,7 @@ namespace mooSQL.data
                 return new StatusResult(false, "实体类未标记对应的数据库表！");
             }
 
-            string tbname = string.Empty;
-            if (loadName != null)
-            {
-                tbname = loadName();
-            }
-            else
-            {
-                tbname = parseTableName(en, entity);
-            }
+            string tbname = resolveTableName(en, loadName, entity);
             if (tbname.HasText())
             {
                 builder.setTable(tbname);
@@ -336,24 +332,22 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="en"></param>
-        public bool prepareDelete<T>(SQLBuilder builder, T entity,EntityInfo en)
+        /// <param name="loadName">可选：显式提供本次语句的物理表名，为 null 时走 <see cref="parseTableName(EntityInfo, object)"/>。</param>
+        public bool prepareDelete<T>(SQLBuilder builder, T entity, EntityInfo en = null, Func<string> loadName = null)
         {
             if (entity == null)
             {
                 return false;
             }
-            builder.setTable(parseTableName(en,entity));
-            setPKWhere(builder, entity, en);
-            return true;
-        }
-        public bool prepareDelete<T>(SQLBuilder builder, T entity)
-        {
-            if (entity == null)
+            if (en == null)
             {
-                return false;
+                en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             }
-            var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
-            builder.setTable(parseTableName(en, entity));
+            string tbname = resolveTableName(en, loadName, entity);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
             setPKWhere(builder, entity, en);
             return true;
         }
@@ -363,7 +357,7 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="type"></param>
-        public void prepareDelete(SQLBuilder builder, object entity, Type type)
+        public void prepareDelete(SQLBuilder builder, object entity, Type type, Func<string> loadName = null)
         {
             if (entity == null)
             {
@@ -372,9 +366,13 @@ namespace mooSQL.data
             var en = builder.DBLive.client.EntityCash.getEntityInfo(type);
             if (this._onBeforeDeleteEntity != null)
             {
-                this._onBeforeUpdateEntity(builder, entity, type, en);
+                this._onBeforeDeleteEntity(builder, entity, type, en);
             }
-            builder.setTable(parseTableName(en, entity));
+            string tbname = resolveTableName(en, loadName, entity);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
             setPKWhere(builder, entity, en);
             if (this._onReadyDeleteEntity != null)
             {
@@ -388,7 +386,7 @@ namespace mooSQL.data
         /// <param name="en"></param>
         /// <param name="ids"></param>
         /// <exception cref="NotSupportedException"></exception>
-        public void prepareDelete(SQLBuilder builder, EntityInfo en, IEnumerable ids) {
+        public void prepareDelete(SQLBuilder builder, EntityInfo en, IEnumerable ids, Func<string> loadName = null) {
             if (ids == null) {
                 return;
             }
@@ -402,8 +400,12 @@ namespace mooSQL.data
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
             var pk = pks[0];
-            builder.setTable(en.DbTableName)
-                .whereIn(pk.DbColumnName, ids);
+            string tbname = resolveTableName(en, loadName, null);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
+            builder.whereIn(pk.DbColumnName, ids);
 
             if (this._onReadyDeleteEntity != null)
             {
@@ -411,7 +413,7 @@ namespace mooSQL.data
             }
         }
 
-        public void prepareDeleteById(SQLBuilder builder, EntityInfo en, object id)
+        public void prepareDeleteById(SQLBuilder builder, EntityInfo en, object id, Func<string> loadName = null)
         {
             if (id == null)
             {
@@ -427,8 +429,12 @@ namespace mooSQL.data
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
             var pk = pks[0];
-            builder.setTable(en.DbTableName)
-                .where(pk.DbColumnName, id);
+            string tbname = resolveTableName(en, loadName, null);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
+            builder.where(pk.DbColumnName, id);
 
             if (this._onReadyDeleteEntity != null)
             {
@@ -444,9 +450,10 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="updateKey"></param>
+        /// <param name="loadName">可选：显式提供本次语句的物理表名，为 null 时走 <see cref="parseTableName(EntityInfo, object)"/>。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public int updateByFieild<T>(SQLBuilder builder, T entity, string updateKey)
+        public int updateByFieild<T>(SQLBuilder builder, T entity, string updateKey, Func<string> loadName = null)
         {
             if(entity==null) return 0;
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
@@ -455,7 +462,11 @@ namespace mooSQL.data
                 this._onBeforeUpdateEntity(builder, entity, en.Type, en);
             }
 
-            builder.setTable(parseTableName(en,entity));
+            string tbname = resolveTableName(en, loadName, entity);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
             bool gotWhere = false;
             foreach (var col in en.Columns)
             {
@@ -505,7 +516,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="kit"></param>
         /// <param name="en"></param>
-        private void BuildFromInner(SQLBuilder kit, EntityInfo en)
+        private void BuildFromInner(SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
             if (this._onBuildFromPart != null)
             {
@@ -520,11 +531,11 @@ namespace mooSQL.data
             else if (string.IsNullOrWhiteSpace(en.Alias))
             {
                 //直接使用表名，无别名
-                kit.from(parseTableName(en));
+                kit.from(resolveTableName(en, loadName, null));
             }
             else
             {
-                kit.from(string.Format("{0} as {1}", parseTableName(en), en.Alias));
+                kit.from(string.Format("{0} as {1}", resolveTableName(en, loadName, null), en.Alias));
             }
             if (en.Joins != null) { 
                 //构建join
@@ -564,13 +575,14 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="kit"></param>
         /// <param name="en"></param>
+        /// <param name="loadName">可选：显式提供本次查询的物理表名，为 null 时走 <see cref="parseTableName(EntityInfo)"/> / 行无关解析。</param>
         /// <returns></returns>
-        public SQLBuilder BuildSelectFrom(SQLBuilder kit, EntityInfo en)
+        public SQLBuilder BuildSelectFrom(SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
             var exp = kit.Dialect.expression;
             if (en.DType == DBTableType.Table)
             {
-                BuildFromInner(kit, en);
+                BuildFromInner(kit, en, loadName);
                 return kit;
             }
             if (en.DType == DBTableType.Select)
@@ -580,7 +592,7 @@ namespace mooSQL.data
                 var nick = en.Alias;
                 if (string.IsNullOrWhiteSpace(nick))
                 {
-                    nick = en.DbTableName;
+                    nick = resolveTableName(en, loadName, null);
                 }
                 nick = exp.wrapTable(nick);
 
@@ -632,7 +644,7 @@ namespace mooSQL.data
                 }
 
                 //构建from
-                BuildFromInner(kit, en);
+                BuildFromInner(kit, en, loadName);
 
 
                 return kit;
@@ -641,7 +653,7 @@ namespace mooSQL.data
 
             if (en.DType == DBTableType.View)
             {
-                kit.from(en.DbTableName);
+                kit.from(resolveTableName(en, loadName, null));
                 return kit;
 
             }
@@ -653,26 +665,27 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="kit"></param>
         /// <param name="en"></param>
+        /// <param name="loadName">可选：显式提供本次查询的物理表名，为 null 时走 <see cref="parseTableName(EntityInfo)"/>。</param>
         /// <returns></returns>
-        public SQLBuilder BuildFromPart(SQLBuilder kit, EntityInfo en)
+        public SQLBuilder BuildFromPart(SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
             var exp = kit.Dialect.expression;
             if (en.DType == DBTableType.Table)
             {
-                BuildFromInner(kit, en);
+                BuildFromInner(kit, en, loadName);
                 return kit;
             }
             if (en.DType == DBTableType.Select)
             {
                 //构建from
-                BuildFromInner(kit, en);
+                BuildFromInner(kit, en, loadName);
                 return kit;
 
             }
 
             if (en.DType == DBTableType.View)
             {
-                kit.from(en.DbTableName);
+                kit.from(resolveTableName(en, loadName, null));
                 return kit;
 
             }
@@ -711,7 +724,7 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="en"></param>
         /// <returns></returns>
-        public string PatchSummarySQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en) {
+        public string PatchSummarySQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en, Func<string> loadName = null) {
             if (para.sumFields != null)
             {
 
@@ -721,7 +734,7 @@ namespace mooSQL.data
                 var res = new List<string>();
                 foreach (var ob in para.sumFields)
                 {
-                    var field = this.MatchQueryField(en, ob.field, kit);
+                    var field = this.MatchQueryField(en, ob.field, kit, loadName);
                     if (field == null)
                     {
                         continue;
@@ -750,9 +763,9 @@ namespace mooSQL.data
         /// <param name="para"></param>
         /// <param name="kit"></param>
         /// <param name="en"></param>
-        public void PatchSQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en)
+        public void PatchSQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
-            BuildSelectFrom(kit, en);
+            BuildSelectFrom(kit, en, loadName);
             BeforeBuildWhere(kit, en, QueryAction.QueryList);
 
             para.fireBuildSQL(kit);
@@ -762,7 +775,7 @@ namespace mooSQL.data
                 kit.setPage(para.pageSize.Value, para.pageNum.Value);
             }
             //放入条件部分
-            this.BuildQueryCondition(en, kit, para);
+            this.BuildQueryCondition(en, kit, para, loadName);
 
             //处理排序部分
             var usedOrders = new List<string>();
@@ -774,7 +787,7 @@ namespace mooSQL.data
 
                 foreach (var ob in para.orderBy)
                 {
-                    var field = this.MatchQueryField(en, ob.field, kit);
+                    var field = this.MatchQueryField(en, ob.field, kit, loadName);
                     if (field == null)
                     {
                         continue;
@@ -832,7 +845,7 @@ namespace mooSQL.data
                 }
             }
             //处理汇总  
-            var sumSQL = PatchSummarySQLByQueryPara(para, kit, en);
+            var sumSQL = PatchSummarySQLByQueryPara(para, kit, en, loadName);
             if (!string.IsNullOrWhiteSpace(sumSQL))
             {
                 kit.selectSummary(sumSQL);
@@ -845,7 +858,7 @@ namespace mooSQL.data
         /// <param name="en"></param>
         /// <param name="kit"></param>
         /// <param name="para"></param>
-        public void BuildQueryCondition(EntityInfo en, SQLBuilder kit, QueryPara para)
+        public void BuildQueryCondition(EntityInfo en, SQLBuilder kit, QueryPara para, Func<string> loadName = null)
         {
             if (para.conditions == null)
             {
@@ -856,7 +869,7 @@ namespace mooSQL.data
             var mtb = en.Alias;
             if (string.IsNullOrWhiteSpace(mtb))
             {
-                mtb = parseTableName(en);
+                mtb = resolveTableName(en, loadName, null);
             }
 
             if (para.suckWheres != null)
@@ -892,7 +905,7 @@ namespace mooSQL.data
                     }
 
                     //特殊处理，字段名必须在查询实体的字段中，否则忽略
-                    this.PatchConditionWhere(cond, en, kit);
+                    this.PatchConditionWhere(cond, en, kit, loadName);
 
                     //处理右开关符
                     if (cond.rise == true)
@@ -986,7 +999,7 @@ namespace mooSQL.data
         /// <param name="en"></param>
         /// <param name="kit"></param>
         /// <returns></returns>
-        public int PatchConditionWhere(QueryCondition cond, EntityInfo en, SQLBuilder kit)
+        public int PatchConditionWhere(QueryCondition cond, EntityInfo en, SQLBuilder kit, Func<string> loadName = null)
         {
             var cc = 0;
             var simpleOps = new List<string> {
@@ -1005,7 +1018,7 @@ namespace mooSQL.data
             {
                 return cc;
             }
-            var field = MatchQueryField(en, cond.field,kit);
+            var field = MatchQueryField(en, cond.field,kit, loadName);
             if (field == null) { return cc; }
 
             //解析子条件范围参数
@@ -1137,12 +1150,12 @@ namespace mooSQL.data
             return cc;
         }
 
-        public string MatchQueryField(EntityInfo en, string field,SQLBuilder kit)
+        public string MatchQueryField(EntityInfo en, string field,SQLBuilder kit, Func<string> loadName = null)
         {
             var mtb = en.Alias;
             if (string.IsNullOrWhiteSpace(mtb))
             {
-                mtb = parseTableName(en);
+                mtb = resolveTableName(en, loadName, null);
             }
             foreach (var x in en.Columns)
             {

@@ -16,7 +16,7 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="PK"></param>
         /// <exception cref="NotSupportedException"></exception>
-        public void BuildPKFromWhere<T>(SQLBuilder kit, object PK) {
+        public void BuildPKFromWhere<T>(SQLBuilder kit, object PK, Func<string> loadName = null) {
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             var pks = en.GetPK();
             if (pks.Count != 1)
@@ -24,7 +24,7 @@ namespace mooSQL.data
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
             var pk = pks[0];
-            this.BuildFromPart(kit, en);
+            this.BuildFromPart(kit, en, loadName);
             this.BeforeBuildWhere(kit, en, QueryAction.QueryOne);
             var pkname = pk.DbColumnName;
             if (!string.IsNullOrWhiteSpace(en.Alias))
