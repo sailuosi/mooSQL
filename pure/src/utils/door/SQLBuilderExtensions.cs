@@ -150,10 +150,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int insert<T>(this SQLBuilder kit, T entity) {
+        public static int insert<T>(this SQLBuilder kit, T entity,string tbname=null) {
             var builder = kit.useSQL();
-            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T),null, tryTableNameLoader(tbname));
             if (res.Status) {
                 return builder.doInsert();
             }
@@ -182,11 +183,12 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int insertByType(this SQLBuilder kit, object entity,Type EntityType)
+        public static int insertByType(this SQLBuilder kit, object entity,Type EntityType, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res = builder.Client.Translator.prepareInsert(builder, entity, EntityType);
+            var res = builder.Client.Translator.prepareInsert(builder, entity, EntityType, null, tryTableNameLoader(tbname));
             if (res.Status)
             {
                 return builder.doInsert();
@@ -200,11 +202,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static SQLCmd toInsert<T>(this SQLBuilder kit, T entity)
+        public static SQLCmd toInsert<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareInsert(builder, entity,typeof(T), null, tryTableNameLoader(tbname));
             if (res.Status)
                 return builder.toInsert();
             builder.Client.Loggor.LogError(res.Message);
@@ -217,11 +220,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int update<T>(this SQLBuilder kit, T entity)
+        public static int update<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res= builder.Client.Translator.prepareUpdate(builder, entity,typeof(T));
+            var res= builder.Client.Translator.prepareUpdate(builder, entity,typeof(T), null, tryTableNameLoader(tbname));
             if (res.Status) {
                 return builder.doUpdate();
             }
@@ -234,11 +238,12 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int updateByType(this SQLBuilder kit, object entity,Type EntityType)
+        public static int updateByType(this SQLBuilder kit, object entity,Type EntityType, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res = builder.Client.Translator.prepareUpdate(builder, entity,EntityType);
+            var res = builder.Client.Translator.prepareUpdate(builder, entity,EntityType, null, tryTableNameLoader(tbname));
             if (res.Status)
             {
                 return builder.doUpdate();
@@ -252,11 +257,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static SQLCmd toUpdate<T>(this SQLBuilder kit, T entity)
+        public static SQLCmd toUpdate<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res= builder.Client.Translator. prepareUpdate(builder, entity,typeof(T));
+            var res= builder.Client.Translator. prepareUpdate(builder, entity,typeof(T), null, tryTableNameLoader(tbname));
             if (res.Status)
             {
                 return builder.toUpdate();
@@ -272,11 +278,12 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="Name">作为更新条件的字段名。</param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int updateBy<T>(this SQLBuilder kit, T entity,string Name)
+        public static int updateBy<T>(this SQLBuilder kit, T entity,string Name, string tbname = null)
         {
             var builder = kit.useSQL();
-            return builder.Client.Translator.updateByFieild(builder, entity, Name);
+            return builder.Client.Translator.updateByFieild(builder, entity, Name, tryTableNameLoader(tbname));
         }
         /// <summary>
         /// 按照指定的实体属性更新，独立执行环境，不干扰调用者环境
@@ -286,13 +293,14 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="updateKey"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int updateBy<T,R>(this SQLBuilder kit, T entity, Expression<Func<T,R>> updateKey)
+        public static int updateBy<T,R>(this SQLBuilder kit, T entity, Expression<Func<T,R>> updateKey, string tbname = null)
         {
             var builder = kit.useSQL();
             var name = loadMemberName(updateKey.Body);
 
-            return builder.Client.Translator.updateByFieild(builder, entity, name);
+            return builder.Client.Translator.updateByFieild(builder, entity, name, tryTableNameLoader(tbname));
         }
 
 
@@ -304,6 +312,13 @@ namespace mooSQL.data
             }
             return null;
         }
+
+        private static Func<string> tryTableNameLoader(string tbname)
+        {
+            if (!tbname.HasText())
+                return null;
+            return () => tbname;
+        }
         /// <summary>
         /// 按照指定的属性名，执行保存。独立执行环境，不干扰调用者环境
         /// </summary>
@@ -311,8 +326,9 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="Name"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int saveBy<T>(this SQLBuilder kit, T entity, string Name)
+        public static int saveBy<T>(this SQLBuilder kit, T entity, string Name, string tbname = null)
         {
             var builder = kit.useSQL();
             var cash = builder.DBLive.client.EntityCash;
@@ -322,13 +338,14 @@ namespace mooSQL.data
             if (val == null) { 
                 throw new Exception("实体的属性对应数据库字段信息未找到！");
             }
-            var has= builder.checkExistKey(field.DbColumnName,val,field.DbTableName);
+            var existTable = tbname.HasText() ? tbname : field.DbTableName;
+            var has= builder.checkExistKey(field.DbColumnName,val, existTable);
             if (has)
             {
-                return builder.Client.Translator.updateByFieild(builder, entity, Name);
+                return builder.Client.Translator.updateByFieild(builder, entity, Name, tryTableNameLoader(tbname));
             }
             else {
-                return insert(builder, entity);
+                return insert(builder, entity, tbname);
             }
 
         }
@@ -340,13 +357,14 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="updateKey"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int saveBy<T, R>(this SQLBuilder builder, T entity, Expression<Func<T, R>> updateKey)
+        public static int saveBy<T, R>(this SQLBuilder builder, T entity, Expression<Func<T, R>> updateKey, string tbname = null)
         {
 
             var name = loadMemberName(updateKey.Body);
 
-            return saveBy(builder, entity, name);
+            return saveBy(builder, entity, name, tbname);
         }
 
         /// <summary>
@@ -355,12 +373,13 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int save<T>(this SQLBuilder builder, T entity) {
+        public static int save<T>(this SQLBuilder builder, T entity, string tbname = null) {
             //增加兼容性判定，如果传入的是列表，则内部转为列表的调用
             //IEnumerable<T>
 
-            var cmd = toSave(builder, entity);
+            var cmd = toSave(builder, entity, tbname);
             if (cmd != null) { 
                 return builder.exeNonQuery(cmd);
             }
@@ -374,8 +393,9 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <exception cref="Exception"></exception>
-        public static SQLCmd toSave<T>(this SQLBuilder builder, T entity)
+        public static SQLCmd toSave<T>(this SQLBuilder builder, T entity, string tbname = null)
         {
             if (entity == null) {
                 return null;
@@ -396,21 +416,21 @@ namespace mooSQL.data
             {
                 if (pk.PropertyInfo.GetValue(entity) == null)
                 {
-                    return toInsert(builder, entity);
+                    return toInsert(builder, entity, tbname);
                 }
             }
             //检查是否存在
             var ck = builder.DBLive.useSQL();
-            ck.from(en.DbTableName);
+            ck.from(tbname.HasText() ? tbname : en.DbTableName);
             builder.Client.Translator.setPKWhere(ck, entity, en);
             var cc = ck.count();
             if (cc > 0 && en.Updatable != false)
             {
-                return toUpdate(builder, entity);
+                return toUpdate(builder, entity, tbname);
             }
             else if(en.Insertable !=false)
             {
-                return toInsert(builder, entity);
+                return toInsert(builder, entity, tbname);
             }
             return null;
         }
@@ -420,9 +440,10 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static List<SQLCmd> toSaveList<T>(this SQLBuilder builder,IEnumerable<T> entity)
+        public static List<SQLCmd> toSaveList<T>(this SQLBuilder builder,IEnumerable<T> entity, string tbname = null)
         {
             var cmds= new List<SQLCmd>();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
@@ -434,7 +455,7 @@ namespace mooSQL.data
             
             //检查是否存在
             var ck = builder.DBLive.useSQL();
-            builder.Client.Translator.BuildFromPart(builder, en);
+            builder.Client.Translator.BuildFromPart(builder, en, tryTableNameLoader(tbname));
             var pks = en.GetPK();
             foreach (var pk in pks) {
                 builder.select(pk.DbColumnName);
@@ -444,7 +465,7 @@ namespace mooSQL.data
             if (oldDt.Rows.Count == 0 && en.Insertable != false)
             {
                 foreach (var row in entity) { 
-                    cmds.Add(toInsert(builder, row));
+                    cmds.Add(toInsert(builder, row, tbname));
                 }
                 return cmds;
             }
@@ -458,11 +479,11 @@ namespace mooSQL.data
                 var shcond = string.Join(" and ", sh);
                 var rows = oldDt.Select(shcond);
                 if (rows.Length > 0 && en.Updatable !=false) {
-                    cmds.Add(toUpdate(builder, en));
+                    cmds.Add(toUpdate(builder, row, tbname));
                 }
                 else if (rows.Length == 0 && en.Insertable != false)
                 {
-                    cmds.Add(toInsert(builder, en));
+                    cmds.Add(toInsert(builder, row, tbname));
                 }
             }
  
@@ -475,9 +496,10 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int saveList<T>(this SQLBuilder builder, IEnumerable<T> entity) {
-            var cmds = toSaveList(builder, entity);
+        public static int saveList<T>(this SQLBuilder builder, IEnumerable<T> entity, string tbname = null) {
+            var cmds = toSaveList(builder, entity, tbname);
             if (cmds.Count > 0) {
                 return builder.exeNonQuery(cmds);
             }
@@ -491,12 +513,13 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static int delete<T>(this SQLBuilder kit, T entity)
+        public static int delete<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
             var builder = kit.useSQL();
-            builder.Client.Translator.prepareDelete<T>(builder, entity);
+            builder.Client.Translator.prepareDelete<T>(builder, entity, null, tryTableNameLoader(tbname));
             return builder.doDelete();
         }
         /// <summary>
@@ -505,11 +528,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entity"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static SQLCmd toDelete<T>(this SQLBuilder kit, T entity)
+        public static SQLCmd toDelete<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
             var builder = kit.useSQL();
-            builder.Client.Translator.prepareDelete<T>(builder, entity);
+            builder.Client.Translator.prepareDelete<T>(builder, entity, null, tryTableNameLoader(tbname));
             return builder.toDelete();
         }
         /// <summary>
@@ -518,11 +542,12 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="type"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static SQLCmd toDeleteByType(this SQLBuilder kit, object entity,Type type)
+        public static SQLCmd toDeleteByType(this SQLBuilder kit, object entity,Type type, string tbname = null)
         {
             var builder = kit.useSQL();
-            builder.Client.Translator.prepareDelete(builder, entity,type);
+            builder.Client.Translator.prepareDelete(builder, entity,type, tryTableNameLoader(tbname));
             return builder.toDelete();
         }
         /// <summary>
@@ -531,11 +556,12 @@ namespace mooSQL.data
         /// <param name="kit"></param>
         /// <param name="entity"></param>
         /// <param name="type"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int deleteByType(this SQLBuilder kit, object entity, Type type)
+        public static int deleteByType(this SQLBuilder kit, object entity, Type type, string tbname = null)
         {
             var builder = kit.useSQL();
-            builder.Client.Translator.prepareDelete(builder, entity, type);
+            builder.Client.Translator.prepareDelete(builder, entity, type, tryTableNameLoader(tbname));
             return builder.doDelete();
         }
         /// <summary>
@@ -544,13 +570,15 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entitys"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static List<SQLCmd> toDelete<T>(this SQLBuilder kit, IEnumerable<T> entitys)
+        public static List<SQLCmd> toDelete<T>(this SQLBuilder kit, IEnumerable<T> entitys, string tbname = null)
         {
             var builder = kit.useSQL();
             var res= new List<SQLCmd>();
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
+            var table = tbname.HasText() ? tbname : en.DbTableName;
 
             bool gotWhere = false;
             var pks = en.GetPK();
@@ -560,7 +588,7 @@ namespace mooSQL.data
             }
             if (pks.Count == 1)
             {
-                builder.setTable(en.DbTableName);
+                builder.setTable(table);
                 var pk = pks[0];
                 var ids = new List<Object>();
                 foreach (var row in entitys)
@@ -582,7 +610,7 @@ namespace mooSQL.data
                 var ids = new List<Object>();
                 foreach (var row in entitys)
                 {
-                    builder.clear().setTable(en.DbTableName);
+                    builder.clear().setTable(table);
                     int kcc = 0;
                     foreach (var k in pks)
                     {
@@ -610,14 +638,15 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <param name="entitys"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static int delete<T>(this SQLBuilder kit, IEnumerable<T> entitys)
+        public static int delete<T>(this SQLBuilder kit, IEnumerable<T> entitys, string tbname = null)
         {
             var builder = kit.useSQL();
             //联合主键的情况
             var bsql = builder.Client.ClientFactory.useBatchSQL(builder.DBLive);
-            var sql=toDelete(builder, entitys);
+            var sql=toDelete(builder, entitys, tbname);
             bsql.addSQLs(sql);
             return bsql.exeNonQuery();
 
@@ -653,12 +682,13 @@ namespace mooSQL.data
         /// <summary>
         /// 查询全部数据
         /// </summary>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static List<T> findList<T>(this SQLBuilder builder)
+        public static List<T> findList<T>(this SQLBuilder builder, string tbname = null)
         {
             var kit = builder.useSQL();
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
-            builder.Client.Translator.BuildSelectFrom(kit, en);
+            builder.Client.Translator.BuildSelectFrom(kit, en, tryTableNameLoader(tbname));
             builder.Client.Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
             var tow = kit.query<T>();
             return tow.ToList();
@@ -668,12 +698,13 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="builder">查询构造器。</param>
         /// <param name="top">最大行数。</param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static List<T> findList<T>(this SQLBuilder builder,int top)
+        public static List<T> findList<T>(this SQLBuilder builder,int top, string tbname = null)
         {
             var kit = builder.useSQL();
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
-            builder.Client.Translator.BuildSelectFrom(kit, en);
+            builder.Client.Translator.BuildSelectFrom(kit, en, tryTableNameLoader(tbname));
             builder.Client.Translator.BeforeBuildWhere(kit, en, QueryAction.QueryList);
             var tow = kit.top(top)
                 .query<T>();
@@ -912,12 +943,13 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="PK"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static bool findIsExist<T>(this SQLBuilder builder, object PK) 
+        public static bool findIsExist<T>(this SQLBuilder builder, object PK, string tbname = null) 
         {
             var kit = builder.useSQL();
-            kit.Client.Translator.BuildPKFromWhere<T>(kit, PK);
+            kit.Client.Translator.BuildPKFromWhere<T>(kit, PK, tryTableNameLoader(tbname));
             var tow = kit.count();
             return tow > 0;
         }
@@ -1079,22 +1111,24 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <param name="ids"></param>
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
-        public static int removeByIds<T>(this SQLBuilder builder, IEnumerable ids) where T : class, new()
+        public static int removeByIds<T>(this SQLBuilder builder, IEnumerable ids, string tbname = null) where T : class, new()
         {
             var b = builder.useSQL();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
-            builder.Client.Translator.prepareDelete(b, en,ids);
+            builder.Client.Translator.prepareDelete(b, en,ids, tryTableNameLoader(tbname));
             return b.doDelete();
         }
         /// <summary>
         /// 按主键单条删除。
         /// </summary>
-        public static int removeById<T>(this SQLBuilder builder, object id) where T : class, new()
+        /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
+        public static int removeById<T>(this SQLBuilder builder, object id, string tbname = null) where T : class, new()
         {
             var b = builder.useSQL();
             var en = builder.Client.EntityCash.getEntityInfo<T>();
-            builder.Client.Translator.prepareDeleteById(b, en, id);
+            builder.Client.Translator.prepareDeleteById(b, en, id, tryTableNameLoader(tbname));
             return b.doDelete();
         }
         /// <summary>
