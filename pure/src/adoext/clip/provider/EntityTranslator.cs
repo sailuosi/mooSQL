@@ -95,7 +95,7 @@ namespace mooSQL.data
         /// <param name="EntityType"></param>
         /// <param name="en"></param>
         /// <returns></returns>
-        public StatusResult prepareInsert(SQLBuilder builder, object entity, Type EntityType,EntityInfo en=null)
+        public StatusResult prepareInsert(SQLBuilder builder, object entity, Type EntityType,EntityInfo en=null,Func<string> loadName=null)
         {
             if (entity == null)
             {
@@ -112,8 +112,18 @@ namespace mooSQL.data
             if (this._onBeforeInsertEntity != null) { 
                 this._onBeforeInsertEntity(builder, entity,EntityType, en);
             }
-
-            builder.setTable(parseTableName(en,entity));
+            string tbname = string.Empty;
+            if (loadName != null)
+            {
+                tbname = loadName();
+            }
+            else {
+                tbname = parseTableName(en, entity);
+            }
+            if (tbname.HasText()) {
+                builder.setTable(tbname);
+            }
+            
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
@@ -162,7 +172,7 @@ namespace mooSQL.data
         /// <param name="EntityType"></param>
         /// <param name="en"></param>
         /// <returns></returns>
-        public StatusResult prepareUpdate(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null)
+        public StatusResult prepareUpdate(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null,Func<string> loadName=null)
         {
             if (entity == null)
             {
@@ -185,7 +195,19 @@ namespace mooSQL.data
                 return new StatusResult(false, "实体类未标记对应的数据库表！");
             }
 
-            builder.setTable(parseTableName(en,entity));
+            string tbname = string.Empty;
+            if (loadName != null)
+            {
+                tbname = loadName();
+            }
+            else
+            {
+                tbname = parseTableName(en, entity);
+            }
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+            }
             bool gotWhere = false;
             foreach (var col in en.Columns)
             {
