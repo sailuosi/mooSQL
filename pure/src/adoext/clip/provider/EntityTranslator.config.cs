@@ -42,6 +42,26 @@ namespace mooSQL.data
             this._onBeforeInsertEntity += act;
             return this;
         }
+        /// <summary>
+        /// 字段值插入时刻
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnInsertField(Func<SQLBuilder,string, object,  EntityInfo,bool> act)
+        {
+            this._onInsertField += act;
+            return this;
+        }
+        /// <summary>
+        /// 字段值的更新时刻
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnUpdateField(Func<SQLBuilder, string, object, EntityInfo, bool> act)
+        {
+            this._onUpdateField += act;
+            return this;
+        }
 
         /// <summary>
         /// 注册插入实体后的处理事件

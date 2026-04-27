@@ -24,9 +24,11 @@ namespace mooSQL.data
         private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromPart;
 
         private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeInsertEntity;
+        private event Func<SQLBuilder,string,object,  EntityInfo,bool> _onInsertField;
         private event Action<SQLBuilder, object, Type, EntityInfo> _onReadyInsertEntity;
 
         private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeUpdateEntity;
+        private event Func<SQLBuilder, string, object , EntityInfo,bool> _onUpdateField;
         private event Action<SQLBuilder, object, Type, EntityInfo> _onReadyUpdateEntity;
 
         private event Action<SQLBuilder, object, Type, EntityInfo> _onBeforeDeleteEntity;
@@ -144,7 +146,16 @@ namespace mooSQL.data
                 if (CheckEdition(builder.DBLive,col)==false) {
                     continue;
                 }
-                builder.set(col.DbColumnName, col.PropertyInfo.GetValue(entity));
+                //如果自定义了字段的设置动作，并返回true,不再执行
+                var val = col.PropertyInfo.GetValue(entity);
+                bool seted = false;
+                if (this._onInsertField != null) {
+                    seted = this._onInsertField(builder, col.DbColumnName, val, en);
+                }
+                if (seted == false) {
+                    builder.set(col.DbColumnName, val);
+                }
+                
             }
             if (this._onReadyInsertEntity != null)
             {
@@ -236,7 +247,17 @@ namespace mooSQL.data
                     continue;
                 }
 
-                builder.set(col.DbColumnName, val);
+                //如果自定义了字段的设置动作，并返回true,不再执行
+                bool seted = false;
+                if (this._onUpdateField != null)
+                {
+                    seted = this._onUpdateField(builder, col.DbColumnName, val, en);
+                }
+                if (seted == false)
+                {
+                    builder.set(col.DbColumnName, val);
+                }
+
             }
             if (this._onReadyUpdateEntity != null)
             {
