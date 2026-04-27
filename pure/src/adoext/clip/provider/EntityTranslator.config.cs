@@ -282,5 +282,22 @@ namespace mooSQL.data
             this._onBuildFromPart = act;
             return this;
         }
+
+        private object loadPKValue(EntityColumn col) {
+            if (this._onLoadPKValue != null) {
+                return _onLoadPKValue(col);
+            }
+            return null;
+        }
+        /// <summary>
+        /// 注册主键的加载逻辑
+        /// </summary>
+        /// <param name="act"></param>
+        /// <returns></returns>
+        public EntityTranslator OnLoadPKValue(Func<EntityColumn, object> act)
+        {
+            this._onLoadPKValue = act;
+            return this;
+        }
     }
 }

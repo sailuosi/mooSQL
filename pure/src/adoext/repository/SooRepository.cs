@@ -800,10 +800,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public bool Insert(T insertObj)
         {
-            OnBeforeSave(insertObj);
             var kit = getKit();
-            var res = kit.insert(insertObj);
-            OnAfterSave(insertObj,res);
+            var res = insertInner(insertObj,kit);
             return res>0;
         }
         /// <summary>
@@ -816,14 +814,11 @@ namespace mooSQL.data
             var kit = getKit();
             var cc = 0;
             foreach (var obj in insertObjs) {
-                OnBeforeSave(obj);
-                var c= kit.clear().insert(obj);
-                OnAfterSave(obj,cc);
+                var c= insertInner(obj, kit);
                 if (c > 0) {
                     //执行失败的返回为-1，不能直接累计
                     cc += c;
                 }
-                
             }
             
             return cc ;
@@ -835,10 +830,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public bool Update(T updateObj)
         {
-            OnBeforeSave(updateObj);
             var kit = getKit();
-            var res = kit.update(updateObj);
-            OnAfterSave(updateObj,res);
+            var res = updateInner(updateObj, kit);
             return res > 0;
         }
         /// <summary>
@@ -852,9 +845,7 @@ namespace mooSQL.data
             var cc = 0;
             foreach (var obj in updateObjs)
             {
-                OnBeforeSave(obj);
-                var c= kit.clear().update(obj);
-                OnAfterSave(obj,cc);
+                var c= updateInner(obj,kit);
                 if (c > 0) {
                     //执行失败的返回为-1，不能直接累计
                     cc += c;
@@ -874,9 +865,7 @@ namespace mooSQL.data
             var cc = 0;
             foreach (var obj in updateObjs)
             {
-                OnBeforeSave(obj);
-                var c = kit.clear().update(obj);
-                OnAfterSave(obj,cc);
+                var c = updateInner(obj, kit);
                 if (c > 0) {
                     //执行失败的返回为-1，不能直接累计
                     cc += c;
@@ -907,10 +896,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public bool Save(T updateObj)
         {
-            OnBeforeSave(updateObj);
             var kit = getKit();
-            var res = kit.save(updateObj);
-            OnAfterSave(updateObj,res);
+            var res = SaveInner(updateObj,kit);
             return res > 0;
         }
         /// <summary>
@@ -924,9 +911,7 @@ namespace mooSQL.data
             var cc = 0;
             foreach (var obj in updateObjs)
             {
-                OnBeforeSave(obj);
-                var c= kit.clear().save(obj);
-                OnAfterSave(obj,c);
+                var c= SaveInner(obj,kit);
                 if (c > 0) {
                     //执行失败的返回为-1，不能直接累计
                     cc += c;

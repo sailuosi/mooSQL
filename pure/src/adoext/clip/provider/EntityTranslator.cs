@@ -20,6 +20,8 @@ namespace mooSQL.data
 
         private Func<EntityInfo,string> _onParseTableName;
 
+        private Func<EntityColumn, object> _onLoadPKValue;
+
         private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromTable;
         private Action<SQLBuilder, EntityInfo, EntityTranslator> _onBuildFromPart;
 
@@ -148,6 +150,9 @@ namespace mooSQL.data
                 }
                 //如果自定义了字段的设置动作，并返回true,不再执行
                 var val = col.PropertyInfo.GetValue(entity);
+                if (col.IsPrimarykey && val == null ) {
+                    val = this.loadPKValue(col);
+                }
                 bool seted = false;
                 if (this._onInsertField != null) {
                     seted = this._onInsertField(builder, col.DbColumnName, val, en);
