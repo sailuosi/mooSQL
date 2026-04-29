@@ -78,7 +78,7 @@ namespace mooSQL.data
         public List<string> Editions
         {
             get {
-                if (this.Editions != null) { 
+                if (this.Edition != null) { 
                     var tar=this.Edition.Split(',');
                     return tar.ToList();
                 }
@@ -172,5 +172,10 @@ namespace mooSQL.data
         /// 外键字段
         /// </summary>
         public string thatField { get; set; }
+
+        public override string ToString()
+        {
+            return this.DbColumnName;
+        }
     }
 }
