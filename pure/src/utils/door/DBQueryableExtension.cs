@@ -83,6 +83,17 @@ namespace mooSQL.data
             return DB.client.ClientFactory.useRepo<T>(DB);
         }
         /// <summary>
+        /// 带主键版本的仓储
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="K"></typeparam>
+        /// <param name="DB"></param>
+        /// <returns></returns>
+        public static SooRepository<T,K> useRepo<T,K>(this DBInstance DB) where T : class, new()
+        {
+            return DB.client.ClientFactory.useRepo<T,K>(DB);
+        }
+        /// <summary>
         /// 获取一个工作单元
         /// </summary>
         /// <param name="DB"></param>

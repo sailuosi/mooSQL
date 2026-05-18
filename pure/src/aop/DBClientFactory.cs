@@ -52,6 +52,11 @@ namespace mooSQL.data
             var t = new SooRepository<T>(DB);
             return t;
         }
+        public virtual SooRepository<T,K> useRepo<T,K>(DBInstance DB) where T : class, new()
+        {
+            var t = new SooRepository<T,K>(DB);
+            return t;
+        }
         /// <summary>
         /// 创建SooUnitOfWork对象。
         /// </summary>

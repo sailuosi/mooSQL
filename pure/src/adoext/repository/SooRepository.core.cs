@@ -31,7 +31,7 @@ namespace mooSQL.data
         }
         //var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
 
-        private int insertInner(T entity,SQLBuilder kit)
+        protected int insertInner(T entity,SQLBuilder kit)
         {
             int cc = 0;
             OnBeforeSave(entity);
@@ -40,12 +40,13 @@ namespace mooSQL.data
             {
                 cc= kit.doInsert();
                 OnAfterSave(entity, cc);
+                return cc;
             }
             kit.Client.Loggor.LogError(res.Message);
             cc = -1;
             return cc;
         }
-        private int updateInner(T entity, SQLBuilder kit)
+        protected int updateInner(T entity, SQLBuilder kit)
         {
             int cc = 0;
             OnBeforeSave(entity);
@@ -54,12 +55,13 @@ namespace mooSQL.data
             {
                 cc = kit.doUpdate();
                 OnAfterSave(entity, cc);
+                return cc;
             }
             kit.Client.Loggor.LogError(res.Message);
             cc = -1;
             return cc;
         }
-        private int SaveInner( T entity, SQLBuilder builder)
+        protected int SaveInner( T entity, SQLBuilder builder)
         {
             if (entity == null)
             {
@@ -100,7 +102,7 @@ namespace mooSQL.data
             }
             return 0;
         }
-        private static Func<string> tryTableNameLoader(string tbname)
+        protected static Func<string> tryTableNameLoader(string tbname)
         {
             if (!tbname.HasText())
                 return null;
