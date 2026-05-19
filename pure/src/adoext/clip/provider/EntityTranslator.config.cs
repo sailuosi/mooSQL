@@ -283,7 +283,7 @@ namespace mooSQL.data
             return this;
         }
 
-        private object loadPKValue(EntityColumn col) {
+        protected virtual object loadPKValue(EntityColumn col) {
             if (this._onLoadPKValue != null) {
                 return _onLoadPKValue(col);
             }

@@ -74,8 +74,13 @@ namespace mooSQL.data
             }
             return en.DbTableName;
         }
-
-        private string parseTableName(EntityInfo en,object row)
+        /// <summary>
+        /// 表名的解析
+        /// </summary>
+        /// <param name="en"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        protected virtual string parseTableName(EntityInfo en,object row)
         {
             if (this._onParseTableName != null)
             {
@@ -100,7 +105,7 @@ namespace mooSQL.data
         {
             if (loadName != null)
                 return loadName() ?? string.Empty;
-            return row != null ? parseTableName(en, row) : parseTableName(en);
+            return parseTableName(en, row);
         }
         /// <summary>
         /// 构建插入语句  
@@ -124,12 +129,14 @@ namespace mooSQL.data
             {
                 return new StatusResult(false, "实体类未标记为可插入！");
             }
-            if (this._onBeforeInsertEntity != null) { 
-                this._onBeforeInsertEntity(builder, entity,EntityType, en);
-            }
-            string tbname = resolveTableName(en, loadName, entity);
-            if (tbname.HasText()) {
-                builder.setTable(tbname);
+
+            //触发插入解析前钩子
+            this.fireBeforeInsert(builder, entity,EntityType, en);
+            
+
+            var setTableName = this.setSaveTable(builder, entity, en, loadName);
+            if (!setTableName) {
+                return new StatusResult(false, "实体类表名解析失败！无法创建插入语句。");
             }
             
             foreach (var col in en.Columns)
@@ -153,23 +160,55 @@ namespace mooSQL.data
                 if (col.IsPrimarykey && val == null ) {
                     val = this.loadPKValue(col);
                 }
-                bool seted = false;
-                if (this._onInsertField != null) {
-                    seted = this._onInsertField(builder, col.DbColumnName, val, en);
-                }
-                if (seted == false) {
-                    builder.set(col.DbColumnName, val);
-                }
-                
+                setInsertFieldValue(builder, col, val,en);
             }
-            if (this._onReadyInsertEntity != null)
-            {
-                this._onReadyInsertEntity(builder, entity, EntityType, en);
-            }
+
+            //触发插入解析后钩子
+            this.fireReadyInsert(builder, entity, EntityType, en);
             return new StatusResult(true, "");
         }
-
-        private bool CheckEdition(DBInstance DB, EntityColumn col) {
+        /// <summary>
+        /// 设置插入字段值逻辑
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="col"></param>
+        /// <param name="val"></param>
+        /// <param name="en"></param>
+        protected virtual void setInsertFieldValue(SQLBuilder kit, EntityColumn col, object val, EntityInfo en) {
+            bool seted = false;
+            if (this._onInsertField != null)
+            {
+                seted = this.fireInsertField(kit, col.DbColumnName, val, en);
+            }
+            if (seted == false)
+            {
+                kit.set(col.DbColumnName, val);
+            }
+        }
+        /// <summary>
+        /// 设置增删改的目标数据库表名解析部分
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="en"></param>
+        /// <param name="loadName"></param>
+        /// <returns></returns>
+        protected virtual bool setSaveTable(SQLBuilder builder, object entity, EntityInfo en = null, Func<string> loadName = null){
+            string tbname = resolveTableName(en, loadName, entity);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// 检查是否允许修改字段
+        /// </summary>
+        /// <param name="DB"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        protected virtual bool CheckEdition(DBInstance DB, EntityColumn col) {
             if (DB.config.edition.HasText() == false)
             {//连接位未配置版本，视为通过
                 return true;
@@ -205,20 +244,19 @@ namespace mooSQL.data
             if (en.Updatable == false)
                 return new StatusResult(false, "实体类未标记为可更新！");
 
-            if (this._onBeforeUpdateEntity != null)
-            {
-                this._onBeforeUpdateEntity(builder, entity, EntityType, en);
-            }
+            //触发更新解析前钩子
+            this.fireBeforeUpdate(builder, entity, EntityType, en);
 
-            if (string.IsNullOrWhiteSpace(en.DbTableName))
-            {
-                return new StatusResult(false, "实体类未标记对应的数据库表！");
-            }
+            //if (string.IsNullOrWhiteSpace(en.DbTableName))
+            //{
+            //    return new StatusResult(false, "实体类未标记对应的数据库表！");
+            //}
 
+            var str= setSaveTable(builder,entity,en,loadName);
             string tbname = resolveTableName(en, loadName, entity);
-            if (tbname.HasText())
+            if (str==false)
             {
-                builder.setTable(tbname);
+                return new StatusResult(false, "实体类无法确定目标写入表！");
             }
             bool gotWhere = false;
             foreach (var col in en.Columns)
@@ -253,21 +291,10 @@ namespace mooSQL.data
                 }
 
                 //如果自定义了字段的设置动作，并返回true,不再执行
-                bool seted = false;
-                if (this._onUpdateField != null)
-                {
-                    seted = this._onUpdateField(builder, col.DbColumnName, val, en);
-                }
-                if (seted == false)
-                {
-                    builder.set(col.DbColumnName, val);
-                }
-
+                setUpdateFieldValue(builder, col, val,en);
             }
-            if (this._onReadyUpdateEntity != null)
-            {
-                this._onReadyUpdateEntity(builder, entity, EntityType, en);
-            }
+            //触发更新解析后钩子
+            this.fireReadyUpdate(builder, entity, EntityType, en);
             if (gotWhere == false && builder.ConditionCount == 0)
             {
                 return new StatusResult(false, "无法更新！未找到主键或者where条件未定义！");
@@ -276,13 +303,32 @@ namespace mooSQL.data
             return new StatusResult(true, "");
         }
         /// <summary>
+        /// 设置update语句的字段解析逻辑
+        /// </summary>
+        /// <param name="kit"></param>
+        /// <param name="col"></param>
+        /// <param name="val"></param>
+        /// <param name="en"></param>
+        protected virtual void setUpdateFieldValue(SQLBuilder kit, EntityColumn col, object val, EntityInfo en)
+        {
+            bool seted = false;
+            if (this._onUpdateField != null)
+            {
+                seted = this.fireUpdateField(kit, col.DbColumnName, val, en);
+            }
+            if (seted == false)
+            {
+                kit.set(col.DbColumnName, val);
+            }
+        }
+        /// <summary>
         /// 设置主键条件
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="en"></param>
         /// <exception cref="Exception"></exception>
-        public  void setPKWhere(SQLBuilder builder, object entity, EntityInfo en)
+        public virtual void setPKWhere(SQLBuilder builder, object entity, EntityInfo en)
         {
             bool gotWhere = false;
             var pks = en.GetPK();
@@ -307,7 +353,7 @@ namespace mooSQL.data
         /// <param name="entitys"></param>
         /// <param name="en"></param>
         /// <exception cref="Exception"></exception>
-        public void setPKWhere(SQLBuilder builder, IEnumerable<object> entitys, EntityInfo en)
+        public virtual void setPKWhere(SQLBuilder builder, IEnumerable<object> entitys, EntityInfo en)
         {
             bool gotWhere = false;
             var pks = en.GetPK();
@@ -390,20 +436,16 @@ namespace mooSQL.data
                 return;
             }
             var en = builder.DBLive.client.EntityCash.getEntityInfo(type);
-            if (this._onBeforeDeleteEntity != null)
-            {
-                this._onBeforeDeleteEntity(builder, entity, type, en);
-            }
+            //触发删除解析前钩子
+            this.fireBeforeDelete(builder, entity, type, en);
             string tbname = resolveTableName(en, loadName, entity);
             if (tbname.HasText())
             {
                 builder.setTable(tbname);
             }
             setPKWhere(builder, entity, en);
-            if (this._onReadyDeleteEntity != null)
-            {
-                this._onReadyDeleteEntity(builder, entity, type, en);
-            }
+            //触发删除解析后钩子
+            this.fireReadyDelete(builder, entity, type, en);
         }
         /// <summary>
         /// 准备删除
@@ -416,10 +458,8 @@ namespace mooSQL.data
             if (ids == null) {
                 return;
             }
-            if (this._onBeforeDeleteEntity != null)
-            {
-                this._onBeforeDeleteEntity(builder, ids, en.Type, en);
-            }
+            //触发删除解析前钩子
+            this.fireBeforeDelete(builder, ids, en.Type, en);
             var pks = en.GetPK();
             if (pks.Count != 1)
             {
@@ -433,39 +473,42 @@ namespace mooSQL.data
             }
             builder.whereIn(pk.DbColumnName, ids);
 
-            if (this._onReadyDeleteEntity != null)
-            {
-                this._onReadyDeleteEntity(builder, ids, en.Type, en);
-            }
+            //触发删除解析后钩子
+            this.fireReadyDelete(builder, ids, en.Type, en);
         }
-
+        /// <summary>
+        /// 按ID删除
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="en"></param>
+        /// <param name="id"></param>
+        /// <param name="loadName"></param>
+        /// <exception cref="NotSupportedException"></exception>
+        /// <exception cref="Exception"></exception>
         public void prepareDeleteById(SQLBuilder builder, EntityInfo en, object id, Func<string> loadName = null)
         {
             if (id == null)
             {
                 return;
             }
-            if (this._onBeforeDeleteEntity != null)
-            {
-                this._onBeforeDeleteEntity(builder, id, en.Type, en);
-            }
+            //触发删除解析前钩子
+            this.fireBeforeDelete(builder, id, en.Type, en);
             var pks = en.GetPK();
             if (pks.Count != 1)
             {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
             var pk = pks[0];
-            string tbname = resolveTableName(en, loadName, null);
-            if (tbname.HasText())
+
+            var str= setSaveTable(builder,id,en,loadName);
+            if (str==false)
             {
-                builder.setTable(tbname);
+                throw new Exception("实体类无法确定目标写入表！");
             }
             builder.where(pk.DbColumnName, id);
 
-            if (this._onReadyDeleteEntity != null)
-            {
-                this._onReadyDeleteEntity(builder, id, en.Type, en);
-            }
+            //触发删除解析后钩子
+            this.fireReadyDelete(builder, id, en.Type, en);
         }
 
 
@@ -484,15 +527,16 @@ namespace mooSQL.data
             if(entity==null) return 0;
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
 
-            if (this._onBeforeUpdateEntity != null) {
-                this._onBeforeUpdateEntity(builder, entity, en.Type, en);
+            //触发更新解析前钩子
+            this.fireBeforeUpdate(builder, entity, en.Type, en);
+
+            //解析表名
+            var str= setSaveTable(builder,entity,en,loadName);
+            if (str==false)
+            {
+                throw new Exception("实体类无法确定目标写入表！");
             }
 
-            string tbname = resolveTableName(en, loadName, entity);
-            if (tbname.HasText())
-            {
-                builder.setTable(tbname);
-            }
             bool gotWhere = false;
             foreach (var col in en.Columns)
             {
@@ -524,12 +568,10 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                builder.set(col.DbColumnName, val);
+                setUpdateFieldValue(builder, col, val, en);
             }
-            if (this._onReadyUpdateEntity != null)
-            {
-                this._onReadyUpdateEntity(builder, entity, en.Type, en);
-            }
+            //触发更新解析后钩子
+            this.fireReadyUpdate(builder, entity, en.Type, en);
             if (gotWhere == false && builder.ConditionCount == 0)
             {
                 throw new Exception("无法更新！未找到指定的实体属性或者where条件未定义！");

@@ -41,14 +41,17 @@ namespace mooSQL.data
         /// <param name="DB"></param>
         public SooRepository(DBInstance DB) { 
             this.DBLive = DB;
-            //if (DBLive.client.Translator != null)
-            //{
-            //    this.Translator = DBLive.client.Translator;
-            //}
-            //else {
-                this.Translator = DBLive.client.ClientFactory.getEntityTranslator();
-            //}
-                
+            this.Translator = DBLive.client.ClientFactory.getEntityTranslator();
+        }
+        /// <summary>
+        /// 增加自定义翻译器的版本
+        /// </summary>
+        /// <param name="DB"></param>
+        /// <param name="translator"></param>
+        public SooRepository(DBInstance DB,EntityTranslator translator)
+        {
+            this.DBLive = DB;
+            this.Translator = translator;
         }
         /// <summary>
         /// 打印SQL语句的回调函数，可用于调试
