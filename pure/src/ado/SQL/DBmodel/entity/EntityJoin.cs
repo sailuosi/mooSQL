@@ -36,5 +36,15 @@ namespace mooSQL.data
         /// 连接的条件，定义时，为on的右侧字段。
         /// </summary>
         public string OnB { get; set; }
+
+        public string UniqueKey
+        {
+            get {
+                if (this.As.HasText()) {
+                    return this.As;
+                }
+                return this.To;
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ using mooSQL.data.context;
 using mooSQL.data.Mapping;
 using mooSQL.data.slave;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -112,7 +113,7 @@ namespace mooSQL.data
         /// <summary>
         /// 数据库设置委托。
         /// </summary>
-        private Dictionary<int,Func<DataBase>> dbConfigs = new Dictionary<int, Func<DataBase>>();
+        private ConcurrentDictionary<int,Func<DataBase>> dbConfigs = new ConcurrentDictionary<int, Func<DataBase>>();
 
         private List< Func<int, DataBase>> _dbloaders;
         /// <summary>
@@ -161,7 +162,7 @@ namespace mooSQL.data
         /// <summary>
         /// 已注册的数据库连接信息
         /// </summary>
-        public Dictionary<int, Func<DataBase>> DataBaseMap { get { return dbConfigs; } }
+        public ConcurrentDictionary<int, Func<DataBase>> DataBaseMap { get { return dbConfigs; } }
 
 
         /// <summary>

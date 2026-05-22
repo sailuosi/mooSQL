@@ -1,11 +1,12 @@
-﻿using System;
+﻿using mooSQL.data.model;
+using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using mooSQL.data.model;
 
 namespace mooSQL.data
 {
@@ -14,6 +15,13 @@ namespace mooSQL.data
     /// </summary>
     public class EntityInfo
     {
+
+        public EntityInfo() {
+            this._OrderBys = new ConcurrentDictionary<int, EntityOrder>();
+            this.Joins = new ConcurrentDictionary<string, EntityJoin>();
+            this._FieldMap = new ConcurrentDictionary<string, EntityColumn>();
+            NameParses = new ConcurrentDictionary<string, ITableNameInterceptor>();
+        }
         private string _DbTableName;
         /// <summary>
         /// 实体类名
@@ -34,7 +42,11 @@ namespace mooSQL.data
         /// <summary>
         /// 字段信息
         /// </summary>
-        public List<EntityColumn> Columns { get; set; }
+        public List<EntityColumn> Columns {
+            get {
+                return _FieldMap.Values.ToList();
+            }
+        }
         /// <summary>
         /// 是否可以删除
         /// </summary>
@@ -100,15 +112,40 @@ namespace mooSQL.data
         /// <summary>
         /// 查询表的join配置
         /// </summary>
-        public List<EntityJoin> Joins { get; set; }
+        public ConcurrentDictionary<string,EntityJoin> Joins { get; set; }
         /// <summary>
         /// 查询表的条件配置
         /// </summary>
-        public List<EntityWhere> Conditions { get; set; }
+        public ConcurrentBag<EntityWhere> Conditions { get; set; }
+
+
+        private ConcurrentDictionary<int, EntityOrder> _OrderBys;
+
         /// <summary>
         /// 查询表的排序配置
         /// </summary>
-        public List<EntityOrder> OrderBy { get; set; }
+        public List<EntityOrder> OrderBy {
+            get {
+                // 1. 直接获取 Key 数组（比遍历 KVP 负载更轻）
+                int[] keys = _OrderBys.Keys.ToArray();
+
+                // 2. 使用快速排序（原地排序，无额外分配）
+                Array.Sort(keys);
+
+                // 3. 预分配结果数组，按排好的 Key 回查 Value
+                int count = keys.Length;
+                var result = new List<EntityOrder>();
+                for (int i = 0; i < count; i++)
+                {
+                    // 尝试获取，处理排序期间可能被删除的情况
+                    if (_OrderBys.TryGetValue(keys[i], out var value)) {
+                        result.Add(value);    
+                    }
+                }
+
+                return result;
+            }
+        }
         /// <summary>
         /// 别名，用在多表查询时做为别名使用
         /// </summary>
@@ -120,30 +157,24 @@ namespace mooSQL.data
         /// <summary>
         /// 更多扩展信息
         /// </summary>
-        public Dictionary<string,object> more= new Dictionary<string,object>();
+        public ConcurrentDictionary<string,object> more= new ConcurrentDictionary<string,object>();
 
-        private Dictionary<string, EntityColumn> _FieldMap=new Dictionary<string, EntityColumn>();
+        private ConcurrentDictionary<string, EntityColumn> _FieldMap=new ConcurrentDictionary<string, EntityColumn>();
         /// <summary>
         /// 字段信息
         /// </summary>
-        public Dictionary<string, EntityColumn> FieldMap
+        public ConcurrentDictionary<string, EntityColumn> FieldMap
         {
             get { 
-                var tar= new Dictionary<string, EntityColumn>();
-                foreach (var col in Columns)
-                {
-                    tar[col.PropertyName]=col;
-                }
+                //var tar= new Dictionary<string, EntityColumn>();
+                //foreach (var col in Columns)
+                //{
+                //    tar[col.PropertyName]=col;
+                //}
                 return _FieldMap;
             }
         }
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public EntityInfo() {
-            Columns = new List<EntityColumn>();
-            NameParses = new ConcurrentDictionary<string, ITableNameInterceptor>();
-        }
+
 
         private static readonly object _lockObj = new object();
         /// <summary>
@@ -153,28 +184,47 @@ namespace mooSQL.data
         public void AddColumnInfo(EntityColumn column)
         {
             lock (_lockObj) { 
-                if (Columns == null) {
-                    Columns= new List<EntityColumn>();
+                if (_FieldMap == null) {
+                    _FieldMap = new ConcurrentDictionary<string, EntityColumn>();
                 }
                 if (column == null) return;
                 if (_FieldMap.ContainsKey(column.PropertyName)) {
                     _FieldMap[column.PropertyName] = column;
-
-                    for (var i = 0; i < Columns.Count; i++) {
-                        if (Columns[i].PropertyName == column.PropertyName) {
-                            Columns[i]=column;
-                            break;
-                        }
-                    }
+                    //列的list版本只读，不再需要修改
+                    //for (var i = 0; i < Columns.Count; i++) {
+                    //    if (Columns[i].PropertyName == column.PropertyName) {
+                    //        Columns[i]=column;
+                    //        break;
+                    //    }
+                    //}
                 }
                 else
                 {
-                    _FieldMap.Add(column.PropertyName, column);
-                    Columns.Add(column);
+                    _FieldMap.TryAdd(column.PropertyName, column);
+                    //Columns.Add(column);
                 }            
             }
 
 
+        }
+        /// <summary>
+        /// 添加排序
+        /// </summary>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        public bool AddOrderBy(EntityOrder o) {
+            var index = o.Idx;
+            if (index == null) {
+                if (this._OrderBys.Count == 0)
+                {
+                    index = 0;
+                }
+                else {
+                    index = (this._OrderBys.Keys.Max() + 1);
+                }
+                
+            }
+            return _OrderBys.TryAdd(index.Value, o);
         }
         /// <summary>
         /// 获取字段信息

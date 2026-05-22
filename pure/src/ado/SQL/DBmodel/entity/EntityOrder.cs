@@ -12,7 +12,7 @@ namespace mooSQL.data
         /// <summary>
         /// 排序序号
         /// </summary>
-        public int Idx { get; set; }
+        public int? Idx { get; set; }
         /// <summary>
         /// 来源表名的简称
         /// </summary>

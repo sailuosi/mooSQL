@@ -607,8 +607,9 @@ namespace mooSQL.data
             }
             if (en.Joins != null) { 
                 //构建join
-                foreach (var jo in en.Joins)
+                foreach (var kv in en.Joins)
                 {
+                    var jo = kv.Value;
                     var joinStr = BuildJoinType(jo.Type);
                     var t = new StringBuilder();
                     t.Append(joinStr);

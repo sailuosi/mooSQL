@@ -81,9 +81,9 @@ namespace mooSQL.data.Mapping
             SetColumns(Entity,result);
 
             //结束前，处理一下排序字段的顺序
-            if (result.OrderBy != null) { 
-                result.OrderBy = result.OrderBy.OrderBy(x => x.Idx).ToList();
-            }
+            //if (result.OrderBy != null) { 
+            //    result.OrderBy = result.OrderBy.OrderBy(x => x.Idx).ToList();
+            //}
             //为了兼容以前的写法，如果没有指定表类型，但是指定了表名，则默认为Table
             if (!string.IsNullOrWhiteSpace(result.DbTableName) && result.DType == DBTableType.None) { 
                 result.DType = DBTableType.Table;

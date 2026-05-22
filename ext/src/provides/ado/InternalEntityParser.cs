@@ -1,5 +1,6 @@
 ﻿using mooSQL.data.model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -102,10 +103,8 @@ namespace mooSQL.data.Mapping
                                 od.OType = OrderType.ASC;
                             }
                         }
-                        if (entityInfo.OrderBy == null) {
-                            entityInfo.OrderBy= new List<EntityOrder>();
-                        }
-                        entityInfo.OrderBy.Add(od);
+
+                        entityInfo.AddOrderBy(od);
                     }
                 }
                 //设置默认类型，如果设置了字段名称，未设置类型，则为实表字段
@@ -151,7 +150,7 @@ namespace mooSQL.data.Mapping
             var joinAtts = Entity.GetCustomAttributes<SooJoinAttribute>();
             if (joinAtts != null) {
                 if (result.Joins == null) {
-                    result.Joins = new List<EntityJoin>();
+                    result.Joins = new ConcurrentDictionary<string, EntityJoin>();
                 }
                 foreach (var joinAttribute in joinAtts) { 
                     var join = new EntityJoin();
@@ -162,7 +161,8 @@ namespace mooSQL.data.Mapping
                     join.OnA = joinAttribute.OnA;
                     join.OnB = joinAttribute.OnB;
 
-                    result.Joins.Add(join);
+                    
+                    result.Joins.TryAdd(join.UniqueKey,join);
                 }
             }
 

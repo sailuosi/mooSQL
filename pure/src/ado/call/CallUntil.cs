@@ -59,7 +59,7 @@ namespace mooSQL.data.call
                     newExpr
                 );
                 func = lambda.Compile();
-                _cache[type] = func;
+                _cache.TryAdd(type,func);
             }
             return ((Func<MethodCall>)func)();
         }
