@@ -1,15 +1,16 @@
 ﻿// 基础功能说明：
 
+using mooSQL.data.linq;
+using mooSQL.linq;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using mooSQL.data.linq;
-using mooSQL.linq;
 
 namespace mooSQL.linq;
 /// <summary>
@@ -21,13 +22,13 @@ public sealed class ClipExpSameCheckor : IEqualityComparer<Expression?>
     /// <summary>
     /// 在计算哈希过程中遇到的常量表达式收集列表（用于与相等比较逻辑配合）。
     /// </summary>
-    public List<ConstantExpression> constantVals {  get; private set; }
+    public ConcurrentBag<ConstantExpression> constantVals {  get; private set; }
     /// <summary>
     /// 私有构造函数，防止外部实例化。
     /// </summary>
     public ClipExpSameCheckor()
     {
-        constantVals = new List<ConstantExpression>();
+        constantVals = new ConcurrentBag<ConstantExpression>();
     }
 
 

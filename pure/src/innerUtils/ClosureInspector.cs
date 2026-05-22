@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,7 +15,8 @@ namespace mooSQL.utils
     /// </summary>
     public static class ClosureInspector
     {
-        private static readonly Dictionary<Type, Func<object, Dictionary<string, object>>> _accessorCache = new();
+        
+        private static readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _accessorCache = new();
         /// <summary>
         /// 获取失败时返回null，成功时返回闭包实例的字段字典
         /// </summary>

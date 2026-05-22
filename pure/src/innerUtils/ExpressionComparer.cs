@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,7 +12,7 @@ namespace mooSQL.data.linq
 {
     internal struct ExpressionComparer
     {
-        private Dictionary<ParameterExpression, ParameterExpression> _parameterScope;
+        private ConcurrentDictionary<ParameterExpression, ParameterExpression> _parameterScope;
 
         public bool Compare(Expression? left, Expression? right)
         {
@@ -122,7 +123,7 @@ namespace mooSQL.data.linq
                 return false;
             }
 
-            _parameterScope ??= new Dictionary<ParameterExpression, ParameterExpression>();
+            _parameterScope ??= new ConcurrentDictionary<ParameterExpression, ParameterExpression>();
 
             for (var i = 0; i < n; i++)
             {
@@ -135,7 +136,7 @@ namespace mooSQL.data.linq
                 {
                     for (var j = 0; j < i; j++)
                     {
-                        _parameterScope.Remove(a.Parameters[j]);
+                        _parameterScope.TryRemove(a.Parameters[j],out var _);
                     }
 
                     return false;
@@ -146,7 +147,7 @@ namespace mooSQL.data.linq
                     throw new InvalidOperationException(string.Format("不支持的类型：{0}", p1.Name));
                 }
 #else
-                _parameterScope.Add(p1, p2);
+                _parameterScope.TryAdd(p1, p2);
 #endif
 
             }
@@ -159,7 +160,7 @@ namespace mooSQL.data.linq
             {
                 for (var i = 0; i < n; i++)
                 {
-                    _parameterScope.Remove(a.Parameters[i]);
+                    _parameterScope.TryRemove(a.Parameters[i],out var _);
                 }
             }
         }
