@@ -80,6 +80,7 @@ export default defineConfig({
             { text: '更新日志', link: '/SQL/configs/updatelog' },
             { text: '初始化配置', link: '/SQL/basis/initconfig' },
             { text: 'DBCash', link: '/SQL/basis/DBCash' },
+            { text: '渐进式 DI（DBInsCash）', link: '/SQL/basis/MooSqlDiIntegration' },
             { text: 'SQLBuilder', link: '/SQL/basis/SQLBuilder' },
             { text: 'BatchSQL', link: '/SQL/basis/batchSQLbase' },
             { text: 'SQLBuilder案例', link: '/SQL/basis/sqlBuilderdemo' },
@@ -95,6 +96,7 @@ export default defineConfig({
             { text: 'SooReposity ---仓储', link: '/SQL/high/repository' },
             { text: 'SooWorkOfUnit', link: '/SQL/high/unitofwork' },
             { text: 'SQLClip', link: '/SQL/high/sqlclip' },
+            { text: '主从与多库', link: '/SQL/high/masterslave' },
             { text: 'LLMCash --大模型', link: '/AI/llmcash' },
           ]
         },
