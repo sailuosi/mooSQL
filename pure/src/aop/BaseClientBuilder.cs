@@ -384,6 +384,15 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 启用或关闭 AOT 物化模式（源生成器 + 反射，不使用 Emit）。
+        /// </summary>
+        public BaseClientBuilder useAotMode(bool enable = true)
+        {
+            client.EnableAot = enable;
+            return this;
+        }
+
         /// <inheritdoc cref="MooEvents.onSQLRuned(Action{SQLAuditContext}, IEnumerable{QueryType}?, IEnumerable{string}?)" />
         public BaseClientBuilder onSQLRuned(Action<SQLAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
         {

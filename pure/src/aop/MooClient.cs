@@ -51,6 +51,24 @@ namespace mooSQL.data
         /// SQL编织器的配置
         /// </summary>
         public SQLBuilderOption builderOption= new SQLBuilderOption();
+
+        private bool _enableAot;
+
+        /// <summary>
+        /// 启用 AOT 物化模式：使用源生成器 + 反射，不使用 Emit。
+        /// 默认 false，保持现有 Emit 行为。
+        /// </summary>
+        public bool EnableAot
+        {
+            get => _enableAot;
+            set
+            {
+                if (_enableAot == value) return;
+                _enableAot = value;
+                MapperCache.PurgeQueryCache();
+            }
+        }
+
         /// <summary>
         /// 事件注册器。
         /// </summary>

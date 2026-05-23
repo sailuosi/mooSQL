@@ -58,17 +58,19 @@ namespace mooSQL.data
         {
             private readonly int startBound, length;
             private readonly bool returnNullIfFirstMissing;
+            private readonly bool aotEnabled;
             private readonly DbDataReader reader;
             private readonly string[] names;
             private readonly Type[] types;
             private readonly int hashCode;
 
-            public DeserializerKey(int hashCode, int startBound, int length, bool returnNullIfFirstMissing, DbDataReader reader, bool copyDown)
+            public DeserializerKey(int hashCode, int startBound, int length, bool returnNullIfFirstMissing, bool aotEnabled, DbDataReader reader, bool copyDown)
             {
                 this.hashCode = hashCode;
                 this.startBound = startBound;
                 this.length = length;
                 this.returnNullIfFirstMissing = returnNullIfFirstMissing;
+                this.aotEnabled = aotEnabled;
 
                 if (copyDown)
                 {
@@ -120,7 +122,8 @@ namespace mooSQL.data
                 if (hashCode != other.hashCode
                     || startBound != other.startBound
                     || length != other.length
-                    || returnNullIfFirstMissing != other.returnNullIfFirstMissing)
+                    || returnNullIfFirstMissing != other.returnNullIfFirstMissing
+                    || aotEnabled != other.aotEnabled)
                 {
                     return false; // clearly different
                 }
@@ -143,16 +146,16 @@ namespace mooSQL.data
             if (length < 0) length = reader.FieldCount - startBound;
             int hash = MapperUntils.GetColumnHash(reader, startBound, length);
             if (returnNullIfFirstMissing) hash *= -27;
-            // get a cheap key first: false means don't copy the values down
-            var key = new DeserializerKey(hash, startBound, length, returnNullIfFirstMissing, reader, false);
+            if (deserializer.IsAotEnabled) hash = unchecked(hash * -31) + 1;
+            var key = new DeserializerKey(hash, startBound, length, returnNullIfFirstMissing, deserializer.IsAotEnabled, reader, false);
             Func<DbDataReader, DBInstance, object> deser;
             lock (readers)
             {
                 if (readers.TryGetValue(key, out deser)) return deser;
             }
-            deser = deserializer.GetTypePackImpl(type, reader, startBound, length, returnNullIfFirstMissing,db);
+            deser = deserializer.GetTypeMaterializer(type, reader, startBound, length, returnNullIfFirstMissing, db);
             // get a more expensive key: true means copy the values down so it can be used as a key later
-            key = new DeserializerKey(hash, startBound, length, returnNullIfFirstMissing, reader, true);
+            key = new DeserializerKey(hash, startBound, length, returnNullIfFirstMissing, deserializer.IsAotEnabled, reader, true);
             lock (readers)
             {
                 return readers[key] = deser;

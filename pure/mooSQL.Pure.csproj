@@ -9,6 +9,11 @@
 	  <LangVersion>12.0</LangVersion>
 	  <Description>一个纯粹、高可用、自由的面向数据库的连接库</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="mooSQL.Pure.Generators\**" />
+    <None Remove="mooSQL.Pure.Generators\**" />
+    <EmbeddedResource Remove="mooSQL.Pure.Generators\**" />
+  </ItemGroup>
 <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
 	<Reference Include="Microsoft.CSharp" />
 	<Reference Include="System.ComponentModel.DataAnnotations" />

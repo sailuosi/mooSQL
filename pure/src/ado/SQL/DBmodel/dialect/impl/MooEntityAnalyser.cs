@@ -43,6 +43,7 @@ namespace mooSQL.data.Mapping
             {
                 entityColumn.DbColumnName= ca.Name??propertyInfo.Name;
                 entityColumn.PropertyName = propertyInfo.Name;
+                entityColumn.PropertyInfo = propertyInfo;
                 if (ca.HasLength()) { 
                     entityColumn.Length = ca.Length;
                 }
