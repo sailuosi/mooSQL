@@ -1,6 +1,8 @@
 ﻿
+using mooSQL.data.cluster;
 using mooSQL.data.context;
 using mooSQL.data.Mapping;
+using mooSQL.utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace mooSQL.data
     /// <summary>
     /// 数据库的配置信息缓存类。
     /// </summary>
-     public class DBInsCash
+     public partial class DBInsCash
     {
 
 
@@ -102,7 +104,9 @@ namespace mooSQL.data
         {
             if (dbMap.ContainsKey(postion))
             {
-                return dbMap[postion];
+                var cached = dbMap[postion];
+                OnInstanceRetrieved(cached);
+                return cached;
             }
             else
             {
@@ -119,6 +123,7 @@ namespace mooSQL.data
                 }
                 var dbtar= buildInstance(tar);
                 dbMap.TryAdd(postion, dbtar);
+                OnInstanceRetrieved(dbtar);
                 return dbtar;
             }
         }
@@ -210,6 +215,7 @@ namespace mooSQL.data
             db.client = client;
             
             db.cmd = getExeCutor(db); 
+            OnInstanceBuilt(db);
             //触发实例创建事件，用于客户侧注册实例动作
             client.events.FireCreateDBLive(db);
             return db;
@@ -331,11 +337,19 @@ namespace mooSQL.data
                 
                 }
 
+                if (configPath.HasText())
+                {
+                    MasterSlaveConfigLoader.ApplyFromXml(this, configPath);
+                }
+
             }
             catch (Exception ex)
             {
 
             }
         }
+
+        partial void OnInstanceBuilt(DBInstance db);
+        partial void OnInstanceRetrieved(DBInstance db);
     }
 }

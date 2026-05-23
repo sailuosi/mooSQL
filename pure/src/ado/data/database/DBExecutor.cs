@@ -34,7 +34,7 @@ namespace mooSQL.data
     /// <summary>
     /// 数据库执行器，会自动创建或持有一个数据库查询上下文对象。
     /// </summary>
-    public class DBExecutor: IDisposable
+    public partial class DBExecutor: IDisposable
     {
         /*
          * 行为特点：
@@ -230,6 +230,7 @@ namespace mooSQL.data
             //否则，进行一次性查询，并释放连接
             try
             {
+                EnsureHealthBeforeExecute();
                 //创建请求上下文
                 if (sql !=null && string.IsNullOrWhiteSpace(sql.sql) == false)
                 {
@@ -256,10 +257,14 @@ namespace mooSQL.data
                     Context.session.Open(Context);
                 }
                 var res = executor(DBLive.cmd, Context);
+                MarkHealthSuccess();
                 return res;
             }
             catch (Exception e)
             {
+                MarkHealthFailure(e);
+                if (TryImmediateFailoverAndRetry(sql, executor, e, out R retryResult))
+                    return retryResult;
                 //输出错误信息，并根据配置决定是否回滚事务。
                 var sqlTxt = "无";
                 if (sql != null) {
@@ -941,6 +946,9 @@ namespace mooSQL.data
             var mediator = client.modifyMediator;
             var needMediator = mediator != null;
             var needAudit = client.events.ShouldDispatchSQLAudit(cmd);
+
+            if (SkipAsyncReplication)
+                needMediator = false;
 
             if (!needMediator && !needAudit)
                 return;

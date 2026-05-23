@@ -1,4 +1,6 @@
 ﻿using mooSQL.data.context;
+using mooSQL.data.cluster;
+using mooSQL.data.health;
 using mooSQL.data.model;
 
 using System;
@@ -47,6 +49,14 @@ namespace mooSQL.data
         /// 创建数据库实例时刻
         /// </summary>
         public event Action<DBInstance> OnDBLiveCreated;
+        /// <summary>
+        /// 实例健康状态变更
+        /// </summary>
+        public event Action<DBInstance, DBHealthStatus, DBHealthStatus> OnHealthStatusChanged;
+        /// <summary>
+        /// 主从灾切完成
+        /// </summary>
+        public event Action<FailoverContext> OnFailover;
         /// <summary>
         /// 数据库的参数加入到命令的事件
         /// </summary>
@@ -358,6 +368,16 @@ namespace mooSQL.data
                 this.OnBeforeAddPara(ps);
             }
 
+        }
+
+        internal void FireHealthStatusChanged(DBInstance db, DBHealthStatus oldStatus, DBHealthStatus newStatus)
+        {
+            OnHealthStatusChanged?.Invoke(db, oldStatus, newStatus);
+        }
+
+        internal void FireFailover(FailoverContext ctx)
+        {
+            OnFailover?.Invoke(ctx);
         }
     }
 }

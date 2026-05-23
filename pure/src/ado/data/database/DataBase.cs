@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace mooSQL.data
 {
@@ -128,6 +127,11 @@ namespace mooSQL.data
         /// 从库
         /// </summary>
         public List<DataBase> slaves;
+
+        /// <summary>
+        /// 健康探测配置
+        /// </summary>
+        public mooSQL.data.health.DBHealthOptions healthOptions;
     }
 
     /// <summary>

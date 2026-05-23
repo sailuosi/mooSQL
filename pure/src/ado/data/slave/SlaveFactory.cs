@@ -49,6 +49,7 @@ namespace mooSQL.data.slave
                 var mem = new SlaveCmdWorker();
                 mem.DBLive=db;                
                 mem.errFunction = onErr;
+                head.members.Add(mem);
             }
             return head;
         }

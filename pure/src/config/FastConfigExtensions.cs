@@ -45,6 +45,11 @@ namespace mooSQL.config
             if (db.MinTimeSpan > 0) {
                 res.minTimeSpan = db.MinTimeSpan;
             }
+            if (!string.IsNullOrWhiteSpace(db.CustomPingSQL))
+            {
+                res.healthOptions = res.healthOptions ?? new mooSQL.data.health.DBHealthOptions();
+                res.healthOptions.CustomPingSQL = db.CustomPingSQL;
+            }
             return res;
         }
         /// <summary>

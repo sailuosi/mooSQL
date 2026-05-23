@@ -1,9 +1,11 @@
 ﻿
 
 
-主从复制功能插件：
+主从复制功能插件（异步写后同步）：
 
 允许某个数据库在执行 DDL/DML 数据之后，对相关从库执行 相同语句。
+
+**与 cluster 层关系**：`pure/src/ado/data/cluster/` 负责读写路由、灾切、双写 fan-out；本目录负责主库成功后的**异步语句复制**。二者可并存：AsyncReplica 从库走 ModifyMediator，DualWrite 走 WriteFanoutExecutor。
 
 性能考虑：从库可能卡顿，因此需要一个公用的缓存队列暂存需要执行的语句，由从库依次执行。
 

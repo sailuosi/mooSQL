@@ -142,5 +142,15 @@ namespace mooSQL.data
         /// 映射面板
         /// </summary>
         public MappingPanel mapping { get; set; }
+
+        /// <summary>
+        /// 探活 SQL，方言可 override。
+        /// </summary>
+        public virtual string getPingSQL() => "SELECT 1";
+
+        /// <summary>
+        /// 探活超时毫秒。
+        /// </summary>
+        public virtual int PingTimeoutMs => 3000;
     }
 }

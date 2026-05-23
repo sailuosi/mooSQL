@@ -46,7 +46,7 @@ namespace mooSQL.data
         public int exeNonQuery(string SQL, Paras? para= null)
         {
             if(para==null) para= new Paras();
-            CheckDB();
+            CheckDBForWrite();
             var cmd = geneCmd(SQL, para);
             return exeNonQuery(cmd);
         }
@@ -62,6 +62,25 @@ namespace mooSQL.data
                 throw new Exception("数据库实例未找到！");
             }
         }
+
+        private void CheckDBForRead()
+        {
+            ResolveRouteBeforeExecute(isWrite: false);
+            CheckDB();
+        }
+
+        private void CheckDBForWrite()
+        {
+            ResolveRouteBeforeExecute(isWrite: true);
+            CheckDB();
+            if (RouteContext?.EnableDualWrite == true && Executor != null)
+            {
+                Executor.RouteContext = RouteContext;
+                Executor.SkipAsyncReplication = true;
+            }
+            if (RouteContext?.FailoverOverride != null && Executor != null)
+                Executor.RouteContext = RouteContext;
+        }
         /// <summary>
         /// 执行SQL
         /// </summary>
@@ -70,7 +89,15 @@ namespace mooSQL.data
         public int exeNonQuery(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
+            CheckDBForWrite();
             doPrintSQL(sql);
+            if (RouteContext?.EnableDualWrite == true && MooClient?.CashHolder != null)
+            {
+                var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
+                var targets = MooClient.CashHolder.resolveDualWriteTargets(pos, RouteContext);
+                var policy = MooClient.CashHolder.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
+                return cluster.WriteFanoutExecutor.ExecuteNonQuery(sql, targets, Executor, policy);
+            }
             return DBLive.ExeNonQuery(sql, Executor);
         }
         /// <summary>
@@ -110,6 +137,7 @@ namespace mooSQL.data
         public DataTable exeQuery(string SQL, Paras? para=null)
         {
             if (para == null) para = new Paras();
+            CheckDBForRead();
             if (this._printSQL)
             {
                 printSQL(SQL, para);
@@ -121,6 +149,7 @@ namespace mooSQL.data
         public DataTable exeQuery(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
+            CheckDBForRead();
             doPrintSQL(sql);
             return DBLive.ExeQuery(sql, Executor);
         }

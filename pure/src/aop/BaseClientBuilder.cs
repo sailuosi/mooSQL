@@ -1,5 +1,7 @@
 ﻿using mooSQL.config;
+using mooSQL.data.cluster;
 using mooSQL.data.context;
+using mooSQL.data.health;
 using mooSQL.data.Mapping;
 using mooSQL.data.model;
 using mooSQL.data.slave;
@@ -91,6 +93,7 @@ namespace mooSQL.data
                 _configET(client.Translator);
             }
             youCash.configPath = DBXMLConfig;
+            client.CashHolder = youCash;
 
             return this.youCash;
         }
@@ -266,6 +269,38 @@ namespace mooSQL.data
         public BaseClientBuilder useSlave(SlaveTeam slaveTeam)
         {
             client.modifyMediator.signModify(slaveTeam);
+            return this;
+        }
+
+        /// <summary>
+        /// 注册主从组与全局路由策略。
+        /// </summary>
+        public BaseClientBuilder useMasterSlave(Action<MasterSlaveOptions> configure = null)
+        {
+            var cash = buildCashInner();
+            if (configure != null)
+            {
+                configure(cash.MasterSlaveOptions);
+                cash.MasterSlaveOptions = cash.MasterSlaveOptions;
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 健康状态变更事件。
+        /// </summary>
+        public BaseClientBuilder onHealthChanged(Action<DBInstance, DBHealthStatus, DBHealthStatus> handler)
+        {
+            client.events.OnHealthStatusChanged += handler;
+            return this;
+        }
+
+        /// <summary>
+        /// 灾切完成事件。
+        /// </summary>
+        public BaseClientBuilder onFailover(Action<FailoverContext> handler)
+        {
+            client.events.OnFailover += handler;
             return this;
         }
         /// <summary>

@@ -171,6 +171,10 @@ namespace mooSQL.data
         /// </summary>
         public ModifyMediator modifyMediator;
         /// <summary>
+        /// 数据库连接位缓存，供 SQLBuilder 路由解析使用。
+        /// </summary>
+        public DBInsCash CashHolder;
+        /// <summary>
         /// 数据库设置委托。
         /// </summary>
         private ConcurrentDictionary<int,Func<DataBase>> dbConfigs = new ConcurrentDictionary<int, Func<DataBase>>();

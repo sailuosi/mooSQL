@@ -52,5 +52,10 @@ namespace mooSQL.config
         /// 默认的慢SQL时间阈值，500ms
         /// </summary>
         public int MinTimeSpan = 500;
+
+        /// <summary>
+        /// 自定义探活 SQL，优先级高于方言默认值。
+        /// </summary>
+        public string CustomPingSQL;
     }
 }

@@ -1581,6 +1581,8 @@ namespace mooSQL.data {
         {
             var builder = new SQLBuilder();
             builder.setDBInstance(DBLive);
+            builder.position = this.position;
+            builder.CloneRouteFrom(this);
             return builder;
         }
 
