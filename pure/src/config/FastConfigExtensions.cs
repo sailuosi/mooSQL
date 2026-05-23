@@ -50,6 +50,11 @@ namespace mooSQL.config
                 res.healthOptions = res.healthOptions ?? new mooSQL.data.health.DBHealthOptions();
                 res.healthOptions.CustomPingSQL = db.CustomPingSQL;
             }
+            if (db.PingTimeoutMs > 0)
+            {
+                res.healthOptions = res.healthOptions ?? new mooSQL.data.health.DBHealthOptions();
+                res.healthOptions.PingTimeoutMs = db.PingTimeoutMs;
+            }
             return res;
         }
         /// <summary>

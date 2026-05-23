@@ -57,5 +57,10 @@ namespace mooSQL.config
         /// 自定义探活 SQL，优先级高于方言默认值。
         /// </summary>
         public string CustomPingSQL;
+
+        /// <summary>
+        /// 探活超时毫秒，映射到 <see cref="DBHealthOptions.PingTimeoutMs"/>。
+        /// </summary>
+        public int PingTimeoutMs;
     }
 }

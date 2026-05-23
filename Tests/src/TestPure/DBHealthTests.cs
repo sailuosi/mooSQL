@@ -53,10 +53,16 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void Dialect_default_ping_sql()
+        public void Sentence_default_ping_sql()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            db.dialect.getPingSQL().Should().Be("SELECT 1");
+            db.dialect.sentence.getPingSQL().Should().Be("SELECT 1");
+        }
+
+        [Fact]
+        public void HealthOptions_default_ping_timeout()
+        {
+            new DBHealthOptions().PingTimeoutMs.Should().Be(3000);
         }
     }
 }

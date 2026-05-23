@@ -27,6 +27,11 @@ namespace mooSQL.data
             this.dialect = parent;
         }
 
+        /// <summary>
+        /// 探活 SQL，各数据库语句方言 override。
+        /// </summary>
+        public virtual string getPingSQL() => "SELECT 1";
+
         public DBInstance DBLive
         {
             get

@@ -631,6 +631,7 @@ kit.select("*")
 #### 日志与监控
 
 - SQL 执行日志、错误与异常、慢 SQL、参数化日志、自定义监听器  
+- **UPDATE / DELETE / MERGE 审计**：在 `MooClient.events` 或 `BaseClientBuilder` 上链式注册 `onSQLRuned`；可传入多个 `QueryType` 与多个目标表名。另有全局 `restrictModifySqlAuditToTables` 与 `includeInsertInModifySqlAudit` 等。`SQLBuilder` 生成的命令会自动写入 `type` 与 `TargetTable`；手写 SQL 需自行设置以参与匹配。默认异步派发且监听异常不影响主 SQL。
 
 #### 特色查询实体
 
@@ -701,6 +702,7 @@ var orders = kit
 - [翻页查询](doc/翻页查询.md)
 - [子查询](doc/子查询.md)
 - [复杂 where 条件](doc/查询条件的构造.md)
+- [HHNY 宿主渐进式 DI（`DBInsCash`，与 `DBCash` 并存）](doc/docs/SQL/basis/MooSqlDiIntegration.md)
 
 ### 设计原则
 
