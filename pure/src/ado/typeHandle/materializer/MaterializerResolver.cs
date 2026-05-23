@@ -13,6 +13,9 @@ namespace mooSQL.data
             int length,
             bool returnNullIfFirstMissing)
         {
+            if (packUp.TryGetClientMaterializer(type, out var fromClient))
+                return fromClient;
+
 #if NET6_0_OR_GREATER || NET8_0_OR_GREATER || NET10_0_OR_GREATER
             if (MaterializerRegistry.TryGet(type, out var generated))
                 return generated;

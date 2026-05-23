@@ -393,6 +393,33 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 向 Client 实例注册 AOT 物化器（优先级高于静态引导表）。
+        /// </summary>
+        public BaseClientBuilder registerMaterializer(Type type, Func<System.Data.Common.DbDataReader, DBInstance, object> materializer)
+        {
+            client.RegisterMaterializer(type, materializer);
+            return this;
+        }
+
+        /// <summary>
+        /// 将 SG 静态引导表中的物化器复制到当前 Client 实例。
+        /// </summary>
+        public BaseClientBuilder registerGeneratedMaterializers()
+        {
+            client.RegisterGeneratedMaterializers();
+            return this;
+        }
+
+        /// <summary>
+        /// 设置 <see cref="MooClient.GeneratedMaterializerHook"/>，在复制静态引导表前执行。
+        /// </summary>
+        public BaseClientBuilder useGeneratedMaterializerHook(Action<MooClient> hook)
+        {
+            client.GeneratedMaterializerHook = hook;
+            return this;
+        }
+
         /// <inheritdoc cref="MooEvents.onSQLRuned(Action{SQLAuditContext}, IEnumerable{QueryType}?, IEnumerable{string}?)" />
         public BaseClientBuilder onSQLRuned(Action<SQLAuditContext> handler, IEnumerable<QueryType>? queryTypes = null, IEnumerable<string>? targetTables = null)
         {

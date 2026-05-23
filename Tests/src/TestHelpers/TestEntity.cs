@@ -9,6 +9,7 @@ namespace mooSQL.Pure.Tests.TestHelpers
     /// 测试用的实体类
     /// </summary>
     [SooTable("test_users")]
+    [GenerateMaterializer]
     public class TestUser
     {
         [SooColumn("id", IsPrimaryKey = true)]

@@ -119,6 +119,71 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void ClientMaterializer_OverridesStaticRegistry()
+        {
+            var client = CreateClient(enableAot: true);
+            client.RegisterMaterializer(typeof(TestUser), (r, d) =>
+            {
+                r.Read();
+                return new TestUser { Id = 42, Name = "InstanceOverride" };
+            });
+
+            client.TryGetMaterializer(typeof(TestUser), out _).Should().BeTrue();
+            var packUp = new PackUp(client);
+            using var reader = CreateReader();
+            reader.Read().Should().BeTrue();
+            var func = packUp.GetTypePacker(packUp, typeof(TestUser), reader, 0, -1, false, null);
+            var result = (TestUser)func(reader, null)!;
+            result.Id.Should().Be(42);
+            result.Name.Should().Be("InstanceOverride");
+        }
+
+        [Fact]
+        public void RegisterGeneratedMaterializers_CopiesStaticToClient()
+        {
+            MaterializerRegistry.TryGet(typeof(TestUser), out _).Should().BeTrue("SG ModuleInitializer should populate static catalog");
+
+            var client = CreateClient(enableAot: true);
+            client.TryGetMaterializer(typeof(TestUser), out _).Should().BeFalse();
+            client.RegisterGeneratedMaterializers();
+            client.TryGetMaterializer(typeof(TestUser), out var fn).Should().BeTrue();
+            using var reader = CreateReader();
+            reader.Read().Should().BeTrue();
+            var user = (TestUser)fn!(reader, null)!;
+            user.Id.Should().Be(1);
+            user.Name.Should().Be("Alice");
+        }
+
+        [Fact]
+        public void GeneratedMaterializerHook_InvokedBeforeCopy()
+        {
+            var client = CreateClient(enableAot: true);
+            var hookCalled = false;
+            client.GeneratedMaterializerHook = c =>
+            {
+                hookCalled = true;
+                c.RegisterMaterializer(typeof(TestOrder), (r, d) =>
+                {
+                    r.Read();
+                    return new TestOrder { Id = 7, OrderNo = "Hook" };
+                });
+            };
+            client.RegisterGeneratedMaterializers();
+            hookCalled.Should().BeTrue();
+            client.TryGetMaterializer(typeof(TestOrder), out var fn).Should().BeTrue();
+            using var reader = new FakeDbDataReader(new[]
+            {
+                ("id", (object)1, typeof(int)),
+                ("order_no", "x", typeof(string)),
+                ("user_id", 1, typeof(int)),
+                ("amount", 1m, typeof(decimal)),
+                ("created_at", DateTime.UtcNow, typeof(DateTime)),
+            });
+            reader.Read();
+            ((TestOrder)fn!(reader, null)!).Id.Should().Be(7);
+        }
+
+        [Fact]
         public void MaterializerRegistry_CanRegisterManually()
         {
             MaterializerRegistry.Register(typeof(TestOrder), (r, d) =>

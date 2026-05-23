@@ -46,5 +46,13 @@ namespace mooSQL.data
 
             return MaterializerResolver.Resolve(this, type, reader, startBound, length, returnNullIfFirstMissing);
         }
+
+        internal bool TryGetClientMaterializer(Type type, out Func<DbDataReader, DBInstance, object> materializer)
+        {
+            if (_client != null)
+                return _client.TryGetMaterializer(type, out materializer);
+            materializer = null;
+            return false;
+        }
     }
 }

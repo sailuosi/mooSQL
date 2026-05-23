@@ -8,6 +8,7 @@ using mooSQL.data.slave;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 
 using System.Text;
@@ -67,6 +68,47 @@ namespace mooSQL.data
                 _enableAot = value;
                 MapperCache.PurgeQueryCache();
             }
+        }
+
+        private readonly ConcurrentDictionary<Type, Func<DbDataReader, DBInstance, object>> _materializers = new();
+
+        /// <summary>
+        /// 可选钩子：在 <see cref="RegisterGeneratedMaterializers"/> 复制静态引导表之前执行。
+        /// </summary>
+        public Action<MooClient>? GeneratedMaterializerHook { get; set; }
+
+        /// <summary>
+        /// 向当前 Client 实例注册 AOT 物化器（优先级高于静态引导表）。
+        /// </summary>
+        public MooClient RegisterMaterializer(Type type, Func<DbDataReader, DBInstance, object> materializer)
+        {
+            RegisterMaterializerImpl(type, materializer, purgeCache: true);
+            return this;
+        }
+
+        internal void RegisterMaterializerImpl(Type type, Func<DbDataReader, DBInstance, object> materializer, bool purgeCache)
+        {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (materializer is null) throw new ArgumentNullException(nameof(materializer));
+            _materializers[type] = materializer;
+            if (purgeCache)
+                MapperCache.PurgeQueryCache();
+        }
+
+        /// <summary>
+        /// 尝试从当前 Client 实例注册表获取物化器。
+        /// </summary>
+        public bool TryGetMaterializer(Type type, out Func<DbDataReader, DBInstance, object> materializer)
+            => _materializers.TryGetValue(type, out materializer);
+
+        /// <summary>
+        /// 将 SG 写入静态引导表的物化器复制到当前 Client 实例（可配合 <see cref="GeneratedMaterializerHook"/>）。
+        /// </summary>
+        public MooClient RegisterGeneratedMaterializers()
+        {
+            GeneratedMaterializerHook?.Invoke(this);
+            MaterializerRegistry.CopyTo(this);
+            return this;
         }
 
         /// <summary>
