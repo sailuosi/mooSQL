@@ -65,21 +65,16 @@ namespace mooSQL.data
 
         private void CheckDBForRead()
         {
-            ResolveRouteBeforeExecute(isWrite: false);
             CheckDB();
+            EnsureExecutionExecutor();
         }
 
         private void CheckDBForWrite()
         {
-            ResolveRouteBeforeExecute(isWrite: true);
             CheckDB();
-            if (RouteContext?.EnableDualWrite == true && Executor != null)
-            {
-                Executor.RouteContext = RouteContext;
-                Executor.SkipAsyncReplication = true;
-            }
-            if (RouteContext?.FailoverOverride != null && Executor != null)
-                Executor.RouteContext = RouteContext;
+            var exe = EnsureExecutionExecutor();
+            if (exe.RouteContext?.EnableDualWrite == true)
+                exe.SkipAsyncReplication = true;
         }
         /// <summary>
         /// 执行SQL
@@ -91,11 +86,11 @@ namespace mooSQL.data
             if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
             CheckDBForWrite();
             doPrintSQL(sql);
-            if (RouteContext?.EnableDualWrite == true && MooClient?.CashHolder != null)
+            if (Executor?.RouteContext?.EnableDualWrite == true && MooClient != null)
             {
                 var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
-                var targets = MooClient.CashHolder.resolveDualWriteTargets(pos, RouteContext);
-                var policy = MooClient.CashHolder.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
+                var targets = MooClient.resolveDualWriteTargets(pos, Executor.RouteContext);
+                var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
                 return cluster.WriteFanoutExecutor.ExecuteNonQuery(sql, targets, Executor, policy);
             }
             return DBLive.ExeNonQuery(sql, Executor);

@@ -323,7 +323,11 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
         public SQLBuilder beginTransaction() { 
+            SyncPendingRouteContext();
+            var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
             this.Executor= new  DBExecutor(this.DBLive);
+            Executor.RouteContext = prevCtx;
+            _pendingRouteContext = null;
             Executor.beginTransaction();
             return this;
         }
@@ -334,7 +338,11 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder beginTransaction(IsolationLevel lv)
         {
+            SyncPendingRouteContext();
+            var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
             this.Executor = new DBExecutor(this.DBLive);
+            Executor.RouteContext = prevCtx;
+            _pendingRouteContext = null;
             Executor.useIsolationLevel(lv);
             Executor.beginTransaction();
             return this;
@@ -346,6 +354,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder useTransaction(DBExecutor executor)
         {
+            if (_pendingRouteContext != null && executor != null && executor.RouteContext == null)
+                executor.RouteContext = _pendingRouteContext;
+            _pendingRouteContext = null;
             this.Executor = executor;
             return this;
         }

@@ -5,7 +5,37 @@ namespace mooSQL.data
 {
     public partial class SQLBuilder
     {
-        public SQLRouteContext RouteContext;
+        private SQLRouteContext _pendingRouteContext;
+
+        /// <summary>执行作用域路由上下文（读 Executor，写 pending/Executor）。</summary>
+        public SQLRouteContext RouteContext
+        {
+            get => Executor?.RouteContext ?? _pendingRouteContext;
+            internal set
+            {
+                if (Executor != null)
+                    Executor.RouteContext = value;
+                else
+                    _pendingRouteContext = value;
+            }
+        }
+
+        internal void SyncPendingRouteContext()
+        {
+            if (_pendingRouteContext == null || Executor == null) return;
+            if (Executor.RouteContext == null)
+                Executor.RouteContext = _pendingRouteContext;
+            _pendingRouteContext = null;
+        }
+
+        internal DBExecutor EnsureExecutionExecutor()
+        {
+            CheckDB();
+            SyncPendingRouteContext();
+            if (Executor == null)
+                Executor = new DBExecutor(DBLive);
+            return Executor;
+        }
 
         public SQLBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
 
@@ -33,63 +63,29 @@ namespace mooSQL.data
         public SQLBuilder useRoute(Action<SQLRouteContext> configure)
         {
             if (configure == null) return this;
-            if (RouteContext == null) RouteContext = new SQLRouteContext();
-            configure(RouteContext);
+            SQLRouteContext ctx;
+            if (Executor != null)
+                ctx = Executor.RouteContext ?? (Executor.RouteContext = new SQLRouteContext());
+            else
+                ctx = _pendingRouteContext ?? (_pendingRouteContext = new SQLRouteContext());
+            configure(ctx);
             return this;
         }
 
         public SQLBuilder resetRoute()
         {
-            RouteContext = null;
+            _pendingRouteContext = null;
+            if (Executor != null)
+                Executor.RouteContext = null;
             return this;
         }
 
         internal void CloneRouteFrom(SQLBuilder source)
         {
-            RouteContext = source?.RouteContext?.Clone();
+            var src = source?.Executor?.RouteContext ?? source?._pendingRouteContext;
+            if (src != null)
+                _pendingRouteContext = src.Clone();
             Signal = source?.Signal;
-        }
-
-        internal void ResolveRouteBeforeExecute(bool isWrite)
-        {
-            if (RouteContext == null) return;
-            var cash = MooClient?.CashHolder;
-            if (cash == null) return;
-
-            var ctx = RouteContext ?? new SQLRouteContext();
-            ctx.IsWriteOperation = isWrite;
-            var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
-
-            if (ctx.TargetInstance != null)
-            {
-                setDBInstance(ctx.TargetInstance);
-                return;
-            }
-            if (ctx.TargetPosition.HasValue)
-            {
-                position = ctx.TargetPosition.Value;
-                setDBInstance(cash.getInstance(position));
-                return;
-            }
-            if (ctx.ForceMaster == true)
-            {
-                setDBInstance(cash.resolveWrite(pos, RouteContext));
-                return;
-            }
-            if (!isWrite && ctx.PreferReadReplica == true)
-            {
-                setDBInstance(cash.resolveRead(pos, RouteContext));
-                return;
-            }
-            if (isWrite && ctx.EnableDualWrite == true)
-            {
-                setDBInstance(cash.resolveWrite(pos, RouteContext));
-                return;
-            }
-            if (ctx.FailoverOverride.HasValue && isWrite)
-            {
-                setDBInstance(cash.resolveWrite(pos, RouteContext));
-            }
         }
     }
 }

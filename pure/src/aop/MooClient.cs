@@ -20,7 +20,7 @@ namespace mooSQL.data
     /// <summary>
     /// moosql的单体实例。
     /// </summary>
-    public class MooClient
+    public partial class MooClient
     {
         private IDialectFactory _dialectFactory;
         /// <summary>

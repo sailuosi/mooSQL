@@ -231,6 +231,7 @@ namespace mooSQL.data
             try
             {
                 EnsureHealthBeforeExecute();
+                BeginExecutionRouting(sql);
                 //创建请求上下文
                 if (sql !=null && string.IsNullOrWhiteSpace(sql.sql) == false)
                 {
@@ -291,6 +292,7 @@ namespace mooSQL.data
             }
             finally
             {
+                EndExecutionRouting();
                 if(!KeepOpen){
                     Context.session.Dispose();
                 }
@@ -311,6 +313,8 @@ namespace mooSQL.data
             //否则，进行一次性查询，并释放连接
             try
             {
+                EnsureHealthBeforeExecute();
+                BeginExecutionRouting(sql);
                 //创建请求上下文
                 if (sql != null && string.IsNullOrWhiteSpace(sql.sql) == false)
                 {
@@ -371,6 +375,7 @@ namespace mooSQL.data
             }
             finally
             {
+                EndExecutionRouting();
                 if (!KeepOpen)
                 {
                     Context.session.Dispose();

@@ -54,6 +54,7 @@
       <Compile Remove="src\zoom\AI\**" />
       <Compile Remove="src\zoom\excel\**" />
       <Compile Remove="src\zoom\ftp\**" />
+      <Compile Remove="mooSQL.Pure.Generators\**" />
       <EmbeddedResource Remove="src\zoom\AI\**" />
       <EmbeddedResource Remove="src\zoom\excel\**" />
       <EmbeddedResource Remove="src\zoom\ftp\**" />

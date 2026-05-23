@@ -277,11 +277,11 @@ namespace mooSQL.data
         /// </summary>
         public BaseClientBuilder useMasterSlave(Action<MasterSlaveOptions> configure = null)
         {
-            var cash = buildCashInner();
+            buildCashInner();
             if (configure != null)
             {
-                configure(cash.MasterSlaveOptions);
-                cash.MasterSlaveOptions = cash.MasterSlaveOptions;
+                configure(client.MasterSlaveOptions);
+                client.MasterSlaveOptions = client.MasterSlaveOptions;
             }
             return this;
         }

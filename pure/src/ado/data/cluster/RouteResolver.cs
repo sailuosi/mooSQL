@@ -6,7 +6,7 @@ using mooSQL.data.health;
 namespace mooSQL.data.cluster
 {
     /// <summary>
-    /// SQLBuilder 实例级临时路由上下文。
+    /// DBExecutor 执行作用域路由上下文。
     /// </summary>
     public class SQLRouteContext
     {
@@ -55,20 +55,20 @@ namespace mooSQL.data.cluster
     /// </summary>
     public class RouteResolver
     {
+        private readonly MooClient _client;
         private readonly DBInsCash _cash;
-        private readonly MasterSlaveOptions _options;
 
-        public RouteResolver(DBInsCash cash, MasterSlaveOptions options)
+        public RouteResolver(MooClient client, DBInsCash cash)
         {
+            _client = client;
             _cash = cash;
-            _options = options ?? new MasterSlaveOptions();
         }
 
-        public MasterSlaveOptions Options => _options;
+        public MasterSlaveOptions Options => _client?.MasterSlaveOptions ?? new MasterSlaveOptions();
 
         public MasterSlaveGroup GetGroup(int position)
         {
-            return _cash.getGroupInternal(position);
+            return _client?.getGroupInternal(position);
         }
 
         public DBInstance ResolveRead(int position, SQLRouteContext ctx = null)
@@ -90,9 +90,9 @@ namespace mooSQL.data.cluster
                 if (custom != null) return custom;
             }
 
-            if (_options.CustomReadSelector != null)
+            if (Options.CustomReadSelector != null)
             {
-                var custom = _options.CustomReadSelector(group);
+                var custom = Options.CustomReadSelector(group);
                 if (custom != null) return custom;
             }
 
@@ -100,13 +100,13 @@ namespace mooSQL.data.cluster
             var candidates = group.Slaves.Where(s => IsReadableCandidate(s, ov) && IsHealthy(s)).ToList();
             if (candidates.Count == 0)
             {
-                var fallback = ov?.ReadPolicy != null ? group.ReadFallbackToMaster : _options.ReadFallbackToMaster;
+                var fallback = ov?.ReadPolicy != null ? group.ReadFallbackToMaster : Options.ReadFallbackToMaster;
                 if (fallback || group.ReadFallbackToMaster)
                     return group.GetActiveMaster();
                 throw new NoReadableReplicaException(position);
             }
 
-            return ReadRouteSelector.Select(group, candidates, policy, _options.CustomReadSelector)
+            return ReadRouteSelector.Select(group, candidates, policy, Options.CustomReadSelector)
                    ?? group.GetActiveMaster();
         }
 
@@ -130,7 +130,7 @@ namespace mooSQL.data.cluster
             if (mode == FailoverMode.Disabled || mode == FailoverMode.MarkOnly)
                 return master;
 
-            return _cash.tryFailoverInternal(position, ctx?.FailoverElector, "resolveWrite") ?? master;
+            return _client.tryFailoverInternal(position, ctx?.FailoverElector, "resolveWrite") ?? master;
         }
 
         public IList<DBInstance> ResolveDualWriteTargets(int position, SQLRouteContext ctx = null)
@@ -158,12 +158,12 @@ namespace mooSQL.data.cluster
         {
             var master = group.GetActiveMaster();
             if (IsInstanceHealthy(master)) return master;
-            return _cash.tryFailoverInternal(position, ctx?.FailoverElector, "forceMaster") ?? master;
+            return _client.tryFailoverInternal(position, ctx?.FailoverElector, "forceMaster") ?? master;
         }
 
         private GroupOverride GetGroupOverride(int position)
         {
-            if (_options.Groups != null && _options.Groups.TryGetValue(position, out var ov))
+            if (Options.Groups != null && Options.Groups.TryGetValue(position, out var ov))
                 return ov;
             return null;
         }

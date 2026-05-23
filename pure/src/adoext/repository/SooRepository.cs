@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using mooSQL.auth;
+using mooSQL.data.cluster;
 using mooSQL.data.clip;
 using mooSQL.data.model;
 using mooSQL.linq;
@@ -70,6 +70,20 @@ namespace mooSQL.data
         public SooRepository<T> useTransaction(DBExecutor executor)
         {
             this.Executor = executor;
+            return this;
+        }
+
+        /// <summary>传递带 RouteContext 的执行器，与 useTransaction 共用同一 Executor。</summary>
+        public SooRepository<T> useRoute(DBExecutor executor) => useTransaction(executor);
+
+        /// <summary>配置执行器上的临时路由上下文。</summary>
+        public SooRepository<T> useRoute(Action<SQLRouteContext> configure)
+        {
+            if (Executor == null)
+                Executor = new DBExecutor(DBLive);
+            if (Executor.RouteContext == null)
+                Executor.RouteContext = new SQLRouteContext();
+            configure?.Invoke(Executor.RouteContext);
             return this;
         }
 

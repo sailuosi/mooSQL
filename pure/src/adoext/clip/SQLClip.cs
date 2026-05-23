@@ -78,6 +78,9 @@ namespace mooSQL.data
             Context.Builder.useTransaction(core);
             return this;
         }
+
+        /// <summary>传递带 RouteContext 的执行器。</summary>
+        public SQLClip useRoute(DBExecutor core) => useTransaction(core);
         /// <summary>
         /// 唯一
         /// </summary>

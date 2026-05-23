@@ -339,7 +339,7 @@ namespace mooSQL.data
 
                 if (configPath.HasText())
                 {
-                    MasterSlaveConfigLoader.ApplyFromXml(this, configPath);
+                    MasterSlaveConfigLoader.ApplyFromXml(getClient(), this, configPath);
                 }
 
             }

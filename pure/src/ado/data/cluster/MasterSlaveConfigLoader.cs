@@ -9,9 +9,9 @@ namespace mooSQL.data.cluster
     /// </summary>
     public static class MasterSlaveConfigLoader
     {
-        public static void ApplyFromXml(DBInsCash cash, string configPath, MasterSlaveOptions options = null)
+        public static void ApplyFromXml(MooClient client, DBInsCash cash, string configPath, MasterSlaveOptions options = null)
         {
-            if (cash == null || string.IsNullOrWhiteSpace(configPath)) return;
+            if (client == null || cash == null || string.IsNullOrWhiteSpace(configPath)) return;
             if (!System.IO.File.Exists(configPath)) return;
 
             var doc = new XmlDocument();
@@ -27,7 +27,7 @@ namespace mooSQL.data.cluster
                 var indexAttr = dbNode.Attributes?["index"]?.Value;
                 if (!int.TryParse(indexAttr, out var masterPos)) continue;
 
-                cash.configureGroup(masterPos, g =>
+                client.configureGroup(masterPos, g =>
                 {
                     var failover = masterNode.Attributes?["failover"]?.Value;
                     if (Enum.TryParse(failover, true, out FailoverMode fm))

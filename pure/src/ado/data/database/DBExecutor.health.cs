@@ -47,15 +47,15 @@ namespace mooSQL.data
         {
             result = default;
             if (session != null) return false;
-            var cash = DBLive?.client?.CashHolder;
-            if (cash == null) return false;
+            var client = DBLive?.client;
+            if (client == null) return false;
             var pos = DBLive.config?.index ?? 0;
-            var mode = RouteContext?.FailoverOverride ?? cash.getGroupInternal(pos)?.FailoverMode ?? FailoverMode.Disabled;
+            var mode = RouteContext?.FailoverOverride ?? client.getGroupInternal(pos)?.FailoverMode ?? FailoverMode.Disabled;
             if (mode != FailoverMode.ImmediateOnFailure) return false;
             if (!ConnectionExceptionClassifier.IsConnectionError(original)) return false;
 
             MarkHealthFailure(original);
-            var newMaster = cash.tryFailoverInternal(pos, RouteContext?.FailoverElector, "immediate");
+            var newMaster = client.tryFailoverInternal(pos, RouteContext?.FailoverElector, "immediate");
             if (newMaster == null) return false;
 
             DBLive = newMaster;
