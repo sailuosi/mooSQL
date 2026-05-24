@@ -411,16 +411,7 @@ namespace mooSQL.data
             {
                 return false;
             }
-            if (en == null)
-            {
-                en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
-            }
-            string tbname = resolveTableName(en, loadName, entity);
-            if (tbname.HasText())
-            {
-                builder.setTable(tbname);
-            }
-            setPKWhere(builder, entity, en);
+            prepareDelete(builder, (object)entity, typeof(T), loadName);
             return true;
         }
         /// <summary>

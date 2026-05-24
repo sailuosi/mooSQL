@@ -169,12 +169,9 @@ namespace mooSQL.data
             if (pks.Count != 1) {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
-            var pk= pks[0];
 
-            var cc= kit.setTable(en.DbTableName)
-                .where(pk.DbColumnName, id)
-                .doDelete();
-
+            Translator.prepareDeleteById(kit, en, id, tryTableNameLoader(tbname));
+            var cc = kit.doDelete();
             return cc > 0;
         }
         /// <summary>
@@ -193,11 +190,8 @@ namespace mooSQL.data
             {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
-            var pk = pks[0];
-            var cc = kit.setTable(en.DbTableName)
-                .whereIn(pk.DbColumnName, ids)
-                .doDelete();
-            return cc;
+            Translator.prepareDelete(kit, en, ids, tryTableNameLoader(tbname));
+            return kit.doDelete();
         }
         /// <summary>
         /// 单个ID查询

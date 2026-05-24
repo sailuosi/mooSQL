@@ -263,12 +263,9 @@ namespace mooSQL.data
             {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
-            var pk = pks[0];
 
-            var cc = kit.setTable(en.DbTableName)
-                .where(pk.DbColumnName, id)
-                .toDelete();
-            this.AddSQL(cc);
+            kit.Client.Translator.prepareDeleteById(kit, en, id);
+            this.AddSQL(kit.toDelete());
             return this;
         }
         /// <summary>
@@ -287,11 +284,8 @@ namespace mooSQL.data
             {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
-            var pk = pks[0];
-            var cc = kit.setTable(en.DbTableName)
-                .whereIn(pk.DbColumnName, ids)
-                .toDelete();
-            this.AddSQL(cc);
+            kit.Client.Translator.prepareDelete(kit, en, ids);
+            this.AddSQL(kit.toDelete());
             return this;
         }
         /// <summary>
@@ -312,11 +306,8 @@ namespace mooSQL.data
             {
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
-            var pk = pks[0];
-            var cc = kit.setTable(en.DbTableName)
-                .whereIn(pk.DbColumnName, ids)
-                .toDelete();
-            this.AddSQL(cc);
+            kit.Client.Translator.prepareDelete(kit, en, ids);
+            this.AddSQL(kit.toDelete());
             return this;
         }
         /// <summary>

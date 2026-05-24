@@ -576,11 +576,8 @@ namespace mooSQL.data
         public static List<SQLCmd> toDelete<T>(this SQLBuilder kit, IEnumerable<T> entitys, string tbname = null)
         {
             var builder = kit.useSQL();
-            var res= new List<SQLCmd>();
+            var res = new List<SQLCmd>();
             var en = builder.DBLive.client.EntityCash.getEntityInfo(typeof(T));
-            var table = tbname.HasText() ? tbname : en.DbTableName;
-
-            bool gotWhere = false;
             var pks = en.GetPK();
             if (pks.Count == 0)
             {
@@ -588,9 +585,8 @@ namespace mooSQL.data
             }
             if (pks.Count == 1)
             {
-                builder.setTable(table);
                 var pk = pks[0];
-                var ids = new List<Object>();
+                var ids = new List<object>();
                 foreach (var row in entitys)
                 {
                     var val = pk.PropertyInfo.GetValue(row);
@@ -599,38 +595,31 @@ namespace mooSQL.data
                         ids.Add(val);
                     }
                 }
-                builder.whereIn(pk.DbColumnName, ids);
+                builder.Client.Translator.prepareDelete(builder, en, ids, tryTableNameLoader(tbname));
                 res.Add(builder.toDelete());
                 return res;
             }
-            else
-            {
-                //联合主键的情况
-                var bsql = new BatchSQL(builder.DBLive);
-                var ids = new List<Object>();
-                foreach (var row in entitys)
-                {
-                    builder.clear().setTable(table);
-                    int kcc = 0;
-                    foreach (var k in pks)
-                    {
-                        var val = k.PropertyInfo.GetValue(row);
-                        if (val == null)
-                        {
-                            break;
-                        }
-                        builder.where(k.DbColumnName, val);
-                        kcc++;
-                    }
-                    if (kcc != pks.Count)
-                    {
-                        continue;
-                    }
-                    res.Add(builder.toDelete());
-                }
-                return res;
-            }
 
+            foreach (var row in entitys)
+            {
+                var complete = true;
+                foreach (var k in pks)
+                {
+                    if (k.PropertyInfo.GetValue(row) == null)
+                    {
+                        complete = false;
+                        break;
+                    }
+                }
+                if (!complete)
+                {
+                    continue;
+                }
+                builder.clear();
+                builder.Client.Translator.prepareDelete(builder, row, typeof(T), tryTableNameLoader(tbname));
+                res.Add(builder.toDelete());
+            }
+            return res;
         }
         /// <summary>
         /// 批量删除。独立执行环境，不干扰调用者环境
