@@ -3,44 +3,77 @@ using mooSQL.data.health;
 
 namespace mooSQL.data.cluster
 {
+    /// <summary>
+    /// 组内可写实例选举：不写回组级状态，支持连续选举（排除当前病态实例）。
+    /// </summary>
     public static class FailoverPolicy
     {
-        public static DBInstance ElectNewMaster(
-            MasterSlaveGroup group,
-            MasterSlaveOptions options,
-            FailoverContext ctx = null)
+        public static bool IsInstanceHealthy(DBInstance db)
         {
-            if (group == null) return null;
+            if (db?.Health == null) return true;
+            return db.Health.Status == DBHealthStatus.Available
+                   || db.Health.Status == DBHealthStatus.None;
+        }
+
+        /// <summary>
+        /// 若 <paramref name="current"/> 可用则返回；否则选举下一可用可写实例（配置主或热备）。
+        /// </summary>
+        public static DBInstance ElectIfUnavailable(
+            MasterSlaveGroup group,
+            DBInsCash cash,
+            MasterSlaveOptions options,
+            FailoverContext ctx,
+            DBInstance current)
+        {
+            if (group == null) return current;
+
+            if (current != null && IsInstanceHealthy(current))
+                return current;
 
             if (options?.CustomFailoverElector != null && ctx != null)
             {
                 var custom = options.CustomFailoverElector(ctx);
-                if (custom != null)
+                if (custom != null && IsInstanceHealthy(custom))
                 {
-                    group.ActiveMaster = custom;
+                    FillFailoverContext(ctx, current, custom);
                     return custom;
                 }
             }
 
-            var candidates = group.Slaves
-                .Where(s => s.HotStandby && s.CanFailover)
-                .OrderBy(s => s.Position)
-                .ToList();
-
-            if (candidates.Count == 0) return null;
-
-            var elected = candidates[0].Instance;
-            var old = group.GetActiveMaster();
-            group.ActiveMaster = elected;
-
-            if (options?.OnFailover != null && ctx != null)
+            if (group.Master != null
+                && IsInstanceHealthy(group.Master)
+                && !ReferenceEquals(group.Master, current))
             {
-                ctx.OldMaster = old;
-                ctx.NewMaster = elected;
-                options.OnFailover(ctx);
+                FillFailoverContext(ctx, current, group.Master);
+                return group.Master;
             }
 
-            return elected;
+            foreach (var s in group.Slaves
+                         .Where(s => s.HotStandby && s.WriteEnabled)
+                         .OrderBy(s => s.Position))
+            {
+                var inst = s.Instance ?? cash?.getInstance(s.Position);
+                if (inst == null || ReferenceEquals(inst, current)) continue;
+                if (!IsInstanceHealthy(inst)) continue;
+                FillFailoverContext(ctx, current, inst);
+                return inst;
+            }
+
+            return current;
         }
+
+        private static void FillFailoverContext(FailoverContext ctx, DBInstance oldInst, DBInstance newInst)
+        {
+            if (ctx == null) return;
+            ctx.OldMaster = oldInst;
+            ctx.NewMaster = newInst;
+        }
+
+        /// <summary>兼容旧 API。</summary>
+        public static DBInstance ElectNewMaster(
+            MasterSlaveGroup group,
+            MasterSlaveOptions options,
+            FailoverContext ctx = null)
+            => ElectIfUnavailable(group, null, options, ctx, ctx?.OldMaster);
     }
 }

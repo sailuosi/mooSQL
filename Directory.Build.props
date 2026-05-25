@@ -4,7 +4,7 @@
     <PackageIcon>bitbug_favicon.png</PackageIcon>
     <LangVersion>12</LangVersion>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
-	<VersionPrefix>8.0.1.1</VersionPrefix>
+	<VersionPrefix>8.1.0.1</VersionPrefix>
   </PropertyGroup>
   
   <ItemGroup>

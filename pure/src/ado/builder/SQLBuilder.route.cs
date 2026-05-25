@@ -1,4 +1,5 @@
 using mooSQL.data.cluster;
+using mooSQL.data.health;
 using System;
 
 namespace mooSQL.data
@@ -48,8 +49,13 @@ namespace mooSQL.data
                 r.DualWritePositions = slavePositions;
             });
 
-        public SQLBuilder useFailover(FailoverMode mode) =>
+        /// <summary>临时 Failover；启用后立即探活并在需要时选举，绑定 DBLive / TargetInstance。</summary>
+        public SQLBuilder useFailover(FailoverMode mode)
+        {
             useRoute(r => r.FailoverOverride = mode);
+            ApplyProactiveFailoverForBuilder();
+            return this;
+        }
 
         public SQLBuilder useTarget(int position) =>
             useRoute(r => r.TargetPosition = position);
@@ -86,6 +92,57 @@ namespace mooSQL.data
             if (src != null)
                 _pendingRouteContext = src.Clone();
             Signal = source?.Signal;
+        }
+
+        private void ApplyProactiveFailoverForBuilder()
+        {
+            CheckDB();
+            SyncPendingRouteContext();
+
+            var client = MooClient ?? DBLive?.client;
+            if (client == null || DBLive == null) return;
+
+            var groupId = client.resolveGroupIdFor(DBLive);
+            if (groupId < 0)
+                groupId = position > -1 ? position : DBLive.config?.index ?? 0;
+
+            var group = client.getGroupInternal(groupId);
+            var ctx = RouteContext;
+            var mode = client.ResolveFailoverMode(groupId, ctx, group);
+            if (!MooClient.ShouldAttemptFailover(mode)) return;
+
+            var h = DBLive.Health;
+            if (h != null && h.Options.Enabled)
+            {
+                if (h.Status == DBHealthStatus.None || h.NeedsProbe())
+                {
+                    try { h.Probe(); } catch { /* best effort */ }
+                }
+            }
+
+            if (DBLive.Health?.Status != DBHealthStatus.Unavailable
+                && FailoverPolicy.IsInstanceHealthy(DBLive))
+            {
+                BindWriteTarget(DBLive);
+                return;
+            }
+
+            var elected = client.electIfUnavailable(groupId, DBLive, ctx?.FailoverElector, "builderProactive");
+            if (elected != null)
+                BindWriteTarget(elected);
+        }
+
+        private void BindWriteTarget(DBInstance instance)
+        {
+            if (instance == null) return;
+            DBLive = instance;
+            if (Executor != null)
+                Executor.DBLive = instance;
+            useRoute(r =>
+            {
+                r.TargetInstance = instance;
+                r.WriteTarget = instance;
+            });
         }
     }
 }

@@ -106,7 +106,7 @@ namespace mooSQL.data
             {
                 var cached = dbMap[postion];
                 OnInstanceRetrieved(cached);
-                return cached;
+                return ApplyProactiveFailoverIfNeeded(cached, postion);
             }
             else
             {
@@ -124,7 +124,7 @@ namespace mooSQL.data
                 var dbtar= buildInstance(tar);
                 dbMap.TryAdd(postion, dbtar);
                 OnInstanceRetrieved(dbtar);
-                return dbtar;
+                return ApplyProactiveFailoverIfNeeded(dbtar, postion);
             }
         }
         /// <summary>

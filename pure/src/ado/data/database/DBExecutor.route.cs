@@ -22,7 +22,8 @@ namespace mooSQL.data
             if (resolver == null) return anchor;
 
             var ctx = RouteContext;
-            var pos = anchor.config?.index ?? 0;
+            var groupId = client.resolveGroupIdFor(anchor);
+            if (groupId < 0) groupId = anchor.config?.index ?? 0;
             var queryType = sql?.type ?? QueryType.Unknown;
             var isWrite = RouteOperation.IsWrite(queryType, ctx);
 
@@ -31,16 +32,16 @@ namespace mooSQL.data
                 return client.CashHolder?.getInstance(ctx.TargetPosition.Value) ?? anchor;
 
             if (ctx?.ForceMaster == true)
-                return resolver.ResolveWrite(pos, ctx) ?? anchor;
+                return resolver.ResolveWrite(groupId, ctx, anchor) ?? anchor;
 
             if (!isWrite)
             {
-                if (ctx?.PreferReadReplica == true || resolver.GetGroup(pos) != null)
-                    return resolver.ResolveRead(pos, ctx) ?? anchor;
+                if (ctx?.PreferReadReplica == true || resolver.GetGroup(groupId) != null)
+                    return resolver.ResolveRead(groupId, ctx) ?? anchor;
                 return anchor;
             }
 
-            return resolver.ResolveWrite(pos, ctx) ?? anchor;
+            return resolver.ResolveWrite(groupId, ctx, anchor) ?? anchor;
         }
 
         private void BeginExecutionRouting(SQLCmd sql)

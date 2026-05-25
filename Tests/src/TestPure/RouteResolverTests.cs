@@ -88,6 +88,44 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void Continuous_failover_skips_second_failed_hot_standby()
+        {
+            var (client, cash, resolver) = CreateClientWithGroup();
+            client.configureGroup(0, g => g
+                .master(0)
+                .addSlave(1, s => { s.HotStandby = true; s.WriteEnabled = true; })
+                .addSlave(2, s => { s.HotStandby = true; s.WriteEnabled = true; }));
+
+            void MarkDown(DBInstance db)
+            {
+                db.EnsureHealth().MarkFailure(new System.Exception("down"));
+                db.Health.MarkFailure(new System.Exception("down"));
+                db.Health.MarkFailure(new System.Exception("down"));
+            }
+
+            MarkDown(cash.getInstance(0));
+            var first = resolver.ResolveWrite(0);
+            first.config.index.Should().Be(1);
+
+            MarkDown(first);
+            var second = resolver.ResolveWrite(0, null, first);
+            second.config.index.Should().Be(2);
+        }
+
+        [Fact]
+        public void GetInstance_proactive_failover_returns_elected_slave()
+        {
+            var (client, cash, _) = CreateClientWithGroup();
+            var master = cash.getInstance(0);
+            master.EnsureHealth().MarkFailure(new System.Exception("down"));
+            master.Health.MarkFailure(new System.Exception("down"));
+            master.Health.MarkFailure(new System.Exception("down"));
+
+            var instance = cash.getInstance(0);
+            instance.config.index.Should().Be(2);
+        }
+
+        [Fact]
         public void No_group_falls_back_to_getInstance()
         {
             var client = new MooClient { dialectFactory = new DialectFactory() };

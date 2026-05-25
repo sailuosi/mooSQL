@@ -1,7 +1,9 @@
 using mooSQL.data.cluster;
+using mooSQL.data.health;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mooSQL.data
 {
@@ -55,50 +57,92 @@ namespace mooSQL.data
         internal DBInstance resolveRead(int position, SQLRouteContext ctx = null) =>
             GetRouteResolver()?.ResolveRead(position, ctx);
 
-        internal DBInstance resolveWrite(int position, SQLRouteContext ctx = null) =>
-            GetRouteResolver()?.ResolveWrite(position, ctx);
+        internal DBInstance resolveWrite(int position, SQLRouteContext ctx = null, DBInstance currentHint = null) =>
+            GetRouteResolver()?.ResolveWrite(position, ctx, currentHint);
 
         internal IList<DBInstance> resolveDualWriteTargets(int position, SQLRouteContext ctx = null) =>
             GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? Array.Empty<DBInstance>();
 
-        /// <summary>手动或内部触发 Failover 选举。</summary>
-        public DBInstance tryFailover(int groupId) =>
-            tryFailoverInternal(groupId, null, "manual");
-
-        internal DBInstance tryFailoverInternal(int groupId, Func<FailoverContext, DBInstance> elector, string trigger)
+        /// <summary>当前实例不可用则选举下一可用可写实例（不写回组级状态）。</summary>
+        public DBInstance electIfUnavailable(int groupId, DBInstance currentFailed, Func<FailoverContext, DBInstance> elector = null, string trigger = "manual")
         {
-            if (!_masterSlaveGroups.TryGetValue(groupId, out var group)) return null;
+            if (!_masterSlaveGroups.TryGetValue(groupId, out var group)) return currentFailed;
             var ctx = new FailoverContext
             {
                 GroupId = groupId,
                 Group = group,
-                OldMaster = group.GetActiveMaster(),
+                OldMaster = currentFailed,
                 Trigger = trigger
             };
+
+            MasterSlaveOptions opts;
             if (elector != null)
             {
-                var customOpts = new MasterSlaveOptions
+                opts = new MasterSlaveOptions
                 {
                     CustomFailoverElector = elector,
                     OnFailover = _masterSlaveOptions?.OnFailover
                 };
-                return FailoverPolicy.ElectNewMaster(group, customOpts, ctx);
             }
-            var elected = FailoverPolicy.ElectNewMaster(group, _masterSlaveOptions, ctx);
-            if (elected != null)
+            else
+            {
+                opts = _masterSlaveOptions;
+            }
+
+            var elected = FailoverPolicy.ElectIfUnavailable(group, CashHolder, opts, ctx, currentFailed);
+            if (elected != null
+                && currentFailed != null
+                && !ReferenceEquals(elected, currentFailed)
+                && FailoverPolicy.IsInstanceHealthy(elected))
+            {
                 events?.FireFailover(ctx);
+            }
+
             return elected;
         }
 
-        /// <summary>手动提升主库（运维回切等）。</summary>
+        /// <summary>手动或内部触发 Failover 选举。</summary>
+        public DBInstance tryFailover(int groupId) =>
+            electIfUnavailable(groupId, null, null, "manual");
+
+        internal DBInstance tryFailoverInternal(int groupId, DBInstance currentFailed, Func<FailoverContext, DBInstance> elector, string trigger) =>
+            electIfUnavailable(groupId, currentFailed, elector, trigger);
+
+        /// <summary>手动调整配置主（运维回切等），不维护组级 ActiveMaster。</summary>
         public void promoteMaster(int groupId, int masterPosition, bool manual = true)
         {
             if (!_masterSlaveGroups.TryGetValue(groupId, out var group)) return;
             var cash = CashHolder;
             if (cash == null) return;
-            var db = cash.getInstance(masterPosition);
-            group.Master = db;
-            if (manual) group.ActiveMaster = db;
+            group.Master = cash.getInstance(masterPosition);
+        }
+
+        internal static bool ShouldAttemptFailover(FailoverMode mode) =>
+            mode != FailoverMode.Disabled && mode != FailoverMode.MarkOnly;
+
+        internal FailoverMode ResolveFailoverMode(int position, SQLRouteContext ctx, MasterSlaveGroup group)
+        {
+            if (ctx?.FailoverOverride != null) return ctx.FailoverOverride.Value;
+            if (_masterSlaveOptions?.Groups != null
+                && _masterSlaveOptions.Groups.TryGetValue(position, out var ov)
+                && ov.Failover != null)
+                return ov.Failover.Value;
+            return group?.FailoverMode ?? FailoverMode.Disabled;
+        }
+
+        /// <summary>解析实例所属主从组 ID（配置主连接位）。</summary>
+        internal int resolveGroupIdFor(DBInstance db)
+        {
+            if (db == null) return -1;
+            var idx = db.config?.index ?? -1;
+            foreach (var kv in _masterSlaveGroups)
+            {
+                var g = kv.Value;
+                if (g.Master != null && g.Master.config?.index == idx) return kv.Key;
+                if (g.Slaves.Any(s => s.Position == idx || (s.Instance != null && s.Instance.config?.index == idx)))
+                    return kv.Key;
+            }
+            return idx;
         }
     }
 }

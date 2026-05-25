@@ -13,6 +13,13 @@ namespace mooSQL.data.cluster
         public int? TargetPosition;
         public DBInstance TargetInstance;
 
+        /// <summary>当次写目标别名，与 <see cref="TargetInstance"/> 同步。</summary>
+        public DBInstance WriteTarget
+        {
+            get => TargetInstance;
+            set => TargetInstance = value;
+        }
+
         public bool? PreferReadReplica;
         public bool? ForceMaster;
         public bool? EnableDualWrite;
@@ -76,13 +83,13 @@ namespace mooSQL.data.cluster
             var group = GetGroup(position);
             if (group == null) return _cash.getInstance(position);
 
-            if (ctx?.ForceMaster == true) return ResolveWriteInternal(group, position, ctx);
+            if (ctx?.ForceMaster == true) return ResolveWrite(position, ctx);
 
             if (ctx?.TargetInstance != null) return ctx.TargetInstance;
             if (ctx?.TargetPosition != null) return _cash.getInstance(ctx.TargetPosition.Value);
 
             var policy = ctx?.ReadPolicyOverride ?? GetGroupOverride(position)?.ReadPolicy ?? group.ReadPolicy;
-            if (policy == ReadRoutePolicy.MasterOnly) return group.GetActiveMaster();
+            if (policy == ReadRoutePolicy.MasterOnly) return ResolveWritableForRead(group, position, ctx);
 
             if (ctx?.ReadSelector != null)
             {
@@ -102,35 +109,54 @@ namespace mooSQL.data.cluster
             {
                 var fallback = ov?.ReadPolicy != null ? group.ReadFallbackToMaster : Options.ReadFallbackToMaster;
                 if (fallback || group.ReadFallbackToMaster)
-                    return group.GetActiveMaster();
+                    return ResolveWritableForRead(group, position, ctx);
                 throw new NoReadableReplicaException(position);
             }
 
             return ReadRouteSelector.Select(group, candidates, policy, Options.CustomReadSelector)
-                   ?? group.GetActiveMaster();
+                   ?? ResolveWritableForRead(group, position, ctx);
         }
 
-        public DBInstance ResolveWrite(int position, SQLRouteContext ctx = null)
+        public DBInstance ResolveWrite(int position, SQLRouteContext ctx = null, DBInstance currentHint = null)
         {
             var group = GetGroup(position);
             if (group == null) return _cash.getInstance(position);
-            return ResolveWriteInternal(group, position, ctx);
+            return ResolveWriteInternal(group, position, ctx, currentHint);
         }
 
-        private DBInstance ResolveWriteInternal(MasterSlaveGroup group, int position, SQLRouteContext ctx)
+        private DBInstance ResolveWriteInternal(MasterSlaveGroup group, int position, SQLRouteContext ctx, DBInstance currentHint)
         {
             if (ctx?.TargetInstance != null) return ctx.TargetInstance;
             if (ctx?.TargetPosition != null) return _cash.getInstance(ctx.TargetPosition.Value);
-            if (ctx?.ForceMaster == true) return EnsureWritableMaster(group, position, ctx);
+            if (ctx?.ForceMaster == true) return EnsureWritable(group, position, ctx, currentHint ?? group.Master);
 
-            var master = group.GetActiveMaster();
-            if (IsInstanceHealthy(master)) return master;
+            var current = currentHint ?? group.Master;
+            if (FailoverPolicy.IsInstanceHealthy(current)) return current;
 
-            var mode = ctx?.FailoverOverride ?? GetGroupOverride(position)?.Failover ?? group.FailoverMode;
-            if (mode == FailoverMode.Disabled || mode == FailoverMode.MarkOnly)
-                return master;
+            var mode = _client.ResolveFailoverMode(position, ctx, group);
+            if (!MooClient.ShouldAttemptFailover(mode))
+                return current;
 
-            return _client.tryFailoverInternal(position, ctx?.FailoverElector, "resolveWrite") ?? master;
+            return _client.electIfUnavailable(position, current, ctx?.FailoverElector, "resolveWrite") ?? current;
+        }
+
+        private DBInstance EnsureWritable(MasterSlaveGroup group, int position, SQLRouteContext ctx, DBInstance current)
+        {
+            if (FailoverPolicy.IsInstanceHealthy(current)) return current;
+            var mode = _client.ResolveFailoverMode(position, ctx, group);
+            if (!MooClient.ShouldAttemptFailover(mode))
+                return current;
+            return _client.electIfUnavailable(position, current, ctx?.FailoverElector, "forceMaster") ?? current;
+        }
+
+        private DBInstance ResolveWritableForRead(MasterSlaveGroup group, int position, SQLRouteContext ctx)
+        {
+            var current = group.Master;
+            if (FailoverPolicy.IsInstanceHealthy(current)) return current;
+            var mode = _client.ResolveFailoverMode(position, ctx, group);
+            if (!MooClient.ShouldAttemptFailover(mode))
+                return current;
+            return _client.electIfUnavailable(position, current, ctx?.FailoverElector, "readFallback") ?? current;
         }
 
         public IList<DBInstance> ResolveDualWriteTargets(int position, SQLRouteContext ctx = null)
@@ -154,13 +180,6 @@ namespace mooSQL.data.cluster
             return list;
         }
 
-        private DBInstance EnsureWritableMaster(MasterSlaveGroup group, int position, SQLRouteContext ctx)
-        {
-            var master = group.GetActiveMaster();
-            if (IsInstanceHealthy(master)) return master;
-            return _client.tryFailoverInternal(position, ctx?.FailoverElector, "forceMaster") ?? master;
-        }
-
         private GroupOverride GetGroupOverride(int position)
         {
             if (Options.Groups != null && Options.Groups.TryGetValue(position, out var ov))
@@ -180,12 +199,6 @@ namespace mooSQL.data.cluster
         {
             if (s.Health == null) return true;
             return s.Health.Status == DBHealthStatus.Available || s.Health.Status == DBHealthStatus.None;
-        }
-
-        private static bool IsInstanceHealthy(DBInstance db)
-        {
-            if (db?.Health == null) return true;
-            return db.Health.Status == DBHealthStatus.Available || db.Health.Status == DBHealthStatus.None;
         }
     }
 }

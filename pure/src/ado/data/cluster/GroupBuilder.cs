@@ -14,8 +14,7 @@ namespace mooSQL.data.cluster
       _group = new MasterSlaveGroup
       {
         GroupId = masterPosition,
-        Master = cash.getInstance(masterPosition),
-        ActiveMaster = cash.getInstance(masterPosition)
+        Master = cash.getInstance(masterPosition)
       };
     }
 
@@ -23,7 +22,6 @@ namespace mooSQL.data.cluster
     {
       _group.GroupId = position;
       _group.Master = _cash.getInstance(position);
-      _group.ActiveMaster = _group.Master;
       return this;
     }
 

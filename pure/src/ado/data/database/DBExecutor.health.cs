@@ -55,7 +55,7 @@ namespace mooSQL.data
             if (!ConnectionExceptionClassifier.IsConnectionError(original)) return false;
 
             MarkHealthFailure(original);
-            var newMaster = client.tryFailoverInternal(pos, RouteContext?.FailoverElector, "immediate");
+            var newMaster = client.electIfUnavailable(pos, DBLive, RouteContext?.FailoverElector, "immediate");
             if (newMaster == null) return false;
 
             DBLive = newMaster;

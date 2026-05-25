@@ -6,14 +6,12 @@ namespace mooSQL.data.cluster
     public class MasterSlaveGroup
     {
         public int GroupId;
+        /// <summary>配置锚点（组 ID / 默认连接位），不隐含唯一写库。</summary>
         public DBInstance Master;
-        public DBInstance ActiveMaster;
         public List<SlaveMember> Slaves = new List<SlaveMember>();
         public FailoverMode FailoverMode = FailoverMode.OnNextConnect;
         public ReadRoutePolicy ReadPolicy = ReadRoutePolicy.WeightedRandom;
         public bool ReadFallbackToMaster = true;
-
-        public DBInstance GetActiveMaster() => ActiveMaster ?? Master;
     }
 
     public class GroupOverride
