@@ -24,7 +24,8 @@ namespace mooSQL.data
             if (SkipHealthCheck) return;
             var h = DBLive?.Health;
             if (h == null || !h.Options.Enabled) return;
-            if (h.Status == DBHealthStatus.Unavailable && !ForceUseUnavailable)
+            if ((h.Status == DBHealthStatus.Unavailable || h.Status == DBHealthStatus.Probing)
+                && !ForceUseUnavailable)
                 throw new DBUnavailableException(DBLive, "数据库实例当前不可用。");
             if (h.NeedsProbe())
             {
@@ -49,9 +50,11 @@ namespace mooSQL.data
             if (session != null) return false;
             var client = DBLive?.client;
             if (client == null) return false;
-            var pos = DBLive.config?.index ?? 0;
-            var mode = RouteContext?.FailoverOverride ?? client.getGroupInternal(pos)?.FailoverMode ?? FailoverMode.Disabled;
-            if (mode != FailoverMode.ImmediateOnFailure) return false;
+            var pos = client.resolveGroupIdFor(DBLive);
+            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            var group = client.getGroupInternal(pos);
+            var mode = client.ResolveFailoverMode(pos, RouteContext, group);
+            if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure) return false;
             if (!ConnectionExceptionClassifier.IsConnectionError(original)) return false;
 
             MarkHealthFailure(original);
@@ -68,6 +71,49 @@ namespace mooSQL.data
             catch
             {
                 return false;
+            }
+        }
+
+        private sealed class FailoverRetryResult<R>
+        {
+            public bool Retried;
+            public R Value;
+        }
+
+        private async Task<FailoverRetryResult<R>> TryImmediateFailoverAndRetryAsync<R>(
+            SQLCmd sql,
+            Func<ICmdExecutor, ExeContext, Task<R>> executor,
+            Exception original)
+        {
+            var none = new FailoverRetryResult<R>();
+            if (session != null) return none;
+            var client = DBLive?.client;
+            if (client == null) return none;
+            var pos = client.resolveGroupIdFor(DBLive);
+            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            var group = client.getGroupInternal(pos);
+            var mode = client.ResolveFailoverMode(pos, RouteContext, group);
+            if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure)
+                return none;
+            if (!ConnectionExceptionClassifier.IsConnectionError(original)) return none;
+
+            MarkHealthFailure(original);
+            var newMaster = client.electIfUnavailable(pos, DBLive, RouteContext?.FailoverElector, "immediateAsync");
+            if (newMaster == null || ReferenceEquals(newMaster, DBLive)) return none;
+
+            DBLive = newMaster;
+            Context = null;
+            try
+            {
+                return new FailoverRetryResult<R>
+                {
+                    Retried = true,
+                    Value = await ExecuteCmdAsync(sql, executor).ConfigureAwait(false)
+                };
+            }
+            catch
+            {
+                return none;
             }
         }
     }

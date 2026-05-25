@@ -33,6 +33,7 @@ namespace mooSQL.Pure.Tests
 
             client.configureGroup(0, g => g
                 .master(0)
+                .autoReadReplica(true)
                 .readPolicy(ReadRoutePolicy.FirstAvailable)
                 .addSlave(1, s => { s.ReadReplica = true; s.Weight = 1; })
                 .addSlave(2, s => { s.ReadReplica = true; s.HotStandby = true; s.WriteEnabled = true; }));
@@ -123,6 +124,91 @@ namespace mooSQL.Pure.Tests
 
             var instance = cash.getInstance(0);
             instance.config.index.Should().Be(2);
+        }
+
+        [Fact]
+        public void ShouldAutoReadReplica_false_when_group_not_enabled()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            for (var i = 0; i <= 2; i++)
+            {
+                cash.addDataBase(i, new DataBase
+                {
+                    dbType = DataBaseType.SQLite,
+                    DBConnectStr = "Data Source=:memory:",
+                    index = i
+                });
+            }
+            client.configureGroup(0, g => g
+                .master(0)
+                .readPolicy(ReadRoutePolicy.FirstAvailable)
+                .addSlave(1, s => s.ReadReplica = true));
+
+            var resolver = new RouteResolver(client, cash);
+            resolver.ShouldAutoReadReplica(0, null).Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldAutoReadReplica_true_when_group_enabled()
+        {
+            var (_, _, resolver) = CreateClientWithGroup();
+            resolver.ShouldAutoReadReplica(0, null).Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldAutoReadReplica_true_when_useReadReplica_on_context()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 0 });
+            cash.addDataBase(1, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 1 });
+            client.configureGroup(0, g => g.master(0).addSlave(1, s => s.ReadReplica = true));
+            var resolver = new RouteResolver(client, cash);
+            resolver.ShouldAutoReadReplica(0, new SQLRouteContext { PreferReadReplica = true }).Should().BeTrue();
+        }
+
+        [Fact]
+        public void ReadFallback_uses_group_flag_when_override_only_readPolicy()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            client.MasterSlaveOptions = new MasterSlaveOptions { ReadFallbackToMaster = false };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            for (var i = 0; i <= 1; i++)
+                cash.addDataBase(i, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = i });
+            client.configureGroup(0, g => g
+                .master(0)
+                .autoReadReplica(true)
+                .readFallbackToMaster(true)
+                .addSlave(1, s => s.ReadReplica = true));
+            client.MasterSlaveOptions.Groups[0] = new GroupOverride { ReadPolicy = ReadRoutePolicy.FirstAvailable };
+
+            var slave = cash.getInstance(1);
+            slave.EnsureHealth().MarkFailure(new System.Exception("down"));
+            slave.Health.MarkFailure(new System.Exception("down"));
+            slave.Health.MarkFailure(new System.Exception("down"));
+
+            var resolver = new RouteResolver(client, cash);
+            var read = resolver.ResolveRead(0);
+            read.config.index.Should().Be(0);
+        }
+
+        [Fact]
+        public void DefaultReadPolicy_applied_from_MasterSlaveOptions()
+        {
+            var client = new MooClient
+            {
+                dialectFactory = new DialectFactory(),
+                MasterSlaveOptions = new MasterSlaveOptions { DefaultReadPolicy = ReadRoutePolicy.RoundRobin }
+            };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 0 });
+            client.configureGroup(0, g => g.master(0));
+            client.getGroup(0).ReadPolicy.Should().Be(ReadRoutePolicy.RoundRobin);
         }
 
         [Fact]

@@ -40,7 +40,7 @@ namespace mooSQL.data
             var cash = CashHolder;
             if (cash == null)
                 throw new InvalidOperationException("MooClient.CashHolder 未设置，无法注册主从组。");
-            var builder = new GroupBuilder(cash, masterPosition);
+            var builder = new GroupBuilder(cash, masterPosition, _masterSlaveOptions);
             setup?.Invoke(builder);
             _masterSlaveGroups[masterPosition] = builder.Build();
         }
@@ -61,7 +61,12 @@ namespace mooSQL.data
             GetRouteResolver()?.ResolveWrite(position, ctx, currentHint);
 
         internal IList<DBInstance> resolveDualWriteTargets(int position, SQLRouteContext ctx = null) =>
+#if NET451
+            GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? new List<DBInstance>();
+#else
             GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? Array.Empty<DBInstance>();
+#endif
+
 
         /// <summary>当前实例不可用则选举下一可用可写实例（不写回组级状态）。</summary>
         public DBInstance electIfUnavailable(int groupId, DBInstance currentFailed, Func<FailoverContext, DBInstance> elector = null, string trigger = "manual")
@@ -97,6 +102,12 @@ namespace mooSQL.data
             {
                 events?.FireFailover(ctx);
             }
+            else if (currentFailed != null
+                     && (elected == null || ReferenceEquals(elected, currentFailed) || !FailoverPolicy.IsInstanceHealthy(elected)))
+            {
+                Loggor?.LogWarning(
+                    $"Failover 未选出可用实例：group={groupId}, trigger={trigger}, current={currentFailed.config?.index}");
+            }
 
             return elected;
         }
@@ -108,7 +119,10 @@ namespace mooSQL.data
         internal DBInstance tryFailoverInternal(int groupId, DBInstance currentFailed, Func<FailoverContext, DBInstance> elector, string trigger) =>
             electIfUnavailable(groupId, currentFailed, elector, trigger);
 
-        /// <summary>手动调整配置主（运维回切等），不维护组级 ActiveMaster。</summary>
+        /// <summary>
+        /// 手动调整配置主（运维回切等），不维护组级 ActiveMaster。
+        /// 会修改组内 <see cref="MasterSlaveGroup.Master"/> 引用；临时写路由请用 <see cref="SQLRouteContext.TargetInstance"/>。
+        /// </summary>
         public void promoteMaster(int groupId, int masterPosition, bool manual = true)
         {
             if (!_masterSlaveGroups.TryGetValue(groupId, out var group)) return;
@@ -128,6 +142,16 @@ namespace mooSQL.data
                 && ov.Failover != null)
                 return ov.Failover.Value;
             return group?.FailoverMode ?? FailoverMode.Disabled;
+        }
+
+        internal bool ResolveAutoReadReplica(int position, SQLRouteContext ctx, MasterSlaveGroup group)
+        {
+            if (group == null) return false;
+            if (_masterSlaveOptions?.Groups != null
+                && _masterSlaveOptions.Groups.TryGetValue(position, out var ov)
+                && ov.AutoReadReplica != null)
+                return ov.AutoReadReplica.Value;
+            return group.AutoReadReplica;
         }
 
         /// <summary>解析实例所属主从组 ID（配置主连接位）。</summary>

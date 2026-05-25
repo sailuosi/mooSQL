@@ -64,5 +64,36 @@ namespace mooSQL.Pure.Tests
         {
             new DBHealthOptions().PingTimeoutMs.Should().Be(3000);
         }
+
+        [Fact]
+        public void Probing_status_blocks_execute_gate()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.EnsureHealth();
+            db.Health.ForceStatus(DBHealthStatus.Probing);
+            var exe = new DBExecutor(db);
+            Action act = () => exe.ExeQueryScalar<int>(new SQLCmd("SELECT 1", new Paras()));
+            act.Should().Throw<DBUnavailableException>();
+        }
+
+        [Fact]
+        public void Scheduler_respects_recovery_interval()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var health = new DBHealth(db, new DBHealthOptions
+            {
+                MaxFailures = 1,
+                RecoveryInterval = TimeSpan.FromMilliseconds(50)
+            });
+            health.PingHandler = _ => true;
+            health.MarkFailure(new Exception("down"));
+            health.Status.Should().Be(DBHealthStatus.Unavailable);
+
+            var scheduler = new HealthProbeScheduler(TimeSpan.FromMilliseconds(20));
+            scheduler.Register(health);
+            System.Threading.Thread.Sleep(120);
+            health.Status.Should().Be(DBHealthStatus.Available);
+            scheduler.Dispose();
+        }
     }
 }

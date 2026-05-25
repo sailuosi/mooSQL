@@ -12,6 +12,8 @@ namespace mooSQL.data.cluster
         public FailoverMode FailoverMode = FailoverMode.OnNextConnect;
         public ReadRoutePolicy ReadPolicy = ReadRoutePolicy.WeightedRandom;
         public bool ReadFallbackToMaster = true;
+        /// <summary>为 true 且 ReadPolicy 非 MasterOnly 时，Select 自动走读从库（默认 false，迁移见 doc/slave）。</summary>
+        public bool AutoReadReplica;
     }
 
     public class GroupOverride
@@ -21,6 +23,8 @@ namespace mooSQL.data.cluster
         public bool? DualWriteSync;
         public bool? RequireReadReplica;
         public bool? AllowHotStandbyRead;
+        public bool? AutoReadReplica;
+        public bool? ReadFallbackToMaster;
     }
 
     public class MasterSlaveOptions
@@ -35,6 +39,8 @@ namespace mooSQL.data.cluster
         public Func<MasterSlaveGroup, DBInstance> CustomReadSelector;
         public Func<FailoverContext, DBInstance> CustomFailoverElector;
         public Action<FailoverContext> OnFailover;
+        /// <summary>热备选举时按复制延迟升序；返回 null 表示未知延迟（排后）。</summary>
+        public Func<SlaveMember, TimeSpan?> GetReplicationLag;
     }
 
     public class FailoverContext

@@ -58,9 +58,9 @@ namespace mooSQL.data.cluster
     }
 
     /// <summary>
-    /// 主从路由解析。
+    /// 主从路由解析（仅供框架内部与单元测试）。
     /// </summary>
-    public class RouteResolver
+    internal class RouteResolver
     {
         private readonly MooClient _client;
         private readonly DBInsCash _cash;
@@ -76,6 +76,19 @@ namespace mooSQL.data.cluster
         public MasterSlaveGroup GetGroup(int position)
         {
             return _client?.getGroupInternal(position);
+        }
+
+        /// <summary>
+        /// 是否对 Select 自动走读从：PreferReadReplica、组 AutoReadReplica 且非 MasterOnly。
+        /// </summary>
+        public bool ShouldAutoReadReplica(int position, SQLRouteContext ctx)
+        {
+            if (ctx?.PreferReadReplica == true) return true;
+            var group = GetGroup(position);
+            if (group == null) return false;
+            if (!_client.ResolveAutoReadReplica(position, ctx, group)) return false;
+            var policy = ctx?.ReadPolicyOverride ?? GetGroupOverride(position)?.ReadPolicy ?? group.ReadPolicy;
+            return policy != ReadRoutePolicy.MasterOnly;
         }
 
         public DBInstance ResolveRead(int position, SQLRouteContext ctx = null)
@@ -107,8 +120,9 @@ namespace mooSQL.data.cluster
             var candidates = group.Slaves.Where(s => IsReadableCandidate(s, ov) && IsHealthy(s)).ToList();
             if (candidates.Count == 0)
             {
-                var fallback = ov?.ReadPolicy != null ? group.ReadFallbackToMaster : Options.ReadFallbackToMaster;
-                if (fallback || group.ReadFallbackToMaster)
+                var fallback = group.ReadFallbackToMaster;
+                if (ov?.ReadFallbackToMaster != null) fallback = ov.ReadFallbackToMaster.Value;
+                if (fallback)
                     return ResolveWritableForRead(group, position, ctx);
                 throw new NoReadableReplicaException(position);
             }
@@ -162,7 +176,12 @@ namespace mooSQL.data.cluster
         public IList<DBInstance> ResolveDualWriteTargets(int position, SQLRouteContext ctx = null)
         {
             var group = GetGroup(position);
+#if NET451
+            if (group == null) return new List<DBInstance>();
+#else
             if (group == null) return Array.Empty<DBInstance>();
+#endif
+
 
             var master = ResolveWrite(position, ctx);
             var list = new List<DBInstance> { master };

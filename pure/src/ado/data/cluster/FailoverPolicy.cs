@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using mooSQL.data.health;
 
@@ -48,10 +49,10 @@ namespace mooSQL.data.cluster
                 return group.Master;
             }
 
-            foreach (var s in group.Slaves
-                         .Where(s => s.HotStandby && s.WriteEnabled)
-                         .OrderBy(s => s.Position))
+            var lagSelector = options?.GetReplicationLag;
+            foreach (var s in OrderHotStandbyCandidates(group, lagSelector))
             {
+                if (!s.CanFailover) continue;
                 var inst = s.Instance ?? cash?.getInstance(s.Position);
                 if (inst == null || ReferenceEquals(inst, current)) continue;
                 if (!IsInstanceHealthy(inst)) continue;
@@ -60,6 +61,20 @@ namespace mooSQL.data.cluster
             }
 
             return current;
+        }
+
+        private static System.Collections.Generic.IEnumerable<SlaveMember> OrderHotStandbyCandidates(
+            MasterSlaveGroup group,
+            Func<SlaveMember, TimeSpan?> lagSelector)
+        {
+            var query = group.Slaves.Where(s => s.HotStandby && s.WriteEnabled);
+            if (lagSelector == null)
+                return query.OrderBy(s => s.Position);
+            return query.OrderBy(s =>
+            {
+                var lag = lagSelector(s);
+                return lag.HasValue ? lag.Value.Ticks : long.MaxValue;
+            }).ThenBy(s => s.Position);
         }
 
         private static void FillFailoverContext(FailoverContext ctx, DBInstance oldInst, DBInstance newInst)

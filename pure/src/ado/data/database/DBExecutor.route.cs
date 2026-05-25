@@ -36,7 +36,7 @@ namespace mooSQL.data
 
             if (!isWrite)
             {
-                if (ctx?.PreferReadReplica == true || resolver.GetGroup(groupId) != null)
+                if (resolver.ShouldAutoReadReplica(groupId, ctx))
                     return resolver.ResolveRead(groupId, ctx) ?? anchor;
                 return anchor;
             }
@@ -44,6 +44,7 @@ namespace mooSQL.data
             return resolver.ResolveWrite(groupId, ctx, anchor) ?? anchor;
         }
 
+        /// <summary>当次执行临时切换 DBLive，finally 中 <see cref="EndExecutionRouting"/> 恢复锚点（与 useFailover 永久改绑不同）。</summary>
         private void BeginExecutionRouting(SQLCmd sql)
         {
             _routingRestoreDbLive = DBLive;

@@ -345,7 +345,8 @@ namespace mooSQL.data
             }
             catch (Exception ex)
             {
-
+                var log = client?.Loggor ?? getClient()?.Loggor;
+                log?.LogError($"加载数据库配置失败: {ex.Message}");
             }
         }
 

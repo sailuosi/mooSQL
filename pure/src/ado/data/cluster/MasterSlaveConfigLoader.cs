@@ -33,6 +33,13 @@ namespace mooSQL.data.cluster
                     if (Enum.TryParse(failover, true, out FailoverMode fm))
                         g.failover(fm);
 
+                    if (ParseBool(masterNode.Attributes?["autoReadReplica"]?.Value))
+                        g.autoReadReplica(true);
+
+                    var readFallback = masterNode.Attributes?["readFallback"]?.Value;
+                    if (readFallback != null)
+                        g.readFallbackToMaster(ParseBool(readFallback));
+
                     var slaveNodes = masterNode.SelectNodes("slave");
                     if (slaveNodes == null) return;
 

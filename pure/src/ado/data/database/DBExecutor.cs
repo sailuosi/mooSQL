@@ -1,4 +1,5 @@
 ﻿using mooSQL.data.context;
+using mooSQL.data.health;
 using mooSQL.data.model;
 using mooSQL.data.slave;
 using System;
@@ -263,24 +264,26 @@ namespace mooSQL.data
             }
             catch (Exception e)
             {
+                if (e is DBUnavailableException)
+                    throw;
                 MarkHealthFailure(e);
                 if (TryImmediateFailoverAndRetry(sql, executor, e, out R retryResult))
                     return retryResult;
                 //输出错误信息，并根据配置决定是否回滚事务。
                 var sqlTxt = "无";
-                if (sql != null) {
+                if (sql != null && DBLive?.dialect?.expression != null) {
                     sqlTxt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
                 }
                 var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sqlTxt);
                 if (this.OnErrBehavior == DBExecBehavior.RollbackAndBreak)
                 {
-                    Context.session.RollbackTransaction();
+                    Context?.session?.RollbackTransaction();
                     this.KeepOpen = false;
                     throw new Exception(msg+"，事务已回滚", e);
                 }
                 else if (this.OnErrBehavior == DBExecBehavior.SaveAndBreak)
                 {
-                    Context.session.CommitTransaction();
+                    Context?.session?.CommitTransaction();
                     this.KeepOpen = false;
                     throw new Exception(msg+"，事务已提交", e);
                 }
@@ -293,9 +296,8 @@ namespace mooSQL.data
             finally
             {
                 EndExecutionRouting();
-                if(!KeepOpen){
+                if (!KeepOpen && Context?.session != null)
                     Context.session.Dispose();
-                }
             }
         }
         /// <summary>
@@ -343,26 +345,33 @@ namespace mooSQL.data
                     await Context.session.OpenAsync(Context);
                 }
                 var res = await executor(DBLive.cmd, Context);
+                MarkHealthSuccess();
                 return res;
             }
             catch (Exception e)
             {
+                if (e is DBUnavailableException)
+                    throw;
+                MarkHealthFailure(e);
+                var failoverRetry = await TryImmediateFailoverAndRetryAsync(sql, executor, e).ConfigureAwait(false);
+                if (failoverRetry.Retried)
+                    return failoverRetry.Value;
                 //输出错误信息，并根据配置决定是否回滚事务。
                 var sqlTxt = "无";
-                if (sql != null)
+                if (sql != null && DBLive?.dialect?.expression != null)
                 {
                     sqlTxt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
                 }
                 var msg = string.Format("执行SQL期间发生异常：{0},SQL语句为：{1}", e.Message, sqlTxt);
                 if (this.OnErrBehavior == DBExecBehavior.RollbackAndBreak)
                 {
-                    Context.session.RollbackTransaction();
+                    Context?.session?.RollbackTransaction();
                     this.KeepOpen = false;
                     throw new Exception(msg + "，事务已回滚", e);
                 }
                 else if (this.OnErrBehavior == DBExecBehavior.SaveAndBreak)
                 {
-                    Context.session.CommitTransaction();
+                    Context?.session?.CommitTransaction();
                     this.KeepOpen = false;
                     throw new Exception(msg + "，事务已提交", e);
                 }
@@ -376,10 +385,8 @@ namespace mooSQL.data
             finally
             {
                 EndExecutionRouting();
-                if (!KeepOpen)
-                {
+                if (!KeepOpen && Context?.session != null)
                     Context.session.Dispose();
-                }
             }
         }
         /// <summary>

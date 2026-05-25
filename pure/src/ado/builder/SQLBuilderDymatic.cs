@@ -103,7 +103,15 @@ namespace mooSQL.data
         public Task<int> exeNonQueryAsync(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
+            CheckDBForWrite();
             doPrintSQL(sql);
+            if (Executor?.RouteContext?.EnableDualWrite == true && MooClient != null)
+            {
+                var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
+                var targets = MooClient.resolveDualWriteTargets(pos, Executor.RouteContext);
+                var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
+                return Task.FromResult(cluster.WriteFanoutExecutor.ExecuteNonQuery(sql, targets, Executor, policy));
+            }
             return DBLive.ExeNonQueryAsync(sql, Executor);
         }
         /// <summary>

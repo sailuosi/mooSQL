@@ -13,9 +13,10 @@ namespace mooSQL.data.health
         private readonly List<DBHealth> _targets = new List<DBHealth>();
         private readonly object _lock = new object();
 
-        public HealthProbeScheduler(TimeSpan? interval = null)
+        /// <summary>调度器扫描间隔（各实例按 <see cref="DBHealthOptions.RecoveryInterval"/> 决定是否探活）。</summary>
+        public HealthProbeScheduler(TimeSpan? tickInterval = null)
         {
-            var ms = (int)(interval ?? TimeSpan.FromSeconds(30)).TotalMilliseconds;
+            var ms = (int)(tickInterval ?? TimeSpan.FromSeconds(5)).TotalMilliseconds;
             _timer = new Timer(_ => Tick(), null, ms, ms);
         }
 
@@ -37,10 +38,14 @@ namespace mooSQL.data.health
         {
             DBHealth[] snapshot;
             lock (_lock) snapshot = _targets.ToArray();
+            var now = DateTime.UtcNow;
             foreach (var h in snapshot)
             {
                 if (h.Status != DBHealthStatus.Unavailable) continue;
                 if (h.ProbeAttempts >= h.Options.ReTrySize) continue;
+                if (!h.LastFailureAt.HasValue
+                    || now - h.LastFailureAt.Value < h.Options.RecoveryInterval)
+                    continue;
                 h.Probe();
             }
         }

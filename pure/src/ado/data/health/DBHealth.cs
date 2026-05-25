@@ -106,7 +106,13 @@ namespace mooSQL.data.health
                 SkipHealthCheck = true,
                 ForceUseUnavailable = true
             };
-            Owner.ExeQueryScalar<int>(new SQLCmd(sql, new Paras()), probeExecutor);
+            var dialectMs = Owner.dialect.sentence?.PingTimeoutMs ?? 3000;
+            var timeoutMs = Math.Min(Options.PingTimeoutMs, dialectMs);
+            var cmd = new SQLCmd(sql, new Paras())
+            {
+                timeout = Math.Max(1, timeoutMs / 1000)
+            };
+            Owner.ExeQueryScalar<int>(cmd, probeExecutor);
             return true;
         }
 
@@ -117,5 +123,8 @@ namespace mooSQL.data.health
             Status = next;
             Owner?.client?.events?.FireHealthStatusChanged(Owner, old, next);
         }
+
+        /// <summary>单元测试用：模拟探活中间态。</summary>
+        internal void ForceStatus(DBHealthStatus next) => SetStatus(next);
     }
 }

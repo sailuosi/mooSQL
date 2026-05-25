@@ -32,6 +32,9 @@ namespace mooSQL.data
         /// </summary>
         public virtual string getPingSQL() => "SELECT 1";
 
+        /// <summary>探活命令超时毫秒（与 <see cref="health.DBHealthOptions.PingTimeoutMs"/> 取较小值）。</summary>
+        public virtual int PingTimeoutMs => 3000;
+
         public DBInstance DBLive
         {
             get
