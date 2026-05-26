@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +30,21 @@ namespace mooSQL.utils
             {
                 return null;
             }
+        }
+        /// <summary>
+        /// 高效的获取字典的值列表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="dic"></param>
+        /// <returns></returns>
+        public static List<R> toValueList<T, R>(this ConcurrentDictionary<T, R> dic) {
+            // 1. 预分配容量，减少扩容开销
+            var list = new List<R>(dic.Count);
+
+            // 2. 批量填充数据（Values在.NET Core下是高度优化的）
+            list.AddRange(dic.Values);
+            return list;
         }
         /// <summary>
         /// 添加非null成员，非重复成员

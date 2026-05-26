@@ -36,6 +36,10 @@ namespace mooSQL.data
         /// 连接的条件，定义时，为on的右侧字段。
         /// </summary>
         public string OnB { get; set; }
+        /// <summary>
+        /// 顺序号
+        /// </summary>
+        public int Idx { get; set; }
 
         public string UniqueKey
         {

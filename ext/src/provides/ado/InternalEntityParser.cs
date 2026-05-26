@@ -152,6 +152,7 @@ namespace mooSQL.data.Mapping
                 if (result.Joins == null) {
                     result.Joins = new ConcurrentDictionary<string, EntityJoin>();
                 }
+                int i = result.Joins.Count;
                 foreach (var joinAttribute in joinAtts) { 
                     var join = new EntityJoin();
                     join.Type = joinAttribute.Type;
@@ -160,7 +161,8 @@ namespace mooSQL.data.Mapping
                     join.On = joinAttribute.On;
                     join.OnA = joinAttribute.OnA;
                     join.OnB = joinAttribute.OnB;
-
+                    i++;
+                    join.Idx = i;
                     
                     result.Joins.TryAdd(join.UniqueKey,join);
                 }

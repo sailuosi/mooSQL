@@ -1,6 +1,6 @@
 using mooSQL.data.model;
 using mooSQL.data.utils;
-
+using mooSQL.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -596,11 +596,12 @@ namespace mooSQL.data
             {
                 kit.from(string.Format("{0} as {1}", resolveTableName(en, loadName, null), en.Alias));
             }
-            if (en.Joins != null) { 
+            if (en.Joins != null) {
                 //构建join
-                foreach (var kv in en.Joins)
+                var joins = en.Joins.toValueList();
+                joins.Sort((a,b)=>a.Idx.CompareTo(b.Idx));
+                foreach (var jo in joins)
                 {
-                    var jo = kv.Value;
                     var joinStr = BuildJoinType(jo.Type);
                     var t = new StringBuilder();
                     t.Append(joinStr);
