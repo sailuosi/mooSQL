@@ -98,9 +98,9 @@ namespace mooSQL.data.health
         private bool DoDefaultPing()
         {
             if (Owner?.dialect == null) return false;
-            var sql = !string.IsNullOrWhiteSpace(Options.CustomPingSQL)
+            var sql =Options.CustomPingSQL.HasText()
                 ? Options.CustomPingSQL
-                : Owner.dialect.sentence?.getPingSQL() ?? "SELECT 1";
+                : Owner.dialect.sentence?.getPingSQL();
             var probeExecutor = new DBExecutor(Owner)
             {
                 SkipHealthCheck = true,

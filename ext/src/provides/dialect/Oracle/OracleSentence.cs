@@ -422,4 +422,8 @@ public class OracleSentence : SQLSentence
             .queryRowString("");
     }
 
+    public override string getPingSQL()
+    {
+        return "select 1 FROM DUAL";
+    }
 }
