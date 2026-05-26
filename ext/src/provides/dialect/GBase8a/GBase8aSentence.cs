@@ -90,4 +90,11 @@ public class GBase8aSentence :SQLSentence
             .queryRowString("");
     }
 
+    public override bool IsConnectionLost(Exception ex)
+    {
+        if (ex == null) return false;
+        if (MatchInnerErrorNumber(ex, 2002, 2003, 2006, 2013, 1045)) return true;
+        return MatchMessage(ex, "server has gone away", "Lost connection");
+    }
+
 }

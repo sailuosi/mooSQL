@@ -83,4 +83,13 @@ public class SQLiteSentence :SQLSentence
         return row != null;
     }
 
+    public override bool IsConnectionLost(Exception ex)
+    {
+        if (ex == null) return false;
+        return MatchMessage(ex,
+            "unable to open database file",
+            "disk I/O error",
+            "database disk image is malformed");
+    }
+
 }

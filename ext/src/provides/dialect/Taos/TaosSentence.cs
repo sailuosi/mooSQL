@@ -77,5 +77,14 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+
+        public override bool IsConnectionLost(Exception ex)
+        {
+            if (ex == null) return false;
+            return MatchMessage(ex,
+                "Unable to establish connection",
+                "connection refused",
+                "network unreachable");
+        }
     }
 }

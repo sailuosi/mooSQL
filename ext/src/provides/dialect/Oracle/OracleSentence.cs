@@ -426,4 +426,10 @@ public class OracleSentence : SQLSentence
     {
         return "select 1 FROM DUAL";
     }
+
+    public override bool IsConnectionLost(Exception ex)
+    {
+        if (ex == null) return false;
+        return MatchOracleError(ex, 12541, 12170, 3113, 12514, 12516, 12520);
+    }
 }

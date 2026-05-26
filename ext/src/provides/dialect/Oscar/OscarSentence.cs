@@ -126,4 +126,11 @@ public class OscarSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+
+    public override bool IsConnectionLost(Exception ex)
+    {
+        if (ex == null) return false;
+        if (MatchInnerSqlState(ex, "08000", "08003", "08006", "57P01")) return true;
+        return MatchMessage(ex, "connection refused", "could not connect");
+    }
 }

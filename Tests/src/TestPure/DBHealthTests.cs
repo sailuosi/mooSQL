@@ -1,5 +1,6 @@
 using FluentAssertions;
 using mooSQL.data;
+using mooSQL.data.cluster;
 using mooSQL.data.health;
 using mooSQL.Pure.Tests.TestHelpers;
 using System;
@@ -9,6 +10,34 @@ namespace mooSQL.Pure.Tests
 {
     public class DBHealthTests
     {
+        private sealed class NumberedTestException : Exception
+        {
+            public int Number { get; }
+            public NumberedTestException(int number, string message = "err") : base(message) => Number = number;
+        }
+
+        private sealed class SqlStateTestException : Exception
+        {
+            public string SqlState { get; }
+            public SqlStateTestException(string sqlState, string message = "err") : base(message) => SqlState = sqlState;
+        }
+
+        private static DBInstance CreateDbInFailoverGroup(FailoverMode failoverMode)
+        {
+            var client = new MooClient();
+            client.dialectFactory = new DialectFactory();
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase
+            {
+                dbType = DataBaseType.SQLite,
+                DBConnectStr = "Data Source=:memory:",
+                index = 0
+            });
+            client.configureGroup(0, g => g.master(0).failover(failoverMode));
+            return cash.getInstance(0);
+        }
+
         [Fact]
         public void MarkFailure_reaches_unavailable_at_threshold()
         {
@@ -37,10 +66,39 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ConnectionExceptionClassifier_detects_timeout()
+        public void Default_sentence_IsConnectionLost_returns_false()
         {
-            ConnectionExceptionClassifier.IsConnectionError(new TimeoutException()).Should().BeTrue();
-            ConnectionExceptionClassifier.IsConnectionError(new Exception("syntax error")).Should().BeFalse();
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.dialect.sentence.IsConnectionLost(new Exception("any")).Should().BeFalse();
+        }
+
+        [Fact]
+        public void MySQL_sentence_whitelist_detects_gone_away()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MySQL);
+            var sentence = db.dialect.sentence;
+            sentence.IsConnectionLost(new NumberedTestException(2006)).Should().BeTrue();
+            sentence.IsConnectionLost(new NumberedTestException(1146, "Table not found")).Should().BeFalse();
+        }
+
+        [Fact]
+        public void ConnectionExceptionClassifier_delegates_to_dialect()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MySQL);
+            ConnectionExceptionClassifier.IsConnectionError(null, db.dialect).Should().BeFalse();
+            ConnectionExceptionClassifier.IsConnectionError(new Exception("syntax"), null).Should().BeFalse();
+            ConnectionExceptionClassifier.IsConnectionError(
+                new NumberedTestException(2006), db.dialect).Should().BeTrue();
+            ConnectionExceptionClassifier.IsConnectionError(
+                new NumberedTestException(1146), db.dialect).Should().BeFalse();
+        }
+
+        [Fact]
+        public void Npgsql_sentence_whitelist_sql_state()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.PostgreSQL);
+            db.dialect.sentence.IsConnectionLost(new SqlStateTestException("08006")).Should().BeTrue();
+            db.dialect.sentence.IsConnectionLost(new SqlStateTestException("42P01")).Should().BeFalse();
         }
 
         [Fact]
@@ -66,14 +124,47 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void Probing_status_blocks_execute_gate()
+        public void Probing_status_blocks_execute_gate_when_failover_enabled()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var db = CreateDbInFailoverGroup(FailoverMode.OnNextConnect);
             db.EnsureHealth();
             db.Health.ForceStatus(DBHealthStatus.Probing);
             var exe = new DBExecutor(db);
             Action act = () => exe.ExeQueryScalar<int>(new SQLCmd("SELECT 1", new Paras()));
             act.Should().Throw<DBUnavailableException>();
+        }
+
+        [Fact]
+        public void Probing_status_does_not_block_when_failover_disabled()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.EnsureHealth();
+            db.Health.ForceStatus(DBHealthStatus.Probing);
+            var exe = new DBExecutor(db) { SkipHealthCheck = false };
+            Action act = () => exe.ExeQueryScalar<int>(new SQLCmd("SELECT 1", new Paras()));
+            act.Should().NotThrow<DBUnavailableException>();
+        }
+
+        [Fact]
+        public void Unavailable_status_does_not_block_when_failover_disabled()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.EnsureHealth();
+            db.Health.ForceStatus(DBHealthStatus.Unavailable);
+            var exe = new DBExecutor(db);
+            Action act = () => exe.ExeQueryScalar<int>(new SQLCmd("SELECT 1", new Paras()));
+            act.Should().NotThrow<DBUnavailableException>();
+        }
+
+        [Fact]
+        public void MarkOnly_does_not_throw_unavailable_but_allows_mark_via_classifier()
+        {
+            var db = CreateDbInFailoverGroup(FailoverMode.MarkOnly);
+            db.EnsureHealth();
+            db.Health.ForceStatus(DBHealthStatus.Unavailable);
+            var exe = new DBExecutor(db);
+            Action act = () => exe.ExeQueryScalar<int>(new SQLCmd("SELECT 1", new Paras()));
+            act.Should().NotThrow<DBUnavailableException>();
         }
 
         [Fact]

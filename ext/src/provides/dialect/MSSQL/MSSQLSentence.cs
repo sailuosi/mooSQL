@@ -418,4 +418,10 @@ public class MSSQLSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+
+    public override bool IsConnectionLost(Exception ex)
+    {
+        if (ex == null) return false;
+        return MatchInnerErrorNumber(ex, -2, 20, 64, 233, 10053, 10054, 10060, 18456, 40197, 40613);
+    }
 }

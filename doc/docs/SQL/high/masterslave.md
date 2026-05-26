@@ -368,9 +368,25 @@ client.promoteMaster(groupId: 0, masterPosition: 0, manual: true);
 | 机制 | 触发点 |
 |------|--------|
 | 懒探活 | `getInstance` 时，状态未知或超过 `StaleThreshold` |
-| 执行前 | `ExecuteCmd` 入口，不可用实例抛 `DBUnavailableException` |
-| 执行后 | 连接类异常 → `MarkFailure`；成功 → `MarkSuccess` |
+| 执行前 | `ExecuteCmd` 入口；仅当 `FailoverMode` 为 `OnNextConnect` / `ImmediateOnFailure` 且实例 `Unavailable`/`Probing` 时抛 `DBUnavailableException` |
+| 执行后 | 方言白名单认定的连接失联异常 → `MarkFailure`（`FailoverMode.Disabled` 时不标记）；成功 → `MarkSuccess` |
 | 定时探活 | `HealthProbeScheduler` 对 `Unavailable` 实例按 `RecoveryInterval` 周期探测 |
+
+### 9.2.1 连接失联判定（方言白名单）
+
+各数据库在 `SQLSentence.IsConnectionLost(Exception)` 中维护**失联白名单**（错误码、SqlState、消息短语）。未命中白名单的异常（如表不存在、语法错误）**不**视为连接失联，避免误判导致实例 `Unavailable`。
+
+`ConnectionExceptionClassifier` 委托 `Dialect.IsConnectionLost` 判定；可在对应 `*Sentence` 中渐进补充规则。
+
+### 9.2.2 FailoverMode 与健康行为
+
+| FailoverMode | 执行失败 MarkFailure | 执行前抛 DBUnavailableException |
+|--------------|----------------------|-----------------------------------|
+| `Disabled`（默认） | 否 | 否 |
+| `MarkOnly` | 是（仅标记） | 否 |
+| `OnNextConnect` / `ImmediateOnFailure` | 是 | 是（实例不可用时） |
+
+未配置主从灾切时保持与旧版兼容：不因健康状态拦截 SQL 执行。
 
 ### 9.3 配置（DBHealthOptions）
 

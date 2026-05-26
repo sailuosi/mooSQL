@@ -19,12 +19,29 @@ namespace mooSQL.data
         /// <summary>Builder 传入的临时路由上下文。</summary>
         public SQLRouteContext RouteContext { get; set; }
 
+        private FailoverMode ResolveCurrentFailoverMode()
+        {
+            var client = DBLive?.client;
+            if (client == null) return FailoverMode.Disabled;
+            var pos = client.resolveGroupIdFor(DBLive);
+            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            var group = client.getGroupInternal(pos);
+            return client.ResolveFailoverMode(pos, RouteContext, group);
+        }
+
+        private bool ShouldApplyHealthSideEffects()
+            => ResolveCurrentFailoverMode() != FailoverMode.Disabled;
+
+        private bool ShouldThrowUnavailableGate()
+            => MooClient.ShouldAttemptFailover(ResolveCurrentFailoverMode());
+
         private void EnsureHealthBeforeExecute()
         {
             if (SkipHealthCheck) return;
             var h = DBLive?.Health;
             if (h == null || !h.Options.Enabled) return;
-            if ((h.Status == DBHealthStatus.Unavailable || h.Status == DBHealthStatus.Probing)
+            if (ShouldThrowUnavailableGate()
+                && (h.Status == DBHealthStatus.Unavailable || h.Status == DBHealthStatus.Probing)
                 && !ForceUseUnavailable)
                 throw new DBUnavailableException(DBLive, "数据库实例当前不可用。");
             if (h.NeedsProbe())
@@ -40,8 +57,9 @@ namespace mooSQL.data
 
         private void MarkHealthFailure(Exception e)
         {
-            if (ConnectionExceptionClassifier.IsConnectionError(e))
-                DBLive?.Health?.MarkFailure(e);
+            if (!ShouldApplyHealthSideEffects()) return;
+            if (!ConnectionExceptionClassifier.IsConnectionError(e, DBLive?.dialect)) return;
+            DBLive?.Health?.MarkFailure(e);
         }
 
         private bool TryImmediateFailoverAndRetry<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext, R> executor, Exception original, out R result)
@@ -55,7 +73,7 @@ namespace mooSQL.data
             var group = client.getGroupInternal(pos);
             var mode = client.ResolveFailoverMode(pos, RouteContext, group);
             if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure) return false;
-            if (!ConnectionExceptionClassifier.IsConnectionError(original)) return false;
+            if (!ConnectionExceptionClassifier.IsConnectionError(original, DBLive?.dialect)) return false;
 
             MarkHealthFailure(original);
             var newMaster = client.electIfUnavailable(pos, DBLive, RouteContext?.FailoverElector, "immediate");
@@ -95,7 +113,7 @@ namespace mooSQL.data
             var mode = client.ResolveFailoverMode(pos, RouteContext, group);
             if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure)
                 return none;
-            if (!ConnectionExceptionClassifier.IsConnectionError(original)) return none;
+            if (!ConnectionExceptionClassifier.IsConnectionError(original, DBLive?.dialect)) return none;
 
             MarkHealthFailure(original);
             var newMaster = client.electIfUnavailable(pos, DBLive, RouteContext?.FailoverElector, "immediateAsync");

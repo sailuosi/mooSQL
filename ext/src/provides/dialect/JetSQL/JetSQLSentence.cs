@@ -271,5 +271,14 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+
+        public override bool IsConnectionLost(Exception ex)
+        {
+            if (ex == null) return false;
+            return MatchMessage(ex,
+                "connection failure",
+                "Could not connect",
+                "general network error");
+        }
     }
 }
