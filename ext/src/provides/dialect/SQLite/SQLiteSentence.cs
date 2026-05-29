@@ -41,6 +41,16 @@ public class SQLiteSentence :SQLSentence
         "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS `IsNullable` " +
         "FROM Information_schema.columns where TABLE_NAME='{0}' and  TABLE_SCHEMA=(select database()) ORDER BY TABLE_NAME";
 
+    public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
+    {
+        var kit = DBLive.useSQL();
+        kit.ps.Add("Tab", tableName);
+        return kit.select("name AS Name, '' AS Caption")
+            .from("pragma_table_info(#{Tab})")
+            .query<DbColumnCaption>()
+            .ToList();
+    }
+
     public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Comment from information_schema.tables" +
         " where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
 

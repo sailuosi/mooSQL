@@ -76,7 +76,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="frag"></param>
         /// <returns></returns>
-        public virtual string buildCreateTableCaption(DDLFragSQL frag,DBInstance DB=null)
+        public virtual string buildCreateTableCaption(DDLFragSQL frag)
         {
 
             var sb = new StringBuilder();

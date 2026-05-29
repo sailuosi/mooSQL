@@ -154,6 +154,20 @@ public class MSSQLSentence : SQLSentence
         }
         return tar;
     }
+
+    public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
+    {
+        return DBLive.useSQL()
+            .select("c.name AS Name, ISNULL(CONVERT(varchar(max), ep.value), '') AS Caption")
+            .from("sys.columns c")
+            .innerJoin("sys.objects o ON c.object_id = o.object_id")
+            .join("LEFT JOIN sys.extended_properties ep ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = 'MS_Description'")
+            .where("o.name", tableName)
+            .where("o.type = 'U'")
+            .orderBy("c.column_id")
+            .query<DbColumnCaption>()
+            .ToList();
+    }
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
         if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;

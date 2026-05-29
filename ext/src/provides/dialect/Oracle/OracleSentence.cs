@@ -67,6 +67,12 @@ public class OracleSentence : SQLSentence
         " and au.constraint_type = 'P' and au.table_name=upper('{0}') " +
         ") t3  on t3.keyname = t1.COLUMN_NAME " +
         " where t1.table_name=upper('{0}')";
+
+    public override string GetColumnCaptionsByTableNameSql => "SELECT t1.COLUMN_NAME AS Name, t2.COMMENTS AS Caption " +
+        "FROM all_tab_columns t1 " +
+        "LEFT JOIN all_col_comments t2 ON t1.TABLE_NAME = t2.TABLE_NAME AND t1.COLUMN_NAME = t2.COLUMN_NAME " +
+        "WHERE t1.TABLE_NAME = UPPER('{0}') ORDER BY t1.COLUMN_ID";
+
     //user_tables 
     public override string GetTableInfoListSql => "SELECT  table_name name from user_tables where " +
         " table_name!='HELP' " +

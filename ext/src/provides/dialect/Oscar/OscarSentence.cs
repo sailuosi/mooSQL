@@ -64,6 +64,12 @@ public class OscarSentence : SQLSentence
         " ) t3  on t3.keyname = t1.COLUMN_NAME " +
         " where t1.table_name=upper('{0}')";
 
+    public override string GetColumnCaptionsByTableNameSql => "SELECT c.column_name AS Name, col_description(pclass.oid, c.ordinal_position) AS Caption " +
+        "FROM information_schema.columns c " +
+        "INNER JOIN pg_class pclass ON pclass.relname = c.table_name " +
+        "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
+        "ORDER BY c.ordinal_position";
+
     public override string GetTableInfoListSql => "SELECT  table_name name from user_tables where\r\n                        table_name!='HELP' \r\n                        AND table_name NOT LIKE '%$%'\r\n                        AND table_name NOT LIKE 'LOGMNRC_%'\r\n                        AND table_name!='LOGMNRP_CTAS_PART_MAP'\r\n                        AND table_name!='LOGMNR_LOGMNR_BUILDLOG'\r\n                        AND table_name!='SQLPLUS_PRODUCT_PROFILE'  \r\n                         ";
 
     public override string GetViewInfoListSql => "select view_name name  from user_views \r\n                                                WHERE VIEW_name NOT LIKE '%$%'\r\n                                                AND VIEW_NAME !='PRODUCT_PRIVS'\r\n                        AND VIEW_NAME NOT LIKE 'MVIEW_%' ";

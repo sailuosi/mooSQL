@@ -87,7 +87,7 @@ namespace mooSQL.data
         public SQLCmd toCreateCaption()
         {
             var frag = this.buildFrag();
-            var str = this.DBLive.dialect.expression.buildCreateTableCaption(frag,this.DBLive);
+            var str = this.DBLive.dialect.expression.buildCreateTableCaption(frag);
             var cmd = new SQLCmd(str, ps);
             return cmd;
         }

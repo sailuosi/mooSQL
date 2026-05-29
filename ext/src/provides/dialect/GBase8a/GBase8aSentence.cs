@@ -34,6 +34,9 @@ public class GBase8aSentence :SQLSentence
 
     public override string GetColumnInfosByTableNameSql => "SELECT                                    \r\n                                    column_name AS ColumnName,\r\n                                    CASE WHEN  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1)='' THEN COLUMN_TYPE ELSE  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1) END   AS DataType,\r\n                                    CAST(SUBSTRING(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)+1,LOCATE(')',COLUMN_TYPE)-LOCATE('(',COLUMN_TYPE)-1) AS signed) AS ColumnLength,\r\n                                    numeric_scale as DecimalDigits,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tcolumn_default  AS  `DefaultValue`,\r\n                                    column_comment  AS  `ColumnDescription`,\r\n                                    CASE WHEN COLUMN_KEY = 'PRI'\r\n                                    THEN true ELSE false END AS `IsPrimaryKey`,\r\n                                    CASE WHEN EXTRA='auto_increment' THEN true ELSE false END as IsIdentity,\r\n                                    CASE WHEN is_nullable = 'YES'\r\n                                    THEN true ELSE false END AS `IsNullable`\r\n                                    FROM\r\n                                    Information_schema.columns where TABLE_NAME='{0}' and  TABLE_SCHEMA=(select database()) ORDER BY TABLE_NAME";
 
+    public override string GetColumnCaptionsByTableNameSql => "SELECT column_name AS Name, column_comment AS Caption " +
+        "FROM information_schema.columns WHERE TABLE_NAME='{0}' AND TABLE_SCHEMA=(select database()) ORDER BY ORDINAL_POSITION";
+
     public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)

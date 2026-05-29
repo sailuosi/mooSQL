@@ -136,6 +136,16 @@ namespace mooSQL.data
             }
             return tar;
         }
+        /// <summary>
+        /// 获取表的列注释（列名、中文名）
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
+        {
+            var sql = string.Format(GetColumnCaptionsByTableNameSql, tableName);
+            return DBLive.ExeQuery<DbColumnCaption>(sql).ToList();
+        }
         public virtual bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         {
             bool result = false;

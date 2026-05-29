@@ -52,6 +52,12 @@ namespace mooSQL.data
             " where pg_constraint.contype='p'  ) pkey on pcolumn.table_name = pkey.relname " +
             " order by ptables.tablename";
 
+        public override string GetColumnCaptionsByTableNameSql => "SELECT c.column_name AS Name, col_description(pclass.oid, c.ordinal_position) AS Caption " +
+            "FROM information_schema.columns c " +
+            "INNER JOIN pg_class pclass ON pclass.relname = c.table_name " +
+            "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
+            "ORDER BY c.ordinal_position";
+
         public override string GetTableInfoListSql => "select cast(relname as varchar) as Name,   cast(obj_description(relfilenode,'pg_class') as varchar) as Comment from pg_class c   where  relkind = 'r' and relname not like 'pg_%' and relname not like 'sql_%' order by relname";
 
         public override string GetViewInfoListSql => "select cast(relname as varchar) as Name,cast(Description as varchar) from pg_description   join pg_class on pg_description.objoid = pg_class.oid  where objsubid = 0 and relname in (SELECT viewname from pg_views   WHERE schemaname ='public')";

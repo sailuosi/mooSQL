@@ -62,6 +62,36 @@ namespace mooSQL.data
             }
         }
 
+        public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
+        {
+            var conn = dialect.getConnection();
+            if (conn == null || !(conn is DbConnection dbConn))
+                return base.GetDbColumnCaptionsByTableName(tableName);
+            try
+            {
+                if (conn.State != ConnectionState.Open)
+                    conn.Open();
+                using (var schema = dbConn.GetSchema("Columns", new string[] { null, null, tableName, null }))
+                {
+                    var list = new List<DbColumnCaption>();
+                    foreach (DataRow row in schema.Rows)
+                    {
+                        list.Add(new DbColumnCaption
+                        {
+                            Name = GetString(row, "COLUMN_NAME"),
+                            Caption = GetString(row, "DESCRIPTION")
+                        });
+                    }
+                    return list;
+                }
+            }
+            finally
+            {
+                if (conn.State != ConnectionState.Closed)
+                    conn.Close();
+            }
+        }
+
         private static string GetString(DataRow row, string col)
         {
             if (!row.Table.Columns.Contains(col)) return null;

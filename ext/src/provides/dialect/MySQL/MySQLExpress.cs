@@ -409,7 +409,7 @@ namespace mooSQL.data
         /// <summary>
         /// 创建/修改表与字段注释（MySQL 需完整列定义，通过 SHOW CREATE TABLE 获取）
         /// </summary>
-        public override string buildCreateTableCaption(DDLFragSQL frag, DBInstance DB = null)
+        public override string buildCreateTableCaption(DDLFragSQL frag)
         {
             var sb = new StringBuilder();
             var fieldsWithCaption = frag.Columns?.Where(f => !string.IsNullOrWhiteSpace(f.Caption)).ToList() ?? new List<DDLField>();
@@ -426,7 +426,7 @@ namespace mooSQL.data
                 throw new Exception("MySQL 生成字段注释 SQL 需要数据库连接，请传入 DBInstance 参数。");
             }
 
-            var createTableSql = getShowCreateTableSql(frag.Table, DB);
+            var createTableSql = getShowCreateTableSql(frag.Table);
 
             if (hasTableCaption)
             {
@@ -457,9 +457,9 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
-        private string getShowCreateTableSql(string tableName, DBInstance DB)
+        private string getShowCreateTableSql(string tableName)
         {
-            var dt = DB.ExeQuery(string.Format("SHOW CREATE TABLE {0}", tableName));
+            var dt = this.DBLive.ExeQuery(string.Format("SHOW CREATE TABLE {0}", tableName));
             if (dt == null || dt.Rows.Count == 0)
             {
                 throw new Exception(string.Format("SHOW CREATE TABLE {0} 未返回结果", tableName));

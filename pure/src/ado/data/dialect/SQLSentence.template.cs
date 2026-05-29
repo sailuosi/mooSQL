@@ -19,6 +19,7 @@ namespace mooSQL.data
 
         public virtual string GetColumnInfosByTableNameSql { get; }
 
+        public virtual string GetColumnCaptionsByTableNameSql { get; }
 
 
         protected virtual int DefultLength { get; set; } = 255;
