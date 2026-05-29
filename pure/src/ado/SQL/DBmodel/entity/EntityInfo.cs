@@ -263,9 +263,9 @@ namespace mooSQL.data
                 return pks;
             }
             pks = new List<EntityColumn>();
-            foreach (var col in Columns) {
-                if (col.IsPrimarykey) { 
-                    pks.Add(col);
+            foreach (var kv in this.FieldMap) {
+                if (kv.Value.IsPrimarykey) { 
+                    pks.Add(kv.Value);
                 }
             }
             return pks;
