@@ -80,6 +80,26 @@ namespace mooSQL.data
             var cmd= new SQLCmd(str,ps);
             return cmd;
         }
+        /// <summary>
+        /// 创建注释的SQL
+        /// </summary>
+        /// <returns></returns>
+        public SQLCmd toCreateCaption()
+        {
+            var frag = this.buildFrag();
+            var str = this.DBLive.dialect.expression.buildCreateTableCaption(frag,this.DBLive);
+            var cmd = new SQLCmd(str, ps);
+            return cmd;
+        }
+        /// <summary>
+        /// 执行注释创建
+        /// </summary>
+        /// <returns></returns>
+        public int doCreateCaption() {
+            var cmd = this.toCreateCaption();
+            var cc = DBLive.ExeNonQuery(cmd);
+            return cc;
+        }
 
         private DDLFragSQL buildFrag() {
             var frag = new DDLFragSQL();

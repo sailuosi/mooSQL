@@ -89,6 +89,11 @@ namespace mooSQL.data
             set(tar);
             return this;
         }
+        /// <summary>
+        /// 设置字段，并返回字段的设置器
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
         public DDLColumnBuilder set(string columnName)
         {
             var tar = new DDLField()
@@ -99,7 +104,32 @@ namespace mooSQL.data
             var cb = new DDLColumnBuilder(tar, this);
             return cb;
         }
-        public DDLBuilder setField(string columnName)
+        /// <summary>
+        /// 设置字段的中文名
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <param name="caption"></param>
+        /// <returns></returns>
+        public DDLBuilder setCap(string columnName,string caption)
+        {
+            if (!columnName.HasText() || !caption.HasText()) {
+                return this;
+            }
+            var tar = new DDLField()
+            {
+                Mode = "set",
+                FieldName = columnName,
+                Caption=caption
+            };
+            set(tar);
+            return this;
+        }
+        /// <summary>
+        /// 删除列
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
+        public DDLBuilder dropField(string columnName)
         {
             var tar = new DDLField()
             {

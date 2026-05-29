@@ -407,6 +407,165 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 创建/修改表与字段注释（MySQL 需完整列定义，通过 SHOW CREATE TABLE 获取）
+        /// </summary>
+        public override string buildCreateTableCaption(DDLFragSQL frag, DBInstance DB = null)
+        {
+            var sb = new StringBuilder();
+            var fieldsWithCaption = frag.Columns?.Where(f => !string.IsNullOrWhiteSpace(f.Caption)).ToList() ?? new List<DDLField>();
+            var hasTableCaption = !string.IsNullOrWhiteSpace(frag.TableCaption);
+            var hasFieldCaptions = fieldsWithCaption.Count > 0;
+
+            if (!hasTableCaption && !hasFieldCaptions)
+            {
+                return sb.ToString();
+            }
+
+            if (DB == null)
+            {
+                throw new Exception("MySQL 生成字段注释 SQL 需要数据库连接，请传入 DBInstance 参数。");
+            }
+
+            var createTableSql = getShowCreateTableSql(frag.Table, DB);
+
+            if (hasTableCaption)
+            {
+                var existingTableComment = getTableComment(createTableSql);
+                if (!captionEquals(existingTableComment, frag.TableCaption))
+                {
+                    sb.Append(AddTableCaptionBy(frag.Table, frag.TableCaption));
+                }
+            }
+
+            foreach (var field in fieldsWithCaption)
+            {
+                var columnDef = extractColumnDefinition(createTableSql, field.FieldName);
+                if (string.IsNullOrWhiteSpace(columnDef))
+                {
+                    throw new Exception(string.Format("无法在表 {0} 的 SHOW CREATE TABLE 结果中找到字段 {1}", frag.Table, field.FieldName));
+                }
+                var existingComment = getColumnComment(columnDef);
+                if (captionEquals(existingComment, field.Caption))
+                {
+                    continue;
+                }
+                var newDef = setColumnComment(columnDef, field.Caption);
+                sb.AppendFormat("ALTER TABLE {0} MODIFY COLUMN {1};", frag.Table, newDef);
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+
+        private string getShowCreateTableSql(string tableName, DBInstance DB)
+        {
+            var dt = DB.ExeQuery(string.Format("SHOW CREATE TABLE {0}", tableName));
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                throw new Exception(string.Format("SHOW CREATE TABLE {0} 未返回结果", tableName));
+            }
+            return dt.Rows[0][1].ToString();
+        }
+
+        private string extractColumnDefinition(string createTableSql, string columnName)
+        {
+            var marker = wrapKeyword(columnName.Trim('`'));
+            var idx = createTableSql.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+            {
+                return null;
+            }
+
+            int i = idx + marker.Length;
+            int depth = 0;
+            bool inSingleQuote = false;
+            while (i < createTableSql.Length)
+            {
+                char c = createTableSql[i];
+                if (!inSingleQuote)
+                {
+                    if (c == '(')
+                    {
+                        depth++;
+                    }
+                    else if (c == ')')
+                    {
+                        if (depth == 0)
+                        {
+                            break;
+                        }
+                        depth--;
+                    }
+                    else if (c == ',' && depth == 0)
+                    {
+                        break;
+                    }
+                    else if (c == '\'')
+                    {
+                        inSingleQuote = true;
+                    }
+                }
+                else if (c == '\'')
+                {
+                    if (i + 1 < createTableSql.Length && createTableSql[i + 1] == '\'')
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        inSingleQuote = false;
+                    }
+                }
+                i++;
+            }
+            return createTableSql.Substring(idx, i - idx).Trim();
+        }
+
+        private static string getColumnComment(string columnDef)
+        {
+            var match = Regex.Match(columnDef, @"\s+COMMENT\s+'((?:[^']|'')*)'", RegexOptions.IgnoreCase);
+            return match.Success ? unescapeSqlComment(match.Groups[1].Value) : null;
+        }
+
+        private static string getTableComment(string createTableSql)
+        {
+            var engineIdx = createTableSql.LastIndexOf(") ENGINE", StringComparison.OrdinalIgnoreCase);
+            if (engineIdx < 0)
+            {
+                engineIdx = createTableSql.LastIndexOf(')');
+            }
+            if (engineIdx < 0)
+            {
+                return null;
+            }
+            var suffix = createTableSql.Substring(engineIdx);
+            var match = Regex.Match(suffix, @"COMMENT\s*=\s*'((?:[^']|'')*)'", RegexOptions.IgnoreCase);
+            return match.Success ? unescapeSqlComment(match.Groups[1].Value) : null;
+        }
+
+        private static string unescapeSqlComment(string value)
+        {
+            return value.Replace("''", "'");
+        }
+
+        private static bool captionEquals(string existing, string target)
+        {
+            return string.Equals(existing ?? string.Empty, target ?? string.Empty, StringComparison.Ordinal);
+        }
+
+        private static string setColumnComment(string columnDef, string caption)
+        {
+            var escapedCaption = caption.Replace("'", "''");
+            var commentSuffix = string.Format(" COMMENT '{0}'", escapedCaption);
+            var regex = new Regex(@"\s+COMMENT\s+'((?:[^']|'')*)'", RegexOptions.IgnoreCase);
+            if (regex.IsMatch(columnDef))
+            {
+                return regex.Replace(columnDef, commentSuffix);
+            }
+            return columnDef + commentSuffix;
+        }
+
+        /// <summary>
         /// 修改视图
         /// </summary>
         /// <param name="frag"></param>

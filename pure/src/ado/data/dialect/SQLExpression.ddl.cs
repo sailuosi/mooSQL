@@ -71,6 +71,31 @@ namespace mooSQL.data
 
             return sb.ToString();
         }
+        /// <summary>
+        /// 创建表的注释
+        /// </summary>
+        /// <param name="frag"></param>
+        /// <returns></returns>
+        public virtual string buildCreateTableCaption(DDLFragSQL frag,DBInstance DB=null)
+        {
+
+            var sb = new StringBuilder();
+
+            var t0 = buildDDLSoloCaptions(frag);
+            if (!string.IsNullOrWhiteSpace(t0))
+            {
+                sb.Append(t0);
+            }
+            //处理独立表注释的
+            var t1 = buildDDLFieldsCaption(frag);
+            if (!string.IsNullOrWhiteSpace(t1))
+            {
+                sb.Append(t1);
+            }
+
+            return sb.ToString();
+        }
+
         protected virtual string buildCreateTableAfter(DDLFragSQL frag) { 
             return string.Empty;
         }
