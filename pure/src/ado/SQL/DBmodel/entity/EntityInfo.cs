@@ -262,13 +262,14 @@ namespace mooSQL.data
             if (refresh==false && pks != null && pks.Count > 0) { 
                 return pks;
             }
-            pks = new List<EntityColumn>();
+            var tpks = new List<EntityColumn>();
             foreach (var kv in this.FieldMap) {
-                if (kv.Value.IsPrimarykey) { 
-                    pks.Add(kv.Value);
+                if (kv.Value.IsPrimarykey) {
+                    tpks.Add(kv.Value);
                 }
             }
-            return pks;
+            pks = tpks;
+            return tpks;
         }
         /// <summary>
         /// 注册一个表名解析器，用于动态分表。name为解析器的名称。
