@@ -234,6 +234,10 @@ namespace mooSQL.data
         {
             return string.Format("ALTER TABLE {0} COMMENT='{1}';",tableName,caption);
         }
+        public override string UpdateTableCaptionBy(string tableName, string caption)
+        {
+            return AddTableCaptionBy(tableName, caption);
+        }
         public override string DeleteTableCaptionBy(string tableName)
         {
             return string.Format("ALTER TABLE {0} COMMENT='';", tableName);

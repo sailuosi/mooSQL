@@ -380,6 +380,11 @@ namespace mooSQL.data
                 columnName,tableName,caption
                 );
         }
+        public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
+        {
+            return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{2}', N'user', N'dbo', N'table', N'{1}', N'column', N'{0}'",
+                columnName, tableName, caption);
+        }
         public override string DeleteColumnCaptionBy(string tableName, string columnName){
             return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{1}','column','{0}'",
                 columnName,tableName
@@ -392,6 +397,10 @@ namespace mooSQL.data
         }
         public override string AddTableCaptionBy(string tableName, string caption){
             return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL",tableName,caption);
+        }
+        public override string UpdateTableCaptionBy(string tableName, string caption)
+        {
+            return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL", tableName, caption);
         }
         public override string DeleteTableCaptionBy(string tableName){
             return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{0}' ",tableName);

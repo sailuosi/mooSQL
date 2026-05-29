@@ -78,22 +78,68 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string buildCreateTableCaption(DDLFragSQL frag)
         {
+            var fieldsWithCaption = frag.Columns?.Where(f => !string.IsNullOrWhiteSpace(f.Caption)).ToList()
+                ?? new List<DDLField>();
+            var hasTableCaption = !string.IsNullOrWhiteSpace(frag.TableCaption);
+            var hasFieldCaptions = fieldsWithCaption.Count > 0;
 
-            var sb = new StringBuilder();
-
-            var t0 = buildDDLSoloCaptions(frag);
-            if (!string.IsNullOrWhiteSpace(t0))
+            if (!hasTableCaption && !hasFieldCaptions)
             {
-                sb.Append(t0);
-            }
-            //处理独立表注释的
-            var t1 = buildDDLFieldsCaption(frag);
-            if (!string.IsNullOrWhiteSpace(t1))
-            {
-                sb.Append(t1);
+                return string.Empty;
             }
 
-            return sb.ToString();
+            if (DBLive == null)
+            {
+                throw new Exception("生成注释 SQL 需要数据库连接。");
+            }
+
+            var tableName = frag.Table;
+            var sentence = dialect.sentence;
+            var existingTableCaption = sentence.GetDbTableCaptionByName(tableName);
+            var existingColumns = sentence.GetDbColumnCaptionsByTableName(tableName)
+                ?? new List<DbColumnCaption>();
+            var existingColumnMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var col in existingColumns)
+            {
+                if (!string.IsNullOrWhiteSpace(col.Name))
+                {
+                    existingColumnMap[col.Name] = col.Caption;
+                }
+            }
+
+            var statements = new List<string>();
+
+            if (hasTableCaption && !captionEquals(existingTableCaption, frag.TableCaption))
+            {
+                statements.Add(captionExists(existingTableCaption)
+                    ? UpdateTableCaptionBy(tableName, frag.TableCaption)
+                    : AddTableCaptionBy(tableName, frag.TableCaption));
+            }
+
+            foreach (var field in fieldsWithCaption)
+            {
+                existingColumnMap.TryGetValue(field.FieldName, out var existingCaption);
+                if (captionEquals(existingCaption, field.Caption))
+                {
+                    continue;
+                }
+
+                statements.Add(captionExists(existingCaption)
+                    ? UpdateColumnCaptionBy(tableName, field.FieldName, field.Caption)
+                    : AddColumnCaptionBy(tableName, field.FieldName, field.Caption));
+            }
+
+            return string.Join(SentenceSeprator, statements.Where(s => !string.IsNullOrWhiteSpace(s)));
+        }
+
+        protected static bool captionEquals(string existing, string target)
+        {
+            return string.Equals(existing ?? string.Empty, target ?? string.Empty, StringComparison.Ordinal);
+        }
+
+        protected static bool captionExists(string existing)
+        {
+            return !string.IsNullOrEmpty(existing);
         }
 
         protected virtual string buildCreateTableAfter(DDLFragSQL frag) { 
@@ -595,6 +641,11 @@ namespace mooSQL.data
             return string.Empty;
         }
 
+        public virtual string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
+        {
+            return AddColumnCaptionBy(tableName, columnName, caption);
+        }
+
         public virtual string DeleteColumnCaptionBy (string tableName, string columnName)
         {
             return string.Empty;
@@ -608,6 +659,11 @@ namespace mooSQL.data
         public virtual string AddTableCaptionBy (string tableName, string caption)
         {
             return string.Empty;
+        }
+
+        public virtual string UpdateTableCaptionBy(string tableName, string caption)
+        {
+            return AddTableCaptionBy(tableName, caption);
         }
 
         public virtual string DeleteTableCaptionBy (string tableName)

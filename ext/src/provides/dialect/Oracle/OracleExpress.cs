@@ -381,6 +381,10 @@ namespace mooSQL.data
                 columnName, tableName, caption
                 );
         }
+        public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
+        {
+            return AddColumnCaptionBy(tableName, columnName, caption);
+        }
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("comment on column {1}.{0} is ''",
@@ -396,6 +400,10 @@ namespace mooSQL.data
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
             return string.Format("comment on table {0}  is  '{1}'", tableName, caption);
+        }
+        public override string UpdateTableCaptionBy(string tableName, string caption)
+        {
+            return AddTableCaptionBy(tableName, caption);
         }
         public override string DeleteTableCaptionBy(string tableName)
         { 

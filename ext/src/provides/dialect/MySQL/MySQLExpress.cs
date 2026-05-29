@@ -406,57 +406,6 @@ namespace mooSQL.data
             return string.Format(" COMMENT '{0}';",  frag.TableCaption);
         }
 
-        /// <summary>
-        /// 创建/修改表与字段注释（MySQL 需完整列定义，通过 SHOW CREATE TABLE 获取）
-        /// </summary>
-        public override string buildCreateTableCaption(DDLFragSQL frag)
-        {
-            var sb = new StringBuilder();
-            var fieldsWithCaption = frag.Columns?.Where(f => !string.IsNullOrWhiteSpace(f.Caption)).ToList() ?? new List<DDLField>();
-            var hasTableCaption = !string.IsNullOrWhiteSpace(frag.TableCaption);
-            var hasFieldCaptions = fieldsWithCaption.Count > 0;
-
-            if (!hasTableCaption && !hasFieldCaptions)
-            {
-                return sb.ToString();
-            }
-
-            if (DB == null)
-            {
-                throw new Exception("MySQL 生成字段注释 SQL 需要数据库连接，请传入 DBInstance 参数。");
-            }
-
-            var createTableSql = getShowCreateTableSql(frag.Table);
-
-            if (hasTableCaption)
-            {
-                var existingTableComment = getTableComment(createTableSql);
-                if (!captionEquals(existingTableComment, frag.TableCaption))
-                {
-                    sb.Append(AddTableCaptionBy(frag.Table, frag.TableCaption));
-                }
-            }
-
-            foreach (var field in fieldsWithCaption)
-            {
-                var columnDef = extractColumnDefinition(createTableSql, field.FieldName);
-                if (string.IsNullOrWhiteSpace(columnDef))
-                {
-                    throw new Exception(string.Format("无法在表 {0} 的 SHOW CREATE TABLE 结果中找到字段 {1}", frag.Table, field.FieldName));
-                }
-                var existingComment = getColumnComment(columnDef);
-                if (captionEquals(existingComment, field.Caption))
-                {
-                    continue;
-                }
-                var newDef = setColumnComment(columnDef, field.Caption);
-                sb.AppendFormat("ALTER TABLE {0} MODIFY COLUMN {1};", frag.Table, newDef);
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
-        }
-
         private string getShowCreateTableSql(string tableName)
         {
             var dt = this.DBLive.ExeQuery(string.Format("SHOW CREATE TABLE {0}", tableName));
@@ -519,38 +468,6 @@ namespace mooSQL.data
                 i++;
             }
             return createTableSql.Substring(idx, i - idx).Trim();
-        }
-
-        private static string getColumnComment(string columnDef)
-        {
-            var match = Regex.Match(columnDef, @"\s+COMMENT\s+'((?:[^']|'')*)'", RegexOptions.IgnoreCase);
-            return match.Success ? unescapeSqlComment(match.Groups[1].Value) : null;
-        }
-
-        private static string getTableComment(string createTableSql)
-        {
-            var engineIdx = createTableSql.LastIndexOf(") ENGINE", StringComparison.OrdinalIgnoreCase);
-            if (engineIdx < 0)
-            {
-                engineIdx = createTableSql.LastIndexOf(')');
-            }
-            if (engineIdx < 0)
-            {
-                return null;
-            }
-            var suffix = createTableSql.Substring(engineIdx);
-            var match = Regex.Match(suffix, @"COMMENT\s*=\s*'((?:[^']|'')*)'", RegexOptions.IgnoreCase);
-            return match.Success ? unescapeSqlComment(match.Groups[1].Value) : null;
-        }
-
-        private static string unescapeSqlComment(string value)
-        {
-            return value.Replace("''", "'");
-        }
-
-        private static bool captionEquals(string existing, string target)
-        {
-            return string.Equals(existing ?? string.Empty, target ?? string.Empty, StringComparison.Ordinal);
         }
 
         private static string setColumnComment(string columnDef, string caption)
@@ -776,6 +693,25 @@ namespace mooSQL.data
         public override string AddTableCaptionBy (string tableName, string caption)
         { 
             return string.Format("ALTER TABLE {0} COMMENT='{1}';", tableName, caption);
+        }
+        public override string UpdateTableCaptionBy(string tableName, string caption)
+        {
+            return AddTableCaptionBy(tableName, caption);
+        }
+        public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
+        {
+            return UpdateColumnCaptionBy(tableName, columnName, caption);
+        }
+        public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
+        {
+            var createTableSql = getShowCreateTableSql(tableName);
+            var columnDef = extractColumnDefinition(createTableSql, columnName);
+            if (string.IsNullOrWhiteSpace(columnDef))
+            {
+                throw new Exception(string.Format("无法在表 {0} 的 SHOW CREATE TABLE 结果中找到字段 {1}", tableName, columnName));
+            }
+            var newDef = setColumnComment(columnDef, caption);
+            return string.Format("ALTER TABLE {0} MODIFY COLUMN {1};", tableName, newDef);
         }
         /// <summary>
         /// 删除表注释
