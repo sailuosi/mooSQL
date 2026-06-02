@@ -9,6 +9,9 @@ namespace mooSQL.data.cluster
     /// </summary>
     public static class FailoverPolicy
     {
+        /// <summary>
+        /// 判断是否为InstanceHealthy。
+        /// </summary>
         public static bool IsInstanceHealthy(DBInstance db)
         {
             if (db?.Health == null) return true;

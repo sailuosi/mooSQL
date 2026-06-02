@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace mooSQL.data.cluster
 {
+  /// <summary>
+  /// 类型 GroupBuilder。
+  /// </summary>
   public class GroupBuilder
   {
     private readonly MasterSlaveGroup _group;
@@ -30,6 +33,9 @@ namespace mooSQL.data.cluster
       }
     }
 
+    /// <summary>
+    /// master 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder master(int position)
     {
       _group.GroupId = position;
@@ -37,6 +43,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// failover 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder failover(FailoverMode mode)
     {
       _group.FailoverMode = mode;
@@ -44,6 +53,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// readPolicy 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder readPolicy(ReadRoutePolicy policy)
     {
       _group.ReadPolicy = policy;
@@ -51,6 +63,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// readFallbackToMaster 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder readFallbackToMaster(bool enabled = true)
     {
       _group.ReadFallbackToMaster = enabled;
@@ -58,6 +73,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// autoReadReplica 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder autoReadReplica(bool enabled = true)
     {
       _group.AutoReadReplica = enabled;
@@ -65,6 +83,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// addSlave 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder addSlave(int position, Action<SlaveMember> configure = null)
     {
       var mem = new SlaveMember { Position = position, Instance = _cash.getInstance(position) };
@@ -73,6 +94,9 @@ namespace mooSQL.data.cluster
       return this;
     }
 
+    /// <summary>
+    /// enableDualWrite 方法（返回 GroupBuilder）。
+    /// </summary>
     public GroupBuilder enableDualWrite(params int[] slavePositions)
     {
       foreach (var p in slavePositions)

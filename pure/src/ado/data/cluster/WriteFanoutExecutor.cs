@@ -8,6 +8,9 @@ namespace mooSQL.data.cluster
     /// </summary>
     public static class WriteFanoutExecutor
     {
+        /// <summary>
+        /// 执行NonQuery。
+        /// </summary>
         public static int ExecuteNonQuery(
             SQLCmd cmd,
             IList<DBInstance> targets,

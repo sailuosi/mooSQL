@@ -104,6 +104,9 @@ namespace mooSQL.data.builder
         /// </summary>
         public string tableName;
 
+        /// <summary>
+        /// 字段 dataBaseName（string）。
+        /// </summary>
         public string dataBaseName;
 
 
@@ -125,12 +128,18 @@ namespace mooSQL.data.builder
         /// </summary>
         public bool mergeFromCTE=false;
 
+        /// <summary>
+        /// 字段 mergeDeletable（bool）。
+        /// </summary>
         public bool mergeDeletable=false;
         /// <summary>
         ///     转置的配置
         /// </summary>
         public List<PivotItem> pivots;
 
+        /// <summary>
+        /// 字段 unpivots（List<UnpivotItem>）。
+        /// </summary>
         public List<UnpivotItem> unpivots;
         /// <summary>
         /// update语句的set 部分配置项集合
@@ -141,11 +150,20 @@ namespace mooSQL.data.builder
     /// update语句的set 部分配置项
     /// </summary>
     public class FragSetPart {
+        /// <summary>
+        /// 字段 field（string）。
+        /// </summary>
         public string field;
 
+        /// <summary>
+        /// 字段 value（string）。
+        /// </summary>
         public string value;
     }
 
+    /// <summary>
+    /// 类型 FragMergeInto。
+    /// </summary>
     public class FragMergeInto {
         /// <summary>
         /// 目标表
@@ -170,6 +188,9 @@ namespace mooSQL.data.builder
         public string onPart { get; set; }
 
 
+        /// <summary>
+        /// 字段 mergeWhens（List<FragMergeWhen>）。
+        /// </summary>
         public List<FragMergeWhen> mergeWhens;
     }
 
@@ -202,6 +223,9 @@ namespace mooSQL.data.builder
         /// </summary>
         public List<FragSetPart> setInner;
 
+        /// <summary>
+        /// 属性 Empty（bool）。
+        /// </summary>
         public bool Empty
         {
             get {

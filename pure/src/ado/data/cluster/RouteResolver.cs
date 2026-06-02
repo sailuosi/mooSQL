@@ -10,7 +10,13 @@ namespace mooSQL.data.cluster
     /// </summary>
     public class SQLRouteContext
     {
+        /// <summary>
+        /// 字段 TargetPosition（int?）。
+        /// </summary>
         public int? TargetPosition;
+        /// <summary>
+        /// 字段 TargetInstance（DBInstance）。
+        /// </summary>
         public DBInstance TargetInstance;
 
         /// <summary>当次写目标别名，与 <see cref="TargetInstance"/> 同步。</summary>
@@ -20,18 +26,48 @@ namespace mooSQL.data.cluster
             set => TargetInstance = value;
         }
 
+        /// <summary>
+        /// 字段 PreferReadReplica（bool?）。
+        /// </summary>
         public bool? PreferReadReplica;
+        /// <summary>
+        /// 字段 ForceMaster（bool?）。
+        /// </summary>
         public bool? ForceMaster;
+        /// <summary>
+        /// 字段 EnableDualWrite（bool?）。
+        /// </summary>
         public bool? EnableDualWrite;
+        /// <summary>
+        /// 字段 FailoverOverride（FailoverMode?）。
+        /// </summary>
         public FailoverMode? FailoverOverride;
+        /// <summary>
+        /// 字段 ReadPolicyOverride（ReadRoutePolicy?）。
+        /// </summary>
         public ReadRoutePolicy? ReadPolicyOverride;
 
+        /// <summary>
+        /// 字段 DualWritePositions（int[]）。
+        /// </summary>
         public int[] DualWritePositions;
+        /// <summary>
+        /// 自定义读库选择器（覆盖默认读路由策略）。
+        /// </summary>
         public Func<MasterSlaveGroup, DBInstance> ReadSelector;
+        /// <summary>
+        /// 自定义故障转移选举器（覆盖默认 Failover 策略）。
+        /// </summary>
         public Func<FailoverContext, DBInstance> FailoverElector;
 
+        /// <summary>
+        /// 属性 IsWriteOperation（bool）。
+        /// </summary>
         public bool IsWriteOperation { get; set; }
 
+        /// <summary>
+        /// Clone 方法（返回 SQLRouteContext）。
+        /// </summary>
         public SQLRouteContext Clone()
         {
             return new SQLRouteContext
@@ -51,8 +87,14 @@ namespace mooSQL.data.cluster
         }
     }
 
+    /// <summary>
+    /// 类型 NoReadableReplicaException。
+    /// </summary>
     public class NoReadableReplicaException : Exception
     {
+        /// <summary>
+        /// 初始化 NoReadableReplicaException（构造）。
+        /// </summary>
         public NoReadableReplicaException(int groupId)
             : base($"连接位 {groupId} 无可用读从库。") { }
     }

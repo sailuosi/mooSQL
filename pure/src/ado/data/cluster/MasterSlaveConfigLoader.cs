@@ -9,6 +9,9 @@ namespace mooSQL.data.cluster
     /// </summary>
     public static class MasterSlaveConfigLoader
     {
+        /// <summary>
+        /// ApplyFromXml 方法。
+        /// </summary>
         public static void ApplyFromXml(MooClient client, DBInsCash cash, string configPath, MasterSlaveOptions options = null)
         {
             if (client == null || cash == null || string.IsNullOrWhiteSpace(configPath)) return;

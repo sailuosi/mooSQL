@@ -5,10 +5,16 @@ using System.Linq;
 
 namespace mooSQL.data.cluster
 {
+    /// <summary>
+    /// 类型 ReadRouteSelector。
+    /// </summary>
     public static class ReadRouteSelector
     {
         private static readonly ConcurrentDictionary<int, int> _roundRobinByGroup = new ConcurrentDictionary<int, int>();
 
+        /// <summary>
+        /// Select 方法（返回 DBInstance）。
+        /// </summary>
         public static DBInstance Select(
             MasterSlaveGroup group,
             IList<SlaveMember> candidates,
