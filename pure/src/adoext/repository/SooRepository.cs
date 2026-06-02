@@ -822,17 +822,37 @@ namespace mooSQL.data
         /// <returns></returns>
         public int InsertRange(IEnumerable<T> insertObjs)
         {
-            var kit = getKit();
-            var cc = 0;
+            if (insertObjs == null)
+                return 0;
+
+            if (En.Shard != null && En.Shard.IsActive)
+            {
+                var helper = new ShardTableHelper(En);
+                var groups = helper.GroupByTable(insertObjs);
+                var cc = 0;
+                foreach (var kv in groups)
+                {
+                    var kit = getKit();
+                    foreach (var obj in kv.Value)
+                    {
+                        var c = insertInner(obj, kit);
+                        if (c > 0)
+                            cc += c;
+                    }
+                }
+                return cc;
+            }
+
+            var kitDefault = getKit();
+            var ccDefault = 0;
             foreach (var obj in insertObjs) {
-                var c= insertInner(obj, kit);
+                var c= insertInner(obj, kitDefault);
                 if (c > 0) {
-                    //执行失败的返回为-1，不能直接累计
-                    cc += c;
+                    ccDefault += c;
                 }
             }
             
-            return cc ;
+            return ccDefault ;
         }
         /// <summary>
         /// 更新

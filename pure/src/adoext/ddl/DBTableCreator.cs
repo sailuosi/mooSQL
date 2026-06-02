@@ -39,6 +39,19 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 按指定物理表名创建分表（结构同实体定义）。
+        /// </summary>
+        public DBTableCreator createTable<T>(string physicalTableName, string mode = null)
+        {
+            if (mode == null)
+                mode = this.CreateMode;
+            var en = DBLive.client.EntityCash.getEntityInfo<T>();
+            var res = CreateTable(en, physicalTableName, mode);
+            this.WorkingProgress.Append(res);
+            return this;
+        }
+
         private int defaultFieldLength = 50;
         /// <summary>
         /// 清空配置，恢复到初始化状态
@@ -58,14 +71,19 @@ namespace mooSQL.data
         /// <param name="mode"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public string CreateTable(EntityInfo en,string mode)
+        public string CreateTable(EntityInfo en, string mode)
+        {
+            return CreateTable(en, en.DbTableName, mode);
+        }
+
+        public string CreateTable(EntityInfo en, string physicalTableName, string mode)
         {
             //先默认为表不存在。
 
             var ddl = DBLive.useDDL();
     
 
-            var tbname = en.DbTableName;
+            var tbname = physicalTableName ?? en.DbTableName;
             if (string.IsNullOrWhiteSpace(tbname))
             {
                 throw new Exception("未知表名");

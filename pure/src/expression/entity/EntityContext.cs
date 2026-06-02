@@ -12,7 +12,7 @@ namespace mooSQL.data
     /// <summary>
     /// 实体解析环境
     /// </summary>
-    public class EntityContext
+    public partial class EntityContext
     {
         private IEntityAnalyseFactory analyseFactory;
         /// <summary>

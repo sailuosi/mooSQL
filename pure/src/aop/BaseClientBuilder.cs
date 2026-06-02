@@ -503,5 +503,32 @@ namespace mooSQL.data
             client.events.restrictSQLAuditToTables(tables);
             return this;
         }
+
+        /// <summary>
+        /// 注册实体分表 Lambda 路由。
+        /// </summary>
+        public BaseClientBuilder useShard<T>(Func<T, string> nameParser)
+        {
+            client.useShard(nameParser);
+            return this;
+        }
+
+        /// <summary>
+        /// 注册实体分表策略。
+        /// </summary>
+        public BaseClientBuilder useShardStrategy<T>(ITableShardStrategy strategy)
+        {
+            client.useShardStrategy<T>(strategy);
+            return this;
+        }
+
+        /// <summary>
+        /// 编程式配置实体分表。
+        /// </summary>
+        public BaseClientBuilder configureShard<T>(Action<EntityShardConfig> configure)
+        {
+            client.configureShard<T>(configure);
+            return this;
+        }
     }
 }

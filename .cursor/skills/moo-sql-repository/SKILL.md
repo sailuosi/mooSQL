@@ -115,3 +115,33 @@ builder.update(user);   // 实体更新
 builder.delete(user);   // 实体删除
 builder.save(user);     // 自动判断插入或更新
 ```
+
+## 分表（Shard）
+
+仅对配置了 `ShardMode` 或 `useShard<T>` 的实体生效；普通实体 CRUD 行为不变。
+
+```csharp
+[SooTable("Order_{year}{month}", ShardMode = TableShardMode.Month)]
+public class OrderLog
+{
+    [SooShardField]
+    public DateTime CreateTime { get; set; }
+}
+
+client.useShard<OrderLog>(o => $"Order_{o.CreateTime:yyyyMM}");
+
+// 写入：按分片键自动路由物理表
+repo.Insert(new OrderLog { CreateTime = DateTime.Now });
+
+// 单点查询
+using (ShardScope.For<OrderLog>(DateTime.Today))
+    repo.GetById(id);
+
+// 跨月 UNION 查询
+var list = repo.QueryRange(start, end, q => q.where(x => x.Status == 1));
+
+// 批量插入按表分组（InsertRange 内置）
+repo.InsertRange(entities);
+```
+
+SQLBuilder：`db.useSQL().splitTable<OrderLog>(from, to).select("*").query<OrderLog>();`

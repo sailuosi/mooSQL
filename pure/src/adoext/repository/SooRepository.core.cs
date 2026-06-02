@@ -89,7 +89,7 @@ namespace mooSQL.data
             }
             //检查是否存在
             var ck = builder.DBLive.useSQL();
-            ck.from(tbname.HasText() ? tbname : En.DbTableName);
+            ck.from(Translator.GetResolvedTableName(En, entity, tryTableNameLoader(tbname)));
             Translator.setPKWhere(ck, entity, En);
             var cc = ck.count();
             if (cc > 0 && En.Updatable != false)

@@ -97,6 +97,11 @@ namespace mooSQL.data
         public bool? LiveName { get; set; }
 
         /// <summary>
+        /// 分表配置；未配置时为 null，不影响普通实体。
+        /// </summary>
+        public EntityShardConfig Shard { get; set; }
+
+        /// <summary>
         /// 是否是视图
         /// </summary>
         public bool IsView {  get; set; }

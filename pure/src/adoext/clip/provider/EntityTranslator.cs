@@ -86,6 +86,20 @@ namespace mooSQL.data
             {
                 return this._onParseTableName(en);
             }
+            if (en.Shard != null && en.Shard.IsActive && row == null)
+            {
+                var scope = ShardScope.Current;
+                if (scope != null && scope.TryGet(en.Type, out var pt))
+                {
+                    var strategy = en.Shard.ResolveStrategy();
+                    if (strategy != null)
+                    {
+                        var name = strategy.ResolvePoint(en, null, pt);
+                        if (!string.IsNullOrWhiteSpace(name))
+                            return name;
+                    }
+                }
+            }
             if (en.LiveName == true) {
                 foreach (var cepter in en.NameParses) { 
                     var name= cepter.Value.Parse(row);
@@ -124,6 +138,8 @@ namespace mooSQL.data
             if (en == null) {
                 en = builder.DBLive.client.EntityCash.getEntityInfo(EntityType);
             }
+
+            ShardDdlHelper.EnsureTableForInsert(builder.DBLive, en, entity);
             
             if (en.Insertable == false)
             {

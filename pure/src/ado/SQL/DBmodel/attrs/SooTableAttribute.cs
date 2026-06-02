@@ -78,6 +78,31 @@ namespace mooSQL.data
 		/// </summary>
 		public bool LiveName { get; set; }
 
+		/// <summary>分表模式，<see cref="TableShardMode.None"/> 为默认（不分表）。</summary>
+		public TableShardMode ShardMode { get; set; }
+
+		/// <summary>物理表名模板，如 Order_{year}{month}。</summary>
+		public string NameTemplate { get; set; }
+
+		/// <summary>分表起始锚点时间，如 2022-1-1。</summary>
+		public string ShardAnchor { get; set; }
+
+		public int ShardIntervalValue { get; set; }
+
+		public string ShardIntervalUnit { get; set; }
+
+		public int? ShardFirstSpan { get; set; }
+
+		/// <summary>无时间条件查询时默认命中的最近分表数量。</summary>
+		public int DefaultRecentTables { get; set; }
+
+		public int? MaxTablesPerQuery { get; set; }
+
+		public bool AutoCreateOnInsert { get; set; }
+
+		/// <summary>自定义 <see cref="ITableShardStrategy"/> 实现类型。</summary>
+		public Type CustomShardStrategyType { get; set; }
+
 		public override string GetObjectID()
 		{
 #if NETFRAMEWORK

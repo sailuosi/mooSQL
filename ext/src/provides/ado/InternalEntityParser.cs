@@ -123,6 +123,10 @@ namespace mooSQL.data.Mapping
                 }
 
             }
+
+            if (propertyInfo.IsDefined(typeof(SooShardFieldAttribute), true) && entityColumn != null)
+                ShardRegistration.MarkShardField(entityInfo, entityColumn);
+
             return entityColumn;
         }
 
@@ -212,6 +216,15 @@ namespace mooSQL.data.Mapping
             {
                 info.DType = DBTableType.Table;
             }
+            info.LiveName = attr.LiveName;
+            ShardRegistration.ApplyTableAttribute(info, attr);
+            return info;
+        }
+
+        public override EntityInfo ParseEntity(Type entity, EntityInfo info)
+        {
+            info = base.ParseEntity(entity, info);
+            ShardRegistration.FinalizeEntityShard(info);
             return info;
         }
     }

@@ -65,6 +65,10 @@ namespace mooSQL.data
         /// 是否主键
         /// </summary>
         public bool IsPrimarykey { get; set; }
+        /// <summary>
+        /// 是否为分表分片键字段。
+        /// </summary>
+        public bool IsShardField { get; set; }
         public bool IsTreeKey { get; set; }
         public bool IsEnableUpdateVersionValidation { get; set; }
         public object SqlParameterDbType { get; set; }

@@ -317,7 +317,80 @@ public class OrderRepository : SooRepository<Order>
 
 ---
 
-## 9. 源码索引
+## 9. 自动分表（Shard）
+
+分表为 **opt-in**：未配置 `ShardMode`、未调用 `useShard`、未使用分表查询 API 的实体，表名解析与改造前一致（`DbTableName`）。
+
+### 9.1 实体声明
+
+```csharp
+[SooTable("Order_{year}{month}", ShardMode = TableShardMode.Month, ShardAnchor = "2024-1-1")]
+public class OrderLog
+{
+    [SooShardField]
+    public DateTime CreateTime { get; set; }
+}
+```
+
+| 属性 | 说明 |
+|------|------|
+| `ShardMode` | `None`（默认，不分表）、`Year` / `Month` / `Day` / `Interval` 等 |
+| `NameTemplate` | 物理表名模板（可与 `SooTable.Name` 合并） |
+| `ShardAnchor` | 周期分表锚点日期 |
+| `[SooShardField]` | 分片键字段（对标 SqlSugar `[SplitField]`） |
+
+`ShardMode != None` 时解析器自动设置 `LiveName = true` 并注册 `NameParses`。
+
+### 9.2 启动注册
+
+```csharp
+// Lambda 自定义表名（仅影响类型 T）
+client.useShard<OrderLog>(o => $"Order_{o.CreateTime:yyyyMM}");
+
+// 或策略 / 配置对象
+client.useShardStrategy<Audit>(new TenantShardStrategy());
+client.configureShard<OrderLog>(cfg => cfg.AutoCreateOnInsert = true);
+```
+
+`BaseClientBuilder` 提供同名转发：`useShard` / `useShardStrategy` / `configureShard`。
+
+### 9.3 表名解析优先级
+
+`loadName` / `tbname` 参数 → `EntityTranslator.setTable` 全局 → `ShardScope` 单点 → `LiveName` + `NameParses` / 策略 → `DbTableName`。
+
+`EntityTranslator.GetResolvedTableName` 在 INSERT/UPDATE/DELETE 与 `SooRepository.SaveInner` 中统一使用；**默认 `GetList` / `GetById` 不自动 UNION**，跨表查询需显式 API。
+
+### 9.4 写入与批量
+
+- 单条 `Insert` / `Update`：按实体分片键 `ResolvePoint` 路由物理表。
+- `InsertRange`：对分表实体按 `ShardTableHelper.GroupByTable` 分组后逐表插入。
+- `AutoCreateOnInsert`：首次写入前可调用 `ShardDdlHelper.EnsureTableForInsert` 建表（需配置）。
+
+### 9.5 查询
+
+| API | 说明 |
+|-----|------|
+| `ShardScope.For<T>(point)` | 单次查询锁定物理表 |
+| `repo.ForShard(point)` / `repo.UseTable(name)` | 仓储单表 |
+| `repo.QueryRange(from, to, kit => ...)` | 时间范围 UNION（WHERE 内推各子查询） |
+| `db.useSQL().splitTable<T>(from, to)` | SQLBuilder 分表链 |
+| `clip.fromShardRange<T>(from, to, out T)` | SQLClip 范围查询 |
+| `ShardQueryOptions.Recent(n)` | 最近 n 张表（默认 3） |
+
+Phase D：`ShardJoinHelper.BuildShardSubquerySql` 供分表与普通表手动 JOIN 时使用；完整双分表 JOIN 待后续扩展。
+
+### 9.6 零干扰约束
+
+1. 禁止在默认 CRUD 中无条件调用 `splitTable` / `ResolveRange`。
+2. `ShardScope` 仅在 `en.Shard != null` 或 `LiveName == true` 时读取。
+3. `TableShardMode.None` 必须为枚举值 `0`。
+4. 全局 `setTable` 仍覆盖分表路由（与改造前一致）。
+
+核心类型目录：`pure/src/ado/SQL/DBmodel/shard/`。
+
+---
+
+## 10. 源码索引
 
 | 文件 | 职责 |
 |------|------|
@@ -333,7 +406,7 @@ public class OrderRepository : SooRepository<Order>
 
 ---
 
-## 10. 设计要点小结
+## 11. 设计要点小结
 
 1. **切面挂在 SQL 构建阶段**，不替代 ADO 执行层；`OnReady*` 之后才是 `doInsert/doUpdate/doDelete`。
 2. **字段级钩子**适合「列级」策略（默认值、表达式、跳过 null）；**实体级 Before** 适合改实体对象属性。
@@ -344,7 +417,7 @@ public class OrderRepository : SooRepository<Order>
 
 ---
 
-## 11. 相关文档
+## 12. 相关文档
 
 - [仓储使用说明](./repository.md)
 - [工作单元 UnitOfWork](./unitofwork.md)
