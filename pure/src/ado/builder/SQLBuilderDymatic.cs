@@ -149,6 +149,9 @@ namespace mooSQL.data
             return DBLive.ExeQuery(cmd, Executor);
         }
 
+        /// <summary>
+        /// exeQuery 方法（返回 DataTable）。
+        /// </summary>
         public DataTable exeQuery(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
@@ -478,6 +481,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// selectWith 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder selectWith(string queryOther)
         {
             this.clearSelect();
@@ -693,6 +699,9 @@ namespace mooSQL.data
             });        
         }
 
+        /// <summary>
+        /// 泛型方法 queryPaged（返回 PageOutput<T>）。
+        /// </summary>
         public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
             var oldMode = this._AutoClearWay;
@@ -720,6 +729,9 @@ namespace mooSQL.data
             return res;
         }
 
+        /// <summary>
+        /// 执行汇总 SQL 并返回键值结果（可选包含 total 列）。
+        /// </summary>
         public Dictionary<string, object> querySummary(string sumSQL,bool containToal) {
             var res = new Dictionary<string, object>();
             clearPage();
@@ -786,6 +798,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// 泛型方法 queryPagedAsync（返回 Task<PageOutput<T>>）。
+        /// </summary>
         public async Task<PageOutput<T>> queryPagedAsync<T>()
         {
             var oldMode = this._AutoClearWay;
@@ -1019,6 +1034,9 @@ namespace mooSQL.data
                 printSQL(cmd.sql, cmd.para);
             }
         }
+        /// <summary>
+        /// 泛型方法 queryUniqueAsync（返回 Task<T>）。
+        /// </summary>
         public Task<T> queryUniqueAsync<T>()
         {
             return queryUniqueInnerAsync<T>();
@@ -1248,6 +1266,9 @@ namespace mooSQL.data
             }
             return TypeAs.asInt(row[0], defaultVal);
         }
+        /// <summary>
+        /// queryRowLong 方法（返回 long）。
+        /// </summary>
         public long queryRowLong(long defaultVal)
         {
             var row = queryRow();

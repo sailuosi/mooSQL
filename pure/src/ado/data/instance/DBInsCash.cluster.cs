@@ -8,6 +8,9 @@ namespace mooSQL.data
     {
         private HealthProbeScheduler _healthScheduler;
 
+        /// <summary>
+        /// 属性 HealthScheduler（HealthProbeScheduler）。
+        /// </summary>
         public HealthProbeScheduler HealthScheduler
         {
             get

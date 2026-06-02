@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,9 @@ namespace mooSQL.data.reader
     /// </summary>
     public static class ReadTypeConverter
     {
+        /// <summary>
+        /// 泛型方法 StringToGuid（返回 R）。
+        /// </summary>
         public static R StringToGuid<T,R>(T s,DBInstance db)
         {
             var valType = typeof(R);
@@ -44,6 +47,9 @@ namespace mooSQL.data.reader
             return Guid.Empty;*/
              // 或者使用 Guid.TryParse 来处理可能的转换失败
         }
+        /// <summary>
+        /// 泛型方法 ByteArrToString（返回 R）。
+        /// </summary>
         public static R ByteArrToString<T, R>(T s, DBInstance db)
         {
             var valType = typeof(R);
@@ -75,6 +81,9 @@ namespace mooSQL.data.reader
         
         }
 
+        /// <summary>
+        /// 泛型方法 Convert（返回 R）。
+        /// </summary>
         public static R Convert<T, R>(params object[] values)
         {
             //if (typeof(T) == typeof(string) && typeof(R) == typeof(Guid))
@@ -97,11 +106,17 @@ namespace mooSQL.data.reader
     public class TypeChangeReader
     {
         private DBInstance db;  
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public TypeChangeReader(DBInstance db) { 
                 this.db = db;
         }
 
 
+        /// <summary>
+        /// 泛型方法 Convert（返回 R）。
+        /// </summary>
         public R Convert<T, R>(T value)
         {
             var valType = typeof(R);

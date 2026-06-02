@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -166,6 +166,9 @@ namespace mooSQL.data.mapping
             AddScalarType(typeof(BitArray), DataFam.BitArray);
         }
 
+        /// <summary>
+        /// ConvertParameterType 方法（返回 Type）。
+        /// </summary>
         public override Type ConvertParameterType(Type type, DbDataType dataType)
         {
             switch (dataType.DataType)
@@ -196,6 +199,9 @@ namespace mooSQL.data.mapping
             return type;
         }
 
+        /// <summary>
+        /// 设置Parameter。
+        /// </summary>
         public virtual void SetParameter(DbCommand cmd, DbParameter parameter, string name, DbDataType dataType, object? value)
         {
             switch (dataType.DataType)
@@ -250,6 +256,9 @@ namespace mooSQL.data.mapping
             parameter.Value = value ?? DBNull.Value;
         }
 
+        /// <summary>
+        /// 设置ParameterType。
+        /// </summary>
         protected override void SetParameterType(DbCommand cmd, DbParameter parameter, DbDataType dataType)
         {
             DbType dbType;

@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections.Generic;
 
 using System.Data;
@@ -12,27 +12,66 @@ namespace mooSQL.data
     /// </summary>
     public class EditTable
     {
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public EditTable() { 
         
         }
+        /// <summary>
+        /// 字段 updateTarget（DataTable）。
+        /// </summary>
         public DataTable updateTarget = new DataTable();
 
+        /// <summary>
+        /// 字段 selectStr（string）。
+        /// </summary>
         public string selectStr;
 
+        /// <summary>
+        /// 字段 db（DBInstance）。
+        /// </summary>
         public DBInstance db;
 
+        /// <summary>
+        /// 字段 UpdateBatchSize（int）。
+        /// </summary>
         public int UpdateBatchSize = 1000;
+        /// <summary>
+        /// 字段 tableName（string）。
+        /// </summary>
         public string tableName;
+        /// <summary>
+        /// 字段 updateCols（List<string>）。
+        /// </summary>
         public List<string> updateCols = new List<string>();
         /// <summary>
         /// 禁止更新的列名，主要是在自动获取列更新集合的时候使用。
         /// </summary>
         public List<string> blackCols = new List<string>();
+        /// <summary>
+        /// 字段 simpleTable（bool）。
+        /// </summary>
         public bool simpleTable = false;
+        /// <summary>
+        /// 字段 emptyDt（DataTable）。
+        /// </summary>
         public DataTable emptyDt = new DataTable();
+        /// <summary>
+        /// 字段 keyColName（string）。
+        /// </summary>
         public string keyColName;
+        /// <summary>
+        /// 字段 canUpdate（bool）。
+        /// </summary>
         public bool canUpdate = true;
+        /// <summary>
+        /// 字段 canInsert（bool）。
+        /// </summary>
         public bool canInsert = true;
+        /// <summary>
+        /// 字段 canDelete（bool）。
+        /// </summary>
         public bool canDelete = true;
 
         #region 快捷配置方法
@@ -107,6 +146,9 @@ namespace mooSQL.data
         }
         #endregion
 
+        /// <summary>
+        /// 初始化 EditTable（构造）。
+        /// </summary>
         public EditTable(string tableName, string selectStr)
         {
             this.selectStr = selectStr;
@@ -114,6 +156,9 @@ namespace mooSQL.data
             this.keyColName = tableName + "OID";
             //this.init();
         }
+        /// <summary>
+        /// 初始化 EditTable（构造）。
+        /// </summary>
         public EditTable(string tableName)
         {
             this.selectStr = string.Format("select * from {0}", tableName);
@@ -121,6 +166,9 @@ namespace mooSQL.data
             this.keyColName = tableName + "OID";
             //this.init();
         }
+        /// <summary>
+        /// loadData 方法。
+        /// </summary>
         public void loadData()
         {
             this.updateTarget = db.ExeQuery(selectStr,new data.Paras());

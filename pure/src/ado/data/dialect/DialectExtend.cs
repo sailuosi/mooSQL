@@ -1,4 +1,4 @@
-﻿
+
 
 
 using System.Data;
@@ -178,6 +178,9 @@ namespace mooSQL.data
                 //return BulkInsertByBatchSQL(bk);
             }
         }
+        /// <summary>
+        /// BulkInsertByBatchSQL 方法（返回 int）。
+        /// </summary>
         protected int BulkInsertByBatchSQL(BulkBase bk)
         {
             //当批量插入失败时，使用普通插入进行替代执行

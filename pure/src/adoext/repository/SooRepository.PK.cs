@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +14,9 @@ namespace mooSQL.data
     /// <typeparam name="K"></typeparam>
     public class SooRepository<T, K> : SooRepository<T> where T : class, new()
     {
+        /// <summary>
+        /// 初始化 SooRepository（构造）。
+        /// </summary>
         public SooRepository(DBInstance DB) : base(DB)
         {
         }
@@ -33,6 +36,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 获取PKValue。
+        /// </summary>
         public virtual K GetPKValue(T entity) {
             if (this._loadPK != null) {
                 return _loadPK(entity);
@@ -48,6 +54,9 @@ namespace mooSQL.data
             throw new ArgumentException("类型不匹配");
         }
 
+        /// <summary>
+        /// 插入WithPK。
+        /// </summary>
         public K InsertWithPK(T insertObj)
         {
             var kit = getKit();

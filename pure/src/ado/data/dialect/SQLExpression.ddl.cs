@@ -1,4 +1,4 @@
-﻿using mooSQL.data.builder;
+using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
@@ -132,16 +132,25 @@ namespace mooSQL.data
             return string.Join(SentenceSeprator, statements.Where(s => !string.IsNullOrWhiteSpace(s)));
         }
 
+        /// <summary>
+        /// captionEquals 方法（返回 bool）。
+        /// </summary>
         protected static bool captionEquals(string existing, string target)
         {
             return string.Equals(existing ?? string.Empty, target ?? string.Empty, StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// captionExists 方法（返回 bool）。
+        /// </summary>
         protected static bool captionExists(string existing)
         {
             return !string.IsNullOrEmpty(existing);
         }
 
+        /// <summary>
+        /// buildCreateTableAfter 方法（返回 string）。
+        /// </summary>
         protected virtual string buildCreateTableAfter(DDLFragSQL frag) { 
             return string.Empty;
         }
@@ -190,6 +199,9 @@ namespace mooSQL.data
             return string.Empty;
         }
 
+        /// <summary>
+        /// buildDDLSoloCaptions 方法（返回 string）。
+        /// </summary>
         protected string buildDDLSoloCaptions(DDLFragSQL frag)
         {
             var sb = new StringBuilder();
@@ -206,9 +218,15 @@ namespace mooSQL.data
             }
             return sb.ToString();
         }
+        /// <summary>
+        /// buildSoloFieldCaption 方法（返回 string）。
+        /// </summary>
         public virtual string buildSoloFieldCaption(DDLFragSQL frag, DDLField fild) {
             return string.Empty;
         }
+        /// <summary>
+        /// buildSoloTableCaption 方法（返回 string）。
+        /// </summary>
         public virtual string buildSoloTableCaption(DDLFragSQL frag)
         {
             return string.Empty;
@@ -277,6 +295,9 @@ namespace mooSQL.data
             return string.Empty;
         }
 
+        /// <summary>
+        /// buildConstrainPK 方法（返回 string）。
+        /// </summary>
         protected virtual string buildConstrainPK(string pkname,string fields)
         {
             return string.Empty;
@@ -527,10 +548,16 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
+        /// <summary>
+        /// buildDropIndex 方法（返回 string）。
+        /// </summary>
         public virtual string buildDropIndex(string indexName, string tableName = null) {
             return string.Empty;
         }
 
+        /// <summary>
+        /// getFieldToSQL 方法（返回 string）。
+        /// </summary>
         protected string getFieldToSQL(List<string> fieldList)
         {
             var fields = new List<string>();
@@ -546,25 +573,43 @@ namespace mooSQL.data
 
         }
 
+        /// <summary>
+        /// getStringColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getStringColumnType(int length) {
             return string.Format("VARCHAR({0})", length);
         }
+        /// <summary>
+        /// getIntColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getIntColumnType(int length)
         {
             return "INT";
         }
+        /// <summary>
+        /// getDateTimeColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getDateTimeColumnType(int length)
         {
             return string.Empty;
         }
+        /// <summary>
+        /// getNumberColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getNumberColumnType(int precision,int scale)
         {
             return string.Format("NUMERIC({0}, {1})", precision, scale);
         }
+        /// <summary>
+        /// getBoolColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getBoolColumnType()
         {
             return string.Empty;
         }
+        /// <summary>
+        /// getGuidColumnType 方法（返回 string）。
+        /// </summary>
         public virtual string getGuidColumnType()
         {
             return string.Empty;
@@ -577,36 +622,57 @@ namespace mooSQL.data
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建DataBaseBy。
+        /// </summary>
         public virtual string CreateDataBaseBy (string database)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建IndexBy。
+        /// </summary>
         public virtual string CreateIndexBy (string indexName, string tableName, string columnName,string unique)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 判断是否为AnyIndexBy。
+        /// </summary>
         public virtual string IsAnyIndexBy (string indexName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 添加ColumnToTableBy。
+        /// </summary>
         public virtual string AddColumnToTableBy (string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// AlterColumnToTableby 方法（返回 string）。
+        /// </summary>
         public virtual string AlterColumnToTableby (string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建TableBy。
+        /// </summary>
         public virtual string CreateTableBy (string tableName, string detail)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建TableColumnBy。
+        /// </summary>
         public virtual string CreateTableColumnBy (string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Empty;
@@ -616,86 +682,137 @@ namespace mooSQL.data
 
         //protected abstract string DropTableSql ();
 
+        /// <summary>
+        /// DropColumnToTableBy 方法（返回 string）。
+        /// </summary>
         public virtual string DropColumnToTableBy (string tableName, string columnName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// DropConstraintBy 方法（返回 string）。
+        /// </summary>
         public virtual string DropConstraintBy (string tableName, string constraintName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 添加PrimaryKeyBy。
+        /// </summary>
         public virtual string AddPrimaryKeyBy (string tableName, string columnName, string indexName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// RenameColumnBy 方法（返回 string）。
+        /// </summary>
         public virtual string RenameColumnBy (string tableName, string oldName, string newName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 添加ColumnCaptionBy。
+        /// </summary>
         public virtual string AddColumnCaptionBy (string tableName, string columnName, string caption)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 更新ColumnCaptionBy。
+        /// </summary>
         public virtual string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return AddColumnCaptionBy(tableName, columnName, caption);
         }
 
+        /// <summary>
+        /// 删除ColumnCaptionBy。
+        /// </summary>
         public virtual string DeleteColumnCaptionBy (string tableName, string columnName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 判断是否为AnyColumnCaptionBy。
+        /// </summary>
         public virtual string IsAnyColumnCaptionBy (string columnName, string tableNam)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 添加TableCaptionBy。
+        /// </summary>
         public virtual string AddTableCaptionBy (string tableName, string caption)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 更新TableCaptionBy。
+        /// </summary>
         public virtual string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);
         }
 
+        /// <summary>
+        /// 删除TableCaptionBy。
+        /// </summary>
         public virtual string DeleteTableCaptionBy (string tableName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 判断是否为AnyTableCaptionBy。
+        /// </summary>
         public virtual string IsAnyTableCaptionBy (string tableName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// RenameTableBy 方法（返回 string）。
+        /// </summary>
         public virtual string RenameTableBy (string oldTableName, string newTableName)
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// CheckSystemTablePermissionsBy 方法（返回 string）。
+        /// </summary>
         public virtual string CheckSystemTablePermissionsBy ()
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建TableNullBy。
+        /// </summary>
         public virtual string CreateTableNullBy ()
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建TableNotNullBy。
+        /// </summary>
         public virtual string CreateTableNotNullBy ()
         {
             return string.Empty;
         }
 
+        /// <summary>
+        /// 创建TablePirmaryKeyBy。
+        /// </summary>
         public virtual string CreateTablePirmaryKeyBy ()
         {
             return string.Empty;

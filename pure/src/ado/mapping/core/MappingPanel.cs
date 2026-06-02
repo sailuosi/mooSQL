@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.utils;
 using System;
 using System.Collections.Concurrent;
@@ -39,6 +39,9 @@ namespace mooSQL.data.mapping
         /// </summary>
         public MappingValue<Type, bool> TypeNullable { get; set; }
 
+        /// <summary>
+        /// 属性 TypeScalar（MappingValue<Type,bool>）。
+        /// </summary>
         public MappingValue<Type,bool> TypeScalar {  get; set; }
         /// <summary>
         /// 将Sharp类型转换为安全的SQL 
@@ -71,6 +74,9 @@ namespace mooSQL.data.mapping
             SharpToDataType.Add(type,new DbDataType (dataType));
         }
 
+        /// <summary>
+        /// 获取DbDataType。
+        /// </summary>
         public DbDataType GetDbDataType(Type type) { 
             return SharpToDataType.Get(type);
         }
@@ -84,6 +90,9 @@ namespace mooSQL.data.mapping
             SharpToDataType.Add(typeof(T), new DbDataType(dataType));
         }
 
+        /// <summary>
+        /// 泛型方法 SetDataType（返回 void）。
+        /// </summary>
         protected void SetDataType<T>(T defaultValue,bool canbeNull,DataFam dataType)
         {
             var t = typeof(T);
@@ -104,11 +113,17 @@ namespace mooSQL.data.mapping
             TypeDefaultValue.Add(typeof(T), Value);
         }
 
+        /// <summary>
+        /// 获取DefaultValue。
+        /// </summary>
         public object GetDefaultValue(Type type)
         {
             var v = TypeDefaultValue.Get(type);
             return v;
         }
+        /// <summary>
+        /// 泛型方法 GetDefaultValue（返回 object）。
+        /// </summary>
         public object GetDefaultValue<T>() { 
             var t = typeof(T);
             var v= TypeDefaultValue.Get(t);
@@ -123,25 +138,40 @@ namespace mooSQL.data.mapping
             TypeNullable.Add(typeof(T), nullable);
         }
 
+        /// <summary>
+        /// 获取TypeNullable。
+        /// </summary>
         public bool GetTypeNullable(Type t) {
             var res = TypeNullable.Get(t);
             return res;
         }
 
+        /// <summary>
+        /// 泛型方法 SetScalarType（返回 void）。
+        /// </summary>
         protected void SetScalarType<T>()
         {
             TypeScalar.Add(typeof(T), true);
         }
+        /// <summary>
+        /// 设置ScalarType。
+        /// </summary>
         protected void SetScalarType(Type t)
         {
             TypeScalar.Add(t, true);
         }
+        /// <summary>
+        /// 获取IsScalarType。
+        /// </summary>
         public bool GetIsScalarType(Type t)
         {
             var res = TypeScalar.Get(t);
             return res;
         }
 
+        /// <summary>
+        /// 添加ScalarType。
+        /// </summary>
         public void AddScalarType(Type type, DataFam dataType = DataFam.Undefined)
         {
             SetScalarType(type);
@@ -180,6 +210,9 @@ namespace mooSQL.data.mapping
             ValueToSQL.Add(onConverting);
         }
 
+        /// <summary>
+        /// 泛型方法 CanConvertToSql（返回 bool）。
+        /// </summary>
         public bool CanConvertToSql<T>(T value)
         {
             return ValueToSQL.CanConvert<T,string>();
@@ -195,15 +228,24 @@ namespace mooSQL.data.mapping
         {
             ValueConverter.Add(onConverting);
         }
+        /// <summary>
+        /// 获取 VFrom 到 VTo 的值转换委托。
+        /// </summary>
         public Func<VFrom, VTo> GetValueConverter<VFrom, VTo>()
         {
             return ValueConverter.Get<VFrom, VTo>();
         }
+        /// <summary>
+        /// 获取ValueConverter。
+        /// </summary>
         public Delegate GetValueConverter(Type from,Type to)
         {
             return ValueConverter.Get(from,to);
         }
 
+        /// <summary>
+        /// 泛型方法 ChangeTypeTo（返回 T）。
+        /// </summary>
         public T ChangeTypeTo<S, T>(S value) {
             try
             {
@@ -219,6 +261,9 @@ namespace mooSQL.data.mapping
                 return default(T);
             }
         }
+        /// <summary>
+        /// 泛型方法 ChangeTypeTo（返回 T）。
+        /// </summary>
         public T ChangeTypeTo<T>(object value)
         {
             try
@@ -236,6 +281,9 @@ namespace mooSQL.data.mapping
                 return default(T);
             }
         }
+        /// <summary>
+        /// ChangeTypeTo 方法（返回 object）。
+        /// </summary>
         public object ChangeTypeTo(object value,Type Target)
         {
             try
@@ -262,21 +310,36 @@ namespace mooSQL.data.mapping
             return type.ToDBString();
         }
 
+        /// <summary>
+        /// ConvertParameterType 方法（返回 Type）。
+        /// </summary>
         public virtual Type ConvertParameterType(Type type, DbDataType dataType) {
             return type;
         }
 
+        /// <summary>
+        /// 设置Parameter。
+        /// </summary>
         public virtual void SetParameter(DbCommand cmd, DbParameter parameter, string name, DbDataType dataType, object? value) { 
         
         }
 
+        /// <summary>
+        /// 设置ParameterType。
+        /// </summary>
         protected virtual void SetParameterType(DbCommand cmd, DbParameter parameter, DbDataType dataType) { 
         }
 
+        /// <summary>
+        /// 获取ProviderSpecificType。
+        /// </summary>
         public virtual Type GetProviderSpecificType(string dataType) {
             return null;
         }
 
+        /// <summary>
+        /// 获取DataType。
+        /// </summary>
         public virtual DataFam GetDataType(string? dataType, string? columnType=null) {
             return  DataFam.Undefined;
         }

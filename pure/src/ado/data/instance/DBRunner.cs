@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.context;
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,9 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
 
+    /// <summary>
+    /// 枚举 tranMode。
+    /// </summary>
     public enum tranMode { 
         /// <summary>
         /// 不使用事务

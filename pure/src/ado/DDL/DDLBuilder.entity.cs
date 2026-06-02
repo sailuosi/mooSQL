@@ -1,4 +1,4 @@
-﻿using mooSQL.utils;
+using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -71,6 +71,9 @@ namespace mooSQL.data
             return SQLVerse.GetDbTableList();
         }
 
+        /// <summary>
+        /// loadTableList 方法（返回 List<DbTableInfo>）。
+        /// </summary>
         public virtual List<DbTableInfo> loadTableList(string name)
         {
             return loadTableList((kit) => {
@@ -78,6 +81,9 @@ namespace mooSQL.data
             });
         }
 
+        /// <summary>
+        /// loadTableList 方法（返回 List<DbTableInfo>）。
+        /// </summary>
         public virtual List<DbTableInfo> loadTableList(Action<SQLBuilder> doFilter)
         {
 
@@ -601,6 +607,9 @@ namespace mooSQL.data
             return result;
         }
 
+        /// <summary>
+        /// toCreateDataBase 方法（返回 SQLCmd）。
+        /// </summary>
         protected virtual SQLCmd toCreateDataBase(string DatabaseName, string databaseDirectory = null)
         {
             throw new NotImplementedException();
@@ -796,6 +805,9 @@ namespace mooSQL.data
 
 
 
+        /// <summary>
+        /// loadEntityInfo 方法（返回 EntityInfo）。
+        /// </summary>
         public EntityInfo loadEntityInfo(Type infoType)
         {
             var res = DBLive.client.EntityCash.getEntityInfo(infoType);
@@ -803,6 +815,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// EntityColumnToDbColumn 方法（返回 DbColumnInfo）。
+        /// </summary>
         protected virtual DbColumnInfo EntityColumnToDbColumn(EntityColumn item)
         {
             DbColumnInfo result = new DbColumnInfo
@@ -821,6 +836,9 @@ namespace mooSQL.data
             return result;
         }
 
+        /// <summary>
+        /// 设置DbType。
+        /// </summary>
         protected virtual void SetDbType(EntityColumn item, DbColumnInfo result)
         {
             if (!Enum.IsDefined(typeof(DataFam), item.DataType))
@@ -831,11 +849,17 @@ namespace mooSQL.data
             result.DbTypeTextFull = result.DbType.ToDBString();
         }
 
+        /// <summary>
+        /// isSamgeType 方法（返回 bool）。
+        /// </summary>
         protected virtual bool isSamgeType(EntityColumn ec, DbColumnInfo dc)
         {
             return ec.DbType.IsSame(dc.DbType);
         }
 
+        /// <summary>
+        /// 创建TableLogic。
+        /// </summary>
         protected virtual void CreateTableLogic(EntityInfo entityInfo)
         {
             List<DbColumnInfo> list = new List<DbColumnInfo>();
@@ -865,6 +889,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// toCreateTableLogicSqls 方法（返回 IEnumerable<string>）。
+        /// </summary>
         protected virtual IEnumerable<string> toCreateTableLogicSqls(EntityInfo entityInfo)
         {
             List<string> list = new List<string>();
@@ -908,6 +935,9 @@ namespace mooSQL.data
             return list;
         }
 
+        /// <summary>
+        /// doAlterTableLogic 方法。
+        /// </summary>
         protected virtual void doAlterTableLogic(EntityInfo entityInfo, bool IsDropColumn)
         {
             if (entityInfo.Columns.HasValue())
@@ -948,6 +978,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// doAlterPrimarykeyAndIdentity 方法。
+        /// </summary>
         protected virtual void doAlterPrimarykeyAndIdentity(List<EntityColumn> entityColumns, List<DbColumnInfo> dbColumns, string tableName)
         {
             if (dbColumns.Where((DbColumnInfo it) => it.IsPrimary).Count() > 1 || entityColumns.Where((EntityColumn it) => it.IsPrimarykey).Count() > 1)
@@ -974,6 +1007,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// toAlterPrimarykeyAndIdentitySqls 方法（返回 IEnumerable<string>）。
+        /// </summary>
         protected virtual IEnumerable<string> toAlterPrimarykeyAndIdentitySqls(List<EntityColumn> entityColumns, List<DbColumnInfo> dbColumns, string tableName)
         {
             List<string> list = new List<string>();
@@ -1004,6 +1040,9 @@ namespace mooSQL.data
             return list;
         }
 
+        /// <summary>
+        /// toAlterTableLogicSqls 方法（返回 IEnumerable<string>）。
+        /// </summary>
         protected virtual IEnumerable<string> toAlterTableLogicSqls(EntityInfo entityInfo, bool IsDropColumn)
         {
 
@@ -1055,6 +1094,9 @@ namespace mooSQL.data
             return list;
         }
 
+        /// <summary>
+        /// doChangeKey 方法。
+        /// </summary>
         protected virtual void doChangeKey(string tableName, EntityColumn item)
         {
             string constraintName = $"PK_{tableName}_{item.DbColumnName}";

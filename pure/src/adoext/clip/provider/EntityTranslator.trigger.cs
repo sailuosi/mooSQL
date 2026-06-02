@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,6 +69,9 @@ namespace mooSQL.data
             return false;
         }
 
+        /// <summary>
+        /// fireBeforeInsert 方法。
+        /// </summary>
         protected virtual void fireBeforeInsert(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
 
             if (this._onBeforeInsertEntity != null)
@@ -77,6 +80,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// fireBeforeUpdate 方法。
+        /// </summary>
         protected virtual void fireBeforeUpdate(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
             if (this._onBeforeUpdateEntity != null)
             {
@@ -84,6 +90,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// fireBeforeDelete 方法。
+        /// </summary>
         protected virtual void fireBeforeDelete(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
             if (this._onBeforeDeleteEntity != null)
             {
@@ -91,6 +100,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// fireReadyInsert 方法。
+        /// </summary>
         protected virtual void fireReadyInsert(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
             if (this._onReadyInsertEntity != null)
             {
@@ -98,6 +110,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// fireReadyUpdate 方法。
+        /// </summary>
         protected virtual void fireReadyUpdate(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
             if (this._onReadyUpdateEntity != null)
             {
@@ -105,6 +120,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// fireReadyDelete 方法。
+        /// </summary>
         protected virtual void fireReadyDelete(SQLBuilder kit, object entity, Type EntityType, EntityInfo en) {
             if (this._onReadyDeleteEntity != null)
             {

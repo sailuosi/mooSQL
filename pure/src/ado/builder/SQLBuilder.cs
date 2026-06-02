@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.data.model;
 using mooSQL.utils;
@@ -99,6 +99,9 @@ namespace mooSQL.data
         /// </summary>
         public string Signal { get; set; }
 
+        /// <summary>
+        /// 属性 _MakeUps（SQLMakeUps）。
+        /// </summary>
         public SQLMakeUps _MakeUps { get; set; }
         private CleanWay _AutoClearWay { get; set; }
         /// <summary>
@@ -532,6 +535,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// ifs 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder ifs(bool isPass, Action whenTrue)
         {
             if (isPass)

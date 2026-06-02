@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using mooSQL.utils;
 using System;
@@ -1259,22 +1259,37 @@ namespace mooSQL.data {
         {
             return where(key, val, "=", true);
         }
+        /// <summary>
+        /// whereGreaterThan 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder whereGreaterThan(string key, Object val)
         {
             return where(key, val, ">", true);
         }
+        /// <summary>
+        /// whereLessThan 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder whereLessThan(string key, Object val)
         {
             return where(key, val, "<", true);
         }
+        /// <summary>
+        /// whereGreaterThanOrEqual 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder whereGreaterThanOrEqual(string key, Object val)
         {
             return where(key, val, ">=", true);
         }
+        /// <summary>
+        /// whereLessThanOrEqual 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder whereLessThanOrEqual(string key, Object val)
         {
             return where(key, val, "<=", true);
         }
+        /// <summary>
+        /// whereNotEqual 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder whereNotEqual(string key, Object val)
         {
             return where(key, val, "<>", true);
@@ -1604,4 +1619,3 @@ namespace mooSQL.data {
         #endregion
     }
 }
-

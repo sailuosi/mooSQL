@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.cluster;
 using mooSQL.data.context;
 using mooSQL.data.Mapping;
@@ -37,6 +37,9 @@ namespace mooSQL.data
             this.getClient();
 
         }
+        /// <summary>
+        /// 初始化 DBInsCash（构造）。
+        /// </summary>
         public DBInsCash(MooClient client)
         {
             this.client = client;
@@ -71,8 +74,14 @@ namespace mooSQL.data
 
         private static ConcurrentDictionary<int, DataBase> configMap = null;
 
+        /// <summary>
+        /// 字段 client（MooClient）。
+        /// </summary>
         public MooClient client=null;
 
+        /// <summary>
+        /// 字段 defaultPosition（int）。
+        /// </summary>
         public int defaultPosition = 0;
         /// <summary>
         /// 暴露给业务侧的数据库配置信息
@@ -152,6 +161,9 @@ namespace mooSQL.data
             return -1;
         }
 
+        /// <summary>
+        /// newClient 方法（返回 MooClient）。
+        /// </summary>
         public virtual MooClient newClient() {
             return new MooClient();
         }

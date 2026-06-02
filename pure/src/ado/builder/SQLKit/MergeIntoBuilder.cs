@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -122,6 +122,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// from 方法（返回 MergeIntoBuilder）。
+        /// </summary>
         public MergeIntoBuilder from(string aliasName, Action<SQLBuilder> doSelect)
         {
             this.usingAlias = aliasName;

@@ -1,4 +1,4 @@
-﻿using mooSQL.data.builder;
+using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,6 +56,9 @@ namespace mooSQL.data
             var cc= DBLive.ExeNonQuery(cmd);
             return cc;
         }
+        /// <summary>
+        /// clear 方法（返回 DDLBuilder）。
+        /// </summary>
         public DDLBuilder clear() {
             if (this.ps != null) { 
                 ps.Clear();
@@ -248,6 +251,9 @@ namespace mooSQL.data
             var cmd = new SQLCmd(str, ps);
             return cmd;
         }
+        /// <summary>
+        /// toDropView 方法（返回 SQLCmd）。
+        /// </summary>
         public SQLCmd toDropView(string viewName) { 
             this.setTable(viewName);
             return toDropView();
@@ -262,6 +268,9 @@ namespace mooSQL.data
             var cc = DBLive.ExeNonQuery(cmd);
             return cc;
         }
+        /// <summary>
+        /// doDropView 方法（返回 int）。
+        /// </summary>
         public int doDropView(string viewName) { 
             this.setTable(viewName);
             return doDropView();

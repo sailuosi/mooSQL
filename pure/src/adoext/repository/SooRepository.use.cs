@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -59,6 +59,9 @@ namespace mooSQL.data
             c.from<T>(out t);
             return c;
         }
+        /// <summary>
+        /// 泛型方法 useClip（返回 R）。
+        /// </summary>
         public R useClip<R>( Func<SQLClip, R> clipAction)
         {
             var clip = useClip();

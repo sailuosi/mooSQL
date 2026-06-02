@@ -1,4 +1,4 @@
-﻿using mooSQL.data.context;
+using mooSQL.data.context;
 using mooSQL.data.health;
 using mooSQL.data.model;
 using mooSQL.data.slave;
@@ -16,6 +16,9 @@ using System.Threading.Tasks;
 namespace mooSQL.data
 {
 
+    /// <summary>
+    /// 枚举 DBExecBehavior。
+    /// </summary>
     public enum DBExecBehavior
     {
         /// <summary>
@@ -547,6 +550,9 @@ namespace mooSQL.data
             });
         }
 
+        /// <summary>
+        /// 泛型方法 Execute（返回 R）。
+        /// </summary>
         public R Execute<R>(string sql, Paras para, Func<DbCommand, R> executor)
         {
             return Execute<R>(new SQLCmd(sql, para), executor);
@@ -711,6 +717,9 @@ namespace mooSQL.data
                 return cmd.ExecuteReaderAsync(context);
             });
         }
+        /// <summary>
+        /// 执行QueryReaderAsync。
+        /// </summary>
         public Task<DataReaderWrapper> ExeQueryReaderAsync(string sql, Paras para)
         {
             return ExeQueryReaderAsync(new SQLCmd(sql, para));
@@ -793,6 +802,9 @@ namespace mooSQL.data
                 return cmd.ExecuteQueryRow<T>(cont);
             });
         }
+        /// <summary>
+        /// 泛型方法 ExeQueryRowAsync（返回 Task<T>）。
+        /// </summary>
         public async Task<T> ExeQueryRowAsync<T>(SQLCmd SQL)
         {
             return await ExecuteCmdAsync(SQL, (cmd, cont) =>
@@ -887,6 +899,9 @@ namespace mooSQL.data
                 return cmd.ExecuteQueryScalar<T>(cont);
             });
         }
+        /// <summary>
+        /// 泛型方法 ExeQueryScalarAsync（返回 Task<T>）。
+        /// </summary>
         public async Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL)
         {
             return await ExecuteCmdAsync(SQL, (cmd, cont) =>

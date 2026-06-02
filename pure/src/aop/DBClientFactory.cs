@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,6 +52,9 @@ namespace mooSQL.data
             var t = new SooRepository<T>(DB);
             return t;
         }
+        /// <summary>
+        /// 泛型方法 useRepo（返回 SooRepository<T,K>）。
+        /// </summary>
         public virtual SooRepository<T,K> useRepo<T,K>(DBInstance DB) where T : class, new()
         {
             var t = new SooRepository<T,K>(DB);

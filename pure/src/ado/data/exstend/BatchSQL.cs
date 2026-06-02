@@ -1,4 +1,4 @@
-﻿
+
 
 
 using System.Data.Common;
@@ -38,9 +38,15 @@ namespace mooSQL.data
         /// </summary>
         public SQLBuilder builder;
 
+        /// <summary>
+        /// 属性 Builder（SQLBuilder）。
+        /// </summary>
         public SQLBuilder Builder { get { return this.builder; } }  
 
         private DBRunner runner;
+        /// <summary>
+        /// 数据库实例（已废弃，请使用 <see cref="DBLive"/>）。
+        /// </summary>
         [Obsolete("属性已废弃，请使用 DBLive 属性")]
         public DBInstance DBInstance
         {
@@ -53,6 +59,9 @@ namespace mooSQL.data
         /// </summary>
         public DBInstance DBLive { get; set; }
         // 方法局变
+        /// <summary>
+        /// 待执行 SQL 行字典（已废弃）。
+        /// </summary>
         [Obsolete("属性已废弃，用户不应访问和操作")]
         public Dictionary<int, SQLCmd> rows = new Dictionary<int, SQLCmd>();
         /// <summary>
@@ -84,6 +93,9 @@ namespace mooSQL.data
         /// 事务名称
         /// </summary>
         public string transName;
+        /// <summary>
+        /// 字段 trans（DbTransaction）。
+        /// </summary>
         public DbTransaction trans;
         /// <summary>
         /// 标记在常规的执行中是否使用事务

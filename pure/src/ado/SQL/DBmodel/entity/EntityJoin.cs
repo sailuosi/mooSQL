@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,6 +41,9 @@ namespace mooSQL.data
         /// </summary>
         public int Idx { get; set; }
 
+        /// <summary>
+        /// 属性 UniqueKey（string）。
+        /// </summary>
         public string UniqueKey
         {
             get {

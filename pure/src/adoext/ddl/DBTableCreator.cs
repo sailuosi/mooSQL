@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,14 @@ namespace mooSQL.data
     public class DBTableCreator
     {
 
+        /// <summary>
+        /// 属性 DBLive（DBInstance）。
+        /// </summary>
         public DBInstance DBLive {  get; set; }
 
+        /// <summary>
+        /// 属性 CreateMode（string）。
+        /// </summary>
         public string CreateMode { get; set; }
         /// <summary>
         /// 自动建表模式，如果表不存在则创建，如果存在则新增字段
@@ -27,8 +33,14 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// 属性 WorkingProgress（StringBuilder）。
+        /// </summary>
         public StringBuilder WorkingProgress { get; set; }
 
+        /// <summary>
+        /// 泛型方法 createTable（返回 DBTableCreator）。
+        /// </summary>
         public DBTableCreator createTable<T>(string mode = null) { 
             if(mode == null) {
                 mode = this.CreateMode;
@@ -76,6 +88,9 @@ namespace mooSQL.data
             return CreateTable(en, en.DbTableName, mode);
         }
 
+        /// <summary>
+        /// 创建Table。
+        /// </summary>
         public string CreateTable(EntityInfo en, string physicalTableName, string mode)
         {
             //先默认为表不存在。

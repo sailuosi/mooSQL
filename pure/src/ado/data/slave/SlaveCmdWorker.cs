@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,11 +13,17 @@ namespace mooSQL.data.slave
     public class SlaveCmdWorker:IEventEat
     {
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public SlaveCmdWorker() {
 
         }
 
 
+        /// <summary>
+        /// 属性 DBLive（DBInstance）。
+        /// </summary>
         public DBInstance DBLive{ get; set; }
         /// <summary>
         /// 发生异常时的动作，由业务侧自定义
@@ -26,6 +32,9 @@ namespace mooSQL.data.slave
 
 
 
+        /// <summary>
+        /// 字段 stoped（bool）。
+        /// </summary>
         public bool stoped = true;
 
         /// <summary>
@@ -57,6 +66,9 @@ namespace mooSQL.data.slave
 
         }
 
+        /// <summary>
+        /// Report 方法（返回 string）。
+        /// </summary>
         public string Report()
         {
             return "";

@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,6 +31,9 @@ namespace mooSQL.data
         }
         //var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
 
+        /// <summary>
+        /// insertInner 方法（返回 int）。
+        /// </summary>
         protected int insertInner(T entity,SQLBuilder kit)
         {
             int cc = 0;
@@ -46,6 +49,9 @@ namespace mooSQL.data
             cc = -1;
             return cc;
         }
+        /// <summary>
+        /// updateInner 方法（返回 int）。
+        /// </summary>
         protected int updateInner(T entity, SQLBuilder kit)
         {
             int cc = 0;
@@ -61,6 +67,9 @@ namespace mooSQL.data
             cc = -1;
             return cc;
         }
+        /// <summary>
+        /// 保存Inner。
+        /// </summary>
         protected int SaveInner( T entity, SQLBuilder builder)
         {
             if (entity == null)
@@ -102,6 +111,9 @@ namespace mooSQL.data
             }
             return 0;
         }
+        /// <summary>
+        /// tryTableNameLoader 方法（返回 Func<string>）。
+        /// </summary>
         protected static Func<string> tryTableNameLoader(string tbname)
         {
             if (!tbname.HasText())

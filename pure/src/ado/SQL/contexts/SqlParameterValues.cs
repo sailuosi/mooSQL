@@ -1,17 +1,26 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.data.model
 {
 
 
+	/// <summary>
+	/// 类型 SqlParameterValues。
+	/// </summary>
 	public class SqlParameterValues : IReadOnlyParaValues
 	{
+		/// <summary>
+		/// 空参数集合单例。
+		/// </summary>
 		public static readonly IReadOnlyParaValues Empty = new SqlParameterValues();
 
 		private Dictionary<ParameterWord, SQLParameterValue>? _valuesByParameter;
 		private Dictionary<int, SQLParameterValue>?          _valuesByAccessor;
 
+		/// <summary>
+		/// 添加Value。
+		/// </summary>
 		public void AddValue(ParameterWord parameter, object? providerValue, DbDataType dbDataType)
 		{
 			_valuesByParameter ??= new ();
@@ -29,6 +38,9 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <summary>
+		/// 设置Value。
+		/// </summary>
 		public void SetValue(ParameterWord parameter, object? value)
 		{
 			_valuesByParameter ??= new ();
@@ -59,6 +71,9 @@ namespace mooSQL.data.model
 			}
 		}
 
+		/// <summary>
+		/// 尝试GetValue。
+		/// </summary>
 		public bool TryGetValue(ParameterWord parameter,  out SQLParameterValue? value)
 		{
 			value = null;

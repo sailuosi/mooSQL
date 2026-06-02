@@ -12,6 +12,9 @@ namespace mooSQL.data.Mapping
     /// </summary>
     public abstract class BaseAttrEntityAnalyser<T> : IEntityAnalyser where T : Attribute
     {
+        /// <summary>
+        /// 解析失败时是否回退到默认解析器。
+        /// </summary>
         public virtual bool FailBacked => false;
         /// <summary>
         /// 是否同时读取父类的字段

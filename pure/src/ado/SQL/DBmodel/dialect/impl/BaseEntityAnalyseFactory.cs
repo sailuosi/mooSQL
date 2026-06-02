@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,6 +73,9 @@ namespace mooSQL.data.Mapping
             }
         }
 
+        /// <summary>
+        /// askAnalyse 方法（返回 EntityInfo）。
+        /// </summary>
         protected virtual EntityInfo askAnalyse(Type Entity)
         {
             EntityInfo entityInfo = null;

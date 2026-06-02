@@ -1,4 +1,4 @@
-﻿namespace mooSQL.data
+namespace mooSQL.data
 {
 
 

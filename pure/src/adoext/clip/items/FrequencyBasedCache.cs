@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +27,9 @@ namespace mooSQL.data.clip
             public DateTime LastAccessTime { get; set; }
         }
 
+        /// <summary>
+        /// 初始化 FrequencyBasedCache（构造）。
+        /// </summary>
         public FrequencyBasedCache(TimeSpan expirationTime)
         {
             _dict = new ConcurrentDictionary<TKey, LinkedListNode<CacheItem>>();

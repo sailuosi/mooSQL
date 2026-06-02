@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -24,6 +24,9 @@ namespace mooSQL.data
         /// JOIN的类型，例如INNER JOIN、LEFT JOIN等。
         /// </summary>
         public string JoinType { get; set; }
+        /// <summary>
+        /// 初始化 ClipJoin（构造）。
+        /// </summary>
         public ClipJoin(SQLClip roo)
         {
             this.root = roo;

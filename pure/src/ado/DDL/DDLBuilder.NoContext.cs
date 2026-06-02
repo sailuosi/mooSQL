@@ -1,4 +1,4 @@
-﻿using mooSQL.data.builder;
+using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -43,6 +43,9 @@ namespace mooSQL.data
             return cc;
         }
 
+        /// <summary>
+        /// toCopyTable 方法（返回 SQLCmd）。
+        /// </summary>
         public SQLCmd toCopyTable(string srcTableName, string targetTableName)
         {
             var frag = new DDLFragSQL()
@@ -95,10 +98,16 @@ namespace mooSQL.data
 
 
 
+        /// <summary>
+        /// doDropIndex 方法（返回 int）。
+        /// </summary>
         public int doDropIndex(string srcTableName) {
             return 0;
         }
 
+        /// <summary>
+        /// doDropProcedure 方法（返回 int）。
+        /// </summary>
         public int doDropProcedure(string srcTableName) {
             return 0;
         }
@@ -174,6 +183,9 @@ namespace mooSQL.data
             return dataTable.Rows != null && dataTable.Rows.Count > 0;
         }
 
+        /// <summary>
+        /// toDropConstraint 方法（返回 SQLCmd）。
+        /// </summary>
         public SQLCmd toDropConstraint(string tableName, string constraintName)
         {
             tableName = SQLPit.wrapTable(tableName);

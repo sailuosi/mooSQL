@@ -1,4 +1,4 @@
-﻿using mooSQL.linq;
+using mooSQL.linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +9,23 @@ namespace mooSQL.data
 {
     public abstract partial class SQLExpression
     {
+        /// <summary>
+        /// 字段 _provideType（string）。
+        /// </summary>
         protected string _provideType = "";
+        /// <summary>
+        /// 字段 _paraPrefix（string）。
+        /// </summary>
         protected string _paraPrefix = "";
 
+        /// <summary>
+        /// 字段 _selectAutoIncrement（string）。
+        /// </summary>
         protected string _selectAutoIncrement = "";
 
+        /// <summary>
+        /// 字段 _sentenceSeprator（string）。
+        /// </summary>
         protected string _sentenceSeprator = ";";
         /// <summary>
         /// SQL语句的参数化前缀

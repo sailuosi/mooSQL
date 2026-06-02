@@ -1,4 +1,4 @@
-﻿
+
 
 using mooSQL.data.model;
 using mooSQL.utils;
@@ -14,6 +14,9 @@ namespace mooSQL.data
 {
 
 
+	/// <summary>
+	/// 数据库架构元数据（表/列/键）提供器抽象基类。
+	/// </summary>
 	public abstract class SchemaProviderBase : ISchemaProvider
 	{
 		/// <summary>
@@ -37,21 +40,63 @@ namespace mooSQL.data
 			}
 		}
 
+        /// <summary>
+        /// 抽象方法 GetDataType（返回 DataFam），由子类实现。
+        /// </summary>
         protected abstract DataFam                            GetDataType   (string? dataType, string? columnType, int? length, int? precision, int? scale);
+		/// <summary>
+		/// 抽象方法 GetTables（返回 List<TableInfo>），由子类实现。
+		/// </summary>
 		protected abstract List<TableInfo>                     GetTables     ( GetSchemaOptions options);
+		/// <summary>
+		/// 抽象方法 GetPrimaryKeys（返回 IReadOnlyCollection<PrimaryKeyInfo>），由子类实现。
+		/// </summary>
 		protected abstract IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options);
+		/// <summary>
+		/// 抽象方法 GetColumns（返回 List<ColumnInfo>），由子类实现。
+		/// </summary>
 		protected abstract List<ColumnInfo>                    GetColumns    ( GetSchemaOptions options);
+		/// <summary>
+		/// 抽象方法 GetForeignKeys（返回 IReadOnlyCollection<ForeignKeyInfo>），由子类实现。
+		/// </summary>
 		protected abstract IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys( IEnumerable<TableSchema> tables, GetSchemaOptions options);
+		/// <summary>
+		/// 抽象方法 GetProviderSpecificTypeNamespace（返回 string?），由子类实现。
+		/// </summary>
 		protected abstract string?                             GetProviderSpecificTypeNamespace();
 
+		/// <summary>
+		/// 获取Procedures。
+		/// </summary>
 		protected virtual List<ProcedureInfo>?          GetProcedures         ( GetSchemaOptions options) => null;
+		/// <summary>
+		/// 获取ProcedureParameters。
+		/// </summary>
 		protected virtual List<ProcedureParameterInfo>? GetProcedureParameters( IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options) => null;
 
+		/// <summary>
+		/// 字段 IncludedSchemas（HashSet<string?>）。
+		/// </summary>
 		protected HashSet<string?>   IncludedSchemas  = null!;
+		/// <summary>
+		/// 字段 ExcludedSchemas（HashSet<string?>）。
+		/// </summary>
 		protected HashSet<string?>   ExcludedSchemas  = null!;
+		/// <summary>
+		/// 字段 IncludedCatalogs（HashSet<string?>）。
+		/// </summary>
 		protected HashSet<string?>   IncludedCatalogs = null!;
+		/// <summary>
+		/// 字段 ExcludedCatalogs（HashSet<string?>）。
+		/// </summary>
 		protected HashSet<string?>   ExcludedCatalogs = null!;
+		/// <summary>
+		/// 字段 GenerateChar1AsString（bool）。
+		/// </summary>
 		protected bool               GenerateChar1AsString;
+		/// <summary>
+		/// 字段 DataTypesSchema（DataTable）。
+		/// </summary>
 		protected DataTable          DataTypesSchema  = null!;
 
 		private Dictionary<string, DataTypeInfo> DataTypesDic = null!;
@@ -65,6 +110,9 @@ namespace mooSQL.data
 		/// </summary>
 		protected virtual bool GetProcedureSchemaExecutesProcedure => false;
 
+		/// <summary>
+		/// 构建SchemaFilter。
+		/// </summary>
 		protected string? BuildSchemaFilter(GetSchemaOptions? options, string defaultSchema, Action<StringBuilder, string> stringLiteralBuilder)
 		{
 			var schemas = new HashSet<string>();
@@ -109,6 +157,9 @@ namespace mooSQL.data
 			return sb.ToString();
 		}
 
+		/// <summary>
+		/// 获取Schema。
+		/// </summary>
 		public virtual DatabaseSchema GetSchema( GetSchemaOptions? options = null)
 		{
 			options ??= new GetSchemaOptions();
@@ -411,8 +462,14 @@ namespace mooSQL.data
 			}, options);
 		}
 
+		/// <summary>
+		/// ForeignKeyColumnComparison 方法（返回 StringComparison）。
+		/// </summary>
 		protected virtual StringComparison ForeignKeyColumnComparison(string column) => StringComparison.Ordinal;
 
+		/// <summary>
+		/// 获取HashSet。
+		/// </summary>
 		protected static HashSet<string?> GetHashSet(string?[]? data, IEqualityComparer<string?> comparer)
 		{
 			var set = new HashSet<string?>(comparer ?? StringComparer.OrdinalIgnoreCase);
@@ -426,7 +483,13 @@ namespace mooSQL.data
 			return set;
 		}
 
+		/// <summary>
+		/// 获取ProviderSpecificTables。
+		/// </summary>
 		protected virtual List<TableSchema>?     GetProviderSpecificTables    ( GetSchemaOptions options) => null;
+		/// <summary>
+		/// 获取ProviderSpecificProcedures。
+		/// </summary>
 		protected virtual List<ProcedureSchema>? GetProviderSpecificProcedures() => null;
 
 		/// <summary>
@@ -448,6 +511,9 @@ namespace mooSQL.data
 			return commandText;
 		}
 
+		/// <summary>
+		/// 加载ProcedureTableSchema。
+		/// </summary>
 		protected virtual void LoadProcedureTableSchema(
 			GetSchemaOptions  options,
 			ProcedureSchema   procedure,
@@ -519,6 +585,9 @@ namespace mooSQL.data
 			return null;
 #endif
         }
+        /// <summary>
+        /// 构建ProcedureParameter。
+        /// </summary>
         protected virtual Parameter BuildProcedureParameter(ParameterSchema p)
 		{
 			return new Parameter
@@ -543,8 +612,14 @@ namespace mooSQL.data
 			};
 		}
 
+		/// <summary>
+		/// 获取ProviderSpecificType。
+		/// </summary>
 		protected virtual string? GetProviderSpecificType(string? dataType) => null;
 
+		/// <summary>
+		/// 获取DataType。
+		/// </summary>
 		protected virtual DataTypeInfo? GetDataType(string? typeName, DataFam? dataType, GetSchemaOptions options)
 		{
 			if (typeName == null)
@@ -556,6 +631,9 @@ namespace mooSQL.data
 				: (DataTypesDic                .TryGetValue(typeName, out dt)     ? dt : ProviderSpecificDataTypesDic.TryGetValue(typeName, out dt) ? dt : null);
 		}
 
+		/// <summary>
+		/// 获取DataTypeByProviderDbType。
+		/// </summary>
 		protected DataTypeInfo? GetDataTypeByProviderDbType(int typeId, GetSchemaOptions options)
 		{
 			return
@@ -564,6 +642,9 @@ namespace mooSQL.data
 				: (DataTypesByProviderDbTypeDic                .TryGetValue(typeId, out dt)     ? dt : ProviderSpecificDataTypesByProviderDbTypeDic.TryGetValue(typeId, out dt) ? dt : null);
 		}
 
+		/// <summary>
+		/// 获取ProcedureSchema。
+		/// </summary>
 		protected virtual DataTable? GetProcedureSchema( string commandText, CommandType commandType, Parameter[] parameters, GetSchemaOptions options)
 		{
 			var ps = new Paras();
@@ -578,6 +659,9 @@ namespace mooSQL.data
 			return res;
 		}
 
+		/// <summary>
+		/// 获取ProcedureResultColumns。
+		/// </summary>
 		protected virtual List<ColumnSchema> GetProcedureResultColumns(DataTable resultTable, GetSchemaOptions options)
 		{
 			var columns = new List<ColumnSchema>();
@@ -611,9 +695,18 @@ namespace mooSQL.data
 			return columns;
 		}
 
+		/// <summary>
+		/// 获取DataSourceName。
+		/// </summary>
 		protected virtual string GetDataSourceName() => DBLive.GetDataSource();
+		/// <summary>
+		/// 获取DatabaseName。
+		/// </summary>
 		protected virtual string GetDatabaseName  () => DBLive.GetDatabase();
 
+		/// <summary>
+		/// InitProvider 方法。
+		/// </summary>
 		protected virtual void InitProvider()
 		{
 		}
@@ -643,6 +736,9 @@ namespace mooSQL.data
 			return res;
 		}
 
+		/// <summary>
+		/// 获取SystemType。
+		/// </summary>
 		protected virtual Type? GetSystemType(string? dataType, string? columnType, DataTypeInfo? dataTypeInfo, int? length, int? precision, int? scale, GetSchemaOptions options)
 		{
 			var systemType = dataTypeInfo != null ? Type.GetType(dataTypeInfo.DataType) : null;
@@ -653,6 +749,9 @@ namespace mooSQL.data
 			return systemType;
 		}
 
+		/// <summary>
+		/// 获取DbType。
+		/// </summary>
 		protected virtual string? GetDbType(GetSchemaOptions options, string? columnType, DataTypeInfo? dataType, int? length, int? precision, int? scale, string? udtCatalog, string? udtSchema, string? udtName)
 		{
 			var dbType = columnType ?? dataType?.TypeName;
@@ -690,6 +789,9 @@ namespace mooSQL.data
 		private static readonly char[] _nameSeparators = new [] {' ', '\t'};
 
 		// TODO: use proper C# identifier validation procedure
+		/// <summary>
+		/// 转换为ValidName。
+		/// </summary>
 		public static string ToValidName(string name)
 		{
 			if (name.Contains(" ") || name.Contains("\t"))
@@ -717,6 +819,9 @@ namespace mooSQL.data
 				;
 		}
 
+		/// <summary>
+		/// 转换为TypeName。
+		/// </summary>
 		public static string ToTypeName(Type? type, bool isNullable)
 		{
 			if (type == null)
@@ -755,6 +860,9 @@ namespace mooSQL.data
 			return memberType;
 		}
 
+		/// <summary>
+		/// ProcessSchema 方法（返回 DatabaseSchema）。
+		/// </summary>
 		protected virtual DatabaseSchema ProcessSchema(DatabaseSchema databaseSchema, GetSchemaOptions schemaOptions)
 		{
 			foreach (var t in databaseSchema.Tables)

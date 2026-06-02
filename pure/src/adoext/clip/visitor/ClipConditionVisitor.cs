@@ -1,4 +1,4 @@
-﻿using mooSQL.linq;
+using mooSQL.linq;
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,9 @@ namespace mooSQL.data.clip
     public class ClipConditionVisitor : ConditionVisitor
     {
         private SQLClip clip;
+        /// <summary>
+        /// 初始化 ClipConditionVisitor（构造）。
+        /// </summary>
         public ClipConditionVisitor(FastCompileContext context, SQLClip clip) : base(context)
         {
             this.clip = clip;
@@ -68,6 +71,9 @@ namespace mooSQL.data.clip
 
         }
 
+        /// <summary>
+        /// 访问ToGotField。
+        /// </summary>
         public override string VisitToGotField(Expression node)
         {
             var sql = VisitByClipField(node, out var fidv);

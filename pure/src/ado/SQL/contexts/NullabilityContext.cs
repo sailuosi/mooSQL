@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -42,6 +42,9 @@ namespace mooSQL.data.model
 		public SelectQueryClause?     InQuery     { get; }
 
 		//[MemberNotNullWhen(false, nameof(InQuery))]
+		/// <summary>
+		/// 字段 IsEmpty（bool）。
+		/// </summary>
 		public bool             IsEmpty     => InQuery == null;
 
 		NullabilityCache? _nullabilityCache;
@@ -58,6 +61,9 @@ namespace mooSQL.data.model
 			return _nullabilityCache.IsNullableSource(query, source);
 		}
 
+		/// <summary>
+		/// RegisterReplacement 方法。
+		/// </summary>
 		public void RegisterReplacement(SelectQueryClause oldQuery, SelectQueryClause newQuery)
 		{
 			_nullabilityCache ??= new();

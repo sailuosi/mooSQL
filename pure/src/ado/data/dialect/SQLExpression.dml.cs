@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -266,6 +266,9 @@ namespace mooSQL.data
             return " "+ nfie+" ";
         }
 
+        /// <summary>
+        /// wrapPaged 方法（返回 string）。
+        /// </summary>
         public string wrapPaged(string orderColName, string readSql, int pageSize, int pageNum)
         {
             int end = pageSize * (pageNum - 1);
@@ -277,6 +280,9 @@ namespace mooSQL.data
 
             return "with datares as ( " + readSql + " ) " + buildSelect(sql);
         }
+        /// <summary>
+        /// wrapPaged 方法（返回 string）。
+        /// </summary>
         public string wrapPaged(string orderColName, string readSql, int pageSize, int pageNum, string orderByPart)
         {
             int end = pageSize * (pageNum - 1);
@@ -290,6 +296,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// wrapPageOrder 方法（返回 string）。
+        /// </summary>
         public string wrapPageOrder(string orderByPart, string readsql, int pageSize, int pageNum)
         {
             //采取直接套一层语句的方式。
@@ -333,9 +342,15 @@ namespace mooSQL.data
             return sql.ToString();
         }
 
+        /// <summary>
+        /// buildSetPart 方法（返回 string）。
+        /// </summary>
         protected virtual string buildSetPart(FragSQL frag) { 
             return this.buildSetPartList(frag.setPart);
         }
+        /// <summary>
+        /// buildSetPartList 方法（返回 string）。
+        /// </summary>
         protected virtual string buildSetPartList(List<FragSetPart> setPart)
         {
             bool isFirst = true;
@@ -411,6 +426,9 @@ namespace mooSQL.data
         {
             throw new Exception("未定义的数据库merge into 语法");
         }
+        /// <summary>
+        /// buildMergeIntoGeneral 方法（返回 string）。
+        /// </summary>
         protected string buildMergeIntoGeneral(FragMergeInto frag)
         {
             //merge into 目标表 a

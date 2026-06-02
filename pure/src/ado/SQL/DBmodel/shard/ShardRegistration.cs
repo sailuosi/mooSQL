@@ -8,8 +8,14 @@ namespace mooSQL.data
     /// </summary>
     public static class ShardRegistration
     {
+        /// <summary>
+        /// 默认分表解析占位符键名。
+        /// </summary>
         public const string DefaultParserKey = "@shard";
 
+        /// <summary>
+        /// ApplyTableAttribute 方法。
+        /// </summary>
         public static void ApplyTableAttribute(EntityInfo info, SooTableAttribute attr)
         {
             if (info == null || attr == null || attr.ShardMode == TableShardMode.None)
@@ -36,6 +42,9 @@ namespace mooSQL.data
                 info.LiveName = true;
         }
 
+        /// <summary>
+        /// MarkShardField 方法。
+        /// </summary>
         public static void MarkShardField(EntityInfo info, EntityColumn column)
         {
             if (info == null || column == null)
@@ -49,6 +58,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// FinalizeEntityShard 方法。
+        /// </summary>
         public static void FinalizeEntityShard(EntityInfo info)
         {
             if (info?.Shard == null || !info.Shard.IsActive)
@@ -65,6 +77,9 @@ namespace mooSQL.data
             RegisterInterceptor(info, info.Shard.ResolveStrategy());
         }
 
+        /// <summary>
+        /// RegisterInterceptor 方法。
+        /// </summary>
         public static void RegisterInterceptor(EntityInfo info, ITableShardStrategy strategy)
         {
             if (info == null || strategy == null)
@@ -72,6 +87,9 @@ namespace mooSQL.data
             info.NameParses[DefaultParserKey] = new TableShardInterceptor(info, strategy);
         }
 
+        /// <summary>
+        /// 泛型方法 EnableLiveNameWithParser（返回 void）。
+        /// </summary>
         public static void EnableLiveNameWithParser<T>(EntityContext ctx, Func<T, string> nameParser)
         {
             var en = ctx.getEntityInfo<T>();
@@ -81,6 +99,9 @@ namespace mooSQL.data
             en.NameParses[DefaultParserKey] = interceptor;
         }
 
+        /// <summary>
+        /// 泛型方法 ConfigureShard（返回 void）。
+        /// </summary>
         public static void ConfigureShard<T>(EntityContext ctx, Action<EntityShardConfig> configure)
         {
             var en = ctx.getEntityInfo<T>();
@@ -92,6 +113,9 @@ namespace mooSQL.data
             FinalizeEntityShard(en);
         }
 
+        /// <summary>
+        /// 泛型方法 UseShardStrategy（返回 void）。
+        /// </summary>
         public static void UseShardStrategy<T>(EntityContext ctx, ITableShardStrategy strategy)
         {
             var en = ctx.getEntityInfo<T>();

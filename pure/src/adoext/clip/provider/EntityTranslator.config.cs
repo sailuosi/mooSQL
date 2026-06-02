@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -283,6 +283,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// loadPKValue 方法（返回 object）。
+        /// </summary>
         protected virtual object loadPKValue(EntityColumn col) {
             if (this._onLoadPKValue != null) {
                 return _onLoadPKValue(col);

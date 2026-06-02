@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -10,11 +10,17 @@ namespace mooSQL.data.mapping
 {
 
 
+	/// <summary>
+	/// 类型 DataTools。
+	/// </summary>
 	public static class DataTools
 	{
 
 		static readonly char[] _escapes = { '\x0', '\'' };
 
+		/// <summary>
+		/// ConvertStringToSql 方法（返回 string）。
+		/// </summary>
 		public static string ConvertStringToSql(
 			
 			string plusOperator,
@@ -130,6 +136,9 @@ namespace mooSQL.data.mapping
 			return stringBuilder.ToString();
 		}
 
+		/// <summary>
+		/// ConvertCharToSql 方法（返回 string）。
+		/// </summary>
 		public static string ConvertCharToSql( string startString, Action<StringBuilder,int> appendConversion, char value)
 		{
             StringBuilder stringBuilder = new StringBuilder();
@@ -159,6 +168,9 @@ namespace mooSQL.data.mapping
 			return stringBuilder.ToString();
 		}
 
+		/// <summary>
+		/// 泛型方法 Expression（返回 static）。
+		/// </summary>
 		public static Expression<Func<DbDataReader, int, string>> GetCharExpression = (dr, i) => GetCharFromString(dr.GetString(i));
 
 		private static string GetCharFromString(string str)

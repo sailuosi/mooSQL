@@ -1,4 +1,4 @@
-﻿using mooSQL.auth;
+using mooSQL.auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,12 +40,18 @@ namespace mooSQL.data
         /// </summary>
         public string Connector = "AND";
 
+        /// <summary>
+        /// Add 方法。
+        /// </summary>
         public virtual void Add(Boxable frag)
         {
             frag.Connector = Connector;
             children.Add(frag);
         }
 
+        /// <summary>
+        /// 抽象方法 ToSQL（返回 string），由子类实现。
+        /// </summary>
         public abstract string ToSQL(string fmt="");
     }
     /// <summary>
@@ -53,12 +59,18 @@ namespace mooSQL.data
     /// </summary>
     public class WhereBracket : Boxable
     {
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public WhereBracket() { 
             this.isBox = true;
             this.isNot=false;
             this.children = new List<Boxable>();
         }
 
+        /// <summary>
+        /// 转换为SQL。
+        /// </summary>
         public override string ToSQL(string fmt = "")
         {
             //当盒子为空盒子时，返回空字符；
@@ -136,8 +148,14 @@ namespace mooSQL.data
          */
         public string paramKey = "";
 
+        /// <summary>
+        /// 字段 leftParamKey（string）。
+        /// </summary>
         public string leftParamKey = "";
 
+        /// <summary>
+        /// 字段 leftValue（object）。
+        /// </summary>
         public object leftValue;
         /**
          * 可用于构建更新语句
@@ -148,26 +166,41 @@ namespace mooSQL.data
          */
         public bool insetable = true;
 
+        /// <summary>
+        /// 初始化 WhereFrag。
+        /// </summary>
         public WhereFrag()
         {
             this.isBox = false;
             this.isNot = false;
         }
+        /// <summary>
+        /// 初始化 WhereFrag（构造）。
+        /// </summary>
         public WhereFrag(string key):this()
         {
             this.key = key;
         }
+        /// <summary>
+        /// 初始化 WhereFrag（构造）。
+        /// </summary>
         public WhereFrag(string key, object val) : this()
         {
             this.key = key;
             this.value = val;
         }
+        /// <summary>
+        /// 初始化 WhereFrag（构造）。
+        /// </summary>
         public WhereFrag(string key, object val, bool paramed) : this()
         {
             this.key = key;
             this.value = val;
             this.paramed = paramed;
         }
+        /// <summary>
+        /// 初始化 WhereFrag（构造）。
+        /// </summary>
         public WhereFrag(string key, object val, bool paramed, bool updatable, bool insetable) : this()
         {
             this.key = key;
@@ -177,6 +210,9 @@ namespace mooSQL.data
             this.insetable = insetable;
         }
 
+        /// <summary>
+        /// setValue 方法。
+        /// </summary>
         public void setValue(object value, int index)
         {
             //if

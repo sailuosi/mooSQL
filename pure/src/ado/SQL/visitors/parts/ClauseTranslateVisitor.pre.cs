@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 存放构造Clause本身的部分功能，此部分可能因数据库不同，需要个性化
  */
 using mooSQL.data.model;
@@ -13,6 +13,9 @@ namespace mooSQL.linq
     public partial class ClauseTranslateVisitor
     {
 
+        /// <summary>
+        /// 获取IdentityExpression。
+        /// </summary>
         public virtual IExpWord? GetIdentityExpression(FieldWord field)
         {
             return null;

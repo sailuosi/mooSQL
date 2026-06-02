@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using mooSQL.data.Mapping;
 
 namespace mooSQL.data
@@ -45,6 +45,9 @@ namespace mooSQL.data
 		/// </summary>
 		public string? Schema { get; set; }
 
+		/// <summary>
+		/// 获取ObjectID。
+		/// </summary>
 		public override string GetObjectID()
 		{
 			return $".{Configuration}.{Schema}.{SequenceName}.";

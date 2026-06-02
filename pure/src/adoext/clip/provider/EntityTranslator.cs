@@ -127,8 +127,9 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
-        /// <param name="en"></param>
-        /// <returns></returns>
+        /// <param name="en">实体元数据，可为 null 时按类型解析。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
+        /// <returns>执行结果。</returns>
         public StatusResult prepareInsert(SQLBuilder builder, object entity, Type EntityType,EntityInfo en=null,Func<string> loadName=null)
         {
             if (entity == null)
@@ -245,8 +246,9 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="entity"></param>
         /// <param name="EntityType"></param>
-        /// <param name="en"></param>
-        /// <returns></returns>
+        /// <param name="en">实体元数据。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
+        /// <returns>执行结果。</returns>
         public StatusResult prepareUpdate(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null,Func<string> loadName=null)
         {
             if (entity == null)
@@ -435,7 +437,8 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="entity"></param>
-        /// <param name="type"></param>
+        /// <param name="type">实体类型。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
         public void prepareDelete(SQLBuilder builder, object entity, Type type, Func<string> loadName = null)
         {
             if (entity == null)
@@ -460,6 +463,7 @@ namespace mooSQL.data
         /// <param name="builder"></param>
         /// <param name="en"></param>
         /// <param name="ids"></param>
+        /// <param name="loadName">可选表名解析回调。</param>
         /// <exception cref="NotSupportedException"></exception>
         public void prepareDelete(SQLBuilder builder, EntityInfo en, IEnumerable ids, Func<string> loadName = null) {
             if (ids == null) {
@@ -590,7 +594,8 @@ namespace mooSQL.data
         /// 执行from部分的构建
         /// </summary>
         /// <param name="kit"></param>
-        /// <param name="en"></param>
+        /// <param name="en">实体元数据。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
         private void BuildFromInner(SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
             if (this._onBuildFromPart != null)
@@ -799,8 +804,9 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="para"></param>
         /// <param name="kit"></param>
-        /// <param name="en"></param>
-        /// <returns></returns>
+        /// <param name="en">实体元数据。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
+        /// <returns>聚合 SQL 片段。</returns>
         public string PatchSummarySQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en, Func<string> loadName = null) {
             if (para.sumFields != null)
             {
@@ -839,7 +845,8 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="para"></param>
         /// <param name="kit"></param>
-        /// <param name="en"></param>
+        /// <param name="en">实体元数据。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
         public void PatchSQLByQueryPara(QueryPara para, SQLBuilder kit, EntityInfo en, Func<string> loadName = null)
         {
             BuildSelectFrom(kit, en, loadName);
@@ -934,7 +941,8 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="en"></param>
         /// <param name="kit"></param>
-        /// <param name="para"></param>
+        /// <param name="para">查询参数。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
         public void BuildQueryCondition(EntityInfo en, SQLBuilder kit, QueryPara para, Func<string> loadName = null)
         {
             if (para.conditions == null)
@@ -1074,8 +1082,9 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="cond"></param>
         /// <param name="en"></param>
-        /// <param name="kit"></param>
-        /// <returns></returns>
+        /// <param name="kit">SQL 构建器。</param>
+        /// <param name="loadName">可选表名解析回调。</param>
+        /// <returns>写入的条件条数。</returns>
         public int PatchConditionWhere(QueryCondition cond, EntityInfo en, SQLBuilder kit, Func<string> loadName = null)
         {
             var cc = 0;
@@ -1227,6 +1236,9 @@ namespace mooSQL.data
             return cc;
         }
 
+        /// <summary>
+        /// 匹配QueryField。
+        /// </summary>
         public string MatchQueryField(EntityInfo en, string field,SQLBuilder kit, Func<string> loadName = null)
         {
             var mtb = en.Alias;

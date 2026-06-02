@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -12,12 +12,24 @@ namespace mooSQL.data
     /// </summary>
     public class PagedDataTable
     {
+        /// <summary>
+        /// 属性 Items（DataTable）。
+        /// </summary>
         public DataTable Items { get; set; } = default!;
 
+        /// <summary>
+        /// 属性 Total（int）。
+        /// </summary>
         public int Total { get; set; }
 
+        /// <summary>
+        /// 类型 PagedSumDataTable。
+        /// </summary>
         public int PageSize { get; set; }
 
+        /// <summary>
+        /// 类型 PagedSumDataTable。
+        /// </summary>
         public int PageNum { get; set; }
     }
     /// <summary>
@@ -25,6 +37,9 @@ namespace mooSQL.data
     /// </summary>
     public class PagedSumDataTable:Dictionary<string,object>
     {
+        /// <summary>
+        /// 属性 Items（DataTable）。
+        /// </summary>
         public DataTable Items {
             get { 
                 return this["Items"] as DataTable ?? new DataTable();
@@ -34,6 +49,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 属性 Total（int?）。
+        /// </summary>
         public int? Total { 
             get { 
                 return this["Total"] as int?;
@@ -43,6 +61,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 属性 PageSize（int?）。
+        /// </summary>
         public int? PageSize { 
             get { 
                 return this["PageSize"] as int?;
@@ -52,6 +73,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 属性 PageNum（int?）。
+        /// </summary>
         public int? PageNum { 
             get { 
                 return this["PageNum"] as int?;

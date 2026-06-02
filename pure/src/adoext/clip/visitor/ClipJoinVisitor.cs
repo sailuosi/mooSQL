@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -20,7 +20,8 @@ namespace mooSQL.data.clip
         /// <summary>
         /// 创建
         /// </summary>
-        /// <param name="DB"></param>
+        /// <param name="DB">数据库实例。</param>
+        /// <param name="clip">SQLClip 查询上下文。</param>
         public ClipJoinVisitor(DBInstance DB, SQLClip clip)
         {
             this.DB = DB;

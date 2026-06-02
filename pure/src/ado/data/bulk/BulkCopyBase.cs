@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -15,8 +15,14 @@ namespace mooSQL.data
     public class BulkCopyBase
     {
 
+        /// <summary>
+        /// 属性 DB（DBInstance）。
+        /// </summary>
         public DBInstance DB {  get; set; }
 
+        /// <summary>
+        /// 字段 ContinueOnCapturedContext（bool）。
+        /// </summary>
         public bool ContinueOnCapturedContext = false;
         /// <summary>
         /// 最大参数量
@@ -27,17 +33,35 @@ namespace mooSQL.data
         /// </summary>
         protected virtual int MaxSqlLength => 100000;
 
+        /// <summary>
+        /// UNION ALL 首行字面量是否强制类型转换。
+        /// </summary>
         protected virtual bool CastFirstRowLiteralOnUnionAll => false;
+        /// <summary>
+        /// UNION ALL 首行参数是否强制类型转换。
+        /// </summary>
         protected virtual bool CastFirstRowParametersOnUnionAll => false;
+        /// <summary>
+        /// UNION ALL 所有行参数是否强制类型转换。
+        /// </summary>
         protected virtual bool CastAllRowsParametersOnUnionAll => false;
 
+        /// <summary>
+        /// 属性 CopyType（BulkCopyType）。
+        /// </summary>
         public BulkCopyType CopyType { get; set; }
 
+        /// <summary>
+        /// 属性 Options（BulkCopyOptions）。
+        /// </summary>
         public BulkCopyOptions Options { get; set; }
         //用户侧 曝露API 仅 BulkCopy 一个方法
 
 
 
+        /// <summary>
+        /// 泛型方法 BulkCopy（返回 BulkCopyRowsCopied）。
+        /// </summary>
         public virtual BulkCopyRowsCopied BulkCopy<T>(IEnumerable<T> source)
             where T : notnull
         {
@@ -49,6 +73,9 @@ namespace mooSQL.data
             };
         }
 
+        /// <summary>
+        /// 泛型方法 BulkCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// </summary>
         public virtual Task<BulkCopyRowsCopied> BulkCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
         {
@@ -60,6 +87,9 @@ namespace mooSQL.data
             };
         }
 #if NET5_0_OR_GREATER
+        /// <summary>
+        /// 泛型方法 BulkCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// </summary>
         public virtual Task<BulkCopyRowsCopied> BulkCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
 			where T: notnull
 		{
@@ -71,18 +101,27 @@ namespace mooSQL.data
 			};
 		}
 
+		/// <summary>
+		/// 泛型方法 ProviderSpecificCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+		/// </summary>
 		protected virtual Task<BulkCopyRowsCopied> ProviderSpecificCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
 			where T: notnull
 		{
 			return MultipleRowsCopyAsync( source, cancellationToken);
 		}
 
+        /// <summary>
+        /// 泛型方法 MultipleRowsCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// </summary>
         protected virtual Task<BulkCopyRowsCopied> MultipleRowsCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
     where T : notnull
         {
             return RowByRowCopyAsync(source, cancellationToken);
         }
 
+        /// <summary>
+        /// 泛型方法 Task（返回 async）。
+        /// </summary>
         protected virtual async Task<BulkCopyRowsCopied> RowByRowCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
     where T : notnull
         {
@@ -115,12 +154,18 @@ namespace mooSQL.data
 #endif
 
 
+        /// <summary>
+        /// 泛型方法 ProviderSpecificCopy（返回 BulkCopyRowsCopied）。
+        /// </summary>
         protected virtual BulkCopyRowsCopied ProviderSpecificCopy<T>(IEnumerable<T> source)
             where T : notnull
         {
             return MultipleRowsCopy(source);
         }
 
+        /// <summary>
+        /// 泛型方法 ProviderSpecificCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// </summary>
         protected virtual Task<BulkCopyRowsCopied> ProviderSpecificCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
         {
@@ -129,12 +174,18 @@ namespace mooSQL.data
 
 
 
+        /// <summary>
+        /// 泛型方法 MultipleRowsCopy（返回 BulkCopyRowsCopied）。
+        /// </summary>
         protected virtual BulkCopyRowsCopied MultipleRowsCopy<T>(IEnumerable<T> source)
             where T : notnull
         {
             return RowByRowCopy(source);
         }
 
+        /// <summary>
+        /// 泛型方法 MultipleRowsCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// </summary>
         protected virtual Task<BulkCopyRowsCopied> MultipleRowsCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
         {
@@ -143,6 +194,9 @@ namespace mooSQL.data
 
 
 
+        /// <summary>
+        /// 泛型方法 RowByRowCopy（返回 BulkCopyRowsCopied）。
+        /// </summary>
         protected virtual BulkCopyRowsCopied RowByRowCopy<T>(IEnumerable<T> source)
             where T : notnull
         {
@@ -171,6 +225,9 @@ namespace mooSQL.data
             return rowsCopied;
         }
 
+        /// <summary>
+        /// 泛型方法 Task（返回 async）。
+        /// </summary>
         protected virtual async Task<BulkCopyRowsCopied> RowByRowCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
         {

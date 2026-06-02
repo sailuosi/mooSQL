@@ -13,6 +13,9 @@ namespace mooSQL.data
     public partial class Dialect
     {
 
+        /// <summary>
+        /// 构建InsertOne。
+        /// </summary>
         public string BuildInsertOne(FragSQL frag) { 
             var sql= new StringBuilder();
             //INSERT INTO table_name VALUES (value1,value2,value3,...);
@@ -26,6 +29,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// CheckVersion 方法（返回 DBVersion）。
+        /// </summary>
         protected DBVersion CheckVersion() {
             if (this.Versions != null) {
                 //倒序检查

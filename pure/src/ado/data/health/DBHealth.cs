@@ -9,25 +9,55 @@ namespace mooSQL.data.health
     {
         private readonly object _lock = new object();
 
+        /// <summary>
+        /// 属性 Owner（DBInstance）。
+        /// </summary>
         public DBInstance Owner { get; }
+        /// <summary>
+        /// 属性 Options（DBHealthOptions）。
+        /// </summary>
         public DBHealthOptions Options { get; set; }
 
         /// <summary>测试注入，绕过真实 ping。</summary>
         public Func<DBInstance, bool> PingHandler;
 
+        /// <summary>
+        /// 属性 Status（DBHealthStatus）。
+        /// </summary>
         public DBHealthStatus Status { get; private set; } = DBHealthStatus.None;
+        /// <summary>
+        /// 属性 LastSuccessAt（DateTime?）。
+        /// </summary>
         public DateTime? LastSuccessAt { get; private set; }
+        /// <summary>
+        /// 属性 LastFailureAt（DateTime?）。
+        /// </summary>
         public DateTime? LastFailureAt { get; private set; }
+        /// <summary>
+        /// 属性 LastError（string）。
+        /// </summary>
         public string LastError { get; private set; }
+        /// <summary>
+        /// 属性 ConsecutiveFailures（int）。
+        /// </summary>
         public int ConsecutiveFailures { get; private set; }
+        /// <summary>
+        /// 属性 ProbeAttempts（int）。
+        /// </summary>
         public int ProbeAttempts { get; private set; }
 
+        /// <summary>
+        /// 初始化 DBHealth（构造）。
+        /// </summary>
         public DBHealth(DBInstance owner, DBHealthOptions options = null)
         {
             Owner = owner;
             Options = options ?? new DBHealthOptions();
         }
 
+        /// <summary>
+        /// NeedsProbe 方法（返回 bool）。
+        /// </summary>
         public bool NeedsProbe()
         {
             if (!Options.Enabled) return false;
@@ -40,6 +70,9 @@ namespace mooSQL.data.health
             return false;
         }
 
+        /// <summary>
+        /// Probe 方法（返回 bool）。
+        /// </summary>
         public bool Probe()
         {
             if (!Options.Enabled) return true;
@@ -61,6 +94,9 @@ namespace mooSQL.data.health
             }
         }
 
+        /// <summary>
+        /// MarkSuccess 方法。
+        /// </summary>
         public void MarkSuccess()
         {
             lock (_lock)
@@ -72,6 +108,9 @@ namespace mooSQL.data.health
             }
         }
 
+        /// <summary>
+        /// MarkFailure 方法。
+        /// </summary>
         public void MarkFailure(Exception ex)
         {
             lock (_lock)
@@ -85,6 +124,9 @@ namespace mooSQL.data.health
             }
         }
 
+        /// <summary>
+        /// markManualRecovery 方法。
+        /// </summary>
         public void markManualRecovery()
         {
             lock (_lock)

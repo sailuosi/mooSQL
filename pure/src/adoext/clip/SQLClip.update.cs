@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -134,6 +134,9 @@ namespace mooSQL.data
 
     public partial class SQLClip<T> {
 
+        /// <summary>
+        /// 泛型方法 set（返回 SQLClip<T>）。
+        /// </summary>
         public SQLClip<T> set<R>(Expression<Func<T, R>> expression) { 
             return this;
         }

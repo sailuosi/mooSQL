@@ -497,7 +497,7 @@ namespace mooSQL.data
             return this;
         }
 
-        /// <inheritdoc cref="MooEvents.restrictSQLAuditToTables(string[]?)" />
+        /// <inheritdoc cref="MooEvents.restrictSQLAuditToTables(System.String[])" />
         public BaseClientBuilder restrictModifySqlAuditToTables(params string[]? tables)
         {
             client.events.restrictSQLAuditToTables(tables);

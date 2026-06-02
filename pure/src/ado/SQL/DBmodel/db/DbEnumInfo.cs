@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型 DbEnumInfo。
+    /// </summary>
     public class DbEnumInfo
     {
 

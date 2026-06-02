@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -49,6 +49,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// WhenError 方法（返回 SooUnitOfWork）。
+        /// </summary>
         public SooUnitOfWork WhenError(Action<Exception> onError) {
             this._onException = onError;
             return this;

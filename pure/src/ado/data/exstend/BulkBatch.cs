@@ -1,4 +1,4 @@
-﻿
+
 using System;
 
 using System.Data;
@@ -17,6 +17,9 @@ namespace mooSQL.data
         public BulkBatchBase() { 
         
         }
+        /// <summary>
+        /// 初始化 BulkBatchBase（构造）。
+        /// </summary>
         public BulkBatchBase(BulkBase bulk, BatchSQL batchSQL)
         {
             this.bulk = bulk;

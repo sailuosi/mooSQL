@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +13,21 @@ namespace mooSQL.data.slave
     public class TeamHeader:IEventEat
     {
 
+        /// <summary>
+        /// 字段 position（int）。
+        /// </summary>
         public int position;
 
+        /// <summary>
+        /// 字段 members（List<IEventEat>）。
+        /// </summary>
         public List<IEventEat> members = new List<IEventEat>();
 
         private BlockingCollection<ModifyPara> bc;
 
+        /// <summary>
+        /// 属性 Empty（bool）。
+        /// </summary>
         public bool Empty { 
             get { return members.Count == 0; }
         }

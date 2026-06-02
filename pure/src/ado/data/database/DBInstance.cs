@@ -1,4 +1,4 @@
-﻿/*
+/*
  * * 命名规范： 
  * 所有查询类操作以 ExeQuery开头。 非查询类以 ExeNonQuery开头
  * 需要用户后续手动方式执行的以  Executing 开头

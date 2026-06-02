@@ -38,10 +38,19 @@ namespace mooSQL.data
             return Executor;
         }
 
+        /// <summary>
+        /// useReadReplica 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
 
+        /// <summary>
+        /// useMaster 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useMaster() => useRoute(r => r.ForceMaster = true);
 
+        /// <summary>
+        /// useDualWrite 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useDualWrite(params int[] slavePositions) =>
             useRoute(r =>
             {
@@ -57,15 +66,27 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// useTarget 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useTarget(int position) =>
             useRoute(r => r.TargetPosition = position);
 
+        /// <summary>
+        /// useTarget 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useTarget(DBInstance instance) =>
             useRoute(r => r.TargetInstance = instance);
 
+        /// <summary>
+        /// useReadPolicy 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useReadPolicy(ReadRoutePolicy policy) =>
             useRoute(r => r.ReadPolicyOverride = policy);
 
+        /// <summary>
+        /// useRoute 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder useRoute(Action<SQLRouteContext> configure)
         {
             if (configure == null) return this;
@@ -78,6 +99,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// resetRoute 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder resetRoute()
         {
             _pendingRouteContext = null;

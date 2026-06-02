@@ -1,4 +1,4 @@
-﻿using mooSQL.data.Mapping;
+using mooSQL.data.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,9 @@ namespace mooSQL.data
     public class SooFKAttribute : MappingAttribute
     {
 
+        /// <summary>
+        /// 获取ObjectID。
+        /// </summary>
         public override string GetObjectID()
         {
             return GetHashCode().ToString();

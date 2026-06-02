@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +16,9 @@ namespace mooSQL.data
         /// </summary>
         public string IndexName { get; set; }
 
+        /// <summary>
+        /// 属性 MapedFields（List<string>）。
+        /// </summary>
         public List<string> MapedFields { get; set; }
         /// <summary>
         /// 添加一个索引字段

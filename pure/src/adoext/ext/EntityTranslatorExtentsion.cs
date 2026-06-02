@@ -1,4 +1,4 @@
-﻿using mooSQL.data.context;
+using mooSQL.data.context;
 using mooSQL.data.linq;
 using mooSQL.linq;
 using System;

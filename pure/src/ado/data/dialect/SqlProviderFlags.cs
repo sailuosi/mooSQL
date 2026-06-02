@@ -216,7 +216,6 @@ namespace mooSQL.data
 		/// SET ...
 		/// FROM B
 		/// </code>
-		
 		/// </summary>
 		[DataMember(Order = 33)]
 		public bool IsUpdateFromSupported             { get; set; }

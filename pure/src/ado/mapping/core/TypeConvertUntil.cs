@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -9,13 +9,22 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.mapping
 {
+    /// <summary>
+    /// 类型 TypeConverterUtil。
+    /// </summary>
     public static class TypeConverterUtil
     {
         // 基础类型转换方法
+        /// <summary>
+        /// 泛型方法 Convert（返回 T）。
+        /// </summary>
         public static T Convert<T>(object value)
         {
             return Convert<T>(value, CultureInfo.CurrentCulture);
         }
+        /// <summary>
+        /// Convert 方法（返回 object）。
+        /// </summary>
         public static object Convert(object value,Type tar ,CultureInfo culture)
         {
             if (value == null || value == DBNull.Value)
@@ -45,6 +54,9 @@ namespace mooSQL.data.mapping
             }
         }
         // 带文化信息的转换方法
+        /// <summary>
+        /// 泛型方法 Convert（返回 T）。
+        /// </summary>
         public static T Convert<T>(object value, CultureInfo culture)
         {
             if (value == null || value == DBNull.Value)
@@ -75,6 +87,9 @@ namespace mooSQL.data.mapping
         }
 
         // 安全转换方法（转换失败返回默认值）
+        /// <summary>
+        /// 泛型方法 TryConvert（返回 T）。
+        /// </summary>
         public static T TryConvert<T>(object value, T defaultValue = default(T))
         {
             try
@@ -88,6 +103,9 @@ namespace mooSQL.data.mapping
         }
 
         // 特殊处理Nullable类型
+        /// <summary>
+        /// 泛型方法 ConvertNullable（返回 T?）。
+        /// </summary>
         public static T? ConvertNullable<T>(object value) where T : struct
         {
             if (value == null || value == DBNull.Value)
@@ -96,6 +114,9 @@ namespace mooSQL.data.mapping
             return Convert<T>(value);
         }
 
+        /// <summary>
+        /// 获取ConvertType。
+        /// </summary>
         public static LambdaExpression GetConvertType(DBInstance DB, Type src, Type to)
         {
 

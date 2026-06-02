@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +24,9 @@ namespace mooSQL.data.mapping
             _mappings = new ConcurrentDictionary<string, MappingItem>();
         }
 
+        /// <summary>
+        /// 属性 GroupName（string）。
+        /// </summary>
         public string GroupName { get; set; }
         /// <summary>
         /// 添加映射项
@@ -44,6 +47,9 @@ namespace mooSQL.data.mapping
                 _mappings.TryAdd(tar.Key, tar);
             }
         }
+        /// <summary>
+        /// 获取从 F 到 T 的已注册类型转换委托。
+        /// </summary>
         public Func<F, T> Get<F, T>()
         {
             var key= typeof(F).FullName + "--" + typeof(T).FullName;
@@ -58,6 +64,9 @@ namespace mooSQL.data.mapping
             }
         }
 
+        /// <summary>
+        /// Get 方法（返回 Delegate）。
+        /// </summary>
         public Delegate Get(Type From,Type To )
         {
             var key = From.FullName + "--" + To.FullName;
@@ -88,6 +97,9 @@ namespace mooSQL.data.mapping
             }
             throw new InvalidOperationException($"类型转换未注册： {typeof(TFrom)} 转换到 {typeof(TTo)} ");
         }
+        /// <summary>
+        /// 泛型方法 Convert（返回 TTo）。
+        /// </summary>
         public TTo Convert<TTo>(object source)
         {
 
@@ -98,6 +110,9 @@ namespace mooSQL.data.mapping
             }
             return default(TTo);
         }
+        /// <summary>
+        /// Convert 方法（返回 object）。
+        /// </summary>
         public object Convert(object source,Type tar)
         {
 

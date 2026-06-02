@@ -1,11 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
 
 namespace mooSQL.data.model
 {
+	/// <summary>
+	/// SQL 对象名比较器（用于排序/去重）。
+	/// </summary>
 	public sealed class SqlObjectNameComparer : IComparer<SqlObjectName>
 	{
+		/// <summary>
+		/// 单例比较器实例。
+		/// </summary>
 		public static readonly IComparer<SqlObjectName> Instance = new SqlObjectNameComparer();
 
 		private SqlObjectNameComparer()

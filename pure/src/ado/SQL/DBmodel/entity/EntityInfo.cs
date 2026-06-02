@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -16,6 +16,9 @@ namespace mooSQL.data
     public class EntityInfo
     {
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public EntityInfo() {
             this._OrderBys = new ConcurrentDictionary<int, EntityOrder>();
             this.Joins = new ConcurrentDictionary<string, EntityJoin>();

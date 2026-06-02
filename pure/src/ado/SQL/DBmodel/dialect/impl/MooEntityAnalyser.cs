@@ -1,4 +1,4 @@
-﻿
+
 using System;
 
 using System.Linq;
@@ -15,6 +15,9 @@ namespace mooSQL.data.Mapping
     {
 
 
+        /// <summary>
+        /// ReadEntityAttr 方法（返回 EntityInfo）。
+        /// </summary>
         protected override EntityInfo ReadEntityAttr(SooTableAttribute attr, Type entity, EntityInfo info)
         {
             if (attr == null) { 
@@ -31,6 +34,9 @@ namespace mooSQL.data.Mapping
             return info;
         }
 
+        /// <summary>
+        /// 解析Entity。
+        /// </summary>
         public override EntityInfo ParseEntity(Type entity, EntityInfo info)
         {
             info = base.ParseEntity(entity, info);
@@ -38,6 +44,9 @@ namespace mooSQL.data.Mapping
             return info;
         }
 
+        /// <summary>
+        /// 解析Column。
+        /// </summary>
         public override EntityColumn ParseColumn(Type entity, PropertyInfo propertyInfo, EntityInfo entityInfo, EntityColumn entityColumn)
         {
             var columnAttributes = propertyInfo.GetCustomAttributes(typeof(SooColumnAttribute));

@@ -39,6 +39,9 @@ namespace mooSQL.data
             return kit.query<T>().ToList();
         }
 
+        /// <summary>
+        /// currentTableNameLoader 方法（返回 Func<string>）。
+        /// </summary>
         protected Func<string> currentTableNameLoader(T entity)
         {
             if (tbname.HasText())

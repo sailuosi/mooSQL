@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,9 +31,15 @@ namespace mooSQL.data.slave
 
     }
 
+    /// <summary>
+    /// 枚举 ModifyEventType。
+    /// </summary>
     public enum ModifyEventType
     {
 
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         Modify = 0,
     }
 }

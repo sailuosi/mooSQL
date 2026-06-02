@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.builder
 {
+    /// <summary>
+    /// 类型 DDLFragSQL。
+    /// </summary>
     public class DDLFragSQL
     {
         /// <summary>
@@ -13,8 +16,14 @@ namespace mooSQL.data.builder
         /// </summary>
         public string Table;
 
+        /// <summary>
+        /// 字段 Schema（string）。
+        /// </summary>
         public string Schema;
 
+        /// <summary>
+        /// 字段 TableCaption（string）。
+        /// </summary>
         public string TableCaption;
         /// <summary>
         /// 

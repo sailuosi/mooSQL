@@ -20,6 +20,9 @@ namespace mooSQL.data.health
             _timer = new Timer(_ => Tick(), null, ms, ms);
         }
 
+        /// <summary>
+        /// Register 方法。
+        /// </summary>
         public void Register(DBHealth health)
         {
             if (health == null) return;
@@ -29,6 +32,9 @@ namespace mooSQL.data.health
             }
         }
 
+        /// <summary>
+        /// Unregister 方法。
+        /// </summary>
         public void Unregister(DBHealth health)
         {
             lock (_lock) _targets.Remove(health);
@@ -50,6 +56,9 @@ namespace mooSQL.data.health
             }
         }
 
+        /// <summary>
+        /// Dispose 方法。
+        /// </summary>
         public void Dispose() => _timer?.Dispose();
     }
 }

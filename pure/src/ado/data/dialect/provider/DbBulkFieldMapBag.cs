@@ -14,6 +14,9 @@ namespace mooSQL.data
         /// <summary>源列到目标列的映射列表。</summary>
         public List<DbBulkFieldMap> Maps = new List<DbBulkFieldMap>();
 
+        /// <summary>
+        /// Add 方法（返回 DbBulkFieldMapBag）。
+        /// </summary>
         public DbBulkFieldMapBag Add(DbBulkFieldMap tar)
         {
           
@@ -21,6 +24,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// Add 方法（返回 DbBulkFieldMapBag）。
+        /// </summary>
         public DbBulkFieldMapBag Add(string src,string tar)
         {
             var tarMap = new DbBulkFieldMap()
@@ -32,6 +38,9 @@ namespace mooSQL.data
             Maps.Add(tarMap);
             return this;
         }
+        /// <summary>
+        /// Add 方法（返回 DbBulkFieldMapBag）。
+        /// </summary>
         public DbBulkFieldMapBag Add(int src, int tar)
         {
             var tarMap = new DbBulkFieldMap()

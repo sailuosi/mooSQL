@@ -295,6 +295,9 @@ namespace mooSQL.data
             }
             return names;
         }
+        /// <summary>
+        /// addListPara 方法（返回 List<string>）。
+        /// </summary>
         public List<string> addListPara(IEnumerable list, string prefix)
         {
             if (ps == null)
@@ -338,11 +341,17 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// top 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup top(int num) {
             this.toped = num;
             return this;
         }
 
+        /// <summary>
+        /// getSetFrag 方法（返回 SetFrag）。
+        /// </summary>
         public SetFrag getSetFrag(string key,bool autoAdd=true) {
             for (int i = 0; i < columns.Count; i++)
             {
@@ -435,6 +444,9 @@ namespace mooSQL.data
         private int _whfragIndex=0;
 
 
+        /// <summary>
+        /// where 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup where(string key, Object val,string op,bool  paramed,Type type=null) {
 
             WhereFrag field = new WhereFrag();
@@ -448,6 +460,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// whereFormat 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup whereFormat(string template,params Object[] values) {
            string key = template;
             for (int i = 0; i < values.Length; i++) {
@@ -481,6 +496,9 @@ namespace mooSQL.data
             return where(key, " in ", doselect);
         }
 
+        /// <summary>
+        /// whereExist 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup whereExist(string value)
         {
             return where("", " (" + value + ") ", " exists ", false);
@@ -583,6 +601,9 @@ namespace mooSQL.data
             return wherePart.BuildWithoutPara(dbstr);
         }
 
+        /// <summary>
+        /// buildInsertFields 方法（返回 string）。
+        /// </summary>
         public string buildInsertFields() {
             var cols = new List<string>();
             foreach (SetFrag field in columns)
@@ -591,9 +612,15 @@ namespace mooSQL.data
             }
             return  string.Join(",", cols);
         }
+        /// <summary>
+        /// buildInsertValOne 方法（返回 string）。
+        /// </summary>
         public string buildInsertValOne() { 
             return this.buildInsertRowVal(setIndex);
         }
+        /// <summary>
+        /// buildInsertRowVal 方法（返回 string）。
+        /// </summary>
         public string buildInsertRowVal(int rowIndex) {
             var valueRow = new List<string>();
             foreach (SetFrag field in columns)
@@ -691,6 +718,9 @@ namespace mooSQL.data
         //from gpm_groupmenu m
         //where m.FK_Menu=''
 
+        /// <summary>
+        /// buildInsertFrom 方法（返回 string）。
+        /// </summary>
         public string buildInsertFrom() {
             var insertSQL = this.buildInsert();
             return insertSQL;
@@ -728,6 +758,9 @@ namespace mooSQL.data
             sql.Append(" ");
             return sql.ToString();
         }
+        /// <summary>
+        /// buildSetFrag 方法（返回 List<FragSetPart>）。
+        /// </summary>
         public List<FragSetPart> buildSetFrag(int index)
         {
             var res= new List<FragSetPart>();
@@ -757,9 +790,15 @@ namespace mooSQL.data
             }
             return res;
         }
+        /// <summary>
+        /// buildSetFragCur 方法（返回 List<FragSetPart>）。
+        /// </summary>
         public List<FragSetPart> buildSetFragCur() { 
             return buildSetFrag(setIndex);
         }
+        /// <summary>
+        /// buildUpdate 方法（返回 string）。
+        /// </summary>
         public string buildUpdate() {
             if (wherePart.Count == 0 || columns.Count==0) {
                 return null;
@@ -778,6 +817,9 @@ namespace mooSQL.data
             return sql;
         }
 
+        /// <summary>
+        /// buildUpdateFrom 方法（返回 string）。
+        /// </summary>
         public string buildUpdateFrom() {
             if (wherePart.Count == 0) {
                 return null;
@@ -838,6 +880,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// mergeDelete 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup mergeDelete(bool thenDelete)
         {
             this.mergeDeletable = thenDelete;
@@ -945,11 +990,17 @@ namespace mooSQL.data
             this.toped = -1;
             return this;
         }
+        /// <summary>
+        /// clearToNext 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup clearToNext(string tableName) {
             this.clear();
             return setTable(tableName);
         }
 
+        /// <summary>
+        /// setTable 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup setTable(string tbName) {
             this.tableName = tbName;
             return this;
@@ -998,20 +1049,32 @@ namespace mooSQL.data
         }
 
         //查询部分
+        /// <summary>
+        /// select 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup select(string columns) {
             this.selectPart.Add(columns);
             return this;
         }
 
+        /// <summary>
+        /// distinct 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup distinct() {
             this.distincted = true;
             return this;
         }
 
+        /// <summary>
+        /// from 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup from(string fromPart) {
             this.fromPart.Add(fromPart);
             return this;
         }
+        /// <summary>
+        /// fromAppend 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup fromAppend(string apendString)
         {
             var lastFrom = "";
@@ -1032,28 +1095,43 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// pivot 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup pivot(PivotItem pivotConfig)
         {
             this.pivotPart.Add(pivotConfig);
             return this;
         }
 
+        /// <summary>
+        /// unpivot 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup unpivot(UnpivotItem unpivotConfig)
         {
             this.unpivotPart.Add(unpivotConfig);
             return this;
         }
 
+        /// <summary>
+        /// groupBy 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup groupBy(string groupField) {
             this.groupbyPart.Add(groupField);
             return this;
         }
 
+        /// <summary>
+        /// having 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup having(string havingStr) {
             this.havingPart = havingStr;
             return this;
         }
 
+        /// <summary>
+        /// orderby 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup orderby(string fromPart) {
             this.orderPart.Add(fromPart);
             return this;
@@ -1109,6 +1187,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// setPage 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup setPage(int size, int num) {
             this.pageNum = num;
             this.pageSize = size;
@@ -1135,10 +1216,16 @@ namespace mooSQL.data
             return res;
         }
 
+        /// <summary>
+        /// buildOrderBy 方法（返回 string）。
+        /// </summary>
         public string buildOrderBy() {
             if (this.orderPart.Count == 0) return "";
             return " order by " + joinList(this.orderPart, ",");
         }
+        /// <summary>
+        /// buildOrderByConent 方法（返回 string）。
+        /// </summary>
         public string buildOrderByConent() {
             if (this.orderPart.Count == 0) return "";
             return joinList(this.orderPart, ",");
@@ -1168,6 +1255,9 @@ namespace mooSQL.data
             return res;
         }
 
+        /// <summary>
+        /// buildGroupBy 方法（返回 string）。
+        /// </summary>
         public string buildGroupBy() {
            string res = "";
             if (this.groupbyPart.Count > 0) {
@@ -1259,6 +1349,9 @@ namespace mooSQL.data
             return sql;
         }
 
+        /// <summary>
+        /// buildSelectNoPage 方法（返回 string）。
+        /// </summary>
         public string buildSelectNoPage(bool  hasOrder) {
             //String res= "select ";
 
@@ -1354,6 +1447,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// joinList 方法（返回 string）。
+        /// </summary>
         public string joinList(List<string> list,string seperator) {
             StringBuilder res = new StringBuilder();
             foreach (string li in list) {
@@ -1368,6 +1464,9 @@ namespace mooSQL.data
             return res.ToString();
         }
 
+        /// <summary>
+        /// 泛型方法 copyList（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup copyList<T>(List<T> src, List<T> tar) {
             foreach (T t in src) {
                 if (tar.Contains(t) == false) { 
@@ -1377,16 +1476,25 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// copySelect 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup copySelect(SqlGoup src) {
             this.copyList(selectPart, src.selectPart);
             return this;
         }
 
+        /// <summary>
+        /// copyFrom 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup copyFrom(SqlGoup src) {
             this.copyList(fromPart, src.fromPart);
             return this;
         }
 
+        /// <summary>
+        /// copyWhere 方法（返回 SqlGoup）。
+        /// </summary>
         public SqlGoup copyWhere(SqlGoup src) {
             this.wherePart.Copy( src.wherePart);
             return this;

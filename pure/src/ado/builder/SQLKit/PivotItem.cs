@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections.Generic;
 
 namespace mooSQL.data
@@ -8,10 +8,16 @@ namespace mooSQL.data
     /// </summary>
     public class PivotItem
     {
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public PivotItem() { 
         
         }
 
+        /// <summary>
+        /// 初始化 PivotItem（构造）。
+        /// </summary>
         public PivotItem(string aggregation,string field, List<string> values,string asName )
         {
             this.aggregation = aggregation;
@@ -44,9 +50,15 @@ namespace mooSQL.data
     /// </summary>
     public class UnpivotItem {
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public UnpivotItem() {
         
         }
+        /// <summary>
+        /// 初始化 UnpivotItem（构造）。
+        /// </summary>
         public UnpivotItem(string valueName, string fieldName, List<string> fields, string asName)
         {
             this.valueName = valueName;

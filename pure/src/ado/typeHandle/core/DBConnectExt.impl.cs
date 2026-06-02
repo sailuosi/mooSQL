@@ -1,4 +1,4 @@
-﻿using mooSQL.data.context;
+using mooSQL.data.context;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型 DBConnectExt。
+    /// </summary>
     public static partial class DBConnectExt
     {
 

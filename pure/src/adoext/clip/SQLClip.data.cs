@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,6 +14,9 @@ namespace mooSQL.data
     public partial class ClipContext
     {
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public ClipContext(SQLBuilder builder) { 
             _builder = builder;
             Joins = new List<ClipJoinData>();

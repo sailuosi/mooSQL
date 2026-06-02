@@ -1,4 +1,4 @@
-﻿using mooSQL.data.clip;
+using mooSQL.data.clip;
 using System.Collections;
 
 using System.Linq.Expressions;

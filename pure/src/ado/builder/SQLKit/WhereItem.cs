@@ -1,4 +1,4 @@
-﻿
+
 using System;
 
 using System.Text;
@@ -12,6 +12,9 @@ namespace mooSQL.data
      */
     public class WhereItem
     {
+        /// <summary>
+        /// 字段 ps（Paras）。
+        /// </summary>
         public Paras ps;
         private SQLBuilder root;
 
@@ -21,47 +24,77 @@ namespace mooSQL.data
         /// </summary>
         public bool autoKuohao = true;
 
+        /// <summary>
+        /// 初始化 WhereItem（构造）。
+        /// </summary>
         public WhereItem(SQLBuilder roo)
         {
             this.ps = roo.ps;
             this.root = roo;
         }
 
+        /// <summary>
+        /// and 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem and(string key)
         {
             return and(key, null, "", false);
         }
+        /// <summary>
+        /// and 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem and(string key, Object val)
         {
             return and(key, val, "=", true);
         }
+        /// <summary>
+        /// and 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem and(string key, Object val, string op)
         {
             return and(key, val, op, true);
         }
+        /// <summary>
+        /// and 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem and(string key, Object val, string op, bool paramed)
         {
             return append(key, val, op, paramed, "AND");
         }
 
+        /// <summary>
+        /// or 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem or(string key)
         {
             return or(key, null, "", false);
         }
+        /// <summary>
+        /// or 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem or(string key, Object val)
         {
             return or(key, val, "=", true);
         }
+        /// <summary>
+        /// or 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem or(string key, Object val, string op)
         {
             return or(key, val, op, true);
         }
+        /// <summary>
+        /// or 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem or(string key, Object val, string op, bool paramed)
         {
             return append(key, val, op, paramed, "OR");
         }
 
 
+        /// <summary>
+        /// orlike 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem orlike(string key, Object val)
         {
             if (sqlbase.Length > 0)
@@ -70,6 +103,9 @@ namespace mooSQL.data
             }
             return appendFormat(key + " like concat(concat('%', {0}), '%')", val);
         }
+        /// <summary>
+        /// orFormat 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem orFormat(string key, params Object[] values)
         {
             if (sqlbase.Length > 0)
@@ -87,6 +123,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// append 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem append(string key, Object val, string op, bool paramed, string connector)
         {
             var dbstr = root.DBLive.expression.paraPrefix;
@@ -109,6 +148,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// appendFormat 方法（返回 WhereItem）。
+        /// </summary>
         public WhereItem appendFormat(string key, params Object[] values)
         {
             var dbstr = root.DBLive.expression.paraPrefix;
@@ -122,6 +164,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// end 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder end()
         {
             string tar = sqlbase.ToString();

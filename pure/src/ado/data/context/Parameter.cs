@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.context;
 using mooSQL.data.model;
 using System;
@@ -61,6 +61,9 @@ namespace mooSQL.data
         /// 最大值
         /// </summary>
         public int? size { get; set; }
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public Parameter() { }
         /// <summary>
         /// 在知晓数据库变量标识符的时候使用，不传则在执行时自动修正（SQL语句使用模版语法#{key}）。

@@ -34,6 +34,9 @@ namespace mooSQL.data
                 this.DBLive = value;
             }
         }
+        /// <summary>
+        /// 属性 DBLive（DBInstance）。
+        /// </summary>
         public DBInstance DBLive { get; set; }
 
         /// <summary>
@@ -41,6 +44,9 @@ namespace mooSQL.data
         /// </summary>
         public DBExecutor Executor { get; private set; }
 
+        /// <summary>
+        /// 字段 colCheck（checkColMode）。
+        /// </summary>
         public checkColMode colCheck = checkColMode.none;
         /// <summary>
         /// 批量插入的批大小
@@ -60,10 +66,22 @@ namespace mooSQL.data
         {
             get { return bulkTarget.Rows.Count; }
         }
+        /// <summary>
+        /// 枚举 checkColMode。
+        /// </summary>
         public enum checkColMode
         {
+            /// <summary>
+            /// 字段 checkDataLength（bool）。
+            /// </summary>
             exception,
+            /// <summary>
+            /// 字段 checkDataLength（bool）。
+            /// </summary>
             none,
+            /// <summary>
+            /// 字段 checkDataLength（bool）。
+            /// </summary>
             autocut
         }
         /// <summary>
@@ -82,6 +100,9 @@ namespace mooSQL.data
         /// 正在插入的行记录。
         /// </summary>
         public DataRow addingRow;
+        /// <summary>
+        /// 初始化 BulkBase。
+        /// </summary>
         public BulkBase()
         {
             this.colnames = new List<string> ();
@@ -255,6 +276,9 @@ namespace mooSQL.data
         {
             bulkTarget.Rows.Add(addingRow);
         }
+        /// <summary>
+        /// checkValue 方法（返回 object）。
+        /// </summary>
         public virtual  object checkValue(string colname, object value)
         {
             //

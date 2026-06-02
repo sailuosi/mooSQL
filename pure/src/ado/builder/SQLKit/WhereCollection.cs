@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +60,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 属性 CurrentConnector（string）。
+        /// </summary>
         public string CurrentConnector
         {
             get { 
@@ -80,15 +83,24 @@ namespace mooSQL.data
             
         }
 
+        /// <summary>
+        /// and 方法。
+        /// </summary>
         public void and() {
             CurrentGroup.Connector = "AND";
         }
 
+        /// <summary>
+        /// or 方法。
+        /// </summary>
         public void or()
         {
             CurrentGroup.Connector = "OR";
         }
 
+        /// <summary>
+        /// not 方法。
+        /// </summary>
         public void not() { 
             CurrentGroup.isNot = true;
         }

@@ -11,11 +11,17 @@ namespace mooSQL.data
     {
         private readonly EntityShardConfig _config;
 
+        /// <summary>
+        /// 初始化 TimeTableShardStrategy（构造）。
+        /// </summary>
         public TimeTableShardStrategy(EntityShardConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
+        /// <summary>
+        /// 解析Point。
+        /// </summary>
         public string ResolvePoint(EntityInfo en, object rowOrNull, DateTime? pointTime)
         {
             var pt = pointTime ?? ShardKeyHelper.ExtractShardTime(en, rowOrNull);
@@ -24,6 +30,9 @@ namespace mooSQL.data
             return TableShardNameFormatter.Format(_config, en, pt.Value);
         }
 
+        /// <summary>
+        /// 解析Range。
+        /// </summary>
         public IReadOnlyList<string> ResolveRange(EntityInfo en, DateTime from, DateTime to)
         {
             if (from > to)
@@ -47,6 +56,9 @@ namespace mooSQL.data
             return tables;
         }
 
+        /// <summary>
+        /// 解析AllTables。
+        /// </summary>
         public IReadOnlyList<string> ResolveAllTables(EntityInfo en)
         {
             var anchor = _config.Anchor == default ? DateTime.Today.AddYears(-1) : _config.Anchor;

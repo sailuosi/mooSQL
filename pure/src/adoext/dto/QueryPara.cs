@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -62,6 +62,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// fireBuildSQL 方法。
+        /// </summary>
         public void fireBuildSQL(SQLBuilder kit) {
             if (this._OnBuildSQL != null) {
                 this._OnBuildSQL(kit);

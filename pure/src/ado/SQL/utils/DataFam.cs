@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace mooSQL.data
 {
@@ -65,6 +65,9 @@ namespace mooSQL.data
 		/// A variable-length stream of Unicode data with a maximum length of 2 30 - 1 (or 1,073,741,823) characters.
 		/// </summary>
 		NText,
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         LongText,
         /// <summary>
         /// A fixed-length stream of binary data ranging between 1 and 8,000 bytes.

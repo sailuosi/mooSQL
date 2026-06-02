@@ -1,4 +1,4 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.SqlQuery;
 using System;
@@ -24,6 +24,9 @@ namespace mooSQL.data
         /// </summary>
         public T Sql;
 
+        /// <summary>
+        /// 字段 QueryHints（IReadOnlyCollection<string>?）。
+        /// </summary>
         public IReadOnlyCollection<string>? QueryHints;
         /// <summary>
         /// 命令数
@@ -32,6 +35,9 @@ namespace mooSQL.data
             get { return cmds.Count; }
         }
 
+        /// <summary>
+        /// Add 方法。
+        /// </summary>
         public void Add(SQLCmd cmd)
         {
             cmds.Add(cmd);

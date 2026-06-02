@@ -7,8 +7,17 @@ namespace mooSQL.data
     /// </summary>
     public class ShardSplitContext
     {
+        /// <summary>
+        /// 属性 EntityType（Type）。
+        /// </summary>
         public Type EntityType { get; set; }
+        /// <summary>
+        /// 属性 EntityInfo（EntityInfo）。
+        /// </summary>
         public EntityInfo EntityInfo { get; set; }
+        /// <summary>
+        /// 属性 Options（ShardQueryOptions）。
+        /// </summary>
         public ShardQueryOptions Options { get; set; } = new ShardQueryOptions();
     }
 }

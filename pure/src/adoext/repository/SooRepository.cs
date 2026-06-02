@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -237,6 +237,9 @@ namespace mooSQL.data
             return tow>0;
         }
 
+        /// <summary>
+        /// 泛型方法 GetFieldValueById（返回 R）。
+        /// </summary>
         public R GetFieldValueById<R>(object id,Expression<Func<T,R>> fieldselector)
         {
 

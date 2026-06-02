@@ -12,6 +12,9 @@ namespace mooSQL.data
         /// </summary>
         public virtual bool IsConnectionLost(Exception ex) => false;
 
+        /// <summary>
+        /// 匹配InnerErrorNumber。
+        /// </summary>
         protected static bool MatchInnerErrorNumber(Exception ex, params int[] numbers)
         {
             if (ex == null || numbers == null || numbers.Length == 0) return false;
@@ -27,6 +30,9 @@ namespace mooSQL.data
             return false;
         }
 
+        /// <summary>
+        /// 匹配InnerSqlState。
+        /// </summary>
         protected static bool MatchInnerSqlState(Exception ex, params string[] states)
         {
             if (ex == null || states == null || states.Length == 0) return false;
@@ -44,6 +50,9 @@ namespace mooSQL.data
             return false;
         }
 
+        /// <summary>
+        /// 匹配Message。
+        /// </summary>
         protected static bool MatchMessage(Exception ex, params string[] substrings)
         {
             if (ex == null || substrings == null || substrings.Length == 0) return false;
@@ -61,6 +70,9 @@ namespace mooSQL.data
             return false;
         }
 
+        /// <summary>
+        /// 匹配OracleError。
+        /// </summary>
         protected static bool MatchOracleError(Exception ex, params int[] oraNumbers)
         {
             if (ex == null || oraNumbers == null || oraNumbers.Length == 0) return false;

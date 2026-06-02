@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using mooSQL.data;
 using System;
@@ -351,6 +351,9 @@ public abstract class TreeSQLBuilder<K,RealMe> where RealMe: TreeSQLBuilder<K, R
         return true;
     }
 
+    /// <summary>
+    /// 泛型方法 List（返回 virtual）。
+    /// </summary>
     protected virtual List<TreeNodeOutput<T, K>> DtToTreeNode<T>(DataTable dt, Func<DataRow, T> rowToTar,int lv) {
         var topNodes = new List<TreeNodeOutput<T, K>>();
         if (dt != null)
@@ -617,6 +620,9 @@ public abstract class TreeSQLBuilder<K,RealMe> where RealMe: TreeSQLBuilder<K, R
         return kit.query();
     }
 
+    /// <summary>
+    /// doWherePKValues 方法。
+    /// </summary>
     protected virtual void doWherePKValues(SQLBuilder kit, K val) {
         if (this._whenLoadRootByPK != null)
         {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 表结构修改相关：
  */
 using mooSQL.data.model;
@@ -67,6 +67,9 @@ namespace mooSQL.linq
             return new SQLFragClause(res.ToString());
         }
 
+        /// <summary>
+        /// 访问CreateTableSentence。
+        /// </summary>
         public override Clause VisitCreateTableSentence(CreateTableSentence clause)
         {
             var res = new StringBuilder();

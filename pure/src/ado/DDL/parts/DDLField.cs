@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,12 +11,18 @@ namespace mooSQL.data.builder;
 /// </summary>
 public class DDLField
 {
+    /// <summary>
+    /// 属性 FieldName（string）。
+    /// </summary>
     public string FieldName { get; set; }
     /// <summary>
     /// 完整的类型定义，如varchar(255)
     /// </summary>
     public string TextType { get; set; }
 
+    /// <summary>
+    /// 属性 Mode（string）。
+    /// </summary>
     public string Mode { get; set; }
     /// <summary>
     /// 可空性
@@ -57,7 +63,6 @@ public class DDLField
     /// </summary>
     public DbDataType DbType { get; set; }
 }
-
 
 
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace mooSQL.data
 {
@@ -20,6 +20,9 @@ namespace mooSQL.data
         /// </summary>
         public string DBConnectStr;
 
+        /// <summary>
+        /// 字段 dbType（DataBaseType）。
+        /// </summary>
         public DataBaseType dbType;
         /// <summary>
         /// 数据库版本号
@@ -93,6 +96,9 @@ namespace mooSQL.data
             this.dbType = type;
             return this;
         }
+        /// <summary>
+        /// setConnection 方法（返回 DataBase）。
+        /// </summary>
         public DataBase setConnection(string connectString)
         {
             this.DBConnectStr = connectString;

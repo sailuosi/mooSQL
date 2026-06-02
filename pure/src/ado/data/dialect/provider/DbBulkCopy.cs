@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -18,6 +18,9 @@ namespace mooSQL.data
         /// </summary>
         public DBInstance DB;
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public DbBulkCopy(DBInstance DB) { 
             this.DB = DB;
         }
@@ -62,21 +65,39 @@ namespace mooSQL.data
         /// </summary>
         public int NotifyAfter {  get; set; }
 
+        /// <summary>
+        /// 抽象方法 WriteToServer（返回 BulkCopyResult），由子类实现。
+        /// </summary>
         public abstract BulkCopyResult WriteToServer(DataRow[] rows);
 
+        /// <summary>
+        /// 抽象方法 WriteToServer（返回 BulkCopyResult），由子类实现。
+        /// </summary>
         public abstract BulkCopyResult WriteToServer(DataTable table);
 
+        /// <summary>
+        /// 抽象方法 WriteToServer（返回 BulkCopyResult），由子类实现。
+        /// </summary>
         public abstract BulkCopyResult WriteToServer(IDataReader reader);
 
+        /// <summary>
+        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(DataRow[] rows,CancellationToken token) {
             var cc= WriteToServer(rows);
             return Task.FromResult(cc);
         }
+        /// <summary>
+        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(DataTable table, CancellationToken token)
         {
             var cc = WriteToServer(table);
             return Task.FromResult(cc);
         }
+        /// <summary>
+        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(IDataReader reader, CancellationToken token)
         {
             var cc = WriteToServer(reader);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace mooSQL.data
 {
@@ -144,6 +144,9 @@ namespace mooSQL.data
 		/// </summary>
 		public string? Storage { get; set; }
 
+		/// <summary>
+		/// 属性 DefaultValue（object）。
+		/// </summary>
 		public object DefaultValue { get; set; }
 
 		/// <summary>
@@ -183,7 +186,8 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// 是否忽略更新
+        /// 是否已配置忽略更新。
+        /// </summary>
         public bool HasSkipOnUpdate() => _skipOnUpdate.HasValue;
 
 		private bool? _isIdentity;
@@ -197,7 +201,8 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// 是否自增列
+        /// 是否已配置自增列。
+        /// </summary>
         public bool HasIsIdentity() => _isIdentity.HasValue;
 
 		private bool? _isPrimaryKey;
@@ -211,7 +216,8 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// 是否主键列
+        /// 是否已配置主键列。
+        /// </summary>
         public bool HasIsPrimaryKey() => _isPrimaryKey.HasValue;
 
 		/// <summary>
@@ -302,6 +308,9 @@ namespace mooSQL.data
         /// </summary>
         public bool HasOrder() => _order.HasValue;
 
+		/// <summary>
+		/// 获取ObjectID。
+		/// </summary>
 		public override string GetObjectID()
 		{
 #if NETFRAMEWORK

@@ -1,4 +1,4 @@
-﻿using mooSQL.utils;
+using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,9 @@ namespace mooSQL.data
         /// </summary>
         public List<string> summaryField { get; set; }
 
+        /// <summary>
+        /// clear 方法。
+        /// </summary>
         public void clear()
         {
             if (summaryField != null)
@@ -25,6 +28,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// addSummaryField 方法。
+        /// </summary>
         public void addSummaryField(string field)
         {
             if (summaryField == null)

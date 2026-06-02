@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,14 +18,23 @@ namespace mooSQL.data.Extensions
 
     using mooSQL.utils;
 
+    /// <summary>
+    /// 类型 ReflectionExtensions。
+    /// </summary>
     public static class ReflectionExtensions
 	{
 		#region Type extensions
+		/// <summary>
+		/// 获取PublicInstanceMembersEx。
+		/// </summary>
 		public static MemberInfo[] GetPublicInstanceMembersEx(this Type type)
 		{
 			return type.GetMembers(BindingFlags.Instance | BindingFlags.Public);
 		}
 
+		/// <summary>
+		/// 获取PublicInstanceValueMembers。
+		/// </summary>
 		public static MemberInfo[] GetPublicInstanceValueMembers(this Type type)
 		{
 			if (type.IsInterface)
@@ -94,6 +103,9 @@ namespace mooSQL.data.Extensions
 			}
 		}
 
+		/// <summary>
+		/// 获取StaticMembersEx。
+		/// </summary>
 		public static MemberInfo[] GetStaticMembersEx(this Type type, string name)
 		{
 			return type.GetMember(name, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
@@ -150,6 +162,9 @@ namespace mooSQL.data.Extensions
 			});
 		}
 
+		/// <summary>
+		/// 获取MethodEx。
+		/// </summary>
 		public static MethodInfo? GetMethodEx(this Type type, string name)
 		{
 			return type.GetMethod(name);
@@ -220,16 +235,25 @@ namespace mooSQL.data.Extensions
 			return null;
 		}
 
+		/// <summary>
+		/// 获取MethodEx。
+		/// </summary>
 		public static MethodInfo? GetMethodEx(this Type type, string name, params Type[] types)
 		{
 			return type.GetMethod(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, types, null);
 		}
 
+		/// <summary>
+		/// 获取PublicInstanceMethodEx。
+		/// </summary>
 		public static MethodInfo? GetPublicInstanceMethodEx(this Type type, string name, params Type[] types)
 		{
 			return type.GetMethod(name, BindingFlags.Instance | BindingFlags.Public, null, types, null);
 		}
 
+		/// <summary>
+		/// 获取DefaultConstructorEx。
+		/// </summary>
 		public static ConstructorInfo? GetDefaultConstructorEx(this Type type)
 		{
 			return type.GetConstructor(
@@ -239,6 +263,9 @@ namespace mooSQL.data.Extensions
 				null);
 		}
 
+		/// <summary>
+		/// 获取TypeCodeEx。
+		/// </summary>
 		public static TypeCode GetTypeCodeEx(this Type type)
 		{
 			return Type.GetTypeCode(type);
@@ -248,6 +275,9 @@ namespace mooSQL.data.Extensions
 
 
 
+		/// <summary>
+		/// 获取PropertiesEx。
+		/// </summary>
 		public static PropertyInfo[] GetPropertiesEx(this Type type)
 		{
 			return type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
@@ -260,16 +290,25 @@ namespace mooSQL.data.Extensions
 					yield return pi;
 		}
 
+		/// <summary>
+		/// 获取NonPublicPropertiesEx。
+		/// </summary>
 		public static PropertyInfo[] GetNonPublicPropertiesEx(this Type type)
 		{
 			return type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
 		}
 
+		/// <summary>
+		/// 获取InstanceMemberEx。
+		/// </summary>
 		public static MemberInfo[] GetInstanceMemberEx(this Type type, string name)
 		{
 			return type.GetMember(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		}
 
+		/// <summary>
+		/// 获取PublicMemberEx。
+		/// </summary>
 		public static MemberInfo[] GetPublicMemberEx(this Type type, string name)
 		{
 			return type.GetMember(name);
@@ -279,6 +318,9 @@ namespace mooSQL.data.Extensions
 		// - CoreRT runtime could miss this method implementation
 		// - NativeAOT builds at least up to .NET 8 doesn't support interfaces with statics or/and default implementations
 		// for such cases we return empty stub
+		/// <summary>
+		/// 获取InterfaceMapEx。
+		/// </summary>
 		public static InterfaceMapping GetInterfaceMapEx(this Type type, Type interfaceType)
 		{
 			try
@@ -301,6 +343,9 @@ namespace mooSQL.data.Extensions
 
 
 
+		/// <summary>
+		/// 获取DefiningTypes。
+		/// </summary>
 		public static IEnumerable<Type> GetDefiningTypes(this Type child, MemberInfo member)
 		{
 			if (member.IsPropertyEx())
@@ -327,6 +372,9 @@ namespace mooSQL.data.Extensions
 
 
 
+		/// <summary>
+		/// 获取GenericType。
+		/// </summary>
 		public static Type? GetGenericType(this Type genericType, Type type)
 		{
 			if (genericType == null) throw new ArgumentNullException(nameof(genericType));
@@ -356,6 +404,9 @@ namespace mooSQL.data.Extensions
 			return null;
 		}
 
+		/// <summary>
+		/// 获取GenericTypes。
+		/// </summary>
 		public static IEnumerable<Type> GetGenericTypes(this Type genericType, Type type)
 		{
 			if (genericType == null) throw new ArgumentNullException(nameof(genericType));
@@ -477,12 +528,18 @@ namespace mooSQL.data.Extensions
 			return typeof(object);
 		}
 
+		/// <summary>
+		/// 判断是否为EnumerableType。
+		/// </summary>
 		public static bool IsEnumerableType(this Type type, Type elementType)
 		{
 			return typeof(IEnumerable<>).GetGenericTypes(type)
 				.Any(t => t.GetGenericArguments()[0].IsSameOrParentOf(elementType));
 		}
 
+		/// <summary>
+		/// 判断是否为GenericEnumerableType。
+		/// </summary>
 		public static bool IsGenericEnumerableType(this Type type)
 		{
 			if (type.IsGenericType)
@@ -493,6 +550,9 @@ namespace mooSQL.data.Extensions
 
 		static readonly ConcurrentDictionary<Type,Type?> _getItemTypeCache = new ();
 
+		/// <summary>
+		/// 获取ItemType。
+		/// </summary>
 		public static Type? GetItemType(this Type? type)
 		{
 			if (type == null)
@@ -597,6 +657,9 @@ namespace mooSQL.data.Extensions
 
 
 
+		/// <summary>
+		/// 获取EventEx。
+		/// </summary>
 		public static EventInfo? GetEventEx(this Type type, string eventName)
 		{
 			return type.GetEvent(eventName);
@@ -607,6 +670,9 @@ namespace mooSQL.data.Extensions
 		#region MethodInfo extensions
 
 		//[return: NotNullIfNotNull(nameof(method))]
+		/// <summary>
+		/// 获取PropertyInfo。
+		/// </summary>
 		public static PropertyInfo? GetPropertyInfo(this MethodInfo? method)
 		{
 			if (method != null)
@@ -645,6 +711,9 @@ namespace mooSQL.data.Extensions
 			{ typeof(short),   new HashSet<Type> { typeof(byte)                                                                                                                                      } }
 		};
 
+		/// <summary>
+		/// 判断是否可ConvertTo。
+		/// </summary>
 		public static bool CanConvertTo(this Type fromType, Type toType)
 		{
 			if (fromType == toType)
@@ -665,6 +734,9 @@ namespace mooSQL.data.Extensions
 			return false;
 		}
 
+		/// <summary>
+		/// EqualsTo 方法（返回 bool）。
+		/// </summary>
 		public static bool EqualsTo(this MemberInfo? member1, MemberInfo? member2, Type? declaringType = null)
 		{
 			if (ReferenceEquals(member1, member2))

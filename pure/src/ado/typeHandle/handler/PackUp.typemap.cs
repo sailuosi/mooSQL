@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Data;
@@ -22,6 +22,9 @@ namespace mooSQL.data
 
         private Dictionary<Type, TypeMapEntry> typeMap;
         MooClient _client { get; set; }
+        /// <summary>
+        /// 初始化 PackUp（构造）。
+        /// </summary>
         public PackUp(MooClient client)
         {
             _client = client;

@@ -9,6 +9,9 @@ namespace mooSQL.data
     /// </summary>
     public static class ShardQueryBuilder
     {
+        /// <summary>
+        /// 解析Tables。
+        /// </summary>
         public static IReadOnlyList<string> ResolveTables(EntityInfo en, ShardQueryOptions options)
         {
             if (en?.Shard == null || !en.Shard.IsActive)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -242,6 +242,9 @@ namespace mooSQL.data
 
         }
 
+        /// <summary>
+        /// 泛型方法 LeftJoin（返回 ClipJoin<J>）。
+        /// </summary>
         public ClipJoin<J> LeftJoin<J>(out J tableJ) where J : new()
         {
             return join<J>(out tableJ, "LEFT JOIN");

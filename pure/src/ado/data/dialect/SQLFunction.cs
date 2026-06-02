@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,9 @@ namespace mooSQL.data
     public abstract class SooSQLFunction
     {
 
+        /// <summary>
+        /// Concat 方法（返回 string）。
+        /// </summary>
         public virtual string Concat(string left, string right) {
             throw new NotImplementedException("当前数据库不支持该函数");
         }

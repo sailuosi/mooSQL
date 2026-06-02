@@ -1,4 +1,4 @@
-﻿/*
+/*
  * * 表达式的转译
  */
 
@@ -17,6 +17,9 @@ namespace mooSQL.linq
 {
     public partial class ClauseTranslateVisitor
     {
+        /// <summary>
+        /// 访问Expression。
+        /// </summary>
         public override Clause VisitExpression(ExpressionWord field)
         {
             var tar = field.Expr;

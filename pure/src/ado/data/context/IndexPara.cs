@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,14 +30,23 @@ namespace mooSQL.data
         /// </summary>
         public List<Parameter> indexedPara;
 
+        /// <summary>
+        /// 字段 targetParaHolder（string）。
+        /// </summary>
         public string targetParaHolder = "?";
 
+        /// <summary>
+        /// read 方法（返回 IndexPara）。
+        /// </summary>
         public IndexPara read(string sql, Paras paras) { 
             this.namedSQL = sql;
             this.namedPara = paras;
             return this;
         }
 
+        /// <summary>
+        /// toPureSQL 方法（返回 string）。
+        /// </summary>
         public string toPureSQL() {
             var newsql = namedSQL;
             foreach (var pa in namedPara.value)

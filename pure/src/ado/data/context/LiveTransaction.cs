@@ -1,4 +1,4 @@
-﻿using mooSQL.data.context;
+using mooSQL.data.context;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -13,6 +13,9 @@ namespace mooSQL.data
     /// </summary>
     public class LiveTransaction : IDisposable
     {
+        /// <summary>
+        /// 属性 DB（DBInstance）。
+        /// </summary>
         public DBInstance DB { get; set; }
         /// <summary>
         /// 执行环境
@@ -27,6 +30,9 @@ namespace mooSQL.data
         /// </summary>
         public bool autoCommit = true;
 
+        /// <summary>
+        /// 属性 Count（int）。
+        /// </summary>
         public int Count { get;private set; }
 
         /// <summary>
@@ -100,6 +106,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// Dispose 方法。
+        /// </summary>
         public void Dispose()
         {
             try

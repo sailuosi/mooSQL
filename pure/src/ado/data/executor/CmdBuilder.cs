@@ -1,4 +1,4 @@
-﻿
+
 using System.Data;
 using System.Data.Common;
 
@@ -11,6 +11,9 @@ namespace mooSQL.data.context
     public class CmdBuilder
     {
 
+        /// <summary>
+        /// 字段 cmdType（CommandType）。
+        /// </summary>
         public CommandType cmdType = CommandType.Text;
         /// <summary>
         /// SQL 的内容
@@ -29,6 +32,9 @@ namespace mooSQL.data.context
         /// </summary>
         public Paras para { get; internal set; }
 
+        /// <summary>
+        /// 属性 cmd（SQLCmd）。
+        /// </summary>
         public SQLCmd cmd {  get; set; }
         /// <summary>
         /// 配置SQL命令和参数

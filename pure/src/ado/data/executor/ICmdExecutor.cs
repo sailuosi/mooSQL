@@ -26,6 +26,9 @@ namespace mooSQL.data.context
         /// <returns></returns>
         DataReaderWrapper ExecuteReader(ExeContext executionContext);
 
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         DbDataReader ExecuteReaderBase(ExeContext executionContext);
         
         /// <summary>
@@ -92,6 +95,9 @@ namespace mooSQL.data.context
         /// <returns></returns>
         T ExecuteQueryRow<T>(ExeContext executionContext);
 
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         T ExecuteQueryUniqueRow<T>(ExeContext context);
 
         /// <summary>
@@ -180,8 +186,17 @@ namespace mooSQL.data.context
         /// <returns></returns>
         Task<DataSet> ExecuteQueryLotAsync(ExeContext executionContext);
 
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         Task<T> ExecuteQueryRowAsync<T>(ExeContext executionContext);
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         Task<T> ExecuteQueryUniqueRowAsync<T>(ExeContext executionContext);
+        /// <summary>
+        /// 内部成员说明。
+        /// </summary>
         Task<T> ExecuteQueryScalarAsync<T>(ExeContext executionContext);
 
         /// <summary>

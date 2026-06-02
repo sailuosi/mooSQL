@@ -18,6 +18,9 @@ namespace mooSQL.data
         /// <summary>所属数据库实例。</summary>
         public DBInstance Database { get; }
 
+        /// <summary>
+        /// 初始化 SQLAuditContext（构造）。
+        /// </summary>
         public SQLAuditContext(SQLCmd sql, QueryType queryType, string targetTable, int rowsAffected, int dbPosition, Paras parameters, DBInstance database)
         {
             Sql = sql;

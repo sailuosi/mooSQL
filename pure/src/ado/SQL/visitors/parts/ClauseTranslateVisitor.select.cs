@@ -1,4 +1,4 @@
-﻿/*
+/*
  * * 由于 searchCondition 不一定是放在 where下。
  * 因此，在刻意转译非where情况时，需要虚拟一个builder来执行。
  */
@@ -71,6 +71,9 @@ namespace mooSQL.linq
 
         }
 
+        /// <summary>
+        /// 字段 TableAliasVisitor（TableAliasVisitor）。
+        /// </summary>
         public virtual bool DisableAlias { get; set; }
 
         /// <summary>
@@ -106,6 +109,9 @@ namespace mooSQL.linq
             return new SQLFragClause(res);
         }
 
+        /// <summary>
+        /// FindTableAlias 方法（返回 string）。
+        /// </summary>
         protected string FindTableAlias(ColumnWord column) {
             var sentence = column.Parent;
             var t = sentence.From;
@@ -195,6 +201,9 @@ namespace mooSQL.linq
         }
 
 
+        /// <summary>
+        /// 访问CteClause。
+        /// </summary>
         public override Clause VisitCteClause(CTEClause clause)
         {
             //需要临时切换编织器上下文
@@ -400,6 +409,9 @@ namespace mooSQL.linq
             return new SQLFragClause (res);
         }
 
+        /// <summary>
+        /// 访问TableWord。
+        /// </summary>
         public override Clause VisitTableWord(TableWord clause)
         {
 
@@ -408,12 +420,18 @@ namespace mooSQL.linq
         }
 
 
+        /// <summary>
+        /// 访问WhereClause。
+        /// </summary>
         public override Clause VisitWhereClause(WhereClause clause)
         {
             VisitSearchCondition(clause.SearchCondition);
             return null;
         }
 
+        /// <summary>
+        /// 访问SearchCondition。
+        /// </summary>
         public override Clause VisitSearchCondition(SearchConditionWord clause)
         {
             if (clause.IsOr)

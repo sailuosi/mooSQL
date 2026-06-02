@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型 EntityOrder。
+    /// </summary>
     public class EntityOrder
     {
         /// <summary>

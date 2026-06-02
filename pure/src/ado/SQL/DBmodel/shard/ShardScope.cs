@@ -21,6 +21,9 @@ namespace mooSQL.data
 
         private readonly ConcurrentDictionary<Type, DateTime> _points = new();
 
+        /// <summary>
+        /// 属性 Current（ShardScope）。
+        /// </summary>
         public static ShardScope Current
         {
             get
@@ -33,6 +36,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 泛型方法 For（返回 ShardScope）。
+        /// </summary>
         public static ShardScope For<T>(DateTime pointTime)
         {
             var scope = new ShardScope();
@@ -41,6 +47,9 @@ namespace mooSQL.data
             return scope;
         }
 
+        /// <summary>
+        /// For 方法（返回 ShardScope）。
+        /// </summary>
         public static ShardScope For(Type entityType, DateTime pointTime)
         {
             var scope = new ShardScope();
@@ -58,11 +67,17 @@ namespace mooSQL.data
 #endif
         }
 
+        /// <summary>
+        /// 尝试Get。
+        /// </summary>
         public bool TryGet(Type entityType, out DateTime pointTime)
         {
             return _points.TryGetValue(entityType, out pointTime);
         }
 
+        /// <summary>
+        /// Dispose 方法。
+        /// </summary>
         public void Dispose()
         {
 #if NET451

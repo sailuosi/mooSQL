@@ -8,6 +8,9 @@ namespace mooSQL.data
     /// </summary>
     public static class TableShardNameFormatter
     {
+        /// <summary>
+        /// Format 方法（返回 string）。
+        /// </summary>
         public static string Format(EntityShardConfig shard, EntityInfo en, DateTime point)
         {
             var prefix = shard?.TablePrefix;
@@ -21,6 +24,9 @@ namespace mooSQL.data
             return ApplyTemplate(template, prefix, point, shard?.Mode ?? TableShardMode.Month);
         }
 
+        /// <summary>
+        /// DefaultTemplate 方法（返回 string）。
+        /// </summary>
         public static string DefaultTemplate(TableShardMode mode, string prefix)
         {
             switch (mode)
@@ -34,6 +40,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// ApplyTemplate 方法（返回 string）。
+        /// </summary>
         public static string ApplyTemplate(string template, string prefix, DateTime point, TableShardMode mode)
         {
             if (string.IsNullOrWhiteSpace(template))

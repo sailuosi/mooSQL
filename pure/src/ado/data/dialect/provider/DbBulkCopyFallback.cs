@@ -12,6 +12,9 @@ namespace mooSQL.data
     /// </summary>
     public class DbBulkCopyFallback : DbBulkCopy
     {
+        /// <summary>
+        /// 初始化 DbBulkCopyFallback（构造）。
+        /// </summary>
         public DbBulkCopyFallback(DBInstance DB) : base(DB)
         {
             this.MaxParaCount= DB.dialect.paramMaxSize;

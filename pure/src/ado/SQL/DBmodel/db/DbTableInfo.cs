@@ -1,9 +1,12 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型 DbTableInfo。
+    /// </summary>
     public class DbTableInfo
     {
         /// <summary>
@@ -51,8 +54,17 @@ namespace mooSQL.data
         /// </summary>
         public Dictionary<string, DbForeignInfo> ForeignsDict { get; set; } = new Dictionary<string, DbForeignInfo>();
 
+        /// <summary>
+        /// 字段 Uniques（List<DbIndexInfo>）。
+        /// </summary>
         public List<DbIndexInfo> Uniques => UniquesDict.Values.ToList();
+        /// <summary>
+        /// 字段 Indexes（List<DbIndexInfo>）。
+        /// </summary>
         public List<DbIndexInfo> Indexes => IndexesDict.Values.ToList();
+        /// <summary>
+        /// 字段 Foreigns（List<DbForeignInfo>）。
+        /// </summary>
         public List<DbForeignInfo> Foreigns => ForeignsDict.Values.ToList();
     }
 

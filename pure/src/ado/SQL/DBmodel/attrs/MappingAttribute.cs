@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if NETFRAMEWORK
 using System.Reflection;
@@ -7,6 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.data.Mapping
 {
+	/// <summary>
+	/// 映射特性基类，用于按配置名绑定列/类型映射规则。
+	/// </summary>
 	public abstract class MappingAttribute : Attribute
 	{
 		/// <summary>

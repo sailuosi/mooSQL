@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.model;
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,9 @@ namespace mooSQL.data
         /// 数据库字段名
         /// </summary>
         public string DbColumnName { get; set; }
+        /// <summary>
+        /// 属性 OldDbColumnName（string）。
+        /// </summary>
         public string OldDbColumnName { get; set; }
         /// <summary>
         /// 长度
@@ -69,16 +72,31 @@ namespace mooSQL.data
         /// 是否为分表分片键字段。
         /// </summary>
         public bool IsShardField { get; set; }
+        /// <summary>
+        /// 属性 IsTreeKey（bool）。
+        /// </summary>
         public bool IsTreeKey { get; set; }
+        /// <summary>
+        /// 属性 IsEnableUpdateVersionValidation（bool）。
+        /// </summary>
         public bool IsEnableUpdateVersionValidation { get; set; }
+        /// <summary>
+        /// 属性 SqlParameterDbType（object）。
+        /// </summary>
         public object SqlParameterDbType { get; set; }
         /// <summary>
         /// 实体名
         /// </summary>
         public string EntityName { get;  set; }
 
+        /// <summary>
+        /// 属性 Edition（string）。
+        /// </summary>
         public string Edition { get; set; }
 
+        /// <summary>
+        /// 属性 Editions（List<string>）。
+        /// </summary>
         public List<string> Editions
         {
             get {
@@ -98,7 +116,13 @@ namespace mooSQL.data
         /// </summary>
         public bool IsIgnore { get;  set; }
 
+        /// <summary>
+        /// 属性 DbType（DbDataType）。
+        /// </summary>
         public DbDataType DbType { get; set; }
+        /// <summary>
+        /// 属性 DataType（DataFam）。
+        /// </summary>
         public DataFam DataType { get; set; }
         /// <summary>
         /// 数值精度
@@ -111,24 +135,81 @@ namespace mooSQL.data
         {
             get; set;
         }
+        /// <summary>
+        /// 属性 OracleSequenceName（string）。
+        /// </summary>
         public string OracleSequenceName { get; set; }
+        /// <summary>
+        /// 属性 IsOnlyIgnoreInsert（bool）。
+        /// </summary>
         public bool IsOnlyIgnoreInsert { get; set; }
+        /// <summary>
+        /// 属性 IsOnlyIgnoreUpdate（bool）。
+        /// </summary>
         public bool IsOnlyIgnoreUpdate { get; set; }
+        /// <summary>
+        /// 属性 IsTranscoding（bool）。
+        /// </summary>
         public bool IsTranscoding { get; set; }
+        /// <summary>
+        /// 属性 SerializeDateTimeFormat（string）。
+        /// </summary>
         public string SerializeDateTimeFormat { get;  set; }
+        /// <summary>
+        /// 属性 IsJson（bool）。
+        /// </summary>
         public bool IsJson { get;  set; }
+        /// <summary>
+        /// 属性 NoSerialize（bool）。
+        /// </summary>
         public bool NoSerialize { get;  set; }
+        /// <summary>
+        /// 属性 IndexGroupNameList（string[]）。
+        /// </summary>
         public string[] IndexGroupNameList { get;  set; }
+        /// <summary>
+        /// 属性 UIndexGroupNameList（string[]）。
+        /// </summary>
         public string[] UIndexGroupNameList { get;  set; }
+        /// <summary>
+        /// 属性 IsArray（bool）。
+        /// </summary>
         public bool IsArray { get;  set; }
+        /// <summary>
+        /// 属性 UnderType（Type）。
+        /// </summary>
         public Type UnderType { get;  set; }
+        /// <summary>
+        /// 属性 Navigat（EntityNavi）。
+        /// </summary>
         public EntityNavi Navigat { get; set; }
+        /// <summary>
+        /// 属性 CreateTableFieldSort（int）。
+        /// </summary>
         public int CreateTableFieldSort { get; set; }
+        /// <summary>
+        /// 属性 SqlParameterSize（object）。
+        /// </summary>
         public object SqlParameterSize { get;  set; }
+        /// <summary>
+        /// 属性 InsertSql（string）。
+        /// </summary>
         public string InsertSql { get;  set; }
+        /// <summary>
+        /// 属性 InsertServerTime（bool）。
+        /// </summary>
         public bool InsertServerTime { get;  set; }
+        /// <summary>
+        /// 属性 UpdateServerTime（bool）。
+        /// </summary>
         public bool UpdateServerTime { get; set; }
+        /// <summary>
+        /// 属性 UpdateSql（string）。
+        /// </summary>
         public string UpdateSql { get; set; }
+        /// <summary>
+        /// 属性 ExtendedAttribute（object）。
+        /// </summary>
         public object ExtendedAttribute { get;  set; }
         /// <summary>
         /// 字段种类
@@ -163,6 +244,9 @@ namespace mooSQL.data
         /// 序列所属架构
         /// </summary>
         public string SequenceSchema { get; set; }
+        /// <summary>
+        /// 字段 more（Dictionary<string,object>）。
+        /// </summary>
         public Dictionary<string,object> more = new Dictionary<string,object>();
         /// <summary>
         /// 是否外键
@@ -177,6 +261,9 @@ namespace mooSQL.data
         /// </summary>
         public string thatField { get; set; }
 
+        /// <summary>
+        /// 转换为String。
+        /// </summary>
         public override string ToString()
         {
             return this.DbColumnName;

@@ -22,6 +22,10 @@ namespace mooSQL.data
         /// </summary>
         public Dialect dialect;
 
+        /// <summary>
+        /// 使用父级方言实例初始化语句方言。
+        /// </summary>
+        /// <param name="parent">根方言实例。</param>
         public SQLSentence(Dialect parent)
         {
             this.dialect = parent;
@@ -35,6 +39,9 @@ namespace mooSQL.data
         /// <summary>探活命令超时毫秒（与 <see cref="health.DBHealthOptions.PingTimeoutMs"/> 取较小值）。</summary>
         public virtual int PingTimeoutMs => 3000;
 
+        /// <summary>
+        /// 当前方言绑定的数据库实例。
+        /// </summary>
         public DBInstance DBLive
         {
             get
@@ -43,6 +50,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 当前方言的 SQL 表达式构建器。
+        /// </summary>
         public SQLExpression WordBuilder
         {
             get {
@@ -88,6 +98,9 @@ namespace mooSQL.data
             return null;
         }
 
+        /// <summary>
+        /// 获取ReserveSequenceValuesSql。
+        /// </summary>
         public virtual string GetReserveSequenceValuesSql(int count, string sequenceName)
         {
             throw new NotImplementedException();
@@ -158,6 +171,9 @@ namespace mooSQL.data
                 string.Equals(t.Name, tableName, StringComparison.OrdinalIgnoreCase));
             return table?.Comment;
         }
+        /// <summary>
+        /// 创建Database。
+        /// </summary>
         public virtual bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         {
             bool result = false;
@@ -174,6 +190,9 @@ namespace mooSQL.data
             }
             return result;
         }
+        /// <summary>
+        /// 获取CreateDataBaseSQL。
+        /// </summary>
         protected virtual SQLCmd GetCreateDataBaseSQL(string DatabaseName, string databaseDirectory = null)
         {
             throw new NotImplementedException();
@@ -187,20 +206,38 @@ namespace mooSQL.data
             return null;
         }
 
+        /// <summary>
+        /// 获取Tables。
+        /// </summary>
         public virtual List<TableInfo> GetTables(GetSchemaOptions options) {
             return null;
         }
+        /// <summary>
+        /// 获取PrimaryKeys。
+        /// </summary>
         public virtual IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options) {
             return null;
         }
+        /// <summary>
+        /// 获取Columns。
+        /// </summary>
         public virtual List<ColumnInfo> GetColumns(GetSchemaOptions options) {
             return null;
         }
+        /// <summary>
+        /// 获取ForeignKeys。
+        /// </summary>
         public virtual IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options) {
             return null;
         }
 
+        /// <summary>
+        /// 获取Procedures。
+        /// </summary>
         public virtual List<ProcedureInfo>? GetProcedures(GetSchemaOptions options) => null;
+        /// <summary>
+        /// 获取ProcedureParameters。
+        /// </summary>
         public virtual List<ProcedureParameterInfo>? GetProcedureParameters(IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options) => null;
         /// <summary>
         /// 从数据库中读取版本信息。

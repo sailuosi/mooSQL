@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using System;
 using System.Collections.Generic;
@@ -53,6 +53,9 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <summary>
+        /// withRecurTo 方法（返回 RecurCTEBuilder）。
+        /// </summary>
         public RecurCTEBuilder withRecurTo(string name)
         {
             var rec = new RecurCTEBuilder();
@@ -61,6 +64,9 @@ namespace mooSQL.data
             return rec;
         }
 
+        /// <summary>
+        /// withRecur 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
         {
 
@@ -242,6 +248,9 @@ namespace mooSQL.data
         {
             return this.join("LEFT JOIN", joinSQLString, childFromPart);
         }
+        /// <summary>
+        /// leftJoin 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder leftJoin(string joinSQLString)
         {
             return this.join("LEFT JOIN "+ joinSQLString);
@@ -256,6 +265,9 @@ namespace mooSQL.data
         {
             return this.join("INNER JOIN", joinSQLString, childFromPart);
         }
+        /// <summary>
+        /// innerJoin 方法（返回 SQLBuilder）。
+        /// </summary>
         public SQLBuilder innerJoin(string joinSQLString)
         {
             return this.join("INNER JOIN "+ joinSQLString);

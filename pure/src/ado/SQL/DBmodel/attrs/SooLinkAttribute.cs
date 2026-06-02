@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,12 +17,18 @@ namespace mooSQL.data
     AllowMultiple = true, Inherited = true)]
     public class SooLinkAttribute : Attribute
     {
+        /// <summary>
+        /// 初始化 SooLinkAttribute（构造）。
+        /// </summary>
         public SooLinkAttribute(LinkWay linkType, string thisKey)
         {
             Type = linkType;
             ThisKey = thisKey;
         }
 
+        /// <summary>
+        /// 初始化 SooLinkAttribute（构造）。
+        /// </summary>
         public SooLinkAttribute(LinkWay linkType, string thisKey, string thatKey)
         {
             Type = linkType;

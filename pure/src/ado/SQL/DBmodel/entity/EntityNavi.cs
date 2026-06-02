@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,6 +24,9 @@ namespace mooSQL.data
         /// </summary>
         public Type MappingType { get; set; }
 
+        /// <summary>
+        /// 属性 ChildType（Type）。
+        /// </summary>
         public Type ChildType { get; set; }
         /// <summary>
         /// 子表上关联主表的外键

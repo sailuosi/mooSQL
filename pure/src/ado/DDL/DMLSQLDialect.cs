@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,9 @@ namespace mooSQL.data
     public abstract class DMLSQLDialect
     {
         //顶级方言实例
+        /// <summary>
+        /// 字段 dialect（Dialect）。
+        /// </summary>
         public Dialect dialect;
 
 

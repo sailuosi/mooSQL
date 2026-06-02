@@ -7,6 +7,9 @@ namespace mooSQL.data.health
     /// </summary>
     public static class ConnectionExceptionClassifier
     {
+        /// <summary>
+        /// 判断是否为ConnectionError。
+        /// </summary>
         public static bool IsConnectionError(Exception ex, Dialect dialect)
         {
             if (ex == null || dialect == null) return false;

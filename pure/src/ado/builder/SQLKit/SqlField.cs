@@ -14,6 +14,9 @@ namespace mooSQL.data
         public string colname;
 
         private object _value;
+        /// <summary>
+        /// 属性 value（object）。
+        /// </summary>
         public object value
         {
             get { 
@@ -133,6 +136,9 @@ namespace mooSQL.data
             values[index] = pair;
         }
 
+        /// <summary>
+        /// getValue 方法（返回 object）。
+        /// </summary>
         public object getValue(int index)
         {
             if (!values.ContainsKey(index)) return null;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using mooSQL.data.Mapping;
 using mooSQL.data.model;
 
@@ -87,22 +87,40 @@ namespace mooSQL.data
 		/// <summary>分表起始锚点时间，如 2022-1-1。</summary>
 		public string ShardAnchor { get; set; }
 
+		/// <summary>
+		/// 属性 ShardIntervalValue（int）。
+		/// </summary>
 		public int ShardIntervalValue { get; set; }
 
+		/// <summary>
+		/// 属性 ShardIntervalUnit（string）。
+		/// </summary>
 		public string ShardIntervalUnit { get; set; }
 
+		/// <summary>
+		/// 属性 ShardFirstSpan（int?）。
+		/// </summary>
 		public int? ShardFirstSpan { get; set; }
 
 		/// <summary>无时间条件查询时默认命中的最近分表数量。</summary>
 		public int DefaultRecentTables { get; set; }
 
+		/// <summary>
+		/// 属性 MaxTablesPerQuery（int?）。
+		/// </summary>
 		public int? MaxTablesPerQuery { get; set; }
 
+		/// <summary>
+		/// 属性 AutoCreateOnInsert（bool）。
+		/// </summary>
 		public bool AutoCreateOnInsert { get; set; }
 
 		/// <summary>自定义 <see cref="ITableShardStrategy"/> 实现类型。</summary>
 		public Type CustomShardStrategyType { get; set; }
 
+		/// <summary>
+		/// 获取ObjectID。
+		/// </summary>
 		public override string GetObjectID()
 		{
 #if NETFRAMEWORK
