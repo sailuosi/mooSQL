@@ -22,6 +22,9 @@ namespace mooSQL.data
             return kit;
         }
 
+        /// <summary>
+        /// 泛型方法 splitTable（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder splitTable<T>(this SQLBuilder kit, DateTime from, DateTime to)
         {
             kit.splitTable<T>();
@@ -29,6 +32,9 @@ namespace mooSQL.data
             return kit;
         }
 
+        /// <summary>
+        /// takeRecent 方法（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder takeRecent(this SQLBuilder kit, int count)
         {
             if (kit.ShardSplit != null)
@@ -36,6 +42,9 @@ namespace mooSQL.data
             return kit;
         }
 
+        /// <summary>
+        /// inTables 方法（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder inTables(this SQLBuilder kit, params string[] tableNames)
         {
             if (kit.ShardSplit != null)
@@ -43,6 +52,9 @@ namespace mooSQL.data
             return kit;
         }
 
+        /// <summary>
+        /// filterTables 方法（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder filterTables(this SQLBuilder kit, Func<string, bool> predicate)
         {
             if (kit.ShardSplit != null)
@@ -50,6 +62,9 @@ namespace mooSQL.data
             return kit;
         }
 
+        /// <summary>
+        /// splitAllTables 方法（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder splitAllTables(this SQLBuilder kit)
         {
             if (kit.ShardSplit != null)
@@ -66,6 +81,9 @@ namespace mooSQL.data
             return ShardQueryBuilder.BuildUnionFrom(kit, en, ShardQueryOptions.ForRange(from, to));
         }
 
+        /// <summary>
+        /// buildShardFrom 方法（返回 SQLBuilder）。
+        /// </summary>
         public static SQLBuilder buildShardFrom(this SQLBuilder kit)
         {
             if (kit.ShardSplit?.EntityInfo == null)

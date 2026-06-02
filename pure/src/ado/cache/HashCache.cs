@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -8,8 +8,14 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// 类型 HashCache。
+    /// </summary>
     public class HashCache:ISooCache
     {
+        /// <summary>
+        /// 初始化 HashCache。
+        /// </summary>
         public HashCache() //CLR调用  整个进程执行且只执行一次
         {
             Task.Run(() => //
@@ -86,6 +92,9 @@ namespace mooSQL.data
                 }); ;
         }
 
+        /// <summary>
+        /// Add 方法。
+        /// </summary>
         public void Add(string key, object value, TimeSpan durtion)
         {
             lock (obj_Lock)
@@ -100,18 +109,27 @@ namespace mooSQL.data
 
 
         //清楚所有缓存，殃及池鱼！
+        /// <summary>
+        /// 移除All。
+        /// </summary>
         public void RemoveAll()
         {
             lock (obj_Lock)
                 cacheHolder.Clear();//字典中的所有内容全部被清理到
         }
 
+        /// <summary>
+        /// Remove 方法。
+        /// </summary>
         public void Remove(string key)
         {
             lock (obj_Lock)
                 cacheHolder.Remove(key);
         }
 
+        /// <summary>
+        /// 移除Condition。
+        /// </summary>
         public void RemoveCondition(Func<string, bool> func)
         {
             List<string> keyList = new List<string>();
@@ -126,6 +144,9 @@ namespace mooSQL.data
             keyList.ForEach(s => Remove(s));
         }
 
+        /// <summary>
+        /// 按键获取缓存项。
+        /// </summary>
         public T Get<T>(string key)
         {
             var val = cacheHolder[key] as DataModel;
@@ -135,6 +156,9 @@ namespace mooSQL.data
             return (T)val.Value ;
         }
 
+        /// <summary>
+        /// ContainsKey 方法（返回 bool）。
+        /// </summary>
         public bool ContainsKey(string key)
         {
             if (cacheHolder.ContainsKey(key))
@@ -170,6 +194,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 获取缓存项，未命中时通过工厂委托创建并写入。
+        /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
             T t = default(T);
@@ -185,6 +212,9 @@ namespace mooSQL.data
             return t;
         }
 
+        /// <summary>
+        /// 获取Keys。
+        /// </summary>
         public IEnumerable<string> GetKeys()
         {
             var keys= cacheHolder.Keys;
@@ -207,6 +237,9 @@ namespace mooSQL.data
     /// </summary>
     public class DictionaryCache:ISooCache
     {
+        /// <summary>
+        /// 初始化 DictionaryCache。
+        /// </summary>
         public DictionaryCache() //CLR调用  整个进程执行且只执行一次
         {
             Task.Run(() => //
@@ -280,6 +313,9 @@ namespace mooSQL.data
                 }); ;
         }
 
+        /// <summary>
+        /// Add 方法。
+        /// </summary>
         public void Add(string key, object value, TimeSpan durtion)
         {
             lock (obj_Lock)
@@ -294,18 +330,27 @@ namespace mooSQL.data
 
 
         //清楚所有缓存，殃及池鱼！
+        /// <summary>
+        /// 移除All。
+        /// </summary>
         public void RemoveAll()
         {
             lock (obj_Lock)
                 CustomCacheDictionary.Clear();//字典中的所有内容全部被清理到
         }
 
+        /// <summary>
+        /// Remove 方法。
+        /// </summary>
         public void Remove(string key)
         {
             lock (obj_Lock)
                 CustomCacheDictionary.Remove(key);
         }
 
+        /// <summary>
+        /// 移除Condition。
+        /// </summary>
         public void RemoveCondition(Func<string, bool> func)
         {
             List<string> keyList = new List<string>();
@@ -320,11 +365,17 @@ namespace mooSQL.data
             keyList.ForEach(s => Remove(s));
         }
 
+        /// <summary>
+        /// 按键获取缓存项。
+        /// </summary>
         public T Get<T>(string key)
         {
             return (T)(CustomCacheDictionary[key]).Value;
         }
 
+        /// <summary>
+        /// ContainsKey 方法（返回 bool）。
+        /// </summary>
         public bool ContainsKey(string key)
         {
             if (CustomCacheDictionary.ContainsKey(key))
@@ -359,6 +410,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 获取缓存项，未命中时通过工厂委托创建并写入。
+        /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
             T t = default(T);
@@ -374,6 +428,9 @@ namespace mooSQL.data
             return t;
         }
 
+        /// <summary>
+        /// 获取Keys。
+        /// </summary>
         public IEnumerable<string> GetKeys()
         {
             return CustomCacheDictionary.Keys;
@@ -385,6 +442,9 @@ namespace mooSQL.data
     public class DictionaryCacheSafe:ISooCache
     {
 
+        /// <summary>
+        /// 初始化 DictionaryCacheSafe。
+        /// </summary>
         public DictionaryCacheSafe() //
         {
             Task.Run(() => //
@@ -453,6 +513,9 @@ namespace mooSQL.data
             }); ;
         }
 
+        /// <summary>
+        /// 写入带过期时间的缓存项。
+        /// </summary>
         public void Add<V>(string key, V value, TimeSpan durtion)
         {
             CustomCacheDictionary.TryAdd(key, new DataModel()
@@ -466,11 +529,17 @@ namespace mooSQL.data
 
 
         //清楚所有缓存，殃及池鱼！
+        /// <summary>
+        /// 移除All。
+        /// </summary>
         public void RemoveAll()
         {
             CustomCacheDictionary.Clear();//字典中的所有内容全部被清理到
         }
 
+        /// <summary>
+        /// Remove 方法。
+        /// </summary>
         public void Remove(string key)
         {
             DataModel data = null;
@@ -478,6 +547,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// 按键获取缓存项。
+        /// </summary>
         public T Get<T>(string key)
         {
             return (T)(CustomCacheDictionary[key]).Value;
@@ -519,6 +591,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 获取缓存项，未命中时通过工厂委托创建并写入。
+        /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
             T t = default(T);
@@ -534,6 +609,9 @@ namespace mooSQL.data
             return t;
         }
 
+        /// <summary>
+        /// 获取Keys。
+        /// </summary>
         public IEnumerable<string> GetKeys()
         {
             return CustomCacheDictionary.Keys;
@@ -551,10 +629,22 @@ namespace mooSQL.data
         public TimeSpan Duraton { get; set; }
     }
 
+    /// <summary>
+    /// 枚举 ObsloteType。
+    /// </summary>
     public enum ObsloteType
     {
+        /// <summary>
+        /// 类型 CustomCacheNewproblem。
+        /// </summary>
         Never,
+        /// <summary>
+        /// 类型 CustomCacheNewproblem。
+        /// </summary>
         Absolutely,
+        /// <summary>
+        /// 类型 CustomCacheNewproblem。
+        /// </summary>
         Relative
     }
 
@@ -567,6 +657,9 @@ namespace mooSQL.data
         private static List<Dictionary<string, DataModel>> dicCacheList = new List<Dictionary<string, DataModel>>();
         private static List<object> lockList = new List<object>();
 
+        /// <summary>
+        /// 字段 CupNum（int）。
+        /// </summary>
         public static int CupNum = 0;
         static CustomCacheNewproblem()
         {
@@ -651,6 +744,9 @@ namespace mooSQL.data
                 }); ;
         }
 
+        /// <summary>
+        /// Add 方法。
+        /// </summary>
         public static void Add(string key, object value, TimeSpan durtion)
         {
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
@@ -667,6 +763,9 @@ namespace mooSQL.data
 
 
         //清楚所有缓存，殃及池鱼！
+        /// <summary>
+        /// 移除All。
+        /// </summary>
         public static void RemoveAll()
         {
             for (int i = 0; i < CupNum; i++)
@@ -675,6 +774,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// Remove 方法。
+        /// </summary>
         public static void Remove(string key)
         {
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
@@ -687,6 +789,9 @@ namespace mooSQL.data
         }
 
 
+        /// <summary>
+        /// 按键获取缓存项。
+        /// </summary>
         public static T Get<T>(string key)
         {
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
@@ -731,6 +836,9 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// 获取缓存项，未命中时通过工厂委托创建并写入。
+        /// </summary>
         public static T GetT<T>(string key, Func<T> func)
         {
             T t = default(T);

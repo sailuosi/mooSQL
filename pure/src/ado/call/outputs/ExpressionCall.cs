@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,15 +12,24 @@ namespace mooSQL.data.call
     /// </summary>
     public class ExpressionCall : MethodCall
     {
+        /// <summary>
+        /// 接受访问者并翻译为 SQL 片段。
+        /// </summary>
         public override MethodCall Accept(MethodVisitor visitor)
         {
             return visitor.VisitExpression(this);
         }
+        /// <summary>
+        /// 创建 Expression 方法调用节点。
+        /// </summary>
         public ExpressionCall() : base("Expression", null)
         {
 
         }
 
+        /// <summary>
+        /// 属性 Value（Expression）。
+        /// </summary>
         public Expression Value { get; set; }
     }
 }

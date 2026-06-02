@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -37,6 +37,9 @@ namespace mooSQL.utils
             source = Regex.Replace(source, "0x", "0 x", RegexOptions.IgnoreCase);
             return source;
         }
+        /// <summary>
+        /// 泛型方法 mapAdd（返回 void）。
+        /// </summary>
         public void mapAdd<K, T>(Dictionary<K, T> map, K key, T value)
         {
             if (value == null) { return; }
@@ -49,10 +52,16 @@ namespace mooSQL.utils
                 map.Add(key, value);
             }
         }
+        /// <summary>
+        /// 泛型方法 ListAdd（返回 void）。
+        /// </summary>
         public void ListAdd<T>(List<T> list, T value)
         {
             if (list.Contains(value) == false) list.Add(value);
         }
+        /// <summary>
+        /// 泛型方法 getMapValue（返回 V）。
+        /// </summary>
         public V getMapValue<K,V>(Dictionary<K, V> map, K key)
         {
             if (key == null) return default(V);
@@ -82,6 +91,9 @@ namespace mooSQL.utils
             }
             return tar;
         }
+        /// <summary>
+        /// isMatch 方法（返回 bool）。
+        /// </summary>
         public bool isMatch(string checkStr, string Regstr)
         {
             var reg = new Regex(Regstr);
@@ -92,6 +104,9 @@ namespace mooSQL.utils
             }
             return res;
         }
+        /// <summary>
+        /// isValid 方法（返回 bool）。
+        /// </summary>
         public bool isValid(string str)
         {
             if (string.IsNullOrWhiteSpace(str))
@@ -103,6 +118,9 @@ namespace mooSQL.utils
                 return true;
             }
         }
+        /// <summary>
+        /// 泛型方法 AutoCopy（返回 TChild）。
+        /// </summary>
         public TChild AutoCopy<TParent, TChild>(TParent parent) where TChild : TParent, new()
         {
             TChild child = new TChild();
@@ -125,6 +143,9 @@ namespace mooSQL.utils
             }
             return child;
         }
+        /// <summary>
+        /// 泛型方法 AutoCopy（返回 TChild）。
+        /// </summary>
         public TChild AutoCopy<TParent, TChild>(TParent parent,TChild child) where TChild : TParent, new()
         {
             var ParentType = typeof(TParent);
@@ -140,6 +161,9 @@ namespace mooSQL.utils
             }
             return child;
         }
+        /// <summary>
+        /// parseValue 方法（返回 string）。
+        /// </summary>
         public string parseValue(string invalue, string type, string caption, out string msg, out Object resF)
         {
             msg = "";
@@ -278,6 +302,9 @@ namespace mooSQL.utils
         }
 
 
+        /// <summary>
+        /// compareValue 方法（返回 bool）。
+        /// </summary>
         public bool compareValue(string colType, string valueLeft, string valueRight)
         {
             bool issame = false;
@@ -373,6 +400,9 @@ namespace mooSQL.utils
             if (value == "1900/1/1 0:00:00") return true;
             return false;
         }
+        /// <summary>
+        /// SQLBoolToIntString 方法（返回 string）。
+        /// </summary>
         public string SQLBoolToIntString(Object val)
         {
             var valstr = val.ToString();
@@ -389,6 +419,9 @@ namespace mooSQL.utils
             return valstr;
 
         }
+        /// <summary>
+        /// parsemyBool 方法（返回 bool）。
+        /// </summary>
         public bool parsemyBool(string val, out bool isOK)
         {
             isOK = true;
@@ -405,6 +438,9 @@ namespace mooSQL.utils
             isOK = false;
             return false;
         }
+        /// <summary>
+        /// shapeDataType 方法（返回 Object）。
+        /// </summary>
         public static Object shapeDataType(Object val, Type dataType)
         {
             var res = new Object();

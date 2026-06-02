@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 
 using mooSQL.utils;
@@ -48,6 +48,9 @@ namespace mooSQL.data
         /// </summary>
         public HashSet<string> unSafeValues;
 
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
         public WhereListBag() { 
             this.values = new HashSet<string>();
             this.numValues = new HashSet<string>();
@@ -59,6 +62,9 @@ namespace mooSQL.data
         /// </summary>
         public string dataType;
 
+        /// <summary>
+        /// 泛型方法 newBag（返回 WhereListBag）。
+        /// </summary>
         public static WhereListBag newBag<T>(IEnumerable<T> list) { 
             var bag = new WhereListBag();
             var t = typeof(T);
@@ -70,6 +76,9 @@ namespace mooSQL.data
             return bag;
         }
 
+        /// <summary>
+        /// newBag 方法（返回 WhereListBag）。
+        /// </summary>
         public static WhereListBag newBag(IEnumerable list)
         {
             var bag = new WhereListBag();
@@ -137,6 +146,9 @@ namespace mooSQL.data
             }
             return cc;
         }
+        /// <summary>
+        /// 泛型方法 addValue（返回 int）。
+        /// </summary>
         public int addValue<T>(T item)
         {
 
@@ -175,6 +187,9 @@ namespace mooSQL.data
             
             return cc;
         }
+        /// <summary>
+        /// addStrValues 方法（返回 int）。
+        /// </summary>
         public int addStrValues(IEnumerable<string> list)
         {
             int cc = 0;
@@ -218,6 +233,9 @@ namespace mooSQL.data
         //    return 0;
         //}
 
+        /// <summary>
+        /// addStrValue 方法（返回 int）。
+        /// </summary>
         public int addStrValue(string str) {
             if (string.IsNullOrWhiteSpace(str)) return 0;
             if (isNum(str))

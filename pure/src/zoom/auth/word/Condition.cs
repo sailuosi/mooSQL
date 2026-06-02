@@ -25,7 +25,7 @@ namespace mooSQL.auth
         /// <summary>解析后的强类型值（若有）。</summary>
         public Object parsedValue { get; set; }
         /// <summary>
-        /// 操作符，如 = like > < 等
+        /// 操作符，如 =、like、&gt;、&lt; 等
         /// </summary>
         public string Contrast { get; set; }
         /// <summary>
