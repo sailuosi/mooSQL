@@ -516,7 +516,7 @@ namespace mooSQL.data {
             }
             if (val != null && RegxUntils.isPureSimpleStr(val.ToString()))
             {
-                return where(string.Format("{0} like '{1}%'", key, val.ToString()));
+                return where(string.Format("{0} LIKE '{1}%'", key, val.ToString()));
             }
             //更改实现方式，将内容部分直接作为参数；
             if (val == null)
@@ -524,7 +524,7 @@ namespace mooSQL.data {
                 return this;
             }
             var Val = string.Format("{0}%", val.ToString());
-            return where(key, Val, "like");
+            return where(key, Val, "LIKE");
             //var content = Dialect.expression.stringConcat("{0}", "'%'");
             //return whereFormat(key + " like "+ content, val);
         }
@@ -662,11 +662,11 @@ namespace mooSQL.data {
             }
             if (RegxUntils.isPureSimpleStr(val.ToString()))
             {
-                return where(string.Format("{0} not like '%{1}%'", key, val.ToString()));
+                return where(string.Format("{0} NOT LIKE '%{1}%'", key, val.ToString()));
             }
 
             var Val = string.Format("%{0}%", val.ToString());
-            return where(key, Val, " not like");
+            return where(key, Val, " NOT LIKE");
 
             //return whereFormat(key + " not like concat(concat('%', {0}), '%')", val);
         }
@@ -1523,7 +1523,7 @@ namespace mooSQL.data {
             }
 
 
-            current.whereFormat(key + " not between {0} and {1}", minValue, maxValue);
+            current.whereFormat(key + " NOT BETWEEN {0} and {1}", minValue, maxValue);
 
             return this;
         }
