@@ -1,4 +1,4 @@
-using mooSQL.data.builder;
+﻿using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,10 +83,10 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(frag.fromInner) || !string.IsNullOrWhiteSpace(frag.selectInner))
             {
                 //此时的单行插入值，实际上是select 部分。但是，如果明确给了 select内容，则使用 select内容
-                sb.Append(" select ");
+                sb.Append(" SELECT ");
                 if (frag.distincted)
                 {
-                    sb.Append("distinct ");
+                    sb.Append("DISTINCT ");
                 }
                 if (!string.IsNullOrWhiteSpace(frag.selectInner))
                 {
@@ -108,13 +108,13 @@ namespace mooSQL.data
                     }
                     if (!string.IsNullOrWhiteSpace(frag.groupByInner))
                     {
-                        sb.Append("group by ");
+                        sb.Append("GROUP BY ");
                         sb.Append(frag.groupByInner);
                         sb.Append(" ");
                     }
                     if (!string.IsNullOrWhiteSpace(frag.havingInner))
                     {
-                        sb.Append("having ");
+                        sb.Append("HAVING ");
                         sb.Append(frag.havingInner);
                         sb.Append(" ");
                     }
@@ -173,7 +173,7 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
-            return string.Format("alter table {0} change  column {1} {1} {2}{3} {4} {5} {6}",
+            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {1} {2}{3} {4} {5} {6}",
                 tableName, columnName, dataType,
                 defval, nullable, p2, p3
                 );
@@ -202,17 +202,17 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override string DropConstraintBy(string tableName, string constraintName)
         {
-            return string.Format("ALTER TABLE {0} drop primary key;", tableName, constraintName);
+            return string.Format("ALTER TABLE {0} DROP PRIMARY KEY;", tableName, constraintName);
         }
         /// <inheritdoc/>
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         {
-            return string.Format("alter table {0} change  column {1} {2}", tableName, oldName, newName);
+            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {2}", tableName, oldName, newName);
         }
         /// <inheritdoc/>
         public override string CheckSystemTablePermissionsBy()
         {
-            return "select 1 from Information_schema.columns limit 0,1";
+            return "SELECT 1 FROM Information_schema.columns LIMIT 0,1";
         }
         /// <inheritdoc/>
         public override string CreateTableNullBy()
@@ -248,7 +248,7 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override string RenameTableBy(string oldTableName, string newTableName)
         {
-            return string.Format("alter table {0} rename {1}", oldTableName, newTableName);
+            return string.Format("ALTER TABLE {0} RENAME {1}", oldTableName, newTableName);
         }
         /// <inheritdoc/>
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unque)
@@ -258,7 +258,7 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override string IsAnyIndexBy(string indexName)
         {
-            return string.Format("SELECT count(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);
+            return string.Format("SELECT COUNT(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);
         }
         #endregion
     }

@@ -1,4 +1,4 @@
-
+﻿
 using mooSQL.data.builder;
 
 using System;
@@ -76,7 +76,7 @@ namespace mooSQL.data
                 }
                 else if (frag.toped > -1)
                 {
-                    sb.Append("limit ");
+                    sb.Append("LIMIT ");
                     sb.Append(frag.toped);
                     sb.Append(" ");
                 }
@@ -108,10 +108,10 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(frag.fromInner) || !string.IsNullOrWhiteSpace(frag.selectInner))
             {
                 //此时的单行插入值，实际上是select 部分。但是，如果明确给了 select内容，则使用 select内容
-                sb.Append(" select ");
+                sb.Append(" SELECT ");
                 if (frag.distincted)
                 {
-                    sb.Append("distinct ");
+                    sb.Append("DISTINCT ");
                 }
                 if (!string.IsNullOrWhiteSpace(frag.selectInner))
                 {
@@ -133,13 +133,13 @@ namespace mooSQL.data
                     }
                     if (!string.IsNullOrWhiteSpace(frag.groupByInner))
                     {
-                        sb.Append("group by ");
+                        sb.Append("GROUP BY ");
                         sb.Append(frag.groupByInner);
                         sb.Append(" ");
                     }
                     if (!string.IsNullOrWhiteSpace(frag.havingInner))
                     {
-                        sb.Append("having ");
+                        sb.Append("HAVING ");
                         sb.Append(frag.havingInner);
                         sb.Append(" ");
                     }
@@ -235,7 +235,7 @@ namespace mooSQL.data
         }
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
-            return string.Format("alter table {0} ALTER COLUMN {1} {2}{3} {4} {5} {6}",
+            return string.Format("ALTER TABLE {0} ALTER COLUMN {1} {2}{3} {4} {5} {6}",
                 tableName, columnName, dataType,
                 defval, nullable, p2, p3
                 );
@@ -269,7 +269,7 @@ namespace mooSQL.data
         }
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         { 
-            return string.Format("comment on column {1}.{0} is '{2}'", columnName, tableName, caption
+            return string.Format("COMMENT ON COLUMN {1}.{0} IS '{2}'", columnName, tableName, caption
                 );
         }
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
@@ -278,7 +278,7 @@ namespace mooSQL.data
         }
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
-            return string.Format("comment on column {1}.{0} is ''",
+            return string.Format("COMMENT ON COLUMN {1}.{0} IS ''",
                 columnName, tableName
                 );
         }
@@ -286,7 +286,7 @@ namespace mooSQL.data
 
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
-            return string.Format("comment on table {0} is '{1}'", tableName, caption);
+            return string.Format("COMMENT ON TABLE {0} IS '{1}'", tableName, caption);
         }
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
@@ -294,13 +294,13 @@ namespace mooSQL.data
         }
         public override string DeleteTableCaptionBy(string tableName)
         { 
-            return string.Format("comment on table {0} is ''", tableName);
+            return string.Format("COMMENT ON TABLE {0} IS ''", tableName);
         }
 
 
         public override string RenameTableBy(string oldTableName, string newTableName)
         { 
-            return string.Format("alter table 表名 {0} to {1}", oldTableName, newTableName);
+            return string.Format("ALTER TABLE 表名 {0} to {1}", oldTableName, newTableName);
         }
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unique)
         { 
@@ -308,10 +308,10 @@ namespace mooSQL.data
         }
         public override string IsAnyIndexBy(string indexName)
         { 
-            return string.Format("  Select count(1) from (SELECT to_regclass('{0}') as c ) t where t.c is not null", indexName);
+            return string.Format(" SELECT COUNT(1) FROM (SELECT to_regclass('{0}') AS c ) t WHERE t.c IS NOT NULL", indexName);
         }
         public override string CheckSystemTablePermissionsBy(){ 
-            return "select 1 from information_schema.columns limit 1 offset 0";
+            return "SELECT 1 FROM information_schema.columns LIMIT 1 OFFSET 0";
         }
         public override string CreateTableNullBy(){
             return "NULL";

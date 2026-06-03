@@ -181,7 +181,7 @@ namespace mooSQL.data
                 sb.Append(" VALUES ");
                 for(var i=0; i<frag.insertValues.Count;i++)
                 {
-                    sb.AppendFormat(" SELECT {0} from dual ", frag.insertValues[i]);
+                    sb.AppendFormat(" SELECT {0} FROM DUAL ", frag.insertValues[i]);
                     if(i < frag.insertValues.Count-1) { 
                         sb.Append("UNION"); 
                     }
@@ -192,10 +192,10 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(frag.fromInner) || !string.IsNullOrWhiteSpace(frag.selectInner))
             {
                 //此时的单行插入值，实际上是select 部分。但是，如果明确给了 select内容，则使用 select内容
-                sb.Append(" select ");
+                sb.Append(" SELECT ");
                 if (frag.distincted)
                 {
-                    sb.Append("distinct ");
+                    sb.Append("DISTINCT ");
                 }
                 if (!string.IsNullOrWhiteSpace(frag.selectInner))
                 {
@@ -217,13 +217,13 @@ namespace mooSQL.data
                     }
                     if (!string.IsNullOrWhiteSpace(frag.groupByInner))
                     {
-                        sb.Append("group by ");
+                        sb.Append("GROUP BY ");
                         sb.Append(frag.groupByInner);
                         sb.Append(" ");
                     }
                     if (!string.IsNullOrWhiteSpace(frag.havingInner))
                     {
-                        sb.Append("having ");
+                        sb.Append("HAVING ");
                         sb.Append(frag.havingInner);
                         sb.Append(" ");
                     }
@@ -320,7 +320,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string IsAnyIndexBy(string indexName)
         {
-            return string.Format("select count(1) from user_ind_columns where index_name=('{0}')", indexName);
+            return string.Format("SELECT COUNT(1) FROM user_ind_columns WHERE index_name=('{0}')", indexName);
         }
         /// <summary>
         /// 创建数据库，Oracle中没有直接的CREATE DATABASE语句，而是通过DBA权限创建一个新的PL/SQL数据库实例。
@@ -343,7 +343,7 @@ namespace mooSQL.data
         }
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
-            return string.Format("ALTER TABLE {0} modify ({1} {2}{3} {4} {5} {6}) ",
+            return string.Format("ALTER TABLE {0} MODIFY ({1} {2}{3} {4} {5} {6}) ",
                 tableName, columnName, dataType,
                 defval, nullable, p2, p3
                 );
@@ -373,11 +373,11 @@ namespace mooSQL.data
         }
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
-            return string.Format("ALTER TABLE {0} rename   column  {1} to {2}", tableName, oldName, newName);
+            return string.Format("ALTER TABLE {0} RENAME COLUMN {1} TO {2}", tableName, oldName, newName);
         }
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         { 
-            return string.Format("comment on column {1}.{0} is '{2}'",
+            return string.Format("COMMENT ON COLUMN {1}.{0} IS '{2}'",
                 columnName, tableName, caption
                 );
         }
@@ -387,19 +387,19 @@ namespace mooSQL.data
         }
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
-            return string.Format("comment on column {1}.{0} is ''",
+            return string.Format("COMMENT ON COLUMN {1}.{0} IS ''",
                 columnName, tableName
                 );
         }
         public override string IsAnyColumnCaptionBy(string tableName, string columnName)
         { 
-            return string.Format("select * from user_col_comments where Table_Name='{1}' AND COLUMN_NAME='{0}' order by column_name",
+            return string.Format("SELECT * FROM user_col_comments WHERE Table_Name='{1}' AND COLUMN_NAME='{0}' ORDER BY column_name",
                 columnName, tableName
                 );
         }
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
-            return string.Format("comment on table {0}  is  '{1}'", tableName, caption);
+            return string.Format("COMMENT ON TABLE {0} IS '{1}'", tableName, caption);
         }
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
@@ -407,17 +407,17 @@ namespace mooSQL.data
         }
         public override string DeleteTableCaptionBy(string tableName)
         { 
-            return string.Format("comment on table {0}  is  ''", tableName);
+            return string.Format("COMMENT ON TABLE {0} IS ''", tableName);
         }
         public override string IsAnyTableCaptionBy(string tablename){ 
-            return string.Format("select * from user_tab_comments where Table_Name='{0}'order by Table_Name",tablename);
+            return string.Format("SELECT * FROM user_tab_comments WHERE Table_Name='{0}'ORDER BY Table_Name",tablename);
         }
         public override string RenameTableBy(string oldTableName, string newTableName)
         { 
-            return string.Format("alter table {0} rename to {1}", oldTableName, newTableName);
+            return string.Format("ALTER TABLE {0} RENAME TO {1}", oldTableName, newTableName);
         }
         public override string CheckSystemTablePermissionsBy(){ 
-            return "select  t.table_name from user_tables t  where rownum=1";
+            return "SELECT t.table_name FROM user_tables t  WHERE rownum=1";
         }
         /// <summary>
         /// null的声明

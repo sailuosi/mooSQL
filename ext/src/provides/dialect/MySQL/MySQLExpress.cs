@@ -17,7 +17,7 @@ namespace mooSQL.data
     {
         public MySQLExpress(Dialect dia) : base(dia) {
             _paraPrefix = "?";
-            _selectAutoIncrement = "Select Last_Insert_Id()";
+            _selectAutoIncrement = "SELECT Last_Insert_Id()";
             _provideType = "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data";
         }
 
@@ -82,7 +82,7 @@ namespace mooSQL.data
                     }
                     else if (frag.toped > -1)
                     {
-                        sb.Append("limit ");
+                        sb.Append("LIMIT ");
                         sb.Append(frag.toped);
                         sb.Append(" ");
                     }
@@ -102,7 +102,7 @@ namespace mooSQL.data
                 }
                 else if (frag.toped > -1)
                 {
-                    sb.Append("limit ");
+                    sb.Append("LIMIT ");
                     sb.Append(frag.toped);
                     sb.Append(" ");
                 }
@@ -135,10 +135,10 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(frag.fromInner) || !string.IsNullOrWhiteSpace(frag.selectInner))
             {
                 //此时的单行插入值，实际上是select 部分。但是，如果明确给了 select内容，则使用 select内容
-                sb.Append(" select ");
+                sb.Append(" SELECT ");
                 if (frag.distincted)
                 {
-                    sb.Append("distinct ");
+                    sb.Append("DISTINCT ");
                 }
                 if (!string.IsNullOrWhiteSpace(frag.selectInner))
                 {
@@ -160,13 +160,13 @@ namespace mooSQL.data
                     }
                     if (!string.IsNullOrWhiteSpace(frag.groupByInner))
                     {
-                        sb.Append("group by ");
+                        sb.Append("GROUP BY ");
                         sb.Append(frag.groupByInner);
                         sb.Append(" ");
                     }
                     if (!string.IsNullOrWhiteSpace(frag.havingInner))
                     {
-                        sb.Append("having ");
+                        sb.Append("HAVING ");
                         sb.Append(frag.havingInner);
                         sb.Append(" ");
                     }
@@ -198,15 +198,15 @@ namespace mooSQL.data
             //将left join 更改为inner join 
             if (RegxUntils.test(frag.fromInner.ToLower(), @"\sleft\s+join\s")) {
                 var reg = new Regex(@"\sleft\s+join\s", RegexOptions.IgnoreCase);
-                frag.fromInner = reg.Replace(frag.fromInner, " inner join ");// .ToLower().Replace(@"\sleft\s+join\s"," inner join ");
+                frag.fromInner = reg.Replace(frag.fromInner, " INNER JOIN ");// .ToLower().Replace(@"\sleft\s+join\s"," INNER JOIN ");
             }
-            sb.AppendFormat("update {0} set ", frag.fromInner);
+            sb.AppendFormat("UPDATE {0} SET ", frag.fromInner);
 
             var setPart= this.buildSetPart(frag);
             sb.Append(setPart);
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
-                sb.AppendFormat(" where {0}", frag.whereInner);
+                sb.AppendFormat(" WHERE {0}", frag.whereInner);
             }
             return sb.ToString();
         }
@@ -300,16 +300,16 @@ namespace mooSQL.data
             if (frag.usingAlias.HasText())
             {
 
-                updateFromPart = string.Format("{0} AS {1} INNER JOIN  ({2}) as {3} ON {4} ",
+                updateFromPart = string.Format("{0} AS {1} INNER JOIN  ({2}) AS {3} ON {4} ",
                     frag.intoTable, setTableNick, frag.usingTable, frag.usingAlias, joinWH);
-                insertFromPart = string.Format("{0} AS {1} Right JOIN  ({2}) as {3} ON {4} ",
+                insertFromPart = string.Format("{0} AS {1} RIGHT JOIN  ({2}) AS {3} ON {4} ",
                     frag.intoTable, setTableNick, frag.usingTable, frag.usingAlias, joinWH);
             }
             else
             {
                 updateFromPart = string.Format("{0} AS {1} INNER JOIN  {2} ON {3} ",
                     frag.intoTable, setTableNick, frag.usingTable, joinWH);
-                insertFromPart = string.Format("{0} AS {1} Right JOIN  {2} ON {3} ",
+                insertFromPart = string.Format("{0} AS {1} RIGHT JOIN  {2} ON {3} ",
                     frag.intoTable, setTableNick, frag.usingTable, joinWH);
             }
             foreach (var when in frag.mergeWhens) { 
@@ -588,7 +588,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
-            return string.Format("alter table {0} change  column {1} {1} {2}{3} {4} {5} {6}",
+            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {1} {2}{3} {4} {5} {6}",
                 tableName, columnName, dataType,
                 defval, nullable, p2, p3
                 );
@@ -641,7 +641,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string DropConstraintBy(string tableName, string constraintName)
         { 
-            return string.Format("ALTER TABLE {0} drop primary key;", tableName, constraintName);
+            return string.Format("ALTER TABLE {0} DROP PRIMARY KEY;", tableName, constraintName);
         }
         /// <summary>
         /// 重命名列
@@ -652,14 +652,14 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
-            return string.Format("alter table {0} change  column {1} {2}", tableName, oldName, newName);
+            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {2}", tableName, oldName, newName);
         }
         /// <summary>
         /// 检查系统权限
         /// </summary>
         /// <returns></returns>
         public override string CheckSystemTablePermissionsBy (){ 
-            return "select 1 from Information_schema.columns limit 0,1";
+            return "SELECT 1 FROM Information_schema.columns LIMIT 0,1";
         }
         /// <summary>
         /// 表null关键字
@@ -730,7 +730,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string RenameTableBy (string oldTableName, string newTableName)
         { 
-            return string.Format("alter table {0} rename {1}", oldTableName, newTableName);
+            return string.Format("ALTER TABLE {0} RENAME {1}", oldTableName, newTableName);
         }
         /// <summary>
         /// 建索引
@@ -751,7 +751,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string IsAnyIndexBy (string indexName)
         { 
-            return string.Format("SELECT count(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);
+            return string.Format("SELECT COUNT(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);
         }
         #endregion
 

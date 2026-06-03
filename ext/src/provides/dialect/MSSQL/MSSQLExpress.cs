@@ -14,7 +14,7 @@ namespace mooSQL.data
         public MSSQLExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "@";
-            _selectAutoIncrement = "Select Scope_Identity()";
+            _selectAutoIncrement = "SELECT Scope_Identity()";
             _provideType = "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient";
         }
 
@@ -196,10 +196,10 @@ namespace mooSQL.data
             //如果 from 不为空，则是 insert into  select...
             if (!string.IsNullOrWhiteSpace(frag.fromInner)|| !string.IsNullOrWhiteSpace(frag.selectInner)) {
                 //此时的单行插入值，实际上是select 部分。但是，如果明确给了 select内容，则使用 select内容
-                sb.Append(" select ");
+                sb.Append(" SELECT ");
                 if (frag.distincted)
                 {
-                    sb.Append("distinct ");
+                    sb.Append("DISTINCT ");
                 }
                 if (!string.IsNullOrWhiteSpace(frag.selectInner)) {
                     sb.AppendFormat(" {0} ", frag.selectInner);
@@ -219,13 +219,13 @@ namespace mooSQL.data
                     }
                     if (!string.IsNullOrWhiteSpace(frag.groupByInner))
                     {
-                        sb.Append("group by ");
+                        sb.Append("GROUP BY ");
                         sb.Append(frag.groupByInner);
                         sb.Append(" ");
                     }
                     if (!string.IsNullOrWhiteSpace(frag.havingInner))
                     {
-                        sb.Append("having ");
+                        sb.Append("HAVING ");
                         sb.Append(frag.havingInner);
                         sb.Append(" ");
                     }
@@ -246,10 +246,10 @@ namespace mooSQL.data
         {
             var sb = new StringBuilder();
             // update a set a=b from ... where ...
-            sb.AppendFormat("update {0} set {1} ", frag.updateTo, this.buildSetPart(frag));
-            sb.AppendFormat(" from {0} ", frag.fromInner);
+            sb.AppendFormat("UPDATE {0} SET {1} ", frag.updateTo, this.buildSetPart(frag));
+            sb.AppendFormat(" FROM {0} ", frag.fromInner);
             if (!string.IsNullOrWhiteSpace(frag.whereInner)) {
-                sb.AppendFormat(" where {0}", frag.whereInner);
+                sb.AppendFormat(" WHERE {0}", frag.whereInner);
             }
             return sb.ToString() ;
         }
@@ -333,7 +333,7 @@ namespace mooSQL.data
             return "IDENTITY(1,1)";
         }
         public override string CreateDataBaseBy(string database){ 
-            return string.Format("create database {0}  ",database);
+            return string.Format("CREATE DATABASE {0}  ",database);
         }
         public override string AddPrimaryKeyBy(string tableName, string columnName,string indexName) {
             return string.Format("ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY({2})"
@@ -391,7 +391,7 @@ namespace mooSQL.data
                 );
         }
         public override string IsAnyColumnCaptionBy(string columnName, string tableName){
-            return string.Format("SELECT A.name AS table_name, B.name AS column_name, C.value AS column_description FROM sys.tables A LEFT JOIN sys.extended_properties C ON C.major_id = A.object_id LEFT JOIN sys.columns B ON B.object_id = A.object_id AND C.minor_id = B.column_id INNER JOIN sys.schemas SC ON SC.schema_id = A.schema_id AND SC.name = 'dbo' WHERE A.name = '{1}' and b.name = '{0}'",
+            return string.Format("SELECT A.name AS table_name, B.name AS column_name, C.value AS column_description FROM sys.tables A LEFT JOIN sys.extended_properties C ON C.major_id = A.object_id LEFT JOIN sys.columns B ON B.object_id = A.object_id AND C.minor_id = B.column_id INNER JOIN sys.schemas SC ON SC.schema_id = A.schema_id AND SC.name = 'dbo' WHERE A.name = '{1}' AND b.name = '{0}'",
                 columnName,tableName
                 );
         }
@@ -419,10 +419,10 @@ namespace mooSQL.data
             return string.Format("CREATE {3} NONCLUSTERED INDEX Index_{0}_{2} ON {0}({1})",tableName,columnName,indexName,unique);
         }
         public override string IsAnyIndexBy(string indexName){
-            return string.Format("select count(*) from sys.indexes where name='{0}'",indexName);
+            return string.Format("SELECT COUNT(*) FROM sys.indexes WHERE name='{0}'",indexName);
         }
         public override string CheckSystemTablePermissionsBy(){
-            return "select top 1 id from sysobjects";
+            return "SELECT TOP 1 id FROM sysobjects";
         }
         public override string CreateTableNullBy(){
             return "NULL";

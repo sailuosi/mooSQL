@@ -18,7 +18,7 @@ namespace mooSQL.data
         public OBMySQLExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "?";
-            _selectAutoIncrement = "Select Last_Insert_Id()";
+            _selectAutoIncrement = "SELECT Last_Insert_Id()";
             _provideType = "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data";
         }
 
