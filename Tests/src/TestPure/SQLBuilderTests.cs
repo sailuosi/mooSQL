@@ -56,7 +56,7 @@ namespace mooSQL.Pure.Tests
                 .select("id");
 
             // Assert
-            _builder.ColumnCount.Should().Be(1);
+            _builder.current.selectPart.Count.Should().Be(1);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace mooSQL.Pure.Tests
                 .select("email");
 
             // Assert
-            _builder.ColumnCount.Should().Be(3);
+            _builder.current.selectPart.Count.Should().Be(3);
         }
 
         [Fact]
@@ -479,8 +479,8 @@ namespace mooSQL.Pure.Tests
             _builder.reset();
 
             // Assert
-            _builder.ColumnCount.Should().Be(0);
-            _builder.FromCount.Should().Be(1); // reset 后会创建一个新组
+            _builder.current.selectPart.Count.Should().Be(0);
+            _builder.FromCount.Should().Be(0); // reset 后会创建一个新组
         }
 
         [Fact]
