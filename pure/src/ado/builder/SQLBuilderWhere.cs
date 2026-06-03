@@ -1488,7 +1488,7 @@ namespace mooSQL.data {
             }
 
 
-            current.whereFormat(key + " between {0} and {1}", minValue, maxValue);
+            current.whereFormat(key + " BETWEEN {0} AND {1}", minValue, maxValue);
 
             return this;
         }
