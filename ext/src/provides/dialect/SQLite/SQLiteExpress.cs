@@ -17,7 +17,8 @@ namespace mooSQL.data
     public class SQLiteExpress:SQLExpression
     {
         public SQLiteExpress(Dialect dia) : base(dia) {
-            _paraPrefix = "?";
+            // Microsoft.Data.Sqlite 使用 @name 命名参数；?paramName 会导致语法错误
+            _paraPrefix = "@";
             _selectAutoIncrement = "Select Last_Insert_Id()";
             _provideType = "SQLite.Data.SQLiteClient.SQLiteClientFactory,SQLite.Data";
         }

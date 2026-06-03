@@ -1,5 +1,6 @@
 using mooSQL.data;
 using mooSQL.data.context;
+using mooSQL.data.Mapping;
 using System;
 using System.Data;
 using System.IO;
@@ -15,16 +16,20 @@ namespace mooSQL.Pure.Tests.TestHelpers
         /// 创建一个用于测试的 DBInstance（不连接真实数据库）
         /// </summary>
         /// <param name="dbType">数据库类型</param>
+        /// <param name="connectionString">可选自定义连接字符串</param>
         /// <returns>DBInstance 实例</returns>
-        public static DBInstance CreateTestDBInstance(DataBaseType dbType = DataBaseType.SQLite)
+        public static DBInstance CreateTestDBInstance(DataBaseType dbType = DataBaseType.SQLite, string? connectionString = null)
         {
             var client = new MooClient();
             client.dialectFactory = new DialectFactory();
+            var factory = new BaseEntityAnalyseFactory();
+            factory.register(new MooEntityAnalyser());
+            client.entityAnalyseFactory = factory;
 
             var dbConfig = new DataBase
             {
                 dbType = dbType,
-                DBConnectStr = GetTestConnectionString(dbType)
+                DBConnectStr = connectionString ?? GetTestConnectionString(dbType)
             };
 
             var dbInstance = new DBInstance
