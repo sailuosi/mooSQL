@@ -42,7 +42,7 @@ namespace mooSQL.Pure.Tests
         public void SetTable_ShouldSetTableName()
         {
             // Act
-            _builder.setTable("users");
+            _builder.from("users");
 
             // Assert
             _builder.FromCount.Should().BeGreaterThan(0);
@@ -52,7 +52,7 @@ namespace mooSQL.Pure.Tests
         public void Select_WithSingleColumn_ShouldAddColumn()
         {
             // Act
-            _builder.setTable("users")
+            _builder.from("users")
                 .select("id");
 
             // Assert
@@ -63,7 +63,7 @@ namespace mooSQL.Pure.Tests
         public void Select_WithMultipleColumns_ShouldAddAllColumns()
         {
             // Act
-            _builder.setTable("users")
+            _builder.from("users")
                 .select("id")
                 .select("name")
                 .select("email");
@@ -76,7 +76,7 @@ namespace mooSQL.Pure.Tests
         public void Select_WithStar_ShouldSelectAll()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("*")
                 .toSelect();
 
@@ -94,7 +94,7 @@ namespace mooSQL.Pure.Tests
         public void Where_WithEqualCondition_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("id", 1)
@@ -110,7 +110,7 @@ namespace mooSQL.Pure.Tests
         public void Where_WithOperator_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("age", 18, ">")
@@ -125,7 +125,7 @@ namespace mooSQL.Pure.Tests
         public void WhereIn_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .whereIn("id", new[] { 1, 2, 3 })
@@ -140,7 +140,7 @@ namespace mooSQL.Pure.Tests
         public void WhereLike_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .whereLike("name", "test")
@@ -155,7 +155,7 @@ namespace mooSQL.Pure.Tests
         public void WhereBetween_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .whereBetween("age", 18, 65)
@@ -170,7 +170,7 @@ namespace mooSQL.Pure.Tests
         public void WhereIsNull_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .whereIsNull("email")
@@ -185,7 +185,7 @@ namespace mooSQL.Pure.Tests
         public void WhereIsNotNull_ShouldBuildCorrectSQL()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .whereIsNotNull("email")
@@ -200,7 +200,7 @@ namespace mooSQL.Pure.Tests
         public void MultipleWhereConditions_ShouldBeCombinedWithAnd()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("age", 18, ">")
@@ -220,7 +220,7 @@ namespace mooSQL.Pure.Tests
         public void OrderBy_ShouldAddOrderClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .orderBy("name")
@@ -235,10 +235,10 @@ namespace mooSQL.Pure.Tests
         public void OrderBy_WithDesc_ShouldAddDescOrder()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
-                .orderBy("name desc")
+                .orderBy("name DESC")
                 .toSelect();
 
             // Assert
@@ -250,7 +250,7 @@ namespace mooSQL.Pure.Tests
         public void OrderBy_WithMultipleColumns_ShouldAddAllOrders()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .select("age")
@@ -271,7 +271,7 @@ namespace mooSQL.Pure.Tests
         public void SetPage_ShouldAddPagingClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .setPage(10, 1)
@@ -286,7 +286,7 @@ namespace mooSQL.Pure.Tests
         public void Top_ShouldAddTopClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("id")
                 .select("name")
                 .top(10)
@@ -312,7 +312,7 @@ namespace mooSQL.Pure.Tests
             };
 
             // Act
-            var cmd = _builder.setTable("test_users")
+            var cmd = _builder.from("test_users")
                 .toInsert(user);
 
             // Assert
@@ -326,7 +326,7 @@ namespace mooSQL.Pure.Tests
         {
             // Arrange - 使用 set 方法设置字段值
             // Act
-            var cmd = _builder.setTable("test_users")
+            var cmd = _builder.from("test_users")
                 .set("name", "Test User")
                 .set("email", "test@example.com")
                 .set("age", 25)
@@ -353,7 +353,7 @@ namespace mooSQL.Pure.Tests
             };
 
             // Act
-            var cmd = _builder.setTable("test_users")
+            var cmd = _builder.from("test_users")
                 .toUpdate(user);
 
             // Assert
@@ -367,7 +367,7 @@ namespace mooSQL.Pure.Tests
         {
             // Arrange - 使用 set 方法设置字段值
             // Act
-            var cmd = _builder.setTable("test_users")
+            var cmd = _builder.from("test_users")
                 .set("name", "Updated User")
                 .set("email", "updated@example.com")
                 .where("id", 1)
@@ -388,7 +388,7 @@ namespace mooSQL.Pure.Tests
         public void Delete_ShouldBuildDeleteSQL()
         {
             // Act
-            var cmd = _builder.setTable("test_users")
+            var cmd = _builder.from("test_users")
                 .where("id", 1)
                 .toDelete();
 
@@ -436,7 +436,7 @@ namespace mooSQL.Pure.Tests
         public void Clear_ShouldResetBuilder()
         {
             // Arrange
-            _builder.setTable("users")
+            _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("id", 1);
@@ -452,7 +452,7 @@ namespace mooSQL.Pure.Tests
         public void ClearWhere_ShouldClearWhereConditions()
         {
             // Arrange
-            _builder.setTable("users")
+            _builder.from("users")
                 .select("id")
                 .where("id", 1);
 
@@ -468,7 +468,7 @@ namespace mooSQL.Pure.Tests
         public void Reset_ShouldResetAllState()
         {
             // Arrange
-            _builder.setTable("users")
+            _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("id", 1)
@@ -498,11 +498,11 @@ namespace mooSQL.Pure.Tests
         {
             // Act
             _builder.ifs(true)
-                .setTable("users")
+                .from("users")
                 .select("id");
 
             // Assert
-            _builder.ColumnCount.Should().Be(1);
+            _builder.current.selectPart.Count.Should().Be(1);
         }
 
         [Fact]
@@ -510,7 +510,7 @@ namespace mooSQL.Pure.Tests
         {
             // Act
             _builder.ifs(false)
-                .setTable("users")
+                .from("users")
                 .select("id");
 
             // Assert
@@ -525,7 +525,7 @@ namespace mooSQL.Pure.Tests
         public void Distinct_ShouldAddDistinctClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .distinct()
                 .select("name")
                 .toSelect();
@@ -543,7 +543,7 @@ namespace mooSQL.Pure.Tests
         public void Join_ShouldAddJoinClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .from("users u")
                 .join("INNER JOIN orders o ON u.id = o.user_id")
                 .select("u.id")
@@ -560,7 +560,7 @@ namespace mooSQL.Pure.Tests
         public void LeftJoin_ShouldAddLeftJoinClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .from("users u")
                 .leftJoin("LEFT JOIN orders o ON u.id = o.user_id")
                 .select("u.id")
@@ -577,7 +577,7 @@ namespace mooSQL.Pure.Tests
         public void RightJoin_ShouldAddRightJoinClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .from("users u")
                 .rightJoin("RIGHT JOIN orders o ON u.id = o.user_id", _ => { })
                 .select("u.id")
@@ -598,7 +598,7 @@ namespace mooSQL.Pure.Tests
         public void GroupBy_ShouldAddGroupByClause()
         {
             // Act
-            var cmd = _builder.setTable("users")
+            var cmd = _builder.from("users")
                 .select("age")
                 .select("COUNT(*) as count")
                 .groupBy("age")

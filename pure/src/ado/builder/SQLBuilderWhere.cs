@@ -397,14 +397,14 @@ namespace mooSQL.data {
                 }
             }
             if (val !=null && RegxUntils.isPureSimpleStr(val.ToString())) {
-                return where(string.Format("{0} like '%{1}%'", key, val.ToString()));
+                return where(string.Format("{0} LIKE '%{1}%'", key, val.ToString()));
             }
             //更改实现方式，将内容部分直接作为参数；
             if (val == null) {
                 return this;
             }
             var Val = string.Format("%{0}%", val.ToString());
-            return where(key, Val, "like");
+            return where(key, Val, "LIKE");
             //
             //var content = Dialect.expression.stringConcat("'%'", "{0}", "'%'");
             //return whereFormat(key + " like "+ content, val);
