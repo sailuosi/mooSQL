@@ -68,6 +68,7 @@ namespace mooSQL.data
 			DbType            = ca.DbType;
 			Storage           = ca.Storage;
 			IsDiscriminator   = ca.IsDiscriminator;
+			Shard             = ca.Shard;
 			SkipOnEntityFetch = ca.SkipOnEntityFetch;
 			PrimaryKeyOrder   = ca.PrimaryKeyOrder;
 			IsColumn          = ca.IsColumn;
@@ -153,6 +154,11 @@ namespace mooSQL.data
 		/// 是否是区分列，用于多表继承。
 		/// </summary>
 		public bool IsDiscriminator { get; set; }
+
+		/// <summary>
+		/// 是否为分表分片键字段，须与 <see cref="SooTableAttribute.ShardMode"/> 或 <see cref="MooClient.useShard{T}"/> 配合使用。
+		/// </summary>
+		public bool Shard { get; set; }
 
 		/// <summary>
 		/// 查询时不包含此列

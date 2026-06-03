@@ -106,6 +106,9 @@ namespace mooSQL.data.Mapping
 
                         entityInfo.AddOrderBy(od);
                     }
+
+                    if (attr.Shard && entityColumn != null)
+                        ShardRegistration.MarkShardField(entityInfo, entityColumn);
                 }
                 //设置默认类型，如果设置了字段名称，未设置类型，则为实表字段
                 if(!string.IsNullOrWhiteSpace(entityColumn.DbColumnName) && entityColumn.Kind == FieldKind.None){
@@ -123,9 +126,6 @@ namespace mooSQL.data.Mapping
                 }
 
             }
-
-            if (propertyInfo.IsDefined(typeof(SooShardFieldAttribute), true) && entityColumn != null)
-                ShardRegistration.MarkShardField(entityInfo, entityColumn);
 
             return entityColumn;
         }

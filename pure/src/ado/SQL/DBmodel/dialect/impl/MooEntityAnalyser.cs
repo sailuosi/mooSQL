@@ -66,10 +66,9 @@ namespace mooSQL.data.Mapping
                 if (ca.HasScale()) entityColumn.Scale = ca.Scale;
                 if (ca.HasIsPrimaryKey())
                     entityColumn.IsPrimarykey = ca.IsPrimaryKey;
+                if (ca.Shard && entityColumn != null)
+                    ShardRegistration.MarkShardField(entityInfo, entityColumn);
             }
-
-            if (propertyInfo.IsDefined(typeof(SooShardFieldAttribute), true) && entityColumn != null)
-                ShardRegistration.MarkShardField(entityInfo, entityColumn);
 
             return entityColumn;
         }

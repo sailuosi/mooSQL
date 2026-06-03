@@ -16,8 +16,7 @@ namespace mooSQL.Pure.Tests
         [SooColumn(IsPrimaryKey = true)]
         public long Id { get; set; }
 
-        [SooColumn]
-        [SooShardField]
+        [SooColumn(Shard = true)]
         public DateTime CreateTime { get; set; }
 
         [SooColumn]

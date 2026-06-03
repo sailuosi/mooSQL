@@ -327,7 +327,7 @@ public class OrderRepository : SooRepository<Order>
 [SooTable("Order_{year}{month}", ShardMode = TableShardMode.Month, ShardAnchor = "2024-1-1")]
 public class OrderLog
 {
-    [SooShardField]
+    [SooColumn(Shard = true)]
     public DateTime CreateTime { get; set; }
 }
 ```
@@ -337,7 +337,7 @@ public class OrderLog
 | `ShardMode` | `None`（默认，不分表）、`Year` / `Month` / `Day` / `Interval` 等 |
 | `NameTemplate` | 物理表名模板（可与 `SooTable.Name` 合并） |
 | `ShardAnchor` | 周期分表锚点日期 |
-| `[SooShardField]` | 分片键字段（对标 SqlSugar `[SplitField]`） |
+| `SooColumn.Shard` | 分片键字段（对标 SqlSugar `[SplitField]`） |
 
 `ShardMode != None` 时解析器自动设置 `LiveName = true` 并注册 `NameParses`。
 

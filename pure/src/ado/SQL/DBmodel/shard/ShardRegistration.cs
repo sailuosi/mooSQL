@@ -69,7 +69,7 @@ namespace mooSQL.data
             if (info.Shard.Mode != TableShardMode.Custom &&
                 string.IsNullOrWhiteSpace(info.Shard.ShardKeyProperty))
                 throw new InvalidOperationException(
-                    $"实体 {info.EntityName} 启用了分表但未标记 [SooShardField] 分片键属性。");
+                    $"实体 {info.EntityName} 启用了分表但未在 [SooColumn(Shard = true)] 中标记分片键属性。");
 
             if (info.LiveName != true)
                 info.LiveName = true;

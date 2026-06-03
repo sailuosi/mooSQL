@@ -12,7 +12,7 @@ namespace mooSQL.data
         /// </summary>
         public TableShardMode Mode { get; set; }
 
-        /// <summary>分片键属性名，由 <see cref="SooShardFieldAttribute"/> 解析填充。</summary>
+        /// <summary>分片键属性名，由 <see cref="SooColumnAttribute.Shard"/> 解析填充。</summary>
         public string ShardKeyProperty { get; set; }
 
         /// <summary>

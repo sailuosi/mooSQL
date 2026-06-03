@@ -124,7 +124,7 @@ builder.save(user);     // 自动判断插入或更新
 [SooTable("Order_{year}{month}", ShardMode = TableShardMode.Month)]
 public class OrderLog
 {
-    [SooShardField]
+    [SooColumn(Shard = true)]
     public DateTime CreateTime { get; set; }
 }
 
