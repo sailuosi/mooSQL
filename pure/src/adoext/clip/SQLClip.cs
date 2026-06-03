@@ -191,7 +191,7 @@ namespace mooSQL.data
         /// <typeparam name="J"></typeparam>
         /// <param name="tableJ"></param>
         /// <returns></returns>
-        public ClipJoin<J> join<J>(out J tableJ, string joinPrefix = "join") where J : new()
+        public ClipJoin<J> join<J>(out J tableJ, string joinPrefix = "JOIN") where J : new()
         {
             tableJ = new J();
             //tableJ = AnonyTypeUtil.CreateInstanceWithDefaults<J>();
