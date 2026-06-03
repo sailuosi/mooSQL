@@ -33,7 +33,7 @@ namespace mooSQL.data
             sb.Append("SELECT ");
             if (frag.distincted)
             {
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             }
             sb.Append(frag.selectInner);
             //如果使用了行号函数
@@ -51,7 +51,7 @@ namespace mooSQL.data
 
             if (frag.toped > -1)
             {
-                sb.Append("limit ");
+                sb.Append("LIMIT ");
                 sb.Append(frag.toped);
                 sb.Append(" ");
             }
@@ -65,49 +65,49 @@ namespace mooSQL.data
             sb.Append("SELECT ");
             if (frag.distincted)
             {
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             }
             sb.Append(frag.selectInner);
             sb.Append(" ");
-            sb.Append("from ");
+            sb.Append("FROM ");
             sb.Append(frag.fromInner);
             sb.Append(" ");
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
-                sb.Append("where ");
+                sb.Append("WHERE ");
                 sb.Append(frag.whereInner);
                 sb.Append(" ");
             }
 
             if (!string.IsNullOrWhiteSpace(frag.groupByInner))
             {
-                sb.Append("group by ");
+                sb.Append("GROUP BY ");
                 sb.Append(frag.groupByInner);
                 sb.Append(" ");
             }
             if (!string.IsNullOrWhiteSpace(frag.havingInner))
             {
-                sb.Append("having ");
+                sb.Append("HAVING ");
                 sb.Append(frag.havingInner);
                 sb.Append(" ");
             }
 
             if (!string.IsNullOrWhiteSpace(frag.rowNumberOrderBy))
             {
-                sb.Append("order by ");
+                sb.Append("ORDER BY ");
                 sb.Append(frag.rowNumberOrderBy);
                 sb.Append(" ");
             }
             else if (!string.IsNullOrWhiteSpace(frag.orderbyInner))
             {
-                sb.Append("order by ");
+                sb.Append("ORDER BY ");
                 sb.Append(frag.orderbyInner);
                 sb.Append(" ");
             }
 
             if (frag.pageSize > -1) {
                 int end = frag.pageSize * (frag.pageNum - 1);
-                sb.Append("limit ");
+                sb.Append("LIMIT ");
                 sb.Append(end);
                 sb.Append(" ,");
                 sb.Append(frag.pageSize);
@@ -115,7 +115,7 @@ namespace mooSQL.data
             }
             else if (frag.toped > -1)
             {
-                sb.Append("limit ");
+                sb.Append("LIMIT ");
                 sb.Append(frag.toped);
                 sb.Append(" ");
             }

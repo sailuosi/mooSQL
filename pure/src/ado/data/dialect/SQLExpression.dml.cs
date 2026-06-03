@@ -94,27 +94,27 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string buildSelectCount(FragSQL frag) {
 
-            string res = "select count(*) as cn ";
+            string res = "SELECT COUNT(*) AS cn ";
             //如果包含了distinct，则不能省略列信息
             if (frag.distincted)
             {
 
-                res = "select distinct " + frag.selectInner;
+                res = "SELECT DISTINCT " + frag.selectInner;
             }
             //未设置from部分时，直接使用表名
-            res += " from ";
+            res += " FROM ";
             res += frag.fromInner;
             //检查where部分
 
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
-                res += " where ";
+                res += " WHERE ";
                 res += frag.whereInner;
             }
 
             if (frag.distincted)
             {
-                res = "select count(*) as cn from (" + res + ") ditnumwrap";
+                res = "SELECT COUNT(*) AS cn FROM (" + res + ") ditnumwrap";
             }
 
             return res;
@@ -150,17 +150,17 @@ namespace mooSQL.data
                 asName = "rowoonum";
             }
 
-            var nfie = "ROW_NUMBER() over (";
+            var nfie = "ROW_NUMBER() OVER (";
             if (!string.IsNullOrWhiteSpace(frag.rowNumberOrderBy))
             {
-                nfie += "order by " + frag.rowNumberOrderBy;
+                nfie += "ORDER BY " + frag.rowNumberOrderBy;
             }
             else if (!string.IsNullOrWhiteSpace(orderby)) {
-                nfie += "order by " + orderby;
+                nfie += "ORDER BY " + orderby;
                 //如果外置的order by 被翻页使用，则替换后缀的order by 为翻页参数
                 orderby = asName + " ASC ";
             }
-            nfie += (") as " + asName);
+            nfie += (") AS " + asName);
 
             //追加到select语句中
             if (string.IsNullOrWhiteSpace(frag.selectInner))
@@ -187,16 +187,16 @@ namespace mooSQL.data
             sb.Append("SELECT ");
             if (frag.distincted)
             {
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             }
             
             if (!string.IsNullOrWhiteSpace(frag.rowNumberFieldName) && !string.IsNullOrWhiteSpace(frag.rowNumberOrderBy)){
-                var nfie = "ROW_NUMBER() over (";
+                var nfie = "ROW_NUMBER() OVER (";
 
-                    nfie += "order by " + frag.rowNumberOrderBy;
+                    nfie += "ORDER BY " + frag.rowNumberOrderBy;
                 
    
-                nfie += (") as " + frag.rowNumberFieldName);
+                nfie += (") AS " + frag.rowNumberFieldName);
                 if (!string.IsNullOrWhiteSpace(frag.selectInner))
                 {
                     frag.selectInner += "," + nfie;
@@ -209,25 +209,25 @@ namespace mooSQL.data
             }
             sb.Append(frag.selectInner);
             sb.Append(" ");
-            sb.Append("from ");
+            sb.Append("FROM ");
             sb.Append(frag.fromInner);
             sb.Append(" ");
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
-                sb.Append("where ");
+                sb.Append("WHERE ");
                 sb.Append(frag.whereInner);
                 sb.Append(" ");
             }
 
             if (!string.IsNullOrWhiteSpace(frag.groupByInner))
             {
-                sb.Append("group by ");
+                sb.Append("GROUP BY ");
                 sb.Append(frag.groupByInner);
                 sb.Append(" ");
             }
             if (!string.IsNullOrWhiteSpace(frag.havingInner))
             {
-                sb.Append("having ");
+                sb.Append("HAVING ");
                 sb.Append(frag.havingInner);
                 sb.Append(" ");
             }
@@ -235,7 +235,7 @@ namespace mooSQL.data
 
             if (!string.IsNullOrWhiteSpace(frag.orderbyInner))
             {
-                sb.Append("order by ");
+                sb.Append("ORDER BY ");
                 sb.Append(frag.orderbyInner);
                 sb.Append(" ");
             }
@@ -257,12 +257,12 @@ namespace mooSQL.data
                 asName = "rowoonum";
             }
 
-            var nfie = "ROW_NUMBER() over (";
+            var nfie = "ROW_NUMBER() OVER (";
             if (!string.IsNullOrWhiteSpace(frag.rowNumberOrderBy))
             {
-                nfie += "order by " + frag.rowNumberOrderBy;
+                nfie += "ORDER BY " + frag.rowNumberOrderBy;
             }
-            nfie += (") as " + asName);
+            nfie += (") AS " + asName);
             return " "+ nfie+" ";
         }
 
@@ -278,7 +278,7 @@ namespace mooSQL.data
             sql.whereInner = orderColName + " > " + end;
             sql.toped = pageSize;
 
-            return "with datares as ( " + readSql + " ) " + buildSelect(sql);
+            return "WITH datares AS ( " + readSql + " ) " + buildSelect(sql);
         }
         /// <summary>
         /// wrapPaged 方法（返回 string）。
@@ -292,7 +292,7 @@ namespace mooSQL.data
             sql.whereInner = orderColName + " > " + end;
             sql.orderbyInner = orderByPart;
             sql.toped = pageSize;
-            return "with datares as ( " + readSql + " ) " + buildSelect(sql);
+            return "WITH datares AS ( " + readSql + " ) " + buildSelect(sql);
         }
 
 
@@ -302,7 +302,7 @@ namespace mooSQL.data
         public string wrapPageOrder(string orderByPart, string readsql, int pageSize, int pageNum)
         {
             //采取直接套一层语句的方式。
-            string ressql = "select *,ROW_NUMBER() over (order by " + orderByPart + ") as oonum from (" + readsql + ") as tam";
+            string ressql = "SELECT *,ROW_NUMBER() OVER (ORDER BY " + orderByPart + ") AS oonum FROM (" + readsql + ") AS tam";
             return this.wrapPaged("oonum", ressql, pageSize, pageNum);
         }
 
@@ -332,7 +332,7 @@ namespace mooSQL.data
 
                 if (!string.IsNullOrWhiteSpace(frag.whereInner))
                 {
-                    sql.AppendFormat(" where {0}", frag.whereInner);
+                    sql.AppendFormat(" WHERE {0}", frag.whereInner);
                 }
             }
             else { 
@@ -380,7 +380,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string buildDelete(FragSQL frag) {
             StringBuilder sql = new StringBuilder();
-            sql.Append("Delete ");//FROM  
+            sql.Append("DELETE ");//FROM  
 
             if (!string.IsNullOrWhiteSpace(frag.fromInner))
             {
@@ -391,7 +391,7 @@ namespace mooSQL.data
                 sql.Append(frag.fromInner);
                 if (!string.IsNullOrWhiteSpace(frag.whereInner))
                 {
-                    sql.AppendFormat(" where {0}", frag.whereInner);
+                    sql.AppendFormat(" WHERE {0}", frag.whereInner);
                 }
             }
             else {
@@ -400,7 +400,7 @@ namespace mooSQL.data
                 sql.Append(frag.deleteTar);
                 if (!string.IsNullOrWhiteSpace(frag.whereInner))
                 {
-                    sql.AppendFormat(" where {0}", frag.whereInner);
+                    sql.AppendFormat(" WHERE {0}", frag.whereInner);
                 }
             }
             
@@ -441,24 +441,24 @@ namespace mooSQL.data
             //then delete
 
             var sb = new StringBuilder();
-            sb.AppendFormat("merge into {0} ", frag.intoTable);
+            sb.AppendFormat("MERGE INTO {0} ", frag.intoTable);
 
             if (!string.IsNullOrWhiteSpace(frag.usingAlias))
             {
-                sb.AppendFormat(" using ({0}) as {1} ", frag.usingTable,frag.usingAlias);
+                sb.AppendFormat(" USING ({0}) AS {1} ", frag.usingTable,frag.usingAlias);
             }
             else
             {
-                sb.AppendFormat(" using {0}", frag.usingTable);
+                sb.AppendFormat(" USING {0}", frag.usingTable);
             }
-            sb.AppendFormat(" on ({0}) ", frag.onPart);
+            sb.AppendFormat(" ON ({0}) ", frag.onPart);
             foreach (var when in frag.mergeWhens) {
                 var moreWH = "";
                 if (when.matched) {
-                    moreWH += " when matched ";
+                    moreWH += " WHEN MATCHED ";
                 }
                 else { 
-                    moreWH += " when not matched ";
+                    moreWH += " WHEN NOT MATCHED ";
                 }
                 if (!string.IsNullOrWhiteSpace(when.whenWhere))
                 {
@@ -467,16 +467,16 @@ namespace mooSQL.data
                 if (when.action == MergeAction.update)
                 {
 
-                    sb.AppendFormat(" {0} then update set {1} ", moreWH,this.buildSetPartList( when.setInner));
+                    sb.AppendFormat(" {0} THEN UPDATE SET {1} ", moreWH,this.buildSetPartList( when.setInner));
                 }
                 else if (when.action == MergeAction.insert)
                 {
-                    sb.AppendFormat(" {0} then insert({1}) values( {2}) "
+                    sb.AppendFormat(" {0} THEN INSERT({1}) VALUES( {2}) "
                         , moreWH, when.fieldInner, when.valueInner);
                 }
                 else if (when.action == MergeAction.delete) {
                     sb.Append(moreWH);
-                    sb.Append(" then delete ");
+                    sb.Append(" THEN DELETE ");
                 }
             }
             sb.Append(";");
@@ -493,7 +493,7 @@ namespace mooSQL.data
             if (cte.Empty) return "";
             
             var res= new StringBuilder();
-            res.Append("with ");
+            res.Append("WITH ");
             int cc = 0;
             foreach (var item in cte.cteList) {
                 var cmd = item.getSQL();
@@ -505,7 +505,7 @@ namespace mooSQL.data
                     }
                     res.Append(" ");
                     res.Append(item.asName);
-                    res.Append(" as (");
+                    res.Append(" AS (");
                     res.Append(cmd);
                     res.Append(')');
                     res.Append(" ");
@@ -539,7 +539,7 @@ namespace mooSQL.data
                 strset.Append("=");
                 strset.Append(kv.Value);
             }
-            var res = string.Format("UPDATE {0} set {1} where {2}", tableName, strset, whereString);
+            var res = string.Format("UPDATE {0} SET {1} WHERE {2}", tableName, strset, whereString);
             return res;
         }
 

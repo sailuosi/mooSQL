@@ -63,7 +63,7 @@ namespace mooSQL.data
             sb.Append("SELECT ");
             if (frag.distincted)
             {
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             }
             sb.Append(frag.selectInner);
 

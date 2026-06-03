@@ -60,11 +60,11 @@ namespace mooSQL.data
             sb.Append("SELECT ");
             if (frag.distincted)
             {
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             }
             if (frag.toped > -1)
             {
-                sb.Append("top ");
+                sb.Append("TOP ");
                 sb.Append(frag.toped);
                 sb.Append(" ");
             }
@@ -86,7 +86,7 @@ namespace mooSQL.data
 
 
             sb.Append(" ");
-            sb.Append("from ");
+            sb.Append("FROM ");
             sb.Append(frag.fromInner);
 
             if (frag.pivots != null) {
@@ -114,27 +114,27 @@ namespace mooSQL.data
             sb.Append(" ");
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
-                sb.Append("where ");
+                sb.Append("WHERE ");
                 sb.Append(frag.whereInner);
                 sb.Append(" ");
             }
 
             if (!string.IsNullOrWhiteSpace(frag.groupByInner))
             {
-                sb.Append("group by ");
+                sb.Append("GROUP BY ");
                 sb.Append(frag.groupByInner);
                 sb.Append(" ");
             }
             if (!string.IsNullOrWhiteSpace(frag.havingInner))
             {
-                sb.Append("having ");
+                sb.Append("HAVING ");
                 sb.Append(frag.havingInner);
                 sb.Append(" ");
             }
 
             if (!string.IsNullOrWhiteSpace(frag.orderbyInner))
             {
-                sb.Append("order by ");
+                sb.Append("ORDER BY ");
                 sb.Append(frag.orderbyInner);
                 sb.Append(" ");
             }
