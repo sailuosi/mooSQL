@@ -2,10 +2,10 @@
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryHelperVisitorBase : ClauseVisitor
+	public class ClauseHelperVisitorBase : ClauseVisitor
 	{
         public VisitMode VisitingMode;
-        public SqlQueryHelperVisitorBase()
+        public ClauseHelperVisitorBase()
 		{
             VisitingMode = VisitMode.ReadOnly;
         }
