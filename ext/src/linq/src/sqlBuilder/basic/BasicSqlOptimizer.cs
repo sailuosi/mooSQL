@@ -399,7 +399,7 @@ namespace mooSQL.linq.SqlProvider
 			return statement;
 		}
 
-		class SqlRowExpandVisitor : SqlQueryVisitor
+		class SqlRowExpandVisitor : SentenceVisitor
 		{
             SelectQueryClause? _updateSelect;
 
@@ -1984,7 +1984,7 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			if (isModified)
 			{
-				var corrector = new SqlQueryColumnNestingCorrector();
+				var corrector = new SentenceColumnNestingCorrector();
 				corrector.CorrectColumnNesting(statement);
 			}
 

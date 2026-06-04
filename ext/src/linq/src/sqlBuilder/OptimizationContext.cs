@@ -28,15 +28,15 @@ namespace mooSQL.linq.SqlProvider
 
 		readonly Func<IQueryParametersNormalizer>           _parametersNormalizerFactory;
 
-		public SqlQueryVisitor.IVisitorTransformationInfo TransformationInfo => 
-			_transformationInfo ??= new SqlQueryVisitor.VisitorTransformationInfo();
+		public SentenceVisitor.IVisitorTransformationInfo TransformationInfo => 
+			_transformationInfo ??= new SentenceVisitor.VisitorTransformationInfo();
 
-		SqlQueryVisitor.IVisitorTransformationInfo? _transformationInfo;
+		SentenceVisitor.IVisitorTransformationInfo? _transformationInfo;
 
-		public SqlQueryVisitor.IVisitorTransformationInfo TransformationInfoConvert => 
-			_transformationInfoConvert ??= new SqlQueryVisitor.VisitorTransformationInfo();
+		public SentenceVisitor.IVisitorTransformationInfo TransformationInfoConvert => 
+			_transformationInfoConvert ??= new SentenceVisitor.VisitorTransformationInfo();
 
-		SqlQueryVisitor.IVisitorTransformationInfo? _transformationInfoConvert;
+		SentenceVisitor.IVisitorTransformationInfo? _transformationInfoConvert;
 
 
 		public EvaluateContext EvaluationContext              { get; }

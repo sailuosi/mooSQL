@@ -3,7 +3,7 @@ using System;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryCloneVisitor : SqlQueryCloneVisitorBase
+	public class SentenceCloneVisitor : SentenceCloneVisitorBase
 	{
 		Func<Clause, bool>? _cloneFunc;
 

@@ -7,7 +7,7 @@ namespace mooSQL.linq.SqlQuery
     using mooSQL.data.model;
     using Visitors;
 
-	public class SqlQueryColumnNestingCorrector : SqlQueryVisitor
+	public class SentenceColumnNestingCorrector : SentenceVisitor
 	{
 		[DebuggerDisplay("QN(S:{TableSource.SourceID})")]
 		class QueryNesting
@@ -82,7 +82,7 @@ namespace mooSQL.linq.SqlQuery
 
 		public bool HasSelectQuery { get; private set; }
 
-		public SqlQueryColumnNestingCorrector() : base(VisitMode.Modify, null)
+		public SentenceColumnNestingCorrector() : base(VisitMode.Modify, null)
 		{
 		}
 

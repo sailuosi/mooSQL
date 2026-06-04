@@ -15,7 +15,7 @@ namespace mooSQL.linq.SqlProvider
     using mooSQL.data.model.affirms;
     using mooSQL.data;
 
-    public class SqlExpressionOptimizerVisitor : SqlQueryVisitor
+    public class SqlExpressionOptimizerVisitor : SentenceVisitor
 	{
 		EvaluateContext  _evaluationContext  = default!;
 		NullabilityContext _nullabilityContext = default!;

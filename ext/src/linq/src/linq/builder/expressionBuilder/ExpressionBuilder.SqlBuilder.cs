@@ -158,7 +158,7 @@ namespace mooSQL.linq.Linq.Builder
 		#region SubQueryToSql
 
 		/// <summary>
-		/// Checks that provider can handle limitation inside subquery. This function is tightly coupled with <see cref="SelectQueryOptimizerVisitor.OptimizeApply"/>
+		/// Checks that provider can handle limitation inside subquery. This function is tightly coupled with <see cref="SentenceOptimizerVisitor.OptimizeApply"/>
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>

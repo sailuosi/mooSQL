@@ -17,8 +17,8 @@ namespace mooSQL.linq.SqlQuery
 
     public static partial class QueryHelper
 	{
-		internal static ObjectPool<SelectQueryOptimizerVisitor> SelectOptimizer =
-			new(() => new SelectQueryOptimizerVisitor(), v => v.Cleanup(), 100);
+		internal static ObjectPool<SentenceOptimizerVisitor> SelectOptimizer =
+			new(() => new SentenceOptimizerVisitor(), v => v.Cleanup(), 100);
 
 		sealed class IsDependsOnSourcesContext
 		{

@@ -225,7 +225,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 			return visitor.ContainsNotNullExpr;
 		}
 
-		class ValidateThatQueryHasNoIsNotNullParentReferenceVisitor : SqlQueryVisitor
+		class ValidateThatQueryHasNoIsNotNullParentReferenceVisitor : SentenceVisitor
 		{
 			public Stack<ITableNode> _currentSources = new Stack<ITableNode>();
 

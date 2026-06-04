@@ -10,7 +10,7 @@ namespace mooSQL.linq.SqlQuery
 
 	public partial class QueryHelper
 	{
-		class WrapQueryVisitor<TContext> : SqlQueryVisitor
+		class WrapQueryVisitor<TContext> : SentenceVisitor
 		{
 			ISQLNode       _root = default!;
 

@@ -19,7 +19,7 @@ namespace mooSQL.linq.SqlProvider
 	using SqlQuery.Visitors;
     using static mooSQL.data.model.AffirmWord;
 
-    public class SqlExpressionConvertVisitor : SqlQueryVisitor
+    public class SqlExpressionConvertVisitor : SentenceVisitor
 	{
 		protected bool            IsInsideNot;
 		protected IExpWord? IsForPredicate;

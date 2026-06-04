@@ -9,12 +9,12 @@ namespace mooSQL.linq.SqlQuery
     using mooSQL.data.model.affirms;
     using Visitors;
 
-	public class SqlQueryColumnUsageCollector : SqlQueryVisitor
+	public class SentenceColumnUsageCollector : SentenceVisitor
 	{
 		SelectQueryClause?                _parentSelectQuery;
 		readonly HashSet<ColumnWord> _usedColumns = new(Utils.ObjectReferenceEqualityComparer<ColumnWord>.Default);
 
-		public SqlQueryColumnUsageCollector() : base(VisitMode.ReadOnly, null)
+		public SentenceColumnUsageCollector() : base(VisitMode.ReadOnly, null)
 		{
 		}
 

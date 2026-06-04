@@ -20,7 +20,7 @@ namespace mooSQL.linq.SqlQuery
     using mooSQL.utils;
     using mooSQL.data;
 
-    public class SelectQueryOptimizerVisitor : SqlQueryVisitor
+    public class SentenceOptimizerVisitor : SentenceVisitor
 	{
 		SQLProviderFlags  _providerFlags     = default!;
 		public DBInstance DBLive {  get; set; }
@@ -42,14 +42,14 @@ namespace mooSQL.linq.SqlQuery
 		bool            _isInsideNot;
 		SelectQueryClause?    _updateQuery;
 
-		SqlQueryColumnNestingCorrector _columnNestingCorrector      = new();
-		SqlQueryColumnUsageCollector   _columnUsageCollector        = new();
-		SqlQueryOrderByOptimizer       _orderByOptimizer            = new();
+		SentenceColumnNestingCorrector _columnNestingCorrector      = new();
+		SentenceColumnUsageCollector   _columnUsageCollector        = new();
+		SentenceOrderByOptimizer       _orderByOptimizer            = new();
 		MovingComplexityVisitor        _movingComplexityVisitor     = new();
 		SqlExpressionOptimizerVisitor  _expressionOptimizerVisitor  = new(true);
 		MovingOuterPredicateVisitor    _movingOuterPredicateVisitor = new();
 
-		public SelectQueryOptimizerVisitor() : base(VisitMode.Modify, null)
+		public SentenceOptimizerVisitor() : base(VisitMode.Modify, null)
 		{
 		}
 

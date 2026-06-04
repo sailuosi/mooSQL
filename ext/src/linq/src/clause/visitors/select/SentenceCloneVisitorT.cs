@@ -3,7 +3,7 @@ using System;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryCloneVisitor<TContext> : SqlQueryCloneVisitorBase
+	public class SentenceCloneVisitor<TContext> : SentenceCloneVisitorBase
 
 	{
 		TContext                            _context   = default!;

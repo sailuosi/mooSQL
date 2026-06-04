@@ -8,7 +8,7 @@ using mooSQL.linq.SqlQuery.Visitors;
 
 namespace mooSQL.linq.SqlQuery
 {
-	public class SqlQueryOrderByOptimizer : SqlQueryVisitor
+	public class SentenceOrderByOptimizer : SentenceVisitor
 	{
 		SQLProviderFlags _providerFlags = default!;
 		bool             _disableOrderBy;
@@ -17,7 +17,7 @@ namespace mooSQL.linq.SqlQuery
 
 		public bool IsOptimized => _optimized;
 
-		public SqlQueryOrderByOptimizer() : base(VisitMode.Modify, null)
+		public SentenceOrderByOptimizer() : base(VisitMode.Modify, null)
 		{
 		}
 

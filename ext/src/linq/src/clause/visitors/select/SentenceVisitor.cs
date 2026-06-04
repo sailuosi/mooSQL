@@ -17,7 +17,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 	/// <item>skips visit of replaced element.</item>
 	/// </list>
 	/// </summary>
-	public abstract class SqlQueryVisitor : ClauseVisitor
+	public abstract class SentenceVisitor : ClauseVisitor
 	{
 		IVisitorTransformationInfo? _transformationInfo;
 
@@ -33,7 +33,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 		public VisitMode VisitingMode;
 
-        protected SqlQueryVisitor(VisitMode visitMode, IVisitorTransformationInfo? transformationInfo)
+        protected SentenceVisitor(VisitMode visitMode, IVisitorTransformationInfo? transformationInfo)
 		{
 			SetTransformationInfo(transformationInfo);
 			this.VisitingMode = visitMode;
@@ -169,13 +169,13 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 		/// <summary>
 		/// Visitor replaces elements in visited tree with new elements from <see cref="_transformationInfo"/> replacement map.
-		/// Separate replace-only visitor used to avoid side-effects from parent <see cref="SqlQueryVisitor"/> implementor.
+		/// Separate replace-only visitor used to avoid side-effects from parent <see cref="SentenceVisitor"/> implementor.
 		/// </summary>
 		sealed class Replacer : ClauseVisitor
 		{
-			readonly SqlQueryVisitor _queryVisitor;
+			readonly SentenceVisitor _queryVisitor;
 
-			public Replacer(SqlQueryVisitor queryVisitor)
+			public Replacer(SentenceVisitor queryVisitor)
 			{
 				_queryVisitor = queryVisitor;
 			}

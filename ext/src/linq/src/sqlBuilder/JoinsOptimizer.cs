@@ -131,7 +131,7 @@ namespace mooSQL.linq.SqlProvider
 
 			if (correct)
 			{
-				var corrector = new SqlQueryColumnNestingCorrector();
+				var corrector = new SentenceColumnNestingCorrector();
 				corrector.CorrectColumnNesting(statement);
 			}
 		}
