@@ -8,7 +8,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 	/// Search for element in query using search condition predicate.
 	/// Do not visit provided element.
 	/// </summary>
-	public class SqlQueryFindExceptVisitor<TContext> : ClauseVisitor
+	public class ClauseFindExceptVisitor<TContext> : ClauseVisitor
 	{
 		TContext                            _context  = default!;
 		Func<TContext, ISQLNode, bool> _findFunc = default!;
@@ -16,7 +16,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 		ISQLNode?                      _found;
 
         public VisitMode VisitingMode;
-        public SqlQueryFindExceptVisitor() 
+        public ClauseFindExceptVisitor() 
 		{
             VisitingMode = VisitMode.ReadOnly;
         }

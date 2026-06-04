@@ -21,7 +21,7 @@ namespace mooSQL.linq.SqlQuery
 		static class PoolHolder<TContext>
 		{
 			public static readonly ObjectPool<SqlQueryFindVisitor<TContext>>        FindPool        = new(() => new SqlQueryFindVisitor<TContext>(),         v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryFindExceptVisitor<TContext>>  FindExceptPool  = new(() => new SqlQueryFindExceptVisitor<TContext>(),   v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseFindExceptVisitor<TContext>>  FindExceptPool  = new(() => new ClauseFindExceptVisitor<TContext>(),   v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryActionVisitor<TContext>>      ActionPool      = new(() => new SqlQueryActionVisitor<TContext>(),       v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryParentFirstVisitor<TContext>> ParentFirstPool = new(() => new SqlQueryParentFirstVisitor<TContext>(),  v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryCloneVisitor<TContext>>       ClonePool       = new(() => new SqlQueryCloneVisitor<TContext>(),        v => v.Cleanup(), 100);
