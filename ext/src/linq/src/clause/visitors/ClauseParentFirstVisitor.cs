@@ -7,13 +7,13 @@ namespace mooSQL.linq.SqlQuery.Visitors
 	using Common;
     using mooSQL.data.model;
 
-    public class SqlQueryParentFirstVisitor : ClauseVisitor
+    public class ClauseParentFirstVisitor : ClauseVisitor
 	{
 		Func<Clause, bool> _action = default!;
 		HashSet<Clause>?   _visited;
 
 		public VisitMode VisitingMode;
-        public SqlQueryParentFirstVisitor()
+        public ClauseParentFirstVisitor()
         {
 			VisitingMode = VisitMode.ReadOnly;
 
