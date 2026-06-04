@@ -102,4 +102,8 @@
   <ItemGroup>
     <ProjectReference Include="..\pure\mooSQL.Pure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\linq\src\entity\mapping\attrs\" />
+  </ItemGroup>
 </Project>
