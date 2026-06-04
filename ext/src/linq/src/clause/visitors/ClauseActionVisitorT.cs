@@ -7,13 +7,13 @@ namespace mooSQL.linq.SqlQuery.Visitors
 	using Common;
     using mooSQL.data.model;
 
-    public class SqlQueryActionVisitor<TContext> : ClauseVisitor
+    public class ClauseActionVisitor<TContext> : ClauseVisitor
 	{
 		TContext                        _context     = default!;
 		Action<TContext, ISQLNode> _visitAction = default!;
 		HashSet<ISQLNode>?         _visited;
 
-		public SqlQueryActionVisitor()
+		public ClauseActionVisitor()
 		{
 		}
 

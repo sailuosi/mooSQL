@@ -8,12 +8,12 @@ namespace mooSQL.linq.SqlQuery.Visitors
     using mooSQL.data.model;
     using System.Xml.Linq;
 
-    public class SqlQueryActionVisitor : ClauseVisitor
+    public class ClauseActionVisitor : ClauseVisitor
 	{
 		Action<ISQLNode>   _visitAction = default!;
 		HashSet<ISQLNode>? _visited;
 
-		public SqlQueryActionVisitor() 
+		public ClauseActionVisitor() 
 		{
 		}
 

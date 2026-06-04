@@ -13,7 +13,7 @@ namespace mooSQL.linq.SqlQuery
 	public static class QueryVisitorExtensions
 	{
 		internal static readonly ObjectPool<ClauseFindVisitor>          FindVisitorPool      = new(() => new ClauseFindVisitor(),          v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<SqlQueryActionVisitor>        ActionVisitorPool    = new(() => new SqlQueryActionVisitor(),        v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseActionVisitor>        ActionVisitorPool    = new(() => new ClauseActionVisitor(),        v => v.Cleanup(), 100);
 		internal static readonly ObjectPool<ClauseParentFirstVisitor>   ParentVisitorPool    = new(() => new ClauseParentFirstVisitor(),   v => v.Cleanup(), 100);
 		internal static readonly ObjectPool<SqlQueryCloneVisitor>         CloneVisitorPool     = new(() => new SqlQueryCloneVisitor(),         v => v.Cleanup(), 100);
 		internal static readonly ObjectPool<ClauseReplacingVisitor> ReplacingVisitorPool = new(() => new ClauseReplacingVisitor(), v => v.Cleanup(), 100);
@@ -22,7 +22,7 @@ namespace mooSQL.linq.SqlQuery
 		{
 			public static readonly ObjectPool<ClauseFindVisitor<TContext>>        FindPool        = new(() => new ClauseFindVisitor<TContext>(),         v => v.Cleanup(), 100);
 			public static readonly ObjectPool<ClauseFindExceptVisitor<TContext>>  FindExceptPool  = new(() => new ClauseFindExceptVisitor<TContext>(),   v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryActionVisitor<TContext>>      ActionPool      = new(() => new SqlQueryActionVisitor<TContext>(),       v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseActionVisitor<TContext>>      ActionPool      = new(() => new ClauseActionVisitor<TContext>(),       v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryParentFirstVisitor<TContext>> ParentFirstPool = new(() => new SqlQueryParentFirstVisitor<TContext>(),  v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryCloneVisitor<TContext>>       ClonePool       = new(() => new SqlQueryCloneVisitor<TContext>(),        v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryConvertVisitor<TContext>>     ConvertPool     = new(() => new SqlQueryConvertVisitor<TContext>(false), v => v.Cleanup(), 100);

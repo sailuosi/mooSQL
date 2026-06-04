@@ -10,7 +10,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 	using SqlProvider;
 
-	public class SqlQueryValidatorVisitor : ClauseVisitor
+	public class ClauseValidatorVisitor : ClauseVisitor
 	{
         SelectQueryClause?     _parentQuery;
         JoinTableWord?  _fakeJoin;
@@ -33,7 +33,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 		private VisitMode VisitingMode;
 
-		public SqlQueryValidatorVisitor() 
+		public ClauseValidatorVisitor() 
 		{
 			this.VisitingMode = VisitMode.ReadOnly;
 
