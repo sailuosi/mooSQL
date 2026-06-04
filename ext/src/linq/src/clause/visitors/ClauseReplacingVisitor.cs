@@ -5,13 +5,16 @@ using System.Linq;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class QueryElementReplacingVisitor : ClauseVisitor
+	/// <summary>
+	/// 置换访问者
+	/// </summary>
+	public class ClauseReplacingVisitor : ClauseVisitor
 	{
 		IDictionary<Clause, Clause> _replacements = default!;
         Clause[]                           _toIgnore     = default!;
 
 		public VisitMode VisitingMode { get; set; }
-        public QueryElementReplacingVisitor() 
+        public ClauseReplacingVisitor() 
 		{
 			this.VisitingMode = VisitMode.Modify;
 		}

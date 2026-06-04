@@ -16,7 +16,7 @@ namespace mooSQL.linq.SqlQuery
 		internal static readonly ObjectPool<SqlQueryActionVisitor>        ActionVisitorPool    = new(() => new SqlQueryActionVisitor(),        v => v.Cleanup(), 100);
 		internal static readonly ObjectPool<SqlQueryParentFirstVisitor>   ParentVisitorPool    = new(() => new SqlQueryParentFirstVisitor(),   v => v.Cleanup(), 100);
 		internal static readonly ObjectPool<SqlQueryCloneVisitor>         CloneVisitorPool     = new(() => new SqlQueryCloneVisitor(),         v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<QueryElementReplacingVisitor> ReplacingVisitorPool = new(() => new QueryElementReplacingVisitor(), v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseReplacingVisitor> ReplacingVisitorPool = new(() => new ClauseReplacingVisitor(), v => v.Cleanup(), 100);
 
 		static class PoolHolder<TContext>
 		{
