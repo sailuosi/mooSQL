@@ -4,13 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryFindVisitor : ClauseVisitor
+	public class ClauseFindVisitor : ClauseVisitor
 	{
 		Func<ISQLNode, bool> _findFunc = default!;
 		ISQLNode?            _found;
 
         public VisitMode VisitingMode;
-        public SqlQueryFindVisitor()
+        public ClauseFindVisitor()
 		{
             VisitingMode = VisitMode.ReadOnly;
         }
