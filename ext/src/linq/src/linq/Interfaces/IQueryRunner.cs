@@ -16,8 +16,6 @@ namespace mooSQL.linq.Linq
 
 		DBInstance     DBLive              { get; }
 		object?[]?     Parameters       { get; }
-		object?[]?     Preambles        { get; }
-		Expression?    MapperExpression { get; set; }
 		int            RowsCount        { get; set; }
 		int            QueryNumber      { get; set; }
 	}

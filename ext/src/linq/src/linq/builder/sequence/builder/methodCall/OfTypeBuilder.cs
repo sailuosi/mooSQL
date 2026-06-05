@@ -17,6 +17,9 @@ namespace mooSQL.linq.Linq.Builder
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsQueryable();
 
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new OfTypeBuilder().BuildSequence(builder, buildInfo);
+
 		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));

@@ -15,6 +15,9 @@ namespace mooSQL.linq.Linq.Builder
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsQueryable();
 
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new DefaultIfEmptyBuilder().BuildSequence(builder, buildInfo);
+
 		static ReadOnlyCollection<Expression>? PrepareNoNullConditions(ExpressionBuilder builder, IBuildContext notNullHandlerSequence, IBuildContext sequence, IBuildContext nullabilitySequence, bool allowNullField)
 		{
 			var sequenceRef  = new ContextRefExpression(sequence.ElementType, sequence);

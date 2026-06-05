@@ -369,9 +369,12 @@ Expression
 | First / Single* | ✅ | `ClauseMethodVisitor.FirstSingle.cs` |
 | LoadWith* | ✅ | `ClauseMethodVisitor.LoadWith.cs` |
 | Count / Sum / Min / Max / Average | ✅ | `ClauseMethodVisitor.Aggregate.cs` |
+| DefaultIfEmpty / OfType / ElementAt* | ✅ | 各对应 partial |
 | DML / Merge / SetOp 等 | ⏳ | 仍走 `ApplyBuilder` + Bindings 生成 |
 
 内联后运行 `python ext/src/linq/translator/tools/gen_bindings.py` 同步 `ClauseMethodVisitor.Bindings.cs`。
+
+**接口清理：** `IQueryRunner` 已移除 `Preambles`、`MapperExpression`；`QueryRunner.GetSqlText` 去掉未使用的 `parameters`/`preambles` 参数。
 
 ---
 
@@ -379,8 +382,8 @@ Expression
 
 ### 短期（阶段 2 收尾）
 
-- [ ] 评估是否内联 `DefaultIfEmpty`、`OfType`、`ElementAt` 等次高频 Builder
-- [ ] 清理 `IQueryRunner` 接口中 Mapper/Preambles 遗留成员
+- [x] 内联 `DefaultIfEmpty`、`OfType`、`ElementAt*` 等次高频 Builder
+- [x] 清理 `IQueryRunner` 接口中 Mapper/Preambles 遗留成员
 - [ ] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`Parameters` 字段与 expression 内嵌参数的一致性）
 - [ ] 补充集成测试：First/Single/Count、Join、LoadWith、Take/Skip 方言差异
 

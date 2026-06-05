@@ -16,7 +16,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitConcat(ConcatCall method) => ApplyBuilder<SetOperationBuilder>(method, SetOperationBuilder.CanBuildMethod);
     public override MethodCall VisitCrossJoin(CrossJoinCall method) => ApplyBuilder<AllJoinsLinqBuilder>(method, AllJoinsLinqBuilder.CanBuildMethod);
     public override MethodCall VisitDatabaseName(DatabaseNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitDefaultIfEmpty(DefaultIfEmptyCall method) => ApplyBuilder<DefaultIfEmptyBuilder>(method, DefaultIfEmptyBuilder.CanBuildMethod);
     public override MethodCall VisitDelete(DeleteCall method) => ApplyBuilder<DeleteBuilder>(method, DeleteBuilder.CanBuildMethod);
     public override MethodCall VisitDoDelete(DoDeleteCall method) => DispatchLegacy(method);
     public override MethodCall VisitDeleteWhenMatchedAnd(DeleteWhenMatchedAndCall method) => ApplyBuilder<MergeBuilder.DeleteWhenMatched>(method, MergeBuilder.DeleteWhenMatched.CanBuildMethod);
@@ -25,8 +24,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitDeleteWithOutputInto(DeleteWithOutputIntoCall method) => ApplyBuilder<DeleteBuilder>(method, DeleteBuilder.CanBuildMethod);
     public override MethodCall VisitDisableGuard(DisableGuardCall method) => ApplyBuilder<DisableGroupingGuardBuilder>(method, DisableGroupingGuardBuilder.CanBuildMethod);
     public override MethodCall VisitDrop(DropCall method) => ApplyBuilder<DropBuilder>(method, DropBuilder.CanBuildMethod);
-    public override MethodCall VisitElementAt(ElementAtCall method) => ApplyBuilder<ElementAtBuilder>(method, ElementAtBuilder.CanBuildMethod);
-    public override MethodCall VisitElementAtOrDefault(ElementAtOrDefaultCall method) => ApplyBuilder<ElementAtBuilder>(method, ElementAtBuilder.CanBuildMethod);
     public override MethodCall VisitElse(ElseCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
     public override MethodCall VisitEquals(EqualsCall method) => DispatchLegacy(method);
     public override MethodCall VisitExcept(ExceptCall method) => ApplyBuilder<SetOperationBuilder>(method, SetOperationBuilder.CanBuildMethod);
@@ -61,7 +58,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitMergeWithOutput(MergeWithOutputCall method) => ApplyBuilder<MergeBuilder>(method, MergeBuilder.CanBuildMethod);
     public override MethodCall VisitMergeWithOutputInto(MergeWithOutputIntoCall method) => ApplyBuilder<MergeBuilder>(method, MergeBuilder.CanBuildMethod);
     public override MethodCall VisitMultiInsert(MultiInsertCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitOfType(OfTypeCall method) => ApplyBuilder<OfTypeBuilder>(method, OfTypeBuilder.CanBuildMethod);
     public override MethodCall VisitOn(OnCall method) => ApplyBuilder<MergeBuilder.On>(method, MergeBuilder.On.CanBuildMethod);
     public override MethodCall VisitOnTargetKey(OnTargetKeyCall method) => ApplyBuilder<MergeBuilder.On>(method, MergeBuilder.On.CanBuildMethod);
     public override MethodCall VisitQueryName(QueryNameCall method) => ApplyBuilder<QueryNameBuilder>(method, QueryNameBuilder.CanBuildMethod);

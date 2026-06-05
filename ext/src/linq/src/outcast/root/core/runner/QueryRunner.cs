@@ -186,7 +186,7 @@ namespace mooSQL.linq.Linq
 
 		#region GetSqlText
 
-		public static string GetSqlText(SentenceBag query, DBInstance dataContext, Expression expr, object?[]? parameters, object?[]? preambles)
+		public static string GetSqlText(SentenceBag query, DBInstance dataContext, Expression expr)
 		{
 			using var m = ActivityService.Start(ActivityID.GetSqlText);
 			return SentenceExecutor.GetSqlText(query, dataContext, expr);
