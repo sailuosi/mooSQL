@@ -256,9 +256,10 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					newExpr.DataType = columnDescriptor.DbType;
 
-					if (valueType != columnDescriptor.UnderType)
+					var memberType = columnDescriptor.UnderType ?? columnDescriptor.PropertyInfo?.PropertyType;
+
+					if (memberType != null && valueType != memberType)
 					{
-						var memberType = columnDescriptor.UnderType;
 						var noConvert  = valueGetter.UnwrapConvert();
 
 						if (noConvert.Type != typeof(object))

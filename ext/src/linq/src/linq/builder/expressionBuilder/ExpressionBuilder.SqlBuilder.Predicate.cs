@@ -241,10 +241,16 @@ namespace mooSQL.linq.Linq.Builder
 				if (ex is ColumnWord col)
 					ex = NullabilityWord.ApplyNullability(ex, NullabilityContext.GetContext(col.Parent));
 
-				var trueValue  = ConvertToSql(context, ExpressionInstances.True, columnDescriptor: descriptor);
-				var falseValue = ConvertToSql(context, ExpressionInstances.False, columnDescriptor: descriptor);
+				if (TryConvertToSql(context, ExpressionInstances.True, flags, descriptor, out var trueValue, out _)
+				    && TryConvertToSql(context, ExpressionInstances.False, flags, descriptor, out var falseValue, out _)
+				    && trueValue.NodeType == ClauseType.SqlValue
+				    && falseValue.NodeType == ClauseType.SqlValue)
+				{
+					return new IsTrue(ex, trueValue, falseValue, DBLive.dialect.Option.CompareNullsAsValues ? false : null, false);
+				}
 
-				return new IsTrue(ex, trueValue, falseValue, DBLive.dialect.Option.CompareNullsAsValues ? false : null, false);
+				return new ExprExpr(ex, AffirmWord.Operator.Equal, new ValueWord(true),
+					CompareNullsAsValues ? true : null);
 			}
 
 			if (ex is IAffirmWord expPredicate)

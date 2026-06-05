@@ -21,6 +21,7 @@ internal partial class ClauseMethodVisitor
     {
         if (method.callExpression is not MethodCallExpression methodCall)
             return method;
+            return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!OrderByBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))

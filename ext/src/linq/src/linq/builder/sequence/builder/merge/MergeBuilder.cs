@@ -32,6 +32,9 @@ namespace mooSQL.linq.Linq.Builder
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsSameGenericMethod(_supportedMethods);
 
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new MergeBuilder().BuildSequence(builder, buildInfo);
+
 		enum MergeKind
 		{
 			Merge,

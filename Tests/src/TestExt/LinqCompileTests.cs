@@ -110,7 +110,7 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.NotEmpty(sq.Where.SearchCondition.Predicates);
     }
 
-    [Fact(Skip = "OrderBy 编译后 SelectQuery.OrderBy.Items 仍为空，待 OrderByBuilder 对齐")]
+    [Fact]
     public void EntityVisit_CompileOrderBy_SelectQueryHasOrderByItems()
     {
         var db = _sqlite.Db;
@@ -124,7 +124,7 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("ORDER BY", sql, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact(Skip = "Take 编译后 Select.TakeValue 未写入，见 README Take/Skip 专项")]
+    [Fact]
     public void EntityVisit_CompileTake_SelectQueryHasTakeValue()
     {
         var db = _sqlite.Db;
@@ -138,7 +138,25 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact(Skip = "Count 聚合编译链未闭环，待 AggregationBuilder 端到端验证")]
+    [Fact]
+    public void EntityVisit_CompileCount_SelectQueryHasCountAggregate()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        Expression expr = bus.Expression;
+        expr = Expression.Call(
+            typeof(Queryable),
+            nameof(Queryable.Count),
+            [typeof(SQLiteTestUser)],
+            expr);
+
+        var bag = QueryMate.GetQuery<int>(db, ref expr, out _);
+        Assert.Null(bag.ErrorExpression);
+        Assert.NotEmpty(bag.Sentences);
+        Assert.NotNull(bag.Sentences[0].Statement.SelectQuery);
+    }
+
+    [Fact]
     public void EntityVisit_Count_ExecutesAgainstSqlite()
     {
         var db = _sqlite.Db;

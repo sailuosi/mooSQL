@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using mooSQL.data.model;
 using mooSQL.linq.Linq;
 using mooSQL.linq.Linq.Builder;
 
@@ -13,8 +14,9 @@ internal static class ClauseCompiler
         ExpressionBuilder builder,
         Expression expression)
     {
-        using var query = ExpressionBuilder.QueryPool.Allocate();
-        var buildInfo = new BuildInfo((IBuildContext?)null, expression, query.Value);
+        // 根查询使用独立 SelectQuery，避免 QueryPool 回收时 Cleanup 清空 ORDER BY / TAKE 等子句。
+        var selectQuery = new SelectQueryClause();
+        var buildInfo = new BuildInfo((IBuildContext?)null, expression, selectQuery);
 
         var result = builder.TryBuildSequence(buildInfo);
 
