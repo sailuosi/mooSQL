@@ -20,11 +20,12 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var innerQuery = new mooSQL.data.model.SelectQueryClause();
-        var buildResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], innerQuery));
-        if (buildResult.BuildContext == null)
+        var source = ResolveSourceContext(methodCall, buildInfo,
+            new BuildInfo(buildInfo, methodCall.Arguments[0], innerQuery));
+        if (source == null)
             return method;
 
-        var sequence = new SubQueryContext(buildResult.BuildContext);
+        var sequence = new SubQueryContext(source);
         var containsContext = new ContainsBuilder.ContainsContext(buildInfo.Parent, methodCall, buildInfo.SelectQuery, sequence);
         if (containsContext.TryCreatePlaceholder() == null)
             return method;

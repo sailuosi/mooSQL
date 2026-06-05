@@ -20,11 +20,9 @@ internal partial class ClauseMethodVisitor
         if (!DistinctBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
             return method;
 
-        var buildResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-        if (buildResult.BuildContext == null)
+        var sequence = ResolveSourceContext(methodCall, buildInfo);
+        if (sequence == null)
             return method;
-
-        var sequence = buildResult.BuildContext;
         var sql = sequence.SelectQuery;
         if (sql.Select.TakeValue != null || sql.Select.SkipValue != null)
             sequence = new SubQueryContext(sequence);

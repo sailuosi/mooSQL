@@ -6,8 +6,6 @@ using mooSQL.data.model.affirms;
 using mooSQL.linq;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.SqlQuery;
-
 namespace mooSQL.linq.translator;
 
 /// <summary>
@@ -110,17 +108,25 @@ internal sealed class ClausePredicateVisitor
         var descriptor = builder.SuggestColumnDescriptor(context, fieldExpr, valueArgs[0], flags);
         var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags) ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
 
-        if (valueArgs[0].Unwrap() is ConstantExpression { Value: string literal })
-            return new Like(field, false, new ValueWord('%' + literal + '%'), null);
+        if (TryCreateWrappedLikePattern(builder, valueArgs[0], LikePatternWrap.Contains, out var wrappedPattern))
+            return new Like(field, false, wrappedPattern, null);
 
         var pattern = builder.ConvertToSql(context, valueArgs[0], flags, unwrap: false, columnDescriptor: descriptor);
+        pattern = WrapLikePatternSql(pattern, LikePatternWrap.Contains);
+        TryRegisterPatternSubstitute(builder, pattern, LikePatternWrap.Contains);
 
         return new Like(field, false, pattern, null);
     }
 
+    enum LikePatternWrap
+    {
+        Contains,
+        StartsWith
+    }
+
     /// <summary>
-    /// 编译完成后，为 <see cref="WhereFieldLINQExtensions.Like"/> 常量模式注册 <c>%value%</c> 参数替换，
-    /// 避免表达式树扫描将 <c>Ali</c> 与 SQL <c>LIKE</c> 模式绑定不一致。
+    /// 编译完成后，为 <see cref="WhereFieldLINQExtensions.Like"/> / <see cref="WhereFieldLINQExtensions.LikeLeft"/>
+    /// 注册 LIKE 模式参数替换，避免表达式树扫描将原始值与 SQL 通配符模式绑定不一致。
     /// </summary>
     internal static void ApplyLikePatternSubstitutes(ParametersContext parameters, Expression expression)
     {
@@ -129,36 +135,65 @@ internal sealed class ClausePredicateVisitor
             static (ctx, expr) =>
             {
                 if (expr is not MethodCallExpression mc
-                    || mc.Method.DeclaringType != typeof(WhereFieldLINQExtensions)
-                    || mc.Method.Name != nameof(WhereFieldLINQExtensions.Like))
+                    || mc.Method.DeclaringType != typeof(WhereFieldLINQExtensions))
                 {
                     return new TransformInfo(expr);
                 }
 
-                var patternArg = mc.Method.IsStatic && mc.Arguments.Count > 1
-                    ? mc.Arguments[1]
-                    : mc.Arguments.Count > 0 ? mc.Arguments[0] : null;
+                var wrap = mc.Method.Name switch
+                {
+                    nameof(WhereFieldLINQExtensions.Like) => LikePatternWrap.Contains,
+                    nameof(WhereFieldLINQExtensions.LikeLeft) => LikePatternWrap.StartsWith,
+                    _ => (LikePatternWrap?)null
+                };
 
-                if (patternArg?.Unwrap() is not ConstantExpression { Value: string s })
+                if (wrap == null || !TryGetExtensionField(mc, out _, out var valueArgs) || valueArgs.Length < 1)
                     return new TransformInfo(expr);
 
-                var wrapped = "%" + s + "%";
-                var substitute = (Func<Expression, DBInstance?, object?[]?, object?>)( (_, _, _) => wrapped);
-                var literal = patternArg!.Unwrap();
-                var equalsContext = ctx.OptimizationContext.GetSimpleEqualsToContext(true);
-
-                if (ctx._parameters != null)
-                {
-                    foreach (var (paramExpr, _, accessor) in ctx._parameters)
-                    {
-                        if (ReferenceEquals(paramExpr, literal) || paramExpr.EqualsTo(literal, equalsContext))
-                            ctx.RegisterAccessorSubstitute(accessor, substitute);
-                    }
-                }
-
+                RegisterLikePatternSubstitute(ctx, valueArgs[0], wrap.Value);
                 return new TransformInfo(expr);
             });
     }
+
+    static void RegisterLikePatternSubstitute(ParametersContext ctx, Expression patternArg, LikePatternWrap wrap)
+    {
+        var unwrapped = patternArg.Unwrap();
+        var equalsContext = ctx.OptimizationContext.GetSimpleEqualsToContext(true);
+
+        if (ctx._parameters == null)
+            return;
+
+        foreach (var (paramExpr, _, accessor) in ctx._parameters)
+        {
+            if (!ReferenceEquals(paramExpr, patternArg)
+                && !ReferenceEquals(paramExpr, unwrapped)
+                && !paramExpr.EqualsTo(unwrapped, equalsContext))
+            {
+                continue;
+            }
+
+            var valueAccessor = accessor.ValueAccessor;
+            ctx.RegisterAccessorSubstitute(accessor, CreatePatternSubstitute(valueAccessor, wrap));
+        }
+    }
+
+    static Func<Expression, DBInstance?, object?[]?, object?> CreatePatternSubstitute(
+        Func<Expression, DBInstance?, object?[]?, object?> valueAccessor,
+        LikePatternWrap wrap)
+        => (ex, db, pars) =>
+        {
+            var raw = valueAccessor(ex, db, pars);
+            if (raw == null)
+                return null;
+
+            var s = raw.ToString() ?? string.Empty;
+            return wrap switch
+            {
+                LikePatternWrap.Contains => '%' + s + '%',
+                LikePatternWrap.StartsWith => s + '%',
+                _ => s
+            };
+        };
 
     static IAffirmWord? ConvertLikeLeft(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)
     {
@@ -167,10 +202,75 @@ internal sealed class ClausePredicateVisitor
 
         var descriptor = builder.SuggestColumnDescriptor(context, fieldExpr, valueArgs[0], flags);
         var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags) ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
-        var pattern = builder.ConvertToSql(context, valueArgs[0], unwrap: false, columnDescriptor: descriptor);
-        var caseSensitive = new ValueWord(typeof(bool?), null);
 
-        return new SearchString(field, false, pattern, SearchString.SearchKind.StartsWith, caseSensitive);
+        if (TryCreateWrappedLikePattern(builder, valueArgs[0], LikePatternWrap.StartsWith, out var wrappedPattern))
+            return new Like(field, false, wrappedPattern, null);
+
+        var pattern = builder.ConvertToSql(context, valueArgs[0], flags, unwrap: false, columnDescriptor: descriptor);
+        pattern = WrapLikePatternSql(pattern, LikePatternWrap.StartsWith);
+        TryRegisterPatternSubstitute(builder, pattern, LikePatternWrap.StartsWith);
+
+        return new Like(field, false, pattern, null);
+    }
+
+    static bool TryCreateWrappedLikePattern(
+        ClauseSqlTranslator builder,
+        Expression patternExpr,
+        LikePatternWrap wrap,
+        out ValueWord wrapped)
+    {
+        wrapped = null!;
+
+        if (patternExpr.Unwrap() is ConstantExpression { Value: string literal })
+        {
+            wrapped = wrap switch
+            {
+                LikePatternWrap.Contains => new ValueWord('%' + literal + '%'),
+                LikePatternWrap.StartsWith => new ValueWord(literal + '%'),
+                _ => new ValueWord(literal)
+            };
+            return true;
+        }
+
+        if (builder.CanBeCompiled(patternExpr.Unwrap(), false)
+            && builder.EvaluateExpression(patternExpr) is string evaluated)
+        {
+            wrapped = wrap switch
+            {
+                LikePatternWrap.Contains => new ValueWord('%' + evaluated + '%'),
+                LikePatternWrap.StartsWith => new ValueWord(evaluated + '%'),
+                _ => new ValueWord(evaluated)
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    static IExpWord WrapLikePatternSql(IExpWord pattern, LikePatternWrap wrap)
+    {
+        if (pattern is not ValueWord { Value: string s })
+            return pattern;
+
+        return wrap switch
+        {
+            LikePatternWrap.Contains => new ValueWord('%' + s + '%'),
+            LikePatternWrap.StartsWith => new ValueWord(s + '%'),
+            _ => pattern
+        };
+    }
+
+    static void TryRegisterPatternSubstitute(ClauseSqlTranslator builder, IExpWord patternSql, LikePatternWrap wrap)
+    {
+        if (patternSql is not ParameterWord { AccessorId: int id }
+            || id < 0
+            || id >= builder.ParametersContext.CurrentSqlParameters.Count)
+        {
+            return;
+        }
+
+        var accessor = builder.ParametersContext.CurrentSqlParameters[id];
+        builder.ParametersContext.RegisterAccessorSubstitute(accessor, CreatePatternSubstitute(accessor.ValueAccessor, wrap));
     }
 
     static IAffirmWord? ConvertInList(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)

@@ -29,11 +29,9 @@ internal partial class ClauseMethodVisitor
             SelectQuery = new SelectQueryClause()
         };
 
-        var buildResult = Context.Builder.TryBuildSequence(sequenceBuildInfo);
-        if (buildResult.BuildContext == null)
+        var sequence = ResolveSourceContext(methodCall, buildInfo, sequenceBuildInfo);
+        if (sequence == null)
             return method;
-
-        var sequence = buildResult.BuildContext;
         var isAsync = methodCall.Method.DeclaringType == typeof(AsyncExtensions);
 
         if (methodCall.Arguments.Count == (isAsync ? 3 : 2))

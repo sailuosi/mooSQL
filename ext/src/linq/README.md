@@ -31,7 +31,7 @@ SQL模型对象 到 SQL脚本的编译：
 
 	DataConnectRunner -- 执行SQL模版到SQL脚本的翻译；
 
-	ClauseSqlTranslator + ClauseCompiler -- LINQ Expression → SentenceBag（双访问器 + StatementExpression）；
+	StatementCompileSession + ClauseCompiler -- LINQ Expression → SentenceBag（双访问器 + StatementExpression）；
 
 	Query -- 承载一组 QueryInfo
 

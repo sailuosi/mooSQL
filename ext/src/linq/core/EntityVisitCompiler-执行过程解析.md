@@ -202,14 +202,12 @@ internal static SentenceBag<T> CreateQuery<T>(
 
     try
     {
-        query = new ExpressionBuilder(
-            false, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues
-        ).doBuild<T>();
+        query = ClauseCompiler.Build<T>(
+            false, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues);
         if (query.ErrorExpression != null)
         {
-            query = new ExpressionBuilder(
-                true, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues
-            ).doBuild<T>();
+            query = ClauseCompiler.Build<T>(
+                true, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues);
             if (query.ErrorExpression != null)
                 throw new Exception("表达式编译错误！");
         }

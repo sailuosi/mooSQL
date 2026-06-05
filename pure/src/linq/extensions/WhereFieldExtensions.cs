@@ -21,7 +21,7 @@ namespace mooSQL.linq
             return src.Contains(tar);
         }
         /// <summary>
-        /// 左模糊查询
+        /// 左前缀匹配（CLR 语义等同 <see cref="string.StartsWith(string)"/>；SQL 编译时自动在模式末尾添加通配符，生成 <c>LIKE 'value%'</c>）。
         /// </summary>
         /// <param name="src"></param>
         /// <param name="tar"></param>

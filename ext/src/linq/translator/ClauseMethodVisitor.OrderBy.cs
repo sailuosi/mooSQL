@@ -14,6 +14,8 @@ internal partial class ClauseMethodVisitor
 {
     public override MethodCall VisitOrderBy(OrderByCall method) => VisitOrderByCore(method);
     public override MethodCall VisitOrderByDescending(OrderByDescendingCall method) => VisitOrderByCore(method);
+    public override MethodCall VisitThenBy(ThenByCall method) => VisitOrderByCore(method);
+    public override MethodCall VisitThenByDescending(ThenByDescendingCall method) => VisitOrderByCore(method);
     public override MethodCall VisitThenOrBy(ThenOrByCall method) => VisitOrderByCore(method);
     public override MethodCall VisitThenOrByDescending(ThenOrByDescendingCall method) => VisitOrderByCore(method);
 

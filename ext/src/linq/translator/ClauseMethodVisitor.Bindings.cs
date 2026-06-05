@@ -46,8 +46,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitTableName(TableNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
     public override MethodCall VisitTableOptions(TableOptionsCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
     public override MethodCall VisitTagQuery(TagQueryCall method) => ApplyBuilder<TagQueryBuilder>(method, TagQueryBuilder.CanBuildMethod);
-    public override MethodCall VisitThenBy(ThenByCall method) => ApplyBuilder<OrderByBuilder>(method, OrderByBuilder.CanBuildMethod);
-    public override MethodCall VisitThenByDescending(ThenByDescendingCall method) => ApplyBuilder<OrderByBuilder>(method, OrderByBuilder.CanBuildMethod);
     public override MethodCall VisitTruncate(TruncateCall method) => ApplyBuilder<TruncateBuilder>(method, TruncateBuilder.CanBuildMethod);
     public override MethodCall VisitUpdateWithOutput(UpdateWithOutputCall method) => ApplyBuilder<UpdateBuilder>(method, UpdateBuilder.CanBuildMethod);
     public override MethodCall VisitUpdateWithOutputInto(UpdateWithOutputIntoCall method) => ApplyBuilder<UpdateBuilder>(method, UpdateBuilder.CanBuildMethod);

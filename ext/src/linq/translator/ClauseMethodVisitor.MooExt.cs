@@ -57,18 +57,11 @@ internal partial class ClauseMethodVisitor
 
     IBuildContext? VisitChildSequence(MethodCall method)
     {
-        if (method.Arguments.Count == 0)
+        if (method.callExpression is not MethodCallExpression methodCall || methodCall.Arguments.Count == 0)
             return null;
 
-        if (Buddy != null)
-        {
-            Buddy.Visit(method.Arguments[0]);
-            return Context.BuildContext;
-        }
-
-        var root = Context.CreateBuildInfo(method.callExpression!);
-        var sequenceResult = Context.Builder.TryBuildSequence(new BuildInfo(root, method.Arguments[0]));
-        return sequenceResult.BuildContext;
+        var buildInfo = Context.CreateBuildInfo(methodCall);
+        return ResolveSourceContext(methodCall, buildInfo);
     }
 
     void RegisterIncludesNav(MethodCall method, IBuildContext? sequence)

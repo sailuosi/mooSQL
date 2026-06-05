@@ -68,9 +68,9 @@ Expression
 
 ```
 Expression
-  → TryBuildSequence + ClauseCompiler     // 仅编译
+  → StatementCompileSession.VisitRoot + ClauseCompiler   // 仅编译
   → SentenceBag（Statement + NavColumns）
-  → SentenceExecutor                      // 统一执行
+  → SentenceExecutor                                     // 统一执行
       → ClauseTranslateVisitor → SQLBuilder
       → kit.query<T>().ToList()
       → NavColumnLoader（LoadWith）
@@ -107,10 +107,11 @@ BuildSqlBuilder(bag, db, expression, parameters)
 
 | 组件 | 职责 |
 |------|------|
-| `ClauseExpressionVisitor` + `ClauseMethodVisitor` | Buddy 双访问器，替代 ExpressionBuilder 内硬编码分发 |
-| `ClauseCompiler` | 编译收尾 → `SentenceBag` |
+| `StatementCompileSession` | 双访问器装配 + 统一 `VisitRoot`（根编译入口） |
+| `ClauseExpressionVisitor` + `ClauseMethodVisitor` | Buddy 双访问器，替代原巨型编排类 |
+| `ClauseCompiler` | 编译收尾 → `SentenceBag`；`ApplyLikePatternSubstitutes` |
 | `ClauseExpressionVisitor.VisitXxx` | 序列根与非注册 MethodCall 扩展的 Builder 分发 |
-| `ClausePredicateVisitor` | Where/Having lambda 内谓词（Like/InList/IsNull 等） |
+| `ClausePredicateVisitor` | Where/Having 谓词（Like/LikeLeft/InList/IsNull；统一 `Like` IR） |
 | `LinqStatementCompiler` | **公开 API**：只编译不执行，产出 `SqlPlan` |
 | `SentenceExecutor` | Statement → SQL → 执行 |
 
@@ -217,13 +218,16 @@ flowchart LR
     end
 ```
 
-### 已完成（Phase 2）
+### 已完成（Phase 2 + 分发层扫尾）
 
 - Compile / Execute 分离
+- `StatementCompileSession` 根入口；`BuildResult` 过渡槽已删除
+- `ResolveSourceContext` 统一子序列解析（Buddy 优先）
 - `SentenceExecutor` 统一执行
-- `ClauseMethodVisitor` 双访问器 + Builder 内联
+- `ClauseMethodVisitor` 双访问器 + 高频算子内联（含 ThenBy）
+- `ClausePredicateVisitor`：Like / LikeLeft 编译与 SQLite 执行
 - `LinqStatementCompiler` 公开编译 API
-- SQLite 端到端测试（`LinqCompileTests`、`useBus1`）
+- SQLite 端到端测试（`LinqCompileTests` 25 项）
 - `NavColumnLoader`、`SqlPlan`、`StatementStructureTests`
 
 ### 未完成项（摘自 `src/README.md`）
@@ -244,7 +248,7 @@ flowchart LR
 | **还有两套 LINQ 吗？** | 有。Fast（生产）与 Ext（测试/增强）**编译路径不同，执行终点相同** |
 | **EntityQueryCompiler vs EntityVisitCompiler？** | 当前 **代码相同**，仅工厂类名不同 |
 | **与整体项目关系？** | LINQ 仍是应用层入口之一；Ext 强化了 Pure 的 `ClauseTranslateVisitor`；SQLBuilder 仍是唯一执行中枢 |
-| **文档同步情况** | `src/README.md`、`core/*.md` 已更新 Phase 2；`doc/docs/moohelp/arch/linq-architecture.md` 仍只描述 Fast 路径 |
+| **文档同步情况** | `src/README.md`、`core/ClauseCompiler-*.md`、本文件、迁移清单已同步；`doc/docs/moohelp/arch/linq-architecture.md` 仍只描述 Fast 路径 |
 
 ---
 
@@ -254,7 +258,7 @@ flowchart LR
 |------|------|------|
 | **双访问器对齐 FastLinq** | `ext/src/linq/双访问器对齐FastLinq-迁移清单.md` | 分发层对齐计划、Phase A～F 清单与验收 |
 | Ext LINQ 三层架构 | `ext/src/linq/src/README.md` | Compile → SentenceBag → Execute 完整说明 |
-| 编译过程解析 | `ext/src/linq/core/ExpressionBuilder-构建SentenceBag解析.md` | `ClauseCompiler`、无 BuildQuery/Mapper |
+| 编译过程解析 | `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` | `StatementCompileSession`、`ClauseCompiler`、无 BuildQuery/Mapper |
 | 执行过程解析 | `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` | `SentenceExecutor`、无 Preambles |
 | Fast LINQ 架构 | `doc/docs/moohelp/arch/linq-architecture.md` | `pure/src/linq` 访问器与 FastMethodVisitor |
 | SQLBuilder API | `pure/src/ado/builder/API说明文档.md` | 链式 API 参考 |

@@ -239,4 +239,57 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         var empty = bus.Where(u => u.Name.Like("Zzz")).ToList();
         Assert.Empty(empty);
     }
+
+    [Fact]
+    public void EntityVisit_CompileWhereLikeLeft_ProducesLikeSql()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.Where(u => u.Name.LikeLeft("Al")));
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("LIKE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("name", sql, StringComparison.OrdinalIgnoreCase);
+
+        var sq = RequireSelectQuery(bag);
+        Assert.NotEmpty(sq.Where.SearchCondition.Predicates);
+    }
+
+    [Fact]
+    public void EntityVisit_WhereLikeLeft_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+
+        var rows = bus.Where(u => u.Name.LikeLeft("Al")).ToList();
+        Assert.Contains(rows, u => u.Name == "Alice");
+
+        var noPrefix = bus.Where(u => u.Name.LikeLeft("ice")).ToList();
+        Assert.DoesNotContain(noPrefix, u => u.Name == "Alice");
+    }
+
+    [Fact]
+    public void EntityVisit_WhereLike_VariablePattern_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var pattern = "Ali";
+
+        var rows = bus.Where(u => u.Name.Like(pattern)).ToList();
+
+        Assert.Single(rows);
+        Assert.Equal("Alice", rows[0].Name);
+    }
+
+    [Fact]
+    public void EntityVisit_WhereLikeLeft_VariablePattern_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var prefix = "Al";
+
+        var rows = bus.Where(u => u.Name.LikeLeft(prefix)).ToList();
+
+        Assert.Contains(rows, u => u.Name == "Alice");
+    }
 }

@@ -33,8 +33,11 @@ internal partial class ClauseMethodVisitor
     protected StatementCall? ToStatementCall(BuildSequenceResult result)
         => result.BuildContext is { } ctx ? ToStatementCall(ctx) : null;
 
-    /// <summary>从 Buddy 子树或 legacy TryBuildSequence 解析序列上下文。</summary>
-    protected IBuildContext? ResolveSourceContext(MethodCallExpression methodCall, BuildInfo buildInfo)
+    /// <summary>从 Buddy 子树或嵌套 <see cref="ClauseSqlTranslator.TryBuildSequence"/> 解析序列上下文。</summary>
+    protected IBuildContext? ResolveSourceContext(
+        MethodCallExpression methodCall,
+        BuildInfo buildInfo,
+        BuildInfo? sequenceBuildInfo = null)
     {
         if (Buddy != null)
         {
@@ -43,7 +46,8 @@ internal partial class ClauseMethodVisitor
                 return stmt.BuildContext;
         }
 
-        var sequenceResult = Context.Translator.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+        sequenceBuildInfo ??= new BuildInfo(buildInfo, methodCall.Arguments[0]);
+        var sequenceResult = Context.Translator.TryBuildSequence(sequenceBuildInfo);
         return sequenceResult.BuildContext;
     }
 }
