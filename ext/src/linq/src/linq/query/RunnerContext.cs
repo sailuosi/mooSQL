@@ -1,25 +1,20 @@
 ﻿using mooSQL.data;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq.Linq;
+
+/// <summary>
+/// 执行 SentenceBag 时的上下文参数。
+/// </summary>
+internal class RunnerContext
 {
-    /// <summary>
-    /// 执行 SentenceBag 时的所有参数.
-    /// </summary>
-    internal class RunnerContext
-    {
-        public DBInstance dataContext;
-        public Expression expression;
+    public DBInstance dataContext = default!;
+    public Expression? expression;
 
-        public SentenceBag sentenceBag;
+    public SentenceBag? sentenceBag;
 
-        public object?[]? paras;
-        public object?[]? premble;
-        public CancellationToken cancellationToken;
-    }
+    public object?[]? paras;
+    public CancellationToken cancellationToken;
 }

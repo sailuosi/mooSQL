@@ -20,14 +20,14 @@ namespace mooSQL.linq.translator;
 /// </summary>
 internal static partial class SentenceExecutor
 {
-    public static TResult Execute<TResult>(SentenceBag bag, QueryContext context, Expression expression)
+    public static TResult Execute<TResult>(SentenceBag bag, QueryContext context, Expression expression, object?[]? parameters = null)
     {
         if (bag.Sentences == null || bag.Sentences.Count == 0)
             throw new InvalidOperationException("SentenceBag has no statements to execute.");
 
         var db = context.DB ?? bag.DBLive;
 
-        var writeResult = ExecuteWriteOrAlternative(bag, db, expression);
+        var writeResult = ExecuteWriteOrAlternative(bag, db, expression, parameters);
         if (writeResult != null)
             return (TResult)writeResult;
 
@@ -36,23 +36,23 @@ internal static partial class SentenceExecutor
         {
             var elementType = resultType.GetGenericArguments()[0];
             var method = typeof(SentenceExecutor).GetMethod(nameof(ExecuteEnumerable), BindingFlags.NonPublic | BindingFlags.Static)!;
-            return (TResult)method.MakeGenericMethod(elementType).Invoke(null, new object[] { bag, db, expression, context })!;
+            return (TResult)method.MakeGenericMethod(elementType).Invoke(null, new object[] { bag, db, expression, context, parameters })!;
         }
 
         if (typeof(IQueryable).IsAssignableFrom(resultType) || typeof(IEnumerable).IsAssignableFrom(resultType))
         {
             var elementType = bag.EntityType ?? typeof(object);
-            var list = ExecuteEnumerable(elementType, bag, db, expression, context);
+            var list = ExecuteEnumerable(elementType, bag, db, expression, context, parameters);
             return (TResult)list!;
         }
 
-        return ExecuteScalar<TResult>(bag, db, expression);
+        return ExecuteScalar<TResult>(bag, db, expression, parameters);
     }
 
-    static object ExecuteEnumerable(Type elementType, SentenceBag bag, DBInstance db, Expression expression, QueryContext context)
+    static object ExecuteEnumerable(Type elementType, SentenceBag bag, DBInstance db, Expression expression, QueryContext context, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression);
+        var kit = BuildSqlBuilder(bag, db, expression, parameters);
         var method = typeof(SentenceExecutor).GetMethod(nameof(QueryAndLoadNav), BindingFlags.NonPublic | BindingFlags.Static)!;
         return method.MakeGenericMethod(elementType).Invoke(null, new object[] { kit, bag })!;
     }
@@ -64,10 +64,10 @@ internal static partial class SentenceExecutor
         return res;
     }
 
-    static TResult ExecuteScalar<TResult>(SentenceBag bag, DBInstance db, Expression expression)
+    static TResult ExecuteScalar<TResult>(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression);
+        var kit = BuildSqlBuilder(bag, db, expression, parameters);
         var t = typeof(TResult);
 
         if (t == typeof(int) || t == typeof(long) || t == typeof(bool))
@@ -97,11 +97,11 @@ internal static partial class SentenceExecutor
         return await kit.queryUniqueAsync<TResult>().ConfigureAwait(false);
     }
 
-    static SQLBuilder BuildSqlBuilder(SentenceBag bag, DBInstance db, Expression expression)
+    static SQLBuilder BuildSqlBuilder(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         var sentence = bag.Sentences[0];
         var parameterValues = new SqlParameterValues();
-        QueryMate.SetParameters(bag, expression, db, null, sentence, parameterValues);
+        QueryMate.SetParameters(bag, expression, db, parameters, sentence, parameterValues);
 
         var translator = db.dialect.clauseTranslator.Prepare(db);
         var clause = translator.Visit(sentence.Statement);
@@ -113,17 +113,17 @@ internal static partial class SentenceExecutor
             $"Clause translation expected {nameof(SQLBuilderClause)} but got {clause?.GetType().Name ?? "null"}.");
     }
 
-    public static string GetSqlText(SentenceBag bag, DBInstance db, Expression expression)
+    public static string GetSqlText(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
-        EnsureInsertOrUpdateExpanded(bag);
+        EnsureInsertOrUpdateExpanded(bag, db);
         FinalizeBag(bag, db);
 
-        var context = CreateContext(bag, db, expression);
+        var context = CreateContext(bag, db, expression, parameters);
         var cmds = PrepareCommands(context);
         return string.Join(Environment.NewLine, cmds.Select(c => c.sql));
     }
 
-    public static object? ExecuteObject(SentenceBag bag, DBInstance db, Expression expression)
+    public static object? ExecuteObject(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         var context = new QueryContext { DB = db };
         var resultType = expression.Type;
@@ -132,17 +132,17 @@ internal static partial class SentenceExecutor
             resultType = resultType.GetGenericArguments()[0];
 
         var method = typeof(SentenceExecutor).GetMethod(nameof(Execute), BindingFlags.Public | BindingFlags.Static)!;
-        return method.MakeGenericMethod(resultType).Invoke(null, new object[] { bag, context, expression });
+        return method.MakeGenericMethod(resultType).Invoke(null, new object[] { bag, context, expression, parameters });
     }
 
     public static async Task<object?> ExecuteObjectAsync(
-        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default)
+        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default, object?[]? parameters = null)
     {
         var resultType = expression.Type;
         if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(Task<>))
             resultType = resultType.GetGenericArguments()[0];
 
-        var writeResult = await ExecuteWriteOrAlternativeAsync(bag, db, expression, cancellationToken)
+        var writeResult = await ExecuteWriteOrAlternativeAsync(bag, db, expression, cancellationToken, parameters)
             .ConfigureAwait(false);
         if (writeResult != null)
             return writeResult;
@@ -150,17 +150,17 @@ internal static partial class SentenceExecutor
         if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             return await AwaitGenericTask(
                 ExecuteListAsyncMethod.MakeGenericMethod(resultType.GetGenericArguments()[0]),
-                bag, db, expression, cancellationToken).ConfigureAwait(false);
+                bag, db, expression, cancellationToken, parameters).ConfigureAwait(false);
 
         if (typeof(IQueryable).IsAssignableFrom(resultType) || typeof(IEnumerable).IsAssignableFrom(resultType))
         {
             var elementType = bag.EntityType ?? typeof(object);
             return await AwaitGenericTask(ExecuteListAsyncMethod.MakeGenericMethod(elementType),
-                bag, db, expression, cancellationToken).ConfigureAwait(false);
+                bag, db, expression, cancellationToken, parameters).ConfigureAwait(false);
         }
 
         return await AwaitGenericTask(ExecuteScalarAsyncMethod.MakeGenericMethod(resultType),
-            bag, db, expression, cancellationToken).ConfigureAwait(false);
+            bag, db, expression, cancellationToken, parameters).ConfigureAwait(false);
     }
 
     static readonly MethodInfo ExecuteListAsyncMethod =
@@ -170,27 +170,28 @@ internal static partial class SentenceExecutor
         typeof(SentenceExecutor).GetMethod(nameof(ExecuteScalarAsync), BindingFlags.NonPublic | BindingFlags.Static)!;
 
     static async Task<object?> AwaitGenericTask(
-        MethodInfo method, SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken)
+        MethodInfo method, SentenceBag bag, DBInstance db, Expression expression,
+        CancellationToken cancellationToken, object?[]? parameters = null)
     {
-        var task = (Task)method.Invoke(null, new object[] { bag, db, expression, cancellationToken })!;
+        var task = (Task)method.Invoke(null, new object[] { bag, db, expression, cancellationToken, parameters })!;
         await task.ConfigureAwait(false);
         return task.GetType().GetProperty("Result")!.GetValue(task);
     }
 
-    public static List<T> ExecuteList<T>(SentenceBag bag, DBInstance db, Expression expression)
+    public static List<T> ExecuteList<T>(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression);
+        var kit = BuildSqlBuilder(bag, db, expression, parameters);
         var res = kit.query<T>().ToList();
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }
 
     public static async Task<List<T>> ExecuteListAsync<T>(
-        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default)
+        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression);
+        var kit = BuildSqlBuilder(bag, db, expression, parameters);
         var res = (await kit.queryAsync<T>().ConfigureAwait(false)).ToList();
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;

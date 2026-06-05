@@ -21,6 +21,9 @@ namespace mooSQL.data
             clauseTranslator = new MySQLClauseTranslator(this);
             mapping = new MySQLMappingPanel();
             function = new MySQLFunction();
+            Option ??= new SooOption();
+            Option.ProviderFlags ??= new SQLProviderFlags();
+            Option.ProviderFlags.IsInsertOrUpdateSupported = true;
             this.initDBVersion();
         }
         public override DbCommand getCommand()

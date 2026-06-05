@@ -171,5 +171,50 @@ namespace mooSQL.linq
             }
             return null;
         }
+
+        /// <inheritdoc />
+        public override Clause VisitInsertOrUpdateSentence(InsertOrUpdateSentence clause)
+        {
+            var tag = TranslateTag(clause);
+            builder.prefix(tag);
+
+            if (clause.With != null)
+                VisitWithClause(clause.With);
+
+            if (clause.Insert.Into != null)
+            {
+                var tb = VisitTableNode(clause.Insert.Into);
+                builder.setTable(tb.ToString());
+            }
+
+            foreach (var setPair in clause.Insert.Items)
+                VisitInsertSetWord(setPair);
+
+            foreach (var setPair in clause.Update.Items)
+                VisitUpdateSetWord(setPair);
+
+            var suffix = GetInsertOrUpdateDuplicateSuffix();
+            if (suffix == null)
+                return clause;
+
+            return new SQLBuilderClause(builder, tar => tar.Builder.toInsertWithDuplicateUpdate(suffix));
+        }
+
+        /// <summary>方言 upsert 冲突更新子句关键字；返回 null 表示不支持原生 upsert。</summary>
+        protected virtual string? GetInsertOrUpdateDuplicateSuffix() => null;
+
+        protected void VisitInsertSetWord(SetWord clause)
+        {
+            var fid = VisitIExpWord(clause.Column);
+            var v = VisitIExpWord(clause.Expression);
+            builder.setI(fid.ToString(), v.ToString(), false);
+        }
+
+        protected void VisitUpdateSetWord(SetWord clause)
+        {
+            var fid = VisitIExpWord(clause.Column);
+            var v = VisitIExpWord(clause.Expression);
+            builder.setU(fid.ToString(), v.ToString(), false);
+        }
     }
 }

@@ -14,6 +14,8 @@ namespace mooSQL.data
         public MySQLClauseTranslator(Dialect dia) : base(dia) { 
         
         }
+
+        protected override string? GetInsertOrUpdateDuplicateSuffix() => "ON DUPLICATE KEY UPDATE";
         public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
         {
             var res = "";

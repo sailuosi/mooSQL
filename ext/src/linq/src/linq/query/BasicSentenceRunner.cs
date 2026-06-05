@@ -30,16 +30,17 @@ namespace mooSQL.linq.Linq
         {
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var db = context.dataContext ?? bag.DBLive;
-            var expression = context.expression ?? bag.srcExp;
-            return SentenceExecutor.ExecuteObject(bag, db, expression);
+            var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+            return SentenceExecutor.ExecuteObject(bag, db, expression, parameters);
         }
 
         static Task<object?> DefaultGetElementAsync(RunnerContext context)
-            => SentenceExecutor.ExecuteObjectAsync(
-                context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required."),
-                context.dataContext ?? context.sentenceBag.DBLive,
-                context.expression ?? context.sentenceBag.srcExp,
-                context.cancellationToken);
+        {
+            var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
+            var db = context.dataContext ?? bag.DBLive;
+            var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+            return SentenceExecutor.ExecuteObjectAsync(bag, db, expression, context.cancellationToken, parameters);
+        }
     }
 
     internal class BasicSentenceRunner<T> : BasicSentenceRunner , ISentenceRunner<T>
@@ -58,8 +59,12 @@ namespace mooSQL.linq.Linq
         {
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var db = context.dataContext ?? bag.DBLive;
-            var expression = context.expression ?? bag.srcExp;
-            return new MaterializedResultEnumerable<T>(SentenceExecutor.ExecuteList<T>(bag, db, expression));
+            var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+
+            if (bag.NavColumns.Count == 0)
+                return new StreamingResultEnumerable<T>(bag, db, expression, parameters);
+
+            return new MaterializedResultEnumerable<T>(SentenceExecutor.ExecuteList<T>(bag, db, expression, parameters));
         }
     }
 }

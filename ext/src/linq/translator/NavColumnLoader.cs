@@ -20,11 +20,22 @@ internal static class NavColumnLoader
             return;
 
         var list = items as IList<T> ?? items.ToList();
-        foreach (var col in bag.NavColumns[typeof(T)])
-            LoadNavChild(bag, list, col);
+        LoadNavChilds(bag, list, typeof(T), new HashSet<Type>());
     }
 
-    static void LoadNavChild<T>(SentenceBag bag, IList<T> items, EntityColumn col)
+    static void LoadNavChilds<T>(SentenceBag bag, IList<T> items, Type entityType, HashSet<Type> visited)
+    {
+        if (!visited.Add(entityType))
+            return;
+
+        if (!bag.NavColumns.TryGetValue(entityType, out var columns))
+            return;
+
+        foreach (var col in columns)
+            LoadNavChild(bag, items, col, visited);
+    }
+
+    static void LoadNavChild<T>(SentenceBag bag, IList<T> items, EntityColumn col, HashSet<Type> visited)
     {
         var childType = col.Navigat?.ChildType;
         if (childType == null || col.PropertyInfo == null)
@@ -54,7 +65,7 @@ internal static class NavColumnLoader
             return;
 
         var method = typeof(NavColumnLoader).GetMethod(nameof(LoadNavChildGeneric), BindingFlags.NonPublic | BindingFlags.Static)!;
-        method.MakeGenericMethod(childType).Invoke(null, new object[] { bag, items, col, pkCol, pks, slaveKey });
+        method.MakeGenericMethod(childType).Invoke(null, new object[] { bag, items, col, pkCol, pks, slaveKey, visited });
     }
 
     static void LoadNavChildGeneric<TChild>(
@@ -63,7 +74,8 @@ internal static class NavColumnLoader
         EntityColumn col,
         EntityColumn pkCol,
         List<object> pks,
-        string slaveKey)
+        string slaveKey,
+        HashSet<Type> visited)
     {
         var db = bag.DBLive;
         var tableName = db.client.EntityCash.getTableName(typeof(TChild));
@@ -82,6 +94,12 @@ internal static class NavColumnLoader
             var navVal = FilterByForeignKey(childRows, fkCol, pkVal, col.PropertyInfo);
             if (navVal != null)
                 col.PropertyInfo.SetValue(row, navVal);
+        }
+
+        if (bag.NavColumns.ContainsKey(typeof(TChild)))
+        {
+            var childList = childRows as IList<TChild> ?? childRows.ToList();
+            LoadNavChilds(bag, childList, typeof(TChild), visited);
         }
     }
 

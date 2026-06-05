@@ -22,14 +22,7 @@ namespace mooSQL.linq
         public ProviderContext providerContext;
 
         RunnerContext MakeContext(SentenceBag query, Expression expression, CancellationToken cancellationToken = default)
-            => new()
-            {
-                dataContext = providerContext.DbContext,
-                expression = expression,
-                paras = providerContext.Parameters,
-                sentenceBag = query,
-                cancellationToken = cancellationToken
-            };
+            => RunnerContextFactory.Create(query, providerContext.DbContext, expression, providerContext.Parameters, cancellationToken);
 
         IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
         {

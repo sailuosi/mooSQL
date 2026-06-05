@@ -16,7 +16,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitConcat(ConcatCall method) => ApplyBuilder<SetOperationBuilder>(method, SetOperationBuilder.CanBuildMethod);
     public override MethodCall VisitCrossJoin(CrossJoinCall method) => ApplyBuilder<AllJoinsLinqBuilder>(method, AllJoinsLinqBuilder.CanBuildMethod);
     public override MethodCall VisitDatabaseName(DatabaseNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitDelete(DeleteCall method) => ApplyBuilder<DeleteBuilder>(method, DeleteBuilder.CanBuildMethod);
     public override MethodCall VisitDoDelete(DoDeleteCall method) => DispatchLegacy(method);
     public override MethodCall VisitDeleteWhenMatchedAnd(DeleteWhenMatchedAndCall method) => ApplyBuilder<MergeBuilder.DeleteWhenMatched>(method, MergeBuilder.DeleteWhenMatched.CanBuildMethod);
     public override MethodCall VisitDeleteWhenNotMatchedBySourceAnd(DeleteWhenNotMatchedBySourceAndCall method) => ApplyBuilder<MergeBuilder.DeleteWhenNotMatchedBySource>(method, MergeBuilder.DeleteWhenNotMatchedBySource.CanBuildMethod);
@@ -38,10 +37,8 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitInjectSQL(InjectSQLCall method) => DispatchLegacy(method);
     public override MethodCall VisitInlineParameters(InlineParametersCall method) => ApplyBuilder<InlineParametersBuilder>(method, InlineParametersBuilder.CanBuildMethod);
     public override MethodCall VisitInList(InListCall method) => DispatchLegacy(method);
-    public override MethodCall VisitInsert(InsertCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
     public override MethodCall VisitInsertAll(InsertAllCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
     public override MethodCall VisitInsertFirst(InsertFirstCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertOrUpdate(InsertOrUpdateCall method) => ApplyBuilder<InsertOrUpdateBuilder>(method, InsertOrUpdateBuilder.CanBuildMethod);
     public override MethodCall VisitInsertWhenNotMatchedAnd(InsertWhenNotMatchedAndCall method) => ApplyBuilder<MergeBuilder.InsertWhenNotMatched>(method, MergeBuilder.InsertWhenNotMatched.CanBuildMethod);
     public override MethodCall VisitInsertWithIdentity(InsertWithIdentityCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
     public override MethodCall VisitInsertWithOutput(InsertWithOutputCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
@@ -83,7 +80,6 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitTruncate(TruncateCall method) => ApplyBuilder<TruncateBuilder>(method, TruncateBuilder.CanBuildMethod);
     public override MethodCall VisitUnion(UnionCall method) => ApplyBuilder<SetOperationBuilder>(method, SetOperationBuilder.CanBuildMethod);
     public override MethodCall VisitUnionAll(UnionAllCall method) => ApplyBuilder<SetOperationBuilder>(method, SetOperationBuilder.CanBuildMethod);
-    public override MethodCall VisitUpdate(UpdateCall method) => ApplyBuilder<UpdateBuilder>(method, UpdateBuilder.CanBuildMethod);
     public override MethodCall VisitDoUpdate(DoUpdateCall method) => DispatchLegacy(method);
     public override MethodCall VisitUpdateWhenMatchedAnd(UpdateWhenMatchedAndCall method) => ApplyBuilder<MergeBuilder.UpdateWhenMatched>(method, MergeBuilder.UpdateWhenMatched.CanBuildMethod);
     public override MethodCall VisitUpdateWhenMatchedAndThenDelete(UpdateWhenMatchedAndThenDeleteCall method) => ApplyBuilder<MergeBuilder.UpdateWhenMatchedThenDelete>(method, MergeBuilder.UpdateWhenMatchedThenDelete.CanBuildMethod);

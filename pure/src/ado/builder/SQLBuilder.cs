@@ -776,6 +776,18 @@ namespace mooSQL.data
             string sql = current.buildInsert();
             return geneCmd(sql, ps, QueryType.Insert);
         }
+
+        /// <summary>
+        /// INSERT … ON DUPLICATE KEY UPDATE / UPSERT 等方言 upsert 语句。
+        /// </summary>
+        public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
+        {
+            var sql = current.buildInsert();
+            var setPart = current.buildSetPart();
+            if (!string.IsNullOrWhiteSpace(setPart))
+                sql += " " + duplicateUpdateKeyword + " " + setPart;
+            return geneCmd(sql, ps, QueryType.InsertOrUpdate);
+        }
         /// <summary>
         /// 创建 insert from语句
         /// </summary>

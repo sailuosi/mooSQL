@@ -316,22 +316,15 @@ namespace mooSQL.linq.Linq
         internal static SentenceCmds TranslateCmds(RunnerContext context,SentenceItem sentence, bool forGetSqlText)
         {
             var parameterValues = new SqlParameterValues();
-            var bag = context.sentenceBag;
-            SetParameters(bag, bag.srcExp ?? context.expression, bag.DBLive, context.paras, sentence, parameterValues);
+            var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
+            var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+            SetParameters(bag, expression, context.dataContext, parameters, sentence, parameterValues);
             var cmds = GetCommand(context.dataContext, sentence, parameterValues, forGetSqlText);
             return cmds;
         }
 
-        internal static SentenceCmds GetQueryCmds(SentenceBag query, DBInstance parametersContext, int queryNumber, Expression expression, object?[]? parameters, object?[]? preambles) {
-            var context = new RunnerContext
-            {
-                sentenceBag = query,
-                dataContext = parametersContext,
-                expression = expression,
-                paras = parameters,
-                premble = preambles
-            };
-
+        internal static SentenceCmds GetQueryCmds(SentenceBag query, DBInstance parametersContext, int queryNumber, Expression expression, object?[]? parameters) {
+            var context = RunnerContextFactory.Create(query, parametersContext, expression, parameters);
             var res = TranslateCmds(context, query.Sentences[queryNumber], false);
             return res;
         }

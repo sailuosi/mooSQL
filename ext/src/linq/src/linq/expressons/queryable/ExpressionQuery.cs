@@ -37,14 +37,7 @@ namespace mooSQL.linq.Linq
 		internal object?[]? Parameters;
 
 		RunnerContext MakeContext(SentenceBag query, Expression expression, CancellationToken cancellationToken = default)
-			=> new()
-			{
-				dataContext = DBLive,
-				expression = expression,
-				paras = Parameters,
-				sentenceBag = query,
-				cancellationToken = cancellationToken
-			};
+			=> RunnerContextFactory.Create(query, DBLive, expression, Parameters, cancellationToken);
 
 		#endregion
 
@@ -68,7 +61,7 @@ namespace mooSQL.linq.Linq
 				if (!dependsOnParameters)
 					Expression = expression;
 
-				var sqlText    = SentenceExecutor.GetSqlText(info, DBLive, expression);
+				var sqlText    = SentenceExecutor.GetSqlText(info, DBLive, expression, Parameters);
 
 				return sqlText;
 			}
@@ -87,8 +80,8 @@ namespace mooSQL.linq.Linq
 
 			var info = QueryMate.GetQuery<T>(DBLive, ref expression, out dependsOnParameters);
 
-			//if (cache && info.IsFastCacheable && !dependsOnParameters)
-			//	Info = info;
+			if (cache && !dependsOnParameters && info.IsCacheable)
+				Info = info;
 
 			return info;
 		}

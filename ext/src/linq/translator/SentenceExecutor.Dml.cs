@@ -31,14 +31,18 @@ internal static partial class SentenceExecutor
             or QueryType.TruncateTable;
     }
 
-    static void EnsureInsertOrUpdateExpanded(SentenceBag bag)
+    static void EnsureInsertOrUpdateExpanded(SentenceBag bag, DBInstance db)
     {
         if (bag.Sentences.Count != 1)
             return;
 
-        if (bag.Sentences[0].Statement is not InsertOrUpdateSentence firstStatement)
+        if (bag.Sentences[0].Statement is not InsertOrUpdateSentence)
             return;
 
+        if (db.dialect.Option.ProviderFlags.IsInsertOrUpdateSupported)
+            return;
+
+        var firstStatement = (InsertOrUpdateSentence)bag.Sentences[0].Statement;
         var cloned = firstStatement.Clone();
         var insertStatement = new InsertSentence(cloned.SelectQuery)
         {
@@ -125,46 +129,42 @@ internal static partial class SentenceExecutor
         return res;
     }
 
-    static RunnerContext CreateContext(SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default)
-        => new()
-        {
-            sentenceBag = bag,
-            dataContext = db,
-            expression = expression,
-            paras = null,
-            cancellationToken = cancellationToken
-        };
+    static RunnerContext CreateContext(SentenceBag bag, DBInstance db, Expression? expression, object?[]? parameters = null, CancellationToken cancellationToken = default)
+        => RunnerContextFactory.Create(bag, db, expression, parameters, cancellationToken);
 
-    static object? ExecuteWriteOrAlternative(SentenceBag bag, DBInstance db, Expression expression)
+    static (Expression expression, object?[]? parameters) ResolveArgs(RunnerContext context)
+        => RunnerContextFactory.ResolveExecutionArgs(context);
+
+    static object? ExecuteWriteOrAlternative(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
-        EnsureInsertOrUpdateExpanded(bag);
+        EnsureInsertOrUpdateExpanded(bag, db);
         FinalizeBag(bag, db);
 
         if (TryGetInsertOrUpdateMode(bag, out var mode))
         {
             return mode switch
             {
-                InsertOrUpdateExecMode.UpdateThenInsert => ExecuteNonQueryQuery2(CreateContext(bag, db, expression)),
-                InsertOrUpdateExecMode.ExistsThenInsert => ExecuteQueryQuery2(CreateContext(bag, db, expression)),
+                InsertOrUpdateExecMode.UpdateThenInsert => ExecuteNonQueryQuery2(CreateContext(bag, db, expression, parameters)),
+                InsertOrUpdateExecMode.ExistsThenInsert => ExecuteQueryQuery2(CreateContext(bag, db, expression, parameters)),
                 _ => throw new InvalidOperationException()
             };
         }
 
         if (bag.Sentences.Count == 1 && IsWriteStatement(bag.Sentences[0].Statement))
-            return ExecuteModify(CreateContext(bag, db, expression));
+            return ExecuteModify(CreateContext(bag, db, expression, parameters));
 
         return null;
     }
 
-    static async Task<object?> ExecuteWriteOrAlternativeAsync(
-        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken)
+        static async Task<object?> ExecuteWriteOrAlternativeAsync(
+        SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken, object?[]? parameters = null)
     {
-        EnsureInsertOrUpdateExpanded(bag);
+        EnsureInsertOrUpdateExpanded(bag, db);
         FinalizeBag(bag, db);
 
         if (TryGetInsertOrUpdateMode(bag, out var mode))
         {
-            var context = CreateContext(bag, db, expression, cancellationToken);
+            var context = CreateContext(bag, db, expression, parameters, cancellationToken);
             return mode switch
             {
                 InsertOrUpdateExecMode.UpdateThenInsert => await ExecuteNonQueryQuery2Async(context),
@@ -174,7 +174,7 @@ internal static partial class SentenceExecutor
         }
 
         if (bag.Sentences.Count == 1 && IsWriteStatement(bag.Sentences[0].Statement))
-            return await ExecuteModifyAsync(CreateContext(bag, db, expression, cancellationToken));
+            return await ExecuteModifyAsync(CreateContext(bag, db, expression, parameters, cancellationToken));
 
         return null;
     }

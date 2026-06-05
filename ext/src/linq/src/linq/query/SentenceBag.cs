@@ -24,10 +24,6 @@ namespace mooSQL.linq.Linq
         /// </summary>
         public List<SentenceItem> Sentences;
 
-        public ExecuteType ExecuteType;
-        /// <summary>
-        /// 原始LINQ表达式
-        /// </summary>
         public Expression srcExp;
 
         public Type EntityType;
@@ -49,6 +45,10 @@ namespace mooSQL.linq.Linq
         }
 
         public bool IsFinalized=false;
+
+        /// <summary>无 LoadWith、单语句时可缓存编译产物。</summary>
+        public bool IsCacheable => NavColumns.Count == 0 && (Sentences?.Count ?? 0) <= 1;
+
         /// <summary>
         /// 中间环节的编辑器
         /// </summary>

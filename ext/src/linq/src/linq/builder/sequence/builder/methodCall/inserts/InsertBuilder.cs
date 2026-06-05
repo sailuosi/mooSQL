@@ -24,8 +24,11 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region InsertBuilder
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+        public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsQueryable();
+
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new InsertBuilder().BuildSequence(builder, buildInfo);
 
 		static void ExtractSequence(ref IBuildContext sequence, out InsertContext insertContext)
 		{

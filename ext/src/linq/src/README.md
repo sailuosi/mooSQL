@@ -204,27 +204,29 @@ SentenceBag
 
 | 路径 | 说明 |
 |------|------|
-| `ExpressionQuery` / `EntityProvider` | `IQueryProvider.Execute` → `Runner.loadElement` |
+| `ExpressionQuery` / `EntityProvider` | `IQueryProvider.Execute` → `BasicSentenceRunner` → `SentenceExecutor` |
 | `EntityVisitCompiler.DoCompile` | 预编译委托 → `SentenceExecutor.Execute<T>` |
-| `QueryRunner.SetScalarQuery` 等 | INSERT/UPDATE/Scalar 等特殊语句（保留） |
+| `CompiledTableT` | `QueryRunner.Cache<T>` 命中后 → `RunnerContextFactory.Create` → `loadElement` |
 
-默认 Runner 实现为 `BasicSentenceRunner`，**不再注册 Mapper**，直接委托 `SentenceExecutor`：
+默认 Runner 为 `BasicSentenceRunner`，**不再注册 Mapper**，直接委托 `SentenceExecutor`：
 
 ```csharp
-DefaultGetElement      → SentenceExecutor.ExecuteObject
-DefaultGetResultEnumerable → SentenceExecutor.ExecuteList → MaterializedResultEnumerable<T>
+DefaultGetElement           → SentenceExecutor.ExecuteObject(bag, db, expression, parameters)
+DefaultGetElementAsync      → SentenceExecutor.ExecuteObjectAsync(...)
+DefaultGetResultEnumerable  → StreamingResultEnumerable（无 LoadWith）/ MaterializedResultEnumerable
 ```
 
-`RunnerContext` 必须携带 `sentenceBag`；`dataContext` / `expression` 可省略（回退到 bag 内字段）。
+`RunnerContextFactory` 统一构造 `RunnerContext`；`RunnerContext.premble` / `SentenceBag.ExecuteType` 已移除。
 
 ### SentenceExecutor 流程
 
 ```
+EnsureInsertOrUpdateExpanded(bag)   // 不支持原生 upsert 时展开为 2～3 步
 FinalizeBag(bag)
-  → SqlOptimizerFactory.Get(db).Finalize(statement)   // 方言优化
-  → SqlProviderHelper.IsValidQuery(...)               // 合法性校验
+  → SqlOptimizerFactory.Get(db).Finalize(statement)
+  → SqlProviderHelper.IsValidQuery(...)
 
-BuildSqlBuilder(bag)
+BuildSqlBuilder(bag, expression, parameters)
   → QueryMate.SetParameters(...)
   → ClauseTranslateVisitor.Visit(statement)
   → SQLBuilderClause.Builder
@@ -232,23 +234,22 @@ BuildSqlBuilder(bag)
 Execute
   → IEnumerable<T>  : kit.query<T>().ToList() + NavColumnLoader
   → Scalar (int/bool) : kit.count()
-  → 其他 Scalar       : kit.queryUnique<T>() / queryScalar
+  → DML             : PrepareCommands → ExeNonQuery / 多语句策略
+  → InsertOrUpdate  : MySQL 原生 ON DUPLICATE KEY UPDATE（IsInsertOrUpdateSupported）
 ```
 
 ### 导航属性加载
 
-`LoadWith` 在编译阶段向 `SentenceBag.NavColumns` 注册导航列；主查询执行后由 `NavColumnLoader.LoadNavChilds` 发起二次 IN 查询填充导航属性（逻辑自 FastLinq 移植）。
+`LoadWith` 在编译阶段向 `SentenceBag.NavColumns` 注册导航列；主查询执行后由 `NavColumnLoader.LoadNavChilds` 发起二次 IN 查询，支持多级 LoadWith 与 `HashSet<Type>` 循环引用检测。
 
 ### QueryRunner 保留职责
 
-`QueryRunner` 已大幅精简，仅保留：
+`QueryRunner` 已精简，仅保留：
 
 - 查询缓存（`Cache<T>` / `Cache<T,TR>`）
-- `FinalizeQuery`（非 SELECT 路径）
-- `SetScalarQuery` / `SetNonQueryQuery` / `SetNonQueryQuery2` / `SetQueryQuery2`（DML 特殊执行）
-- `GetSqlText` → 委托 `SentenceExecutor.GetSqlText`
+- `CompiledTableT` 预编译路径
 
-**已移除：** `BasicResultEnumerable`、`WrapMapper`、`ExecuteElement`、`GetExecuteQuery`、全部 `SetRunQuery` 静态方法及 DbDataReader Mapper 链。
+**已移除：** `BasicResultEnumerable`、`WrapMapper`、`ExecuteElement`、`SetScalarQuery` / `SetNonQueryQuery*`、`GetSqlText` 静态方法、DbDataReader Mapper 链。
 
 ---
 
@@ -402,6 +403,11 @@ Expression
 | `QueryRunner.Cache` | ✅ | → `src/linq/query/QueryRunner.Cache.cs` |
 | 删除 `redo/builder/` | ✅ | 无引用的实验 Visitor |
 | `ExpressionBuilder.SqlBuilder.Projection.cs` | ✅ | 自 SqlBuilder 拆出 Projection（~710 行） |
+| `ExpressionBuilder.SqlBuilder.BuildExpression.cs` | ✅ | BuildExpression（~1176 行） |
+| `ExpressionBuilder.SqlBuilder.Predicate.cs` | ✅ | Predicate Converter 主体（~878 行） |
+| `ExpressionBuilder.SqlBuilder.ConvertCompare.cs` | ✅ | ConvertCompare（~847 行） |
+
+**SqlBuilder 主文件** 现约 **840 行**（Where/Take/Helpers/CTE 等）。
 
 **保留：** `outcast/` 下 `LinqExtensions`、`Sql` 等仍为公共 API，后续可 rename 为 `ext/`。
 
@@ -411,23 +417,24 @@ Expression
 
 ### 短期
 
-- [ ] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`Parameters` 字段与 expression 内嵌参数的一致性）
-- [ ] 补充集成测试：First/Single/Count、Join、LoadWith、InsertOrUpdate、DML
-- [ ] InsertOrUpdate 方言原生 MERGE/UPSERT 转译（`VisitInsertOrUpdateSentence`）
+- [x] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`RunnerContextFactory`、`Parameters`）
+- [x] 补充编译测试：`Tests/src/TestExt/LinqCompileTests.cs`（SqlText 断言）
+- [x] InsertOrUpdate 方言原生 UPSERT（MySQL `ON DUPLICATE KEY UPDATE` + `VisitInsertOrUpdateSentence`）
+- [x] DML `Compile()` 内联：`ClauseMethodVisitor.Dml.cs`（Insert/Update/Delete/InsertOrUpdate）
 
 ### 中期（架构完善）
 
-- [ ] 继续拆分 `ExpressionBuilder.SqlBuilder`（Predicate / ConvertCompare 等区段）
-- [ ] `outcast/` rename → `ext/`（LinqExtensions、Sql 公共 API）
-- [ ] 异步流式枚举：`ExecuteAsyncEnumerable` 避免全量 `ToList` 物化
+- [x] 继续拆分 `ExpressionBuilder.SqlBuilder`（`SearchCondition.cs` 已拆出）
+- [ ] `outcast/` rename → `publicapi/`（待批量迁移，当前保留路径）
+- [x] 异步流式枚举：`StreamingResultEnumerable`（无 LoadWith 时；async 仍经 queryAsync）
 - [ ] Take/Skip 在不支持方言上的客户端截断评估
-- [ ] 编译缓存策略：`QueryRunner.Cache<T>` 与 `ClauseCompiler` 产物对齐
-- [ ] 完善 `NavColumnLoader`：集合导航、多级 LoadWith、循环引用检测
+- [x] 编译缓存：`SentenceBag.IsCacheable` + `ExpressionQuery.Info` 实例缓存
+- [x] `NavColumnLoader`：多级 LoadWith、`HashSet<Type>` 循环引用检测
 
 ### 长期（能力与生态）
 
 - [ ] 编译阶段产出 **可 inspect 的 SQL 计划**（类似 `EXPLAIN` 元数据），供调试 UI 使用
-- [ ] Statement 级别单元测试：不连 DB 即可断言 `SelectQueryClause` 结构
+- [ ] Statement 级别单元测试：不连 DB 断言 `SelectQueryClause` 结构（`LinqCompileTests` 已覆盖 SqlText）
 - [ ] 与 SQLClip / SQLBuilder 链式 API 互操作（Expression → SQLBuilder 双向）
 - [ ] 多语句事务批处理（`SentenceBag.Sentences.Count > 1` 的统一执行器）
 - [ ] 考虑将 `translator/` 提升为独立模块，供非 LINQ 场景复用 Statement 编译

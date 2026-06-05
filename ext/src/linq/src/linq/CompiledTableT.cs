@@ -77,13 +77,7 @@ namespace mooSQL.linq.Linq
 		{
 			var db    = (DBInstance)parameters[0];
 			var query = GetInfo(db, parameters);
-			var para = new RunnerContext { 
-				dataContext = db,
-				expression = _expression,
-				paras = parameters,
-				premble = preambles,
-				sentenceBag = query,
-			};
+			var para = RunnerContextFactory.Create(query, db, _expression, parameters);
 			return (T)query.Runner.loadElement(para)!;
 		}
 
@@ -91,14 +85,7 @@ namespace mooSQL.linq.Linq
 		{
 			var db    = (DBInstance)parameters[0];
 			var query = GetInfo(db, parameters);
-            var para = new RunnerContext
-            {
-                dataContext = db,
-                expression = _expression,
-                paras = parameters,
-                premble = preambles,
-				cancellationToken= default,
-            };
+            var para = RunnerContextFactory.Create(query, db, _expression, parameters);
             return (T)(await query.Runner.loadElementAsync(para).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))!;
 		}
 	}
