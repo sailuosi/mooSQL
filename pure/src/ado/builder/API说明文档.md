@@ -783,7 +783,27 @@ SQLBuilder 采用贴近 SQL 的语法构建方式，方法声明为反 C# 约定
 **`getBrotherBuilder()`**
 - 获取一个共用参数体的独立构造器
 
-#### 2.7.8 复制配置
+#### 2.7.8 碎片利用（toApart / useApart）
+
+将当前构建状态捕获为可复用碎片，后续通过公开 API 重放（与手工重复 `select`/`from`/`where`/`sink` 等等价）。`WhereCollection` 在构建期自动录制主干调用步骤。
+
+**`toApart()`**
+- 捕获当前 SQLBuilder 状态为 `SQLApart`（API 步骤脚本）
+
+**`useApart(SQLApart apart)`**
+- 在目标 Builder 上按序重放碎片；合并模式，在现有状态上追加
+- 一阶段仅允许与捕获时相同 `DataBaseType`；跨库抛出 `ApartIncompatibleException`
+- 二阶段预留：`convertApart` / `useApart(apart, options)`（未实现）
+
+**`SQLApart.clear()`**
+- 清空碎片内步骤
+
+```csharp
+var apart = kit.select("u.*").from("users u").where("u.tenant_id", tid).toApart();
+kit.clear().useApart(apart).where("u.status", 1).query<User>();
+```
+
+#### 2.7.9 复制配置
 
 **`copyPreSelect()`**
 - 复制上一组 SQL 配置的 select 部分
@@ -794,7 +814,7 @@ SQLBuilder 采用贴近 SQL 的语法构建方式，方法声明为反 C# 约定
 **`copyPreWere()`**
 - 复制上一组 SQL 配置的 where
 
-#### 2.7.9 自定义 SQL 部分
+#### 2.7.10 自定义 SQL 部分
 
 **`prefix(string SQLString)`**
 - 自定义 SQL 的前置 SQL
@@ -802,7 +822,7 @@ SQLBuilder 采用贴近 SQL 的语法构建方式，方法声明为反 C# 约定
 **`subfix(string SQLString)`**
 - 配置 SQL 的自定义尾随部分
 
-#### 2.7.10 信令
+#### 2.7.11 信令
 
 **`useSignal(string signalName)`**
 - 注册信令
@@ -810,17 +830,17 @@ SQLBuilder 采用贴近 SQL 的语法构建方式，方法声明为反 C# 约定
 **`resetSignal()`**
 - 置空信令
 
-#### 2.7.11 自动清理配置
+#### 2.7.12 自动清理配置
 
 **`configClear(CleanWay way)`**
 - 配置自动清理方式，默认为每次执行修改或删除后清理
 
-#### 2.7.12 SQL 打印
+#### 2.7.13 SQL 打印
 
 **`print(Action<string> onPrint)`**
 - 打印执行的 SQL
 
-#### 2.7.13 SQL 过滤
+#### 2.7.14 SQL 过滤
 
 **`SqlFilter(string source, bool onlyWrite)`**
 - SQL 注入过滤，防止 SQL 注入攻击

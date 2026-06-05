@@ -133,6 +133,7 @@ namespace mooSQL.data
         public int pageNum = -1;//如果页面小于0，查询全部
         private bool numSeted = false;
         private bool distincted = false;//是否含有distinct
+        internal bool ApartHasDistinct => distincted;
         private string insertSQL = "";
         private string updateSQL = "";
         private string selectSQL = "";

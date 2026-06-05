@@ -44,6 +44,11 @@ namespace mooSQL.data
         private int _addCount=0;
 
         /// <summary>
+        /// 碎片利用：记录主干 API 调用顺序（sink / addFrag / rise 等）。
+        /// </summary>
+        internal List<WhereStep> steps = new List<WhereStep>();
+
+        /// <summary>
         /// 顶级条件项盒子
         /// </summary>
         public Boxable topBox;
@@ -88,6 +93,7 @@ namespace mooSQL.data
         /// </summary>
         public void and() {
             CurrentGroup.Connector = "AND";
+            steps.Add(WhereStep.OfAnd());
         }
 
         /// <summary>
@@ -96,6 +102,7 @@ namespace mooSQL.data
         public void or()
         {
             CurrentGroup.Connector = "OR";
+            steps.Add(WhereStep.OfOr());
         }
 
         /// <summary>
@@ -103,6 +110,7 @@ namespace mooSQL.data
         /// </summary>
         public void not() { 
             CurrentGroup.isNot = true;
+            steps.Add(WhereStep.OfNot());
         }
 
         /// <summary>
@@ -129,12 +137,14 @@ namespace mooSQL.data
                 {
                     this.CurrentGroup.Add(frag);
                     _addCount++;
+                    steps.Add(WhereStep.OfAddFrag(frag));
                 }
             }
             else
             {
                 this.CurrentGroup.Add(frag);
                 _addCount++;
+                steps.Add(WhereStep.OfAddFrag(frag));
             }
         }
         /// <summary>
@@ -142,13 +152,8 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="connector"></param>
         public void sink(string connector="AND") {
-            var tar = new WhereBracket();
-            tar.root= this.root;
-            tar.isTop = false;
-            tar.parent = CurrentGroup;
-            tar.Connector=connector;
-            CurrentGroup.children.Add(tar);
-            this.CurrentGroup = tar;
+            sinkCore(connector);
+            steps.Add(WhereStep.OfSink(connector));
         }
         /// <summary>
         /// 开启一个否定盒子，并进入其中
@@ -156,8 +161,20 @@ namespace mooSQL.data
         /// <param name="connector"></param>
         public void sinkNot(string connector = "AND")
         {
-            this.sink(connector);
-            this.CurrentGroup.isNot = true;
+            sinkCore(connector);
+            CurrentGroup.isNot = true;
+            steps.Add(WhereStep.OfSinkNot(connector));
+        }
+
+        private void sinkCore(string connector)
+        {
+            var tar = new WhereBracket();
+            tar.root = this.root;
+            tar.isTop = false;
+            tar.parent = CurrentGroup;
+            tar.Connector = connector;
+            CurrentGroup.children.Add(tar);
+            this.CurrentGroup = tar;
         }
 
         /// <summary>
@@ -167,6 +184,15 @@ namespace mooSQL.data
             if (CurrentGroup.isTop) return;
 
             CurrentGroup = CurrentGroup.parent;
+            steps.Add(WhereStep.OfRise());
+        }
+
+        /// <summary>
+        /// 供 useApart 重放 where 步骤。
+        /// </summary>
+        internal void ReplaySteps(SQLBuilder kit)
+        {
+            WhereStep.Replay(steps, kit);
         }
 
 
@@ -178,6 +204,7 @@ namespace mooSQL.data
             this.topBox.Connector = "AND";
             this.CurrentGroup = topBox;
             this._addCount = 0;
+            this.steps.Clear();
         }
         /// <summary>
         /// 复制

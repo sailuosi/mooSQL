@@ -276,6 +276,9 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `reset()` | 完全重置 |
 | `copy()` | 复制实例（相同连接位） |
 | `getBrotherBuilder()` | 共用参数体的兄弟构造器 |
+| `toApart()` | 捕获当前构建为 `SQLApart` 碎片 |
+| `useApart(SQLApart)` | 重放碎片（同类数据库；合并追加） |
+| `SQLApart.clear()` | 清空碎片步骤 |
 | `configClear(CleanWay way)` | 配置自动清理（AfterModify/Always/Never） |
 | `addPara(string key, object val)` | 添加命名参数 |
 | `setCache(string key, int timeout)` | 设置查询缓存 |

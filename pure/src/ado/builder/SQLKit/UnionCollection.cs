@@ -25,6 +25,10 @@ namespace mooSQL.data
         {
             get { return united.Count; }
         }
+
+        internal bool ApartUnionAll => _unionAll;
+        internal bool ApartUnionWrap => _unionWrap;
+        internal string ApartUnionName => _unionName;
         /**
          * 分组模式下的最终执行器。
          */
