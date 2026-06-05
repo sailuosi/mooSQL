@@ -3,7 +3,7 @@ using System;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryConvertVisitor<TContext> : SqlQueryConvertVisitorBase
+	public class SqlQueryConvertVisitor<TContext> : SentenceConvertVisitorBase
 	{
 		Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> _convertFunc = default!;
 

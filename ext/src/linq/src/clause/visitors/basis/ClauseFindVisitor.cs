@@ -4,21 +4,19 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryFindVisitor<TContext> : ClauseVisitor
+	public class ClauseFindVisitor : ClauseVisitor
 	{
-		TContext                            _context  = default!;
-		Func<TContext, ISQLNode, bool> _findFunc = default!;
-		ISQLNode?                      _found;
+		Func<ISQLNode, bool> _findFunc = default!;
+		ISQLNode?            _found;
 
         public VisitMode VisitingMode;
-        public SqlQueryFindVisitor() 
+        public ClauseFindVisitor()
 		{
             VisitingMode = VisitMode.ReadOnly;
         }
 
-		public ISQLNode? Find(TContext context, ISQLNode root, Func<TContext, ISQLNode, bool> findFunc)
+		public ISQLNode? Find(ISQLNode root, Func<ISQLNode, bool> findFunc)
 		{
-			_context  = context;
 			_findFunc = findFunc;
 			_found    = null;
 
@@ -31,7 +29,6 @@ namespace mooSQL.linq.SqlQuery.Visitors
 		{
 			_found    = null;
 			_findFunc = null!;
-			_context  = default!;
 		}
 
 		[return: NotNullIfNotNull(nameof(element))]
@@ -43,7 +40,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 			if (_found != null)
 				return element;
 
-			if (_findFunc(_context, element))
+			if (_findFunc(element))
 			{
 				_found = element;
 				return element;

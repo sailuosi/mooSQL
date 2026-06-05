@@ -260,9 +260,15 @@ namespace mooSQL.linq.Expressions
 			return false;
 		}
 
-		public static bool IsAssociation(MemberInfo member, DBInstance mappingSchema)
+		public static bool IsAssociation(MemberInfo member, DBInstance DBLive)
 		{
-			return member.GetAttribute<AssociationAttribute>() != null;
+			var t = member.DeclaringType;
+			var en = DBLive.Client.EntityCash.getEntityInfo(t);
+			var col = en.GetColumn(member.Name);
+			if (col == null) { 
+				return false;
+			}
+			return col.IsFK;
 		}
 
 

@@ -4,9 +4,9 @@ using mooSQL.data.model;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public class SqlQueryCloneVisitorBase : SqlQueryVisitor
+	public class SentenceCloneVisitorBase : SentenceVisitor
 	{
-		public SqlQueryCloneVisitorBase() : base(VisitMode.Transform, null)
+		public SentenceCloneVisitorBase() : base(VisitMode.Transform, null)
 		{
 		}
 

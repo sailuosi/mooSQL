@@ -10,7 +10,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 	using SqlProvider;
 
-	public class SqlQueryValidatorVisitor : ClauseVisitor
+	public class ClauseValidatorVisitor : ClauseVisitor
 	{
         SelectQueryClause?     _parentQuery;
         JoinTableWord?  _fakeJoin;
@@ -33,7 +33,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 
 		private VisitMode VisitingMode;
 
-		public SqlQueryValidatorVisitor() 
+		public ClauseValidatorVisitor() 
 		{
 			this.VisitingMode = VisitMode.ReadOnly;
 
@@ -225,7 +225,7 @@ namespace mooSQL.linq.SqlQuery.Visitors
 			return visitor.ContainsNotNullExpr;
 		}
 
-		class ValidateThatQueryHasNoIsNotNullParentReferenceVisitor : SqlQueryVisitor
+		class ValidateThatQueryHasNoIsNotNullParentReferenceVisitor : SentenceVisitor
 		{
 			public Stack<ITableNode> _currentSources = new Stack<ITableNode>();
 

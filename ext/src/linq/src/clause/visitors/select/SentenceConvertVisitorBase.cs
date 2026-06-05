@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace mooSQL.linq.SqlQuery.Visitors
 {
-	public abstract class SqlQueryConvertVisitorBase : SqlQueryVisitor
+	public abstract class SentenceConvertVisitorBase : SentenceVisitor
 	{
-		protected SqlQueryConvertVisitorBase(bool allowMutation, IVisitorTransformationInfo? transformationInfo) : base(allowMutation ? VisitMode.Modify : VisitMode.Transform, transformationInfo)
+		protected SentenceConvertVisitorBase(bool allowMutation, IVisitorTransformationInfo? transformationInfo) : base(allowMutation ? VisitMode.Modify : VisitMode.Transform, transformationInfo)
 		{
 		}
 

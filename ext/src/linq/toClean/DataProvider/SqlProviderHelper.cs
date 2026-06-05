@@ -9,7 +9,7 @@
 
     public static class SqlProviderHelper
 	{
-		internal static readonly ObjectPool<SqlQueryValidatorVisitor> ValidationVisitorPool = new(() => new SqlQueryValidatorVisitor(), v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseValidatorVisitor> ValidationVisitorPool = new(() => new ClauseValidatorVisitor(), v => v.Cleanup(), 100);
 
 		public static bool IsValidQuery(SelectQueryClause selectQuery, SelectQueryClause? parentQuery, JoinTableWord? fakeJoin, bool forColumn, SQLProviderFlags providerFlags, out string? errorMessage)
 		{

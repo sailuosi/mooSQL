@@ -86,7 +86,7 @@
 
 			if (changed)
 			{
-				var corrector = new SqlQueryColumnNestingCorrector();
+				var corrector = new SentenceColumnNestingCorrector();
 				corrector.CorrectColumnNesting(statement);
 			}
 

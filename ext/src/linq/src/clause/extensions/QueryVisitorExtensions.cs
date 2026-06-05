@@ -12,19 +12,19 @@ namespace mooSQL.linq.SqlQuery
 
 	public static class QueryVisitorExtensions
 	{
-		internal static readonly ObjectPool<SqlQueryFindVisitor>          FindVisitorPool      = new(() => new SqlQueryFindVisitor(),          v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<SqlQueryActionVisitor>        ActionVisitorPool    = new(() => new SqlQueryActionVisitor(),        v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<SqlQueryParentFirstVisitor>   ParentVisitorPool    = new(() => new SqlQueryParentFirstVisitor(),   v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<SqlQueryCloneVisitor>         CloneVisitorPool     = new(() => new SqlQueryCloneVisitor(),         v => v.Cleanup(), 100);
-		internal static readonly ObjectPool<QueryElementReplacingVisitor> ReplacingVisitorPool = new(() => new QueryElementReplacingVisitor(), v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseFindVisitor>          FindVisitorPool      = new(() => new ClauseFindVisitor(),          v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseActionVisitor>        ActionVisitorPool    = new(() => new ClauseActionVisitor(),        v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseParentFirstVisitor>   ParentVisitorPool    = new(() => new ClauseParentFirstVisitor(),   v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<SentenceCloneVisitor>         CloneVisitorPool     = new(() => new SentenceCloneVisitor(),         v => v.Cleanup(), 100);
+		internal static readonly ObjectPool<ClauseReplacingVisitor> ReplacingVisitorPool = new(() => new ClauseReplacingVisitor(), v => v.Cleanup(), 100);
 
 		static class PoolHolder<TContext>
 		{
-			public static readonly ObjectPool<SqlQueryFindVisitor<TContext>>        FindPool        = new(() => new SqlQueryFindVisitor<TContext>(),         v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryFindExceptVisitor<TContext>>  FindExceptPool  = new(() => new SqlQueryFindExceptVisitor<TContext>(),   v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryActionVisitor<TContext>>      ActionPool      = new(() => new SqlQueryActionVisitor<TContext>(),       v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryParentFirstVisitor<TContext>> ParentFirstPool = new(() => new SqlQueryParentFirstVisitor<TContext>(),  v => v.Cleanup(), 100);
-			public static readonly ObjectPool<SqlQueryCloneVisitor<TContext>>       ClonePool       = new(() => new SqlQueryCloneVisitor<TContext>(),        v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseFindVisitor<TContext>>        FindPool        = new(() => new ClauseFindVisitor<TContext>(),         v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseFindExceptVisitor<TContext>>  FindExceptPool  = new(() => new ClauseFindExceptVisitor<TContext>(),   v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseActionVisitor<TContext>>      ActionPool      = new(() => new ClauseActionVisitor<TContext>(),       v => v.Cleanup(), 100);
+			public static readonly ObjectPool<ClauseParentFirstVisitor<TContext>> ParentFirstPool = new(() => new ClauseParentFirstVisitor<TContext>(),  v => v.Cleanup(), 100);
+			public static readonly ObjectPool<SentenceCloneVisitor<TContext>>       ClonePool       = new(() => new SentenceCloneVisitor<TContext>(),        v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryConvertVisitor<TContext>>     ConvertPool     = new(() => new SqlQueryConvertVisitor<TContext>(false), v => v.Cleanup(), 100);
 			public static readonly ObjectPool<SqlQueryConvertVisitor<TContext>>     ConvertMutationPool = new(() => new SqlQueryConvertVisitor<TContext>(true), v => v.Cleanup(), 100);
 		}
