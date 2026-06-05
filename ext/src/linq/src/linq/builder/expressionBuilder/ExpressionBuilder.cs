@@ -107,8 +107,6 @@ namespace mooSQL.linq.Linq.Builder
 		public readonly ParameterExpression[]? CompiledParameters;
 		public readonly object?[]?             ParameterValues;
 
-		public static readonly ParameterExpression QueryRunnerParam = Expression.Parameter(typeof(IQueryRunner), "qr");
-		public static readonly ParameterExpression DataReaderParam  = Expression.Parameter(typeof(DbDataReader), "rd");
 		public static readonly ParameterExpression ParametersParam  = Expression.Parameter(typeof(object[]),     "ps");
 		public static readonly ParameterExpression ExpressionParam  = Expression.Parameter(typeof(Expression),   "expr");
 		public static readonly ParameterExpression RowCounterParam  = Expression.Parameter(typeof(int),          "counter");

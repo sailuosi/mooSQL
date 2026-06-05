@@ -50,10 +50,6 @@ namespace mooSQL.linq.Linq
 
         public bool IsFinalized=false;
         /// <summary>
-        /// 最终处理后的表达式
-        /// </summary>
-        public Expression finalExp;
-        /// <summary>
         /// 中间环节的编辑器
         /// </summary>
         public IBuildContext buildContext;

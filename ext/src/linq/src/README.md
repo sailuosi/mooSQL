@@ -332,13 +332,32 @@ Expression
 
 ---
 
+## 清理进度
+
+### 阶段 1 — 死代码清理（已完成）
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| Preamble 体系 | ✅ | 删除 `preamble/*.cs` |
+| Mapper / ConvertFromDataReader 链 | ✅ | 删除 `Mapper.cs`、`ConvertFromDataReaderExpression.cs`、`SequentialAccessHelper.cs` |
+| LimitResultEnumerable | ✅ | 已删除 |
+| SetScalarQuery / SetNonQueryQuery | ✅ | 从 `QueryRunner` 移除（保留 InsertOrReplace 用的 Query2 路径） |
+| QueryRunnerParam / DataReaderParam | ✅ | 从 `ExpressionBuilder` 移除 |
+| SentenceBag.finalExp | ✅ | 已移除，参数解析仅用 `srcExp` |
+| redo/ 实验代码 | ✅ | 删除 `redo/builder/*.cs` |
+| 过时文档 | ✅ | `linq/README.md` 指向本文 |
+
+**暂缓：** `toClean/` 目录仍含运行时代码（`SqlProviderHelper`、`ReservedWords`、`EntityConstructorBase` 等），待阶段 4 整体搬迁后再删目录。
+
+---
+
 ## 未来计划
 
-### 短期（继续内联与清理）
+### 短期（阶段 2：继续内联）
 
 - [ ] 继续内联高频 Builder 到 `ClauseMethodVisitor.*.cs`：`GroupBy`、`Distinct`、`GroupJoin`、`LoadWith`、聚合（Count/Sum/…）
 - [ ] 运行 `gen_bindings.py` 保持 Bindings 与 Resolver 同步
-- [ ] 清理 `outcast/` 下更多历史死代码（`IQueryRunner` Mapper 相关、`LimitResultEnumerable`、注释块）
+- [ ] 清理 `IQueryRunner` 接口中 Mapper/Preambles 遗留成员
 - [ ] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`Parameters` 字段与 expression 内嵌参数的一致性）
 - [ ] 补充集成测试：First/Single/Count、Join、LoadWith、Take/Skip 方言差异
 

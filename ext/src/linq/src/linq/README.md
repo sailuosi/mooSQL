@@ -1,42 +1,14 @@
-﻿
+﻿# LINQ 编译流程（已迁移）
 
+> **本文档已过时。** Phase 2 重构后，编译与执行已分离，请参阅上级目录文档：
+>
+> **[../README.md](../README.md)** — 当前三层架构（Compile → SentenceBag → SentenceExecutor）
 
+## 历史说明（Phase 1）
 
-编制生命期
+旧设计分两阶段：
 
+1. **BuildSequence** — Expression → `SelectQueryClause`（Statement）
+2. **BuildQuery** — 投影 finalization + `BuildMapper` + `SetRunQuery`（已删除）
 
-输入物  Expression 
-
-
-中间产物 SqlStatement
-
-
-最终产物 字符串SQL
-
-
-
-
-第一编译阶段
-    环境  IBuildContext
-    编译器 
-        ExpressionBuilder
-        ISequenceBuilder
-    动作
-        → ExpressionBuilder.BuildSequence() //
-            → ExpressionBuilder.TryBuildSequence()
-                → ExpressionBuilder.ExpandToRoot()
-                → ExpressionBuilder.TryFindBuilder() //此处会根据节点类型，调用不同的Builder
-                → ISequenceBuilder.BuildSequence()
-                    →TakeSkipBuilder.BuildMethodCall() --分支众多
-                        →ExpressionBuilder.BuildTake()
-
-第二编译阶段
-
-    动作
-        → ExpressionBuilder.BuildQuery()
-            → ExpressionBuilder.MakeExpression()
-                → IBuildContext.MakeExpression()  //此处产出 SqlPlaceholderExpression 类
-                    → Builder.ConvertToSqlExpr()
-                    → ExpressionBuilder.CollectPlaceholders()
-                    → ExpressionBuilder.CreatePlaceholder()
-            → ExpressionBuilder.FinalizeProjection()
+当前仅保留第一阶段编译；执行统一走 `SentenceExecutor` + `SQLBuilder.query<T>()`。

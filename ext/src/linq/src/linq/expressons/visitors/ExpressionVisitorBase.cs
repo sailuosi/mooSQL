@@ -30,11 +30,6 @@ namespace mooSQL.linq.Expressions
 			return node;
 		}
 
-		internal virtual Expression VisitConvertFromDataReaderExpression(ConvertFromDataReaderExpression node)
-		{
-			return node;
-		}
-
 		public virtual Expression VisitDefaultValueExpression(DefaultValueExpression node)
 		{
 			return node;

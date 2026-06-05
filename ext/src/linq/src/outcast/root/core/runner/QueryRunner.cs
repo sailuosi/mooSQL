@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.linq.Linq
@@ -64,7 +63,7 @@ namespace mooSQL.linq.Linq
 
 		#region Helpers
 
-		static void FinalizeQuery(SentenceBag query)
+		internal static void FinalizeQuery(SentenceBag query)
 		{
 			if (query.IsFinalized)
 				return;
@@ -79,22 +78,7 @@ namespace mooSQL.linq.Linq
 			query.IsFinalized = true;
 		}
 
-		#endregion
-
-		#region ScalarQuery
-
-		public static void SetScalarQuery(SentenceBag query)
-		{
-			FinalizeQuery(query);
-
-			if (query.Sentences.Count != 1)
-				throw new InvalidOperationException();
-
-			query.Runner.whenGetElement( (context) => ScalarQuery(context));
-			query.Runner.whenGetElementAsync ( (context) => ScalarQueryAsync(context));
-		}
-
-		static List<SQLCmd> prepareRun(RunnerContext context) {
+		internal static List<SQLCmd> prepareRun(RunnerContext context) {
 			if (context == null) throw new Exception("待执行的上下文不存在！");
             if (context.sentenceBag == null) throw new Exception("待执行的SQL模型不存在！或许linq尚未翻译");
 			var res= new List<SQLCmd>();
@@ -108,53 +92,6 @@ namespace mooSQL.linq.Linq
 			}
 			return res;
         }
-
-		static object? ScalarQuery(RunnerContext context)
-		{
-			using var m      = ActivityService.Start(ActivityID.ExecuteScalar);
-
-			var cmds= prepareRun(context);
-			return context.dataContext.ExeQueryScalar(cmds[0]);
-		}
-
-		static async Task<object?> ScalarQueryAsync(RunnerContext context)
-		{
-            using var m = ActivityService.Start(ActivityID.ExecuteScalarAsync);
-
-            var cmds = prepareRun(context);
-            return context.dataContext.ExeQueryScalarAsync(cmds[0],context.cancellationToken);
-		}
-
-		#endregion
-
-		#region NonQueryQuery
-
-		public static void SetNonQueryQuery(SentenceBag query)
-		{
-			FinalizeQuery(query);
-
-			if (query.Sentences.Count != 1)
-				throw new InvalidOperationException();
-
-			query.Runner.whenGetElement( (cont) => NonQueryQuery(cont));
-			query.Runner.whenGetElementAsync( (cont) => NonQueryQueryAsync(cont));
-		}
-
-		static int NonQueryQuery(RunnerContext context)
-		{
-            using var m = ActivityService.Start(ActivityID.ExecuteNonQuery);
-            var cmds = prepareRun(context);
-            var cmd0 = cmds[0];
-			return context.dataContext.ExeNonQuery(cmd0);
-		}
-
-		static async Task<object?> NonQueryQueryAsync(RunnerContext context)
-		{
-            using var m = ActivityService.Start(ActivityID.ExecuteNonQueryAsync);
-            var cmds = prepareRun(context);
-            var cmd0 = cmds[0];
-            return context.dataContext.ExeNonQueryAsync(cmd0,context.cancellationToken);
-		}
 
 		#endregion
 
