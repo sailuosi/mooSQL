@@ -29,6 +29,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data.Mapping;
     using mooSQL.utils;
     using mooSQL.data.mapping;
+    using mooSQL.linq.translator;
 
     partial class ExpressionBuilder
 	{
@@ -115,6 +116,9 @@ namespace mooSQL.linq.Linq.Builder
 					var e = (MethodCallExpression)expression;
 
                         IAffirmWord? predicate = null;
+
+					if (ClausePredicateVisitor.TryConvertMooExtension(this, context, e, flags, out var mooPredicate))
+						return mooPredicate;
 
 					if (e.Method.Name          == nameof(Sql.Alias) && e.Object == null && e.Arguments.Count == 2 &&
 						e.Method.DeclaringType == typeof(Sql))

@@ -1,6 +1,7 @@
 using HHNY.NET.Application.Entity;
 using mooSQL.data;
 using mooSQL.data.model;
+using mooSQL.linq;
 using mooSQL.linq.Linq;
 using mooSQL.linq.Mapping;
 using mooSQL.linq.translator;
@@ -81,6 +82,33 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
     {
         var bag = new SentenceBag { Sentences = new() { new SentenceItem() } };
         Assert.True(bag.IsCacheable);
+    }
+
+    [Fact]
+    public void EntityVisit_CompileWhereLike_ProducesLikeSql()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.Where(u => u.Name.Like("Ali")));
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("LIKE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("name", sql, StringComparison.OrdinalIgnoreCase);
+
+        var sq = RequireSelectQuery(bag);
+        Assert.NotEmpty(sq.Where.SearchCondition.Predicates);
+    }
+
+    [Fact]
+    public void EntityVisit_WhereLike_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+
+        var rows = bus.Where(u => u.Name.Like("Ali")).ToList();
+
+        Assert.NotEmpty(rows);
+        Assert.All(rows, u => Assert.Contains("Ali", u.Name, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

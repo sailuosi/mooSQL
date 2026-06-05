@@ -19,6 +19,7 @@ namespace mooSQL.linq.Linq.Builder
 	using Extensions;
 	using Translation;
 	using mooSQL.linq.Expressions;
+	using mooSQL.linq.translator;
 	using Mapping;
 	using Reflection;
 	using SqlQuery;
@@ -85,7 +86,8 @@ namespace mooSQL.linq.Linq.Builder
 			if (isTest)
 				flags |= ProjectFlags.Test;
 
-			if (!BuildSearchCondition(buildSequnce, expr, flags, sc, out var error))
+			var predicateVisitor = new ClausePredicateVisitor(this, buildSequnce);
+			if (!predicateVisitor.BuildSearchCondition(expr, flags, sc, out var error))
 			{
 				if (parent == null && !isTest)
 					throw error.CreateException();

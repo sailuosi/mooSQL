@@ -269,7 +269,8 @@ ext/src/linq/
 │   ClauseExpressionVisitor.cs
 │   ClauseMethodVisitor*.cs  # 方法分发（含内联 + Bindings）
 │   SequenceRootBuilder.cs
-│   ClauseMethodVisitor.MooExt.cs / .Async.cs / .PredicateExt.cs
+│   ClauseMethodVisitor.MooExt.cs / .Async.cs
+│   ClausePredicateVisitor.cs / ClauseFieldVisitor.cs
 │   ClausePredicateVisitor.cs
 │   SentenceExecutor.cs      # Statement → SQLBuilder → 执行
 │   NavColumnLoader.cs       # LoadWith 二次加载

@@ -284,7 +284,7 @@ public static SentenceBag<T> Compile<T>(ExpressionBuilder builder, Expression ex
 
 | 步骤 | 说明 |
 |------|------|
-| `TryBuildSequence` | 双访问器（`ClauseExpressionVisitor` + `ClauseMethodVisitor`）或 `SequenceBuilderResolver` → `IBuildContext` |
+| `TryBuildSequence` | 双访问器（`ClauseExpressionVisitor` + `ClauseMethodVisitor`）+ `SequenceRootBuilder` → `IBuildContext` |
 | `GetResultStatement()` | 产出 `BaseSentence` / `SelectQueryClause` |
 | `ParameterAccessors` | 由 `ParametersContext` 收集，执行时 `QueryMate.SetParameters` 绑定 |
 | `NavColumns` | LoadWith 导航列元数据，**不在编译期生成 Mapper** |
