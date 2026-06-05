@@ -3,6 +3,7 @@
 
 using HHNY.NET.Core.MooSQL;
 using mooSQL.data;
+using mooSQL.data.cluster;
 using mooSQL.linq;
 using mooSQL.linq.core;
 using System;
@@ -12,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TestMooSQL.src;
-public class DBTest
+public partial class DBTest
 {
 
     private static DBInsCash cash = null;
@@ -78,9 +79,18 @@ public class DBTest
 
             cash.addDataBase(0, db1);
             cc++;
-        
+            
+            addMoreDB();
 
-
+            // 连接位0为主库，连接位1为灾备热库；主库宕机时自动切换到连接位1
+            cash.configureGroup(0, g => g
+                .master(0)
+                .failover(FailoverMode.OnNextConnect)
+                .addSlave(1, s =>
+                {
+                    s.HotStandby = true;
+                    s.WriteEnabled = true;
+                }));
 
         return cc;
     }

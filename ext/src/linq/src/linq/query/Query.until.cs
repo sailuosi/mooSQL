@@ -241,6 +241,7 @@ namespace mooSQL.linq.Linq
 
                 var translator = dataContext.dialect.clauseTranslator;
                 translator.Prepare(dataContext);
+                translator.ParameterValues = parameterValues;
                 //var cc = sqlBuilder.CommandCount(statement);
                 using var sb = Pools.StringBuilder.Allocate();
 

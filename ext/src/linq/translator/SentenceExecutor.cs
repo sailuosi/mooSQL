@@ -103,6 +103,7 @@ internal static partial class SentenceExecutor
         QueryMate.SetParameters(bag, expression, db, parameters, sentence, parameterValues);
 
         var translator = db.dialect.clauseTranslator.Prepare(db);
+        translator.ParameterValues = parameterValues;
         var clause = translator.Visit(sentence.Statement);
 
         if (clause is SQLBuilderClause builderClause)
@@ -200,6 +201,8 @@ internal static partial class SentenceExecutor
     {
         if (bag.IsFinalized)
             return;
+
+        EntitySelectProjector.Apply(bag);
 
         var optimizer = SqlOptimizerFactory.Get(db);
         foreach (var sentence in bag.Sentences)

@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.data.mapping;
 
 namespace mooSQL.data
 {
@@ -25,6 +26,7 @@ namespace mooSQL.data
             expression = new SQLiteExpress(this);
             sentence = new SQLiteSentence(this);
             clauseTranslator = new SQLiteClauseTranslator(this);
+            mapping = new DefaultMappingPanel();
             function = new SQLLiteFunction();
 
             this.initVersions();

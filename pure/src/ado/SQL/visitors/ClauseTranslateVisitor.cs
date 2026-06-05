@@ -70,6 +70,11 @@ namespace mooSQL.linq
         /// </summary>
         protected SQLBuilder builder;
 
+        /// <summary>
+        /// LINQ 运行时参数值（由 <see cref="QueryMate.SetParameters"/> 填充）。
+        /// </summary>
+        public IReadOnlyParaValues? ParameterValues { get; set; }
+
         private Dictionary<SQLBuilder,SQLBuilderClause> _builderMapper = new Dictionary<SQLBuilder, SQLBuilderClause>();
         /// <summary>
         /// 已废弃
@@ -108,15 +113,27 @@ namespace mooSQL.linq
         /// <inheritdoc />
         public override Clause VisitParameter(ParameterWord field)
         {
-            if (field.Name != null)
+            var key = field.Name?.TrimStart('@');
+            if (string.IsNullOrEmpty(key))
             {
-                var key = field.Name.TrimStart('@');
-                var para = new Parameter(key, field.Value);
-                para.dbType = field.Type;
-                builder.ps.Add(para);
+                var random = new Random();
+                key = "p_" + builder.paraSeed + builder.ps.Count + random.Next(100, 999);
             }
 
-            return field;
+            object? value = field.Value;
+            var dbType = field.Type;
+            if (ParameterValues != null && ParameterValues.TryGetValue(field, out var parameterValue) && parameterValue != null)
+            {
+                value ??= parameterValue.ProviderValue;
+                dbType = parameterValue.DbDataType;
+            }
+
+            var para = new Parameter(key, value);
+            para.dbType = dbType;
+            builder.ps.Add(para);
+            var keySQL = builder.DBLive.dialect.expression.paraPrefix + key;
+
+            return new SQLFragClause(keySQL);
         }
 
         /// <summary>

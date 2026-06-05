@@ -11,6 +11,9 @@ namespace mooSQL.data.model
 	/// </summary>
 	public class ParameterWord :Clause, IExpWord
 	{
+        /// <inheritdoc />
+        public override Clause Accept(ClauseVisitor visitor) => visitor.VisitParameter(this);
+
 		/// <summary>构造查询参数节点。</summary>
 		public ParameterWord(DbDataType type, string? name, object? value) : base(ClauseType.SqlParameter, null)
         {
