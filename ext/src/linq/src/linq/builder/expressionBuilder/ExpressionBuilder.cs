@@ -88,9 +88,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			OriginalExpression = expression;
 
-			//_memberTranslator = ((IInfrastructure<IServiceProvider>)dataContext).Instance.GetRequiredService<IMemberTranslator>();
-
-
+			_memberTranslator = MemberTranslatorResolver.Resolve(DB);
 
 			_optimizationContext = optimizationContext;
 			_parametersContext   = parametersContext;

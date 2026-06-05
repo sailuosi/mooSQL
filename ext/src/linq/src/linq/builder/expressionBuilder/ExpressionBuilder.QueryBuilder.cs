@@ -475,7 +475,166 @@ namespace mooSQL.linq.Linq.Builder
 		Dictionary<SubqueryCacheKey, SubQueryContextInfo>? _buildContextCache;
 		Dictionary<SubqueryCacheKey, SubQueryContextInfo>? _testBuildContextCache;
 
+		SubQueryContextInfo GetSubQueryContext(IBuildContext inContext, ref IBuildContext context, Expression expr, ProjectFlags flags)
+		{
+			context   = inContext;
+			var testExpression = CorrectRoot(context, expr);
+			var cacheKey       = new SubqueryCacheKey(context.SelectQuery, testExpression);
 
+			var shouldCache = flags.IsSql() || flags.IsExpression() || flags.IsExtractProjection() || flags.IsRoot();
+
+			if (shouldCache && _buildContextCache?.TryGetValue(cacheKey, out var item) == true)
+				return item;
+
+			if (flags.IsTest())
+			{
+				if (_testBuildContextCache?.TryGetValue(cacheKey, out var testItem) == true)
+					return testItem;
+			}
+
+			var rootQuery = GetRootContext(context, testExpression, false);
+			rootQuery ??= GetRootContext(context, expr, false);
+
+			if (rootQuery != null)
+				context = rootQuery.BuildContext;
+
+			var ctx = GetSubQuery(context, testExpression, flags, out var isSequence, out var errorMessage);
+
+			var info = new SubQueryContextInfo { SequenceExpression = testExpression, Context = ctx, IsSequence = isSequence, ErrorMessage = errorMessage};
+
+			if (shouldCache)
+			{
+				if (flags.IsTest())
+				{
+					_testBuildContextCache           ??= new(SubqueryCacheKey.Comparer);
+					_testBuildContextCache[cacheKey] =   info;
+				}
+				else
+				{
+					_buildContextCache           ??= new(SubqueryCacheKey.Comparer);
+					_buildContextCache[cacheKey] =   info;
+				}
+			}
+
+			return info;
+		}
+
+		public static bool IsSingleElementContext(IBuildContext context)
+			=> context is FirstSingleBuilder.FirstSingleContext;
+
+		Expression TranslateDetails(IBuildContext context, Expression expr, ProjectFlags flags)
+		{
+			using var visitor = _buildVisitorPool.Allocate();
+			return visitor.Value.Build(context, expr, flags, BuildFlags.ForceAssignments | BuildFlags.IgnoreRoot);
+		}
+
+		public Expression PrepareSubqueryExpression(Expression expr)
+		{
+			var newExpr = expr;
+
+			if (expr.NodeType == ExpressionType.Call)
+			{
+				var mc = (MethodCallExpression)expr;
+				if (mc.IsQueryable(_singleElementMethods))
+				{
+					if (mc.Arguments is [var a0, var a1])
+					{
+						Expression whereMethod;
+						var typeArguments = mc.Method.GetGenericArguments();
+						if (mc.Method.DeclaringType == typeof(Queryable))
+						{
+							var methodInfo = Methods.Queryable.Where.MakeGenericMethod(typeArguments);
+							whereMethod = Expression.Call(methodInfo, a0, a1);
+							newExpr = Expression.Call(typeof(Queryable), mc.Method.Name, typeArguments, whereMethod);
+						}
+						else
+						{
+							var methodInfo = Methods.Enumerable.Where.MakeGenericMethod(typeArguments);
+							whereMethod = Expression.Call(methodInfo, a0, a1);
+							newExpr = Expression.Call(typeof(Enumerable), mc.Method.Name, typeArguments, whereMethod);
+						}
+					}
+				}
+			}
+
+			return newExpr;
+		}
+
+		public Expression? TryGetSubQueryExpression(IBuildContext context, Expression expr, string? alias, ProjectFlags flags, out bool isSequence, out Expression? corrected)
+		{
+			isSequence = false;
+			corrected  = null;
+
+			if (flags.IsTraverse())
+				return null;
+
+			var unwrapped = expr.Unwrap();
+
+			if (unwrapped is SqlErrorExpression)
+				return expr;
+
+			if (unwrapped is BinaryExpression or ConditionalExpression or DefaultExpression or DefaultValueExpression or SqlDefaultIfEmptyExpression)
+				return null;
+
+			if (unwrapped is SqlGenericConstructorExpression or ConstantExpression or SqlEagerLoadExpression)
+				return null;
+
+			if (unwrapped is ContextRefExpression contextRef && contextRef.BuildContext.ElementType == expr.Type)
+				return null;
+
+			if (SequenceHelper.IsSpecialProperty(unwrapped, out _, out _))
+				return null;
+
+			if (!flags.IsSubquery())
+			{
+				if (CanBeCompiled(unwrapped, true))
+					return null;
+
+				if (unwrapped is MemberInitExpression or NewExpression or NewArrayExpression)
+				{
+					var withDetails = TranslateDetails(context, unwrapped, flags);
+					if (CanBeCompiled(withDetails, true))
+						return null;
+				}
+			}
+
+			if (unwrapped is MemberExpression me)
+			{
+				var attr = me.Member.GetExpressionAttribute(DBLive);
+				if (attr != null)
+					return null;
+			}
+
+			var info = GetSubQueryContext(context, ref context, unwrapped, flags);
+			isSequence = info.IsSequence;
+
+			if (info.Context == null)
+			{
+				if (isSequence)
+				{
+					if (flags.IsExpression())
+					{
+						var prepared = PrepareSubqueryExpression(expr);
+						if (!ReferenceEquals(prepared, expr))
+							corrected = prepared;
+						return null;
+					}
+
+					return new SqlErrorExpression(expr, info.ErrorMessage, expr.Type);
+				}
+
+				return null;
+			}
+
+			if (!IsSingleElementContext(info.Context) && expr.Type.IsEnumerableType(info.Context.ElementType) && !flags.IsExtractProjection())
+			{
+				var eager = (Expression)new SqlEagerLoadExpression(unwrapped);
+				eager = SqlAdjustTypeExpression.AdjustType(eager, expr.Type, DBLive);
+				return eager;
+			}
+
+			return new ContextRefExpression(unwrapped.Type, info.Context);
+		}
 
 
 

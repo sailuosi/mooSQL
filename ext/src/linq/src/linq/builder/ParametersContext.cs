@@ -186,11 +186,11 @@ namespace mooSQL.linq.Linq.Builder
 		static bool HasDbMapping(DBInstance mappingSchema, Type testedType, out LambdaExpression? convertExpr)
 		{
             convertExpr = null;
-            //if (mappingSchema.IsScalarType(testedType))
-            //{
-            //	convertExpr = null;
-            //	return true;
-            //}
+            if (mappingSchema.dialect.mapping.IsScalarType(testedType))
+            {
+            	convertExpr = null;
+            	return true;
+            }
 
             //convertExpr = mappingSchema.GetConvertExpression(testedType, typeof(DataParameter), false, false);
 
@@ -331,8 +331,8 @@ namespace mooSQL.linq.Linq.Builder
 									return null;
 							}
 
-							valueGetter = InternalExtensions.ApplyLambdaToExpression(convertExpr, valueGetter);
-								//: ColumnDescriptor.ApplyConversions(MappingSchema, valueGetter, newExpr.DataType, null, true);
+							if (convertExpr != null)
+								valueGetter = InternalExtensions.ApplyLambdaToExpression(convertExpr, valueGetter);
 						}
 						else
 						{

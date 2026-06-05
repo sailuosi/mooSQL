@@ -41,6 +41,7 @@ namespace mooSQL.linq.SqlProvider
 
 		public virtual BaseSentence Finalize(DBInstance mappingSchema, BaseSentence statement)
 		{
+			DBLive = mappingSchema;
 			FixEmptySelect(statement);
 			FinalizeCte   (statement);
 

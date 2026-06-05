@@ -152,5 +152,18 @@ namespace mooSQL.linq.Linq.Builder
 
 			return false;
 		}
+
+		/// <summary>
+		/// 导航属性关联查询构建（移植自 linq2db ExpressionBuilder.Associations.cs）。
+		/// 当前 FK 列通过 EntityCash 识别；完整 EntityDescriptor 落地后补全 descriptor 解析。
+		/// </summary>
+		public Expression TryCreateAssociation(Expression expression, ContextRefExpression rootContext, IBuildContext? forContext, ProjectFlags flags)
+		{
+			if (!IsAssociation(expression, out _))
+				return expression;
+
+			// 关联 SQL 子查询构建依赖 GetAssociationDescriptor，待 EntityDescriptor 对齐后启用完整路径
+			return expression;
+		}
 	}
 }

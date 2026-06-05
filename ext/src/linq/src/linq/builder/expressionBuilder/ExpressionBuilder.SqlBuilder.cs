@@ -233,6 +233,37 @@ namespace mooSQL.linq.Linq.Builder
 
 		int _gettingSubquery;
 
+		public IBuildContext? GetSubQuery(IBuildContext context, Expression expr, ProjectFlags flags, out bool isSequence, out string? errorMessage)
+		{
+			var info = new BuildInfo(context, expr, new SelectQueryClause())
+			{
+				CreateSubQuery = true,
+			};
+
+			if (flags.IsForceOuter())
+				info.SourceCardinality = SourceCardinality.ZeroOrMany;
+
+			++_gettingSubquery;
+			var buildResult = TryBuildSequence(info);
+			--_gettingSubquery;
+
+			isSequence = buildResult.IsSequence;
+
+			if (buildResult.BuildContext != null)
+			{
+				if (_gettingSubquery == 0)
+				{
+					++_gettingSubquery;
+					var isSupported = IsSupportedSubquery(context, buildResult.BuildContext, out errorMessage);
+					--_gettingSubquery;
+					if (!isSupported)
+						return null;
+				}
+			}
+
+			errorMessage = buildResult.AdditionalDetails;
+			return buildResult.BuildContext;
+		}
 
 		#endregion
 

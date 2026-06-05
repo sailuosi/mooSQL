@@ -650,20 +650,6 @@ namespace mooSQL.linq.Linq.Builder
 		int _makeCounter;
 #endif
 
-		/// <summary>
-		/// 缓存创建的表达式
-		/// </summary>
-		/// <param name="forContext"></param>
-		/// <param name="path"></param>
-		/// <param name="flags"></param>
-		/// <returns></returns>
-		public Expression MakeExpression(IBuildContext? forContext, Expression path, ProjectFlags flags)
-		{
-			//迁移走
-			throw new NotImplementedException();
-			//return expression;
-		}
-
 		public bool IsSimpleForCompilation(IBuildContext context, Expression expr)
 		{
 			if (CanBeConstant(expr))

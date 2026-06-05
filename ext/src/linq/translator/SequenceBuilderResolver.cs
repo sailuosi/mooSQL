@@ -22,6 +22,9 @@ internal static class SequenceBuilderResolver
 		switch (expr.NodeType)
 		{
 			case ExpressionType.Constant:
+				if (global::mooSQL.linq.Linq.Builder.EntityBusBuilder.CanBuild(expr, info, builder))
+					return Builder<global::mooSQL.linq.Linq.Builder.EntityBusBuilder>.Instance;
+
 				if (global::mooSQL.linq.Linq.Builder.EnumerableBuilder.CanBuild(expr, info, builder))
 					return Builder<global::mooSQL.linq.Linq.Builder.EnumerableBuilder>.Instance;
 

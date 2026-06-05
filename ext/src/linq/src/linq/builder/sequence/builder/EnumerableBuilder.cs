@@ -19,6 +19,10 @@ namespace mooSQL.linq.Linq.Builder
 			if (expr.NodeType == ExpressionType.NewArrayInit)
 				return true;
 
+			// IQueryable（含 EntityQueryable）由 TableBuilder / EntityBusBuilder 处理，不是内存集合。
+			if (typeof(IQueryable).IsAssignableFrom(expr.Type))
+				return false;
+
 			if (!typeof(IEnumerable<>).IsSameOrParentOf(expr.Type))
 				return false;
 

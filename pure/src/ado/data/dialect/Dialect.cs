@@ -56,7 +56,7 @@ namespace mooSQL.data
         /// <summary>
         /// 数据库参数
         /// </summary>
-        public SooOption Option {  get; set; }
+        public SooOption Option { get; set; } = new SooOption();
         #region 数据库的命令执行方言
         /// <summary>
         /// 数据库参数

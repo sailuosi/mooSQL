@@ -35,8 +35,7 @@ internal static partial class SentenceExecutor
         if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
         {
             var elementType = resultType.GetGenericArguments()[0];
-            var method = typeof(SentenceExecutor).GetMethod(nameof(ExecuteEnumerable), BindingFlags.NonPublic | BindingFlags.Static)!;
-            return (TResult)method.MakeGenericMethod(elementType).Invoke(null, new object[] { bag, db, expression, context, parameters })!;
+            return (TResult)ExecuteEnumerable(elementType, bag, db, expression, context, parameters)!;
         }
 
         if (typeof(IQueryable).IsAssignableFrom(resultType) || typeof(IEnumerable).IsAssignableFrom(resultType))

@@ -1,5 +1,8 @@
+using HHNY.NET.Application.Entity;
 using mooSQL.data;
 using mooSQL.linq.Linq;
+using mooSQL.linq.translator;
+using System.Linq.Expressions;
 using Xunit;
 
 namespace TestMooSQL.src;
@@ -46,5 +49,21 @@ public class LinqCompileTests
     {
         var bag = new SentenceBag { Sentences = new() { new SentenceItem() } };
         Assert.True(bag.IsCacheable);
+    }
+
+    [Fact]
+    public void EntityVisit_CompileWhere_ProducesSelectSql()
+    {
+        var db = DBTest.GetDBInstance(0);
+        var bus = DBTest.useBus<HHDutyItem>(0);
+        Expression expr = bus.Where(d => d.Di_Idx > 1).Expression;
+
+        var bag = QueryMate.GetQuery<HHDutyItem>(db, ref expr, out _);
+        Assert.Null(bag.ErrorExpression);
+        Assert.NotNull(bag.buildContext);
+
+        var sql = SentenceExecutor.GetSqlText(bag, db, expr);
+        Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Di_Idx", sql, StringComparison.OrdinalIgnoreCase);
     }
 }

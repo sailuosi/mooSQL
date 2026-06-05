@@ -371,11 +371,14 @@ Expression
 | LoadWith* | ✅ | `ClauseMethodVisitor.LoadWith.cs` |
 | Count / Sum / Min / Max / Average | ✅ | `ClauseMethodVisitor.Aggregate.cs` |
 | DefaultIfEmpty / OfType / ElementAt* | ✅ | 各对应 partial |
-| DML / Merge / SetOp 等 | ⏳ | 仍走 `ApplyBuilder` + Bindings 生成 |
+| DML 主入口内联 | ✅ | `ClauseMethodVisitor.Dml.cs`（Insert/Update/Delete/InsertOrUpdate） |
+| DML 变体 / Merge / SetOp | ⏳ | InsertWithOutput 等仍走 `ApplyBuilder`（Bindings ~67 个） |
 
 内联后运行 `python ext/src/linq/translator/tools/gen_bindings.py` 同步 `ClauseMethodVisitor.Bindings.cs`。
 
 **接口清理：** `IQueryRunner` 已移除 `Preambles`、`MapperExpression`。
+
+**ExpressionBuilder 主文件** 现约 **569 行**（Where/Take/Helpers/CTE 等）；Projection / BuildExpression / Predicate 等已拆至 partial。
 
 ---
 
@@ -407,37 +410,117 @@ Expression
 | `ExpressionBuilder.SqlBuilder.Predicate.cs` | ✅ | Predicate Converter 主体（~878 行） |
 | `ExpressionBuilder.SqlBuilder.ConvertCompare.cs` | ✅ | ConvertCompare（~847 行） |
 
-**SqlBuilder 主文件** 现约 **840 行**（Where/Take/Helpers/CTE 等）。
+**SqlBuilder 主文件** 现约 **569 行**（Where/Take/Helpers/CTE 等）。
 
-**保留：** `outcast/` 下 `LinqExtensions`、`Sql` 等仍为公共 API，后续可 rename 为 `ext/`。
+**保留：** `outcast/` 下 `LinqExtensions`、`Sql` 等仍为公共 API，后续可 rename 为 `publicapi/`。
+
+---
+
+## 实现进度总览（2026-06 比对）
+
+Phase 2 三层架构（Compile → SentenceBag → Execute）**主骨架已落地**。当前最大编译阻塞项为 **`MakeExpression` 迁移**（参考 `h:\coding\gitee\ORM\linq2db-master`）。
+
+| 层级 | 状态 | 说明 |
+|------|------|------|
+| Layer 1 Compile | ⚠️ | 双访问器 + Builder 内联完成；`MakeExpression` 已从 linq2db 移植 |
+| Layer 2 SentenceBag | ✅ | 语句包、NavColumns、IsCacheable |
+| Layer 3 Execute | ✅ | SentenceExecutor → ClauseTranslateVisitor → SQLBuilder |
 
 ---
 
 ## 未来计划
 
+### 阻塞项（编译闭环）
+
+- [x] **`ExpressionBuilder.MakeExpression`** — 自 linq2db `ExpressionBuilder.SqlBuilder.cs` 移植至 `ExpressionBuilder.SqlBuilder.MakeExpression.cs`
+- [x] **`GetSubQuery` / `TryGetSubQueryExpression`** — 子查询表达式解析（QueryBuilder + SqlBuilder）
+- [ ] **`TryCreateAssociation` 完整实现** — 当前 stub；需 `EntityDescriptor` / `AssociationAttribute` 对齐
+- [ ] **`ExpressionBuilder.GetContext`** — linq2db 亦为 stub，低优先级
+- [ ] **端到端 LINQ 编译测试** — `LinqCompileTests` 扩展 + `LINQTest.useBus1`
+
 ### 短期
 
 - [x] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`RunnerContextFactory`、`Parameters`）
-- [x] 补充编译测试：`Tests/src/TestExt/LinqCompileTests.cs`（SqlText 断言）
-- [x] InsertOrUpdate 方言原生 UPSERT（MySQL `ON DUPLICATE KEY UPDATE` + `VisitInsertOrUpdateSentence`）
-- [x] DML `Compile()` 内联：`ClauseMethodVisitor.Dml.cs`（Insert/Update/Delete/InsertOrUpdate）
+- [x] InsertOrUpdate 方言原生 UPSERT（MySQL `ON DUPLICATE KEY UPDATE`）
+- [x] DML `Compile()` 内联：`ClauseMethodVisitor.Dml.cs`
+- [ ] **LinqCompileTests 扩展** — 真实 LINQ → `SqlText` / `SelectQueryClause` 断言（⚠️ 当前仅基础设施测试）
+- [ ] **同步 `core/*.md`** — 部分仍描述 Phase 1 流程
 
 ### 中期（架构完善）
 
-- [x] 继续拆分 `ExpressionBuilder.SqlBuilder`（`SearchCondition.cs` 已拆出）
-- [ ] `outcast/` rename → `publicapi/`（待批量迁移，当前保留路径）
-- [x] 异步流式枚举：`StreamingResultEnumerable`（无 LoadWith 时；async 仍经 queryAsync）
-- [ ] Take/Skip 在不支持方言上的客户端截断评估
-- [x] 编译缓存：`SentenceBag.IsCacheable` + `ExpressionQuery.Info` 实例缓存
-- [x] `NavColumnLoader`：多级 LoadWith、`HashSet<Type>` 循环引用检测
+- [x] 继续拆分 `ExpressionBuilder.SqlBuilder`（SearchCondition / Projection / Predicate 等 partial）
+- [ ] `outcast/` rename → `publicapi/`（待批量迁移）
+- [x] `StreamingResultEnumerable`（⚠️ 同步路径仍 `ToList()`，非 DB 级流式）
+- [ ] **Take/Skip 落地完善** — `VisitSelectClause` 已有 top/setPage；缺 offset/limit、Skip-only、动态参数
+- [ ] **Take/Skip 客户端截断** — Jet 等无 OFFSET 方言 fallback
+- [x] 编译缓存：`SentenceBag.IsCacheable` + `ExpressionQuery.Info`
+- [x] `NavColumnLoader`：多级 LoadWith、循环引用检测
+- [ ] Merge / SetOp 内联评估（~67 个 ApplyBuilder 待收敛）
+
+#### Take/Skip 专项
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| 仅 Take → `top(n)` | ✅ | `ClauseTranslateVisitor.VisitSelectClause` |
+| Skip+Take 对齐 → `setPage` | ⚠️ | 仅 skip%take==0 正确 |
+| Skip+Take 非对齐 → OFFSET+LIMIT | ❌ | 需 SQLBuilder API |
+| 仅 Skip | ❌ | 未处理 |
+| UI 页码 floor(10.2→10) | 文档 | 放在 `setPage` 入参层，非 LINQ Skip |
 
 ### 长期（能力与生态）
 
-- [ ] 编译阶段产出 **可 inspect 的 SQL 计划**（类似 `EXPLAIN` 元数据），供调试 UI 使用
-- [ ] Statement 级别单元测试：不连 DB 断言 `SelectQueryClause` 结构（`LinqCompileTests` 已覆盖 SqlText）
-- [ ] 与 SQLClip / SQLBuilder 链式 API 互操作（Expression → SQLBuilder 双向）
-- [ ] 多语句事务批处理（`SentenceBag.Sentences.Count > 1` 的统一执行器）
-- [ ] 考虑将 `translator/` 提升为独立模块，供非 LINQ 场景复用 Statement 编译
+- [ ] 编译阶段产出 **可 inspect 的 SQL 计划**（EXPLAIN 元数据），供调试 UI
+- [ ] **Statement 级单元测试** — 不连 DB 断言 `SelectQueryClause` 结构
+- [ ] 与 **SQLClip / SQLBuilder** 链式 API 互操作（Expression ↔ SQLBuilder 双向）
+- [ ] **多语句事务批处理** — `SentenceBag.Sentences.Count > 1` 统一执行器
+- [ ] **translator/ 独立模块** — 供非 LINQ 场景复用 Statement 编译
+- [ ] **真异步流式** — `IAsyncEnumerable` 逐条读库
+- [ ] **方言 Take/Skip 能力矩阵** — SQL 下推 / ROW_NUMBER / 客户端截断策略文档化
+
+### 建议执行顺序
+
+```
+MakeExpression + GetSubQuery（已完成）
+  → 端到端测试（useBus1 / LinqCompileTests）
+  → Take/Skip 落地 + 客户端截断策略
+  → outcast rename
+  → 长期项（SqlPlan / SQLClip 互操作 / 多语句事务）
+```
+
+**参考源码：** `h:\coding\gitee\ORM\linq2db-master\Source\LinqToDB\Linq\Builder\`
+
+---
+
+## 原「未来计划」归档
+
+<details>
+<summary>早期 checkbox 列表（已被上文取代）</summary>
+
+### 短期（已完成项）
+
+- [x] 统一参数传递
+- [x] LinqCompileTests 基础设施
+- [x] InsertOrUpdate UPSERT
+- [x] DML Compile 内联
+
+### 中期
+
+- [x] SqlBuilder 拆分
+- [ ] outcast rename
+- [x] StreamingResultEnumerable
+- [ ] Take/Skip 客户端截断
+- [x] 编译缓存
+- [x] NavColumnLoader
+
+### 长期
+
+- [ ] SqlPlan
+- [ ] Statement 测试
+- [ ] SQLClip 互操作
+- [ ] 多语句事务
+- [ ] translator 独立模块
+
+</details>
 
 ---
 

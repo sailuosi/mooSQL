@@ -171,7 +171,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			protected void Init(bool applyFilters)
 			{
-				//InheritanceMapping = EntityDescriptor.InheritanceMapping;
+				InheritanceMapping = Array.Empty<EntiyInherit>();
 
 				// Original table is a parent.
 				//

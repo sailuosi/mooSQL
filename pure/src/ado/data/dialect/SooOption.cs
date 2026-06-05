@@ -59,6 +59,6 @@ namespace mooSQL.data
         #endregion
 
         /// <summary>提供程序能力标志。</summary>
-        public SQLProviderFlags ProviderFlags;
+        public SQLProviderFlags ProviderFlags = new SQLProviderFlags();
     }
 }
