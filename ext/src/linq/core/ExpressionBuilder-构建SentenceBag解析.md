@@ -1,6 +1,11 @@
 ## ExpressionBuilder 构建 SentenceBag\<TResult\> 过程解析
 
-本文专门解释 `ExpressionBuilder` 在 `QueryMate.CreateQuery<T>` 中**如何把 LINQ 表达式构建为 `SentenceBag<T>`**，包括内部步骤、关键类、以及各个分支的职责划分。建议结合 `EntityVisitCompiler-执行过程解析.md` 一起阅读。
+> **Phase 2 更新（2026-06）**  
+> 编译与执行已分离：`ExpressionBuilder` **仅负责** LINQ 表达式 → `SentenceBag`（Statement + 参数 + NavColumns）。  
+> 不再执行 `BuildQuery` / `SetRunQuery` / `BuildMapper`；SQL 优化、翻译、实体物化均在 **`SentenceExecutor`** 完成。  
+> 主入口为 `doBuild<T>()` → `ClauseCompiler.Compile<T>()`。下文 §3–§6 为 Phase 2 描述；带 ~~删除线~~ 或「Phase 1 归档」标记的段落已过时。
+
+本文解释 `ExpressionBuilder` 在 `QueryMate.CreateQuery<T>` 中**如何把 LINQ 表达式构建为 `SentenceBag<T>`**。建议结合 `EntityVisitCompiler-执行过程解析.md` 与 `ext/src/linq/src/README.md` 一起阅读。
 
 ---
 
@@ -106,67 +111,37 @@ internal sealed partial class ExpressionBuilder : IExpressionEvaluator
 
 ---
 
-### 3. 核心入口：doBuild<T> —— 第一次构建 SentenceBag<T>
+### 3. 核心入口：doBuild<T> —— 构建 SentenceBag<T>（Phase 2）
 
-```124:177:ext/src/linq/src/linq/builder/expressionBuilder/ExpressionBuilder.cs
+```130:153:ext/src/linq/src/linq/builder/expressionBuilder/ExpressionBuilder.cs
 public SentenceBag<T> doBuild<T>()
 {
-    var res= new SentenceBag<T>();
-    res.EntityType = typeof(T);
-    using var m = ActivityService.Start(ActivityID.Build);
+    var res = ClauseCompiler.Compile<T>(this, Expression);
+    res.DBLive = DBLive;
+    res.srcExp = Expression;
 
-    var sequence = BuildSequence(new BuildInfo((IBuildContext?)null, Expression, new SelectQueryClause()));
-
-    using var mq = ActivityService.Start(ActivityID.BuildQuery);
-    // 读入到结果集
-
-    var statement = sequence.GetResultStatement();
-
-    var sentence = new SentenceItem()
-    {
-        Statement = statement,
-        ParameterAccessors = _parametersContext.CurrentSqlParameters
-    };
-    res.add(sentence);
-
-    // 第2编译阶段
-    // 注意，此处实体类类型暂未传入
-
-    var param = Expression.Parameter(typeof(SentenceBag), "info");
-
-    List<Preamble>? preambles = null;
-    BuildQuery<T>(res, sequence, param, ref preambles, new Expression[] { });
-
-    if (res.ErrorExpression == null)
+    if (res.ErrorExpression == null && res.Sentences != null)
     {
         foreach (var q in res.Sentences)
         {
             if (Tag?.Lines.Count > 0)
-            {
                 (q.Statement.Tag ??= new()).Lines.AddRange(Tag.Lines);
-            }
 
             if (SqlQueryExtensions != null)
-            {
                 (q.Statement.SqlQueryExtensions ??= new()).AddRange(SqlQueryExtensions);
-            }
         }
-
-        res.SetPreambles(preambles);
-        res.SetParameterized(_parametersContext.GetParameterized());
     }
 
     return res;
 }
 ```
 
-从上往下可以分为三个阶段：
+`doBuild<T>` 不再调用 `BuildQuery` / `SetRunQuery`。编译分两阶段：
 
-1. **阶段一：构建序列（BuildSequence）**
-2. **阶段二：生成 Statement + SentenceItem 并加入 SentenceBag**
-3. **阶段三：第二阶段编译（BuildQuery）—— 投影/映射/校验/最终化 + Preambles 收集**
+1. **ClauseCompiler.Compile** — `TryBuildSequence` → Statement + ParameterAccessors + NavColumns  
+2. **doBuild 收尾** — 附加 Tag / SqlQueryExtensions，写入 `DBLive`、`srcExp`
 
-下面分别展开。
+执行阶段的 `FinalizeBag`、`EntitySelectProjector`、`SqlOptimizer.Finalize` 由 **`SentenceExecutor`** 在首次执行或 `GetSqlText` 时触发。
 
 ---
 
@@ -281,9 +256,46 @@ res.add(sentence);
 
 ---
 
-### 6. 阶段三：BuildQuery<T> —— 投影 / 校验 / Finalize / Preambles
+### 6. ClauseCompiler —— 编译收尾（Phase 2，替代 BuildQuery）
 
-```179:219:ext/src/linq/src/linq/builder/expressionBuilder/ExpressionBuilder.cs
+```12:54:ext/src/linq/translator/ClauseCompiler.cs
+public static SentenceBag<T> Compile<T>(ExpressionBuilder builder, Expression expression)
+{
+    using var query = ExpressionBuilder.QueryPool.Allocate();
+    var buildInfo = new BuildInfo((IBuildContext?)null, expression, query.Value);
+
+    var result = builder.TryBuildSequence(buildInfo);
+    if (result.BuildContext == null)
+        return new SentenceBag<T> { EntityType = typeof(T), ErrorExpression = ..., DBLive = builder.DBLive };
+
+    var bag = new SentenceBag<T> { EntityType = typeof(T), buildContext = result.BuildContext, ... };
+    bag.add(new SentenceItem
+    {
+        Statement = result.BuildContext.GetResultStatement(),
+        ParameterAccessors = builder.ParametersContext.CurrentSqlParameters
+    });
+    bag.SetParameterized(builder.ParametersContext.GetParameterized());
+    // NavColumns ← builder.NavColumns（LoadWith 注册列，执行阶段 NavColumnLoader 二次查询）
+    return bag;
+}
+```
+
+**职责：**
+
+| 步骤 | 说明 |
+|------|------|
+| `TryBuildSequence` | 双访问器（`ClauseExpressionVisitor` + `ClauseMethodVisitor`）或 `SequenceBuilderResolver` → `IBuildContext` |
+| `GetResultStatement()` | 产出 `BaseSentence` / `SelectQueryClause` |
+| `ParameterAccessors` | 由 `ParametersContext` 收集，执行时 `QueryMate.SetParameters` 绑定 |
+| `NavColumns` | LoadWith 导航列元数据，**不在编译期生成 Mapper** |
+
+**已移除（Phase 1 归档）：** `BuildQuery`、`FinalizeProjection`、`SetRunQuery`、`BuildMapper`、`Preambles`、`SentenceBag.finalExp`。
+
+<details>
+<summary>Phase 1 归档：BuildQuery&lt;T&gt; 原文（已删除）</summary>
+
+```csharp
+// 以下逻辑已不再执行
 bool BuildQuery<T>(
     SentenceBag<T> query,
     IBuildContext sequence,
@@ -449,7 +461,9 @@ return true;
   - 把 `SentenceBag<T>` 和 `finalized` 投影表达式交给 `IBuildContext` 去设置具体的“执行行为”：
     - 配置 `SentenceBag.Runner` / `SentenceBag<T>.Runner` 的 `whenGetElement` / `whenGetElementAsync` / `whenGetResultEnumerable`。
     - 配置如何根据 `SentenceCmds` + `DbDataReader` 与 `finalized` 投影表达式，将一行数据映射为 `T`。
-- 这一步是 **“把静态 SQL 模型（Sentence）和投影表达式绑定成可执行查询（Runner）”** 的关键。
+- 这一步是 **Phase 1** 中把 SQL 模型与 DbDataReader Mapper 绑定的逻辑，**Phase 2 已删除**。
+
+</details>
 
 ---
 
@@ -592,59 +606,21 @@ public Expression<Func<IQueryRunner,DBInstance,DbDataReader,Expression,object?[]
 
 ---
 
-### 8. 总体流程小结：ExpressionBuilder → SentenceBag<T>
+### 8. 总体流程小结：ExpressionBuilder → SentenceBag<T>（Phase 2）
 
-综合上面各节，可以把 `ExpressionBuilder` 构建 `SentenceBag<T>` 的流程总结为：
+1. **QueryMate.GetQuery** — 优化/Expose 表达式 → `CreateQuery` → `ExpressionBuilder.doBuild<T>()`
+2. **ClauseCompiler.Compile** — `TryBuildSequence` → `Statement` + `ParameterAccessors` + `NavColumns`
+3. **返回 SentenceBag&lt;T&gt;** — 含 `srcExp`、`buildContext`；**不含** Mapper / Preambles / `finalExp`
+4. **执行** — `SentenceExecutor`：`FinalizeBag` → `ClauseTranslateVisitor` → `SQLBuilder.query<T>()`
 
-1. **构建序列（BuildSequence）**
-   - 通过 `TryFindBuilder` 找到合适的 `ISequenceBuilder`。
-   - 构建 `IBuildContext`，产生 `SelectQueryClause` 等 SQL 结构。
-
-2. **生成 Statement + SentenceItem**
-   - 使用 `sequence.GetResultStatement()` 获取 SQL 语法树 `Statement`。
-   - 创建 `SentenceItem`，填充：
-     - `Statement`。
-     - `ParameterAccessors = ParametersContext.CurrentSqlParameters`。
-   - 加入 `SentenceBag<T>.Sentences`。
-
-3. **生成结果投影表达式**
-   - 通过 `MakeExpression` 从 `ContextRefExpression` 出发生成结果投影 `expr`。
-
-4. **FinalizeProjection**
-   - 处理实体构造（`FinalizeConstructors`）。
-   - 处理急切加载与前置查询（`CompleteEagerLoadingExpressions` + `preambles`）。
-   - 绑定列信息（`ToColumns`），形成带列位置信息的表达式。
-
-5. **错误检测 + SQL Finalize + 查询合法性校验**
-   - 发现错误则写入 `SentenceBag.ErrorExpression`。
-   - 使用 `SqlOptimizer.Finalize` 优化 SQL。
-   - 使用 `SqlProviderHelper.IsValidQuery` 校验 SQL 合法性。
-
-6. **设置执行行为（SetRunQuery）**
-   - 在 `IBuildContext` 内为 `SentenceBag<T>.Runner` 配置：
-     - 如何根据 `SentenceBag` + `RunnerContext` 构造 `SentenceCmds`。
-     - 如何基于 `DbDataReader` + 投影表达式构造 `T`（通过 `BuildMapper` 等）。
-
-7. **返回 SentenceBag<T>**
-   - `doBuild<T>` 返回构建完毕的 `SentenceBag<T>`。
-   - 若 `ErrorExpression` 非空，则 `QueryMate.CreateQuery` 会再以 `validateSubqueries = true` 重试一次，否则抛出“表达式编译错误”。
+若 `ErrorExpression != null`，`CreateQuery` 以 `validateSubqueries = true` 重试一次。
 
 ---
 
-### 9. 与 EntityVisitCompiler 的衔接关系
+### 9. 与 EntityVisitCompiler 的衔接关系（Phase 2）
 
-- 在 `EntityVisitCompiler.DoCompile` 中：
-  - `QueryMate.GetQuery<TResult>` 内部调用 `ExpressionBuilder.doBuild<TResult>`，生成 `SentenceBag<TResult>`。
-  - `SentenceBag<TResult>` 携带：
-    - 完整 SQL 模型（`Sentences` / `Statement`）。
-    - 参数访问器（`ParameterAccessors`）。
-    - 投影/映射表达式（`finalExp`，内部含列位置信息）。
-    - 已配置好的 Runner（`SentenceBag<TResult>.Runner`）。
-    - 前置查询（`Preambles`）。
-- 随后，`EntityVisitCompiler` 只需要：
-  - 调用 `InitPreambles` 执行前置查询。
-  - 构建 `RunnerContext`。
-  - 调用 `Runner.loadElement` / `loadElementAsync` 获得最终 `TResult`。
+- `EntityVisitCompiler.DoCompile` → `QueryMate.GetQuery<TResult>` → `SentenceExecutor.Execute<TResult>(...)`
+- 实体映射：**`SQLBuilder.query<T>()`**；LoadWith：**`NavColumnLoader`**
 
-> 换句话说：**`ExpressionBuilder` 把“LINQ 表达式 + DB 环境”编译成一个“可直接执行的查询包 `SentenceBag<T>`”，`EntityVisitCompiler` 只是把这个“查询包”跑起来。**
+> **`ExpressionBuilder` 产出 `SentenceBag`；`SentenceExecutor` 跑 SQL 并物化结果。**
 

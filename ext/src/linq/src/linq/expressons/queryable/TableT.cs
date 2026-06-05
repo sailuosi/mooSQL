@@ -16,12 +16,11 @@ namespace mooSQL.linq.Linq
 	{
 		public Table(DBInstance dataContext)
 		{
-			//var expression = typeof(T).IsScalar()
-			//	? null
-			//	: Expression.Call(Methods.LinqToDB.GetTable.MakeGenericMethod(typeof(T)),
-			//		SqlQueryRootExpression.Create(dataContext, dataContext.GetType()));
+			var expression = Expression.Call(
+				Methods.LinqToDB.GetTable.MakeGenericMethod(typeof(T)),
+				SqlQueryRootExpression.Create(dataContext, dataContext.GetType()));
 
-			//InitTable(dataContext, expression, null);
+			InitTable(dataContext, expression, null);
 		}
 
 		internal Table(DBInstance dataContext, Table<T> basedOn)

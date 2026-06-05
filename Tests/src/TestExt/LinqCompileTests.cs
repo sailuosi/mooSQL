@@ -1,8 +1,11 @@
 using HHNY.NET.Application.Entity;
 using mooSQL.data;
+using mooSQL.data.model;
 using mooSQL.linq.Linq;
+using mooSQL.linq.Mapping;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
+using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 
@@ -16,6 +19,31 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
     readonly LinqSqliteTestFixture _sqlite;
 
     public LinqCompileTests(LinqSqliteTestFixture sqlite) => _sqlite = sqlite;
+
+    static (SentenceBag<T> Bag, Expression Expr) Compile<T>(DBInstance db, Expression expr)
+    {
+        var bag = QueryMate.GetQuery<T>(db, ref expr, out _);
+        Assert.Null(bag.ErrorExpression);
+        Assert.NotEmpty(bag.Sentences);
+        return (bag, expr);
+    }
+
+    static (SentenceBag<T> Bag, Expression Expr) Compile<T>(DBInstance db, IQueryable<T> queryable)
+        => Compile<T>(db, queryable.Expression);
+
+    static SelectQueryClause RequireSelectQuery(SentenceBag bag)
+    {
+        var sq = bag.Sentences[0].Statement.SelectQuery;
+        Assert.NotNull(sq);
+        return sq;
+    }
+
+    static string RequireSql(SentenceBag bag, DBInstance db, Expression expr)
+    {
+        var sql = SentenceExecutor.GetSqlText(bag, db, expr);
+        Assert.False(string.IsNullOrWhiteSpace(sql));
+        return sql;
+    }
     [Fact]
     public void MySqlDialect_EnablesNativeInsertOrUpdate()
     {
@@ -60,15 +88,89 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
-        Expression expr = bus.Where(u => u.Age > 20).Expression;
+        var (bag, expr) = Compile(db, bus.Where(u => u.Age > 20));
 
-        var bag = QueryMate.GetQuery<SQLiteTestUser>(db, ref expr, out _);
-        Assert.Null(bag.ErrorExpression);
-        Assert.NotNull(bag.buildContext);
-
-        var sql = SentenceExecutor.GetSqlText(bag, db, expr);
+        var sql = RequireSql(bag, db, expr);
         Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("age", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("moo_t_user", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ParameterWord", sql, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EntityVisit_CompileWhere_SelectQueryHasFromAndWhere()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, _) = Compile(db, bus.Where(u => u.Age > 20));
+
+        var sq = RequireSelectQuery(bag);
+        Assert.True(sq.From.Tables.Count > 0 || sq.From.focus != null);
+        Assert.NotNull(sq.Where);
+        Assert.NotEmpty(sq.Where.SearchCondition.Predicates);
+    }
+
+    [Fact(Skip = "OrderBy 编译后 SelectQuery.OrderBy.Items 仍为空，待 OrderByBuilder 对齐")]
+    public void EntityVisit_CompileOrderBy_SelectQueryHasOrderByItems()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.OrderBy(u => u.Name));
+
+        var sq = RequireSelectQuery(bag);
+        Assert.NotEmpty(sq.OrderBy.Items);
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("ORDER BY", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact(Skip = "Take 编译后 Select.TakeValue 未写入，见 README Take/Skip 专项")]
+    public void EntityVisit_CompileTake_SelectQueryHasTakeValue()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.Take(5));
+
+        var sq = RequireSelectQuery(bag);
+        Assert.NotNull(sq.Select.TakeValue);
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact(Skip = "Count 聚合编译链未闭环，待 AggregationBuilder 端到端验证")]
+    public void EntityVisit_Count_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+
+        Assert.Equal(3, bus.Count());
+        Assert.Equal(2, bus.Where(u => u.IsActive).Count());
+    }
+
+    [Fact]
+    public void EntityVisit_AssociationToOne_CompileWhereJoinsUser()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestOrder>(db);
+        var (bag, expr) = Compile(db, bus.Where(o => o.User!.Name == "Alice"));
+
+        Assert.Null(bag.ErrorExpression);
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("moo_t_order", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("moo_t_user", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact(Skip = "SQLite CROSS APPLY 关联 SQL 渲染待对齐（编译路径已通过 EntityVisit_AssociationToOne_CompileWhereJoinsUser）")]
+    public void EntityVisit_AssociationToOne_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestOrder>(db);
+
+        var rows = bus.Where(o => o.User!.Name == "Alice").ToList();
+
+        Assert.NotEmpty(rows);
+        Assert.All(rows, o => Assert.Equal(1, o.UserId));
     }
 
     [Fact]

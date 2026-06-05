@@ -1,6 +1,9 @@
 using mooSQL.data;
 using mooSQL.data.Mapping;
+using mooSQL.linq.Mapping;
 using System;
+using System.Collections.Generic;
+using AssociationAttribute = mooSQL.linq.Mapping.AssociationAttribute;
 
 namespace mooSQL.Pure.Tests.TestHelpers
 {
@@ -28,6 +31,10 @@ namespace mooSQL.Pure.Tests.TestHelpers
 
         [SooColumn("is_active")]
         public bool IsActive { get; set; }
+
+        /// <summary>用户订单（一对多导航）</summary>
+        [Association(ThisKey = "Id", OtherKey = "UserId", CanBeNull = true)]
+        public List<SQLiteTestOrder>? Orders { get; set; }
     }
 
     /// <summary>
@@ -42,6 +49,10 @@ namespace mooSQL.Pure.Tests.TestHelpers
 
         [SooColumn("user_id")]
         public int UserId { get; set; }
+
+        /// <summary>关联用户（导航属性）</summary>
+        [Association(ThisKey = "UserId", OtherKey = "Id", CanBeNull = false)]
+        public SQLiteTestUser? User { get; set; }
 
         [SooColumn("order_no")]
         public string OrderNo { get; set; } = string.Empty;

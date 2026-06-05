@@ -120,7 +120,7 @@ namespace mooSQL.linq.Reflection
 		{
 			internal static readonly MethodInfo EvaluateExpression = MemberHelper.MethodOf(() => ExpressionEvaluator.EvaluateExpression(null));
 
-			//public static readonly MethodInfo GetTable    = MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.GetTable<object>());
+			public static readonly MethodInfo GetTable    = MemberHelper.MethodOfGeneric<DBInstance>(dc => dc.GetTable<object>());
 
 			public static readonly MethodInfo LoadWithAsTable       = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.LoadWithAsTable(e => e.Single2));
 

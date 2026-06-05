@@ -1,6 +1,10 @@
 ## EntityVisitCompiler 执行过程解析
 
-本文从一次 LINQ 查询调用开始，追踪 `EntityVisitCompiler` 及其关联组件的整个执行链路，说明每个关键类的职责、调用方向，以及在“相同职责”场景下的分发依据与分支责任，直到 SQL 执行并返回最终结果为止。
+> **Phase 2 更新（2026-06）**  
+> 执行入口已统一为 **`SentenceExecutor`**：`BasicSentenceRunner` 默认委托 `SentenceExecutor.ExecuteObject` / `ExecuteList`，实体映射走 **`SQLBuilder.query<T>()`**，不再使用 DbDataReader Mapper / Preambles / `finalExp`。  
+> 参数解析统一经 **`RunnerContextFactory`**（`srcExp` + `paras`）。下文 §2、§4–§6 已按 Phase 2 重写；§3 中 SetParameters/GetCommand 仍有效。
+
+本文从一次 LINQ 查询调用开始，追踪 `EntityVisitCompiler` 及其关联组件的执行链路，直到 SQL 执行并返回结果。
 
 ---
 
@@ -69,78 +73,57 @@ public abstract class BaseQueryCompiler : IQueryCompiler
 
 ---
 
-### 2. EntityVisitCompiler：编译实体查询
+### 2. EntityVisitCompiler：编译并委托 SentenceExecutor（Phase 2）
 
 文件：`ext/src/linq/core/EntityVisitCompiler.cs`
 
-```21:59:ext/src/linq/core/EntityVisitCompiler.cs
-internal class EntityVisitCompiler : BaseQueryCompiler
+```15:26:ext/src/linq/core/EntityVisitCompiler.cs
+public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expression, QueryContext context)
 {
-    public EntityVisitCompiler(DBInstance DB) : base(DB)
-    {
-    }
+    var query = QueryMate.GetQuery<TResult>(DB, ref expression, out _);
+    query.DBLive = DB;
+    query.srcExp = expression;
 
-    public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expression, QueryContext context)
+    return ctx =>
     {
-        bool depon;
-        var query = QueryMate.GetQuery<TResult>(DB, ref expression, out depon);
-        object?[]? Parameters = null;
-        return (context) =>
-        {
-            var Preambles = query.InitPreambles(DB, expression, Parameters);
-            if (context.cancellationToken != null)
-            {
-                var AsyRes = query.Runner.loadElementAsync(new RunnerContext
-                {
-                    dataContext = DB,
-                    expression = expression,
-                    paras = Parameters,
-                    sentenceBag = query,
-                    premble = Preambles
-                });
-                return (TResult)AsyRes.Result;
-            }
-            else
-            {
-
-            }
-            var res = query.Runner.loadElement(new RunnerContext
-            {
-                dataContext = DB,
-                expression = expression,
-                paras = Parameters,
-                sentenceBag = query,
-                premble = Preambles
-            });
-            return (TResult)res;
-        };
-    }
+        ctx.DB ??= DB;
+        return SentenceExecutor.Execute<TResult>(query, ctx, expression);
+    };
 }
 ```
 
-#### 2.1 DoCompile 的整体职责
+#### 2.1 DoCompile 的职责
 
-1. 调用 `QueryMate.GetQuery<TResult>`，将 LINQ 表达式编译成 `SentenceBag<TResult>`（SQL 模型包）。
-2. 构造并返回一个 `Func<QueryContext, TResult>` 委托，这个委托在执行时：
-   - 调用 `SentenceBag.InitPreambles` 初始化前置查询（`Preambles`）。
-   - 根据 `QueryContext.cancellationToken` 情况，选择异步 Runner 或同步 Runner 执行：
-     - 有 `cancellationToken`：调用 `query.Runner.loadElementAsync`，但通过 `.Result` 同步取回结果（对外接口仍是同步 `TResult`）。
-     - 无 `cancellationToken`：调用 `query.Runner.loadElement`。
+1. **`QueryMate.GetQuery<TResult>`** — 编译 LINQ 表达式为 `SentenceBag<TResult>`（见 ExpressionBuilder 文档）。
+2. **返回执行委托** — 直接调用 **`SentenceExecutor.Execute<TResult>`**，不再：
+   - ~~`InitPreambles`~~
+   - ~~在编译期配置 `whenGetElement` / Mapper~~
 
-#### 2.2 相同职责的分发：同步 vs 异步 Runner
+#### 2.2 同步 / 异步
 
-- **职责**：执行 SQL 并返回最终 `TResult`。
-- **分发依据**：`QueryContext.cancellationToken` 是否非空。
-  - `context.cancellationToken != null`：
-    - 使用 `ISentenceRunner.loadElementAsync`，允许内部感知取消标记。
-    - 最终通过 `Task.Result` 同步等待（外层调用仍为同步签名）。
-  - `context.cancellationToken == null`：
-    - 使用 `ISentenceRunner.loadElement`。
-- **承担职责**：
-  - `SentenceBag.Runner`/`SentenceBag<TResult>.Runner`：选择具体的 Runner 实现（缺省是 `BasicSentenceRunner` / `BasicSentenceRunner<T>`）。
-  - `RunnerContext`：封装执行所需的全部上下文信息（`DBInstance`、表达式、参数、`SentenceBag`、前置结果等）。
+- **同步**：`BaseQueryCompiler.Execute` → 上述委托 → `SentenceExecutor.Execute`
+- **异步**：`ExpressionQuery` / `BasicSentenceRunner.DefaultGetElementAsync` → `SentenceExecutor.ExecuteObjectAsync`
+- `EntityVisitCompiler` 本身不区分 token；取消标记经 `QueryContext.cancellationToken` 传入 `SentenceExecutor`
 
-> 注意：此处虽然走了 `loadElementAsync`，但并未使用 `InitPreamblesAsync`，而是仍然同步初始化 `Preambles`，再同步等待异步结果。
+---
+
+### 2b. SentenceExecutor 执行流程（Phase 2 核心）
+
+文件：`ext/src/linq/translator/SentenceExecutor.cs`
+
+```
+SentenceExecutor.Execute<TResult>(bag, context, expression, parameters)
+  ├─ ExecuteWriteOrAlternative     // DML / InsertOrUpdate
+  ├─ ExecuteEnumerable             // IEnumerable<T>
+  │    ├─ FinalizeBag              // EntitySelectProjector + SqlOptimizer.Finalize
+  │    ├─ BuildSqlBuilder          // SetParameters → ClauseTranslateVisitor.Visit
+  │    └─ kit.query<T>().ToList() + NavColumnLoader
+  └─ ExecuteScalar                 // Count / 标量
+```
+
+**GetSqlText** 路径：`FinalizeBag` → `RunnerContextFactory.Create` → `QueryMate.TranslateCmds` → 拼接 SQL。
+
+**参数绑定**：`QueryMate.SetParameters(bag, expression, ...)` → `ClauseTranslateVisitor.ParameterValues` → `builder.ps`。
 
 ---
 
@@ -363,386 +346,122 @@ internal static SentenceCmds GetCommand(DBInstance dataContext, SentenceItem que
     - 分发依据：`!continuousRun && !statement.IsParameterDependent`。
     - 真时允许一次性优化 + 转换并缓存结果。
 
-#### 3.4 TranslateCmds / GetQueryCmds：基于 RunnerContext 的命令生成
+#### 3.4 TranslateCmds：基于 RunnerContextFactory（Phase 2）
 
 ```316:323:ext/src/linq/src/linq/query/Query.until.cs
-internal static SentenceCmds TranslateCmds(RunnerContext context,SentenceItem sentence, bool forGetSqlText)
+internal static SentenceCmds TranslateCmds(RunnerContext context, SentenceItem sentence, bool forGetSqlText)
 {
     var parameterValues = new SqlParameterValues();
-    var bag = context.sentenceBag;
-    SetParameters(bag, bag.finalExp, bag.DBLive, context.paras, sentence, parameterValues);
+    var bag = context.sentenceBag ?? throw new InvalidOperationException(...);
+    var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+    SetParameters(bag, expression, context.dataContext, parameters, sentence, parameterValues);
     var cmds = GetCommand(context.dataContext, sentence, parameterValues, forGetSqlText);
     return cmds;
 }
 ```
 
-```325:337:ext/src/linq/src/linq/query/Query.until.cs
-internal static SentenceCmds GetQueryCmds(SentenceBag query, DBInstance parametersContext,
-    int queryNumber, Expression expression, object?[]? parameters, object?[]? preambles) {
-    var context = new RunnerContext
-    {
-        sentenceBag = query,
-        dataContext = parametersContext,
-        expression = expression,
-        paras = parameters,
-        premble = preambles
-    };
+- **参数来源**：`RunnerContextFactory.ResolveExecutionArgs` — 优先 `context.expression` / `context.paras`，否则 `bag.srcExp`
+- **已移除**：~~`bag.finalExp`~~、~~`premble`~~
 
-    var res = TranslateCmds(context, query.Sentences[queryNumber], false);
-    return res;
-}
-```
-
-- **职责**：作为 `Runner` 的“工具方法”，在执行某条 `SentenceItem` 时：
-  1. 构造 `RunnerContext`（如在 `GetQueryCmds` 中）。
-  2. 根据 `SentenceBag` 和 `RunnerContext` 当前的参数与前置结果，调用 `SetParameters` + `GetCommand`，获得具体方言 SQL 命令。
-- **使用场景**：通常由 `Runner` 内部调用，用于在真正执行数据库命令前获取 SQL 文本和参数集合。
-
----
-
-### 4. SentenceBag / Runner：承载 LINQ 查询及其执行器
+### 4. SentenceBag / Runner（Phase 2）
 
 文件：`ext/src/linq/src/linq/query/SentenceBag.cs`
 
-```17:61:ext/src/linq/src/linq/query/SentenceBag.cs
-internal class SentenceBag
+**SentenceBag 关键字段：**
+
+| 字段 | 说明 |
+|------|------|
+| `Sentences` | `SentenceItem` 列表（Statement + ParameterAccessors） |
+| `srcExp` | 原始 LINQ 表达式（参数解析唯一来源） |
+| `NavColumns` | LoadWith 导航列，执行后 `NavColumnLoader` 二次查询 |
+| `IsCacheable` | 无 NavColumns 且单语句时可缓存 |
+| `buildContext` | 编译上下文（调试 / 二次投影） |
+| `Runner` | 默认 `BasicSentenceRunner`，委托 `SentenceExecutor` |
+
+**已移除：** ~~`finalExp`~~、~~`ExecuteType`~~、~~`Preambles`~~、~~编译期配置 Mapper 的 `whenGetElement`~~
+
+**BasicSentenceRunner 默认行为：**
+
+```29:43:ext/src/linq/src/linq/query/BasicSentenceRunner.cs
+static object? DefaultGetElement(RunnerContext context)
 {
-    public DBInstance DBLive;
-    public List<SentenceItem> Sentences;
-    public ExecuteType ExecuteType;
-    public Expression srcExp;
-    public Type EntityType;
-    public Expression ErrorExpression;
-    public bool IsFinalized=false;
-    public Expression finalExp;
-    public IBuildContext buildContext;
-
-    private ISentenceRunner runner;
-
-    public virtual ISentenceRunner Runner {
-        get {
-            if (runner == null) {
-                runner = new BasicSentenceRunner();
-            }
-            return runner;
-        }
-    }
-
-    public void add(SentenceItem sentence) {
-        if (Sentences is null) {
-            Sentences= new List<SentenceItem>();
-        }
-        this.Sentences.Add(sentence);
-    }
-
-    // ... 省略参数化信息 & Preambles 的维护 ...
-
-    Preamble[]? _preambles;
-
-    internal void SetPreambles(List<Preamble>? preambles)
-    {
-        _preambles = preambles?.ToArray();
-    }
-    internal bool IsAnyPreambles()
-    {
-        return _preambles?.Length > 0;
-    }
-    internal object?[]? InitPreambles(DBInstance dc, Expression rootExpression, object?[]? ps)
-    {
-        if (_preambles == null)
-            return null;
-
-        var preambles = new object[_preambles.Length];
-        for (var i = 0; i < preambles.Length; i++)
-        {
-            preambles[i] = _preambles[i].Execute(new RunnerContext
-            {
-                dataContext = dc,
-                expression = rootExpression,
-                paras = ps,
-                premble = preambles
-            });
-        }
-
-        return preambles;
-    }
-
-    internal async Task<object?[]?> InitPreamblesAsync(DBInstance dc, Expression rootExpression,
-        object?[]? ps, CancellationToken cancellationToken)
-    {
-        if (_preambles == null)
-            return null;
-
-        var preambles = new object[_preambles.Length];
-        for (var i = 0; i < preambles.Length; i++)
-        {
-            preambles[i] = await _preambles[i].ExecuteAsync(new RunnerContext
-            {
-                dataContext = dc,
-                expression = rootExpression,
-                paras = ps,
-                premble = preambles,
-                cancellationToken = cancellationToken
-            }).ConfigureAwait(mooSQL.linq.Common.Configuration.ContinueOnCapturedContext);
-        }
-
-        return preambles;
-    }
+    var bag = context.sentenceBag ?? throw ...;
+    var db = context.dataContext ?? bag.DBLive;
+    var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
+    return SentenceExecutor.ExecuteObject(bag, db, expression, parameters);
 }
 ```
 
-```144:160:ext/src/linq/src/linq/query/SentenceBag.cs
-internal class SentenceBag<T>:SentenceBag
-{
-    private ISentenceRunner<T> runner;
+`BasicSentenceRunner<T>.DefaultGetResultEnumerable`：无 NavColumns 时用 `StreamingResultEnumerable`；有 LoadWith 时 `ExecuteList` + 物化。
 
-    public ISentenceRunner<T> Runner
-    {
-        get {
-            if (runner == null)
-            {
-                runner = new BasicSentenceRunner<T>();
-            }
-            return runner;
-        }
-    }
-}
-```
+<details>
+<summary>Phase 1 归档：SentenceBag Preambles / InitPreambles（已删除）</summary>
 
-#### 4.1 SentenceBag 的职责
+原 `SentenceBag` 含 `_preambles`、`InitPreambles`、`finalExp`、`ExecuteType` 等，执行前跑前置查询并用 `finalExp` 做 DbDataReader 映射。Phase 2 已全部移除。
 
-- 代表一次 LINQ 查询的**完整 SQL 模型包**，包含：
-  - `Sentences`：一个或多个 SQL “语句单元”集合。
-  - `ExecuteType`：执行类型（单值、列表、分页等）。
-  - 原始表达式 `srcExp` 与最终表达式 `finalExp`。
-  - 构建上下文 `IBuildContext`，用于表达式到 SQL 结构的中间状态。
-  - 前置执行单元 `Preambles` 的定义及初始化方法。
-- **相同职责分发**：
-  - `SentenceBag` vs `SentenceBag<T>`：
-    - 分发依据：是否需要在编译期绑定泛型结果类型 `T`。
-    - 职责差异：前者只暴露非泛型 `ISentenceRunner`，后者暴露强类型 `ISentenceRunner<T>`。
-
-#### 4.2 Runner 的默认实现：BasicSentenceRunner
-
-文件：`ext/src/linq/src/linq/query/BasicSentenceRunner.cs`
-
-```10:33:ext/src/linq/src/linq/query/BasicSentenceRunner.cs
-internal class BasicSentenceRunner:ISentenceRunner
-{
-    internal Func<RunnerContext, object?> GetElement = null!;
-    internal Func<RunnerContext, Task<object?>> GetElementAsync = null!;
-
-    public void whenGetElement(Func<RunnerContext, object?> GetElement)
-    {
-        this.GetElement = GetElement;
-    }
-
-    public void whenGetElementAsync(Func<RunnerContext, Task<object?>> GetElementAsync)
-    {
-        this.GetElementAsync = GetElementAsync;
-    }
-
-    public object? loadElement(RunnerContext context)
-    {
-        return this.GetElement(context);
-    }
-
-    public Task<object?> loadElementAsync(RunnerContext context)
-    {
-        return this.GetElementAsync(context);
-    }
-}
-```
-
-```36:49:ext/src/linq/src/linq/query/BasicSentenceRunner.cs
-internal class BasicSentenceRunner<T> : BasicSentenceRunner , ISentenceRunner<T>
-{
-    protected Func<RunnerContext, IResultEnumerable<T>> GetResultEnumerable = null!;
-
-    public IResultEnumerable<T> loadResultList(RunnerContext context)
-    {
-        return GetResultEnumerable(context);
-    }
-
-    public void whenGetResultEnumerable(Func<RunnerContext, IResultEnumerable<T>> GetResultEnumerable)
-    {
-        this.GetResultEnumerable = GetResultEnumerable;
-    }
-}
-```
-
-- **职责**：
-  - `BasicSentenceRunner` / `BasicSentenceRunner<T>` 是可配置的执行器骨架：
-    - 通过 `whenGetElement` / `whenGetElementAsync` 注入真正的执行逻辑。
-    - 对外提供统一的 `loadElement` / `loadElementAsync` / `loadResultList` 接口。
-- **相同职责分发**：
-  - 同步执行 vs 异步执行：
-    - 分发依据：调用的是 `loadElement` 还是 `loadElementAsync`。
-    - 各自职责：分别负责同步 / 异步的查询执行，但底层由注入的委托（通常由构建阶段配置）实现具体逻辑。
-  - 非泛型 vs 泛型：
-    - 分发依据：是否需要枚举 `T` 形态的结果集。
-    - `BasicSentenceRunner`：返回 `object?`，可用于标量或非泛型场景。
-    - `BasicSentenceRunner<T>`：通过 `IResultEnumerable<T>` 支持强类型枚举。
+</details>
 
 ---
 
-### 5. RunnerContext：执行阶段的统一上下文
+### 5. RunnerContext / RunnerContextFactory（Phase 2）
 
-文件：`ext/src/linq/src/linq/query/RunnerContext.cs`
-
-```11:24:ext/src/linq/src/linq/query/RunnerContext.cs
+```11:20:ext/src/linq/src/linq/query/RunnerContext.cs
 internal class RunnerContext
 {
-    public DBInstance dataContext;
-    public Expression expression;
-
-    public SentenceBag sentenceBag;
-
+    public DBInstance dataContext = default!;
+    public Expression? expression;
+    public SentenceBag? sentenceBag;
     public object?[]? paras;
-    public object?[]? premble;
     public CancellationToken cancellationToken;
 }
 ```
 
-- **职责**：在执行某个 Sentence / Query 时，统一携带所需的所有环境：
-  - 数据库上下文：`dataContext`（即 `DBInstance`）。
-  - 原始表达式：`expression`。
-  - SQL 模型包：`sentenceBag`。
-  - 参数：`paras`。
-  - 前置查询（Preambles）执行结果：`premble`。
-  - 取消标记：`cancellationToken`（异步执行时使用）。
-- **相同职责分发**：
-  - 同一套上下文结构服务于多种执行函数：
-    - `Preamble.Execute` / `ExecuteAsync`。
-    - `BasicSentenceRunner.loadElement` / `loadElementAsync`。
-    - `QueryMate.TranslateCmds`（用于生成 SQL 命令）。
-  - 分发依据是“调用方的功能”，`RunnerContext` 本身不做分支，而是提供统一数据源。
+`RunnerContextFactory.Create` / `ResolveExecutionArgs` 统一解析 `expression` 与 `parameters`，供 `TranslateCmds`、`BasicSentenceRunner`、`ExpressionQuery` 共用。
+
+**已移除：** ~~`premble`~~
 
 ---
 
-### 6. Execution 全流程串联（时序视角）
+### 6. Execution 全流程（Phase 2 时序）
 
-以 `BaseQueryCompiler.Execute<TResult>(Expression query)` 为起点，完整流程如下：
+1. **`BaseQueryCompiler.Execute<TResult>(query)`** → `EntityVisitCompiler.DoCompile` → 得到 `Func<QueryContext, TResult>`
+2. **执行委托** → `SentenceExecutor.Execute<TResult>(bag, ctx, expression)`
+3. **`FinalizeBag`** — `EntitySelectProjector` + `SqlOptimizer.Finalize` + `IsValidQuery`
+4. **`BuildSqlBuilder` / `TranslateCmds`** — `SetParameters` → `ClauseTranslateVisitor`（注入 `ParameterValues`）
+5. **查询** — `SQLBuilder.query<T>()` / `count()` / DML `ExeNonQuery`
+6. **LoadWith** — `NavColumnLoader.LoadNavChilds`（若有 `NavColumns`）
+7. **返回** `TResult`
 
-1. **调用编译器执行**  
-   - 入口：`BaseQueryCompiler.Execute<TResult>(Expression query)`。
-   - 步骤：
-     1. 构建 `QueryContext`（绑定 `DBInstance`）。
-     2. 调用 `PrepareExpression`（当前直接返回原表达式）。
-     3. 调用 `EntityVisitCompiler.DoCompile<TResult>(expressionNext, context)` 获取委托 `Func<QueryContext, TResult>`。
-     4. 执行该委托：`fun(context)`。
+**测试：** SQLite 端到端见 `Tests/src/TestExt/LINQTest.useBus1`、`LinqCompileTests.EntityVisit_Where_ExecutesAgainstSqlite`（`LinqSqliteTestFixture`）。
 
-2. **EntityVisitCompiler.DoCompile**  
-   - 通过 `QueryMate.GetQuery<TResult>(DB, ref expression, out depon)`：
-     - 优化 & 公开 LINQ 表达式。
-     - 使用 `ExpressionBuilder` 构建 `SentenceBag<TResult>`。
-   - 返回的委托在执行时：
-     1. 调用 `query.InitPreambles(DB, expression, Parameters)`，根据 `SentenceBag` 中的 `_preambles` 初始化所有前置查询。
-     2. 根据 `QueryContext.cancellationToken` 分支：
-        - 有 token：`query.Runner.loadElementAsync(new RunnerContext { ... }).Result`。
-        - 无 token：`query.Runner.loadElement(new RunnerContext { ... })`。
+<details>
+<summary>Phase 1 归档：InitPreambles + DbDataReader Mapper 时序（已删除）</summary>
 
-3. **SentenceBag.Runner（BasicSentenceRunner）阶段**  
-   - 根据执行类型（标量 / 列表 / 分页等），在构建 `SentenceBag` 过程中已为 `Runner` 配置好：
-     - `whenGetElement` / `whenGetElementAsync` 委托。
-     - 或针对 `T` 类型结果的 `whenGetResultEnumerable`。
-   - `loadElement` / `loadElementAsync` 内部：
-     - 使用 `RunnerContext` 中的 `sentenceBag` 和 `dataContext` 等信息。
-     - 调用 `QueryMate.TranslateCmds` / `GetQueryCmds`，生成 `SentenceCmds`（可执行 SQL 命令集合）。
-     - 调用底层 ADO 执行 SQL（`DBInstance` + `dialect` 等），映射结果到 C# 对象 / 集合 / 标量。
+原流程在步骤 2 前调用 `InitPreambles`，Runner 内通过 `BuildMapper` + `finalExp` 逐行映射 `DbDataReader`。Phase 2 已替换为 `query<T>()`。
 
-4. **QueryMate.TranslateCmds / GetQueryCmds**  
-   - 通过 `SetParameters`：
-     - 根据 `SentenceItem.ParameterAccessors` 读取运行时参数。
-     - 填充 `SqlParameterValues`。
-   - 通过 `GetCommand`：
-     - 借助 `dataContext.dialect.clauseTranslator` 将中间 SQL 语法树翻译为具体方言命令。
-     - 处理缓存、参数依赖、并发执行等。
-
-5. **结果返回**  
-   - `BasicSentenceRunner` 将 ADO 执行结果组装为：
-     - 单值 `TResult`。
-     - 或 `IResultEnumerable<T>` → 列表 / 分页结果。
-   - `EntityVisitCompiler` 的委托返回 `TResult` 给 `BaseQueryCompiler.Execute` / `ExecuteAsync`。
-   - 调用方得到最终查询结果。
+</details>
 
 ---
 
-### 7. 各层职责与分发依据汇总
+### 7. 各层职责汇总（Phase 2）
 
-#### 7.1 按层划分职责
+| 层 | 职责 |
+|----|------|
+| **EntityVisitCompiler** | 编译 `SentenceBag`，委托 `SentenceExecutor.Execute` |
+| **SentenceExecutor** | Finalize → 翻译 → `SQLBuilder` 执行 → `NavColumnLoader` |
+| **QueryMate** | `GetQuery`（编译）、`SetParameters`、`TranslateCmds` |
+| **ClauseTranslateVisitor** | Statement → `SQLBuilderClause`；`ParameterValues` 绑定 |
+| **Pure SQLBuilder** | `query<T>()` 实体物化（唯一映射路径） |
 
-- **编译器层（BaseQueryCompiler / EntityVisitCompiler）**
-  - 决定同步/异步表象及 `CancellationToken` 传递。
-  - 调用 `QueryMate` 将 LINQ 表达式编译为可执行 `SentenceBag`。
-  - 构造顶层执行委托，注入 `RunnerContext` 并选择 Runner 的同步或异步通路。
-
-- **查询构建层（QueryMate + ExpressionBuilder + SentenceBag）**
-  - 负责：
-    - 表达式树优化 & 公开（`ExpressionBuilder.ExposeExpression`）。
-    - 将表达式翻译为中间 SQL 模型（`SentenceBag`/`SentenceItem`）。
-    - 维护前置执行单元（`Preambles`）及其初始化方法。
-
-- **执行器层（SentenceBag.Runner + BasicSentenceRunner + QueryMate.TranslateCmds）**
-  - 在具体执行阶段根据 `RunnerContext`：
-    - 生成参数 & SQL 命令（`SetParameters`，`GetCommand`，`TranslateCmds`）。
-    - 调用 `DBInstance` & `dialect.clauseTranslator` 执行实际 SQL。
-    - 将数据行映射回实体/匿名对象/标量。
-
-#### 7.2 典型“相同职责分发分支”与依据
-
-1. **同步 vs 异步执行**  
-   - 分发点：
-     - `BaseQueryCompiler.Execute` vs `ExecuteAsync`。
-     - `EntityVisitCompiler` 中 `loadElement` vs `loadElementAsync` 调用。
-   - 分发依据：
-     - 是否提供 `CancellationToken`（外层）。
-     - 调用方是需要 `Task` 风格还是同步结果（内层）。
-   - 职责差异：
-     - 异步通路允许底层 IO 异步 & 响应取消。
-     - 同步通路阻塞直到结果返回。
-
-2. **普通模式 vs 调试模式 ExpressionBuilder**  
-   - 分发点：`CreateQuery<T>` 中的两次 `new ExpressionBuilder(...).doBuild<T>()`。
-   - 分发依据：第一次构建后 `query.ErrorExpression` 是否非空。
-   - 职责差异：
-     - 普通模式：偏向性能。
-     - 调试模式：偏向错误诊断，若仍失败则抛异常。
-
-3. **缓存命令 vs 即时生成命令**  
-   - 分发点：`GetCommand` 中 `if (query.cmds != null)` 与 `optimizeAndConvertAll` 逻辑。
-   - 分发依据：
-     - `query.cmds` 是否已有缓存。
-     - 是否适合一次性优化并缓存（`!continuousRun && !statement.IsParameterDependent`）。
-   - 职责差异：
-     - 缓存命令：提高多次相同查询的执行性能。
-     - 即时命令：保证参数依赖查询的正确性。
-
-4. **泛型 Runner vs 非泛型 Runner**
-   - 分发点：`SentenceBag` vs `SentenceBag<T>` 的 `Runner` 属性。
-   - 分发依据：是否需要强类型 `T` 的结果集合。
-   - 职责差异：
-     - 非泛型 Runner：返回 `object?`，适用于通用/标量场景。
-     - 泛型 Runner：提供 `loadResultList`，便于逐行映射为 `T` 并枚举。
-
-5. **前置执行同步 vs 异步**
-   - 分发点：`InitPreambles` vs `InitPreamblesAsync`。
-   - 分发依据：是否需要异步前置处理以及是否有 `CancellationToken`。
-   - 职责差异：
-     - 同步前置：用于同步查询。
-     - 异步前置：允许耗时较长的准备过程非阻塞执行。
+**已废弃分发：** Preambles 同步/异步、Mapper 泛型/非泛型 Runner 配置、~~`finalExp`~~ 参数源。
 
 ---
 
 ### 8. 小结
 
-- `EntityVisitCompiler` 自身代码不多，但站在整个 LINQ → SQL 执行链路的**关键连接点**：
-  - 向下衔接 `QueryMate` / `ExpressionBuilder` 的表达式解析与 SQL 模型构建。
-  - 向上提供 `Func<QueryContext, TResult>`，统一封装同步/异步 Runner 的调用与 `RunnerContext` 构建。
-- 真正“厚重”的逻辑分布在：
-  - `QueryMate`（表达式优化 / 公开 / 构建 `SentenceBag` / 参数与 SQL 命令生成）。
-  - `SentenceBag` + `Runner` 系列（承载 SQL 模型与执行策略）。
-  - `dialect.clauseTranslator`（将中间 SQL 语法树翻译为具体数据库方言 SQL）。
-- 通过本文可以从宏观上把握一次 LINQ 查询在 mooSQL 中的行程：  
-  **LINQ Expression → ExpressionBuilder / SentenceBag → RunnerContext / Runner → SqlTranslator / ADO 执行 → C# 结果对象**。
+- **Compile**：`QueryMate.GetQuery` → `ClauseCompiler.Compile` → `SentenceBag`
+- **Execute**：`SentenceExecutor` → `SQLBuilder.query<T>()` + 可选 `NavColumnLoader`
+- **Inspect**：`SentenceExecutor.GetSqlText` / `bag.Sentences[0].Statement.SelectQuery`
+
+集成测试：`Tests/src/TestHelpers/LinqSqliteTestFixture.cs` + `LinqCompileTests` / `LINQTest`。
 

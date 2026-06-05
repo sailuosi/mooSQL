@@ -154,8 +154,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				}
 
-				Expression queryParam = null;
-					//Expression.Call(Methods.LinqToDB.GetTable.MakeGenericMethod(objectType), dataContextExpr);
+				var queryParam = Expression.Call(Methods.LinqToDB.GetTable.MakeGenericMethod(objectType), dataContextExpr);
 
 				if (additionalCondition != null)
 				{

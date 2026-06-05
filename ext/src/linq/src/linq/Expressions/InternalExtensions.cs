@@ -8,13 +8,14 @@ using System.Runtime.CompilerServices;
 
 namespace mooSQL.linq.Expressions
 {
-	using Common.Internal;
+	using Common;
 	using Extensions;
 	using Linq;
 	using Mapping;
     using mooSQL.data;
     using mooSQL.linq.ext;
     using mooSQL.utils;
+    using mooSQL.linq.Mapping;
 
     /// <summary>
     /// Internal API.
@@ -262,13 +263,32 @@ namespace mooSQL.linq.Expressions
 
 		public static bool IsAssociation(MemberInfo member, DBInstance DBLive)
 		{
-			var t = member.DeclaringType;
-			var en = DBLive.Client.EntityCash.getEntityInfo(t);
-			var col = en.GetColumn(member.Name);
-			if (col == null) { 
+			if (member.GetAttribute<AssociationAttribute>() != null)
+				return true;
+
+			var memberType = member.GetMemberType();
+			if (memberType.IsValueType)
 				return false;
+
+			var en = DBLive.client.EntityCash.getEntityInfo(member.DeclaringType);
+			if (en == null)
+				return false;
+
+			if (typeof(System.Collections.IEnumerable).IsAssignableFrom(memberType) && memberType != typeof(string))
+			{
+				var childType = TypeHelper.GetEnumerableElementType(memberType);
+				var childEntity = DBLive.client.EntityCash.getEntityInfo(childType);
+				if (childEntity == null)
+					return false;
+
+				return childEntity.Columns.Any(c => c.IsFK && c.thatTable == en.DbTableName);
 			}
-			return col.IsFK;
+
+			var targetEntity = DBLive.client.EntityCash.getEntityInfo(memberType);
+			if (targetEntity == null)
+				return false;
+
+			return en.Columns.Any(c => c.IsFK && c.thatTable == targetEntity.DbTableName);
 		}
 
 
