@@ -347,7 +347,7 @@ Expression
 | redo/ 实验代码 | ✅ | 删除 `redo/builder/*.cs` |
 | 过时文档 | ✅ | `linq/README.md` 指向本文 |
 
-**暂缓：** `toClean/` 目录仍含运行时代码（`SqlProviderHelper`、`ReservedWords`、`EntityConstructorBase` 等），待阶段 4 整体搬迁后再删目录。
+**阶段 4 已完成：** 原 `toClean/` 内容已迁至 `src/dataprovider/`、`src/sqlquery/`、`src/data/`、`src/async/` 并删除目录。
 
 ---
 
@@ -390,6 +390,23 @@ Expression
 
 ---
 
+### 阶段 4 — 目录整理（已完成）
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| 删除 `toClean/` | ✅ | 运行时代码迁至正式目录 |
+| `SqlProviderHelper` / `IQueryParametersNormalizer` | ✅ | → `src/dataprovider/` |
+| `ReservedWords` + txt | ✅ | → `src/sqlquery/` |
+| `DataParameter` / `EntityConstructorBase` | ✅ | → `src/data/` |
+| `AsyncExtensions` | ✅ | → `src/async/` |
+| `QueryRunner.Cache` | ✅ | → `src/linq/query/QueryRunner.Cache.cs` |
+| 删除 `redo/builder/` | ✅ | 无引用的实验 Visitor |
+| `ExpressionBuilder.SqlBuilder.Projection.cs` | ✅ | 自 SqlBuilder 拆出 Projection（~710 行） |
+
+**保留：** `outcast/` 下 `LinqExtensions`、`Sql` 等仍为公共 API，后续可 rename 为 `ext/`。
+
+---
+
 ## 未来计划
 
 ### 短期
@@ -400,6 +417,8 @@ Expression
 
 ### 中期（架构完善）
 
+- [ ] 继续拆分 `ExpressionBuilder.SqlBuilder`（Predicate / ConvertCompare 等区段）
+- [ ] `outcast/` rename → `ext/`（LinqExtensions、Sql 公共 API）
 - [ ] 异步流式枚举：`ExecuteAsyncEnumerable` 避免全量 `ToList` 物化
 - [ ] Take/Skip 在不支持方言上的客户端截断评估
 - [ ] 编译缓存策略：`QueryRunner.Cache<T>` 与 `ClauseCompiler` 产物对齐
