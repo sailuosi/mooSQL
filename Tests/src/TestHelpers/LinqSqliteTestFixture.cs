@@ -113,6 +113,21 @@ CREATE TABLE {SQLiteTestFixture.ProductTable} (
                 .set("id", 3).set("name", "Charlie").set("email", "charlie@test.com")
                 .set("age", 22).set("created_at", now).set("is_active", 0)
                 .doInsert();
+
+            _db.useSQL().setTable(SQLiteTestFixture.OrderTable)
+                .set("id", 101).set("user_id", 1).set("order_no", "ORD-001")
+                .set("amount", 99.5m).set("status", 1).set("created_at", now)
+                .doInsert();
+
+            _db.useSQL().setTable(SQLiteTestFixture.OrderTable)
+                .set("id", 102).set("user_id", 1).set("order_no", "ORD-002")
+                .set("amount", 150m).set("status", 2).set("created_at", now)
+                .doInsert();
+
+            _db.useSQL().setTable(SQLiteTestFixture.OrderTable)
+                .set("id", 103).set("user_id", 2).set("order_no", "ORD-003")
+                .set("amount", 45m).set("status", 1).set("created_at", now)
+                .doInsert();
         }
 
         public void DropAllTables()

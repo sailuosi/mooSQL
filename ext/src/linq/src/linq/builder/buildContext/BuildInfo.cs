@@ -39,7 +39,17 @@ namespace mooSQL.linq.Linq.Builder
 		public bool           CopyTable                { get; set; }
 		public bool           CreateSubQuery           { get; set; }
 		public bool           AssociationsAsSubQueries { get; set; }
-		public bool           IsAssociation            { get; set; }
+		bool _isAssociation;
+		public bool IsAssociation
+		{
+			get
+			{
+				if (_isAssociation || SequenceInfo == null)
+					return _isAssociation;
+				return SequenceInfo.IsAssociation;
+			}
+			set => _isAssociation = value;
+		}
 		public JoinKind       JoinType                 { get; set; }
 		public bool           IsSubQuery               => Parent != null;
 

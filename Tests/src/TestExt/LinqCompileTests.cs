@@ -177,9 +177,11 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         var sql = RequireSql(bag, db, expr);
         Assert.Contains("moo_t_order", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("moo_t_user", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CROSS APPLY", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("INNER JOIN", sql, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact(Skip = "SQLite CROSS APPLY 关联 SQL 渲染待对齐（编译路径已通过 EntityVisit_AssociationToOne_CompileWhereJoinsUser）")]
+    [Fact]
     public void EntityVisit_AssociationToOne_ExecutesAgainstSqlite()
     {
         var db = _sqlite.Db;

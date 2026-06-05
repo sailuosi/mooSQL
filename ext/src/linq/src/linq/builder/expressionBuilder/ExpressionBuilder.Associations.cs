@@ -278,7 +278,17 @@ namespace mooSQL.linq.Linq.Builder
 						return new SqlErrorExpression(null, expression, errorMessage, expression.Type, true);
 				}
 
-				sequence.SetAlias(associationDescriptor.GenerateAlias());
+				var alias = associationDescriptor.GenerateAlias();
+				var applySupported = DBLive.dialect.Option.ProviderFlags.IsApplyJoinSupported;
+
+				if (applySupported)
+				{
+					sequence.SetAlias(alias);
+				}
+				else if (sequence is FirstSingleBuilder.FirstSingleContext firstSingle)
+				{
+					firstSingle.JoinAlias = alias;
+				}
 
 				if (forContext != null)
 					sequence = new ScopeContext(sequence, forContext);

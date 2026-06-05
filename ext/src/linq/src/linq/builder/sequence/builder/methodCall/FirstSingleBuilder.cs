@@ -120,7 +120,9 @@ namespace mooSQL.linq.Linq.Builder
 				case MethodKind.Single          :
 				case MethodKind.SingleOrDefault :
 				{
-					if (!buildInfo.IsSubQuery)
+					// FK 关联 to-one 已由键约束保证 0/1 行，无需 TAKE 2 做 Single 校验；
+					// 否则在无窗口函数方言上会阻断 SentenceOptimizerVisitor.OptimizeApply。
+					if (!buildInfo.IsSubQuery && !buildInfo.IsAssociation)
 					{
 						if (buildInfo.SelectQuery.Select.TakeValue is null or ValueWord { Value: >= 2 })
 						{
@@ -172,6 +174,8 @@ namespace mooSQL.linq.Linq.Builder
 			public bool              CanBeWeak     { get; }
 			public bool              IsTest        { get; }
 			public SourceCardinality Cardinality   { get; set; }
+			/// <summary>不支持 APPLY 时由 TryCreateAssociation 设置，仅用于 JOIN 派生表别名。</summary>
+			public string?           JoinAlias      { get; set; }
 
 			public override bool IsOptional => (Cardinality & SourceCardinality.Zero) != 0 || Cardinality == SourceCardinality.Unknown;
 
@@ -199,21 +203,25 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					_isJoinCreated = true;
 
-					//var join = CanBeWeak ? SelectQuery.OuterApply() : SelectQuery.CrossApply();
-					//join.JoinedTable.IsWeak      = Cardinality.HasFlag(SourceCardinality.Zero);
-					//join.JoinedTable.Cardinality = Cardinality;
+					var applySupported = Parent!.Builder.DBLive.dialect.Option.ProviderFlags.IsApplyJoinSupported;
 
-					//Parent!.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
-					if (CanBeWeak) {
-						Parent!.SelectQuery.From.OuterApply(SelectQuery, "", null);
-                    }
+					if (!applySupported)
+					{
+						var alias = IsAssociation ? JoinAlias : null;
+						if (CanBeWeak)
+							Parent.SelectQuery.From.LeftJoin(SelectQuery, alias, null);
+						else
+							Parent.SelectQuery.From.InnerJoin(SelectQuery, alias, null);
+					}
+					else if (CanBeWeak)
+					{
+						Parent.SelectQuery.From.OuterApply(SelectQuery, null, null);
+					}
 					else
 					{
-                        Parent!.SelectQuery.From.CrossApply(SelectQuery, "", null);
-                    }
-                    
-
-                }
+						Parent.SelectQuery.From.CrossApply(SelectQuery, null, null);
+					}
+				}
 			}
 
 			public override Expression MakeExpression(Expression path, ProjectFlags flags)
