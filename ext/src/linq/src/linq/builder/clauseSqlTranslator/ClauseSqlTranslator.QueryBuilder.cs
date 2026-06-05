@@ -19,7 +19,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.utils;
     using mooSQL.data;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
 		#region BuildExpression
 
@@ -653,16 +653,16 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region PreferServerSide
 
-		private FindVisitor<ExpressionBuilder>? _enforceServerSideVisitorTrue;
-		private FindVisitor<ExpressionBuilder>? _enforceServerSideVisitorFalse;
+		private FindVisitor<ClauseSqlTranslator>? _enforceServerSideVisitorTrue;
+		private FindVisitor<ClauseSqlTranslator>? _enforceServerSideVisitorFalse;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private FindVisitor<ExpressionBuilder> GetVisitor(bool enforceServerSide)
+		private FindVisitor<ClauseSqlTranslator> GetVisitor(bool enforceServerSide)
 		{
 			if (enforceServerSide)
-				return _enforceServerSideVisitorTrue ??= FindVisitor<ExpressionBuilder>.Create(this, static (ctx, e) => ctx.PreferServerSide(e, true));
+				return _enforceServerSideVisitorTrue ??= FindVisitor<ClauseSqlTranslator>.Create(this, static (ctx, e) => ctx.PreferServerSide(e, true));
 			else
-				return _enforceServerSideVisitorFalse ??= FindVisitor<ExpressionBuilder>.Create(this, static (ctx, e) => ctx.PreferServerSide(e, false));
+				return _enforceServerSideVisitorFalse ??= FindVisitor<ClauseSqlTranslator>.Create(this, static (ctx, e) => ctx.PreferServerSide(e, false));
 		}
 
 		public bool PreferServerSide(Expression expr, bool enforceServerSide)

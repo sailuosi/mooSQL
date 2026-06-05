@@ -1,4 +1,4 @@
-using mooSQL.data.call;
+﻿using mooSQL.data.call;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
 using System.Linq.Expressions;
@@ -16,11 +16,11 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitInsertOrUpdate(InsertOrUpdateCall method)
         => VisitDml(method, InsertOrUpdateBuilder.CanBuildMethod, InsertOrUpdateBuilder.Compile);
 
-    delegate BuildSequenceResult DmlCompileDelegate(ExpressionBuilder builder, BuildInfo buildInfo);
+    delegate BuildSequenceResult DmlCompileDelegate(ClauseSqlTranslator builder, BuildInfo buildInfo);
 
     MethodCall VisitDml(
         MethodCall method,
-        System.Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild,
+        System.Func<MethodCallExpression, BuildInfo, ClauseSqlTranslator, bool> canBuild,
         DmlCompileDelegate compile)
     {
         if (method.callExpression is not MethodCallExpression methodCall)

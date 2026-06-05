@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("Join")]
 	sealed class JoinBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (call.Method.DeclaringType == typeof(LinqExtensions) || !call.IsQueryable())
 				return false;
@@ -39,7 +39,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var outerContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], buildInfo.SelectQuery));
 			var innerContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQueryClause()));

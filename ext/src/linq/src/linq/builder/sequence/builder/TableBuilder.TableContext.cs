@@ -46,7 +46,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			#region Init
 
-			public TableContext(ExpressionBuilder builder,  BuildInfo buildInfo, Type originalType) : base (builder, originalType, buildInfo.SelectQuery)
+			public TableContext(ClauseSqlTranslator builder,  BuildInfo buildInfo, Type originalType) : base (builder, originalType, buildInfo.SelectQuery)
 			{
 				Parent         = buildInfo.Parent;
 				Expression     = buildInfo.Expression;
@@ -68,7 +68,7 @@ namespace mooSQL.linq.Linq.Builder
 				Init(true);
 			}
 
-			public TableContext(ExpressionBuilder builder, DBInstance mappingSchema, BuildInfo buildInfo, TableWord table) : base (builder, table.ObjectType, buildInfo.SelectQuery)
+			public TableContext(ClauseSqlTranslator builder, DBInstance mappingSchema, BuildInfo buildInfo, TableWord table) : base (builder, table.ObjectType, buildInfo.SelectQuery)
 			{
 				Parent         = buildInfo.Parent;
 				Expression     = buildInfo.Expression;
@@ -88,7 +88,7 @@ namespace mooSQL.linq.Linq.Builder
 				Init(true);
 			}
 
-			internal TableContext(ExpressionBuilder builder, DBInstance mappingSchema, SelectQueryClause selectQuery, TableWord table, bool isOptional) : base(builder, table.ObjectType, selectQuery)
+			internal TableContext(ClauseSqlTranslator builder, DBInstance mappingSchema, SelectQueryClause selectQuery, TableWord table, bool isOptional) : base(builder, table.ObjectType, selectQuery)
 			{
 				Parent         = null;
 				Expression     = null;
@@ -109,7 +109,7 @@ namespace mooSQL.linq.Linq.Builder
 
 
 
-            public TableContext(ExpressionBuilder builder, DBInstance mappingSchema, BuildInfo buildInfo) : base (builder, typeof(object), buildInfo.SelectQuery)
+            public TableContext(ClauseSqlTranslator builder, DBInstance mappingSchema, BuildInfo buildInfo) : base (builder, typeof(object), buildInfo.SelectQuery)
 			{
 				Parent         = buildInfo.Parent;
 				Expression     = buildInfo.Expression;
@@ -205,7 +205,7 @@ namespace mooSQL.linq.Linq.Builder
 					//if (MappingSchema.IsScalarType(ElementType))
 					//{
 					//	var tablePlaceholder =
-					//		ExpressionBuilder.CreatePlaceholder(this, SqlTable, path, trackingPath : path);
+					//		ClauseSqlTranslator.CreatePlaceholder(this, SqlTable, path, trackingPath : path);
 					//	return tablePlaceholder;
 					//}
 
@@ -242,7 +242,7 @@ namespace mooSQL.linq.Linq.Builder
 					return path;
 				}
 
-				var placeholder = ExpressionBuilder.CreatePlaceholder(this, sql, path, trackingPath : path);
+				var placeholder = ClauseSqlTranslator.CreatePlaceholder(this, sql, path, trackingPath : path);
 
 				return placeholder;
 			}

@@ -16,10 +16,10 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsMethodCall("LoadWith", "ThenLoad", "LoadWithAsTable", "LoadWithInternal")]
 	sealed class LoadWithBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new LoadWithBuilder().BuildSequence(builder, buildInfo);
 
 		static void CheckFilterFunc(Type expectedType, Type filterType, DBInstance mappingSchema)
@@ -54,7 +54,7 @@ namespace mooSQL.linq.Linq.Builder
 			return lastPath;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			if (buildResult.BuildContext == null)
@@ -165,7 +165,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(loadWithSequence);
 		}
 
-		static void RegisterLoadWithNavColumns(ExpressionBuilder builder, ITableContext? table, LoadWithInfo lastLoadWith)
+		static void RegisterLoadWithNavColumns(ClauseSqlTranslator builder, ITableContext? table, LoadWithInfo lastLoadWith)
 		{
 			if (table?.ObjectType == null)
 				return;
@@ -186,7 +186,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		static (ITableContext? context, LoadWithInfo[] info)? ExtractAssociations(ExpressionBuilder builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)
+		static (ITableContext? context, LoadWithInfo[] info)? ExtractAssociations(ClauseSqlTranslator builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)
 		{
 			var currentExpression = expression;
 
@@ -221,7 +221,7 @@ namespace mooSQL.linq.Linq.Builder
 			return (context, loadWithInfos);
 		}
 
-		static (ITableContext? context, List<MemberInfo> members) GetAssociations(ExpressionBuilder builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)
+		static (ITableContext? context, List<MemberInfo> members) GetAssociations(ClauseSqlTranslator builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)
 		{
 			ITableContext? context    = parentContext;
 			MemberInfo?    lastMember = null;

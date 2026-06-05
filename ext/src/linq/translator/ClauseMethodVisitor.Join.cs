@@ -1,4 +1,4 @@
-using mooSQL.data.call;
+﻿using mooSQL.data.call;
 using mooSQL.data.model;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
@@ -17,7 +17,7 @@ internal partial class ClauseMethodVisitor
 
     MethodCall VisitJoinCore(
         MethodCall method,
-        Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild)
+        Func<MethodCallExpression, BuildInfo, ClauseSqlTranslator, bool> canBuild)
     {
         if (method.callExpression is not MethodCallExpression methodCall)
             return method;
@@ -89,7 +89,6 @@ internal partial class ClauseMethodVisitor
                 isNullValidationDisabled: false);
         }
 
-        Context.BuildResult = BuildSequenceResult.FromContext(result);
-        return method;
+        return ToStatementCallOr(method, result);
     }
 }

@@ -16,10 +16,10 @@ namespace mooSQL.linq.Linq.Builder
 			Methods.LinqToDB.SqlExt.Alias
 		};
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsSameGenericMethod(_supportedMethods);
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			return builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 		}

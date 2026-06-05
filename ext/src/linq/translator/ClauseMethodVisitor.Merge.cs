@@ -1,4 +1,4 @@
-using mooSQL.data.call;
+﻿using mooSQL.data.call;
 using mooSQL.linq.Linq.Builder;
 using System;
 using System.Linq.Expressions;
@@ -24,8 +24,8 @@ internal partial class ClauseMethodVisitor
 
     MethodCall VisitMergeCore(
         MethodCall method,
-        Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild,
-        Func<ExpressionBuilder, BuildInfo, BuildSequenceResult> compile)
+        Func<MethodCallExpression, BuildInfo, ClauseSqlTranslator, bool> canBuild,
+        Func<ClauseSqlTranslator, BuildInfo, BuildSequenceResult> compile)
     {
         if (method.callExpression is not MethodCallExpression methodCall)
             return method;
@@ -43,7 +43,7 @@ internal partial class ClauseMethodVisitor
 
     MethodCall VisitMergeBuilder<TBuilder>(
         MethodCall method,
-        Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild)
+        Func<MethodCallExpression, BuildInfo, ClauseSqlTranslator, bool> canBuild)
         where TBuilder : MethodCallBuilder, new()
     {
         if (method.callExpression is not MethodCallExpression methodCall)

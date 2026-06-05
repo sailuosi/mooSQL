@@ -19,7 +19,7 @@ namespace mooSQL.linq.Linq.Builder
 		public int    ContextId    { get; }
 #endif
 
-		protected BuildContextBase(ExpressionBuilder builder, Type elementType, SelectQueryClause selectQuery)
+		protected BuildContextBase(ClauseSqlTranslator builder, Type elementType, SelectQueryClause selectQuery)
 		{
 			Builder     = builder;
 			ElementType = elementType;
@@ -29,7 +29,7 @@ namespace mooSQL.linq.Linq.Builder
 #endif
 		}
 
-		public          ExpressionBuilder Builder       { get; }
+		public          ClauseSqlTranslator Builder       { get; }
 
 
         public  DBInstance DB { get; set; }

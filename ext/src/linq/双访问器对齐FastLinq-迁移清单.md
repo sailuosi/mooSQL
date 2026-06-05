@@ -27,9 +27,9 @@ TryBuildSequence / ClauseCompiler
 |---|--------|------|
 | 1 | `DispatchLegacy` × 17 | `ClauseMethodVisitor.Bindings.cs` |
 | 2 | `VisitNonCall` → Resolver | `ClauseExpressionVisitor.cs` |
-| 3 | `TryBuildSequence` 兜底 | `ExpressionBuilder.cs` |
+| 3 | `TryBuildSequence` 兜底 | `ClauseSqlTranslator.cs` |
 | 4 | `*Async` 无 Call 类 | `pure/src/ado/call/methods/` |
-| 5 | 谓词 `MakeExpression` 单体 | `ExpressionBuilder.SqlBuilder.Predicate.cs` |
+| 5 | 谓词 `MakeExpression` 单体 | `ClauseSqlTranslator.SqlBuilder.Predicate.cs` |
 | 6 | 880 行 switch | `SequenceBuilderResolver.cs` |
 
 ---

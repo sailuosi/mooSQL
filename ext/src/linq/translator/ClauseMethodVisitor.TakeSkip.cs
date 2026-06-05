@@ -71,7 +71,6 @@ internal partial class ClauseMethodVisitor
             Context.Builder.BuildSkip(sequence, expr);
         }
 
-        Context.BuildResult = BuildSequenceResult.FromContext(sequence);
-        return method;
+        return ToStatementCallOr(method, sequence);
     }
 }

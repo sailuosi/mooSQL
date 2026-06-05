@@ -10,10 +10,10 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall(nameof(LinqExtensions.DisableGuard))]
 	sealed class DisableGroupingGuardBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsSameGenericMethod(Methods.LinqToDB.DisableGuard);
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var saveDisabledFlag = builder.IsGroupingGuardDisabled;
 			builder.IsGroupingGuardDisabled = true;

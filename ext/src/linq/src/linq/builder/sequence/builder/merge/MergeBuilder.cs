@@ -29,10 +29,10 @@ namespace mooSQL.linq.Linq.Builder
 			MergeWithOutputIntoSource
 		};
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsSameGenericMethod(_supportedMethods);
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new MergeBuilder().BuildSequence(builder, buildInfo);
 
 		enum MergeKind
@@ -44,7 +44,7 @@ namespace mooSQL.linq.Linq.Builder
 			MergeWithOutputIntoSource
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -121,19 +121,19 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(mergeContext);
 		}
 
-		public static void BuildMatchCondition(ExpressionBuilder builder, Expression condition, TableLikeQueryContext source,
+		public static void BuildMatchCondition(ClauseSqlTranslator builder, Expression condition, TableLikeQueryContext source,
             SearchConditionWord searchCondition)
 		{
 			BuildMatchCondition(builder, condition, null, null, source, searchCondition);
 		}
 
-		public static void BuildMatchCondition(ExpressionBuilder builder, Expression targetKeySelector, Expression sourceKeySelector, TableLikeQueryContext source,
+		public static void BuildMatchCondition(ClauseSqlTranslator builder, Expression targetKeySelector, Expression sourceKeySelector, TableLikeQueryContext source,
             SearchConditionWord searchCondition)
 		{
 			BuildMatchCondition(builder, null, targetKeySelector, sourceKeySelector, source, searchCondition);
 		}
 
-		static void BuildMatchCondition(ExpressionBuilder builder, Expression? condition, Expression? targetKeySelector, Expression? sourceKeySelector, TableLikeQueryContext source, SearchConditionWord searchCondition)
+		static void BuildMatchCondition(ClauseSqlTranslator builder, Expression? condition, Expression? targetKeySelector, Expression? sourceKeySelector, TableLikeQueryContext source, SearchConditionWord searchCondition)
 		{
 			if (condition == null)
 			{

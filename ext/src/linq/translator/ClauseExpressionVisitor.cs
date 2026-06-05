@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using mooSQL.data.call;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
@@ -11,7 +11,7 @@ namespace mooSQL.linq.translator;
 /// </summary>
 internal sealed class ClauseExpressionVisitor : ExpressionVisitor
 {
-    delegate bool CanBuildSequenceRoot(Expression expression, BuildInfo info, ExpressionBuilder builder);
+    delegate bool CanBuildSequenceRoot(Expression expression, BuildInfo info, ClauseSqlTranslator builder);
 
     readonly struct SequenceRootBinding(CanBuildSequenceRoot canBuild, ISequenceBuilder builder)
     {
@@ -68,8 +68,8 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
         set => _methodVisitor.Context = value;
     }
 
-    /// <summary>供 <see cref="ExpressionBuilder.TryFindBuilder"/> 快速解析 Builder（不构建序列）。</summary>
-    internal static ISequenceBuilder? TryResolveBuilder(BuildInfo info, ExpressionBuilder builder)
+    /// <summary>供 <see cref="ClauseSqlTranslator.TryFindBuilder"/> 快速解析 Builder（不构建序列）。</summary>
+    internal static ISequenceBuilder? TryResolveBuilder(BuildInfo info, ClauseSqlTranslator builder)
     {
         info.Expression = info.Expression.Unwrap();
         return Resolve(info.Expression, info, builder, SelectBindings(info.Expression));
@@ -97,7 +97,7 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
     static ISequenceBuilder? Resolve(
         Expression expression,
         BuildInfo info,
-        ExpressionBuilder builder,
+        ClauseSqlTranslator builder,
         SequenceRootBinding[] bindings)
     {
         foreach (var binding in bindings)
@@ -112,7 +112,7 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
     static BuildSequenceResult BuildOrNotSupported(
         Expression expression,
         BuildInfo info,
-        ExpressionBuilder builder,
+        ClauseSqlTranslator builder,
         SequenceRootBinding[] bindings)
     {
         var sequenceBuilder = Resolve(expression, info, builder, bindings);
@@ -128,50 +128,65 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
     {
         var buildInfo = PrepareBuildInfo(expression);
         Context.BuildResult = BuildOrNotSupported(expression, buildInfo, Context.Builder, bindings);
+        PublishStatementResult();
     }
+
+    void PublishStatementResult()
+    {
+        if (Context.BuildResult?.BuildContext is { } ctx)
+            Context.StatementResult = StatementExpression.FromBuildContext(ctx, Context);
+    }
+
+    static Expression FinishVisit(Expression fallback, ClauseCompileContext context)
+        => context.StatementResult ?? fallback;
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         if (CallUntil.CreateCall(node) is { } call)
         {
-            call.Accept(_methodVisitor);
-            return node;
+            if (call.Accept(_methodVisitor) is StatementCall { Value: { } value })
+                return value;
+
+            return FinishVisit(node, Context);
         }
 
         ApplyBindings(node, ExtensionMethodBindings);
-        return node;
+        return FinishVisit(node, Context);
     }
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
         ApplyBindings(node, ConstantBindings);
-        return node;
+        return FinishVisit(node, Context);
     }
 
     protected override Expression VisitMember(MemberExpression node)
     {
         ApplyBindings(node, EnumerableBindings);
-        return node;
+        return FinishVisit(node, Context);
     }
 
     protected override Expression VisitNewArray(NewArrayExpression node)
     {
         ApplyBindings(node, EnumerableBindings);
-        return node;
+        return FinishVisit(node, Context);
     }
 
     protected override Expression VisitLambda<T>(Expression<T> node)
     {
         ApplyBindings(node, LambdaBindings);
-        return node;
+        return FinishVisit(node, Context);
     }
 
     protected override Expression VisitExtension(Expression node)
     {
+        if (node is StatementExpression)
+            return node;
+
         if (node is ContextRefExpression)
         {
             ApplyBindings(node, ContextRefBindings);
-            return node;
+            return FinishVisit(node, Context);
         }
 
         return base.VisitExtension(node);

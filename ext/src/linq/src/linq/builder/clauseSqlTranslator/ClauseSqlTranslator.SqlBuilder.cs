@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -31,7 +31,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.utils;
     using mooSQL.data.mapping;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
 		#region LinqOptions shortcuts
 
@@ -340,14 +340,14 @@ namespace mooSQL.linq.Linq.Builder
 
 		private sealed class CanBeTranslatedToSqlContext
 		{
-			public CanBeTranslatedToSqlContext(ExpressionBuilder builder, IBuildContext buildContext, bool canBeCompiled)
+			public CanBeTranslatedToSqlContext(ClauseSqlTranslator builder, IBuildContext buildContext, bool canBeCompiled)
 			{
 				Builder       = builder;
 				BuildContext  = buildContext;
 				CanBeCompiled = canBeCompiled;
 			}
 
-			public readonly ExpressionBuilder Builder;
+			public readonly ClauseSqlTranslator Builder;
 			public readonly IBuildContext     BuildContext;
 			public readonly bool              CanBeCompiled;
 		}
@@ -376,16 +376,16 @@ namespace mooSQL.linq.Linq.Builder
 			return unwrapped.IsNullValue();
 		}
 
-		private TransformVisitor<ExpressionBuilder>? _removeNullPropagationTransformer;
-		private TransformVisitor<ExpressionBuilder>? _removeNullPropagationTransformerForSearch;
+		private TransformVisitor<ClauseSqlTranslator>? _removeNullPropagationTransformer;
+		private TransformVisitor<ClauseSqlTranslator>? _removeNullPropagationTransformerForSearch;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private TransformVisitor<ExpressionBuilder> GetRemoveNullPropagationTransformer(bool forSearch)
+		private TransformVisitor<ClauseSqlTranslator> GetRemoveNullPropagationTransformer(bool forSearch)
 		{
 			if (forSearch)
-				return _removeNullPropagationTransformerForSearch ??= TransformVisitor<ExpressionBuilder>.Create(this, static (ctx, e) => ctx.RemoveNullPropagation(e, true));
+				return _removeNullPropagationTransformerForSearch ??= TransformVisitor<ClauseSqlTranslator>.Create(this, static (ctx, e) => ctx.RemoveNullPropagation(e, true));
 			else
-				return _removeNullPropagationTransformer ??= TransformVisitor<ExpressionBuilder>.Create(this, static (ctx, e) => ctx.RemoveNullPropagation(e, false));
+				return _removeNullPropagationTransformer ??= TransformVisitor<ClauseSqlTranslator>.Create(this, static (ctx, e) => ctx.RemoveNullPropagation(e, false));
 		}
 
 		public Expression RemoveNullPropagation(IBuildContext context, Expression expr, ProjectFlags flags, bool toSql)

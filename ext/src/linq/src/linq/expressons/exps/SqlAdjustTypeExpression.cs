@@ -37,7 +37,7 @@ namespace mooSQL.linq.Expressions
 
 		public override Expression Reduce()
 		{
-			return ExpressionBuilder.AdjustType(Expression, Type, DBLive);
+			return ClauseSqlTranslator.AdjustType(Expression, Type, DBLive);
 		}
 
 		public override ExpressionType NodeType => ExpressionType.Extension;

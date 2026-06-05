@@ -17,13 +17,13 @@ namespace mooSQL.linq.Linq.Builder
 		CanBuildName = nameof(CanBuildAsyncMethod))]
 	sealed class FirstSingleBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable() && call.Arguments.Count <= 2;
 
-		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsAsyncExtension() && call.Arguments.Count <= 3;
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new FirstSingleBuilder().BuildSequence(builder, buildInfo);
 
 		public enum MethodKind
@@ -50,7 +50,7 @@ namespace mooSQL.linq.Linq.Builder
 			};
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var argument = methodCall.Arguments[0];
 			var argumentCount = methodCall.Arguments.Count;
@@ -254,7 +254,7 @@ namespace mooSQL.linq.Linq.Builder
 						var column = Builder.ToColumns(this, placeholder);
 						if (column is SqlPlaceholderExpression)
 						{
-							projected = ExpressionBuilder.CreatePlaceholder(Parent, SelectQuery, path);
+							projected = ClauseSqlTranslator.CreatePlaceholder(Parent, SelectQuery, path);
 						}
 						else
 						{

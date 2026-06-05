@@ -18,7 +18,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data;
     using mooSQL.data.mapping;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
 		bool IsAssociationInRealization(Expression? expression, MemberInfo member, [NotNullWhen(true)] out MemberInfo? associationMember)
 		{

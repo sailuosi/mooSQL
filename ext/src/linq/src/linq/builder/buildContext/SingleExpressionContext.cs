@@ -9,7 +9,7 @@ namespace mooSQL.linq.Linq.Builder
 
 	sealed class SingleExpressionContext : BuildContextBase
 	{
-		public SingleExpressionContext(ExpressionBuilder builder, IExpWord sqlExpression, SelectQueryClause selectQuery)
+		public SingleExpressionContext(ClauseSqlTranslator builder, IExpWord sqlExpression, SelectQueryClause selectQuery)
 			: base(builder, sqlExpression.SystemType ?? typeof(object), selectQuery)
 		{
 			SqlExpression = sqlExpression;
@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
 		{
 			if (SequenceHelper.IsSameContext(path, this))
 			{
-				return ExpressionBuilder.CreatePlaceholder(this, SqlExpression, path);
+				return ClauseSqlTranslator.CreatePlaceholder(this, SqlExpression, path);
 			}
 
 			throw new NotImplementedException();

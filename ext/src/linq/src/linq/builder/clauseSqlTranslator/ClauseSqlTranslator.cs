@@ -26,8 +26,9 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.linq.SqlProvider;
     using mooSQL.linq.translator;
     using mooSQL.data.call;
+    using mooSQL.linq.Expressions;
 
-    internal sealed partial class ExpressionBuilder : IExpressionEvaluator
+    internal sealed partial class ClauseSqlTranslator : IExpressionEvaluator
 	{
 		#region Sequence
 
@@ -69,7 +70,7 @@ namespace mooSQL.linq.Linq.Builder
 		public List<TableBuilder.TableContext>? TablesInScope;
 
 
-		public ExpressionBuilder(
+		public ClauseSqlTranslator(
 			//Query                             query,
 			bool                              validateSubqueries,
 			ExpressionTreeOptimizationContext optimizationContext,
@@ -125,31 +126,6 @@ namespace mooSQL.linq.Linq.Builder
                 NavColumns[entityType] = list;
             }
             list.AddNotRepeat(column);
-        }
-
-        public SentenceBag<T> doBuild<T>()
-        {
-			var res = ClauseCompiler.Compile<T>(this, Expression);
-			res.DBLive = DBLive;
-			res.srcExp = Expression;
-
-            if (res.ErrorExpression == null && res.Sentences != null)
-            {
-                foreach (var q in res.Sentences)
-                {
-                    if (Tag?.Lines.Count > 0)
-                    {
-                        (q.Statement.Tag ??= new()).Lines.AddRange(Tag.Lines);
-                    }
-
-                    if (SqlQueryExtensions != null)
-                    {
-                        (q.Statement.SqlQueryExtensions ??= new()).AddRange(SqlQueryExtensions);
-                    }
-                }
-            }
-
-            return res;
         }
 
         /// <summary>Used internally to avoid RecursiveCTE build failing</summary>
@@ -230,10 +206,35 @@ namespace mooSQL.linq.Linq.Builder
 			var exprVisitor = new ClauseExpressionVisitor(methodVisitor) { Context = context };
 			methodVisitor.Buddy = exprVisitor;
 
+			Expression? resultExpr = null;
 			if (buildInfo.Expression is MethodCallExpression mc && CallUntil.CreateCall(mc) is { } call)
-				call.Accept(methodVisitor);
+			{
+				if (call.Accept(methodVisitor) is StatementCall { Value: { } value })
+					resultExpr = value;
+			}
 			else
-				exprVisitor.Visit(buildInfo.Expression);
+			{
+				resultExpr = exprVisitor.Visit(buildInfo.Expression);
+			}
+
+			if (resultExpr is StatementExpression stmt)
+			{
+				context.StatementResult = stmt;
+				var stmtResult = BuildSequenceResult.FromContext(stmt.BuildContext);
+				if (stmtResult.BuildContext != null)
+				{
+#if DEBUG
+					if (!buildInfo.IsTest)
+						QueryHelper.DebugCheckNesting(stmtResult.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
+#endif
+					RegisterSequenceExpression(stmtResult.BuildContext, originalExpression);
+				}
+
+				if (!stmtResult.IsSequence)
+					return BuildSequenceResult.Error(originalExpression);
+
+				return stmtResult;
+			}
 
 			var visitorResult = context.BuildResult;
 			if (visitorResult is { } vr)

@@ -559,7 +559,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			protected override Expression VisitParameter(ParameterExpression node)
 			{
-				if (node == ExpressionBuilder.ParametersParam)
+				if (node == ClauseSqlTranslator.ParametersParam)
 					return node;
 
 				if (node == ExpressionConstants.DataContextParam)
@@ -569,7 +569,7 @@ namespace mooSQL.linq.Linq.Builder
 				}
 				else
 				{
-					if (node != ExpressionBuilder.ExpressionParam && (_allowedParameters == null || !_allowedParameters.Any(ps => ps.Contains(node))))
+					if (node != ClauseSqlTranslator.ExpressionParam && (_allowedParameters == null || !_allowedParameters.Any(ps => ps.Contains(node))))
 					{
 						CanBeCompiledFlag = false;
 					}

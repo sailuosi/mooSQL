@@ -278,6 +278,12 @@ namespace mooSQL.data.call
         }
 
         /// <summary>
+        /// 访问 Statement 调用节点（默认返回原节点）。
+        /// </summary>
+        public virtual MethodCall VisitStatement(StatementCall method)
+            => method;
+
+        /// <summary>
         /// 访问 FIRST 调用节点（默认返回原节点）。
         /// </summary>
         public virtual MethodCall VisitFirst(FirstCall method)

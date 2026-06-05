@@ -32,7 +32,7 @@ namespace mooSQL.linq.Linq.Builder
 			OptimizationContext  = optimizationContext;
 			DBLive          = dataContext;
 
-			_expressionAccessors = parametersExpression.GetExpressionAccessors(ExpressionBuilder.ExpressionParam);
+			_expressionAccessors = parametersExpression.GetExpressionAccessors(ClauseSqlTranslator.ExpressionParam);
 		}
 
 		public Expression                        ParametersExpression { get; }
@@ -44,17 +44,17 @@ namespace mooSQL.linq.Linq.Builder
 
 		static readonly ParameterExpression[] AccessorParameters =
 		{
-			ExpressionBuilder.ExpressionParam,
+			ClauseSqlTranslator.ExpressionParam,
 			ExpressionConstants.DataContextParam,
-			ExpressionBuilder.ParametersParam
+			ClauseSqlTranslator.ParametersParam
 		};
 
 		static ParameterExpression[] DbTypeAccessorParameters =
 		{
-			ExpressionBuilder.ExpressionParam,
+			ClauseSqlTranslator.ExpressionParam,
 			ItemParameter,
 			ExpressionConstants.DataContextParam,
-			ExpressionBuilder.ParametersParam
+			ClauseSqlTranslator.ParametersParam
 		};
 
 		public readonly List<ParameterAccessor>           CurrentSqlParameters = new();
@@ -384,7 +384,7 @@ namespace mooSQL.linq.Linq.Builder
 				static (context, expr) =>
 				{
 					// TODO: !!! Code should be synched with ReplaceParameter !!!
-					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ExpressionBuilder.ParametersParam)
+					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ClauseSqlTranslator.ParametersParam)
 					{
 						return new TransformInfo(expr, true);
 					}
@@ -411,7 +411,7 @@ namespace mooSQL.linq.Linq.Builder
 				(context, expr) =>
 				{
 					// TODO: !!! Code should be synched with ReplaceParameter !!!
-					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ExpressionBuilder.ParametersParam)
+					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ClauseSqlTranslator.ParametersParam)
 					{
 						return new TransformInfo(expr, true);
 					}
@@ -446,7 +446,7 @@ namespace mooSQL.linq.Linq.Builder
 				(forceConstant, columnDescriptor, (expression as MemberExpression)?.Member, result, setName, paramContext: this),
 				static (context, expr) =>
 				{
-					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ExpressionBuilder.ParametersParam)
+					if (expr.NodeType == ExpressionType.ArrayIndex && ((BinaryExpression)expr).Left == ClauseSqlTranslator.ParametersParam)
 					{
 						return new TransformInfo(expr, true);
 					}
@@ -473,7 +473,7 @@ namespace mooSQL.linq.Linq.Builder
 							{
 								if (context.columnDescriptor == null)
 								{
-									var mt = ExpressionBuilder.GetMemberDataType(context.paramContext.DBLive, context.Member);
+									var mt = ClauseSqlTranslator.GetMemberDataType(context.paramContext.DBLive, context.Member);
 
 									if (mt.DataType != DataFam.Undefined)
 									{

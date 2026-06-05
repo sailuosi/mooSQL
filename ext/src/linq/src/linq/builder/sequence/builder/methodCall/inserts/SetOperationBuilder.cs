@@ -17,15 +17,15 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("Concat", "UnionAll", "Union", "Except", "Intersect", "ExceptAll", "IntersectAll")]
 	internal sealed class SetOperationBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.Arguments.Count == 2 && call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new SetOperationBuilder().BuildSequence(builder, buildInfo);
 
 		#region Builder
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var buildResult1 = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			if (buildResult1.BuildContext == null)
@@ -204,7 +204,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					if (projection1 is SqlErrorExpression || projection2 is SqlErrorExpression)
 					{
-						return ExpressionBuilder.CreateSqlError(this, path);
+						return ClauseSqlTranslator.CreateSqlError(this, path);
 					}
 				}
 
@@ -640,7 +640,7 @@ namespace mooSQL.linq.Linq.Builder
 					var (placeholder2, _) = placeholders2.FirstOrDefault(p2 => PathComparer.Instance.Equals(p2.path, path));
 					if (placeholder2 == null)
 					{
-						placeholder2 = ExpressionBuilder.CreatePlaceholder(_sequence2,
+						placeholder2 = ClauseSqlTranslator.CreatePlaceholder(_sequence2,
 							new ValueWord(QueryHelper.GetDbDataType(placeholder.Sql, DB), null), placeholderPath);
 					}
 					else
@@ -684,7 +684,7 @@ namespace mooSQL.linq.Linq.Builder
 
 						placeholder2 = placeholder2.WithAlias(alias);
 
-						var column1 = ExpressionBuilder.CreatePlaceholder(_sequence1, new ValueWord(QueryHelper.GetDbDataType(placeholder2.Sql, DB), null), placeholderPath);
+						var column1 = ClauseSqlTranslator.CreatePlaceholder(_sequence1, new ValueWord(QueryHelper.GetDbDataType(placeholder2.Sql, DB), null), placeholderPath);
 						column1 = Builder.MakeColumn(SelectQuery, column1, true);
 
 						var column2 = Builder.MakeColumn(SelectQuery, placeholder2, true);
@@ -804,10 +804,10 @@ namespace mooSQL.linq.Linq.Builder
 				var keyRight = SequenceHelper.CreateSpecialProperty(rightRef, typeof(int), ProjectionSetIdFieldName);
 
 				var leftIdPlaceholder =
-					ExpressionBuilder.CreatePlaceholder(_sequence1, sqlValueLeft, keyLeft, alias : ProjectionSetIdFieldName);
+					ClauseSqlTranslator.CreatePlaceholder(_sequence1, sqlValueLeft, keyLeft, alias : ProjectionSetIdFieldName);
 				leftIdPlaceholder = (SqlPlaceholderExpression)Builder.UpdateNesting(this, leftIdPlaceholder);
 
-				var rightIdPlaceholder = ExpressionBuilder.CreatePlaceholder(_sequence2, sqlValueRight,
+				var rightIdPlaceholder = ClauseSqlTranslator.CreatePlaceholder(_sequence2, sqlValueRight,
 					keyRight, alias : ProjectionSetIdFieldName);
 				rightIdPlaceholder = Builder.MakeColumn(SelectQuery, rightIdPlaceholder, asNew : true);
 

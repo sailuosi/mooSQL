@@ -21,10 +21,10 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region Update
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new UpdateBuilder().BuildSequence(builder, buildInfo);
 
 		static void ExtractSequence(BuildInfo buildInfo, ref IBuildContext sequence, out UpdateContext updateContext)
@@ -42,7 +42,7 @@ namespace mooSQL.linq.Linq.Builder
 			updateContext.LastBuildInfo = buildInfo;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var updateType = methodCall.Method.Name switch
 			{
@@ -321,7 +321,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		public static (IBuildContext deleted, IBuildContext inserted, TableWord deletedTable, TableWord insertedTable) CreateDeletedInsertedContexts(ExpressionBuilder builder, ITableContext targetTableContext, out IBuildContext outputContext)
+		public static (IBuildContext deleted, IBuildContext inserted, TableWord deletedTable, TableWord insertedTable) CreateDeletedInsertedContexts(ClauseSqlTranslator builder, ITableContext targetTableContext, out IBuildContext outputContext)
 		{
 			// create separate query for output
 			var outputSelectQuery = new SelectQueryClause();
@@ -390,7 +390,7 @@ namespace mooSQL.linq.Linq.Builder
 		#region Helpers
 
 		internal static void InitializeSetExpressions(
-			ExpressionBuilder           builder,
+			ClauseSqlTranslator           builder,
 			IBuildContext               fieldsContext,
 			IBuildContext               valuesContext,
 			List<SetExpressionEnvelope> envelopes,
@@ -462,7 +462,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		static void ParseSet(
-			ExpressionBuilder           builder,
+			ClauseSqlTranslator           builder,
 			IBuildContext               buildContext,
 			Expression                  targetPath,
 			Expression                  fieldExpression,
@@ -534,7 +534,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		internal static void ParseSetter(
-			ExpressionBuilder           builder,
+			ClauseSqlTranslator           builder,
 			ContextRefExpression        targetRef,
 			Expression                  setterExpression,
 			List<SetExpressionEnvelope> envelopes)
@@ -682,7 +682,7 @@ namespace mooSQL.linq.Linq.Builder
 				}
 			}
 
-			static Expression BuildDefaultOutputExpression(ExpressionBuilder builder, Type outputType, IBuildContext querySequence, IBuildContext insertedContext, IBuildContext deletedContext)
+			static Expression BuildDefaultOutputExpression(ClauseSqlTranslator builder, Type outputType, IBuildContext querySequence, IBuildContext insertedContext, IBuildContext deletedContext)
 			{
 				// populate all accessible fields, especially for CTE
 				var queryRef  = new ContextRefExpression(querySequence.ElementType, querySequence);
@@ -786,10 +786,10 @@ namespace mooSQL.linq.Linq.Builder
 		//[BuildsMethodCall(nameof(LinqExtensions.Set))]
 		internal sealed class Set : MethodCallBuilder
 		{
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsQueryable();
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder,
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder,
 				MethodCallExpression                                                 methodCall, BuildInfo buildInfo)
 			{
 				var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));

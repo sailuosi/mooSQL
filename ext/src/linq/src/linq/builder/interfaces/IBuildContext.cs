@@ -17,7 +17,7 @@ namespace mooSQL.linq.Linq.Builder
 		int     ContextId     { get; }
 #endif
 
-		ExpressionBuilder Builder       { get; }
+		ClauseSqlTranslator Builder       { get; }
 
 		/// <summary>
 		/// 输入物

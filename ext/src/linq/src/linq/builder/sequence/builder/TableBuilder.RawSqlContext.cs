@@ -14,7 +14,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		class SimpleSelectContext : BuildContextBase
 		{
-			public SimpleSelectContext(ExpressionBuilder builder, Type elementType, SelectQueryClause selectQuery) : base(builder, elementType, selectQuery)
+			public SimpleSelectContext(ClauseSqlTranslator builder, Type elementType, SelectQueryClause selectQuery) : base(builder, elementType, selectQuery)
 			{
 			}
 
@@ -36,7 +36,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		}
 
-		static BuildSequenceResult BuildRawSqlTable(ExpressionBuilder builder, BuildInfo buildInfo, bool isScalar)
+		static BuildSequenceResult BuildRawSqlTable(ClauseSqlTranslator builder, BuildInfo buildInfo, bool isScalar)
 		{
 			var methodCall = (MethodCallExpression)buildInfo.Expression;
 
@@ -138,7 +138,7 @@ namespace mooSQL.linq.Linq.Builder
 		//TODO: We have to separate TableContext in proper hierarchy
 		sealed class RawSqlContext : TableContext
 		{
-			public RawSqlContext(ExpressionBuilder builder, BuildInfo buildInfo, Type originalType, bool isScalar, string sql, IExpWord[] parameters)
+			public RawSqlContext(ClauseSqlTranslator builder, BuildInfo buildInfo, Type originalType, bool isScalar, string sql, IExpWord[] parameters)
 				: base(builder, builder.DBLive, buildInfo
 					  , new RawSqlTableWord(builder.DBLive.client.EntityCash.getEntityInfo(originalType), sql, parameters))
 			{

@@ -38,7 +38,6 @@ internal partial class ClauseMethodVisitor
             return method;
         }
 
-        Context.BuildResult = BuildSequenceResult.FromContext(containsContext);
-        return method;
+        return ToStatementCallOr(method, containsContext);
     }
 }

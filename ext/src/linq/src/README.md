@@ -17,7 +17,7 @@
 
 ### 问题背景
 
-早期 `ExpressionBuilder` 是一个「巨型类」，同时承担：
+早期 `ExpressionBuilder`（现 **`ClauseSqlTranslator`**）是一个「巨型类」，同时承担：
 
 1. 表达式树 → `SelectQueryClause`（Statement）编译
 2. 投影表达式 → `DbDataReader` 行映射（`BuildMapper` / `SetRunQuery`）
@@ -55,10 +55,11 @@ SQLBuilder → query<T>() → 实体结果
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Layer 1 — Compile（编译）                                       │
-│  ExpressionBuilder.TryBuildSequence                              │
-│    → ClauseExpressionVisitor + ClauseMethodVisitor               │
-│    → IBuildContext / ISequenceBuilder（既有 Builder 逻辑）        │
-│    → ClauseCompiler.Compile → SentenceBag                        │
+│  ClauseSqlTranslator.TryBuildSequence                            │
+│    → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy）       │
+│    → StatementCall → StatementExpression（树上产物）              │
+│    → IBuildContext / ISequenceBuilder（工具，非编排器）           │
+│    → ClauseCompiler.Build → SentenceBag                          │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ SentenceBag（Statement）
                             ▼
@@ -89,13 +90,13 @@ SQLBuilder → query<T>() → 实体结果
 
 | 入口 | 说明 |
 |------|------|
-| `ExpressionBuilder.doBuild<T>()` | 内部编译，产出 `SentenceBag<T>` |
+| `ClauseCompiler.Build<T>()` | 内部编译，产出 `SentenceBag<T>` |
 | `QueryMate.GetQuery<T>()` | 带缓存的对外入口 |
 | `EntityVisitCompiler` / `EntityQueryCompiler` | 预编译委托，直接调用 `SentenceExecutor` |
 
 ### 双访问器模型
 
-编译 MethodCall 链时使用 **Buddy 双访问器**，替代原先在 `ExpressionBuilder` 内硬编码的分发：
+编译 MethodCall 链时使用 **Buddy 双访问器**（对齐 FastLinq），`ClauseSqlTranslator` 仅保留 SQL 语义能力：
 
 ```
 MethodCallExpression
@@ -108,9 +109,17 @@ MethodCallExpression
 |------|------|
 | `ClauseExpressionVisitor` | 按 `ExpressionType` 分发序列根（`VisitConstant`/`VisitMember`/`VisitLambda`/`VisitExtension` 等）；已注册 MethodCall → `ClauseMethodVisitor`；未注册 Call → 扩展 Builder |
 | `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder（对齐 FastLinq 双访问器） |
-| `ClauseCompileContext` | 编译上下文（ExpressionBuilder + BuildInfo + BuildResult） |
+| `ClauseCompileContext` | 编译上下文（ClauseSqlTranslator + BuildInfo；`StatementResult` 为树上产物） |
+| `StatementExpression` / `StatementCall` | 编译成功节点 / MethodVisitor 回传载体（对齐 Fast `ExpressionCall`） |
+| `ClauseSqlTranslator` | SQL 语义引擎（MakeExpression / ConvertToSql / BuildWhere 等） |
 | `ClausePredicateVisitor` | Where lambda 谓词（Phase E，逐步替代 MakeExpression 部分逻辑） |
 | `ClauseCompiler` | 编译收尾：收集 Statement、参数、NavColumns → `SentenceBag` |
+
+### ISequenceBuilder 内聚度（Phase 5 评估）
+
+- **保留独立类**：Merge / MultiInsert / 子查询嵌套等复杂算子（`MergeBuilder`、`MultiInsertBuilder` 等）。
+- **已内联到 `ClauseMethodVisitor`**：Where / Select / OrderBy / Take-Skip / Join / Distinct / Contains / AllAny 等，经 `ApplyBuilder` 或 `ToStatementCallOr` 回传 `StatementExpression`。
+- **结论**：`ISequenceBuilder` 作为 **ClauseSqlTranslator 的工具** 保留；不再由单一 `ExpressionBuilder` 编排。
 
 ### MethodCall 分发策略
 
@@ -150,7 +159,7 @@ python ext/src/linq/translator/tools/gen_bindings.py
 
 - `ISequenceBuilder` / `MethodCallBuilder`：处理具体 LINQ 方法
 - `IBuildContext`：维护 `SelectQueryClause`、投影、`MakeExpression`
-- `ExpressionBuilder.MakeExpression` / `ConvertToSql`：表达式 → SQL 片段
+- `ClauseSqlTranslator.MakeExpression` / `ConvertToSql`：表达式 → SQL 片段
 
 `TryBuildSequence` 流程：
 
@@ -281,7 +290,7 @@ ext/src/linq/
     │   ├── helps/           # QueryHelper、优化辅助
     │   └── visitors/        # 语句级 Visitor（优化、校正）
     ├── linq/                # 面向用户的 LINQ 核心
-    │   ├── builder/         # ExpressionBuilder + IBuildContext + Builder 体系
+    │   ├── builder/         # ClauseSqlTranslator + IBuildContext + Builder 体系
     │   ├── expressons/      # ExpressionQuery、EntityProvider
     │   ├── query/           # SentenceBag、BasicSentenceRunner、QueryMate
     │   └── Translation/     # 方言函数翻译
@@ -320,7 +329,7 @@ Expression
 
 | 类型 | 旧职能 | 新职能 |
 |------|--------|--------|
-| `ExpressionBuilder` | 编译 + Mapper 生成 | **仅编译**（`doBuild` / `TryBuildSequence`） |
+| `ClauseSqlTranslator` | 编译 + Mapper 生成 | **仅 SQL 语义**（`TryBuildSequence` 入口之一） |
 | `IBuildContext` | 编译 + `SetRunQuery` 绑定执行 | **仅编译**（`MakeExpression` / `GetResultStatement`） |
 | `SentenceBag` | 持有 Mapper 委托、Preambles | 持有 Statement + NavColumns + Runner |
 | `QueryRunner` | DbDataReader 执行 + Mapper | 缓存 + DML 特殊路径 + GetSqlText |
@@ -556,6 +565,6 @@ Activity 追踪 ID 见 `ActivityID`：`BuildSequence`、`FinalizeQuery`、`Execu
 ## 相关文档
 
 - [双访问器对齐 FastLinq 迁移清单](../双访问器对齐FastLinq-迁移清单.md) — 分发层对齐 FastLinq 的 Phase A～F
-- `ext/src/linq/core/ExpressionBuilder-构建SentenceBag解析.md` — 编译过程（Phase 2：`ClauseCompiler`，无 BuildQuery/Mapper）
+- `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` — 编译过程（`ClauseCompiler` + `StatementExpression`，无 BuildQuery/Mapper）
 - `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` — 执行入口（Phase 2：`SentenceExecutor`）
 - `pure/src/ado/builder/API说明文档.md` — SQLBuilder 链式 API

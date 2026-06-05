@@ -24,10 +24,10 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region InsertBuilder
 
-        public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+        public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new InsertBuilder().BuildSequence(builder, buildInfo);
 
 		static void ExtractSequence(ref IBuildContext sequence, out InsertContext insertContext)
@@ -44,7 +44,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -367,10 +367,10 @@ namespace mooSQL.linq.Linq.Builder
 		[BuildsMethodCall("Into")]
 		internal sealed class Into : MethodCallBuilder
 		{
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsQueryable();
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder,
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder,
 				MethodCallExpression                                                 methodCall, BuildInfo buildInfo)
 			{
 				var source = methodCall.Arguments[0].Unwrap();
@@ -415,10 +415,10 @@ namespace mooSQL.linq.Linq.Builder
 		[BuildsMethodCall("Value")]
 		internal sealed class Value : MethodCallBuilder
 		{
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsQueryable();
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder,
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder,
 				MethodCallExpression                                                 methodCall, BuildInfo buildInfo)
 			{
 				var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));

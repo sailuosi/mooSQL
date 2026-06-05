@@ -14,13 +14,13 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsMethodCall("GroupJoin")]
 	sealed class GroupJoinBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new GroupJoinBuilder().BuildSequence(builder, buildInfo);
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var outerExpression = methodCall.Arguments[0];
 			var outerContextResult = builder.TryBuildSequence(new BuildInfo(buildInfo, outerExpression, buildInfo.SelectQuery));
@@ -56,7 +56,7 @@ namespace mooSQL.linq.Linq.Builder
 
 
 			public GroupJoinInnerContext(
-				IBuildContext? parent, SelectQueryClause outerQuery, ExpressionBuilder builder, Type elementType,
+				IBuildContext? parent, SelectQueryClause outerQuery, ClauseSqlTranslator builder, Type elementType,
 				Expression outerKey, LambdaExpression innerKeyLambda,
 				Expression innerExpression
 			) : base(builder, elementType, outerQuery)
@@ -113,7 +113,7 @@ namespace mooSQL.linq.Linq.Builder
 				// Generating the following
 				// innerExpression.Where(o => o.Key == innerKey)
 
-				var filterLambda = Expression.Lambda(ExpressionBuilder.Equal(
+				var filterLambda = Expression.Lambda(ClauseSqlTranslator.Equal(
 						DB,
 						OuterKey,
 						InnerKeyLambda.Body),

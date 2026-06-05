@@ -12,17 +12,17 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("DefaultIfEmpty")]
 	sealed class DefaultIfEmptyBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new DefaultIfEmptyBuilder().BuildSequence(builder, buildInfo);
 
-		static ReadOnlyCollection<Expression>? PrepareNoNullConditions(ExpressionBuilder builder, IBuildContext notNullHandlerSequence, IBuildContext sequence, IBuildContext nullabilitySequence, bool allowNullField)
+		static ReadOnlyCollection<Expression>? PrepareNoNullConditions(ClauseSqlTranslator builder, IBuildContext notNullHandlerSequence, IBuildContext sequence, IBuildContext nullabilitySequence, bool allowNullField)
 		{
 			var sequenceRef  = new ContextRefExpression(sequence.ElementType, sequence);
 			var translated   = builder.BuildSqlExpression(sequence, sequenceRef, ProjectFlags.SQL, buildFlags: BuildFlags.ForceAssignments);
-			var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(translated);
+			var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(translated);
 
 			var nullability = NullabilityContext.GetContext(nullabilitySequence.SelectQuery);
 			var notNull = placeholders
@@ -59,7 +59,7 @@ namespace mooSQL.linq.Linq.Builder
 			return notNull.AsReadOnly();
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 
@@ -176,7 +176,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				if ((flags.IsSql() || flags.IsExpression()) && SequenceHelper.IsSpecialProperty(path, typeof(int?), NotNullPropName))
 				{
-					var placeholder = ExpressionBuilder.CreatePlaceholder(this,
+					var placeholder = ClauseSqlTranslator.CreatePlaceholder(this,
 						new NullabilityWord(new ValueWord(1), true),
 						path,
 						alias : NotNullPropName);

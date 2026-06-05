@@ -949,7 +949,7 @@ namespace mooSQL.linq
                     ToParametersNullabilityType(isNullable), canBeNull, newParams.ToArray());
 
 				// Placeholder path will be set later
-				return ExpressionBuilder.CreatePlaceholder(query, sqlExpression, System.Linq.Expressions.Expression.Default(systemType));
+				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpression, System.Linq.Expressions.Expression.Default(systemType));
 			}
 
 			public override Expression GetExpression<TContext>(TContext context, DBInstance DB, IExpressionEvaluator evaluator, SelectQueryClause query, Expression expression, ConvertFunc<TContext> converter)
@@ -980,7 +980,7 @@ namespace mooSQL.linq
 					else if (replaced.Length > 1)
 						throw new InvalidOperationException($"Multiple root sequences found for expression '{expression}'");
 
-					return ExpressionBuilder.CreatePlaceholder(query, replaced[0].Expression!, expression);
+					return ClauseSqlTranslator.CreatePlaceholder(query, replaced[0].Expression!, expression);
 				}
 
 				var mainExtension = main.Extension!;

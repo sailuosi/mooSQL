@@ -582,7 +582,7 @@ namespace mooSQL.linq.Data
 				//		}
 				//		else
 				//		{
-				//			test = ExpressionBuilder.Equal(
+				//			test = ClauseSqlTranslator.Equal(
 				//				DBLive,
 				//				memberAccess,
 				//				Expression.Constant(inheritance.Code));

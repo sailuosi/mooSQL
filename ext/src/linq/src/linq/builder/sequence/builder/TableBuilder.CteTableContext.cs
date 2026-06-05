@@ -10,7 +10,7 @@ namespace mooSQL.linq.Linq.Builder
 
 	partial class TableBuilder
 	{
-		static BuildSequenceResult BuildCteContext(ExpressionBuilder builder, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCteContext(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var methodCall = (MethodCallExpression)buildInfo.Expression;
 
@@ -39,7 +39,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(cteTableContext);
 		}
 
-		static BuildSequenceResult BuildRecursiveCteContextTable(ExpressionBuilder builder, BuildInfo buildInfo)
+		static BuildSequenceResult BuildRecursiveCteContextTable(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var methodCall = ((MethodCallExpression)buildInfo.Expression);
 

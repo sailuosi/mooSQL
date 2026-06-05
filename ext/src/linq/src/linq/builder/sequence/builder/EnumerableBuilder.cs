@@ -14,7 +14,7 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsExpression(ExpressionType.Constant, ExpressionType.MemberAccess, ExpressionType.NewArrayInit)]
 	sealed class EnumerableBuilder : ISequenceBuilder
 	{
-		public static bool CanBuild(Expression expr, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuild(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (expr.NodeType == ExpressionType.NewArrayInit)
 				return true;
@@ -45,7 +45,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var collectionType = typeof(IEnumerable<>).GetGenericType(buildInfo.Expression.Type) ??
 			                     throw new InvalidOperationException();
@@ -55,7 +55,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(enumerableContext);
 		}
 
-		public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return true;
 		}

@@ -13,7 +13,7 @@ linq功能点纪要
 
 LINQ模型  到 SQL模型  的编译：
 
-	ExpressionBuilder.Build<T>()
+	ClauseCompiler.Build<T>()
 
 
 SQL模型对象 到 SQL脚本的编译：
@@ -31,11 +31,11 @@ SQL模型对象 到 SQL脚本的编译：
 
 	DataConnectRunner -- 执行SQL模版到SQL脚本的翻译；
 
-	ExpressionBuilder -- 执行Linq Expression 对象 到 SQL模型 的翻译；
+	ClauseSqlTranslator + ClauseCompiler -- LINQ Expression → SentenceBag（双访问器 + StatementExpression）；
 
 	Query -- 承载一组 QueryInfo
 
-	Query<T> -- linq编译的入口，调用ExpressionBuilder 执行翻译，输出 SQL模型对象 Query
+	QueryMate / EntityVisitCompiler -- linq编译入口，调用 ClauseCompiler 输出 SentenceBag
 
 	QueryRunner -- 执行SQL模型的查询，利用数据连接，使用DataConnectRunner翻译后，执行查询，并返回结果。
 

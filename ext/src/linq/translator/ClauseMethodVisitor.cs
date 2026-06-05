@@ -47,7 +47,7 @@ internal partial class ClauseMethodVisitor : MethodVisitor
     /// </summary>
     protected MethodCall ApplyBuilder<TBuilder>(
         MethodCall method,
-        Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild)
+        Func<MethodCallExpression, BuildInfo, ClauseSqlTranslator, bool> canBuild)
         where TBuilder : ISequenceBuilder, new()
     {
         if (method.callExpression is not MethodCallExpression mc)
@@ -60,8 +60,8 @@ internal partial class ClauseMethodVisitor : MethodVisitor
             return method;
         }
 
-        Context.BuildResult = SequenceBuilderPool<TBuilder>.Instance.BuildSequence(Context.Builder, buildInfo);
-        return method;
+        return ToStatementCallOr(method,
+            SequenceBuilderPool<TBuilder>.Instance.BuildSequence(Context.Builder, buildInfo).BuildContext);
     }
 
     static class SequenceBuilderPool<TBuilder> where TBuilder : ISequenceBuilder, new()

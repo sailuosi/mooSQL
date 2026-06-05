@@ -85,7 +85,7 @@ namespace mooSQL.linq
 				var sqlExpr = new ExpressionWord(expression.Type, name!, PrecedenceLv.Primary, SqlFlags.IsPure,
                     ToParametersNullabilityType(IsNullable), _canBeNull);
 
-				return ExpressionBuilder.CreatePlaceholder(query, sqlExpr, expression);
+				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpr, expression);
 			}
 
 			public override string GetObjectID()

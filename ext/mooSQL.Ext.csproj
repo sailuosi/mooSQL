@@ -104,6 +104,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="TestLinq" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="src\linq\src\entity\mapping\attrs\" />
   </ItemGroup>
 </Project>

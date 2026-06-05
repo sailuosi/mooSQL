@@ -249,7 +249,7 @@ namespace mooSQL.linq.Linq.Builder
 					// replace tracking path back
 					var translated = SequenceHelper.CorrectTrackingPath(Builder, correctedPath, path);
 
-					var placeholders = ExpressionBuilder.CollectPlaceholders(translated);
+					var placeholders = ClauseSqlTranslator.CollectPlaceholders(translated);
 
 					var remapped = TableLikeHelpers.RemapToFields(SubqueryContext, Source, Source.SourceFields, _knownMap, null, translated, placeholders);
 
@@ -271,7 +271,7 @@ namespace mooSQL.linq.Linq.Builder
 			return SubqueryContext.GetResultStatement();
 		}
 
-		public static bool HasAssociation(ExpressionBuilder builder, Expression expression)
+		public static bool HasAssociation(ClauseSqlTranslator builder, Expression expression)
 		{
 			var result = null != expression.Find(builder, static (builder, expr) =>
 			{
@@ -335,7 +335,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				if (placeholder == null)
 				{
-					return ExpressionBuilder.CreateSqlError(this, path);
+					return ClauseSqlTranslator.CreateSqlError(this, path);
 				}
 
 				// forcing making column
@@ -355,7 +355,7 @@ namespace mooSQL.linq.Linq.Builder
 				query = MergeBuilder.ReplaceSourceInQuery(query, clonedTargetTable, targetTable);
 
 				// creating subquery placeholder
-				var resultPlaceholder = ExpressionBuilder.CreatePlaceholder(TargetContextRef.BuildContext, query, placeholder.Path);
+				var resultPlaceholder = ClauseSqlTranslator.CreatePlaceholder(TargetContextRef.BuildContext, query, placeholder.Path);
 
 				var result = sqlExpr.Replace(placeholder, resultPlaceholder, ExpressionEqualityComparer.Instance);
 

@@ -11,10 +11,10 @@ namespace mooSQL.linq.Linq.Builder
 		[BuildsMethodCall(nameof(LinqExtensions.UsingTarget))]
 		internal sealed class UsingTarget : MethodCallBuilder
 		{
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsSameGenericMethod(UsingTargetMethodInfo);
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{
 				var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

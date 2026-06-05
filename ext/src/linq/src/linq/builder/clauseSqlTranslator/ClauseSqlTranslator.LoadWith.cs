@@ -6,7 +6,7 @@ namespace mooSQL.linq.Linq.Builder
 	using Common;
 	using mooSQL.linq.Reflection;
 
-	internal partial class ExpressionBuilder
+	internal partial class ClauseSqlTranslator
 	{
 		public List<LoadWithInfo> GetTableLoadWith(ITableContext table)
 		{

@@ -11,15 +11,15 @@ namespace mooSQL.linq.Linq.Builder
 	using static Data.EntityConstructorBase;
     using mooSQL.data;
 
-    internal partial class ExpressionBuilder
+    internal partial class ClauseSqlTranslator
 	{
 		EntityConstructor? _entityConstructor;
 
 		internal class EntityConstructor : EntityConstructorBase
 		{
-			public ExpressionBuilder Builder { get; }
+			public ClauseSqlTranslator Builder { get; }
 
-			public EntityConstructor(ExpressionBuilder builder)
+			public EntityConstructor(ClauseSqlTranslator builder)
 			{
 				Builder = builder;
 			}

@@ -289,7 +289,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 						return Expression.Constant(DBLive, e.Type);
 					}
 
-					if (e == ExpressionBuilder.ParametersParam && _parameterValues != null)
+					if (e == ClauseSqlTranslator.ParametersParam && _parameterValues != null)
 					{
 						return Expression.Constant(_parameterValues, e.Type);
 					}
@@ -420,7 +420,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 					if (unwrapped.NodeType == ExpressionType.ArrayIndex)
 					{
 						var arrayIndex = (BinaryExpression)unwrapped;
-						if (arrayIndex.Left == ExpressionBuilder.ParametersParam && _parameterValues != null)
+						if (arrayIndex.Left == ClauseSqlTranslator.ParametersParam && _parameterValues != null)
 						{
 							var evaluated = EvaluateExpression(node);
 							if (evaluated is IQueryable query)
@@ -460,7 +460,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 
 				if (isList)
 				{
-					var mi = ExpressionBuilder.EnumerableMethods
+					var mi = ClauseSqlTranslator.EnumerableMethods
 						.First(static m => m.Name == "Count" && m.GetParameters().Length == 1)
 						.MakeGenericMethod(node.Expression!.Type.GetItemType()!);
 
@@ -869,7 +869,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 
 			protected override Expression VisitParameter(ParameterExpression node)
 			{
-				if (node == ExpressionBuilder.ParametersParam)
+				if (node == ClauseSqlTranslator.ParametersParam)
 				{
 					CanBeCompiledFlag = false;
 					return node;

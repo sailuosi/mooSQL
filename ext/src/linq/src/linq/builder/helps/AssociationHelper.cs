@@ -21,7 +21,7 @@ namespace mooSQL.linq.Linq.Builder
 		// (ParentType p) => dc.GetTable<ObjectType>().Where(...)
 		// (ParentType p) => dc.GetTable<ObjectType>().Where(...).DefaultIfEmpty
 		public static LambdaExpression CreateAssociationQueryLambda(
-			ExpressionBuilder     builder,
+			ClauseSqlTranslator     builder,
 			DBInstance         DB,
 			AccessorMember        onMember,
 			AssociationDescriptor association,
@@ -55,7 +55,7 @@ namespace mooSQL.linq.Linq.Builder
 
 
                     var optimizationContext = new ExpressionTreeOptimizationContext(dc);
-					associationExpression = (LambdaExpression)ExpressionBuilder.ExposeExpression(associationExpression, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
+					associationExpression = (LambdaExpression)ClauseSqlTranslator.ExposeExpression(associationExpression, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
 					return associationExpression;
 				});
 
@@ -127,7 +127,7 @@ namespace mooSQL.linq.Linq.Builder
 						throw new LinqException("Association key '{0}' not found for type '{1}.", childName,
 							objectType);
 
-					var current = ExpressionBuilder.Equal(builder.DBLive,
+					var current = ClauseSqlTranslator.Equal(builder.DBLive,
 						Expression.MakeMemberAccess(currentParentParam, parentMember.MemberInfo),
 						Expression.MakeMemberAccess(childParam, childMember.MemberInfo));
 
@@ -208,7 +208,7 @@ namespace mooSQL.linq.Linq.Builder
 				definedQueryMethod = (LambdaExpression)builder.ParametersContext.RegisterDynamicExpressionAccessor(closureExpr, builder.DBLive,  (dc) =>
 				{
 					var optimizationContext = new ExpressionTreeOptimizationContext(dc);
-					var optimizedExpr       = ExpressionBuilder.ExposeExpression(closureExpr, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
+					var optimizedExpr       = ClauseSqlTranslator.ExposeExpression(closureExpr, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
 					optimizedExpr = optimizedExpr.OptimizeExpression(dc);
 					return optimizedExpr;
 				});
@@ -302,7 +302,7 @@ namespace mooSQL.linq.Linq.Builder
 					//if (inheritanceMapping.Type == parentType)
 					//{
 					//	var objParam = Expression.Parameter(objectType, "o");
-					//	var filterLambda = Expression.Lambda(ExpressionBuilder.Equal(builder.MappingSchema,
+					//	var filterLambda = Expression.Lambda(ClauseSqlTranslator.Equal(builder.MappingSchema,
 					//		Expression.MakeMemberAccess(definedQueryMethod.Parameters[0], inheritanceMapping.Discriminator.MemberInfo),
 					//		Expression.Constant(inheritanceMapping.Code)), objParam);
 
@@ -339,7 +339,7 @@ namespace mooSQL.linq.Linq.Builder
 			return definedQueryMethod;
 		}
 
-		public static Expression BuildAssociationQuery(ExpressionBuilder builder, ContextRefExpression tableContext,
+		public static Expression BuildAssociationQuery(ClauseSqlTranslator builder, ContextRefExpression tableContext,
 			AccessorMember onMember, AssociationDescriptor descriptor, Expression? additionalCondition, bool inline, LoadWithInfo? loadwith, MemberInfo[]? loadWithPath, ref bool? isOptional)
 		{
 			var elementType     = descriptor.GetElementType(builder.DBLive);

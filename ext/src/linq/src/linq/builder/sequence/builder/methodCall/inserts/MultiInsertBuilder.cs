@@ -25,10 +25,10 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region MultiInsertBuilder
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.Method.DeclaringType == typeof(MultiInsertExtensions);
 
-		static readonly Dictionary<MethodInfo, Func<ExpressionBuilder, MethodCallExpression, BuildInfo, IBuildContext>> _methodBuilders = new()
+		static readonly Dictionary<MethodInfo, Func<ClauseSqlTranslator, MethodCallExpression, BuildInfo, IBuildContext>> _methodBuilders = new()
 		{
 			{ Methods.Begin,       BuildMultiInsert },
 			{ Methods.Into,        BuildInto        },
@@ -39,7 +39,7 @@ namespace mooSQL.linq.Linq.Builder
 			{ Methods.InsertFirst, BuildInsertFirst },
 		};
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var genericMethod = methodCall.Method.GetGenericMethodDefinition();
 			return _methodBuilders.TryGetValue(genericMethod, out var build)
@@ -61,7 +61,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		static IBuildContext BuildMultiInsert(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildMultiInsert(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// MultiInsert(IQueryable)
 			//
@@ -74,7 +74,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		static IBuildContext BuildTargetTable(
-			ExpressionBuilder builder,
+			ClauseSqlTranslator builder,
 			BuildInfo         buildInfo,
 			bool              isConditional,
 			Expression        query,
@@ -116,7 +116,7 @@ namespace mooSQL.linq.Linq.Builder
 			return multiInsertContext;
 		}
 
-		static IBuildContext BuildInto(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildInto(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// Into(IQueryable, ITable, Expression setter)
 			return BuildTargetTable(
@@ -129,7 +129,7 @@ namespace mooSQL.linq.Linq.Builder
 				methodCall.Arguments[2].UnwrapLambda());
 		}
 
-		static IBuildContext BuildWhen(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildWhen(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// When(IQueryable, Expression condition, ITable, Expression setter)
 			return BuildTargetTable(
@@ -142,7 +142,7 @@ namespace mooSQL.linq.Linq.Builder
 				methodCall.Arguments[3].UnwrapLambda());
 		}
 
-		static IBuildContext BuildElse(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildElse(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// Else(IQueryable, ITable, Expression setter)
 			return BuildTargetTable(
@@ -155,7 +155,7 @@ namespace mooSQL.linq.Linq.Builder
 				methodCall.Arguments[2].UnwrapLambda());
 		}
 
-		static IBuildContext BuildInsert(ExpressionBuilder builder, BuildInfo buildInfo, MultiInsertType type, Expression query)
+		static IBuildContext BuildInsert(ClauseSqlTranslator builder, BuildInfo buildInfo, MultiInsertType type, Expression query)
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, query));
 			ExtractSequence(sequence, out _, out var multiInsertContext);
@@ -166,7 +166,7 @@ namespace mooSQL.linq.Linq.Builder
 			return multiInsertContext;
 		}
 
-		static IBuildContext BuildInsert(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildInsert(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// Insert(IQueryable)
 			return BuildInsert(
@@ -176,7 +176,7 @@ namespace mooSQL.linq.Linq.Builder
 				methodCall.Arguments[0]);
 		}
 
-		static IBuildContext BuildInsertAll(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildInsertAll(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// InsertAll(IQueryable)
 			return BuildInsert(
@@ -186,7 +186,7 @@ namespace mooSQL.linq.Linq.Builder
 				methodCall.Arguments[0]);
 		}
 
-		static IBuildContext BuildInsertFirst(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static IBuildContext BuildInsertFirst(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			// InsertFirst(IQueryable)
 			return BuildInsert(

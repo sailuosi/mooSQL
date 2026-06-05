@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.Linq;
+using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
 using mooSQL.utils;
 
@@ -14,20 +15,26 @@ namespace mooSQL.linq.translator;
 /// </summary>
 internal sealed class ClauseCompileContext
 {
-    public ClauseCompileContext(ExpressionBuilder builder, BuildInfo rootBuildInfo)
+    public ClauseCompileContext(ClauseSqlTranslator builder, BuildInfo rootBuildInfo)
     {
         Builder = builder;
+        Translator = builder;
         RootBuildInfo = rootBuildInfo;
         NavColumns = new Dictionary<Type, List<EntityColumn>>();
     }
 
-    public ExpressionBuilder Builder { get; }
+    public ClauseSqlTranslator Builder { get; }
+
+    public ClauseSqlTranslator Translator { get; }
 
     public BuildInfo RootBuildInfo { get; private set; }
 
     public BuildSequenceResult? BuildResult { get; set; }
 
-    public IBuildContext? BuildContext => BuildResult?.BuildContext;
+    /// <summary>树上产物（新路径）；与 <see cref="BuildResult"/> 过渡期并存。</summary>
+    public StatementExpression? StatementResult { get; set; }
+
+    public IBuildContext? BuildContext => StatementResult?.BuildContext ?? BuildResult?.BuildContext;
 
     public Dictionary<Type, List<EntityColumn>> NavColumns { get; }
 
@@ -50,17 +57,25 @@ internal sealed class ClauseCompileContext
         list.AddNotRepeat(slave);
     }
 
-    public SentenceBag<T> ToSentenceBag<T>()
+    public SentenceBag<T> ToSentenceBag<T>(Expression? srcExp = null)
     {
         var bag = new SentenceBag<T>
         {
             EntityType = typeof(T),
             buildContext = BuildContext,
             DBLive = Builder.DBLive,
-            srcExp = Builder.Expression
+            srcExp = srcExp ?? Builder.Expression
         };
 
-        if (BuildContext != null)
+        if (StatementResult != null)
+        {
+            bag.add(new SentenceItem
+            {
+                Statement = StatementResult.ToStatement(),
+                ParameterAccessors = Builder.ParametersContext.CurrentSqlParameters
+            });
+        }
+        else if (BuildContext != null)
         {
             bag.add(new SentenceItem
             {

@@ -30,13 +30,13 @@ namespace mooSQL.linq.Linq.Builder
 			Custom
 		}
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsAsyncExtension();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new AggregationBuilder().BuildSequence(builder, buildInfo);
 
 		static Type ExtractTaskType(Type taskType)
@@ -138,7 +138,7 @@ namespace mooSQL.linq.Linq.Builder
 			return aggregationType;
 		}
 
-		public override bool IsAggregationContext(ExpressionBuilder builder, BuildInfo buildInfo)
+		public override bool IsAggregationContext(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> true;
 
 		static string[] AllowedNames = new string[] { nameof(Queryable.Select), nameof(Queryable.Where), nameof(Queryable.Distinct) };
@@ -307,7 +307,7 @@ namespace mooSQL.linq.Linq.Builder
 					return false;
 				}
 
-				var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(convertedExpr);
+				var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(convertedExpr);
 
 				if (placeholders.Count != 1)
 				{
@@ -337,7 +337,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			SqlPlaceholderExpression functionPlaceholder;
 			AggregationContext       context;
@@ -375,7 +375,7 @@ namespace mooSQL.linq.Linq.Builder
 							return BuildSequenceResult.Error(methodCall);
 					}
 
-					functionPlaceholder = ExpressionBuilder.CreatePlaceholder(sequence,
+					functionPlaceholder = ClauseSqlTranslator.CreatePlaceholder(sequence,
 						FunctionWord.CreateCount(returnType, sequence.SelectQuery), buildInfo.Expression,
 						convertType : returnType);
 
@@ -400,7 +400,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					var sql = sqlPlaceholder.Sql;
 
-					functionPlaceholder = ExpressionBuilder.CreatePlaceholder(sequence,
+					functionPlaceholder = ClauseSqlTranslator.CreatePlaceholder(sequence,
 						new FunctionWord(returnType, functionName, true, sql) { CanBeNull = true }, buildInfo.Expression, convertType: returnType);
 				}
 			}
@@ -574,7 +574,7 @@ namespace mooSQL.linq.Linq.Builder
 							if (!SequenceHelper.IsSqlReady(sqlExpr))
 								return BuildSequenceResult.Error(valueExpression);
 
-							var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(sqlExpr);
+							var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(sqlExpr);
 							if (placeholders.Count != 1)
 								return BuildSequenceResult.Error(valueExpression);
 
@@ -597,7 +597,7 @@ namespace mooSQL.linq.Linq.Builder
 				var canBeNull = aggregationType != AggregationType.Count;
 				sql = new FunctionWord(returnType, functionName, true, sql) { CanBeNull = canBeNull };
 
-				functionPlaceholder = ExpressionBuilder.CreatePlaceholder(placeholderSequence, /*context*/sql, buildInfo.Expression, convertType: returnType);
+				functionPlaceholder = ClauseSqlTranslator.CreatePlaceholder(placeholderSequence, /*context*/sql, buildInfo.Expression, convertType: returnType);
 
 				if (!isSimple)
 				{

@@ -15,13 +15,13 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region InsertOrUpdateBuilder
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new InsertOrUpdateBuilder().BuildSequence(builder, buildInfo);
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -113,7 +113,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			public InsertOrUpdateSentence InsertOrUpdateStatement { get; }
 
-			public InsertOrUpdateContext(ExpressionBuilder buider, IBuildContext sequence,
+			public InsertOrUpdateContext(ClauseSqlTranslator buider, IBuildContext sequence,
 				InsertOrUpdateSentence insertOrUpdateStatement) : base(buider, typeof(object), sequence.SelectQuery)
 			{
 				Context                 = sequence;

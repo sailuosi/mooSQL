@@ -40,7 +40,7 @@ namespace mooSQL.linq.Linq.Builder
 		public LoadWithInfo  LoadWithRoot { get; set; } = new();
 		public MemberInfo[]? LoadWithPath { get; set; }
 
-		public CteTableContext(ExpressionBuilder builder, IBuildContext? parent, Type objectType, SelectQueryClause selectQuery, CteContext cteContext, bool isTest)
+		public CteTableContext(ClauseSqlTranslator builder, IBuildContext? parent, Type objectType, SelectQueryClause selectQuery, CteContext cteContext, bool isTest)
 			: this(builder, parent, objectType, selectQuery)
 		{
 			_objectType = objectType;
@@ -53,7 +53,7 @@ namespace mooSQL.linq.Linq.Builder
 				SelectQuery.From.FindTableSrc(CteTable);
 		}
 
-		CteTableContext(ExpressionBuilder builder, IBuildContext? parent, Type objectType, SelectQueryClause selectQuery)
+		CteTableContext(ClauseSqlTranslator builder, IBuildContext? parent, Type objectType, SelectQueryClause selectQuery)
 			: base(builder, objectType, selectQuery)
 		{
 			_objectType = objectType;
@@ -106,7 +106,7 @@ namespace mooSQL.linq.Linq.Builder
 					// replace tracking path back
 					translated = SequenceHelper.CorrectTrackingPath(translated, CteContext, this);
 
-					var placeholders = ExpressionBuilder.CollectPlaceholders(translated);
+					var placeholders = ClauseSqlTranslator.CollectPlaceholders(translated);
 
 					translated = RemapFields(translated, placeholders);
 				}
@@ -142,7 +142,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					CteTable.Add(newField);
 
-					newPlaceholder = ExpressionBuilder.CreatePlaceholder(SelectQuery, newField,
+					newPlaceholder = ClauseSqlTranslator.CreatePlaceholder(SelectQuery, newField,
 						placeholder.TrackingPath,
 						index: placeholder.Index);
 

@@ -18,7 +18,7 @@ namespace mooSQL.linq.Tools
 				GetQueryFindExpose,
 				GetQueryFindFind,
 			GetQueryCreate,    //在Query<T> 中执行
-				Build,			//在ExpressionBuilder下
+				Build,			//在 ClauseSqlTranslator / ClauseCompiler 下
 					BuildSequence,
 						BuildSequenceCanBuild,
 						BuildSequenceBuild,

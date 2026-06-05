@@ -4,27 +4,43 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>TestMooSQL</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageReference Include="NUnit" Version="4.2.2" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.3.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
+    <PackageReference Include="Yitter.IdGenerator" Version="1.0.14" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="NUnit.Framework" />
+    <ProjectReference Include="..\ext\mooSQL.Ext.csproj" />
+    <ProjectReference Include="..\pure\mooSQL.Pure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="src\Basis\SugarEnitiyParser.cs" />
+    <Compile Include="src\TestExt\LinqCompileTests.cs" />
+    <Compile Include="src\TestExt\StatementStructureTests.cs" />
+    <Compile Include="src\TestHelpers\LinqSqliteTestHelper.cs" />
+    <Compile Include="src\TestHelpers\LinqSqliteTestFixture.cs" />
+    <Compile Include="src\TestHelpers\SQLiteTestEntities.cs" />
+    <Compile Include="src\TestHelpers\SQLiteTestFixture.cs" />
+    <Compile Include="src\TestHelpers\TestDatabaseHelper.cs" />
   </ItemGroup>
 
 </Project>

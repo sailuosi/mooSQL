@@ -152,7 +152,7 @@ namespace mooSQL.linq.Linq.Builder
 						return newField;
 					});
 
-					newPlaceholder = ExpressionBuilder.CreatePlaceholder(subQueryContext!.SelectQuery, field,
+					newPlaceholder = ClauseSqlTranslator.CreatePlaceholder(subQueryContext!.SelectQuery, field,
 						updatedPlaceholder.Path, trackingPath: updatedPlaceholder.TrackingPath, index: updatedPlaceholder.Index);
 
 					knownMap[updatedPlaceholder.TrackingPath!] = newPlaceholder;

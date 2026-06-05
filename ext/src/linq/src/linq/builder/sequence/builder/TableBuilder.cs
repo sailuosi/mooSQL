@@ -16,13 +16,13 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsExpression(ExpressionType.Call, CanBuildName = nameof(CanBuildAttributedMethods))]
 	sealed partial class TableBuilder : ISequenceBuilder
 	{
-		public static bool CanBuildKnownMethods(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildKnownMethods(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> true;
 
-		public static bool CanBuildTableMethods(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildTableMethods(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> typeof(ITable<>).IsSameOrParentOf(call.Type);
 
-		public static bool CanBuildAttributedMethods(Expression expr, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildAttributedMethods(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 			=> ((MethodCallExpression)expr).Method.GetTableFunctionAttribute(builder.DBLive) != null;
 
 		enum BuildContextType
@@ -37,7 +37,7 @@ namespace mooSQL.linq.Linq.Builder
 			FromSqlScalarMethod
 		}
 
-		static BuildContextType FindBuildContext(ExpressionBuilder builder, BuildInfo buildInfo, out IBuildContext? parentContext)
+		static BuildContextType FindBuildContext(ClauseSqlTranslator builder, BuildInfo buildInfo, out IBuildContext? parentContext)
 		{
 			parentContext = null;
 
@@ -95,7 +95,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="entityType"></param>
 		/// <param name="tableExpression"></param>
 		/// <returns></returns>
-		static Expression ApplyQueryFilters(ExpressionBuilder builder, DBInstance DB, Type entityType, Expression tableExpression)
+		static Expression ApplyQueryFilters(ClauseSqlTranslator builder, DBInstance DB, Type entityType, Expression tableExpression)
 		{
 			//if (builder.IsFilterDisabled(entityType))
 				return tableExpression;
@@ -120,7 +120,7 @@ namespace mooSQL.linq.Linq.Builder
 			//	filteredExpression = Expression.Call(Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(entityType), tableExpression, ExpressionInstances.EmptyTypes);
 
 			//	filteredExpression = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(entityType), filteredExpression, Expression.Quote(filterLambda));
-			//	filteredExpression = ExpressionBuilder.ExposeExpression(filteredExpression, builder.DataContext, builder.OptimizationContext, builder.ParameterValues, optimizeConditions: true, compactBinary: true);
+			//	filteredExpression = ClauseSqlTranslator.ExposeExpression(filteredExpression, builder.DataContext, builder.OptimizationContext, builder.ParameterValues, optimizeConditions: true, compactBinary: true);
 			//}
 			//else
 			//{
@@ -156,7 +156,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			//		// Optimize conditions and compact binary expressions
 			//		var optimizationContext = new ExpressionTreeOptimizationContext(dc);
-			//		sequenceExpr = ExpressionBuilder.ExposeExpression(sequenceExpr, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
+			//		sequenceExpr = ClauseSqlTranslator.ExposeExpression(sequenceExpr, dc, optimizationContext, null, optimizeConditions : true, compactBinary : true);
 
 			//		return sequenceExpr;
 			//	});
@@ -167,7 +167,7 @@ namespace mooSQL.linq.Linq.Builder
 
 
 
-		BuildSequenceResult BuildTableWithAppliedFilters(ExpressionBuilder builder, BuildInfo buildInfo, DBInstance mappingSchema, Expression tableExpression)
+		BuildSequenceResult BuildTableWithAppliedFilters(ClauseSqlTranslator builder, BuildInfo buildInfo, DBInstance mappingSchema, Expression tableExpression)
 		{
 			var entityType      = tableExpression.Type.GetGenericArguments()[0];
 			var applied         = ApplyQueryFilters(builder, builder.DBLive, entityType, tableExpression);
@@ -182,7 +182,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(tableContext);
 		}
 
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var type = FindBuildContext(builder, buildInfo, out var parentContext);
 
@@ -224,7 +224,7 @@ namespace mooSQL.linq.Linq.Builder
 			throw new InvalidOperationException();
 		}
 
-		public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return true;
 		}

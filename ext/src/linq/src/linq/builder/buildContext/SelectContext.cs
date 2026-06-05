@@ -33,7 +33,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public readonly Dictionary<MemberInfo,Expression> Members = new (new MemberInfoComparer());
 
-		public SelectContext(IBuildContext? parent, ExpressionBuilder builder, IBuildContext? innerContext, Expression body, SelectQueryClause selectQuery, bool isSubQuery)
+		public SelectContext(IBuildContext? parent, ClauseSqlTranslator builder, IBuildContext? innerContext, Expression body, SelectQueryClause selectQuery, bool isSubQuery)
 			: base(builder, body.Type, selectQuery)
 		{
 			Parent         = parent;
@@ -122,7 +122,7 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					if (flags.IsExpression())
 						return new SqlEagerLoadExpression((ContextRefExpression)path, path, GetEagerLoadExpression(path));
-					return ExpressionBuilder.CreateSqlError(this, path);
+					return ClauseSqlTranslator.CreateSqlError(this, path);
 				}
 				*/
 

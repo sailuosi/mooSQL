@@ -27,7 +27,7 @@ namespace mooSQL.linq.Linq.Builder
 		bool              _disableClosureHandling;
 		Expression?       _root;
 
-		ExpressionBuilder Builder => _context.Builder;
+		ClauseSqlTranslator Builder => _context.Builder;
 
 		DBInstance DBLive => _context.Builder.DBLive;
 

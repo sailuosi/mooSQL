@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,7 +30,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.utils;
     using mooSQL.data.mapping;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
 		#region BuildExpression
 

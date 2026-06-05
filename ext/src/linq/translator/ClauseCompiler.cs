@@ -1,4 +1,5 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.Linq;
 using mooSQL.linq.Linq.Builder;
@@ -10,11 +11,25 @@ namespace mooSQL.linq.translator;
 /// </summary>
 internal static class ClauseCompiler
 {
+    public static SentenceBag<T> Build<T>(
+        bool validateSubqueries,
+        ExpressionTreeOptimizationContext optimizationContext,
+        ParametersContext parametersContext,
+        DBInstance db,
+        Expression expr,
+        ParameterExpression[]? compiledParameters,
+        object?[]? parameterValues)
+    {
+        var translator = new ClauseSqlTranslator(
+            validateSubqueries, optimizationContext, parametersContext, db, expr, compiledParameters, parameterValues);
+
+        return FinalizeBag(Compile<T>(translator, expr), translator);
+    }
+
     public static SentenceBag<T> Compile<T>(
-        ExpressionBuilder builder,
+        ClauseSqlTranslator builder,
         Expression expression)
     {
-        // 根查询使用独立 SelectQuery，避免 QueryPool 回收时 Cleanup 清空 ORDER BY / TAKE 等子句。
         var selectQuery = new SelectQueryClause();
         var buildInfo = new BuildInfo((IBuildContext?)null, expression, selectQuery);
 
@@ -53,5 +68,25 @@ internal static class ClauseCompiler
         }
 
         return bag;
+    }
+
+    static SentenceBag<T> FinalizeBag<T>(SentenceBag<T> res, ClauseSqlTranslator translator)
+    {
+        res.DBLive = translator.DBLive;
+        res.srcExp = translator.Expression;
+
+        if (res.ErrorExpression == null && res.Sentences != null)
+        {
+            foreach (var q in res.Sentences)
+            {
+                if (translator.Tag?.Lines.Count > 0)
+                    (q.Statement.Tag ??= new()).Lines.AddRange(translator.Tag.Lines);
+
+                if (translator.SqlQueryExtensions != null)
+                    (q.Statement.SqlQueryExtensions ??= new()).AddRange(translator.SqlQueryExtensions);
+            }
+        }
+
+        return res;
     }
 }

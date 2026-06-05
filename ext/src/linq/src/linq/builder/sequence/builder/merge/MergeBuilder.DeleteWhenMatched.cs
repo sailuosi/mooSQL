@@ -14,10 +14,10 @@ namespace mooSQL.linq.Linq.Builder
 		[BuildsMethodCall(nameof(LinqExtensions.DeleteWhenMatchedAnd))]
 		internal sealed class DeleteWhenMatched : MethodCallBuilder
 		{
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsSameGenericMethod(DeleteWhenMatchedAndMethodInfo);
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{
 				var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

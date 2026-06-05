@@ -27,7 +27,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public ValuesTableWord Table         { get; }
 
-		public EnumerableContext(ExpressionBuilder builder, BuildInfo buildInfo, SelectQueryClause query, Type elementType)
+		public EnumerableContext(ClauseSqlTranslator builder, BuildInfo buildInfo, SelectQueryClause query, Type elementType)
 			: base(builder, elementType, query)
 		{
 			Parent            = buildInfo.Parent;
@@ -40,7 +40,7 @@ namespace mooSQL.linq.Linq.Builder
 				SelectQuery.From.FindTableSrc(Table);
 		}
 
-		EnumerableContext(ExpressionBuilder builder, DBInstance mappingSchema, Expression expression, SelectQueryClause query, ValuesTableWord table, Type elementType)
+		EnumerableContext(ClauseSqlTranslator builder, DBInstance mappingSchema, Expression expression, SelectQueryClause query, ValuesTableWord table, Type elementType)
 			: base(builder, elementType, query)
 		{
 			Parent = null;
@@ -256,13 +256,13 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			if (path is not MemberExpression member)
-				return ExpressionBuilder.CreateSqlError(this, path);
+				return ClauseSqlTranslator.CreateSqlError(this, path);
 
 			var sql = GetField(member);
 			if (sql == null)
-				return ExpressionBuilder.CreateSqlError(this, path);
+				return ClauseSqlTranslator.CreateSqlError(this, path);
 
-			var placeholder = ExpressionBuilder.CreatePlaceholder(this, sql, path);
+			var placeholder = ClauseSqlTranslator.CreatePlaceholder(this, sql, path);
 
 			return placeholder;
 		}

@@ -74,8 +74,7 @@ internal partial class ClauseMethodVisitor
             new ContextRefExpression(methodCall.Method.GetGenericArguments()[0], sequence),
             ProjectFlags.ExtractProjection);
 
-        Context.BuildResult = BuildSequenceResult.FromContext(
+        return ToStatementCallOr(method,
             new AllAnyBuilder.AllAnyContext(buildInfo.Parent, buildInfo.SelectQuery, methodCall, sequence));
-        return method;
     }
 }

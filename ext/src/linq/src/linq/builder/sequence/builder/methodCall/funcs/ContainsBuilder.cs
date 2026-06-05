@@ -15,7 +15,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("ContainsAsync", CanBuildName = nameof(CanBuildAsyncMethod))]
 	sealed class ContainsBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			return call.IsQueryable() 
 				&& call.Arguments.Count == 2
@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
 				&& !builder.CanBeCompiled(call.Arguments[0], false);
 		}
 
-		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			return call.IsAsyncExtension() 
 				&& call.Arguments.Count == 3
@@ -31,7 +31,7 @@ namespace mooSQL.linq.Linq.Builder
 				&& !builder.CanBeCompiled(call.Arguments[0], false);
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var innerQuery = new SelectQueryClause();
 
@@ -154,7 +154,7 @@ namespace mooSQL.linq.Linq.Builder
 				var contextRef   = new ContextRefExpression(args[0], InnerSequence);
 				var sequenceExpr = Builder.ConvertToSqlExpr(InnerSequence, contextRef, keysFlag);
 
-				var sequencePlaceholders = ExpressionBuilder.CollectPlaceholders(sequenceExpr);
+				var sequencePlaceholders = ClauseSqlTranslator.CollectPlaceholders(sequenceExpr);
 				if (sequencePlaceholders.Count == 0)
 				{
 					//TODO: better error handling
@@ -162,7 +162,7 @@ namespace mooSQL.linq.Linq.Builder
 				}
 
 				var testExpr         = Builder.ConvertToSqlExpr(placeholderContext, expr, keysFlag);
-				var testPlaceholders = ExpressionBuilder.CollectPlaceholders(testExpr);
+				var testPlaceholders = ClauseSqlTranslator.CollectPlaceholders(testExpr);
 
 				IAffirmWord predicate;
 
@@ -194,7 +194,7 @@ namespace mooSQL.linq.Linq.Builder
 						return null;
 					}
 
-					var condition = Expression.Lambda(ExpressionBuilder.Equal(DB, param, expr), param);
+					var condition = Expression.Lambda(ClauseSqlTranslator.Equal(DB, param, expr), param);
 					var sequence = Builder.BuildWhere(Parent, InnerSequence,
 						condition : condition, checkForSubQuery : true, enforceHaving : false, isTest : flags.IsTest());
 
@@ -220,7 +220,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				var subQuerySql = new SearchConditionWord(false, predicate);
 
-				return ExpressionBuilder.CreatePlaceholder(placeholderQuery, subQuerySql, _methodCall, convertType: typeof(bool));
+				return ClauseSqlTranslator.CreatePlaceholder(placeholderQuery, subQuerySql, _methodCall, convertType: typeof(bool));
 			}
 
 		}

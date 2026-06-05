@@ -564,7 +564,7 @@ namespace mooSQL.linq
 					sqlExpression.CanBeNull = _canBeNull.Value;
 
 				// placeholder will be updated later by concrete path
-				return ExpressionBuilder.CreatePlaceholder(query, sqlExpression, expression);
+				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpression, expression);
 			}
 
 			public static ParametersNullabilityType ToParametersNullabilityType(IsNullableType nullableType)

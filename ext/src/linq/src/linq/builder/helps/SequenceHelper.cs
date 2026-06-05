@@ -71,7 +71,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? CorrectTrackingPath(ExpressionBuilder builder, Expression? expression, IBuildContext toContext)
+		public static Expression? CorrectTrackingPath(ClauseSqlTranslator builder, Expression? expression, IBuildContext toContext)
 		{
 			if (expression == null || expression.Find(1, (_, e) => e is SqlPlaceholderExpression) == null)
 				return expression;
@@ -83,7 +83,7 @@ namespace mooSQL.linq.Linq.Builder
 			return transformed;
 		}
 
-		public static Expression CorrectTrackingPath(ExpressionBuilder builder, Expression expression, Expression toPath)
+		public static Expression CorrectTrackingPath(ClauseSqlTranslator builder, Expression expression, Expression toPath)
 		{
 			return CorrectTrackingPath(builder, expression, null, toPath);
 		}
@@ -122,7 +122,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? CorrectTrackingPath(ExpressionBuilder builder, Expression? expression, Expression? except, Expression toPath)
+		public static Expression? CorrectTrackingPath(ClauseSqlTranslator builder, Expression? expression, Expression? except, Expression toPath)
 		{
 			if (expression == null)
 				return null;
@@ -317,7 +317,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? RemapToNewPathSimple(ExpressionBuilder builder, Expression? expression, Expression toPath, ProjectFlags flags)
+		public static Expression? RemapToNewPathSimple(ClauseSqlTranslator builder, Expression? expression, Expression toPath, ProjectFlags flags)
 		{
 			if (expression == null)
 				return null;
@@ -454,7 +454,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? RemapToNewPath(ExpressionBuilder builder, Expression? expression, Expression toPath, ProjectFlags flags)
+		public static Expression? RemapToNewPath(ClauseSqlTranslator builder, Expression? expression, Expression toPath, ProjectFlags flags)
 		{
 			if (expression == null)
 				return null;
@@ -810,7 +810,7 @@ namespace mooSQL.linq.Linq.Builder
 			return newExpression;
 		}
 
-		public static ITableContext? GetTableOrCteContext(ExpressionBuilder builder, Expression pathExpression)
+		public static ITableContext? GetTableOrCteContext(ClauseSqlTranslator builder, Expression pathExpression)
 		{
 			var rootContext = builder.MakeExpression(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
 
@@ -819,7 +819,7 @@ namespace mooSQL.linq.Linq.Builder
 			return tableContext;
 		}
 
-		public static TableBuilder.TableContext? GetTableContext(ExpressionBuilder builder, Expression pathExpression)
+		public static TableBuilder.TableContext? GetTableContext(ClauseSqlTranslator builder, Expression pathExpression)
 		{
 			var rootContext = builder.MakeExpression(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
 

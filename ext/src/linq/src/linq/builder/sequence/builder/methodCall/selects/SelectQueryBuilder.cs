@@ -8,11 +8,11 @@ namespace mooSQL.linq.Linq.Builder
     //[BuildsMethodCall(nameof(DataExtensions.SelectQuery))]
 	sealed class SelectQueryBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> false;
 			//call.IsSameGenericMethod(DataExtensions.SelectQueryMethodInfo);
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence = new SelectContext(
 				buildInfo.Parent,
@@ -33,7 +33,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(subquery);
 		}
 
-		public override bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public override bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return true;
 		}

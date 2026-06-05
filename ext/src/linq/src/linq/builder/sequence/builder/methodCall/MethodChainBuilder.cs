@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsExpression(ExpressionType.Call)]
 	sealed class MethodChainBuilder : MethodCallBuilder
 	{
-		public static bool CanBuild(Expression expr, BuildInfo buildInfo, ExpressionBuilder builder)
+		public static bool CanBuild(Expression expr, BuildInfo buildInfo, ClauseSqlTranslator builder)
 		{
 			var methodCall = (MethodCallExpression)expr;
 
@@ -47,12 +47,12 @@ namespace mooSQL.linq.Linq.Builder
 			return false;
 		}
 
-		public override bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public override bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var functions = Sql.ExtensionAttribute.GetExtensionAttributes(methodCall, builder.DBLive);
 
@@ -151,7 +151,7 @@ namespace mooSQL.linq.Linq.Builder
 			if (!inAggregationContext && buildInfo.IsSubQuery)
 			{
 				var indexed = builder.ToColumns(sequence, placeholder);
-				placeholder = ExpressionBuilder.CreatePlaceholder(buildInfo.Parent, sequence.SelectQuery, methodCall, alias: methodCall.Method.Name);
+				placeholder = ClauseSqlTranslator.CreatePlaceholder(buildInfo.Parent, sequence.SelectQuery, methodCall, alias: methodCall.Method.Name);
 			}
 			
 			context.Placeholder = placeholder;

@@ -18,7 +18,7 @@ namespace mooSQL.linq.Linq.Builder
 		readonly IBuildContext _context;
 		bool _inLambda;
 
-		public ExpressionBuilder Builder => _context.Builder;
+		public ClauseSqlTranslator Builder => _context.Builder;
 
 		public LambdaResolveVisitor(IBuildContext context)
 		{

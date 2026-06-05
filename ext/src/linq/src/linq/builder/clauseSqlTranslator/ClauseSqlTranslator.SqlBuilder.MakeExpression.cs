@@ -17,9 +17,9 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.data.model;
 	using mooSQL.utils;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
     {
-        #region MakeExpression (from linq2db ExpressionBuilder.SqlBuilder.cs)
+        #region MakeExpression (from linq2db ClauseSqlTranslator.SqlBuilder.cs)
 		public Expression MakeExpression(IBuildContext? forContext, Expression path, ProjectFlags flags)
 		{
 			var currentContext = forContext;

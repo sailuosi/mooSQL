@@ -11,15 +11,15 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsExpression(ExpressionType.Lambda)]
 	sealed class ScalarSelectBuilder : ISequenceBuilder
 	{
-		public static bool CanBuild(Expression expr, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuild(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 			=> ((LambdaExpression)expr).Parameters.Count == 0;
 
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return BuildSequenceResult.FromContext(new ScalarSelectContext(builder, buildInfo.Expression.UnwrapLambda().Body, buildInfo.SelectQuery));
 		}
 
-		public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> true;
 
 		[DebuggerDisplay("{BuildContextDebuggingHelper.GetContextInfo(this)}")]
@@ -29,7 +29,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			public Expression Body { get; }
 
-			public ScalarSelectContext(ExpressionBuilder builder, Expression body, SelectQueryClause selectQuery) : base(builder, body.Type, selectQuery)
+			public ScalarSelectContext(ClauseSqlTranslator builder, Expression body, SelectQueryClause selectQuery) : base(builder, body.Type, selectQuery)
 			{
 				Body = body;
 			}

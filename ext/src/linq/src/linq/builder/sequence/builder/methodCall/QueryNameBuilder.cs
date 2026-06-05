@@ -11,10 +11,10 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsMethodCall(nameof(LinqExtensions.QueryName))]
 	sealed class QueryNameBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence    = builder.BuildSequence(new(buildInfo, methodCall.Arguments[0]));
 

@@ -23,14 +23,10 @@ internal partial class ClauseMethodVisitor
             return method;
         }
 
-        var sequenceResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-        if (sequenceResult.BuildContext == null)
-        {
-            Context.BuildResult = sequenceResult;
+        var sequence = ResolveSourceContext(methodCall, buildInfo);
+        if (sequence == null)
             return method;
-        }
 
-        var sequence = sequenceResult.BuildContext;
         var condition = methodCall.Arguments[1].UnwrapLambda();
 
         if (sequence.SelectQuery.Select.IsDistinct
@@ -40,7 +36,7 @@ internal partial class ClauseMethodVisitor
             sequence = new SubQueryContext(sequence);
         }
 
-        var result = Context.Builder.BuildWhere(
+        var result = Context.Translator.BuildWhere(
             buildInfo.Parent, sequence, condition: condition,
             checkForSubQuery: !isHaving, enforceHaving: isHaving, isTest: buildInfo.IsTest);
 
@@ -51,7 +47,6 @@ internal partial class ClauseMethodVisitor
         }
 
         result.SetAlias(condition.Parameters[0].Name);
-        Context.BuildResult = BuildSequenceResult.FromContext(result);
-        return method;
+        return ToStatementCallOr(method, result);
     }
 }

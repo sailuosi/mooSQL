@@ -7,6 +7,7 @@ using mooSQL.linq.DataProvider;
 using mooSQL.linq.Infrastructure;
 
 using mooSQL.linq.Linq.Builder;
+using mooSQL.linq.translator;
 using mooSQL.linq.SqlProvider;
 using mooSQL.linq.SqlQuery;
 using mooSQL.linq.Tools;
@@ -80,7 +81,7 @@ namespace mooSQL.linq.Linq
                 // 在执行之后，应该没有包含IDataContext引用的常量，没有包含ExpressionQueryImpl的常量，带有SqlQueryDependentAttribute的参数将被转换为常量
                 // 没有位于常量中的LambdaExpressions，它们将被扩展并注入到tree中
                 //
-                var exposed = ExpressionBuilder.ExposeExpression(expr, DB, optimizationContext, null,
+                var exposed = ClauseSqlTranslator.ExposeExpression(expr, DB, optimizationContext, null,
                     optimizeConditions: true, compactBinary: false /* binary already compacted by AggregateExpression*/);
 
 
@@ -137,11 +138,11 @@ namespace mooSQL.linq.Linq
 
             try
             {
-                query = new ExpressionBuilder( false, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues).doBuild<T>();
+                query = ClauseCompiler.Build<T>(false, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues);
                 if (query.ErrorExpression != null)
                 {
 
-                    query = new ExpressionBuilder( true, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues).doBuild<T>();
+                    query = ClauseCompiler.Build<T>(true, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues);
                     if (query.ErrorExpression != null)
                         throw new Exception("表达式编译错误！");
                 }

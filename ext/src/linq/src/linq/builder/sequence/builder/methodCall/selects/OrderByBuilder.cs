@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending", "ThenOrBy", "ThenOrByDescending")]
 	sealed class OrderByBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (!call.IsQueryable())
 				return false;
@@ -33,7 +33,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			//排序参数---方法信息
 			var sequenceArgument = methodCall.Arguments[0];
@@ -85,7 +85,7 @@ namespace mooSQL.linq.Linq.Builder
 					return BuildSequenceResult.Error(methodCall);
 				}
 
-				placeholders = ExpressionBuilder.CollectDistinctPlaceholders(sqlExpr);
+				placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(sqlExpr);
 
 				// ThenByExtensions 不创建子查询
 				//

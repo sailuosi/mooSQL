@@ -13,12 +13,12 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("AllAsync", "AnyAsync", CanBuildName = nameof(CanBuildAsyncMethod))]
 	internal sealed class AllAnyBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
-		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsAsyncExtension();
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequenceBuildInfo = new BuildInfo(buildInfo, methodCall.Arguments[0])
 			{
@@ -90,7 +90,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				var predicate = new FuncLike(FunctionWord.CreateExists(Sequence.SelectQuery)).MakeNot(_methodCall.Method.Name.StartsWith("All"));
 				
-				var innerSql = ExpressionBuilder.CreatePlaceholder(Parent?.SelectQuery ?? SelectQuery, new SearchConditionWord(false, predicate), path, convertType: typeof(bool));
+				var innerSql = ClauseSqlTranslator.CreatePlaceholder(Parent?.SelectQuery ?? SelectQuery, new SearchConditionWord(false, predicate), path, convertType: typeof(bool));
 
 				if (flags.IsTest())
 				{

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -26,7 +26,7 @@ public static class LinqStatementCompiler
         ArgumentNullException.ThrowIfNull(expression);
 
         options ??= new StatementCompileOptions();
-        var stages = new List<string> { "Expression.Optimize", "ExpressionBuilder.Build" };
+        var stages = new List<string> { "Expression.Optimize", "ClauseSqlTranslator.Build" };
 
         var elementType = ResolveElementType(expression) ?? typeof(object);
         var compileMethod = typeof(LinqStatementCompiler)

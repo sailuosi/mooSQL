@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -14,7 +14,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsExpression(ExpressionType.Constant)]
 	sealed class EntityBusBuilder : ISequenceBuilder
 	{
-		public static bool CanBuild(Expression expr, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuild(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (expr.NodeType != ExpressionType.Constant)
 				return false;
@@ -27,7 +27,7 @@ namespace mooSQL.linq.Linq.Builder
 			return genericDef == typeof(EntityQueryable<>);
 		}
 
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var entityType = buildInfo.Expression.Type.GetGenericArguments()[0];
 			var tableContext = new TableBuilder.TableContext(builder, buildInfo, entityType);
@@ -35,7 +35,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(tableContext);
 		}
 
-		public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo) => true;
+		public bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo) => true;
 	}
 
 }

@@ -54,7 +54,6 @@ internal partial class ClauseMethodVisitor
             _ = Context.Builder.UpdateNesting(outerSubqueryContext, sqlExpr);
         }
 
-        Context.BuildResult = BuildSequenceResult.FromContext(new DistinctBuilder.DistinctContext(outerSubqueryContext));
-        return method;
+        return ToStatementCallOr(method, new DistinctBuilder.DistinctContext(outerSubqueryContext));
     }
 }

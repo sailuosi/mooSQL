@@ -29,7 +29,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region Builder Methods
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (!call.IsQueryable())
 				return false;
@@ -49,7 +49,7 @@ namespace mooSQL.linq.Linq.Builder
 			return (call.Arguments[call.Arguments.Count - 1].Unwrap().NodeType == ExpressionType.Lambda);
 		}
 
-		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> new GroupByBuilder().BuildSequence(builder, buildInfo);
 
 		internal static IEnumerable<Expression> EnumGroupingSets(Expression expression)
@@ -105,7 +105,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		 */
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			//GroupBy(c => c.ParentID)
 			var sequenceExpr    = methodCall.Arguments[0];
@@ -211,7 +211,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="flags"></param>
 		/// <param name="errorExpression"></param>
 		internal static bool AppendGrouping(IBuildContext sequence, List<SqlPlaceholderExpression> currentPlaceholders,
-			ExpressionBuilder builder, IBuildContext onSequence, Expression path, GroupingType groupingKind,
+			ClauseSqlTranslator builder, IBuildContext onSequence, Expression path, GroupingType groupingKind,
 			ProjectFlags flags, [NotNullWhen(false)] out Expression? errorExpression)
 		{
 			errorExpression = null;
@@ -235,7 +235,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					setExpr = builder.UpdateNesting(sequence, setExpr);
 
-					var placeholders = ExpressionBuilder.CollectPlaceholders(setExpr);
+					var placeholders = ClauseSqlTranslator.CollectPlaceholders(setExpr);
 
 					sequence.SelectQuery.GroupBy.Items.Add(new GroupingSetWord(placeholders.Select(p => p.Sql)));
 				}
@@ -260,9 +260,9 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		internal static void AppendGroupBy(ExpressionBuilder builder, List<SqlPlaceholderExpression> currentPlaceholders, SelectQueryClause query, Expression groupByExpression)
+		internal static void AppendGroupBy(ClauseSqlTranslator builder, List<SqlPlaceholderExpression> currentPlaceholders, SelectQueryClause query, Expression groupByExpression)
 		{
-			var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(groupByExpression);
+			var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(groupByExpression);
 
 			// it is a case whe we do not group elements
 			if (placeholders.Count == 1 && QueryHelper.IsConstantFast(placeholders[0].Sql))
@@ -605,7 +605,7 @@ namespace mooSQL.linq.Linq.Builder
 			static Expression MakeSubQueryExpression(DBInstance mappingSchema, Expression sequence,
 				ParameterExpression                                param,         Expression expr1, Expression expr2)
 			{
-				var filterLambda = Expression.Lambda(ExpressionBuilder.Equal(mappingSchema, expr1, expr2), param);
+				var filterLambda = Expression.Lambda(ClauseSqlTranslator.Equal(mappingSchema, expr1, expr2), param);
 				return TypeHelper.MakeMethodCall(Methods.Enumerable.Where, sequence, filterLambda);
 			}
 

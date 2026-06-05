@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -31,7 +31,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data.mapping;
     using mooSQL.linq.translator;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
         #region Predicate Converter
 

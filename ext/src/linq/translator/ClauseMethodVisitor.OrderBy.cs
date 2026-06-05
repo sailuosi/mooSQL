@@ -1,4 +1,4 @@
-using mooSQL.data.call;
+﻿using mooSQL.data.call;
 using mooSQL.data.model;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
@@ -20,7 +20,6 @@ internal partial class ClauseMethodVisitor
     MethodCall VisitOrderByCore(MethodCall method)
     {
         if (method.callExpression is not MethodCallExpression methodCall)
-            return method;
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
@@ -76,7 +75,7 @@ internal partial class ClauseMethodVisitor
                 return method;
             }
 
-            placeholders = ExpressionBuilder.CollectDistinctPlaceholders(sqlExpr);
+            placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(sqlExpr);
 
             if (wrapped || isContinuousOrder)
                 break;
@@ -108,7 +107,6 @@ internal partial class ClauseMethodVisitor
             sequence.SelectQuery.OrderBy.Expr(placeholder.Sql, methodCall.Method.Name.EndsWith("Descending"), isPositioned);
         }
 
-        Context.BuildResult = BuildSequenceResult.FromContext(sequence);
-        return method;
+        return ToStatementCallOr(method, sequence);
     }
 }

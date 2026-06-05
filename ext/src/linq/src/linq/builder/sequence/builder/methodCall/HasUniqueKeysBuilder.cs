@@ -8,10 +8,10 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("HasUniqueKey")]
 	sealed class HasUniqueKeyBuilder : MethodCallBuilder
 	{
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo buildInfo, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo buildInfo, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			if (buildResult.BuildContext == null)
@@ -24,7 +24,7 @@ namespace mooSQL.linq.Linq.Builder
 			var keyExpr = SequenceHelper.PrepareBody(keySelector, sequence);
 			var keySql  = builder.BuildSqlExpression(sequence, keyExpr, ProjectFlags.SQL);
 
-			var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(keySql);
+			var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(keySql);
 
 			sequence.SelectQuery.UniqueKeys.Add(placeholders.Select(p => p.Sql).ToArray());
 

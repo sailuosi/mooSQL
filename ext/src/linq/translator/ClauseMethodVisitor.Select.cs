@@ -19,18 +19,13 @@ internal partial class ClauseMethodVisitor
             return method;
         }
 
-        var selector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-        var buildResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-
-        if (buildResult.BuildContext == null)
-        {
-            Context.BuildResult = buildResult;
+        var sequence = ResolveSourceContext(methodCall, buildInfo);
+        if (sequence == null)
             return method;
-        }
 
-        var sequence = buildResult.BuildContext;
+        var selector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
 
-        _ = Context.Builder.MakeExpression(sequence, new ContextRefExpression(sequence.ElementType, sequence),
+        _ = Context.Translator.MakeExpression(sequence, new ContextRefExpression(sequence.ElementType, sequence),
             ProjectFlags.ExtractProjection);
 
         sequence.SetAlias(selector.Parameters[0].Name);
@@ -43,7 +38,6 @@ internal partial class ClauseMethodVisitor
 #if DEBUG
         context.Debug_MethodCall = methodCall;
 #endif
-        Context.BuildResult = BuildSequenceResult.FromContext(context);
-        return method;
+        return ToStatementCallOr(method, context);
     }
 }

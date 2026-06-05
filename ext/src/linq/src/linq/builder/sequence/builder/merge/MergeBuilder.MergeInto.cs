@@ -18,10 +18,10 @@ namespace mooSQL.linq.Linq.Builder
 		{
 			static readonly MethodInfo[] _supportedMethods = { MergeIntoMethodInfo1, MergeIntoMethodInfo2 };
 
-			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 				=> call.IsSameGenericMethod(_supportedMethods);
 
-			protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{
 				// MergeInto<TTarget, TSource>(IQueryable<TSource> source, ITable<TTarget> target, string hint)
 				var sourceContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], new SelectQueryClause()));

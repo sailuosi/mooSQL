@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="builder"></param>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 			=> BuildMethodCall(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 		/// <summary>
 		/// 是否顺序
@@ -21,7 +21,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="builder"></param>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
-		public virtual bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public virtual bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var mc = (MethodCallExpression)buildInfo.Expression;
 			return mc.IsQueryable()
@@ -34,7 +34,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="builder"></param>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
-		public virtual bool IsAggregationContext(ExpressionBuilder builder, BuildInfo buildInfo) 
+		public virtual bool IsAggregationContext(ClauseSqlTranslator builder, BuildInfo buildInfo) 
 			=> false;
 		/// <summary>
 		/// 执行构建
@@ -43,6 +43,6 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="methodCall"></param>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
-		protected abstract BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo);
+		protected abstract BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo);
 	}
 }

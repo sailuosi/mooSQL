@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using mooSQL.data.model;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.SqlQuery;
@@ -14,7 +14,7 @@ internal sealed class SelectCounterContext : BuildContextBase
     {
     }
 
-    SelectCounterContext(ExpressionBuilder builder, SelectQueryClause selectQuery)
+    SelectCounterContext(ClauseSqlTranslator builder, SelectQueryClause selectQuery)
         : base(builder, typeof(int), selectQuery)
     {
     }
@@ -22,7 +22,7 @@ internal sealed class SelectCounterContext : BuildContextBase
     public override Expression MakeExpression(Expression path, ProjectFlags flags)
     {
         if (SequenceHelper.IsSameContext(path, this) && flags.IsExpression())
-            return ExpressionBuilder.RowCounterParam;
+            return ClauseSqlTranslator.RowCounterParam;
 
         return path;
     }

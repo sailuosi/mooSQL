@@ -12,7 +12,7 @@ namespace mooSQL.linq.Linq.Builder
 	using SqlQuery;
     using mooSQL.data;
 
-    partial class ExpressionBuilder
+    partial class ClauseSqlTranslator
 	{
 		static ObjectPool<BuildVisitor> _buildVisitorPool = new(() => new BuildVisitor(), v => v.Cleanup(), 100);
 

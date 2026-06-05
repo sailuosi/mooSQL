@@ -1,58 +1,23 @@
-## ExpressionBuilder 构建 SentenceBag\<TResult\> 过程解析
+## ClauseCompiler 构建 SentenceBag\<TResult\> 过程解析
 
-> **Phase 2 更新（2026-06）**  
-> 编译与执行已分离：`ExpressionBuilder` **仅负责** LINQ 表达式 → `SentenceBag`（Statement + 参数 + NavColumns）。  
-> 不再执行 `BuildQuery` / `SetRunQuery` / `BuildMapper`；SQL 优化、翻译、实体物化均在 **`SentenceExecutor`** 完成。  
-> 主入口为 `doBuild<T>()` → `ClauseCompiler.Compile<T>()`。下文 §3–§6 为 Phase 2 描述；带 ~~删除线~~ 或「Phase 1 归档」标记的段落已过时。
+> **Phase 4 更新（2026-06）**  
+> `ExpressionBuilder` 已拆没：SQL 语义引擎为 **`ClauseSqlTranslator`**（`builder/clauseSqlTranslator/`），编译编排为 **`ClauseCompiler`** + 双访问器。  
+> 成功产物经 **`StatementCall` → `StatementExpression`** 在表达式树上回传（对齐 Fast `ExpressionCall`）。  
+> 执行仍在 **`SentenceExecutor`**；不再 `BuildQuery` / `BuildMapper`。
 
-本文解释 `ExpressionBuilder` 在 `QueryMate.CreateQuery<T>` 中**如何把 LINQ 表达式构建为 `SentenceBag<T>`**。建议结合 `EntityVisitCompiler-执行过程解析.md` 与 `ext/src/linq/src/README.md` 一起阅读。
+本文解释 `QueryMate.CreateQuery<T>` → `ClauseCompiler.Build<T>` **如何把 LINQ 表达式构建为 `SentenceBag<T>`**。建议结合 `EntityVisitCompiler-执行过程解析.md` 与 `ext/src/linq/src/README.md` 一起阅读。
 
 ---
 
-### 1. 入口回顾：QueryMate.CreateQuery → ExpressionBuilder.doBuild
+### 1. 入口回顾：QueryMate.CreateQuery → ClauseCompiler.Build
 
-`QueryMate.CreateQuery<T>` 中的核心调用：
+`QueryMate.CreateQuery<T>` 调用 `ClauseCompiler.Build<T>(validateSubqueries, …)`；失败时以 `validateSubqueries: true` 重试一次。
 
-```131:147:ext/src/linq/src/linq/query/Query.until.cs
-internal static SentenceBag<T> CreateQuery<T>(
-    ExpressionTreeOptimizationContext optimizationContext,
-    ParametersContext parametersContext,
-    DBInstance DB,
-    Expression expr,
-    ParameterExpression[]? compiledParameters,
-    object?[]? parameterValues)
-{
-    SentenceBag<T> query =new SentenceBag<T>();
-
-    try
-    {
-        query = new ExpressionBuilder(
-            false, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues
-        ).doBuild<T>();
-        if (query.ErrorExpression != null)
-        {
-            query = new ExpressionBuilder(
-                true, optimizationContext, parametersContext, DB, expr, compiledParameters, parameterValues
-            ).doBuild<T>();
-            if (query.ErrorExpression != null)
-                throw new Exception("表达式编译错误！");
-        }
-    }
-    catch (Exception)
-    {
-        throw;
-    }
-
-    return query;
-}
-```
-
-- **职责**：封装对 `ExpressionBuilder` 的使用，得到最终的 `SentenceBag<T>`。
+- **职责**：创建 `ClauseSqlTranslator` 会话，经双访问器编译为 `SentenceBag<T>`。
 - **关键点**：
-  - `validateSubqueries` 两种模式：
-    - `false`：正常构建。
-    - `true`：如果第一次构建出现 `ErrorExpression`，以“更严格/诊断模式”再构建一次。
-  - 构建的核心逻辑全部在 `ExpressionBuilder.doBuild<T>` 内完成。
+  - `ClauseExpressionVisitor` 识别 `StatementCall` 并折叠为 `StatementExpression`。
+  - `ClauseMethodVisitor` 通过 `ToStatementCallOr` 回传成功子树。
+  - `ClauseSqlTranslator.TryBuildSequence` 为序列构建入口（无 `ExpressionBuilder`）。
 
 ---
 

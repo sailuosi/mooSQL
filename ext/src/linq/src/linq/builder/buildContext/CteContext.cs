@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
 		public SubQueryContext? SubqueryContext      { get; private set; }
 		public CTEClause        CteClause            { get; private set; }
 
-		public CteContext(ExpressionBuilder builder, IBuildContext? cteInnerQueryContext, CTEClause cteClause, Expression cteExpression)
+		public CteContext(ClauseSqlTranslator builder, IBuildContext? cteInnerQueryContext, CTEClause cteClause, Expression cteExpression)
 			: this(builder, cteClause.ObjectType, cteInnerQueryContext?.SelectQuery ?? new SelectQueryClause())
 		{
 			CteInnerQueryContext = cteInnerQueryContext;
@@ -31,7 +31,7 @@ namespace mooSQL.linq.Linq.Builder
 			CteExpression        = cteExpression;
 		}
 
-		CteContext(ExpressionBuilder builder, Type objectType, SelectQueryClause selectQuery)
+		CteContext(ClauseSqlTranslator builder, Type objectType, SelectQueryClause selectQuery)
 			: base(builder, objectType, selectQuery)
 		{
 			CteClause     = default!;
@@ -106,7 +106,7 @@ namespace mooSQL.linq.Linq.Builder
 					// For recursive CTE we cannot calculate nullability correctly, so based on path.Type
 					var field = new FieldWord(new DbDataType(path.Type), TableLikeHelpers.GenerateColumnAlias(path) ?? "field", path.Type.IsReferType());
 
-					newPlaceholder = ExpressionBuilder.CreatePlaceholder((SelectQueryClause?)null, field, path, trackingPath: path);
+					newPlaceholder = ClauseSqlTranslator.CreatePlaceholder((SelectQueryClause?)null, field, path, trackingPath: path);
 					_recursiveMap[path] = newPlaceholder;
 				}
 
@@ -145,7 +145,7 @@ namespace mooSQL.linq.Linq.Builder
 		{
 			correctedPath = SequenceHelper.CorrectTrackingPath(Builder, correctedPath, subqueryPath);
 
-			var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(correctedPath);
+			var placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(correctedPath);
 
 			var remapped = TableLikeHelpers.RemapToFields(SubqueryContext!, null, CteClause.Fields, _knownMap, _recursiveMap, correctedPath,
 				placeholders);

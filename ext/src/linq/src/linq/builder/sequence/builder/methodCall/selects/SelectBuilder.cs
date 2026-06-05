@@ -14,7 +14,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region SelectBuilder
 
-		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (!call.IsQueryable())
 				return false;
@@ -23,13 +23,13 @@ namespace mooSQL.linq.Linq.Builder
 			 return lambda.Parameters.Count is 1 or 2;
 		}
 
-		public override bool IsAggregationContext(ExpressionBuilder builder, BuildInfo buildInfo)
+		public override bool IsAggregationContext(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			// Select is transparent and we can treat it as an aggregation.
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var selector    = (LambdaExpression)methodCall.Arguments[1].Unwrap();
 			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));

@@ -8,10 +8,10 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsAny]
 	sealed class ContextRefBuilder : ISequenceBuilder
 	{
-		public static bool CanBuild(BuildInfo buildInfo, ExpressionBuilder builder)
+		public static bool CanBuild(BuildInfo buildInfo, ClauseSqlTranslator builder)
 			=> buildInfo.Expression is ContextRefExpression contextRef;
 
-		public BuildSequenceResult BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public BuildSequenceResult BuildSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			var contextRef = (ContextRefExpression)buildInfo.Expression;
 
@@ -28,7 +28,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.NotSupported();
 		}
 		
-		public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
+		public bool IsSequence(ClauseSqlTranslator builder, BuildInfo buildInfo)
 		{
 			return true;
 		}

@@ -38,20 +38,20 @@ namespace mooSQL.linq.Linq
 					o.SlidingExpiration = opt.CacheSlidingExpiration;
 
 					var optimizationContext = new ExpressionTreeOptimizationContext(ctx.dataContext);
-					var exposed = ExpressionBuilder.ExposeExpression(key.expression, ctx.dataContext,
+					var exposed = ClauseSqlTranslator.ExposeExpression(key.expression, ctx.dataContext,
 						optimizationContext, ctx.parameterValues, optimizeConditions : false, compactBinary : true);
 
 					//var query             = new Query<T>(ctx.dataContext, exposed);
 					var parametersContext = new ParametersContext(exposed, ctx.parameterValues, optimizationContext, ctx.dataContext);
 
-					//query = new ExpressionBuilder( false, optimizationContext, parametersContext, ctx.dataContext, exposed, ctx.lambda.Parameters.ToArray(), ctx.parameterValues)
+					//query = new ClauseSqlTranslator( false, optimizationContext, parametersContext, ctx.dataContext, exposed, ctx.lambda.Parameters.ToArray(), ctx.parameterValues)
 					//	.Build<T>();
 
 					//if (query.ErrorExpression != null)
 					//{
 					//	query = new Query<T>(ctx.dataContext, exposed);
 
-					//	query = new ExpressionBuilder( true, optimizationContext, parametersContext, ctx.dataContext, exposed, ctx.lambda.Parameters.ToArray(), ctx.parameterValues)
+					//	query = new ClauseSqlTranslator( true, optimizationContext, parametersContext, ctx.dataContext, exposed, ctx.lambda.Parameters.ToArray(), ctx.parameterValues)
 					//		.Build<T>();
 
 					//	if (query.ErrorExpression != null)

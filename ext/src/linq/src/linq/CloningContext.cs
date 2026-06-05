@@ -94,6 +94,11 @@ namespace mooSQL.linq.Linq
 					{
 						return contextRef.WithContext(CloneContext(contextRef.BuildContext));
 					}
+
+					if (e is StatementExpression statement)
+					{
+						return statement.WithBuildContext(CloneContext(statement.BuildContext));
+					}
 				}
 
 				return e;
@@ -132,6 +137,11 @@ namespace mooSQL.linq.Linq
 					if (e is ContextRefExpression contextRef)
 					{
 						return contextRef.WithContext(CloneContext(contextRef.BuildContext));
+					}
+
+					if (e is StatementExpression statement)
+					{
+						return statement.WithBuildContext(CloneContext(statement.BuildContext));
 					}
 				}
 

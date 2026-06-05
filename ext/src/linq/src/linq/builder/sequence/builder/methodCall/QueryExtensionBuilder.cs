@@ -14,10 +14,10 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsExpression(ExpressionType.Call)]
 	sealed class QueryExtensionBuilder : MethodCallBuilder
 	{
-		public static bool CanBuild(Expression expr, BuildInfo info, ExpressionBuilder builder)
+		public static bool CanBuild(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 			=> Sql.QueryExtensionAttribute.GetExtensionAttributes(expr, builder.DBLive).Length > 0;
 
-		protected override BuildSequenceResult BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var methodParams = methodCall.Method.GetParameters();
 			var list         = new List<SqlQueryExtensionData>

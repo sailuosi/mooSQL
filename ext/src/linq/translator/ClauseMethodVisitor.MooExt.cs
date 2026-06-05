@@ -110,8 +110,7 @@ internal partial class ClauseMethodVisitor
             && methodCall.Arguments[1] is ConstantExpression { Value: int top })
         {
             Context.Builder.BuildTake(sequence, new ValueWord(top), null);
-            Context.BuildResult = BuildSequenceResult.FromContext(sequence);
-            return method;
+            return ToStatementCallOr(method, sequence);
         }
 
         if (applySetPage && methodCall.Arguments.Count >= 3
@@ -122,7 +121,7 @@ internal partial class ClauseMethodVisitor
             if (skip > 0)
                 Context.Builder.BuildSkip(sequence, new ValueWord(skip));
             Context.Builder.BuildTake(sequence, new ValueWord(pageSize), null);
-            Context.BuildResult = BuildSequenceResult.FromContext(sequence);
+            return ToStatementCallOr(method, sequence);
         }
 
         return method;
@@ -134,8 +133,6 @@ internal partial class ClauseMethodVisitor
         if (Context.BuildResult is not { } br || br.BuildContext is not { } inner)
             return method;
 
-        Context.BuildResult = BuildSequenceResult.FromContext(
-            new SubQueryContext(inner, addToSql));
-        return method;
+        return ToStatementCallOr(method, new SubQueryContext(inner, addToSql));
     }
 }

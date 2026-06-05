@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -10,7 +10,7 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.linq.Expressions;
 	using SqlQuery;
 
-	partial class ExpressionBuilder
+	partial class ClauseSqlTranslator
 	{
 		#region Search Condition Builder
 
