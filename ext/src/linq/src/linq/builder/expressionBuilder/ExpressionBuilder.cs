@@ -33,8 +33,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public bool TryFindBuilder(BuildInfo info, [NotNullWhen(true)] out ISequenceBuilder? builder)
 		{
-			builder = SequenceRootBuilder.TrySequenceRoot(info, this)
-				?? (info.Expression is MethodCallExpression ? SequenceRootBuilder.TryExtensionMethodCall(info, this) : null);
+			builder = ClauseExpressionVisitor.TryResolveBuilder(info, this);
 			return builder != null;
 		}
 

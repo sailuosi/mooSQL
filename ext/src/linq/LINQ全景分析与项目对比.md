@@ -109,7 +109,7 @@ BuildSqlBuilder(bag, db, expression, parameters)
 |------|------|
 | `ClauseExpressionVisitor` + `ClauseMethodVisitor` | Buddy 双访问器，替代 ExpressionBuilder 内硬编码分发 |
 | `ClauseCompiler` | 编译收尾 → `SentenceBag` |
-| `SequenceRootBuilder` | 序列根与非注册 MethodCall 扩展的 Builder 分发 |
+| `ClauseExpressionVisitor.VisitXxx` | 序列根与非注册 MethodCall 扩展的 Builder 分发 |
 | `ClausePredicateVisitor` | Where/Having lambda 内谓词（Like/InList/IsNull 等） |
 | `LinqStatementCompiler` | **公开 API**：只编译不执行，产出 `SqlPlan` |
 | `SentenceExecutor` | Statement → SQL → 执行 |

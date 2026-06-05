@@ -106,10 +106,9 @@ MethodCallExpression
 
 | 组件 | 职责 |
 |------|------|
-| `ClauseExpressionVisitor` | 遍历表达式树；MethodCall → CallUntil → ClauseMethodVisitor；非 Call / 未注册 Call → `SequenceRootBuilder` |
+| `ClauseExpressionVisitor` | 按 `ExpressionType` 分发序列根（`VisitConstant`/`VisitMember`/`VisitLambda`/`VisitExtension` 等）；已注册 MethodCall → `ClauseMethodVisitor`；未注册 Call → 扩展 Builder |
 | `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder（对齐 FastLinq 双访问器） |
 | `ClauseCompileContext` | 编译上下文（ExpressionBuilder + BuildInfo + BuildResult） |
-| `SequenceRootBuilder` | 序列根（EntityQueryable / Enumerable / ScalarSelect）与扩展 MethodCall 分发 |
 | `ClausePredicateVisitor` | Where lambda 谓词（Phase E，逐步替代 MakeExpression 部分逻辑） |
 | `ClauseCompiler` | 编译收尾：收集 Statement、参数、NavColumns → `SentenceBag` |
 
@@ -124,7 +123,7 @@ MethodCall
   ├─ DispatchPassThrough（AsQueryable / Alias 等透传）
   ├─ MooExt（DoUpdate / InjectSQL / SetPage / Sink 等，对标 FastMethodVisitor）
   ├─ Async（*AsyncCall + VisitXxxAsync）
-  └─ 未注册 Call → SequenceRootBuilder.TryExtensionMethodCall
+  └─ 未注册 Call → ClauseExpressionVisitor.VisitMethodCall（扩展 Builder）
 ```
 
 **内联文件：**
@@ -159,7 +158,7 @@ python ext/src/linq/translator/tools/gen_bindings.py
 ExpandToRoot(expression)
   → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy 双工，唯一入口）
   → MethodCall? CallUntil → VisitXxx
-  → 其他节点 / 未注册 Call? SequenceRootBuilder
+  → 其他节点 / 未注册 Call? ClauseExpressionVisitor.VisitXxx
   → 得到 IBuildContext（含 SelectQueryClause）
   → ClauseCompiler 收集 GetResultStatement() → SentenceItem
 ```
@@ -268,7 +267,6 @@ ext/src/linq/
 │   ClauseCompiler.cs        # 编译收尾 → SentenceBag
 │   ClauseExpressionVisitor.cs
 │   ClauseMethodVisitor*.cs  # 方法分发（含内联 + Bindings）
-│   SequenceRootBuilder.cs
 │   ClauseMethodVisitor.MooExt.cs / .Async.cs
 │   ClausePredicateVisitor.cs / ClauseFieldVisitor.cs
 │   ClausePredicateVisitor.cs

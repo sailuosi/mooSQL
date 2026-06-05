@@ -33,15 +33,11 @@ internal partial class ClauseMethodVisitor : MethodVisitor
 
         if (!mc.IsSameGenericMethod(PassThroughMethods))
         {
-            Context.BuildResult = SequenceRootBuilder.Build(Context.CreateBuildInfo(mc), Context.Builder);
+            Buddy?.Visit(mc);
             return method;
         }
 
-        if (Buddy != null)
-            Buddy.Visit(mc.Arguments[0]);
-        else
-            Context.BuildResult = SequenceRootBuilder.Build(
-                Context.CreateBuildInfo(mc.Arguments[0]), Context.Builder);
+        Buddy?.Visit(mc.Arguments[0]);
 
         return method;
     }

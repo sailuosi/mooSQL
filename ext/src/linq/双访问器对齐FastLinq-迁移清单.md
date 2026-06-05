@@ -10,8 +10,8 @@
 TryBuildSequence / ClauseCompiler
   ClauseExpressionVisitor（Buddy）
     VisitMethodCall → CallUntil.CreateCall → ClauseMethodVisitor.VisitXxx
-    VisitConstant / VisitMember / VisitLambda / VisitNewArray → SequenceRootBuilder
-    VisitMethodCall（CreateCall==null）→ SequenceRootBuilder.TryExtensionMethodCall
+    VisitConstant / VisitMember / VisitLambda / VisitNewArray / VisitExtension → 对应 ISequenceBuilder
+    VisitMethodCall（CreateCall==null）→ MethodChain / QueryExtension / Table Builder
   ClauseMethodVisitor
     VisitXxx → Buddy.Visit(子序列) + ISequenceBuilder.Compile / 内联逻辑
   产出：SentenceBag
@@ -63,7 +63,7 @@ Where, Having, Select, OrderBy*, Take, Skip, Join*, GroupBy, GroupJoin, SelectMa
 
 ## 四、ExpressionVisitor 清单
 
-### 4.1 序列根（P1 → `SequenceRootBuilder.cs`）
+### 4.1 序列根（P1 → `ClauseExpressionVisitor.VisitXxx`）
 
 | 节点 | Builder |
 |------|---------|
@@ -72,7 +72,7 @@ Where, Having, Select, OrderBy*, Take, Skip, Join*, GroupBy, GroupJoin, SelectMa
 | Lambda 标量 | ScalarSelectBuilder |
 | ContextRefExpression | ContextRefBuilder |
 
-### 4.2 未注册 MethodCall 扩展（`SequenceRootBuilder.TryExtensionMethodCall`）
+### 4.2 未注册 MethodCall 扩展（`ClauseExpressionVisitor.VisitMethodCall`）
 
 MethodChainBuilder、QueryExtensionBuilder、TableBuilder.CanBuildAttributedMethods
 
