@@ -32,8 +32,8 @@ internal partial class ClauseMethodVisitor
 
     public override MethodCall VisitIncludes(IncludesCall method)
     {
-        VisitChildSequence(method);
-        RegisterIncludesNav(method);
+        var sequence = VisitChildSequence(method);
+        RegisterIncludesNav(method, sequence);
         return method;
     }
 
@@ -55,23 +55,23 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitRise(RiseCall method)
         => VisitSubQueryWrap(method, addToSql: false);
 
-    MethodCall VisitChildSequence(MethodCall method)
+    IBuildContext? VisitChildSequence(MethodCall method)
     {
         if (method.Arguments.Count == 0)
-            return method;
+            return null;
 
         if (Buddy != null)
-            Buddy.Visit(method.Arguments[0]);
-        else
         {
-            var root = Context.CreateBuildInfo(method.callExpression!);
-            Context.BuildResult = Context.Builder.TryBuildSequence(new BuildInfo(root, method.Arguments[0]));
+            Buddy.Visit(method.Arguments[0]);
+            return Context.BuildContext;
         }
 
-        return method;
+        var root = Context.CreateBuildInfo(method.callExpression!);
+        var sequenceResult = Context.Builder.TryBuildSequence(new BuildInfo(root, method.Arguments[0]));
+        return sequenceResult.BuildContext;
     }
 
-    void RegisterIncludesNav(MethodCall method)
+    void RegisterIncludesNav(MethodCall method, IBuildContext? sequence)
     {
         if (method.callExpression is not MethodCallExpression mc || mc.Arguments.Count < 2)
             return;
@@ -83,7 +83,7 @@ internal partial class ClauseMethodVisitor
         if (body is not MemberExpression memberExpr)
             return;
 
-        var entityType = Context.BuildResult?.BuildContext?.ElementType;
+        var entityType = sequence?.ElementType;
         if (entityType == null)
             return;
 
@@ -102,8 +102,8 @@ internal partial class ClauseMethodVisitor
         if (method.callExpression is not MethodCallExpression methodCall)
             return method;
 
-        VisitChildSequence(method);
-        if (Context.BuildResult is not { } br || br.BuildContext is not { } sequence)
+        var sequence = VisitChildSequence(method);
+        if (sequence == null)
             return method;
 
         if (useTop && methodCall.Arguments.Count >= 2
@@ -129,8 +129,8 @@ internal partial class ClauseMethodVisitor
 
     MethodCall VisitSubQueryWrap(MethodCall method, bool addToSql = true)
     {
-        VisitChildSequence(method);
-        if (Context.BuildResult is not { } br || br.BuildContext is not { } inner)
+        var inner = VisitChildSequence(method);
+        if (inner == null)
             return method;
 
         return ToStatementCallOr(method, new SubQueryContext(inner, addToSql));

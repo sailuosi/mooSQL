@@ -74,6 +74,11 @@ namespace mooSQL.linq.Linq.Builder
 			_parametersDuplicateCheck.Add((mainAccessor, substitutedAccessor));
 		}
 
+		internal void RegisterAccessorSubstitute(ParameterAccessor accessor, Func<Expression, DBInstance?, object?[]?, object?> substitute)
+		{
+			accessor.SubstituteValueAccessor = substitute;
+		}
+
 
         public Expression RegisterDynamicExpressionAccessor(Expression forExpression, DBInstance DB, Func< DBInstance, Expression> accessorFunc)
         {

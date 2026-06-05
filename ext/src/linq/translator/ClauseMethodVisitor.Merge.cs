@@ -32,13 +32,9 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!canBuild(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
-        Context.BuildResult = compile(Context.Builder, buildInfo);
-        return method;
+        return ToStatementCallOr(method, compile(Context.Builder, buildInfo).BuildContext);
     }
 
     MethodCall VisitMergeBuilder<TBuilder>(
@@ -51,12 +47,8 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!canBuild(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
-        Context.BuildResult = new TBuilder().BuildSequence(Context.Builder, buildInfo);
-        return method;
+        return ToStatementCallOr(method, new TBuilder().BuildSequence(Context.Builder, buildInfo).BuildContext);
     }
 }

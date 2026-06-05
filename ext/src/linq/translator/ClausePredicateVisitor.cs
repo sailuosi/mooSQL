@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
 using mooSQL.linq;
@@ -109,9 +110,54 @@ internal sealed class ClausePredicateVisitor
         var descriptor = builder.SuggestColumnDescriptor(context, fieldExpr, valueArgs[0], flags);
         var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags) ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
 
+        if (valueArgs[0].Unwrap() is ConstantExpression { Value: string literal })
+            return new Like(field, false, new ValueWord('%' + literal + '%'), null);
+
         var pattern = builder.ConvertToSql(context, valueArgs[0], flags, unwrap: false, columnDescriptor: descriptor);
 
         return new Like(field, false, pattern, null);
+    }
+
+    /// <summary>
+    /// 编译完成后，为 <see cref="WhereFieldLINQExtensions.Like"/> 常量模式注册 <c>%value%</c> 参数替换，
+    /// 避免表达式树扫描将 <c>Ali</c> 与 SQL <c>LIKE</c> 模式绑定不一致。
+    /// </summary>
+    internal static void ApplyLikePatternSubstitutes(ParametersContext parameters, Expression expression)
+    {
+        expression.Transform(
+            parameters,
+            static (ctx, expr) =>
+            {
+                if (expr is not MethodCallExpression mc
+                    || mc.Method.DeclaringType != typeof(WhereFieldLINQExtensions)
+                    || mc.Method.Name != nameof(WhereFieldLINQExtensions.Like))
+                {
+                    return new TransformInfo(expr);
+                }
+
+                var patternArg = mc.Method.IsStatic && mc.Arguments.Count > 1
+                    ? mc.Arguments[1]
+                    : mc.Arguments.Count > 0 ? mc.Arguments[0] : null;
+
+                if (patternArg?.Unwrap() is not ConstantExpression { Value: string s })
+                    return new TransformInfo(expr);
+
+                var wrapped = "%" + s + "%";
+                var substitute = (Func<Expression, DBInstance?, object?[]?, object?>)( (_, _, _) => wrapped);
+                var literal = patternArg!.Unwrap();
+                var equalsContext = ctx.OptimizationContext.GetSimpleEqualsToContext(true);
+
+                if (ctx._parameters != null)
+                {
+                    foreach (var (paramExpr, _, accessor) in ctx._parameters)
+                    {
+                        if (ReferenceEquals(paramExpr, literal) || paramExpr.EqualsTo(literal, equalsContext))
+                            ctx.RegisterAccessorSubstitute(accessor, substitute);
+                    }
+                }
+
+                return new TransformInfo(expr);
+            });
     }
 
     static IAffirmWord? ConvertLikeLeft(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)

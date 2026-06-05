@@ -17,26 +17,17 @@ internal partial class ClauseMethodVisitor
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!ContainsBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder)
             && !ContainsBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
         var innerQuery = new mooSQL.data.model.SelectQueryClause();
         var buildResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], innerQuery));
         if (buildResult.BuildContext == null)
-        {
-            Context.BuildResult = buildResult;
             return method;
-        }
 
         var sequence = new SubQueryContext(buildResult.BuildContext);
         var containsContext = new ContainsBuilder.ContainsContext(buildInfo.Parent, methodCall, buildInfo.SelectQuery, sequence);
         if (containsContext.TryCreatePlaceholder() == null)
-        {
-            Context.BuildResult = BuildSequenceResult.Error(methodCall, ErrorHelper.Error_Correlated_Subqueries);
             return method;
-        }
 
         return ToStatementCallOr(method, containsContext);
     }

@@ -20,10 +20,7 @@ internal partial class ClauseMethodVisitor
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!AllAnyBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder)
             && !AllAnyBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
         var sequenceBuildInfo = new BuildInfo(buildInfo, methodCall.Arguments[0])
         {
@@ -34,10 +31,7 @@ internal partial class ClauseMethodVisitor
 
         var buildResult = Context.Builder.TryBuildSequence(sequenceBuildInfo);
         if (buildResult.BuildContext == null)
-        {
-            Context.BuildResult = buildResult;
             return method;
-        }
 
         var sequence = buildResult.BuildContext;
         var isAsync = methodCall.Method.DeclaringType == typeof(AsyncExtensions);
@@ -61,10 +55,7 @@ internal partial class ClauseMethodVisitor
                 isTest: buildInfo.IsTest);
 
             if (sequence == null)
-            {
-                Context.BuildResult = BuildSequenceResult.Error(methodCall);
                 return method;
-            }
 
             sequence.SetAlias(condition.Parameters[0].Name);
         }

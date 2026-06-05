@@ -55,7 +55,7 @@ SQLBuilder → query<T>() → 实体结果
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Layer 1 — Compile（编译）                                       │
-│  ClauseSqlTranslator.TryBuildSequence                            │
+│  StatementCompileSession.VisitRoot（ClauseCompiler 根入口）        │
 │    → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy）       │
 │    → StatementCall → StatementExpression（树上产物）              │
 │    → IBuildContext / ISequenceBuilder（工具，非编排器）           │
@@ -109,7 +109,8 @@ MethodCallExpression
 |------|------|
 | `ClauseExpressionVisitor` | 按 `ExpressionType` 分发序列根（`VisitConstant`/`VisitMember`/`VisitLambda`/`VisitExtension` 等）；已注册 MethodCall → `ClauseMethodVisitor`；未注册 Call → 扩展 Builder |
 | `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder（对齐 FastLinq 双访问器） |
-| `ClauseCompileContext` | 编译上下文（ClauseSqlTranslator + BuildInfo；`StatementResult` 为树上产物） |
+| `ClauseCompileContext` | 编译上下文（`StatementResult` 为唯一成功槽；`ToSentenceBag(stmt)` 组 Bag） |
+| `StatementCompileSession` | 双访问器装配 + 统一 `VisitRoot`（根编译入口） |
 | `StatementExpression` / `StatementCall` | 编译成功节点 / MethodVisitor 回传载体（对齐 Fast `ExpressionCall`） |
 | `ClauseSqlTranslator` | SQL 语义引擎（MakeExpression / ConvertToSql / BuildWhere 等） |
 | `ClausePredicateVisitor` | Where lambda 谓词（Phase E，逐步替代 MakeExpression 部分逻辑） |
@@ -161,16 +162,16 @@ python ext/src/linq/translator/tools/gen_bindings.py
 - `IBuildContext`：维护 `SelectQueryClause`、投影、`MakeExpression`
 - `ClauseSqlTranslator.MakeExpression` / `ConvertToSql`：表达式 → SQL 片段
 
-`TryBuildSequence` 流程：
+根编译（`ClauseCompiler.Compile`）流程：
 
 ```
-ExpandToRoot(expression)
-  → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy 双工，唯一入口）
-  → MethodCall? CallUntil → VisitXxx
-  → 其他节点 / 未注册 Call? ClauseExpressionVisitor.VisitXxx
-  → 得到 IBuildContext（含 SelectQueryClause）
-  → ClauseCompiler 收集 GetResultStatement() → SentenceItem
+StatementCompileSession.Create(translator, buildInfo)
+  → ExpandToRoot(expression)
+  → VisitRoot(expression)  // 始终经 ClauseExpressionVisitor
+  → StatementExpression → ClauseCompileContext.ToSentenceBag
 ```
+
+`TryBuildSequence`（`[Obsolete]`，嵌套序列专用）：`ResolveSourceContext` 回退、各 `*Builder` 内部子序列解析。
 
 ### 已移除的编译期职责
 
@@ -319,7 +320,7 @@ Expression
 
 ```
 Expression
-  → TryBuildSequence + ClauseCompiler（仅编译 Statement）
+  → StatementCompileSession + ClauseCompiler（仅编译 Statement）
   → SentenceBag
   → SentenceExecutor（Statement → SQLBuilder → query<T>）
   → NavColumnLoader（LoadWith）

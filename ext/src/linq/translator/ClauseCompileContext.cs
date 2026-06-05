@@ -29,12 +29,9 @@ internal sealed class ClauseCompileContext
 
     public BuildInfo RootBuildInfo { get; private set; }
 
-    public BuildSequenceResult? BuildResult { get; set; }
-
-    /// <summary>树上产物（新路径）；与 <see cref="BuildResult"/> 过渡期并存。</summary>
     public StatementExpression? StatementResult { get; set; }
 
-    public IBuildContext? BuildContext => StatementResult?.BuildContext ?? BuildResult?.BuildContext;
+    public IBuildContext? BuildContext => StatementResult?.BuildContext;
 
     public Dictionary<Type, List<EntityColumn>> NavColumns { get; }
 
@@ -57,32 +54,21 @@ internal sealed class ClauseCompileContext
         list.AddNotRepeat(slave);
     }
 
-    public SentenceBag<T> ToSentenceBag<T>(Expression? srcExp = null)
+    public SentenceBag<T> ToSentenceBag<T>(StatementExpression statement, Expression? srcExp = null)
     {
         var bag = new SentenceBag<T>
         {
             EntityType = typeof(T),
-            buildContext = BuildContext,
+            buildContext = statement.BuildContext,
             DBLive = Builder.DBLive,
             srcExp = srcExp ?? Builder.Expression
         };
 
-        if (StatementResult != null)
+        bag.add(new SentenceItem
         {
-            bag.add(new SentenceItem
-            {
-                Statement = StatementResult.ToStatement(),
-                ParameterAccessors = Builder.ParametersContext.CurrentSqlParameters
-            });
-        }
-        else if (BuildContext != null)
-        {
-            bag.add(new SentenceItem
-            {
-                Statement = BuildContext.GetResultStatement(),
-                ParameterAccessors = Builder.ParametersContext.CurrentSqlParameters
-            });
-        }
+            Statement = statement.ToStatement(),
+            ParameterAccessors = Builder.ParametersContext.CurrentSqlParameters
+        });
 
         bag.SetParameterized(Builder.ParametersContext.GetParameterized());
 

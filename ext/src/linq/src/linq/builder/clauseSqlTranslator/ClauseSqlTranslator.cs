@@ -163,7 +163,7 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		Expression ExpandToRoot(Expression expression, BuildInfo buildInfo)
+		internal Expression ExpandToRoot(Expression expression, BuildInfo buildInfo)
 		{
 			var flags = buildInfo.IsAggregation ? ProjectFlags.AggregationRoot : ProjectFlags.Root;
 
@@ -190,71 +190,14 @@ namespace mooSQL.linq.Linq.Builder
 		/// </summary>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
+		[Obsolete("Nested sequence only; use StatementCompileSession for root compile")]
 		public BuildSequenceResult TryBuildSequence(BuildInfo buildInfo)
 		{
 			using var m = ActivityService.Start(ActivityID.BuildSequence);
 
-			var originalExpression = buildInfo.Expression;
-
-			var expanded = ExpandToRoot(buildInfo.Expression, buildInfo);
-
-			if (!ReferenceEquals(expanded, originalExpression))
-				buildInfo = new BuildInfo(buildInfo, expanded);
-
-			var context = new ClauseCompileContext(this, buildInfo);
-			var methodVisitor = new ClauseMethodVisitor { Context = context };
-			var exprVisitor = new ClauseExpressionVisitor(methodVisitor) { Context = context };
-			methodVisitor.Buddy = exprVisitor;
-
-			Expression? resultExpr = null;
-			if (buildInfo.Expression is MethodCallExpression mc && CallUntil.CreateCall(mc) is { } call)
-			{
-				if (call.Accept(methodVisitor) is StatementCall { Value: { } value })
-					resultExpr = value;
-			}
-			else
-			{
-				resultExpr = exprVisitor.Visit(buildInfo.Expression);
-			}
-
-			if (resultExpr is StatementExpression stmt)
-			{
-				context.StatementResult = stmt;
-				var stmtResult = BuildSequenceResult.FromContext(stmt.BuildContext);
-				if (stmtResult.BuildContext != null)
-				{
-#if DEBUG
-					if (!buildInfo.IsTest)
-						QueryHelper.DebugCheckNesting(stmtResult.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
-#endif
-					RegisterSequenceExpression(stmtResult.BuildContext, originalExpression);
-				}
-
-				if (!stmtResult.IsSequence)
-					return BuildSequenceResult.Error(originalExpression);
-
-				return stmtResult;
-			}
-
-			var visitorResult = context.BuildResult;
-			if (visitorResult is { } vr)
-			{
-				if (vr.BuildContext != null)
-				{
-#if DEBUG
-					if (!buildInfo.IsTest)
-						QueryHelper.DebugCheckNesting(vr.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
-#endif
-					RegisterSequenceExpression(vr.BuildContext, originalExpression);
-				}
-
-				if (!vr.IsSequence)
-					return BuildSequenceResult.Error(originalExpression);
-
-				return vr;
-			}
-
-			return BuildSequenceResult.NotSupported();
+			var session = StatementCompileSession.Create(this, buildInfo);
+			var resultExpr = session.VisitRoot(buildInfo.Expression);
+			return session.ToBuildSequenceResult(resultExpr, this);
 		}
 
 		/// <summary>

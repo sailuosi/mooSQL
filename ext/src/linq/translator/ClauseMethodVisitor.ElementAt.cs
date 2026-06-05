@@ -16,12 +16,8 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!ElementAtBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
-        Context.BuildResult = ElementAtBuilder.Compile(Context.Builder, buildInfo);
-        return method;
+        return ToStatementCallOr(method, ElementAtBuilder.Compile(Context.Builder, buildInfo).BuildContext);
     }
 }

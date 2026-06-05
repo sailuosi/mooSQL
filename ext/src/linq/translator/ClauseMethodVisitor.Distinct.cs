@@ -18,17 +18,11 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!DistinctBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
         var buildResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
         if (buildResult.BuildContext == null)
-        {
-            Context.BuildResult = buildResult;
             return method;
-        }
 
         var sequence = buildResult.BuildContext;
         var sql = sequence.SelectQuery;

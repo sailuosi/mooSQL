@@ -164,7 +164,8 @@ namespace mooSQL.linq.Linq
 
             foreach (var p in queryContext.ParameterAccessors)
             {
-                var providerValue = p.ValueAccessor(expression, parametersContext, parameters);
+                var valueAccessor = p.SubstituteValueAccessor ?? p.ValueAccessor;
+                var providerValue = valueAccessor(expression, parametersContext, parameters);
 
                 DbDataType? dbDataType = null;
 

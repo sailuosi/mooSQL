@@ -24,10 +24,7 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!canBuild(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
         var argument = methodCall.Arguments[0];
         if (buildInfo.Parent != null)
@@ -71,10 +68,7 @@ internal partial class ClauseMethodVisitor
                 isTest: buildInfo.IsTest);
 
             if (result == null)
-            {
-                Context.BuildResult = BuildSequenceResult.Error(methodCall);
                 return method;
-            }
 
             result.SetAlias(condition.Parameters[0].Name);
         }

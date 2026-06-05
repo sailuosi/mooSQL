@@ -220,4 +220,23 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains(rows, u => u.Name == "Alice");
         Assert.Contains(rows, u => u.Name == "Bob");
     }
+
+    [Fact]
+    public void EntityVisit_WhereLike_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+
+        var rows = bus.Where(u => u.Name.Like("Ali")).ToList();
+
+        Assert.Single(rows);
+        Assert.Equal("Alice", rows[0].Name);
+
+        var noMatch = bus.Where(u => u.Name.Like("Bob")).ToList();
+        Assert.Single(noMatch);
+        Assert.Equal("Bob", noMatch[0].Name);
+
+        var empty = bus.Where(u => u.Name.Like("Zzz")).ToList();
+        Assert.Empty(empty);
+    }
 }

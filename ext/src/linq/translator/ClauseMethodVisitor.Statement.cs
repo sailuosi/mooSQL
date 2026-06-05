@@ -18,20 +18,17 @@ internal partial class ClauseMethodVisitor
         if (buildContext == null)
             return null;
 
-        Context.BuildResult = BuildSequenceResult.FromContext(buildContext);
+        Context.StatementResult = StatementExpression.FromBuildContext(buildContext, Context);
         return new StatementCall
         {
-            Value = StatementExpression.FromBuildContext(buildContext, Context)
+            Value = Context.StatementResult
         };
     }
 
     protected MethodCall ToStatementCallOr(MethodCall fallback, BuildSequenceResult result)
-    {
-        Context.BuildResult = result;
-        return result.BuildContext is { } ctx
+        => result.BuildContext is { } ctx
             ? ToStatementCall(ctx) ?? fallback
             : fallback;
-    }
 
     protected StatementCall? ToStatementCall(BuildSequenceResult result)
         => result.BuildContext is { } ctx ? ToStatementCall(ctx) : null;
@@ -47,7 +44,6 @@ internal partial class ClauseMethodVisitor
         }
 
         var sequenceResult = Context.Translator.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-        Context.BuildResult = sequenceResult;
         return sequenceResult.BuildContext;
     }
 }

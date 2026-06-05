@@ -133,13 +133,15 @@ namespace mooSQL.linq
         public override Clause VisitAffirmLike(Like clause)
         {
             var field = VisitIExpWord(clause.Expr1).ToString();
-            var value = VisitIExpWord(clause.Expr2).ToString();
+            object? patternValue = clause.Expr2 is ValueWord literal
+                ? literal.Value
+                : VisitIExpWord(clause.Expr2).ToString();
             if (clause.IsNot)
             {
-                builder.where(field, value, " NOT LIKE");
+                builder.where(field, patternValue, " NOT LIKE");
             }
             else {
-                builder.where(field, value, "LIKE");
+                builder.where(field, patternValue, "LIKE");
             }
             return null;
         }

@@ -24,19 +24,12 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!OrderByBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
-        var sequenceResult = Context.Builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-        if (sequenceResult.BuildContext == null)
-        {
-            Context.BuildResult = sequenceResult;
+        var sequence = ResolveSourceContext(methodCall, buildInfo);
+        if (sequence == null)
             return method;
-        }
 
-        var sequence = sequenceResult.BuildContext;
         var wrapped = false;
 
         if (sequence.SelectQuery.Select.HasModifier)
@@ -68,12 +61,7 @@ internal partial class ClauseMethodVisitor
             }
 
             if (!SequenceHelper.IsSqlReady(sqlExpr))
-            {
-                Context.BuildResult = sqlExpr is SqlErrorExpression errorExpr
-                    ? BuildSequenceResult.Error(methodCall, errorExpr.Message)
-                    : BuildSequenceResult.Error(methodCall);
                 return method;
-            }
 
             placeholders = ClauseSqlTranslator.CollectDistinctPlaceholders(sqlExpr);
 

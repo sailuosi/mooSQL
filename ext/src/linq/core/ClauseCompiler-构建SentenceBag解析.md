@@ -17,7 +17,8 @@
 - **关键点**：
   - `ClauseExpressionVisitor` 识别 `StatementCall` 并折叠为 `StatementExpression`。
   - `ClauseMethodVisitor` 通过 `ToStatementCallOr` 回传成功子树。
-  - `ClauseSqlTranslator.TryBuildSequence` 为序列构建入口（无 `ExpressionBuilder`）。
+  - **`StatementCompileSession.VisitRoot`** 为根编译入口；`TryBuildSequence` 仅嵌套/Builder 内部使用。
+  - 成功路径仅经 **`StatementResult` / `StatementCall`**（已删除 `BuildResult` 过渡槽）。
 
 ---
 
@@ -103,7 +104,7 @@ public SentenceBag<T> doBuild<T>()
 
 `doBuild<T>` 不再调用 `BuildQuery` / `SetRunQuery`。编译分两阶段：
 
-1. **ClauseCompiler.Compile** — `TryBuildSequence` → Statement + ParameterAccessors + NavColumns  
+1. **ClauseCompiler.Compile** — `StatementCompileSession.VisitRoot` → `StatementExpression` → `ToSentenceBag` + ParameterAccessors + NavColumns  
 2. **doBuild 收尾** — 附加 Tag / SqlQueryExtensions，写入 `DBLive`、`srcExp`
 
 执行阶段的 `FinalizeBag`、`EntitySelectProjector`、`SqlOptimizer.Finalize` 由 **`SentenceExecutor`** 在首次执行或 `GetSqlText` 时触发。

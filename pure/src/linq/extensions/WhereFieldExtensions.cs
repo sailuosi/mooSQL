@@ -12,7 +12,7 @@ namespace mooSQL.linq
     public static class WhereFieldLINQExtensions
     {
         /// <summary>
-        /// 模糊查询匹配
+        /// 模糊查询匹配（CLR 语义等同 <see cref="string.Contains(string)"/>；SQL 编译时自动在模式两侧添加通配符，生成 <c>LIKE '%value%'</c>）。
         /// </summary>
         /// <param name="src"></param>
         /// <param name="tar"></param>

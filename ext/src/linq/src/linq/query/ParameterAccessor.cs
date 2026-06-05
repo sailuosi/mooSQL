@@ -33,6 +33,8 @@ namespace mooSQL.linq.Linq
 		public readonly Func<object?,object?>?                                        ItemAccessor;
 		public readonly Func<Expression,object?, DBInstance?,object?[]?,DbDataType>  DbDataTypeAccessor;
 		public readonly ParameterWord                                                  SqlParameter;
+		/// <summary>可选替换取值器（如 Like 将 <c>Ali</c> 绑定为 <c>%Ali%</c>）。</summary>
+		public Func<Expression, DBInstance?, object?[]?, object?>?                    SubstituteValueAccessor;
 #if DEBUG
 		public Expression<Func<Expression,DBInstance?,object?[]?,object?>>? AccessorExpr;
 		public Expression<Func<object?,object?>>?                             ItemAccessorExpr;

@@ -18,10 +18,7 @@ internal partial class ClauseMethodVisitor
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
         if (!WhereBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
-        }
 
         var sequence = ResolveSourceContext(methodCall, buildInfo);
         if (sequence == null)
@@ -41,10 +38,7 @@ internal partial class ClauseMethodVisitor
             checkForSubQuery: !isHaving, enforceHaving: isHaving, isTest: buildInfo.IsTest);
 
         if (result == null)
-        {
-            Context.BuildResult = BuildSequenceResult.Error(methodCall);
             return method;
-        }
 
         result.SetAlias(condition.Parameters[0].Name);
         return ToStatementCallOr(method, result);

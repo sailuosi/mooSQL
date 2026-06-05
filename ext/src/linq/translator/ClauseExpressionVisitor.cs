@@ -127,13 +127,8 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
     void ApplyBindings(Expression expression, SequenceRootBinding[] bindings)
     {
         var buildInfo = PrepareBuildInfo(expression);
-        Context.BuildResult = BuildOrNotSupported(expression, buildInfo, Context.Builder, bindings);
-        PublishStatementResult();
-    }
-
-    void PublishStatementResult()
-    {
-        if (Context.BuildResult?.BuildContext is { } ctx)
+        var result = BuildOrNotSupported(expression, buildInfo, Context.Builder, bindings);
+        if (result.BuildContext is { } ctx)
             Context.StatementResult = StatementExpression.FromBuildContext(ctx, Context);
     }
 
