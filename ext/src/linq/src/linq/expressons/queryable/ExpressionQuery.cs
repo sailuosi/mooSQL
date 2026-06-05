@@ -209,7 +209,12 @@ namespace mooSQL.linq.Linq
 
 			if (!dependsOnParameters)
 				Expression = expression;
-			return null;
+
+			using (StartLoadTransaction(query))
+			{
+				return query.Runner.loadResultList(MakeContext(query, expression, cancellationToken))
+					.GetAsyncEnumerator(cancellationToken);
+			}
 		}
 
 		#endregion

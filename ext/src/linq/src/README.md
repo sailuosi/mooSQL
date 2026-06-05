@@ -351,7 +351,7 @@ Expression
 
 ---
 
-### 阶段 2 — 高频 Builder 内联（进行中）
+### 阶段 2 — 高频 Builder 内联（已完成）
 
 | 类别 | 状态 | Visitor 文件 |
 |------|------|--------------|
@@ -374,25 +374,35 @@ Expression
 
 内联后运行 `python ext/src/linq/translator/tools/gen_bindings.py` 同步 `ClauseMethodVisitor.Bindings.cs`。
 
-**接口清理：** `IQueryRunner` 已移除 `Preambles`、`MapperExpression`；`QueryRunner.GetSqlText` 去掉未使用的 `parameters`/`preambles` 参数。
+**接口清理：** `IQueryRunner` 已移除 `Preambles`、`MapperExpression`。
+
+---
+
+### 阶段 3 — 执行层统一（已完成）
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| DML 迁入 `SentenceExecutor` | ✅ | `SentenceExecutor.Dml.cs`：Insert/Update/Delete + InsertOrUpdate 两步策略 |
+| `QueryRunner` 精简 | ✅ | 仅保留 `Cache<T>` / `ClearCaches`；删除 DML 与 `InsertOrReplace` |
+| `GetAsyncEnumerator` | ✅ | 委托 `loadResultList` → `MaterializedResultEnumerable` |
+| `ExecuteObjectAsync` | ✅ | 写操作走 `ExeNonQueryAsync`；查询走 `queryAsync` / `queryUniqueAsync` |
+| `GetSqlText` | ✅ | 支持多语句（InsertOrUpdate 展开后拼接 SQL） |
 
 ---
 
 ## 未来计划
 
-### 短期（阶段 2 收尾）
+### 短期
 
-- [x] 内联 `DefaultIfEmpty`、`OfType`、`ElementAt*` 等次高频 Builder
-- [x] 清理 `IQueryRunner` 接口中 Mapper/Preambles 遗留成员
 - [ ] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`Parameters` 字段与 expression 内嵌参数的一致性）
-- [ ] 补充集成测试：First/Single/Count、Join、LoadWith、Take/Skip 方言差异
+- [ ] 补充集成测试：First/Single/Count、Join、LoadWith、InsertOrUpdate、DML
+- [ ] InsertOrUpdate 方言原生 MERGE/UPSERT 转译（`VisitInsertOrUpdateSentence`）
 
 ### 中期（架构完善）
 
-- [ ] `ExpressionQuery.GetAsyncEnumerator` 当前返回 `null`，需实现真正的异步枚举
-- [ ] `SentenceExecutor.ExecuteObjectAsync` 现为同步包装，可改为真正异步 DB 调用
-- [ ] Take/Skip 在不支持方言上的客户端截断（原 `LimitResultEnumerable` 逻辑）评估是否移入 Execute 层
-- [ ] 编译缓存策略：`QueryRunner.Cache<T>` 与 `ClauseCompiler` 产物对齐，避免缓存含已废弃字段的 bag
+- [ ] 异步流式枚举：`ExecuteAsyncEnumerable` 避免全量 `ToList` 物化
+- [ ] Take/Skip 在不支持方言上的客户端截断评估
+- [ ] 编译缓存策略：`QueryRunner.Cache<T>` 与 `ClauseCompiler` 产物对齐
 - [ ] 完善 `NavColumnLoader`：集合导航、多级 LoadWith、循环引用检测
 
 ### 长期（能力与生态）
