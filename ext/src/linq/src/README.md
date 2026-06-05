@@ -106,10 +106,11 @@ MethodCallExpression
 
 | 组件 | 职责 |
 |------|------|
-| `ClauseExpressionVisitor` | 遍历表达式树；MethodCall 转 Call 节点；非 Call 节点走 `SequenceBuilderResolver` |
-| `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder |
+| `ClauseExpressionVisitor` | 遍历表达式树；MethodCall → CallUntil → ClauseMethodVisitor；非 Call / 未注册 Call → `SequenceRootBuilder` |
+| `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder（对齐 FastLinq 双访问器） |
 | `ClauseCompileContext` | 编译上下文（ExpressionBuilder + BuildInfo + BuildResult） |
-| `SequenceBuilderResolver` | 非 Call 节点（Constant / Member / Lambda 等）的 Builder 查找 |
+| `SequenceRootBuilder` | 序列根（EntityQueryable / Enumerable / ScalarSelect）与扩展 MethodCall 分发 |
+| `ClausePredicateVisitor` | Where lambda 谓词（Phase E，逐步替代 MakeExpression 部分逻辑） |
 | `ClauseCompiler` | 编译收尾：收集 Statement、参数、NavColumns → `SentenceBag` |
 
 ### MethodCall 分发策略
@@ -121,7 +122,9 @@ MethodCall
   ├─ ApplyBuilder<T>（显式绑定 ISequenceBuilder，~120 个方法）
   │     见 ClauseMethodVisitor.Bindings.cs（由 gen_bindings.py 生成）
   ├─ DispatchPassThrough（AsQueryable / Alias 等透传）
-  └─ DispatchLegacy → SequenceBuilderResolver（扩展方法等兜底）
+  ├─ MooExt（DoUpdate / InjectSQL / SetPage / Sink 等，对标 FastMethodVisitor）
+  ├─ Async（*AsyncCall + VisitXxxAsync）
+  └─ 未注册 Call → SequenceRootBuilder.TryExtensionMethodCall
 ```
 
 **内联文件：**
@@ -154,8 +157,9 @@ python ext/src/linq/translator/tools/gen_bindings.py
 
 ```
 ExpandToRoot(expression)
-  → MethodCall? ClauseExpressionVisitor + ClauseMethodVisitor
-  → 其他节点? SequenceBuilderResolver.FindBuilder → BuildSequence
+  → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy 双工，唯一入口）
+  → MethodCall? CallUntil → VisitXxx
+  → 其他节点 / 未注册 Call? SequenceRootBuilder
   → 得到 IBuildContext（含 SelectQueryClause）
   → ClauseCompiler 收集 GetResultStatement() → SentenceItem
 ```
@@ -264,7 +268,9 @@ ext/src/linq/
 │   ClauseCompiler.cs        # 编译收尾 → SentenceBag
 │   ClauseExpressionVisitor.cs
 │   ClauseMethodVisitor*.cs  # 方法分发（含内联 + Bindings）
-│   SequenceBuilderResolver.cs
+│   SequenceRootBuilder.cs
+│   ClauseMethodVisitor.MooExt.cs / .Async.cs / .PredicateExt.cs
+│   ClausePredicateVisitor.cs
 │   SentenceExecutor.cs      # Statement → SQLBuilder → 执行
 │   NavColumnLoader.cs       # LoadWith 二次加载
 │   SqlOptimizerFactory.cs
@@ -550,6 +556,7 @@ Activity 追踪 ID 见 `ActivityID`：`BuildSequence`、`FinalizeQuery`、`Execu
 
 ## 相关文档
 
+- [双访问器对齐 FastLinq 迁移清单](../双访问器对齐FastLinq-迁移清单.md) — 分发层对齐 FastLinq 的 Phase A～F
 - `ext/src/linq/core/ExpressionBuilder-构建SentenceBag解析.md` — 编译过程（Phase 2：`ClauseCompiler`，无 BuildQuery/Mapper）
 - `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` — 执行入口（Phase 2：`SentenceExecutor`）
 - `pure/src/ado/builder/API说明文档.md` — SQLBuilder 链式 API

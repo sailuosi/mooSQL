@@ -1,5 +1,12 @@
-﻿
+﻿# LINQ 模块文档索引
 
+> **全景分析（2026-06）** → [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)  
+> **双访问器对齐 FastLinq（迁移清单）** → [双访问器对齐FastLinq-迁移清单.md](./双访问器对齐FastLinq-迁移清单.md)  
+> **Phase 2 架构详解** → [src/README.md](./src/README.md)
+
+---
+
+## 历史纪要（Phase 1 前）
 
 linq功能点纪要
 

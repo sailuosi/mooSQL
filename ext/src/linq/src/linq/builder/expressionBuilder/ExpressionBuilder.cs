@@ -33,14 +33,15 @@ namespace mooSQL.linq.Linq.Builder
 
 		public bool TryFindBuilder(BuildInfo info, [NotNullWhen(true)] out ISequenceBuilder? builder)
 		{
-			builder = SequenceBuilderResolver.FindBuilder(info, this);
+			builder = SequenceRootBuilder.TrySequenceRoot(info, this)
+				?? (info.Expression is MethodCallExpression ? SequenceRootBuilder.TryExtensionMethodCall(info, this) : null);
 			return builder != null;
 		}
 
 		public ISequenceBuilder FindBuilder(BuildInfo info)
 		{
-			return SequenceBuilderResolver.FindBuilder(info, this) is {} builder
-				? builder 
+			return TryFindBuilder(info, out var builder)
+				? builder
 				: throw new LinqException($"Sequence '{SqlErrorExpression.PrepareExpressionString(info.Expression)}' cannot be converted to SQL.");
 		}
 
@@ -225,53 +226,35 @@ namespace mooSQL.linq.Linq.Builder
 			if (!ReferenceEquals(expanded, originalExpression))
 				buildInfo = new BuildInfo(buildInfo, expanded);
 
-			if (buildInfo.Expression is MethodCallExpression && CallUntil.CreateCall((MethodCallExpression)buildInfo.Expression) is { } call)
-			{
-				var context = new ClauseCompileContext(this, buildInfo);
-				var methodVisitor = new ClauseMethodVisitor { Context = context };
-				var exprVisitor = new ClauseExpressionVisitor(methodVisitor) { Context = context };
-				methodVisitor.Buddy = exprVisitor;
+			var context = new ClauseCompileContext(this, buildInfo);
+			var methodVisitor = new ClauseMethodVisitor { Context = context };
+			var exprVisitor = new ClauseExpressionVisitor(methodVisitor) { Context = context };
+			methodVisitor.Buddy = exprVisitor;
+
+			if (buildInfo.Expression is MethodCallExpression mc && CallUntil.CreateCall(mc) is { } call)
 				call.Accept(methodVisitor);
+			else
+				exprVisitor.Visit(buildInfo.Expression);
 
-				var visitorResult = context.BuildResult;
-				if (visitorResult is { } vr)
-				{
-					if (vr.BuildContext != null)
-					{
-#if DEBUG
-						if (!buildInfo.IsTest)
-							QueryHelper.DebugCheckNesting(vr.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
-#endif
-						RegisterSequenceExpression(vr.BuildContext, originalExpression);
-					}
-
-					if (!vr.IsSequence)
-						return BuildSequenceResult.Error(originalExpression);
-
-					return vr;
-				}
-			}
-
-			if (!TryFindBuilder(buildInfo, out var builder))
-				return BuildSequenceResult.NotSupported();
-
-			using var mb = ActivityService.Start(ActivityID.BuildSequenceBuild);
-
-			var result = builder.BuildSequence(this, buildInfo);
-
-			if (result.BuildContext != null)
+			var visitorResult = context.BuildResult;
+			if (visitorResult is { } vr)
 			{
+				if (vr.BuildContext != null)
+				{
 #if DEBUG
-				if (!buildInfo.IsTest)
-					QueryHelper.DebugCheckNesting(result.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
+					if (!buildInfo.IsTest)
+						QueryHelper.DebugCheckNesting(vr.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
 #endif
-				RegisterSequenceExpression(result.BuildContext, originalExpression);
+					RegisterSequenceExpression(vr.BuildContext, originalExpression);
+				}
+
+				if (!vr.IsSequence)
+					return BuildSequenceResult.Error(originalExpression);
+
+				return vr;
 			}
 
-			if (!result.IsSequence)
-				return BuildSequenceResult.Error(originalExpression);
-
-			return result;
+			return BuildSequenceResult.NotSupported();
 		}
 
 		/// <summary>

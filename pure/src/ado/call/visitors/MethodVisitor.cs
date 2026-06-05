@@ -1000,6 +1000,22 @@ namespace mooSQL.data.call
             return method;
         }
 
+        public virtual MethodCall VisitAllAsync(AllAsyncCall method) => method;
+        public virtual MethodCall VisitAnyAsync(AnyAsyncCall method) => method;
+        public virtual MethodCall VisitCountAsync(CountAsyncCall method) => method;
+        public virtual MethodCall VisitLongCountAsync(LongCountAsyncCall method) => method;
+        public virtual MethodCall VisitSumAsync(SumAsyncCall method) => method;
+        public virtual MethodCall VisitMinAsync(MinAsyncCall method) => method;
+        public virtual MethodCall VisitMaxAsync(MaxAsyncCall method) => method;
+        public virtual MethodCall VisitAverageAsync(AverageAsyncCall method) => method;
+        public virtual MethodCall VisitFirstAsync(FirstAsyncCall method) => method;
+        public virtual MethodCall VisitFirstOrDefaultAsync(FirstOrDefaultAsyncCall method) => method;
+        public virtual MethodCall VisitSingleAsync(SingleAsyncCall method) => method;
+        public virtual MethodCall VisitSingleOrDefaultAsync(SingleOrDefaultAsyncCall method) => method;
+        public virtual MethodCall VisitContainsAsync(ContainsAsyncCall method) => method;
+        public virtual MethodCall VisitElementAtAsync(ElementAtAsyncCall method) => method;
+        public virtual MethodCall VisitElementAtOrDefaultAsync(ElementAtOrDefaultAsyncCall method) => method;
+
         #endregion
 
 

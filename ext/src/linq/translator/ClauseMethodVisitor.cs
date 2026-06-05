@@ -26,45 +26,28 @@ internal partial class ClauseMethodVisitor : MethodVisitor
     public override MethodCall VisitExpression(ExpressionCall method)
         => method;
 
-    protected MethodCall DispatchLegacy(MethodCall method)
-    {
-        if (method.callExpression is not MethodCallExpression mc)
-            return method;
-
-        DispatchViaSequenceBuilder(mc);
-        return method;
-    }
-
     protected MethodCall DispatchPassThrough(MethodCall method)
     {
         if (method.callExpression is not MethodCallExpression mc)
             return method;
 
         if (!mc.IsSameGenericMethod(PassThroughMethods))
-            return DispatchLegacy(method);
+        {
+            Context.BuildResult = SequenceRootBuilder.Build(Context.CreateBuildInfo(mc), Context.Builder);
+            return method;
+        }
 
         if (Buddy != null)
             Buddy.Visit(mc.Arguments[0]);
         else
-            DispatchViaSequenceBuilder(mc);
+            Context.BuildResult = SequenceRootBuilder.Build(
+                Context.CreateBuildInfo(mc.Arguments[0]), Context.Builder);
 
         return method;
     }
 
-    void DispatchViaSequenceBuilder(MethodCallExpression mc)
-    {
-        var buildInfo = Context.CreateBuildInfo(mc);
-        if (SequenceBuilderResolver.FindBuilder(buildInfo, Context.Builder) is not { } sequenceBuilder)
-        {
-            Context.BuildResult = BuildSequenceResult.NotSupported();
-            return;
-        }
-
-        Context.BuildResult = sequenceBuilder.BuildSequence(Context.Builder, buildInfo);
-    }
-
     /// <summary>
-    /// 显式绑定 ISequenceBuilder，替代 MethodCall 分支的 FindBuilderImpl 查找。
+    /// 显式绑定 ISequenceBuilder。
     /// </summary>
     protected MethodCall ApplyBuilder<TBuilder>(
         MethodCall method,
