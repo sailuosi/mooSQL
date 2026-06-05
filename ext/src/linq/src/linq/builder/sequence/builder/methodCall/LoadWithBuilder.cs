@@ -19,6 +19,9 @@ namespace mooSQL.linq.Linq.Builder
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsQueryable();
 
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new LoadWithBuilder().BuildSequence(builder, buildInfo);
+
 		static void CheckFilterFunc(Type expectedType, Type filterType, DBInstance mappingSchema)
 		{
 			var propType = expectedType;

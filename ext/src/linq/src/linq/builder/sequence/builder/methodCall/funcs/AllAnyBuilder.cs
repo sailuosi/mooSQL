@@ -66,7 +66,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(new AllAnyContext(buildInfo.Parent, buildInfo.SelectQuery, methodCall, sequence));
 		}
 
-		sealed class AllAnyContext : SequenceContextBase
+		internal sealed class AllAnyContext : SequenceContextBase
 		{
 			readonly MethodCallExpression _methodCall;
 

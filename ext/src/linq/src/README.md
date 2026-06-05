@@ -351,12 +351,35 @@ Expression
 
 ---
 
+### 阶段 2 — 高频 Builder 内联（进行中）
+
+| 类别 | 状态 | Visitor 文件 |
+|------|------|--------------|
+| Where / Having | ✅ | `ClauseMethodVisitor.Where.cs` |
+| Select | ✅ | `ClauseMethodVisitor.Select.cs` |
+| OrderBy* / ThenOrBy* | ✅ | `ClauseMethodVisitor.OrderBy.cs` |
+| Take / Skip | ✅ | `ClauseMethodVisitor.TakeSkip.cs` |
+| Join* | ✅ | `ClauseMethodVisitor.Join.cs` |
+| Distinct / SelectDistinct | ✅ | `ClauseMethodVisitor.Distinct.cs` |
+| All / Any | ✅ | `ClauseMethodVisitor.AllAny.cs` |
+| Contains | ✅ | `ClauseMethodVisitor.Contains.cs` |
+| GroupBy | ✅ | `ClauseMethodVisitor.GroupBy.cs` |
+| GroupJoin | ✅ | `ClauseMethodVisitor.GroupJoin.cs` |
+| SelectMany | ✅ | `ClauseMethodVisitor.SelectMany.cs` |
+| First / Single* | ✅ | `ClauseMethodVisitor.FirstSingle.cs` |
+| LoadWith* | ✅ | `ClauseMethodVisitor.LoadWith.cs` |
+| Count / Sum / Min / Max / Average | ✅ | `ClauseMethodVisitor.Aggregate.cs` |
+| DML / Merge / SetOp 等 | ⏳ | 仍走 `ApplyBuilder` + Bindings 生成 |
+
+内联后运行 `python ext/src/linq/translator/tools/gen_bindings.py` 同步 `ClauseMethodVisitor.Bindings.cs`。
+
+---
+
 ## 未来计划
 
-### 短期（阶段 2：继续内联）
+### 短期（阶段 2 收尾）
 
-- [ ] 继续内联高频 Builder 到 `ClauseMethodVisitor.*.cs`：`GroupBy`、`Distinct`、`GroupJoin`、`LoadWith`、聚合（Count/Sum/…）
-- [ ] 运行 `gen_bindings.py` 保持 Bindings 与 Resolver 同步
+- [ ] 评估是否内联 `DefaultIfEmpty`、`OfType`、`ElementAt` 等次高频 Builder
 - [ ] 清理 `IQueryRunner` 接口中 Mapper/Preambles 遗留成员
 - [ ] 统一 `GetSqlText` / `TranslateCmds` 参数传递（`Parameters` 字段与 expression 内嵌参数的一致性）
 - [ ] 补充集成测试：First/Single/Count、Join、LoadWith、Take/Skip 方言差异

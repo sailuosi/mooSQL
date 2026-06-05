@@ -57,7 +57,7 @@ namespace mooSQL.linq.Linq.Builder
 			return methodCall.IsQueryable(false) == false;
 		}
 
-		sealed class ContainsContext : BuildContextBase
+		internal sealed class ContainsContext : BuildContextBase
 		{
 			public override Expression    Expression    { get; }
 

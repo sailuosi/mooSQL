@@ -20,7 +20,7 @@ namespace mooSQL.linq.Linq.Builder
 		CanBuildName = nameof(CanBuildAsyncMethod))]
 	sealed class AggregationBuilder : MethodCallBuilder
 	{
-		enum AggregationType
+		internal enum AggregationType
 		{
 			Count,
 			Min,
@@ -35,6 +35,9 @@ namespace mooSQL.linq.Linq.Builder
 
 		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsAsyncExtension();
+
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new AggregationBuilder().BuildSequence(builder, buildInfo);
 
 		static Type ExtractTaskType(Type taskType)
 		{
@@ -608,7 +611,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(context);
 		}
 
-		sealed class AggregationContext : SequenceContextBase
+		internal sealed class AggregationContext : SequenceContextBase
 		{
 			public AggregationContext(
 				IBuildContext?  parent,

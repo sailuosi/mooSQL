@@ -49,7 +49,10 @@ namespace mooSQL.linq.Linq.Builder
 			return (call.Arguments[call.Arguments.Count - 1].Unwrap().NodeType == ExpressionType.Lambda);
 		}
 
-		static IEnumerable<Expression> EnumGroupingSets(Expression expression)
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new GroupByBuilder().BuildSequence(builder, buildInfo);
+
+		internal static IEnumerable<Expression> EnumGroupingSets(Expression expression)
 		{
 			if (expression is NewExpression newExpression)
 			{
@@ -207,7 +210,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="groupingKind"></param>
 		/// <param name="flags"></param>
 		/// <param name="errorExpression"></param>
-		static bool AppendGrouping(IBuildContext sequence, List<SqlPlaceholderExpression> currentPlaceholders,
+		internal static bool AppendGrouping(IBuildContext sequence, List<SqlPlaceholderExpression> currentPlaceholders,
 			ExpressionBuilder builder, IBuildContext onSequence, Expression path, GroupingType groupingKind,
 			ProjectFlags flags, [NotNullWhen(false)] out Expression? errorExpression)
 		{
@@ -257,7 +260,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		static void AppendGroupBy(ExpressionBuilder builder, List<SqlPlaceholderExpression> currentPlaceholders, SelectQueryClause query, Expression groupByExpression)
+		internal static void AppendGroupBy(ExpressionBuilder builder, List<SqlPlaceholderExpression> currentPlaceholders, SelectQueryClause query, Expression groupByExpression)
 		{
 			var placeholders = ExpressionBuilder.CollectDistinctPlaceholders(groupByExpression);
 

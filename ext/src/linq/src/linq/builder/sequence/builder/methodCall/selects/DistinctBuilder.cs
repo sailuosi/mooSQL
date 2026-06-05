@@ -51,7 +51,7 @@ namespace mooSQL.linq.Linq.Builder
 			return BuildSequenceResult.FromContext(new DistinctContext(outerSubqueryContext));
 		}
 
-		class DistinctContext : PassThroughContext
+		internal class DistinctContext : PassThroughContext
 		{
 			public DistinctContext(IBuildContext context) : base(context)
 			{

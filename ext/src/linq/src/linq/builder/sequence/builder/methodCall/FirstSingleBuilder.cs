@@ -23,6 +23,9 @@ namespace mooSQL.linq.Linq.Builder
 		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ExpressionBuilder builder)
 			=> call.IsAsyncExtension() && call.Arguments.Count <= 3;
 
+		internal static BuildSequenceResult Compile(ExpressionBuilder builder, BuildInfo buildInfo)
+			=> new FirstSingleBuilder().BuildSequence(builder, buildInfo);
+
 		public enum MethodKind
 		{
 			First,
