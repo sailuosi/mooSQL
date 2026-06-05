@@ -104,6 +104,21 @@ namespace mooSQL.linq
         {
             return value;
         }
+
+        /// <inheritdoc />
+        public override Clause VisitParameter(ParameterWord field)
+        {
+            if (field.Name != null)
+            {
+                var key = field.Name.TrimStart('@');
+                var para = new Parameter(key, field.Value);
+                para.dbType = field.Type;
+                builder.ps.Add(para);
+            }
+
+            return field;
+        }
+
         /// <summary>
         /// 执行转译
         /// </summary>

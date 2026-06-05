@@ -68,10 +68,6 @@ namespace mooSQL.linq.Linq.Builder
 			return new SelectSentence(SelectQuery);
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			SubQuery.SetRunQuery(query, expr);
-		}
 
 		public override IBuildContext Clone(CloningContext context)
 		{

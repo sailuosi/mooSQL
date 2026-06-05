@@ -41,7 +41,6 @@ namespace mooSQL.linq.Linq.Builder
 		bool          IsOptional { get; }
 		IBuildContext Clone(CloningContext      context);
 
-		void           SetRunQuery<T>(SentenceBag<T>   query,      Expression   expr);
 		IBuildContext? GetContext(Expression     expression, BuildInfo    buildInfo);
 		void           SetAlias(string?          alias);
 		BaseSentence   GetResultStatement();

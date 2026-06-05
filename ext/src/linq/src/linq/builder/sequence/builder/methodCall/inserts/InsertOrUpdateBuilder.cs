@@ -124,13 +124,6 @@ namespace mooSQL.linq.Linq.Builder
 				throw new InvalidOperationException();
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				if (Builder.DBLive.dialect.Option.ProviderFlags.IsInsertOrUpdateSupported)
-					QueryRunner.SetNonQueryQuery(query);
-				else
-					QueryRunner.MakeAlternativeInsertOrUpdate(query);
-			}
 
 			public override BaseSentence GetResultStatement()
 			{

@@ -40,28 +40,6 @@ namespace mooSQL.linq.Linq.Builder
 				return Merge;
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				switch(Kind)
-				{
-					case MergeKind.Merge:
-					case MergeKind.MergeWithOutputInto:
-					case MergeKind.MergeWithOutputIntoSource:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					case MergeKind.MergeWithOutput:
-					case MergeKind.MergeWithOutputSource:
-					{
-						var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-						QueryRunner.SetRunQuery(query, mapper);
-						break;
-					}
-					default:
-						throw new ArgumentOutOfRangeException(Kind.ToString());
-				}
-			}
 
 			public override Expression MakeExpression(Expression path, ProjectFlags flags)
 			{

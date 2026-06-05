@@ -40,8 +40,6 @@ namespace mooSQL.linq.Linq.Builder
 		public virtual  Type       ElementType { get; }
 		public abstract Expression MakeExpression(Expression path, ProjectFlags flags);
 
-		public abstract void SetRunQuery<T>(SentenceBag<T> query, Expression expr);
-
 		public abstract IBuildContext Clone(CloningContext context);
 
 		public abstract BaseSentence GetResultStatement();

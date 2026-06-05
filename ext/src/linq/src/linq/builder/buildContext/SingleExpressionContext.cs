@@ -34,12 +34,6 @@ namespace mooSQL.linq.Linq.Builder
 			return new SingleExpressionContext(Builder, context.CloneElement(SqlExpression as Clause) as IExpWord, context.CloneElement(SelectQuery));
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-			QueryRunner.SetRunQuery(query, mapper);
-		}
 
 		public override BaseSentence GetResultStatement()
 		{

@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.linq
@@ -20,6 +20,16 @@ namespace mooSQL.linq
     {
 
         public ProviderContext providerContext;
+
+        RunnerContext MakeContext(SentenceBag query, Expression expression, CancellationToken cancellationToken = default)
+            => new()
+            {
+                dataContext = providerContext.DbContext,
+                expression = expression,
+                paras = providerContext.Parameters,
+                sentenceBag = query,
+                cancellationToken = cancellationToken
+            };
 
         IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
         {
@@ -56,17 +66,7 @@ namespace mooSQL.linq
 
             using (StartLoadTransaction(query))
             {
-                providerContext.Preambles = query.InitPreambles(providerContext.DbContext, expression, providerContext.Parameters);
-
-                var para = new RunnerContext()
-                {
-                    dataContext = providerContext.DbContext,
-                    expression = expression,
-                    paras = providerContext.Parameters,
-                    premble = providerContext.Preambles
-                };
-
-                return (TResult)query.Runner.loadElement(para)!;
+                return (TResult)query.Runner.loadElement(MakeContext(query, expression))!;
             }
         }
 
@@ -78,16 +78,7 @@ namespace mooSQL.linq
 
             using (StartLoadTransaction(query))
             {
-                providerContext.Preambles = query.InitPreambles(providerContext.DbContext, expression, providerContext.Parameters);
-                var para = new RunnerContext()
-                {
-                    dataContext = providerContext.DbContext,
-                    expression = expression,
-                    paras = providerContext.Parameters,
-                    premble = providerContext.Preambles
-                };
-
-                return query.Runner.loadElement(para);
+                return query.Runner.loadElement(MakeContext(query, expression));
             }
         }
 
@@ -96,13 +87,7 @@ namespace mooSQL.linq
         {
             dependsOnParameters = false;
 
-            //if (cache && providerContext.Info != null)
-            //    return providerContext.Info;
-
             var info = QueryMate.GetQuery<T>(providerContext.DbContext, ref expression, out dependsOnParameters);
-
-            //if (cache && info.IsFastCacheable && !dependsOnParameters)
-            //    providerContext.Info = info;
 
             return info;
         }
@@ -120,80 +105,27 @@ namespace mooSQL.linq
             var res = method.MakeGenericMethod(expression.Type)
                 .Invoke(null, paras);
 
-
-            //if (cache && info.IsFastCacheable && !dependsOnParameters)
-            //    providerContext.Info = info;
-
             return res as SentenceBag;
         }
-
-        private MethodInfo GenericQueryMethod
-            => typeof( QueryMate)
-            .GetMethod("GetQuery")!;
-
 
         async Task<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
         {
             var query = GetQuery<TResult>(ref expression, false, out _);
 
-            //var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-            //await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-
-            providerContext.Preambles = await query.InitPreamblesAsync(providerContext.DbContext, expression, providerContext.Parameters, cancellationToken)
-                .ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-
-            var para = new RunnerContext()
-            {
-                dataContext = providerContext.DbContext,
-                expression = expression,
-                paras = providerContext.Parameters,
-                premble = providerContext.Preambles,
-                cancellationToken = cancellationToken
-            };
-
-            var value = await query.Runner.loadElementAsync(para)
+            var value = await query.Runner.loadElementAsync(MakeContext(query, expression, cancellationToken))
                 .ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
             return (TResult)value!;
         }
 
-        IDisposable? StartLoadTransaction(SentenceBag query)
-        {
-            // Do not start implicit transaction if there is no preambles
-            //
-            if (!query.IsAnyPreambles())
-                return null;
+        IDisposable? StartLoadTransaction(SentenceBag query) => null;
 
-
-            if (providerContext.DbContext is DBInstance ctx)
-                return ctx!.beginTransaction();
-
-            return null;
-        }
 #if NET6_0_OR_GREATER
         async Task<IAsyncEnumerable<TResult>> IQueryProviderAsync.ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken)
         {
             var query = GetQuery<TResult>(ref expression, false, out _);
-
-            //var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-            //await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-
-            providerContext.Preambles = await query.InitPreamblesAsync(providerContext.DbContext, expression, providerContext.Parameters, cancellationToken)
-                .ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-
-            var sql = QueryMate.GetQuery<TResult>(providerContext.DbContext, ref expression, out _);
-            var para = new RunnerContext()
-            {
-                dataContext = providerContext.DbContext,
-                expression = expression,
-                paras = providerContext.Parameters,
-                premble = providerContext.Preambles
-            };
-            return sql.Runner.loadResultList(para);
-
+            return query.Runner.loadResultList(MakeContext(query, expression, cancellationToken));
         }
-#else
-
 #endif
 
     }

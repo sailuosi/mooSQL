@@ -47,9 +47,9 @@ namespace mooSQL.linq.Linq.Builder
 
 			var body = selector.Parameters.Count == 1
 				? SequenceHelper.PrepareBody(selector, sequence)
-				: SequenceHelper.PrepareBody(selector, sequence, new CounterContext(sequence));
+                : SequenceHelper.PrepareBody(selector, sequence, new SelectCounterContext(sequence));
 
-			var context = new SelectContext (buildInfo.Parent, body, sequence, buildInfo.IsSubQuery);
+            var context = new SelectContext (buildInfo.Parent, body, sequence, buildInfo.IsSubQuery);
 #if DEBUG
 			context.Debug_MethodCall = methodCall;
 #endif
@@ -57,49 +57,5 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		#endregion
-
-		class CounterContext : BuildContextBase
-		{
-			public CounterContext(IBuildContext sequence) : this(sequence.Builder, sequence.SelectQuery)
-			{
-			}
-
-			CounterContext(ExpressionBuilder builder, SelectQueryClause selectQuery) : base(builder, typeof(int), selectQuery)
-			{
-
-			}
-
-
-
-			public override Expression MakeExpression(Expression path, ProjectFlags flags)
-			{
-				if (SequenceHelper.IsSameContext(path, this))
-				{
-					if (flags.IsExpression())
-					{
-						return ExpressionBuilder.RowCounterParam;
-					}
-				}
-
-				return path;
-			}
-
-			public override IBuildContext Clone(CloningContext context)
-			{
-				return new CounterContext(Builder, context.CloneElement(SelectQuery));
-			}
-
-			public override BaseSentence GetResultStatement()
-			{
-				return new SelectSentence(SelectQuery);
-			}
-
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-				QueryRunner.SetRunQuery(query, mapper);
-			}
-		}
 	}
 }

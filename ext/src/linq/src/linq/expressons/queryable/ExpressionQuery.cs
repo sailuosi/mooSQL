@@ -14,6 +14,7 @@ namespace mooSQL.linq.Linq
 	using Tools;
 	using Extensions;
     using mooSQL.data;
+    using mooSQL.linq.translator;
 
     public abstract class ExpressionQuery<T> : IExpressionQuery<T>, IAsyncEnumerable<T>
 	{
@@ -34,7 +35,16 @@ namespace mooSQL.linq.Linq
 		public DBInstance DBLive { get; set; }
 		internal SentenceBag<T>? Info;
 		internal object?[]? Parameters;
-		internal object?[]? Preambles;
+
+		RunnerContext MakeContext(SentenceBag query, Expression expression, CancellationToken cancellationToken = default)
+			=> new()
+			{
+				dataContext = DBLive,
+				expression = expression,
+				paras = Parameters,
+				sentenceBag = query,
+				cancellationToken = cancellationToken
+			};
 
 		#endregion
 
@@ -58,7 +68,7 @@ namespace mooSQL.linq.Linq
 				if (!dependsOnParameters)
 					Expression = expression;
 
-				var sqlText    = QueryRunner.GetSqlText(info, DBLive, expression, Parameters, Preambles);
+				var sqlText    = SentenceExecutor.GetSqlText(info, DBLive, expression);
 
 				return sqlText;
 			}
@@ -90,17 +100,7 @@ namespace mooSQL.linq.Linq
 			//var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			//await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
-			Preambles = await query.InitPreamblesAsync(DBLive, expression, Parameters, cancellationToken)
-				.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-            //DataContext, expression, Parameters, Preambles, cancellationToken
-            var value = await query.Runner.loadElementAsync(new RunnerContext { 
-				dataContext = DBLive,
-				expression = expression,
-				paras = Parameters,
-				premble = Preambles,
-                sentenceBag = query,
-                cancellationToken = cancellationToken
-			})
+			var value = await query.Runner.loadElementAsync(MakeContext(query, expression, cancellationToken))
 				.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return (TResult)value!;
@@ -123,17 +123,7 @@ namespace mooSQL.linq.Linq
 			//var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			//await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
-			Preambles = await query.InitPreamblesAsync(DBLive, expression, Parameters, cancellationToken)
-				.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-
-			return QueryMate.GetQuery<TResult>(DBLive, ref expression, out _).Runner.loadResultList(new RunnerContext
-            {
-                dataContext = DBLive,
-                expression = expression,
-                paras = Parameters,
-                premble = Preambles,
-                sentenceBag = query,
-            }); ;
+			return QueryMate.GetQuery<TResult>(DBLive, ref expression, out _).Runner.loadResultList(MakeContext(query, expression, cancellationToken));
 		}
 #endif
 
@@ -150,18 +140,10 @@ namespace mooSQL.linq.Linq
 			var transaction = StartLoadTransaction(query);
 			
 
-			Preambles = await query.InitPreamblesAsync(DBLive, expression, Parameters, cancellationToken)
-				.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-            //DataContext, expression, Parameters, Preambles
+			var context = MakeContext(query, expression, cancellationToken);
 
 #if NET6_0_OR_GREATER
-            var enumerable = (IAsyncEnumerable<T>)query.Runner.loadResultList(new RunnerContext { 
-				dataContext= DBLive,
-				expression=expression,
-				paras= Parameters,
-				premble= Preambles,
-                sentenceBag = query,
-            });
+            var enumerable = (IAsyncEnumerable<T>)query.Runner.loadResultList(context);
 #pragma warning disable CA2007
             await using var enumerator = enumerable.GetAsyncEnumerator(cancellationToken);
 #pragma warning restore CA2007
@@ -171,14 +153,7 @@ namespace mooSQL.linq.Linq
 				action(enumerator.Current);
 			}
 #else
-            var enumerable = query.Runner.loadResultList(new RunnerContext
-            {
-                dataContext = DBLive,
-                expression = expression,
-                paras = Parameters,
-                premble = Preambles,
-                sentenceBag = query,
-            });
+            var enumerable = query.Runner.loadResultList(context);
             using var enumerator = enumerable.GetEnumerator();
 
 
@@ -197,15 +172,11 @@ namespace mooSQL.linq.Linq
 
 			if (!dependsOnParameters)
 				Expression = expression;
+
+			var context = MakeContext(query, expression, cancellationToken);
+
 #if NET6_0_OR_GREATER
-            var enumerable = (IAsyncEnumerable<T>)query.Runner.loadResultList(new RunnerContext
-            {
-                dataContext = DBLive,
-                expression = expression,
-                paras = Parameters,
-                premble = Preambles,
-                sentenceBag = query,
-            });
+            var enumerable = (IAsyncEnumerable<T>)query.Runner.loadResultList(context);
             var enumerator = enumerable.GetAsyncEnumerator(cancellationToken);
 
 			while (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
@@ -214,14 +185,7 @@ namespace mooSQL.linq.Linq
 					break;
 			}
 #else
-            var enumerable = query.Runner.loadResultList(new RunnerContext
-            {
-                dataContext = DBLive,
-                expression = expression,
-                paras = Parameters,
-                premble = Preambles,
-                sentenceBag = query,
-            });
+            var enumerable = query.Runner.loadResultList(context);
             var enumerator = enumerable.GetEnumerator();
 
             while ( enumerator.MoveNext())
@@ -295,21 +259,11 @@ namespace mooSQL.linq.Linq
 
 			using (StartLoadTransaction(query))
 			{
-				Preambles = query.InitPreambles(DBLive, expression, Parameters);
-
-                var res = query.Runner.loadElement(new RunnerContext
-                {
-                    dataContext = DBLive,
-                    expression = expression,
-                    paras = Parameters,
-                    premble = Preambles,
-					sentenceBag=query,
-                });
+                var res = query.Runner.loadElement(MakeContext(query, expression));
 				if (res == null) {
 					return default(TResult);
 				}
                 return (TResult)res;
-                //return (TResult)getElement(DataContext, expression, Parameters, Preambles)!;
 			}
 		}
 
@@ -321,17 +275,7 @@ namespace mooSQL.linq.Linq
 
 			using (StartLoadTransaction(query))
 			{
-				Preambles = query.InitPreambles(DBLive, expression, Parameters);
-
-				var res = query.Runner.loadElement(new RunnerContext
-				{
-					dataContext = DBLive,
-					expression = expression,
-					paras = Parameters,
-                    sentenceBag = query,
-                    premble = Preambles
-				});
-				return res;
+				return query.Runner.loadElement(MakeContext(query, expression));
 			}
 		}
 
@@ -351,15 +295,7 @@ namespace mooSQL.linq.Linq
 
 			using (StartLoadTransaction(query))
 			{
-				Preambles = query.InitPreambles(DBLive, expression, Parameters);
-
-				return query.Runner.loadResultList(new RunnerContext { 
-					dataContext= DBLive,
-					expression = expression,
-					paras = Parameters,
-					premble = Preambles
-				}).GetEnumerator();
-				//	GetResultEnumerable(DataContext, expression, Parameters, Preambles).GetEnumerator();
+				return query.Runner.loadResultList(MakeContext(query, expression)).GetEnumerator();
 			}
 		}
 
@@ -375,15 +311,7 @@ namespace mooSQL.linq.Linq
 
 			using (StartLoadTransaction(query))
 			{
-				Preambles = query.InitPreambles(DBLive, expression, Parameters);
-                return query.Runner.loadResultList(new RunnerContext
-                {
-                    dataContext = DBLive,
-                    expression = expression,
-                    paras = Parameters,
-                    premble = Preambles
-                }).GetEnumerator();
-                //return query.GetResultEnumerable(DataContext, expression, Parameters, Preambles).GetEnumerator();
+                return query.Runner.loadResultList(MakeContext(query, expression)).GetEnumerator();
 			}
 		}
 

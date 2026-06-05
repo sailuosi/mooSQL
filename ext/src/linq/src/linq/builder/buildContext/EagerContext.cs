@@ -26,10 +26,6 @@ namespace mooSQL.linq.Linq.Builder
 			return corrected;
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			Context.SetRunQuery(query, expr);
-		}
 
 		public override IBuildContext Clone(CloningContext context)
 		{

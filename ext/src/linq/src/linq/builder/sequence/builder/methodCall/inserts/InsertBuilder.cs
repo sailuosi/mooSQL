@@ -345,35 +345,6 @@ namespace mooSQL.linq.Linq.Builder
 
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				switch (InsertType)
-				{
-					case InsertTypeEnum.Insert:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					case InsertTypeEnum.InsertWithIdentity:
-					{
-						QueryRunner.SetScalarQuery(query);
-						break;
-					}
-					case InsertTypeEnum.InsertOutput:
-					{
-						var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-						QueryRunner.SetRunQuery(query, mapper);
-						break;
-					}
-					case InsertTypeEnum.InsertOutputInto:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					default:
-						throw new InvalidOperationException($"Unexpected insert type: {InsertType}");
-				}
-			}
 
 			public override BaseSentence GetResultStatement()
 			{

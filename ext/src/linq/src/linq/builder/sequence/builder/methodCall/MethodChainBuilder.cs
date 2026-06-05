@@ -193,12 +193,6 @@ namespace mooSQL.linq.Linq.Builder
 				return 0;
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				var mapper = Builder.BuildMapper<object>(SelectQuery, expr);
-
-				QueryRunner.SetRunQuery(query, mapper);
-			}
 
 			public override Expression MakeExpression(Expression path, ProjectFlags flags)
 			{

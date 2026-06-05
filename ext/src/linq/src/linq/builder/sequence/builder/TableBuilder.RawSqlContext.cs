@@ -34,10 +34,6 @@ namespace mooSQL.linq.Linq.Builder
 				return new SelectSentence(SelectQuery);
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				throw new NotImplementedException();
-			}
 		}
 
 		static BuildSequenceResult BuildRawSqlTable(ExpressionBuilder builder, BuildInfo buildInfo, bool isScalar)

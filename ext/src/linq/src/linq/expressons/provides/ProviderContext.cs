@@ -12,7 +12,6 @@ namespace mooSQL.linq
     {
         public Type entityType;
         public DBInstance DbContext { get; set; } = null!;
-        internal object?[]? Preambles;
 
         internal object?[]? Parameters;
 

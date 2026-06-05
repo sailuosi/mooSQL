@@ -81,7 +81,8 @@ namespace mooSQL.linq.Linq
 				dataContext = db,
 				expression = _expression,
 				paras = parameters,
-				premble = preambles
+				premble = preambles,
+				sentenceBag = query,
 			};
 			return (T)query.Runner.loadElement(para)!;
 		}

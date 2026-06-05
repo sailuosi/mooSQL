@@ -42,10 +42,6 @@ namespace mooSQL.linq.Linq.Builder
 				_truncateTableStatement = truncateTableStatement;
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				QueryRunner.SetNonQueryQuery(query);
-			}
 
 			public override IBuildContext Clone(CloningContext context)
 			{

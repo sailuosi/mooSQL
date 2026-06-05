@@ -317,7 +317,7 @@ namespace mooSQL.linq.Linq
         {
             var parameterValues = new SqlParameterValues();
             var bag = context.sentenceBag;
-            SetParameters(bag, bag.finalExp, bag.DBLive, context.paras, sentence, parameterValues);
+            SetParameters(bag, bag.srcExp ?? context.expression ?? bag.finalExp, bag.DBLive, context.paras, sentence, parameterValues);
             var cmds = GetCommand(context.dataContext, sentence, parameterValues, forGetSqlText);
             return cmds;
         }

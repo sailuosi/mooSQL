@@ -24,6 +24,8 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.utils;
     using mooSQL.data;
     using mooSQL.linq.SqlProvider;
+    using mooSQL.linq.translator;
+    using mooSQL.data.call;
 
     internal sealed partial class ExpressionBuilder : IExpressionEvaluator
 	{
@@ -31,20 +33,16 @@ namespace mooSQL.linq.Linq.Builder
 
 		public bool TryFindBuilder(BuildInfo info, [NotNullWhen(true)] out ISequenceBuilder? builder)
 		{
-			builder = FindBuilderImpl(info, this);
+			builder = SequenceBuilderResolver.FindBuilder(info, this);
 			return builder != null;
 		}
 
 		public ISequenceBuilder FindBuilder(BuildInfo info)
 		{
-			return FindBuilderImpl(info, this) is {} builder
+			return SequenceBuilderResolver.FindBuilder(info, this) is {} builder
 				? builder 
 				: throw new LinqException($"Sequence '{SqlErrorExpression.PrepareExpressionString(info.Expression)}' cannot be converted to SQL.");
 		}
-
-		// 声明一个局部FindBuilderImpl，这样源生成器就不会改变语义
-		// 并且可以使用' RegisterImplementationSourceOutput '，这对VS / IDE来说不那么费力。
-		private static partial ISequenceBuilder? FindBuilderImpl(BuildInfo info, ExpressionBuilder builder);
 
 		#endregion
 
@@ -121,37 +119,25 @@ namespace mooSQL.linq.Linq.Builder
 		#region Builder SQL
 
 
+        public Dictionary<Type, List<EntityColumn>> NavColumns { get; } = new();
+
+        public void RegisterNavColumn(Type entityType, EntityColumn column)
+        {
+            if (!NavColumns.TryGetValue(entityType, out var list))
+            {
+                list = new List<EntityColumn>();
+                NavColumns[entityType] = list;
+            }
+            list.AddNotRepeat(column);
+        }
+
         public SentenceBag<T> doBuild<T>()
         {
-			var res= new SentenceBag<T>();
-			res.EntityType = typeof(T);
-            using var m = ActivityService.Start(ActivityID.Build);
+			var res = ClauseCompiler.Compile<T>(this, Expression);
+			res.DBLive = DBLive;
+			res.srcExp = Expression;
 
-            var sequence = BuildSequence(new BuildInfo((IBuildContext?)null, Expression, new SelectQueryClause()));
-
-            using var mq = ActivityService.Start(ActivityID.BuildQuery);
-            // 读入到结果集
-
-            var statement = sequence.GetResultStatement();
-
-			var sentence = new SentenceItem()
-			{
-				Statement = statement,
-				ParameterAccessors = _parametersContext.CurrentSqlParameters
-			};
-			res.add(sentence);
-
-			// 第2编译阶段
-			// 注意，此处实体类类型暂未传入
- 
-
-            var param = Expression.Parameter(typeof(SentenceBag), "info");
-
-            List<Preamble>? preambles = null;
-            BuildQuery<T>(res, sequence, param, ref preambles, new Expression[] { });
-
-
-            if (res.ErrorExpression == null)
+            if (res.ErrorExpression == null && res.Sentences != null)
             {
                 foreach (var q in res.Sentences)
                 {
@@ -165,62 +151,12 @@ namespace mooSQL.linq.Linq.Builder
                         (q.Statement.SqlQueryExtensions ??= new()).AddRange(SqlQueryExtensions);
                     }
                 }
-
-
-                res.SetPreambles(preambles);
-                res.SetParameterized(_parametersContext.GetParameterized());
-                //res.SetParametersDuplicates(_parametersContext.GetParameterDuplicates());
-                //res.SetDynamicAccessors(_parametersContext.GetDynamicAccessors());
             }
 
             return res;
         }
 
-        bool BuildQuery<T>(
-			SentenceBag<T> query,
-			IBuildContext sequence,
-			ParameterExpression queryParameter,
-			ref List<Preamble>? preambles,
-			Expression[] previousKeys)
-        {
-            var expr = MakeExpression(sequence, new ContextRefExpression(query.EntityType, sequence), ProjectFlags.Expression);
-
-            var finalized = FinalizeProjection( sequence, expr, queryParameter, ref preambles, previousKeys);
-			query.finalExp = expr;
-            var error = SequenceHelper.FindError(finalized);
-            if (error != null)
-            {
-                query.ErrorExpression = error;
-                return false;
-            }
-
-            using (ActivityService.Start(ActivityID.FinalizeQuery))
-            {
-				ISqlOptimizer SqlOptimizer = null;//DataContext.GetSqlOptimizer(DataContext.Options);
-                foreach (var sentence in query.Sentences)
-                {
-					//直接使用上下文的环境参数，不再放入 Query对象
-                    sentence.Statement = SqlOptimizer.Finalize(DBLive , sentence.Statement);
-
-                    if (sentence.Statement.SelectQuery != null)
-                    {
-                        if (!SqlProviderHelper.IsValidQuery(sentence.Statement.SelectQuery, null, null, false, DBLive.dialect.Option.ProviderFlags, out var errorMessage))
-                        {
-                            query.ErrorExpression = new SqlErrorExpression(Expression, errorMessage, Expression.Type);
-                            return false;
-                        }
-                    }
-                }
-
-                query.IsFinalized = true;
-            }
-            // 设置执行动作
-            sequence.SetRunQuery<T>(query, finalized);
-            return true;
-        }
-        /// <summary>
-        /// Used internally to avoid RecursiveCTE build failing
-        /// </summary>
+        /// <summary>Used internally to avoid RecursiveCTE build failing</summary>
         internal bool IsRecursiveBuild { get; set; }
 
 		/// <summary>
@@ -292,6 +228,33 @@ namespace mooSQL.linq.Linq.Builder
 
 			if (!ReferenceEquals(expanded, originalExpression))
 				buildInfo = new BuildInfo(buildInfo, expanded);
+
+			if (buildInfo.Expression is MethodCallExpression && CallUntil.CreateCall((MethodCallExpression)buildInfo.Expression) is { } call)
+			{
+				var context = new ClauseCompileContext(this, buildInfo);
+				var methodVisitor = new ClauseMethodVisitor { Context = context };
+				var exprVisitor = new ClauseExpressionVisitor(methodVisitor) { Context = context };
+				methodVisitor.Buddy = exprVisitor;
+				call.Accept(methodVisitor);
+
+				var visitorResult = context.BuildResult;
+				if (visitorResult is { } vr)
+				{
+					if (vr.BuildContext != null)
+					{
+#if DEBUG
+						if (!buildInfo.IsTest)
+							QueryHelper.DebugCheckNesting(vr.BuildContext.GetResultStatement(), buildInfo.IsSubQuery);
+#endif
+						RegisterSequenceExpression(vr.BuildContext, originalExpression);
+					}
+
+					if (!vr.IsSequence)
+						return BuildSequenceResult.Error(originalExpression);
+
+					return vr;
+				}
+			}
 
 			if (!TryFindBuilder(buildInfo, out var builder))
 				return BuildSequenceResult.NotSupported();

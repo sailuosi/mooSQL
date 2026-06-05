@@ -157,7 +157,30 @@ namespace mooSQL.linq.Linq.Builder
 			var loadWithSequence = sequence as LoadWithContext ?? new LoadWithContext(sequence, table);
 			loadWithSequence.LastLoadWithInfo = lastLoadWith;
 
+			RegisterLoadWithNavColumns(builder, table, lastLoadWith);
+
 			return BuildSequenceResult.FromContext(loadWithSequence);
+		}
+
+		static void RegisterLoadWithNavColumns(ExpressionBuilder builder, ITableContext? table, LoadWithInfo lastLoadWith)
+		{
+			if (table?.ObjectType == null)
+				return;
+
+			var entityType = table.ObjectType;
+			var ed = builder.DBLive.client.EntityCash.getEntityInfo(entityType);
+			var info = lastLoadWith;
+			while (info != null)
+			{
+				if (info.MemberInfo != null)
+				{
+					var col = ed.Columns.FirstOrDefault(c =>
+						c.PropertyInfo != null && c.PropertyInfo.Name == info.MemberInfo.Name);
+					if (col != null)
+						builder.RegisterNavColumn(entityType, col);
+				}
+				info = info.NextInfos?.FirstOrDefault();
+			}
 		}
 
 		static (ITableContext? context, LoadWithInfo[] info)? ExtractAssociations(ExpressionBuilder builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)

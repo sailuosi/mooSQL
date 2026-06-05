@@ -56,10 +56,6 @@ namespace mooSQL.linq.Linq.Builder
 				return new DropContext(null, context.CloneContext(Sequence), context.CloneElement(_dropTableStatement));
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				QueryRunner.SetNonQueryQuery(query);
-			}
 
 			public override IBuildContext? GetContext(Expression expression, BuildInfo buildInfo)
 			{

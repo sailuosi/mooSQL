@@ -1,48 +1,92 @@
-﻿using mooSQL.data.call;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using mooSQL.data.call;
+using mooSQL.linq.Expressions;
+using mooSQL.linq.Linq.Builder;
+using mooSQL.linq.Reflection;
 
-namespace mooSQL.linq.translator
+namespace mooSQL.linq.translator;
+
+/// <summary>
+/// LINQ 方法调用访问器：MethodCallFactory → VisitXxx → 既有 ISequenceBuilder 逻辑。
+/// </summary>
+internal partial class ClauseMethodVisitor : MethodVisitor
 {
-    /// <summary>
-    /// 方法访问器，参数0为调用者，由此可以访问LINQ表达式的调用链
-    /// </summary>
-    internal partial class ClauseMethodVisitor:MethodVisitor
+    private static readonly System.Reflection.MethodInfo[] PassThroughMethods =
     {
-        /// <summary>
-        /// 合作的表达式访问器 搭档。当处理过程中需要临时移交给ExpressionVisitor进行处理时，交给它。
-        /// </summary>
-        public ExpressionVisitor Buddy {  get; set; }
+        Methods.Queryable.AsQueryable,
+        Methods.LinqToDB.AsQueryable,
+        Methods.LinqToDB.SqlExt.Alias
+    };
 
+    public ExpressionVisitor? Buddy { get; set; }
 
-        public override MethodCall VisitExpression(ExpressionCall method)
+    public ClauseCompileContext Context { get; set; } = default!;
+
+    public override MethodCall VisitExpression(ExpressionCall method)
+        => method;
+
+    protected MethodCall DispatchLegacy(MethodCall method)
+    {
+        if (method.callExpression is not MethodCallExpression mc)
+            return method;
+
+        DispatchViaSequenceBuilder(mc);
+        return method;
+    }
+
+    protected MethodCall DispatchPassThrough(MethodCall method)
+    {
+        if (method.callExpression is not MethodCallExpression mc)
+            return method;
+
+        if (!mc.IsSameGenericMethod(PassThroughMethods))
+            return DispatchLegacy(method);
+
+        if (Buddy != null)
+            Buddy.Visit(mc.Arguments[0]);
+        else
+            DispatchViaSequenceBuilder(mc);
+
+        return method;
+    }
+
+    void DispatchViaSequenceBuilder(MethodCallExpression mc)
+    {
+        var buildInfo = Context.CreateBuildInfo(mc);
+        if (SequenceBuilderResolver.FindBuilder(buildInfo, Context.Builder) is not { } sequenceBuilder)
         {
-            //由于本访问器，在表达式访问器的下层，遇到表达式时，直接返回，交给上层处理即可。
+            Context.BuildResult = BuildSequenceResult.NotSupported();
+            return;
+        }
+
+        Context.BuildResult = sequenceBuilder.BuildSequence(Context.Builder, buildInfo);
+    }
+
+    /// <summary>
+    /// 显式绑定 ISequenceBuilder，替代 MethodCall 分支的 FindBuilderImpl 查找。
+    /// </summary>
+    protected MethodCall ApplyBuilder<TBuilder>(
+        MethodCall method,
+        Func<MethodCallExpression, BuildInfo, ExpressionBuilder, bool> canBuild)
+        where TBuilder : ISequenceBuilder, new()
+    {
+        if (method.callExpression is not MethodCallExpression mc)
+            return method;
+
+        var buildInfo = Context.CreateBuildInfo(mc);
+        if (!canBuild(mc, buildInfo, Context.Builder))
+        {
+            Context.BuildResult = BuildSequenceResult.NotSupported();
             return method;
         }
 
+        Context.BuildResult = SequenceBuilderPool<TBuilder>.Instance.BuildSequence(Context.Builder, buildInfo);
+        return method;
+    }
 
-
-
-        #region 具体访问者
-
-        public override MethodCall VisitAlias(AliasCall method)
-        {
-            var argu = method.Arguments[0];
-            var next= Buddy.Visit(argu);
-            return method.Expression(next);
-        }
-
-        public override MethodCall VisitAll(AllCall method)
-        {
-
-            return base.VisitAll(method);
-        }
-        #endregion
-
+    static class SequenceBuilderPool<TBuilder> where TBuilder : ISequenceBuilder, new()
+    {
+        public static readonly TBuilder Instance = new();
     }
 }

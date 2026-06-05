@@ -661,30 +661,6 @@ namespace mooSQL.linq.Linq.Builder
 				InitializeSetExpressions(Builder, TargetTable, QuerySequence, SetExpressions, update.Items, true);
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				switch (UpdateType)
-				{
-					case UpdateTypeEnum.Update:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					case UpdateTypeEnum.UpdateOutput:
-					{
-						var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-						QueryRunner.SetRunQuery(query, mapper);
-						break;
-					}
-					case UpdateTypeEnum.UpdateOutputInto:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					default:
-						throw new InvalidOperationException($"Unexpected update type: {UpdateType}");
-				}
-			}
 
 			static IEnumerable<(Expression path, SqlGenericConstructorExpression generic)> FindForRightProjectionPath(SqlGenericConstructorExpression generic, Expression currentPath, Type objecType)
 			{

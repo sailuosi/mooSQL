@@ -143,30 +143,6 @@ namespace mooSQL.linq.Linq.Builder
 					context.CloneContext(DeletedContext));
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				switch (DeleteType)
-				{
-					case DeleteTypeEnum.Delete:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					case DeleteTypeEnum.DeleteOutput:
-					{
-						var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-						QueryRunner.SetRunQuery(query, mapper);
-						break;
-					}
-					case DeleteTypeEnum.DeleteOutputInto:
-					{
-						QueryRunner.SetNonQueryQuery(query);
-						break;
-					}
-					default:
-						throw new InvalidOperationException($"Unexpected delete type: {DeleteType}");
-				}
-			}
 
 			public override Expression MakeExpression(Expression path, ProjectFlags flags)
 			{

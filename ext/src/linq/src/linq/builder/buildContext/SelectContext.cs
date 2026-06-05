@@ -181,12 +181,6 @@ namespace mooSQL.linq.Linq.Builder
 			return new SelectContext(null, Builder, context.CloneContext(InnerContext), context.CloneExpression(Body), sc, IsSubQuery);
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-			QueryRunner.SetRunQuery(query, mapper);
-		}
 
 		public override void SetAlias(string? alias)
 		{

@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Spreadsheet;
 using mooSQL.data;
-
 using mooSQL.linq.Linq;
-
+using mooSQL.linq.translator;
 
 namespace mooSQL.linq
 {
@@ -18,39 +12,16 @@ namespace mooSQL.linq
         {
         }
 
-        public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expression,QueryContext context)
+        public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expression, QueryContext context)
         {
+            var query = QueryMate.GetQuery<TResult>(DB, ref expression, out _);
+            query.DBLive = DB;
+            query.srcExp = expression;
 
-            bool depon;
-            var query = QueryMate.GetQuery<TResult>(DB, ref expression,out depon);
-            object?[]? Parameters=null;
-            return (context) =>
+            return ctx =>
             {
-                var Preambles = query.InitPreambles(DB, expression, Parameters);
-                if (context.cancellationToken != null)
-                {
-                    var AsyRes = query.Runner.loadElementAsync(new RunnerContext
-                    {
-                        dataContext = DB,
-                        expression = expression,
-                        paras = Parameters,
-                        sentenceBag = query,
-                        premble = Preambles
-                    });
-                    return (TResult)AsyRes.Result;
-                }
-                else { 
-                
-                }
-                var res = query.Runner.loadElement(new RunnerContext
-                {
-                    dataContext = DB,
-                    expression = expression,
-                    paras = Parameters,
-                    sentenceBag = query,
-                    premble = Preambles
-                });
-                return (TResult)res;
+                ctx.DB ??= DB;
+                return SentenceExecutor.Execute<TResult>(query, ctx, expression);
             };
         }
     }

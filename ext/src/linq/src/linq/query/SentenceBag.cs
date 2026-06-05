@@ -2,6 +2,7 @@
 using mooSQL.data;
 using mooSQL.linq.Linq.Builder;
 using mooSQL.linq.Mapping;
+using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,19 @@ namespace mooSQL.linq.Linq
 
 
         public Expression ErrorExpression;
+
+        /// <summary>导航属性列，执行阶段二次查询加载。</summary>
+        public Dictionary<Type, List<EntityColumn>> NavColumns { get; } = new();
+
+        public void AddNavColumn(Type entityType, EntityColumn column)
+        {
+            if (!NavColumns.TryGetValue(entityType, out var list))
+            {
+                list = new List<EntityColumn>();
+                NavColumns[entityType] = list;
+            }
+            list.AddNotRepeat(column);
+        }
 
         public bool IsFinalized=false;
         /// <summary>
@@ -81,59 +95,6 @@ namespace mooSQL.linq.Linq
         internal void ClearDynamicQueryableInfo()
         {
             
-        }
-
-        Preamble[]? _preambles;
-
-        internal void SetPreambles(List<Preamble>? preambles)
-        {
-            _preambles = preambles?.ToArray();
-        }
-        internal bool IsAnyPreambles()
-        {
-            return _preambles?.Length > 0;
-        }
-        internal object?[]? InitPreambles(DBInstance dc, Expression rootExpression, object?[]? ps)
-        {
-            if (_preambles == null)
-                return null;
-
-            var preambles = new object[_preambles.Length];
-            for (var i = 0; i < preambles.Length; i++)
-            {
-                //dc, rootExpression, ps, preambles
-                preambles[i] = _preambles[i].Execute(new RunnerContext
-                {
-                    dataContext = dc,
-                    expression = rootExpression,
-                    paras = ps,
-                    premble = preambles
-                });
-            }
-
-            return preambles;
-        }
-
-        internal async Task<object?[]?> InitPreamblesAsync(DBInstance dc, Expression rootExpression, object?[]? ps, CancellationToken cancellationToken)
-        {
-            if (_preambles == null)
-                return null;
-
-            var preambles = new object[_preambles.Length];
-            for (var i = 0; i < preambles.Length; i++)
-            {
-                //dc, rootExpression, ps, preambles, cancellationToken
-                preambles[i] = await _preambles[i].ExecuteAsync(new RunnerContext
-                {
-                    dataContext = dc,
-                    expression = rootExpression,
-                    paras = ps,
-                    premble = preambles,
-                    cancellationToken = cancellationToken
-                }).ConfigureAwait(mooSQL.linq.Common.Configuration.ContinueOnCapturedContext);
-            }
-
-            return preambles;
         }
     }
 

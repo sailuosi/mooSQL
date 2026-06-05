@@ -223,11 +223,6 @@ namespace mooSQL.linq.Linq.Builder
 				return ExpressionBuilder.CreatePlaceholder(placeholderQuery, subQuerySql, _methodCall, convertType: typeof(bool));
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				var mapper = Builder.BuildMapper<object>(SelectQuery, expr);
-				QueryRunner.SetRunQuery(query, mapper);
-			}
 		}
 	}
 }

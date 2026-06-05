@@ -92,12 +92,6 @@ namespace mooSQL.linq.Linq.Builder
 					context.CloneExpression(OuterKey), context.CloneExpression(InnerKeyLambda), context.CloneExpression(InnerExpression));
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-				QueryRunner.SetRunQuery(query, mapper);
-			}
 
 			public override IBuildContext? GetContext(Expression expression, BuildInfo buildInfo)
 			{

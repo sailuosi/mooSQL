@@ -62,12 +62,6 @@ namespace mooSQL.linq.Linq.Builder
 			CteContext  = default!;
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-			QueryRunner.SetRunQuery(query, mapper);
-		}
 
 		public override IBuildContext? GetContext(Expression expression, BuildInfo buildInfo)
 		{

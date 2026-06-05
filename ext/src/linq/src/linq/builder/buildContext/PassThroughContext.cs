@@ -36,10 +36,6 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			Context.SetRunQuery(query, expr);
-		}
 
 		public override void SetAlias(string? alias)
 		{

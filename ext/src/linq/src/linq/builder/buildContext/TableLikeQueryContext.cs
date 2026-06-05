@@ -265,10 +265,6 @@ namespace mooSQL.linq.Linq.Builder
 			throw new NotImplementedException();
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			throw new NotImplementedException();
-		}
 
 		public override BaseSentence GetResultStatement()
 		{

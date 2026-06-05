@@ -661,14 +661,6 @@ namespace mooSQL.linq.Linq.Builder
 				return expression;
 			}
 
-			public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-			{
-				expr = GenerateNullCheckIfNeeded(expr);
-
-				var mapper = Builder.BuildMapper<object>(SelectQuery, expr);
-
-				QueryRunner.SetRunQuery(query, mapper);
-			}
 
 			void CreateWeakOuterJoin(SelectQueryClause parentQuery, SelectQueryClause selectQuery)
 			{

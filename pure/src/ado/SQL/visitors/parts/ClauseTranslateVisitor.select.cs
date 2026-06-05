@@ -259,11 +259,15 @@ namespace mooSQL.linq
             if (clause == null) { return clause; }
             if (clause.TakeValue != null)
             {
-                var TakeValue = VisitIExpWord(clause.TakeValue);
+                var takeClause = VisitIExpWord(clause.TakeValue);
+                if (TryResolveInt(clause.TakeValue, out var takeVal))
+                    builder.top(takeVal);
             }
             if (clause.SkipValue != null)
             {
-                var SkipValue = VisitIExpWord(clause.SkipValue);
+                var skipClause = VisitIExpWord(clause.SkipValue);
+                if (TryResolveInt(clause.SkipValue, out var skipVal) && TryResolveInt(clause.TakeValue, out var takeVal2))
+                    builder.setPage(takeVal2, skipVal / Math.Max(takeVal2, 1) + 1);
             }
             //遍历明细
             if (clause.Columns != null && clause.Columns.Count > 0)
@@ -633,6 +637,27 @@ namespace mooSQL.linq
             }
 
             return res;
+        }
+
+        static bool TryResolveInt(IExpWord? word, out int value)
+        {
+            value = 0;
+            if (word == null)
+                return false;
+
+            if (word is ParameterWord pw && pw.Value is int iv)
+            {
+                value = iv;
+                return true;
+            }
+
+            if (word is ValueWord vw && vw.Value is int vv)
+            {
+                value = vv;
+                return true;
+            }
+
+            return false;
         }
     }
 }

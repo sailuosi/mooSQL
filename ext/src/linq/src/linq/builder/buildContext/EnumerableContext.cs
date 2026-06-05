@@ -273,12 +273,6 @@ namespace mooSQL.linq.Linq.Builder
 				context.CloneElement(Table), ElementType);
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			var mapper = Builder.BuildMapper<T>(SelectQuery, expr);
-
-			QueryRunner.SetRunQuery(query, mapper);
-		}
 
 		public override void SetAlias(string? alias)
 		{

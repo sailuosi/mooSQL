@@ -166,10 +166,6 @@ namespace mooSQL.linq.Linq.Builder
 			return newContext;
 		}
 
-		public override void SetRunQuery<T>(SentenceBag<T> query, Expression expr)
-		{
-			throw new InvalidOperationException();
-		}
 
 		public override BaseSentence GetResultStatement()
 		{
