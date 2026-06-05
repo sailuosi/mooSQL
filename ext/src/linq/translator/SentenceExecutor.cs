@@ -197,7 +197,7 @@ internal static partial class SentenceExecutor
         return res;
     }
 
-    static void FinalizeBag(SentenceBag bag, DBInstance db)
+    internal static void FinalizeBag(SentenceBag bag, DBInstance db)
     {
         if (bag.IsFinalized)
             return;
