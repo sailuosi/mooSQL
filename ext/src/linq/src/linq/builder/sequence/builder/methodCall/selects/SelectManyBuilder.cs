@@ -137,12 +137,6 @@ namespace mooSQL.linq.Linq.Builder
 			//sequence.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
 			sequence.SelectQuery.From.Join(joinType, collection.SelectQuery, collectionAlias,null);
 
-            var jhc = SequenceHelper.GetJoinHintContext(originalCollection);
-			if (jhc != null)
-			{
-				//join.JoinedTable.SqlQueryExtensions = jhc.Extensions;
-			}
-
 			if (buildInfo.Parent == null && !builder.IsSupportedSubquery(sequence, collection, out var errorMessage))
 				return BuildSequenceResult.Error(methodCall, errorMessage);
 

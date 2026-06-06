@@ -117,20 +117,6 @@ namespace mooSQL.linq
 				extensions.Add(GetExtension(parameters));
 			}
 
-			public static QueryExtensionAttribute[] GetExtensionAttributes(Expression expression, DBInstance mapping)
-			{
-				MemberInfo memberInfo;
-
-				switch (expression.NodeType)
-				{
-					case ExpressionType.MemberAccess : memberInfo = ((MemberExpression)    expression).Member; break;
-					case ExpressionType.Call         : memberInfo = ((MethodCallExpression)expression).Method; break;
-					default                          : return new QueryExtensionAttribute[] { };
-				}
-				return null;
-				//return mapping.GetAttributes<QueryExtensionAttribute>(memberInfo.ReflectedType!, memberInfo, forFirstConfiguration: true);
-			}
-
 			public override string GetObjectID()
 			{
 				return $".{Configuration}.{(int)Scope}.{IdentifierBuilder.GetObjectID(ExtensionBuilderType)}.{IdentifierBuilder.GetObjectID(ExtensionArguments)}.";

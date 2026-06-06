@@ -200,7 +200,7 @@ namespace mooSQL.linq.ext
 					MethodHelper.GetMethodInfo(InsertWithOutputInto, target, setter, outputTable),
 					query.Expression, Expression.Quote(setter), ((IQueryable<TTarget>)outputTable).Expression);
 
-			return ((IQueryProviderAsync)query).ExecuteAsync<int>(expr, token);
+			return ((IExpressionQuery)query).ExecuteAsync<int>(expr, token);
 		}
 
 		/// <summary>
@@ -284,7 +284,7 @@ namespace mooSQL.linq.ext
 					query.Expression, Expression.Quote(setter), ((IQueryable<TOutput>)outputTable).Expression,
 					Expression.Quote(outputExpression));
 
-			return ((IQueryProviderAsync)query).ExecuteAsync<int>(expr, token);
+			return ((IExpressionQuery)query).ExecuteAsync<int>(expr, token);
 		}
 
 		#region Many records
@@ -461,7 +461,7 @@ namespace mooSQL.linq.ext
 					MethodHelper.GetMethodInfo(InsertWithOutputInto, source, target, setter, outputTable),
 					currentSource.Expression, ((IQueryable<TTarget>)target).Expression, Expression.Quote(setter), ((IQueryable<TTarget>)outputTable).Expression);
 
-			if (source is IQueryProviderAsync queryAsync)
+			if (source is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => source.Provider.Execute<int>(expr), token);
@@ -558,7 +558,7 @@ namespace mooSQL.linq.ext
 					currentSource.Expression, ((IQueryable<TTarget>)target).Expression, Expression.Quote(setter),
 					((IQueryable<TOutput>)outputTable).Expression, Expression.Quote(outputExpression));
 
-			if (currentSource is IQueryProviderAsync queryAsync)
+			if (currentSource is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => currentSource.Provider.Execute<int>(expr), token);
@@ -662,7 +662,7 @@ namespace mooSQL.linq.ext
 					MethodHelper.GetMethodInfo(InsertWithOutputInto, source, outputTable),
 					query.Expression, ((IQueryable<TTarget>)outputTable).Expression);
 
-			if (query is IQueryProviderAsync queryAsync)
+			if (query is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => query.Provider.Execute<int>(expr), token);

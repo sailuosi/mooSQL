@@ -936,21 +936,6 @@ namespace mooSQL.linq.Linq.Builder
 			return methodCall.Arguments[idx].UnwrapLambda();
 		}
 
-		//TODO: I don't like this. Hints are like mess. Quick workaround before review
-		public static QueryExtensionBuilder.JoinHintContext? GetJoinHintContext(IBuildContext context)
-		{
-			if (context is QueryExtensionBuilder.JoinHintContext hintContext)
-				return hintContext;
-			if (context is PassThroughContext pt)
-				return GetJoinHintContext(pt.Context);
-			if (context is SubQueryContext sc)
-				return GetJoinHintContext(sc.SubQuery);
-			if (context is DefaultIfEmptyBuilder.DefaultIfEmptyContext di)
-				return GetJoinHintContext(di.Sequence);
-
-			return null;
-		}
-
 		public static Expression MakeNotNullCondition(Expression expr)
 		{
 			if (expr.Type.IsValueType && !expr.Type.IsNullable())

@@ -1075,40 +1075,6 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 		public LambdaExpression? ConvertExpressionMethodAttribute(Type type, MemberInfo mi, out string? alias)
 		{
 			mi = type.GetMemberOverride(mi);
-
-			//var attr = MappingSchema.GetAttribute<ExpressionMethodAttribute>(type, mi);
-
-			//if (attr != null)
-			//{
-			//	alias = attr.Alias ?? mi.Name;
-			//	if (attr.Expression != null)
-			//		return attr.Expression;
-
-			//	if (!string.IsNullOrEmpty(attr.MethodName))
-			//	{
-			//		Expression expr;
-
-			//		if (mi is MethodInfo method && method.IsGenericMethod)
-			//		{
-			//			var args  = method.GetGenericArguments();
-			//			var names = args.Select(t => (object)t.Name).ToArray();
-			//			var name  = string.Format(CultureInfo.InvariantCulture, attr.MethodName!, names);
-
-			//			expr = Expression.Call(
-			//				mi.DeclaringType!,
-			//				name,
-			//				name != attr.MethodName ? new Type[] { } : args);
-			//		}
-			//		else
-			//		{
-			//			expr = Expression.Call(mi.DeclaringType!, attr.MethodName!, new Type[] { });
-			//		}
-
-			//		var evaluated = (LambdaExpression?)expr.EvaluateExpression();
-			//		return evaluated;
-			//	}
-			//}
-
 			alias = null;
 			return null;
 		}

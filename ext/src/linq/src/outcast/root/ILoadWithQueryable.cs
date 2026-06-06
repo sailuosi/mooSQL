@@ -3,8 +3,6 @@ using System.Linq;
 
 namespace mooSQL.linq
 {
-	using Async;
-
 	/// <summary>
 	/// Provides support for queryable LoadWith/ThenLoad chaining operators.
 	/// </summary>

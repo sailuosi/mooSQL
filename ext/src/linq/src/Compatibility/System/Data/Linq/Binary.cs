@@ -1,4 +1,4 @@
-﻿#if !NETFRAMEWORK
+#if !NETFRAMEWORK
 using System.Runtime.Serialization;
 
 namespace System.Data.Linq
@@ -57,9 +57,6 @@ namespace System.Data.Linq
 		{
 			if(!_hashCode.HasValue)
 			{
-				// hash code is not marked [DataMember], so when
-				// using the DataContractSerializer, we'll need
-				// to recompute the hash after deserialization.
 				ComputeHash();
 			}
 			return _hashCode!.Value;
@@ -85,10 +82,6 @@ namespace System.Data.Linq
 			return true;
 		}
 
-		/// <summary>
-		/// Simple hash using pseudo-random coefficients for each byte in
-		/// the array to achieve order dependency.
-		/// </summary>
 		private void ComputeHash()
 		{
 			int s = 314, t = 159;

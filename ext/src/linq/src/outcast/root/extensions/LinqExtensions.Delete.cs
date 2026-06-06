@@ -1,5 +1,4 @@
-﻿using mooSQL.linq.Async;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.ext
 {
-
+	using Linq;
 
 	public static partial class LinqExtensions
 	{
@@ -90,7 +89,7 @@ namespace mooSQL.linq.ext
 					currentSource.Expression,
 					((IQueryable<TOutput>)outputTable).Expression);
 
-			if (source is IQueryProviderAsync queryAsync)
+			if (source is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => source.Provider.Execute<int>(expr), token);
@@ -171,7 +170,7 @@ namespace mooSQL.linq.ext
 					((IQueryable<TOutput>)outputTable).Expression,
 					Expression.Quote(outputExpression));
 
-			if (currentSource is IQueryProviderAsync queryAsync)
+			if (currentSource is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => currentSource.Provider.Execute<int>(expr), token);

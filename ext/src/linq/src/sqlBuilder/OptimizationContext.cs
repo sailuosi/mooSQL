@@ -6,16 +6,11 @@ using mooSQL.linq.SqlQuery.Visitors;
 
 namespace mooSQL.linq.SqlProvider
 {
-
-	using DataProvider;
-
     using mooSQL.data;
     using mooSQL.data.model;
 
-
 	public class OptimizationContext
 	{
-		private IQueryParametersNormalizer?                      _parametersNormalizer;
 		private Dictionary<ParameterWord, ParameterWord>?          _parametersMap;
 		private List<ParameterWord>?                              _actualParameters;
 		private Dictionary<(DbDataType, object?), ParameterWord>? _dynamicParameters;
@@ -26,8 +21,6 @@ namespace mooSQL.linq.SqlProvider
 		public SqlExpressionConvertVisitor   ConvertVisitor   { get; }
 		public SqlExpressionOptimizerVisitor OptimizerVisitor { get; }
 
-		readonly Func<IQueryParametersNormalizer>           _parametersNormalizerFactory;
-
 		public SentenceVisitor.IVisitorTransformationInfo TransformationInfo => 
 			_transformationInfo ??= new SentenceVisitor.VisitorTransformationInfo();
 
@@ -37,7 +30,6 @@ namespace mooSQL.linq.SqlProvider
 			_transformationInfoConvert ??= new SentenceVisitor.VisitorTransformationInfo();
 
 		SentenceVisitor.IVisitorTransformationInfo? _transformationInfoConvert;
-
 
 		public EvaluateContext EvaluationContext              { get; }
 		public bool              IsParameterOrderDependent      { get; }
@@ -57,18 +49,6 @@ namespace mooSQL.linq.SqlProvider
 			}
 			else
 			{
-				var newName = (_parametersNormalizer ??= _parametersNormalizerFactory()).Normalize(parameter.Name);
-
-				if (IsParameterOrderDependent || newName != parameter.Name)
-				{
-					returnValue = new ParameterWord(parameter.Type, newName, parameter.Value)
-					{
-						AccessorId     = parameter.AccessorId,
-						ValueConverter = parameter.ValueConverter,
-						NeedsCast      = parameter.NeedsCast
-					};
-				}
-
 				if (!IsParameterOrderDependent)
 					(_parametersMap ??= new()).Add(parameter, returnValue);
 
@@ -84,8 +64,6 @@ namespace mooSQL.linq.SqlProvider
 
 			if (_dynamicParameters == null || !_dynamicParameters.TryGetValue(key, out var param))
 			{
-				// converting to SQL Parameter
-				// real name (in case of conflicts) will be generated on later stage in AddParameter method
 				param = new ParameterWord(dbDataType, "value", value);
 
 				_dynamicParameters ??= new();
@@ -97,9 +75,7 @@ namespace mooSQL.linq.SqlProvider
 
 		public void ClearParameters()
 		{
-			// must discard instance instead of Clean as it is returned by GetParameters
-			_actualParameters     = null;
-			_parametersNormalizer = null;
+			_actualParameters = null;
 		}
 
 		[return : NotNullIfNotNull(nameof(element))]

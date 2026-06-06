@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.ext
 {
-	using Async;
 	using Linq;
 
 

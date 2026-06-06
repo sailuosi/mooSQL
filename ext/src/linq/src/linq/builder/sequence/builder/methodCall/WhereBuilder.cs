@@ -4,41 +4,9 @@ namespace mooSQL.linq.Linq.Builder
 {
 	using mooSQL.linq.Expressions;
 
-	[BuildsMethodCall("Where", "Having")]
-	sealed class WhereBuilder : MethodCallBuilder
+	static class WhereBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
-
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var isHaving  = methodCall.Method.Name == "Having";
-			var sequenceResult  = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-
-			if (sequenceResult.BuildContext == null)
-				return sequenceResult;
-
-			var sequence = sequenceResult.BuildContext;
-
-			var condition = methodCall.Arguments[1].UnwrapLambda();
-
-			if (sequence.SelectQuery.Select.IsDistinct        ||
-			    sequence.SelectQuery.Select.TakeValue != null ||
-			    sequence.SelectQuery.Select.SkipValue != null)
-			{
-				sequence = new SubQueryContext(sequence);
-			}
-
-			var result = builder.BuildWhere(
-				buildInfo.Parent, sequence, condition: condition,
-				checkForSubQuery: !isHaving, enforceHaving: isHaving, isTest: buildInfo.IsTest);
-
-			if (result == null)
-				return BuildSequenceResult.Error(methodCall);
-
-			result.SetAlias(condition.Parameters[0].Name);
-
-			return BuildSequenceResult.FromContext(result);
-		}
 	}
 }

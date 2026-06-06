@@ -35,15 +35,6 @@ namespace mooSQL.linq.Linq.Builder
 			var outerContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			var innerContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQueryClause()));
 
-            List<QueryExtension>? extensions = null;
-
-			var jhc = SequenceHelper.GetJoinHintContext(innerContext);
-			if (jhc != null)
-			{
-				innerContext = jhc.Context;
-				extensions   = jhc.Extensions;
-			}
-
 			JoinKind joinType;
 			var conditionIndex = 2;
 
@@ -106,11 +97,6 @@ namespace mooSQL.linq.Linq.Builder
 				//outerContext.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
 				outerContext.SelectQuery.From.Join(joinType, innerContext.SelectQuery, null, null);
 
-
-				if (extensions != null)
-					//join.JoinedTable.SqlQueryExtensions = extensions;
-
-					throw new NotImplementedException();
 				var flags = ProjectFlags.SQL;
 
 				//builder.BuildSearchCondition(

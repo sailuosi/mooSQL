@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.Linq
 {
-	using Async;
 	using Data;
 	using Tools;
 	using Extensions;
@@ -86,12 +85,9 @@ namespace mooSQL.linq.Linq
 			return info;
 		}
 
-		async Task<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+		public async Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
 			var query = GetQuery(ref expression, false, out _);
-
-			//var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-			//await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			var value = await query.Runner.loadElementAsync(MakeContext(query, expression, cancellationToken))
 				.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -99,28 +95,20 @@ namespace mooSQL.linq.Linq
 			return (TResult)value!;
 		}
 
-		IDisposable? StartLoadTransaction(SentenceBag query)
-		{
-			// Do not start implicit transaction if there is no preambles
-			//
-
-				return null;
-
-		}
-
-#if NET5_0_OR_GREATER
-        async Task<IAsyncEnumerable<TResult>> IQueryProviderAsync.ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken)
+#if NET6_0_OR_GREATER
+        public async Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
 			var query = GetQuery(ref expression, false, out _);
-
-			//var transaction = await StartLoadTransactionAsync(query, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
-			//await using var tr = (transaction ?? EmptyIAsyncDisposable.Instance).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return QueryMate.GetQuery<TResult>(DBLive, ref expression, out _).Runner.loadResultList(MakeContext(query, expression, cancellationToken));
 		}
 #endif
 
-
+		IDisposable? StartLoadTransaction(SentenceBag query)
+		{
+			// Do not start implicit transaction if there is no preambles
+			return null;
+		}
 
         public async Task GetForEachAsync(Action<T> action, CancellationToken cancellationToken)
 		{
@@ -131,7 +119,6 @@ namespace mooSQL.linq.Linq
 				Expression = expression;
 
 			var transaction = StartLoadTransaction(query);
-			
 
 			var context = MakeContext(query, expression, cancellationToken);
 
@@ -149,13 +136,11 @@ namespace mooSQL.linq.Linq
             var enumerable = query.Runner.loadResultList(context);
             using var enumerator = enumerable.GetEnumerator();
 
-
             while (enumerator.MoveNext())
             {
                 action(enumerator.Current);
             }
 #endif
-
         }
 
         public async Task GetForEachUntilAsync(Func<T,bool> func, CancellationToken cancellationToken)

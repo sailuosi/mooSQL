@@ -10,7 +10,6 @@ namespace mooSQL.linq.ext
 {
 	using Expressions;
 	using Linq;
-	using Async;
 	using Reflection;
 
 	using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
@@ -1116,7 +1115,7 @@ namespace mooSQL.linq.ext
 				Expression.Quote(outputExpression)
 			);
 
-			if (currentQuery is IQueryProviderAsync query)
+			if (currentQuery is IExpressionQuery query)
 				return query.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => currentQuery.Provider.Execute<int>(expr), token);
@@ -1163,7 +1162,7 @@ namespace mooSQL.linq.ext
 				Expression.Quote(outputExpression)
 			);
 
-			if (currentQuery is IQueryProviderAsync query)
+			if (currentQuery is IExpressionQuery query)
 				return query.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => currentQuery.Provider.Execute<int>(expr), token);
@@ -1195,7 +1194,7 @@ namespace mooSQL.linq.ext
 				ExecuteMergeMethodInfo.MakeGenericMethod(typeof(TTarget), typeof(TSource)),
 				currentQuery.Expression);
 
-			if (currentQuery is IQueryProviderAsync query)
+			if (currentQuery is IExpressionQuery query)
 				return query.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => currentQuery.Provider.Execute<int>(expr), token);

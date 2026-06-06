@@ -11,7 +11,6 @@ namespace mooSQL.linq.ext
 {
 	using System.Runtime.CompilerServices;
 
-	using Async;
 	using DataProvider;
 	using Expressions;
 	using Linq;
@@ -590,7 +589,7 @@ namespace mooSQL.linq.ext
 				Methods.SooQuery.Insert.SI.Insert.MakeGenericMethod(typeof(TSource), typeof(TTarget)),
 				currentQueryable.Expression);
 
-			if (currentQueryable is IQueryProviderAsync query)
+			if (currentQueryable is IExpressionQuery query)
 				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentQueryable.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -696,7 +695,7 @@ namespace mooSQL.linq.ext
 				_insertOrUpdateMethodInfo.MakeGenericMethod(typeof(T)),
 				currentSource.Expression, Expression.Quote(insertSetter), onDuplicateKeyUpdateSetter != null ? Expression.Quote(onDuplicateKeyUpdateSetter) : Expression.Constant(null, typeof(Expression<Func<T, T>>)));
 
-			if (currentSource is IQueryProviderAsync query)
+			if (currentSource is IExpressionQuery query)
 				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -785,7 +784,7 @@ namespace mooSQL.linq.ext
 				onDuplicateKeyUpdateSetter != null ? Expression.Quote(onDuplicateKeyUpdateSetter) : Expression.Constant(null, typeof(Expression<Func<T, T>>)),
 				Expression.Quote(keySelector));
 
-			if (currentSource is IQueryProviderAsync query)
+			if (currentSource is IExpressionQuery query)
 				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -865,7 +864,7 @@ namespace mooSQL.linq.ext
 					_dropMethodInfo2.MakeGenericMethod(typeof(T)),
 				currentSource.Expression, ExpressionInstances.Boolean(throwExceptionIfNotExists));
 
-			var query = currentSource as IQueryProviderAsync;
+			var query = currentSource as IExpressionQuery;
 
 			if (throwExceptionIfNotExists)
 			{
@@ -944,7 +943,7 @@ namespace mooSQL.linq.ext
 				_truncateMethodInfo.MakeGenericMethod(typeof(T)),
 				currentSource.Expression, ExpressionInstances.Boolean(resetIdentity));
 
-			if (currentSource is IQueryProviderAsync query)
+			if (currentSource is IExpressionQuery query)
 				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -1120,7 +1119,7 @@ namespace mooSQL.linq.ext
 					Methods.SooQuery.ElementAtLambda.MakeGenericMethod(typeof(TSource)),
 					currentSource.Expression, Expression.Quote(index));
 
-			if (currentSource is IQueryProviderAsync query)
+			if (currentSource is IExpressionQuery query)
 				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -1177,7 +1176,7 @@ namespace mooSQL.linq.ext
 					_elementAtOrDefaultMethodInfo.MakeGenericMethod(typeof(TSource)),
 					currentSource.Expression, Expression.Quote(index));
 
-			if (currentSource is IQueryProviderAsync query)
+			if (currentSource is IExpressionQuery query)
 				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 
 			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);

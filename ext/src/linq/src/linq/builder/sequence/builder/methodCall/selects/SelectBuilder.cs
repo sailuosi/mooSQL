@@ -1,61 +1,19 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Linq;
 using System.Linq.Expressions;
 
 namespace mooSQL.linq.Linq.Builder
 {
 	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
-    using mooSQL.data.model;
 
-    [BuildsMethodCall("Select")]
-	sealed class SelectBuilder : MethodCallBuilder
+	static class SelectBuilder
 	{
-		#region SelectBuilder
-
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
 			if (!call.IsQueryable())
 				return false;
-			
-			 var lambda = (LambdaExpression)call.Arguments[1].Unwrap();
-			 return lambda.Parameters.Count is 1 or 2;
+
+			var lambda = (LambdaExpression)call.Arguments[1].Unwrap();
+			return lambda.Parameters.Count is 1 or 2;
 		}
-
-		public override bool IsAggregationContext(ClauseSqlTranslator builder, BuildInfo buildInfo)
-		{
-			// Select is transparent and we can treat it as an aggregation.
-			return true;
-		}
-
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var selector    = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-
-			if (buildResult.BuildContext == null)
-				return buildResult;
-
-			var sequence = buildResult.BuildContext;
-
-			// finalizing context
-			_ = builder.MakeExpression(sequence, new ContextRefExpression(sequence.ElementType, sequence),
-				ProjectFlags.ExtractProjection);
-
-			sequence.SetAlias(selector.Parameters[0].Name);
-
-			var body = selector.Parameters.Count == 1
-				? SequenceHelper.PrepareBody(selector, sequence)
-                : SequenceHelper.PrepareBody(selector, sequence, new SelectCounterContext(sequence));
-
-            var context = new SelectContext (buildInfo.Parent, body, sequence, buildInfo.IsSubQuery);
-#if DEBUG
-			context.Debug_MethodCall = methodCall;
-#endif
-			return BuildSequenceResult.FromContext(context);
-		}
-
-		#endregion
 	}
 }

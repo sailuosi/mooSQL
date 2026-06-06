@@ -3,9 +3,7 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.Linq
 {
-	using Async;
-
-	public interface IExpressionQuery<out T> : IOrderedQueryable<T>, IQueryProviderAsync, IExpressionQuery
+	public interface IExpressionQuery<out T> : IOrderedQueryable<T>, IExpressionQuery
 	{
 		new Expression Expression { get; }
 	}

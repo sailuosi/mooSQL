@@ -44,8 +44,6 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
     [
         new((e, i, b) => e is MethodCallExpression mc && MethodChainBuilder.CanBuild(mc, i, b),
             BuilderPool<MethodChainBuilder>.Instance),
-        new((e, i, b) => e is MethodCallExpression mc && QueryExtensionBuilder.CanBuild(mc, i, b),
-            BuilderPool<QueryExtensionBuilder>.Instance),
         new((e, i, b) => e is MethodCallExpression mc && TableBuilder.CanBuildAttributedMethods(mc, i, b),
             BuilderPool<TableBuilder>.Instance),
     ];

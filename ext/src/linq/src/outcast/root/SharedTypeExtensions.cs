@@ -16,7 +16,6 @@ namespace mooSQL.linq
 
 #pragma warning disable RS0030
 
-	using Async;
 	using Common;
 
 	[DebuggerStepThrough]

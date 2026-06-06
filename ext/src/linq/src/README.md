@@ -110,7 +110,7 @@ SQLBuilder → query<T>() → 实体结果
 |------|------|
 | `ClauseCompiler.Build<T>()` | 内部编译，产出 `SentenceBag<T>` |
 | `QueryMate.GetQuery<T>()` | 带缓存的对外入口 |
-| `EntityVisitCompiler` / `EntityQueryCompiler` | 预编译委托，直接调用 `SentenceExecutor` |
+| `EntityVisitCompiler` | 预编译委托，直接调用 `SentenceExecutor` |
 
 ### 双访问器模型
 
@@ -235,9 +235,8 @@ SentenceBag
 
 | 路径 | 说明 |
 |------|------|
-| `ExpressionQuery` / `EntityProvider` | `IQueryProvider.Execute` → `BasicSentenceRunner` → `SentenceExecutor` |
+| `ExpressionQuery` | `IQueryProvider.Execute` → `BasicSentenceRunner` → `SentenceExecutor` |
 | `EntityVisitCompiler.DoCompile` | 预编译委托 → `SentenceExecutor.Execute<T>` |
-| `CompiledTableT` | `QueryRunner.Cache<T>` 命中后 → `RunnerContextFactory.Create` → `loadElement` |
 
 默认 Runner 为 `BasicSentenceRunner`，**不再注册 Mapper**，直接委托 `SentenceExecutor`：
 
@@ -275,12 +274,9 @@ Execute
 
 ### QueryRunner 保留职责
 
-`QueryRunner` 已精简，仅保留：
+`QueryRunner` 已精简，仅保留 `CacheCleaners` / `ClearCaches()` 供 `IdentifierBuilder` 等注册缓存清理。
 
-- 查询缓存（`Cache<T>` / `Cache<T,TR>`）
-- `CompiledTableT` 预编译路径
-
-**已移除：** `BasicResultEnumerable`、`WrapMapper`、`ExecuteElement`、`SetScalarQuery` / `SetNonQueryQuery*`、`GetSqlText` 静态方法、DbDataReader Mapper 链。
+**已移除：** `CompiledTableT`、`Cache<T>` 查询缓存、`BasicResultEnumerable`、`WrapMapper`、`ExecuteElement`、`SetScalarQuery` / `SetNonQueryQuery*`、`GetSqlText` 静态方法、DbDataReader Mapper 链。
 
 ---
 
@@ -290,27 +286,24 @@ Execute
 ext/src/linq/
 ├── core/                    # 对外编译器入口
 │   EntityVisitCompiler.cs
-│   EntityQueryCompiler.cs
 ├── translator/              # ★ 新三层架构核心
 │   ClauseCompiler.cs        # 编译收尾 → SentenceBag
 │   ClauseExpressionVisitor.cs
-│   ClauseMethodVisitor*.cs  # 方法分发（含内联 + Bindings）
+│   ClauseMethodVisitor*.cs  # 方法分发（内联 VisitXxxCore + ApplyBuilder）
+│   ClauseMethodVisitor.Bindings.cs  # ApplyBuilder 分发表（手动维护，勿用已废弃的 gen_bindings.py）
 │   ClauseMethodVisitor.MooExt.cs / .Async.cs
 │   ClausePredicateVisitor.cs / ClauseFieldVisitor.cs
 │   ClausePredicateVisitor.cs
 │   SentenceExecutor.cs      # Statement → SQLBuilder → 执行
 │   NavColumnLoader.cs       # LoadWith 二次加载
 │   SqlOptimizerFactory.cs
-│   tools/
-│       gen_bindings.py      # 生成 Bindings.cs
-│       remove_setrunquery.py  # 批量清理 SetRunQuery override
 └── src/
     ├── clause/              # SQL 语句结构（SelectQueryClause 等）
     │   ├── helps/           # QueryHelper、优化辅助
     │   └── visitors/        # 语句级 Visitor（优化、校正）
     ├── linq/                # 面向用户的 LINQ 核心
     │   ├── builder/         # ClauseSqlTranslator + IBuildContext + Builder 体系
-    │   ├── expressons/      # ExpressionQuery、EntityProvider
+    │   ├── expressons/      # ExpressionQuery、DbQuery
     │   ├── query/           # SentenceBag、BasicSentenceRunner、QueryMate
     │   └── Translation/     # 方言函数翻译
     ├── entity/              # 实体映射

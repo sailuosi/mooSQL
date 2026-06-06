@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.ext
 {
-	using Async;
+	using Linq;
 	using Methods = Reflection.Methods.SooQuery.MultiInsert;
 
 	public static class MultiInsertExtensions
@@ -173,7 +173,7 @@ namespace mooSQL.linq.ext
 				Methods.Insert.MakeGenericMethod(typeof(TSource)),
 				query.Expression);
 
-			if (query is IQueryProviderAsync queryAsync)
+			if (query is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => query.Provider.Execute<int>(expr), token);
@@ -218,7 +218,7 @@ namespace mooSQL.linq.ext
 				Methods.InsertAll.MakeGenericMethod(typeof(TSource)),
 				query.Expression);
 
-			if (query is IQueryProviderAsync queryAsync)
+			if (query is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => query.Provider.Execute<int>(expr), token);
@@ -263,7 +263,7 @@ namespace mooSQL.linq.ext
 				Methods.InsertFirst.MakeGenericMethod(typeof(TSource)),
 				query.Expression);
 
-			if (query is IQueryProviderAsync queryAsync)
+			if (query is IExpressionQuery queryAsync)
 				return queryAsync.ExecuteAsync<int>(expr, token);
 
 			return Task.Run(() => query.Provider.Execute<int>(expr), token);

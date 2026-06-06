@@ -47,25 +47,6 @@ namespace mooSQL.linq.Linq.Builder
 			outerContext = new SubQueryContext(outerContext);
 			innerContext = new SubQueryContext(innerContext);
 
-            List<QueryExtension>? extensions = null;
-
-			var jhc = SequenceHelper.GetJoinHintContext(innerContext);
-			if (jhc != null)
-			{
-				innerContext = jhc.Context;
-				extensions   = jhc.Extensions;
-			}
-
-			//var join = innerContext.SelectQuery.InnerJoin();
-			var sql  = outerContext.SelectQuery;
-
-			//sql.From.Tables[0].Joins.Add(join.JoinedTable);
-			
-
-
-            //if (extensions != null)
-			//	join.JoinedTable.SqlQueryExtensions = extensions;
-
 			var selector = methodCall.Arguments[4].UnwrapLambda();
 
 			outerContext.SetAlias(selector.Parameters[0].Name);
@@ -93,7 +74,7 @@ namespace mooSQL.linq.Linq.Builder
 				compareSearchCondition = QueryHelper.CorrectComparisonForJoin(compareSearchCondition);
 
 			//join.JoinedTable.Condition = compareSearchCondition;
-            sql.From.InnerJoin(innerContext.SelectQuery, "", new JoinOnWord(compareSearchCondition));
+			outerContext.SelectQuery.From.InnerJoin(innerContext.SelectQuery, "", new JoinOnWord(compareSearchCondition));
 
             var body = SequenceHelper.PrepareBody(selector, outerContext, new ScopeContext(innerContext, outerContext));
 

@@ -5,12 +5,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
-
+using System.Threading.Tasks;
 
 
 namespace mooSQL.linq.ext
 {
-	using Async;
 	using Linq;
 	using Linq.Builder;
     using mooSQL.data;
@@ -87,6 +86,27 @@ namespace mooSQL.linq.ext
             public DBInstance DBLive => (_query as IExpressionQuery)?.DBLive!;
             public Type           ElementType => _query.ElementType;
 			public IQueryProvider Provider    => _query.Provider;
+
+			public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
+			{
+				if (_query is IExpressionQuery eq)
+					return eq.ExecuteAsync<TResult>(expression, cancellationToken);
+				throw new InvalidOperationException("Underlying query does not support async execution.");
+			}
+
+#if NET6_0_OR_GREATER
+			public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken = default)
+			{
+				if (_query is IExpressionQuery eq)
+					return eq.ExecuteAsyncEnumerable<TResult>(expression, cancellationToken);
+				throw new InvalidOperationException("Underlying query does not support async execution.");
+			}
+#endif
+
+			IQueryable IQueryProvider.CreateQuery(Expression expression) => Provider.CreateQuery(expression);
+			IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression) => Provider.CreateQuery<TElement>(expression);
+			object? IQueryProvider.Execute(Expression expression) => Provider.Execute(expression);
+			TResult IQueryProvider.Execute<TResult>(Expression expression) => Provider.Execute<TResult>(expression);
 
 			public override string ToString() => _query.ToString()!;
 		}

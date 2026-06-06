@@ -4,9 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 namespace mooSQL.linq.Linq.Builder
-{
-	using Async;
-	using Common;
+{	using Common;
 
 	using mooSQL.data.model;
 	using mooSQL.linq.Expressions;
