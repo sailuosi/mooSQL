@@ -15,12 +15,19 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R4）
+
+- **Union Debug 栈溢出修复**：`ColumnWord.ToString` 避免嵌套 Column/Field 循环引用；Union compile 在 Debug 下不再崩溃
+- **ClauseTranslateVisitor SetOp**：`VisitSelectQueryBody` / `VisitSetOperatorBranch` 渲染 `UNION`/`UNION ALL` 链；`GetSqlText` 可断言 `UNION`
+- **Union 测试**：`Union_LinqCompilesStructure` 恢复并断言 SQL 含 `UNION`
+- **Lower Where 矩阵**：`Matrix_Lower_Where_EmitsLower` 端到端 `LOWER` SQL
+
 ### 新增（Phase D/E R3 后续）
 
 - **Between struct 重载注册**：`RegisterBetween` 同时注册 `T : IComparable` 与 `T : struct` 两套泛型，`u.Age.Between(18, 65)` 端到端 compile 产出 `BETWEEN`
 - **字符串函数注册表扩展**：Lower / Upper / Trim + Pure `SQLExpression.lower/upper/trim`
 - **谓词 fallback**：`ConvertPredicate` 在 Extension 路径前再次尝试注册表，避免 `No sequence found`
-- **Union compile**：暂 `[Skip]`（SetOp 稳定后补 GetSqlText）；**Concat** compile 结构测通过
+- **Concat** compile 结构测通过
 
 ### 新增（Phase D/E R2）
 

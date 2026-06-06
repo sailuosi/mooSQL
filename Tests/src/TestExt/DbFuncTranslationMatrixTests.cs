@@ -139,6 +139,18 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Lower_Where_EmitsLower()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => u.Name != null && DbFunc.Lower(u.Name) != "")
+                .Expression);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_DateAdd_RegisteredAndCompiles()
     {
         var db = _sqlite.Db;

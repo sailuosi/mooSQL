@@ -235,12 +235,7 @@ namespace mooSQL.linq
 
             if (clause.SelectQuery !=null)
             {
-                VisitSelectClause(clause.SelectQuery.Select);
-                VisitFromClause(clause.SelectQuery.From);
-                VisitWhereClause(clause.SelectQuery.Where);
-                VisitGroupByClause(clause.SelectQuery.GroupBy);
-                VisitHavingClause(clause.SelectQuery.Having);
-                VisitOrderByClause(clause.SelectQuery.OrderBy);
+                VisitSelectQueryBody(clause.SelectQuery);
             }
             
 
@@ -348,6 +343,71 @@ namespace mooSQL.linq
             var sql = tar.Visit(func);
             return new SQLFragClause(sql);
         }
+        /// <summary>渲染 SELECT 主体（含 UNION / EXCEPT 等集合运算链）。</summary>
+        void VisitSelectQueryBody(SelectQueryClause clause)
+        {
+            VisitSelectClause(clause.Select);
+            VisitFromClause(clause.From);
+            VisitWhereClause(clause.Where);
+            VisitGroupByClause(clause.GroupBy);
+            VisitHavingClause(clause.Having);
+            VisitOrderByClause(clause.OrderBy);
+
+            if (!clause.HasSetOperators)
+                return;
+
+            foreach (var setOp in clause.SetOperators)
+                VisitSetOperatorBranch(setOp);
+        }
+
+        void VisitSetOperatorBranch(SetOperatorWord setOp)
+        {
+            switch (setOp.Operation)
+            {
+                case SetOperation.UnionAll:
+                    builder.unionAll(wrapSelect: false);
+                    break;
+                case SetOperation.Union:
+                    builder.union(isUnionAll: false, wrapSelect: false);
+                    break;
+                case SetOperation.Except:
+                    builder.prefix(" EXCEPT ");
+                    break;
+                case SetOperation.ExceptAll:
+                    builder.prefix(" EXCEPT ALL ");
+                    break;
+                case SetOperation.Intersect:
+                    builder.prefix(" INTERSECT ");
+                    break;
+                case SetOperation.IntersectAll:
+                    builder.prefix(" INTERSECT ALL ");
+                    break;
+            }
+
+            if (setOp.Operation is SetOperation.Except or SetOperation.ExceptAll
+                or SetOperation.Intersect or SetOperation.IntersectAll)
+            {
+                var branch = RenderSelectQuerySubquery(setOp.SelectQuery);
+                builder.from(branch);
+                return;
+            }
+
+            VisitSelectQueryBody(setOp.SelectQuery);
+        }
+
+        string RenderSelectQuerySubquery(SelectQueryClause clause)
+        {
+            var subBuilder = new SQLBuilder();
+            subBuilder.setDBInstance(DB);
+            var saved = builder;
+            builder = subBuilder;
+            VisitSelectQueryBody(clause);
+            builder = saved;
+            return "(" + subBuilder.toSelect().sql + ")";
+        }
+
+        /// <inheritdoc />
+        public override Clause VisitSetOperator(SetOperatorWord clause) => clause;
         /// <summary>
         /// SelectQueryClause是作为查询使用的，只需构造它的where 内容
         /// </summary>
@@ -355,6 +415,9 @@ namespace mooSQL.linq
         /// <returns></returns>
         public override Clause VisitSelectQuery(SelectQueryClause clause)
         {
+            if (clause.HasSetOperators)
+                return new SQLFragClause(RenderSelectQuerySubquery(clause));
+
             //如果他拥有where部分，也构造他的条件
             if (clause.Where != null) {
                 var condi = clause.Where.SearchCondition;

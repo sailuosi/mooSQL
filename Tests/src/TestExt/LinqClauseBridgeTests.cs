@@ -82,14 +82,17 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("moo_t_user", linqSql);
     }
 
-    [Fact(Skip = "Union 编译在部分环境可能长时间阻塞，待 SetOp 稳定后启用 GetSqlText 断言")]
+    [Fact]
     public void Union_LinqCompilesStructure()
     {
         var db = _sqlite.Db;
         var q1 = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 30);
         var q2 = db.useQueryable<SQLiteTestUser>().Where(u => u.IsActive);
-        var result = LinqStatementCompiler.Compile(db, q1.Union(q2).Expression);
+        var expr = q1.Union(q2).Expression;
+        var result = LinqStatementCompiler.Compile(db, expr);
         Assert.True(result.Success);
+        var sql = LinqStatementCompiler.GetSqlText(db, expr);
+        Assert.Contains("UNION", sql, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

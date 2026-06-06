@@ -127,10 +127,14 @@ namespace mooSQL.data.model
 			return writer.ToString();
 
 #else
-			if (FieldValue is FieldWord or ColumnWord)
-				return this.ToDebugString();
-
-			return base.ToString()!;
+			var table = Parent?.SourceID ?? -1;
+			var aliasPart = Alias ?? "c";
+			return FieldValue switch
+			{
+				FieldWord fw => $"Column(t{table}.{aliasPart} => {fw.Name})",
+				ColumnWord col => $"Column(t{table}.{aliasPart} => Column#{col.GetHashCode():x8})",
+				_ => base.ToString()!
+			};
 #endif
 		}
 
