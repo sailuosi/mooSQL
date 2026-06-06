@@ -25,7 +25,7 @@
 
 - **多 `[Expression]`/`[Function]` 消歧**：`GetExpressionAttribute` 按方言 Configuration 选取，修复 `Substring` 等 `AmbiguousMatchException`
 - **`PreferServerSide` 注册表优先**：MethodCall 先查 `DbFuncRegistry`，再回退属性链
-- **Select 函数投影**：`NeedsExplicitSqlColumns` 仅根级 MethodCall 走 `BuildSqlExpression` + `ToColumns`；`new { u.Name }` 等匿名投影由 `SelectContext` 解析
+- **Select 函数投影**：`ShouldProjectBodyToColumns`（MethodCall / New / MemberInit）走 `BuildSqlExpression` + `ToColumns`；标量 Member 仍走 `SelectContext`
 - **矩阵**：`Matrix_Lower_Select_EmitsLower`、`Matrix_Substring_Where/Select_EmitsSubstring`
 
 ### 新增（Phase D/E R4）
@@ -79,13 +79,33 @@ db.GetTable<User>();
 db.useQueryable<User>();
 ```
 
-### 后续（Phase D / E — 已完成基础设施）
+### 后续（Phase D / E）
 
-- **Pure `DbFuncRegistry`**：`Dialect.dbFuncRegistry` + `DbFuncRegistryBootstrap`（Like/Between/Substring/Concat/DateAdd）
+> 完整路线图见 [`ext/src/linq/core/Phase-D-E-Roadmap.md`](src/linq/core/Phase-D-E-Roadmap.md)
+
+#### 已完成（R0–R6）
+
+- **Pure `DbFuncRegistry`** + `DbFuncRegistryBootstrap`（Like/Between/In/Substring/Concat/DateAdd/Length/Lower/Upper/Trim/RowNumber）
 - **`TranslationRegistration`** 已上移至 `mooSQL.data.translation`
-- **`SQLExpression.Linq`**：`between` / `isNull` / `like` / `substring` / `dateAdd` / `concat` / `rowNumber`
-- **`api/dbfunc/`**：函数 stub（Between、Analytic 等）；属性翻译基础设施在 `api/translation/`
-- **最终推荐 API**：`db.dialect.expression.*` + `db.dialect.dbFuncRegistry`（编译仍兼容 `DbFunc.*`）
-- **Includes 编译**：`BusQueryable` 纳入 `IsQueryable`；`ResolveSourceContext` 修复 `useQueryable().Includes()` 路径
-- **Phase E**：`ADR-CompileExecute-Boundary.md`、`check-compile-execute-boundary.ps1`、`LinqClauseBridge`、`ToSQLBuilders`、`DBInstance.FromLinqExpression`
-- **测试**：`DbFuncTranslationMatrixTests` / `DbFuncRegistryTests` / `LinqClauseBridgeTests`（51/51 绿）
+- **`SQLExpression.Linq`** 方言片段 + Bootstrap 对齐（部分片段尚未接入编译链）
+- **`api/translation/` + `api/dbfunc/`** — 属性与 stub 分目录；旧 `DbFunc/` 已删除
+- **注册表实际翻译** + PreferServerSide 优先 + Union SQL + Select 投影（函数/匿名）
+- **Phase E 基础设施**：ADR、`LinqClauseBridge`、`ToSQLBuilder(s)`、`FromLinqExpression`
+- **测试**：`TestLinq` **68/68**（`DbFuncTranslationMatrixTests` 18 项 + Bridge/Registry/Compile）
+
+#### 下一批（R7，建议）
+
+| 优先级 | 项 |
+|--------|-----|
+| P0 | 注册表扩展（Aggregate / Coalesce / DateDiff 等）+ 矩阵测 |
+| P1 | RowNumber `.Over()` 端到端 compile 断言 |
+| P1 | `new { X = DbFunc.Lower(u.Name) }` 混合投影 |
+| P2 | SQLClip ↔ LINQ SQL 快照对比测 |
+| P2 | csproj 排除 `artifacts/`，防 CS0579 污染 |
+
+#### 远期（R8–R9）
+
+- MemberTranslator 方言副本收敛 → 统一 registry 查询
+- 注册表全覆盖后删除 `api/dbfunc/` stub 与 `[Extension]` fallback
+- 方言 Take/Skip / ROW_NUMBER 能力矩阵文档
+- 多语句事务批处理、真异步流式

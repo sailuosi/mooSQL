@@ -28,7 +28,7 @@
 | `IDbQuery<T>` | 表级 Queryable 源 |
 | `useQueryable` / `AsQueryable` | Ext LINQ 入口 |
 | `Includes` / `ThenInclude` | 导航属性 eager load（编译注册 NavColumns，执行后 NavColumnLoader 补查） |
-| `DbFunc` | LINQ 内可调用的数据库函数静态类（逐步合并进 Pure `SQLExpression`） |
+| `DbFunc` | LINQ 内可调用的数据库函数静态类（stub 在 `api/dbfunc/`，逐步合并进 Pure `SQLExpression` + `DbFuncRegistry`） |
 
 ## 与 Fast LINQ 对照
 
