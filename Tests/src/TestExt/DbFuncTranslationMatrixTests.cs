@@ -62,6 +62,27 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Like_NoFunctionAttribute()
+    {
+        foreach (var method in typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                     .Where(m => m.Name == nameof(DbFunc.Like)))
+        {
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.FunctionAttribute), inherit: true));
+            Assert.Empty(method.GetCustomAttributes(typeof(System.ObsoleteAttribute), inherit: true));
+        }
+    }
+
+    [Fact]
+    public void Matrix_Like_RegistryUsesDialectLike()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var like = typeof(DbFunc).GetMethod(nameof(DbFunc.Like), new[] { typeof(string), typeof(string) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(like)!;
+        Assert.Contains("LIKE", entry.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_Between_EmitsBetween()
     {
         var db = _sqlite.Db;

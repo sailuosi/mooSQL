@@ -15,6 +15,14 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R19）
+
+- **Like registry-only**：移除 `[Function]`/`[Obsolete]`；Bootstrap 使用 `expr.like` / 三参数 ESCAPE
+- **Between Bootstrap 方言化**：`expr.between` / `expr.notBetween`
+- **物理删除 `DbFunc.Ordinal.cs`**（合并进 `DbFunc.cs`）
+- **三入口快照 +2**：`ThreeEntrySnapshot_Length`、`ThreeEntrySnapshot_Trim`
+- **矩阵 +2**：`Matrix_Like_NoFunctionAttribute`、`Matrix_Like_RegistryUsesDialectLike`
+
 ### 新增（Phase D/E R18）
 
 - **字符串函数 registry-only**：Lower/Upper/Trim/Substring/Length 移除 `[Function]`/`[Expression]`

@@ -458,28 +458,13 @@ namespace mooSQL.linq
 			return str.Substring(index, maxAllowedLength);
 		}
 
-		[Function(ServerSideOnly = true, IsPredicate = true)]
-		[Obsolete("Prefer db.dialect.expression.like via DbFuncRegistry; retained for attribute translation.")]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static bool Like(string? matchExpression, string? pattern)
-		{
-#if !NETFRAMEWORK
-			throw new InvalidOperationException();
-#else
-			return matchExpression != null && pattern != null &&
-				System.Data.Linq.SqlClient.SqlMethods.Like(matchExpression, pattern);
-#endif
-		}
+			=> throw new LinqException($"'{nameof(Like)}' is only server-side method.");
 
-		[Function(ServerSideOnly = true, IsPredicate = true)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static bool Like(string? matchExpression, string? pattern, char? escapeCharacter)
-		{
-#if !NETFRAMEWORK
-			throw new InvalidOperationException();
-#else
-			return matchExpression != null && pattern != null && escapeCharacter != null &&
-				System.Data.Linq.SqlClient.SqlMethods.Like(matchExpression, pattern, escapeCharacter.Value);
-#endif
-		}
+			=> throw new LinqException($"'{nameof(Like)}' is only server-side method.");
 
 		[CLSCompliant(false)]
 		[Function(                                     IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -1410,6 +1395,16 @@ namespace mooSQL.linq
 		[Function  (ProviderName.SqlServer    , "IDENT_INCR", ServerSideOnly = true, CanBeNull = true)]
 		[Expression(                  "NULL"      , ServerSideOnly = true, CanBeNull = true)]
 		internal static object? IdentityStep(string tableName) => throw new LinqException($"'{nameof(IdentityStep)}' is server side only property.");
+		#endregion
+
+		#region Ordinal
+
+		/// <summary>
+		/// Forces LINQ translator to generate column ordinal for <paramref name="expression"/> column (1-base column index in select statement).
+		/// Currently it is supported only for <b>ORDER BY</b> clause.
+		/// </summary>
+		public static T Ordinal<T>(T expression) => expression;
+
 		#endregion
 	}
 }

@@ -24,6 +24,10 @@ namespace mooSQL.data
         public virtual string like(string expr, string pattern)
             => $"{expr} LIKE {pattern}";
 
+        /// <summary>LIKE … ESCAPE 谓词片段。</summary>
+        public virtual string like(string expr, string pattern, string escape)
+            => $"{expr} LIKE {pattern} ESCAPE {escape}";
+
         /// <summary>SUBSTRING / 子串（默认 SUBSTRING，方言可 override）。</summary>
         public virtual string substring(string expr, string start, string? length = null)
             => length == null ? $"SUBSTRING({expr}, {start})" : $"SUBSTRING({expr}, {start}, {length})";

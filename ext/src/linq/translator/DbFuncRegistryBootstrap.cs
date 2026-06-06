@@ -20,8 +20,8 @@ internal static class DbFuncRegistryBootstrap
             return;
 
         var expr = db.dialect.expression;
-        RegisterLike(registry);
-        RegisterBetween(registry);
+        RegisterLike(registry, expr);
+        RegisterBetween(registry, expr);
         RegisterInList(registry);
         RegisterStringDate(registry, expr);
         RegisterNullIfCoalesce(registry, expr);
@@ -30,21 +30,21 @@ internal static class DbFuncRegistryBootstrap
         RegisterDateDiff(registry);
     }
 
-    static void RegisterLike(DbFuncRegistry registry)
+    static void RegisterLike(DbFuncRegistry registry, SQLExpression expr)
     {
         registry.Register(
             GetMethod(nameof(DbFunc.Like), typeof(string), typeof(string)),
-            new DbFuncExpressionEntry { SqlTemplate = "{0} LIKE {1}", IsPredicate = true, PreferServerSide = true });
+            new DbFuncExpressionEntry { SqlTemplate = expr.like("{0}", "{1}"), IsPredicate = true, PreferServerSide = true });
 
         registry.Register(
             GetMethod(nameof(DbFunc.Like), typeof(string), typeof(string), typeof(char)),
-            new DbFuncExpressionEntry { SqlTemplate = "{0} LIKE {1} ESCAPE {2}", IsPredicate = true, PreferServerSide = true });
+            new DbFuncExpressionEntry { SqlTemplate = expr.like("{0}", "{1}", "{2}"), IsPredicate = true, PreferServerSide = true });
     }
 
-    static void RegisterBetween(DbFuncRegistry registry)
+    static void RegisterBetween(DbFuncRegistry registry, SQLExpression expr)
     {
-        var betweenEntry = new DbFuncExpressionEntry { SqlTemplate = "{0} BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true };
-        var notBetweenEntry = new DbFuncExpressionEntry { SqlTemplate = "{0} NOT BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true };
+        var betweenEntry = new DbFuncExpressionEntry { SqlTemplate = expr.between("{0}", "{1}", "{2}"), IsPredicate = true, PreferServerSide = true };
+        var notBetweenEntry = new DbFuncExpressionEntry { SqlTemplate = expr.notBetween("{0}", "{1}", "{2}"), IsPredicate = true, PreferServerSide = true };
 
         foreach (var between in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
                      .Where(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3))
