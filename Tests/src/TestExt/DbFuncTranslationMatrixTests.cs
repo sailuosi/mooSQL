@@ -135,7 +135,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var sub = typeof(DbFunc).GetMethod(nameof(DbFunc.Substring), new[] { typeof(string), typeof(int?), typeof(int?) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(sub);
         Assert.NotNull(entry);
-        Assert.Contains("SUBSTRING", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Substr", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -282,6 +282,60 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var express = (SQLExpression)System.Activator.CreateInstance(expressType, new SQLiteDialect())!;
         var format = express.nullIf("{0}", "{1}");
         Assert.Contains(expectedFragment, format, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_StringFuncs_NoFunctionAttribute()
+    {
+        foreach (var name in new[] { nameof(DbFunc.Lower), nameof(DbFunc.Upper), nameof(DbFunc.Trim), nameof(DbFunc.Length), nameof(DbFunc.Substring) })
+        {
+            var method = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .First(m => m.Name == name && m.GetParameters().Length > 0 && m.GetParameters()[0].ParameterType == typeof(string));
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.FunctionAttribute), inherit: true));
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+        }
+    }
+
+    [Fact]
+    public void Matrix_Concat_RegisteredWithIsConcatPredicate()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var concat = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.Concat) && m.GetParameters()[0].ParameterType == typeof(string[]));
+        var entry = db.dialect.dbFuncRegistry.Resolve(concat)!;
+        Assert.True(entry.IsConcatPredicate);
+    }
+
+    [Fact]
+    public void Matrix_Concat_NoExpressionAttribute()
+    {
+        var concats = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.Concat));
+        foreach (var method in concats)
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+    }
+
+    [Fact]
+    public void Matrix_Concat_Select_EmitsConcat()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Concat(u.Name, "-", u.Email))
+                .Expression);
+        Assert.Contains("concat", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Length_RegistryUsesDialectLength()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var length = typeof(DbFunc).GetMethod(nameof(DbFunc.Length), new[] { typeof(string) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(length)!;
+        Assert.Contains("LENGTH", entry.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

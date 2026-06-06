@@ -187,6 +187,35 @@ namespace mooSQL.linq
 
 		public static T Coalesce<T>(T? a, T b) where T : struct => a ?? b;
 
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		[Obsolete("Prefer DbFuncRegistry / dialect.expression.between; Extension Builder removed in R12.")]
+		public static bool Between<T>(this T value, T low, T high)
+			where T : IComparable
+		{
+			return value != null && value.CompareTo(low) >= 0 && value.CompareTo(high) <= 0;
+		}
+
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		public static bool Between<T>(this T? value, T? low, T? high)
+			where T : struct, IComparable
+		{
+			return value != null && value.Value.CompareTo(low) >= 0 && value.Value.CompareTo(high) <= 0;
+		}
+
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		public static bool NotBetween<T>(this T value, T low, T high)
+			where T : IComparable
+		{
+			return value != null && (value.CompareTo(low) < 0 || value.CompareTo(high) > 0);
+		}
+
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		public static bool NotBetween<T>(this T? value, T? low, T? high)
+			where T : struct, IComparable
+		{
+			return value != null && (value.Value.CompareTo(low) < 0 || value.Value.CompareTo(high) > 0);
+		}
+
 		#endregion
 
 		#region NoConvert
@@ -410,28 +439,13 @@ namespace mooSQL.linq
 
 		#region String Functions
 
-		[Function  (                                                    PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.Access,     "Len",                               PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.Firebird,   "Char_Length",                       PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.SqlServer,  "Len",                               PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.SqlCe,      "Len",                               PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.Sybase,     "Len",                               PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.MySql,      "Char_Length",                       PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.Informix,   "CHAR_LENGTH",                       PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function  (ProviderName.ClickHouse, "CHAR_LENGTH",                       PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Expression(ProviderName.DB2LUW,     "CHARACTER_LENGTH({0},CODEUNITS32)", PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static int? Length(string? str)
 		{
 			return str?.Length;
 		}
 
-		[Function  (                                                PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.Access,   "Mid",                             PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.DB2,      "Substr",                          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.Informix, "Substr",                          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.Oracle,   "Substr",                          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.SQLite,   "Substr",                          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.Firebird, "Substring({0} from {1} for {2})", PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static string? Substring(string? str, int? start, int? length)
 		{
 			if (str == null || start == null || length == null) return null;
@@ -963,7 +977,7 @@ namespace mooSQL.linq
 		}
 		#endregion
 
-		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static string? Trim(string? str)
 		{
 			return str?.Trim();
@@ -1011,13 +1025,13 @@ namespace mooSQL.linq
 			return str == null || ch == null ? null : str.TrimEnd(ch.Value);
 		}
 
-		[Function(PseudoFunctions.TO_LOWER, ServerSideOnly = true, IsPure = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static string? Lower(string? str)
 		{
 			return str?.ToLower(CultureInfo.CurrentCulture);
 		}
 
-		[Function(PseudoFunctions.TO_UPPER, ServerSideOnly = true, IsPure = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="FunctionAttribute"/>。</summary>
 		public static string? Upper(string? str)
 		{
 			return str?.ToUpper(CultureInfo.CurrentCulture);
@@ -1038,22 +1052,13 @@ namespace mooSQL.linq
 			return val?.ToString($"d{length}", NumberFormatInfo.InvariantInfo);
 		}
 
-		sealed class ConcatAttribute : ExpressionAttribute
-		{
-			public ConcatAttribute() : base("")
-			{
-			}
-
-
-		}
-
-		[Concat]
+		/// <summary>registry-first（Bootstrap <see cref="mooSQL.data.translation.DbFuncExpressionEntry.IsConcatPredicate"/>）；无 <see cref="ExpressionAttribute"/>。</summary>
 		public static string Concat(params object[] args)
 		{
 			return string.Concat(args);
 		}
 
-		[Concat]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="ExpressionAttribute"/>。</summary>
 		public static string Concat(params string[] args)
 		{
 			return string.Concat(args);

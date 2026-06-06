@@ -23,5 +23,7 @@ namespace mooSQL.data.translation
         public bool IsDateDiffPredicate { get; init; }
         /// <summary>NullIf(value, compareTo) — 由 <see cref="SQLExpression.nullIf"/> 方言片段翻译。</summary>
         public bool IsNullIfPredicate { get; init; }
+        /// <summary>Concat(params …) — 由 <see cref="SQLExpression.stringConcat"/> 链折叠翻译。</summary>
+        public bool IsConcatPredicate { get; init; }
     }
 }

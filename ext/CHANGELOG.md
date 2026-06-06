@@ -15,6 +15,15 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R18）
+
+- **字符串函数 registry-only**：Lower/Upper/Trim/Substring/Length 移除 `[Function]`/`[Expression]`
+- **Concat `IsConcatPredicate`**：`TranslateConcat` + 移除 `ConcatAttribute`
+- **Pure `length()`** + SQLite `substring()` → `Substr`
+- **物理删除 `DbFunc.Between.cs`**（合并进 `DbFunc.cs`）
+- **三入口快照 +2**：`ThreeEntrySnapshot_Concat`、`ThreeEntrySnapshot_DateAdd`
+- **矩阵 +5**：`Matrix_StringFuncs_NoFunctionAttribute`、`Matrix_Concat_*` 等
+
 ### 新增（Phase D/E R17）
 
 - **NullIf registry-only**：`IsNullIfPredicate` + `TranslateNullIf`；移除全部 `[Expression]`（含 Access/SqlCe 方言）

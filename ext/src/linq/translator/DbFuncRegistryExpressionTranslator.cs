@@ -65,6 +65,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return nullIfSql;
         }
 
+        if (entry.IsConcatPredicate)
+        {
+            var concatSql = TranslateConcat(builder, context, mc, db);
+            if (concatSql != null)
+                return concatSql;
+        }
+
         if (entry.PreferExtensionAttribute)
         {
             var extAttr = mc.Method.GetExpressionAttribute(db);
@@ -93,7 +100,7 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
-                              && !entry.IsDateDiffPredicate && !entry.IsNullIfPredicate))
+                              && !entry.IsDateDiffPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -186,6 +193,40 @@ internal static class DbFuncRegistryExpressionTranslator
         var format = db.dialect.expression.nullIf("{0}", "{1}");
         var sql = new ExpressionWord(mc.Type, format, PrecedenceLv.Primary, leftPh.Sql, rightPh.Sql);
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static Expression? TranslateConcat(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count != 1)
+            return null;
+
+        var parts = new System.Collections.Generic.List<Expression>();
+        var arg0 = mc.Arguments[0];
+        if (arg0 is NewArrayExpression nae)
+            parts.AddRange(nae.Expressions);
+        else
+            parts.Add(arg0);
+
+        if (parts.Count == 0)
+            return null;
+
+        IExpWord? acc = null;
+        foreach (var part in parts)
+        {
+            var sqlExpr = builder.ConvertToSqlExpr(context, part, ProjectFlags.SQL);
+            if (sqlExpr is not SqlPlaceholderExpression ph)
+                return null;
+
+            acc = acc == null
+                ? ph.Sql
+                : new ExpressionWord(typeof(string), db.dialect.expression.concat("{0}", "{1}"), PrecedenceLv.Primary, acc, ph.Sql);
+        }
+
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, acc!, mc);
     }
 
     static bool TryGetConstantDatePart(Expression expr, out DbFunc.DateParts part)

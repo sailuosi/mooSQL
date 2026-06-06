@@ -47,6 +47,9 @@ namespace mooSQL.data
         public override string dateDiffMillisecond(string start, string end)
             => $"round((julianday({end}) - julianday({start})) * 86400000)";
 
+        public override string substring(string expr, string start, string? length = null)
+            => length == null ? $"Substr({expr}, {start})" : $"Substr({expr}, {start}, {length})";
+
         /// <summary>
         /// 创建普通的select语句
         /// </summary>

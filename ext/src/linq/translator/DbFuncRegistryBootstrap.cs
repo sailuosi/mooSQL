@@ -90,7 +90,7 @@ internal static class DbFuncRegistryBootstrap
         {
             registry.Register(
                 concat,
-                new DbFuncExpressionEntry { SqlTemplate = expr.concat("{0}", "{1}"), PreferServerSide = true });
+                new DbFuncExpressionEntry { PreferServerSide = true, IsConcatPredicate = true });
         }
 
         var dateAdd = typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(DateTime?) });
@@ -106,7 +106,7 @@ internal static class DbFuncRegistryBootstrap
         {
             registry.Register(
                 length,
-                new DbFuncExpressionEntry { SqlTemplate = "LENGTH({0})", PreferServerSide = true });
+                new DbFuncExpressionEntry { SqlTemplate = expr.length("{0}"), PreferServerSide = true });
         }
 
         var lower = typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) });

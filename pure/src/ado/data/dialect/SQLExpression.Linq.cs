@@ -45,6 +45,7 @@ namespace mooSQL.data
         public virtual string lower(string expr) => $"LOWER({expr})";
         public virtual string upper(string expr) => $"UPPER({expr})";
         public virtual string trim(string expr) => $"TRIM({expr})";
+        public virtual string length(string expr) => $"LENGTH({expr})";
 
         /// <summary>COALESCE 片段。</summary>
         public virtual string coalesce(string left, string right) => $"COALESCE({left}, {right})";
