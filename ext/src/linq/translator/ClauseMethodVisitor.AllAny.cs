@@ -58,7 +58,7 @@ internal partial class ClauseMethodVisitor
             sequence.SetAlias(condition.Parameters[0].Name);
         }
 
-        _ = Context.Builder.MakeExpression(
+        _ = Context.Builder.BuildProjection(
             sequence,
             new ContextRefExpression(methodCall.Method.GetGenericArguments()[0], sequence),
             ProjectFlags.ExtractProjection);

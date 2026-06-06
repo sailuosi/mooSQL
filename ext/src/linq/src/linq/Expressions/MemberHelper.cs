@@ -48,7 +48,7 @@ namespace mooSQL.linq.Expressions
 		/// </summary>
 		/// <param name="func">The lambda expression.</param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; Sql.Property(x, \"SomeProperty\")).</exception>
+		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; DbFunc.Property(x, \"SomeProperty\")).</exception>
 		public static MemberInfo GetMemberInfo(LambdaExpression func)
 		{
 			return GetMemberInfo(func.Body);
@@ -59,7 +59,7 @@ namespace mooSQL.linq.Expressions
 		/// </summary>
 		/// <param name="func">The lambda expression.</param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; Sql.Property(x, \"SomeProperty\")).</exception>
+		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; DbFunc.Property(x, \"SomeProperty\")).</exception>
 		public static MemberInfoWithType GetMemberInfoWithType(LambdaExpression func)
 		{
 			return GetMemberInfoWithType(func.Body);
@@ -74,12 +74,12 @@ namespace mooSQL.linq.Expressions
 		/// <item><description>For: x =&gt; x.SomeProperty, returns MemberInfo of SomeProperty.</description></item>
 		/// <item><description>For: x =&gt; x.SomeMethod(), returns MethodInfo of SomeMethod.</description></item>
 		/// <item><description>For: x =&gt; new { X = x.Name }, return ConstructorInfo of anonymous type.</description></item>
-		/// <item><description>For: x =&gt; Sql.Property&lt;int&gt;(x, "SomeProperty"), returns MemberInfo of "SomeProperty" if exists on type, otherwise returns DynamicColumnInfo for SomeProperty on given type.</description></item>
+		/// <item><description>For: x =&gt; DbFunc.Property&lt;int&gt;(x, "SomeProperty"), returns MemberInfo of "SomeProperty" if exists on type, otherwise returns DynamicColumnInfo for SomeProperty on given type.</description></item>
 		/// </list>
 		/// </remarks>
 		/// <param name="expr">The expression.</param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; Sql.Property(x, \"SomeProperty\")).</exception>
+		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; DbFunc.Property(x, \"SomeProperty\")).</exception>
 		public static MemberInfo GetMemberInfo(Expression expr)
 		{
 			return GetMemberInfoWithType(expr).MemberInfo;
@@ -94,12 +94,12 @@ namespace mooSQL.linq.Expressions
 		/// <item><description>For: x =&gt; x.SomeProperty, returns MemberInfo of SomeProperty.</description></item>
 		/// <item><description>For: x =&gt; x.SomeMethod(), returns MethodInfo of SomeMethod.</description></item>
 		/// <item><description>For: x =&gt; new { X = x.Name }, return ConstructorInfo of anonymous type.</description></item>
-		/// <item><description>For: x =&gt; Sql.Property&lt;int&gt;(x, "SomeProperty"), returns MemberInfo of "SomeProperty" if exists on type, otherwise returns DynamicColumnInfo for SomeProperty on given type.</description></item>
+		/// <item><description>For: x =&gt; DbFunc.Property&lt;int&gt;(x, "SomeProperty"), returns MemberInfo of "SomeProperty" if exists on type, otherwise returns DynamicColumnInfo for SomeProperty on given type.</description></item>
 		/// </list>
 		/// </remarks>
 		/// <param name="expr">The expression.</param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; Sql.Property(x, \"SomeProperty\")).</exception>
+		/// <exception cref="ArgumentException">Only simple, non-navigational, member names are supported in this context (e.g.: x =&gt; DbFunc.Property(x, \"SomeProperty\")).</exception>
 		public static MemberInfoWithType GetMemberInfoWithType(Expression expr)
 		{
 			while (expr.NodeType == ExpressionType.Convert || expr.NodeType == ExpressionType.ConvertChecked || expr.NodeType == ExpressionType.TypeAs)

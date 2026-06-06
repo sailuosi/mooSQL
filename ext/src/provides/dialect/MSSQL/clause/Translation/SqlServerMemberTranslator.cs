@@ -22,26 +22,26 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 
 		public class SqlServerDateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
-			public static string? DatePartToStr(Sql.DateParts part)
+			public static string? DatePartToStr(DbFunc.DateParts part)
 			{
 				return part switch
 				{
-					Sql.DateParts.Year => "year",
-					Sql.DateParts.Quarter => "quarter",
-					Sql.DateParts.Month => "month",
-					Sql.DateParts.DayOfYear => "dayofyear",
-					Sql.DateParts.Day => "day",
-					Sql.DateParts.Week => "week",
-					Sql.DateParts.WeekDay => "weekday",
-					Sql.DateParts.Hour => "hour",
-					Sql.DateParts.Minute => "minute",
-					Sql.DateParts.Second => "second",
-					Sql.DateParts.Millisecond => "millisecond",
+					DbFunc.DateParts.Year => "year",
+					DbFunc.DateParts.Quarter => "quarter",
+					DbFunc.DateParts.Month => "month",
+					DbFunc.DateParts.DayOfYear => "dayofyear",
+					DbFunc.DateParts.Day => "day",
+					DbFunc.DateParts.Week => "week",
+					DbFunc.DateParts.WeekDay => "weekday",
+					DbFunc.DateParts.Hour => "hour",
+					DbFunc.DateParts.Minute => "minute",
+					DbFunc.DateParts.Second => "second",
+					DbFunc.DateParts.Millisecond => "millisecond",
 					_ => null
 				};
 			}
 
-			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var partStr = DatePartToStr(datepart);
 
@@ -56,13 +56,13 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 				return resultExpression;
 			}
 
-			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
-				Sql.DateParts                                                       datepart)
+				DbFunc.DateParts                                                       datepart)
 			{
 				var factory = translationContext.ExpressionFactory;
 				var dateType = factory.GetDbDataType(dateTimeExpression);
@@ -78,7 +78,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 				return resultExpression;
 			}
 
-			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
@@ -165,12 +165,12 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 				return factory.Fragment(factory.GetDbDataType(typeof(DateTime)), "CURRENT_TIMESTAMP");
 			}
 
-			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
 
-			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}

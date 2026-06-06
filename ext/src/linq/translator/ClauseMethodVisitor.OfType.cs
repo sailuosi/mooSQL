@@ -31,7 +31,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var sequence = buildResult.BuildContext;
-        IBuildContext? result = sequence;
+        IClauseContext? result = sequence;
 
         if (sequence is TableContext table
             && table.InheritanceMapping.Count > 0)
@@ -84,7 +84,7 @@ internal partial class ClauseMethodVisitor
     static bool CanBuildOfType(MethodCallExpression call)
         => call.IsQueryable();
 
-    static IAffirmWord MakeOfTypeIsPredicate(ClauseSqlTranslator builder, IBuildContext context, Type fromType, Type toType)
+    static IAffirmWord MakeOfTypeIsPredicate(ClauseSqlTranslator builder, IClauseContext context, Type fromType, Type toType)
     {
         var en = builder.DBLive.client.EntityCash.getEntityInfo(fromType);
         var table = new TableWord(en);

@@ -48,7 +48,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
-			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
 				var intDbType    = factory.GetDbDataType(typeof(int));
@@ -58,17 +58,17 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:        partStr = "year";        break;
-					case Sql.DateParts.Quarter:     partStr = "quarter";     break;
-					case Sql.DateParts.Month:       partStr = "month";       break;
-					case Sql.DateParts.DayOfYear:   partStr = "doy";         break;
-					case Sql.DateParts.Day:         partStr = "day";         break;
-					case Sql.DateParts.Week:        partStr = "week";        break;
-					case Sql.DateParts.WeekDay:     partStr = "dow";         break;
-					case Sql.DateParts.Hour:        partStr = "hour";        break;
-					case Sql.DateParts.Minute:      partStr = "minute";      break;
-					case Sql.DateParts.Second:      partStr = "second";      break;
-					case Sql.DateParts.Millisecond:
+					case DbFunc.DateParts.Year:        partStr = "year";        break;
+					case DbFunc.DateParts.Quarter:     partStr = "quarter";     break;
+					case DbFunc.DateParts.Month:       partStr = "month";       break;
+					case DbFunc.DateParts.DayOfYear:   partStr = "doy";         break;
+					case DbFunc.DateParts.Day:         partStr = "day";         break;
+					case DbFunc.DateParts.Week:        partStr = "week";        break;
+					case DbFunc.DateParts.WeekDay:     partStr = "dow";         break;
+					case DbFunc.DateParts.Hour:        partStr = "hour";        break;
+					case DbFunc.DateParts.Minute:      partStr = "minute";      break;
+					case DbFunc.DateParts.Second:      partStr = "second";      break;
+					case DbFunc.DateParts.Millisecond:
 					{
 						// Cast(To_Char({date}, 'MS') as int
 
@@ -84,7 +84,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
                 IExpWord resultExpression;
 
 				var extractDbType = doubleDbType;
-				/*if (datepart == Sql.DateParts.Hour)
+				/*if (datepart == DbFunc.DateParts.Hour)
 				{
 					resultExpression = factory.Function(intDbType, "Extract", factory.Fragment(intDbType, $"{partStr} From {{0}}", dateTimeExpression));
 				}
@@ -95,7 +95,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 						intDbType);
 				}
 
-				if (datepart == Sql.DateParts.WeekDay)
+				if (datepart == DbFunc.DateParts.WeekDay)
 				{
 					resultExpression = factory.Increment(resultExpression);
 				}
@@ -103,7 +103,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 				return resultExpression;
 			}
 
-			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}
@@ -134,7 +134,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 				return dateTruncExpression;
 			}
 
-			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
 				var intervalType = factory.GetDbDataType(typeof(TimeSpan)).WithDataType(DataFam.Interval);
@@ -149,17 +149,17 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
                 IExpWord intervalExpr;
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:    intervalExpr = ToInterval(increment, "1 Year"); break;
-					case Sql.DateParts.Quarter: intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Month"), 3); break;
-					case Sql.DateParts.Month:   intervalExpr = ToInterval(increment, "1 Month"); break;
-					case Sql.DateParts.Week:        intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Day"), 7); break;
-					case Sql.DateParts.Hour:        intervalExpr = ToInterval(increment, "1 Hour"); break;
-					case Sql.DateParts.Minute:      intervalExpr = ToInterval(increment, "1 Minute"); break;
-					case Sql.DateParts.Second:      intervalExpr = ToInterval(increment, "1 Second"); break;
-					case Sql.DateParts.Millisecond: intervalExpr = ToInterval(increment, "1 Millisecond"); break;
-					case Sql.DateParts.DayOfYear:
-					case Sql.DateParts.WeekDay:
-					case Sql.DateParts.Day: intervalExpr = ToInterval(increment, "1 Day"); break;
+					case DbFunc.DateParts.Year:    intervalExpr = ToInterval(increment, "1 Year"); break;
+					case DbFunc.DateParts.Quarter: intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Month"), 3); break;
+					case DbFunc.DateParts.Month:   intervalExpr = ToInterval(increment, "1 Month"); break;
+					case DbFunc.DateParts.Week:        intervalExpr = factory.Multiply(intervalType, ToInterval(increment, "1 Day"), 7); break;
+					case DbFunc.DateParts.Hour:        intervalExpr = ToInterval(increment, "1 Hour"); break;
+					case DbFunc.DateParts.Minute:      intervalExpr = ToInterval(increment, "1 Minute"); break;
+					case DbFunc.DateParts.Second:      intervalExpr = ToInterval(increment, "1 Second"); break;
+					case DbFunc.DateParts.Millisecond: intervalExpr = ToInterval(increment, "1 Millisecond"); break;
+					case DbFunc.DateParts.DayOfYear:
+					case DbFunc.DateParts.WeekDay:
+					case DbFunc.DateParts.Day: intervalExpr = ToInterval(increment, "1 Day"); break;
 					default:
 						return null;
 				}
@@ -168,7 +168,7 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 				return resultExpression;
 			}
 
-			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
@@ -211,12 +211,12 @@ namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
 				return resultExpression;
 			}
 
-			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
 
-			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}

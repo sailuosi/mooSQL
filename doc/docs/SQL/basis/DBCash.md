@@ -22,7 +22,8 @@ var dt = db.Count();
 ````
 
 ## useQueryable
-获取 **Ext LINQ** 标准 Queryable 入口（`ITable<T>`），用法接近 EF Core `DbSet`、SqlSugar `Queryable`。别名：`AsQueryable<T>()`、`useEntity<T>()`（DBCash）、`GetTable<T>()`（Linq2DB 兼容）。
+
+获取 **Ext LINQ** 标准 Queryable 入口（`IDbQuery<T>`），用法接近 EF Core `DbSet`、SqlSugar `Queryable`。入口：`useQueryable<T>()`、`AsQueryable<T>()`。
 
 ````c#
 var table = DBCash.useQueryable<SysUserConfig>(0);

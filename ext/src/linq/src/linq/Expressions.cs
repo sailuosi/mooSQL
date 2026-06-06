@@ -305,35 +305,35 @@ namespace mooSQL.linq.Linq
 		{
 			#region string
 
-			{ M(() => "".Length               ), N(() => L<string,int>                     ((string obj)                              => Sql.Length(obj)!.Value)) },
-			{ M(() => "".Substring  (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => Sql.Substring(obj, p0 + 1, obj!.Length - p0))) },
-			{ M(() => "".Substring  (0,0)     ), N(() => L<string?,int,int,string?>        ((string? obj,int  p0,int  p1)             => Sql.Substring(obj, p0 + 1, p1))) },
-			{ M(() => "".IndexOf    ("")      ), N(() => L<string,string,int>              ((string obj,string p0)                    => p0.Length == 0                    ? 0  : (Sql.CharIndex(p0, obj)!                      .Value) - 1)) },
-			{ M(() => "".IndexOf    ("",0)    ), N(() => L<string,string,int,int>          ((string obj,string p0,int  p1)            => p0.Length == 0 && obj.Length > p1 ? p1 : (Sql.CharIndex(p0, obj,               p1 + 1)!.Value) - 1)) },
-			{ M(() => "".IndexOf    ("",0,0)  ), N(() => L<string,string,int,int,int>      ((string obj,string p0,int  p1,int p2)     => p0.Length == 0 && obj.Length > p1 ? p1 : (Sql.CharIndex(p0, Sql.Left(obj, p2), p1)!    .Value) - 1)) },
-			{ M(() => "".IndexOf    (' ')     ), N(() => L<string,char,int>                ((string obj,char   p0)                    =>                                          (Sql.CharIndex(p0, obj)!                      .Value) - 1)) },
-			{ M(() => "".IndexOf    (' ',0)   ), N(() => L<string,char,int,int>            ((string obj,char   p0,int  p1)            =>                                          (Sql.CharIndex(p0, obj,               p1 + 1)!.Value) - 1)) },
-			{ M(() => "".IndexOf    (' ',0,0) ), N(() => L<string,char,int,int,int>        ((string obj,char   p0,int  p1,int p2)     =>                                          (Sql.CharIndex(p0, Sql.Left(obj, p2), p1)     ?? 0) - 1)) },
-			{ M(() => "".LastIndexOf("")      ), N(() => L<string,string,int>              ((string obj,string p0)                    => p0.Length == 0 ? obj.Length - 1 : (Sql.CharIndex(p0, obj)!                           .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj))!                              .Value) - p0.Length + 1)) },
+			{ M(() => "".Length               ), N(() => L<string,int>                     ((string obj)                              => DbFunc.Length(obj)!.Value)) },
+			{ M(() => "".Substring  (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => DbFunc.Substring(obj, p0 + 1, obj!.Length - p0))) },
+			{ M(() => "".Substring  (0,0)     ), N(() => L<string?,int,int,string?>        ((string? obj,int  p0,int  p1)             => DbFunc.Substring(obj, p0 + 1, p1))) },
+			{ M(() => "".IndexOf    ("")      ), N(() => L<string,string,int>              ((string obj,string p0)                    => p0.Length == 0                    ? 0  : (DbFunc.CharIndex(p0, obj)!                      .Value) - 1)) },
+			{ M(() => "".IndexOf    ("",0)    ), N(() => L<string,string,int,int>          ((string obj,string p0,int  p1)            => p0.Length == 0 && obj.Length > p1 ? p1 : (DbFunc.CharIndex(p0, obj,               p1 + 1)!.Value) - 1)) },
+			{ M(() => "".IndexOf    ("",0,0)  ), N(() => L<string,string,int,int,int>      ((string obj,string p0,int  p1,int p2)     => p0.Length == 0 && obj.Length > p1 ? p1 : (DbFunc.CharIndex(p0, DbFunc.Left(obj, p2), p1)!    .Value) - 1)) },
+			{ M(() => "".IndexOf    (' ')     ), N(() => L<string,char,int>                ((string obj,char   p0)                    =>                                          (DbFunc.CharIndex(p0, obj)!                      .Value) - 1)) },
+			{ M(() => "".IndexOf    (' ',0)   ), N(() => L<string,char,int,int>            ((string obj,char   p0,int  p1)            =>                                          (DbFunc.CharIndex(p0, obj,               p1 + 1)!.Value) - 1)) },
+			{ M(() => "".IndexOf    (' ',0,0) ), N(() => L<string,char,int,int,int>        ((string obj,char   p0,int  p1,int p2)     =>                                          (DbFunc.CharIndex(p0, DbFunc.Left(obj, p2), p1)     ?? 0) - 1)) },
+			{ M(() => "".LastIndexOf("")      ), N(() => L<string,string,int>              ((string obj,string p0)                    => p0.Length == 0 ? obj.Length - 1 : (DbFunc.CharIndex(p0, obj)!                           .Value) == 0 ? -1 : obj.Length - (DbFunc.CharIndex(DbFunc.Reverse(p0), DbFunc.Reverse(obj))!                              .Value) - p0.Length + 1)) },
 #pragma warning disable CA1514 // CA1514: Avoid redundant length argument
-			{ M(() => "".LastIndexOf("",0)    ), N(() => L<string,string,int,int>          ((string obj,string p0,int  p1)            => p0.Length == 0 ? p1             : (Sql.CharIndex(p0, obj,                    p1 + 1)!.Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, obj.Length - p1)))!.Value) - p0.Length + 1)) },
+			{ M(() => "".LastIndexOf("",0)    ), N(() => L<string,string,int,int>          ((string obj,string p0,int  p1)            => p0.Length == 0 ? p1             : (DbFunc.CharIndex(p0, obj,                    p1 + 1)!.Value) == 0 ? -1 : obj.Length - (DbFunc.CharIndex(DbFunc.Reverse(p0), DbFunc.Reverse(obj.Substring(p1, obj.Length - p1)))!.Value) - p0.Length + 1)) },
 #pragma warning restore CA1514 // CA1514: Avoid redundant length argument
-			{ M(() => "".LastIndexOf("",0,0)  ), N(() => L<string,string,int,int,int>      ((string obj,string p0,int  p1,int p2)     => p0.Length == 0 ? p1             : (Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1)!.Value) == 0 ? -1 :    p1 + p2 - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, p2)))!             .Value) - p0.Length + 1)) },
-			{ M(() => "".LastIndexOf(' ')     ), N(() => L<string,char,int>                ((string obj,char   p0)                    => (Sql.CharIndex(p0, obj)!                           .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(p0, Sql.Reverse(obj))!                               .Value))) },
+			{ M(() => "".LastIndexOf("",0,0)  ), N(() => L<string,string,int,int,int>      ((string obj,string p0,int  p1,int p2)     => p0.Length == 0 ? p1             : (DbFunc.CharIndex(p0, DbFunc.Left(obj, p1 + p2), p1 + 1)!.Value) == 0 ? -1 :    p1 + p2 - (DbFunc.CharIndex(DbFunc.Reverse(p0), DbFunc.Reverse(obj.Substring(p1, p2)))!             .Value) - p0.Length + 1)) },
+			{ M(() => "".LastIndexOf(' ')     ), N(() => L<string,char,int>                ((string obj,char   p0)                    => (DbFunc.CharIndex(p0, obj)!                           .Value) == 0 ? -1 : obj.Length - (DbFunc.CharIndex(p0, DbFunc.Reverse(obj))!                               .Value))) },
 #pragma warning disable CA1514 // CA1514: Avoid redundant length argument
-			{ M(() => "".LastIndexOf(' ',0)   ), N(() => L<string,char,int,int>            ((string obj,char   p0,int  p1)            => (Sql.CharIndex(p0, obj, p1 + 1)!                   .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, obj.Length - p1)))!.Value))) },
+			{ M(() => "".LastIndexOf(' ',0)   ), N(() => L<string,char,int,int>            ((string obj,char   p0,int  p1)            => (DbFunc.CharIndex(p0, obj, p1 + 1)!                   .Value) == 0 ? -1 : obj.Length - (DbFunc.CharIndex(p0, DbFunc.Reverse(obj.Substring(p1, obj.Length - p1)))!.Value))) },
 #pragma warning restore CA1514 // CA1514: Avoid redundant length argument
-			{ M(() => "".LastIndexOf(' ',0,0) ), N(() => L<string,char,int,int,int>        ((string obj,char   p0,int  p1,int p2)     => (Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1)!.Value) == 0 ? -1 : p1 + p2    - (Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, p2)))!             .Value))) },
-			{ M(() => "".Insert     (0,"")    ), N(() => L<string?,int,string?,string?>    ((string? obj,int  p0,string? p1)          => obj!.Length == p0 ? obj + p1 : Sql.Stuff(obj, p0 + 1, 0, p1))) },
-			{ M(() => "".Remove     (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => Sql.Left     (obj, p0))) },
-			{ M(() => "".Remove     (0,0)     ), N(() => L<string?,int,int,string?>        ((string? obj,int  p0,int  p1)             => Sql.Stuff    (obj, p0 + 1, p1, ""))) },
-			{ M(() => "".PadLeft    (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => Sql.PadLeft  (obj, p0, ' '))) },
-			{ M(() => "".PadLeft    (0,' ')   ), N(() => L<string?,int,char,string?>       ((string? obj,int  p0,char   p1)           => Sql.PadLeft  (obj, p0, p1))) },
-			{ M(() => "".PadRight   (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => Sql.PadRight (obj, p0, ' '))) },
-			{ M(() => "".PadRight   (0,' ')   ), N(() => L<string?,int,char,string?>       ((string? obj,int  p0,char   p1)           => Sql.PadRight (obj, p0, p1))) },
-			{ M(() => "".Replace    ("","")   ), N(() => L<string?,string?,string?,string?>((string? obj,string? p0,string? p1)       => Sql.Replace  (obj, p0, p1))) },
-			{ M(() => "".Replace    (' ',' ') ), N(() => L<string?,char,char,string?>      ((string? obj,char   p0,char   p1)         => Sql.Replace  (obj, p0, p1))) },
-			{ M(() => "".Trim       ()        ), N(() => L<string?,string?>                ((string? obj)                             => Sql.Trim     (obj))) },
+			{ M(() => "".LastIndexOf(' ',0,0) ), N(() => L<string,char,int,int,int>        ((string obj,char   p0,int  p1,int p2)     => (DbFunc.CharIndex(p0, DbFunc.Left(obj, p1 + p2), p1 + 1)!.Value) == 0 ? -1 : p1 + p2    - (DbFunc.CharIndex(p0, DbFunc.Reverse(obj.Substring(p1, p2)))!             .Value))) },
+			{ M(() => "".Insert     (0,"")    ), N(() => L<string?,int,string?,string?>    ((string? obj,int  p0,string? p1)          => obj!.Length == p0 ? obj + p1 : DbFunc.Stuff(obj, p0 + 1, 0, p1))) },
+			{ M(() => "".Remove     (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => DbFunc.Left     (obj, p0))) },
+			{ M(() => "".Remove     (0,0)     ), N(() => L<string?,int,int,string?>        ((string? obj,int  p0,int  p1)             => DbFunc.Stuff    (obj, p0 + 1, p1, ""))) },
+			{ M(() => "".PadLeft    (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => DbFunc.PadLeft  (obj, p0, ' '))) },
+			{ M(() => "".PadLeft    (0,' ')   ), N(() => L<string?,int,char,string?>       ((string? obj,int  p0,char   p1)           => DbFunc.PadLeft  (obj, p0, p1))) },
+			{ M(() => "".PadRight   (0)       ), N(() => L<string?,int,string?>            ((string? obj,int  p0)                     => DbFunc.PadRight (obj, p0, ' '))) },
+			{ M(() => "".PadRight   (0,' ')   ), N(() => L<string?,int,char,string?>       ((string? obj,int  p0,char   p1)           => DbFunc.PadRight (obj, p0, p1))) },
+			{ M(() => "".Replace    ("","")   ), N(() => L<string?,string?,string?,string?>((string? obj,string? p0,string? p1)       => DbFunc.Replace  (obj, p0, p1))) },
+			{ M(() => "".Replace    (' ',' ') ), N(() => L<string?,char,char,string?>      ((string? obj,char   p0,char   p1)         => DbFunc.Replace  (obj, p0, p1))) },
+			{ M(() => "".Trim       ()        ), N(() => L<string?,string?>                ((string? obj)                             => DbFunc.Trim     (obj))) },
 
 #if NET6_0_OR_GREATER
 			{ M(() => "".TrimEnd    ()        ), N(() => L<string,string?>                 ((string obj)                              =>     TrimRight(obj)))     },
@@ -344,8 +344,8 @@ namespace mooSQL.linq.Linq
 			{ M(() => "".TrimEnd    ((char[])null!)), N(() => L<string,char[],string?>     ((string obj,char[] ch)                    => TrimRight(obj, ch))) },
 			{ M(() => "".TrimStart  ((char[])null!)), N(() => L<string,char[],string?>     ((string obj,char[] ch)                    => TrimLeft (obj, ch))) },
 #pragma warning disable CA1304, MA0011 // use CultureInfo
-			{ M(() => "".ToLower    ()        ), N(() => L<string?,string?>                ((string? obj)                             => Sql.Lower(obj))) },
-			{ M(() => "".ToUpper    ()        ), N(() => L<string?,string?>                ((string? obj)                             => Sql.Upper(obj))) },
+			{ M(() => "".ToLower    ()        ), N(() => L<string?,string?>                ((string? obj)                             => DbFunc.Lower(obj))) },
+			{ M(() => "".ToUpper    ()        ), N(() => L<string?,string?>                ((string? obj)                             => DbFunc.Upper(obj))) },
 #pragma warning restore CA1304, MA0011 // use CultureInfo
 			{ M(() => "".CompareTo  ("")      ), N(() => L<string,string,int>              ((string obj,string p0)                    => ConvertToCaseCompareTo(obj, p0)!.Value)) },
 #pragma warning disable MA0107 // object.ToString is bad, m'kay?
@@ -355,14 +355,14 @@ namespace mooSQL.linq.Linq
 			{ M(() => string.Concat((object)null!,(object)null!)               ), N(() => L<object,object,string>              ((object p0,object p1)                     => p0.ToString() + p1))      },
 			{ M(() => string.Concat((object)null!,(object)null!,(object)null!) ), N(() => L<object,object,object,string>       ((object p0,object p1,object p2)           => p0.ToString() + p1 + p2)) },
 #pragma warning restore MA0107 // object.ToString is bad, m'kay?
-			{ M(() => string.Concat((object[])null!)                           ), N(() => L<object[],string>                   ((object[] ps)                             => Sql.Concat(ps)))          },
+			{ M(() => string.Concat((object[])null!)                           ), N(() => L<object[],string>                   ((object[] ps)                             => DbFunc.Concat(ps)))          },
 			{ M(() => string.Concat("","")                                     ), N(() => L<string,string,string>              ((string p0,string p1)                     => p0 + p1))                 },
 			{ M(() => string.Concat("","","")                                  ), N(() => L<string,string,string,string>       ((string p0,string p1,string p2)           => p0 + p1 + p2))            },
 			{ M(() => string.Concat("","","","")                               ), N(() => L<string,string,string,string,string>((string p0,string p1,string p2,string p3) => p0 + p1 + p2 + p3))       },
-			{ M(() => string.Concat((string[])null!)                           ), N(() => L<string[],string>                   ((string[] ps)                             => Sql.Concat(ps)))          },
+			{ M(() => string.Concat((string[])null!)                           ), N(() => L<string[],string>                   ((string[] ps)                             => DbFunc.Concat(ps)))          },
 
 			{ M(() => string.IsNullOrEmpty ("")    ),                                         N(() => L<string,bool>                                   ((string p0)                                                   => p0 == null || p0.Length == 0)) },
-			{ M(() => string.IsNullOrWhiteSpace("")),                                         N(() => L<string,bool>                                   ((string p0)                                                   => Sql.IsNullOrWhiteSpace(p0))) },
+			{ M(() => string.IsNullOrWhiteSpace("")),                                         N(() => L<string,bool>                                   ((string p0)                                                   => DbFunc.IsNullOrWhiteSpace(p0))) },
 			{ M(() => string.CompareOrdinal("","")),                                          N(() => L<string,string,int>                             ((string s1,string s2)                                         => s1.CompareTo(s2))) },
 			{ M(() => string.CompareOrdinal("",0,"",0,0)),                                    N(() => L<string,int,string,int,int,int>                 ((string s1,int i1,string s2,int i2,int l)                     => s1.Substring(i1, l).CompareTo(s2.Substring(i2, l)))) },
 			{ M(() => string.Compare       ("","")),                                          N(() => L<string,string,int>                             ((string s1,string s2)                                         => s1.CompareTo(s2))) },
@@ -374,46 +374,46 @@ namespace mooSQL.linq.Linq
 			{ M(() => string.Compare       ("","",StringComparison.OrdinalIgnoreCase)),       N(() => L<string,string,StringComparison,int>            ((string s1,string s2,StringComparison sc)                     => sc == StringComparison.CurrentCultureIgnoreCase || sc==StringComparison.OrdinalIgnoreCase ? s1.ToLower().CompareTo(s2.ToLower()) : s1.CompareTo(s2))) },
 #pragma warning restore CA1304, MA0011 // use CultureInfo
 
-			{ M(() => AltStuff("",0,0,"")), N(() => L<string,int?,int?,string,string>((string p0,int? p1,int ?p2,string p3) => Sql.Left(p0, p1 - 1) + p3 + Sql.Right(p0, p0.Length - (p1 + p2 - 1)))) },
+			{ M(() => AltStuff("",0,0,"")), N(() => L<string,int?,int?,string,string>((string p0,int? p1,int ?p2,string p3) => DbFunc.Left(p0, p1 - 1) + p3 + DbFunc.Right(p0, p0.Length - (p1 + p2 - 1)))) },
 
 			#endregion
 
 			#region Binary
 
-			{ M(() => ((Binary)null!).Length ), N(() => L<Binary,int>((Binary obj) => Sql.Length(obj)!.Value)) },
+			{ M(() => ((Binary)null!).Length ), N(() => L<Binary,int>((Binary obj) => DbFunc.Length(obj)!.Value)) },
 
 			#endregion
 
 			#region Byte[]
 
-			{ M(() => ((byte[])null!).Length ), N(() => L<byte[],int>((byte[] obj) => Sql.Length(obj)!.Value)) },
+			{ M(() => ((byte[])null!).Length ), N(() => L<byte[],int>((byte[] obj) => DbFunc.Length(obj)!.Value)) },
 
 			#endregion
 
 			#region Parse
 
-			{ M(() => bool.    Parse("")), N(() => L<string,bool>    ((string p0) => Sql.ConvertTo<bool>.    From(p0))) },
+			{ M(() => bool.    Parse("")), N(() => L<string,bool>    ((string p0) => DbFunc.ConvertTo<bool>.    From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => byte.    Parse("")), N(() => L<string,byte>    ((string p0) => Sql.ConvertTo<byte>.    From(p0))) },
+			{ M(() => byte.    Parse("")), N(() => L<string,byte>    ((string p0) => DbFunc.ConvertTo<byte>.    From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => char.    Parse("")), N(() => L<string,char>    ((string p0) => Sql.ConvertTo<char>.    From(p0))) },
+			{ M(() => char.    Parse("")), N(() => L<string,char>    ((string p0) => DbFunc.ConvertTo<char>.    From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => DateTime.Parse("")), N(() => L<string,DateTime>((string p0) => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => decimal. Parse("")), N(() => L<string,decimal> ((string p0) => Sql.ConvertTo<decimal>. From(p0))) },
-			{ M(() => double.  Parse("")), N(() => L<string,double>  ((string p0) => Sql.ConvertTo<double>.  From(p0))) },
-			{ M(() => short.   Parse("")), N(() => L<string,short>   ((string p0) => Sql.ConvertTo<short>.   From(p0))) },
-			{ M(() => int.     Parse("")), N(() => L<string,int>     ((string p0) => Sql.ConvertTo<int>.     From(p0))) },
-			{ M(() => long.    Parse("")), N(() => L<string,long>    ((string p0) => Sql.ConvertTo<long>.    From(p0))) },
-			{ M(() => sbyte.   Parse("")), N(() => L<string,sbyte>   ((string p0) => Sql.ConvertTo<sbyte>.   From(p0))) },
-			{ M(() => float.   Parse("")), N(() => L<string,float>   ((string p0) => Sql.ConvertTo<float>.   From(p0))) },
-			{ M(() => ushort.  Parse("")), N(() => L<string,ushort>  ((string p0) => Sql.ConvertTo<ushort>.  From(p0))) },
-			{ M(() => uint.    Parse("")), N(() => L<string,uint>    ((string p0) => Sql.ConvertTo<uint>.    From(p0))) },
-			{ M(() => ulong.   Parse("")), N(() => L<string,ulong>   ((string p0) => Sql.ConvertTo<ulong>.   From(p0))) },
+			{ M(() => DateTime.Parse("")), N(() => L<string,DateTime>((string p0) => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => decimal. Parse("")), N(() => L<string,decimal> ((string p0) => DbFunc.ConvertTo<decimal>. From(p0))) },
+			{ M(() => double.  Parse("")), N(() => L<string,double>  ((string p0) => DbFunc.ConvertTo<double>.  From(p0))) },
+			{ M(() => short.   Parse("")), N(() => L<string,short>   ((string p0) => DbFunc.ConvertTo<short>.   From(p0))) },
+			{ M(() => int.     Parse("")), N(() => L<string,int>     ((string p0) => DbFunc.ConvertTo<int>.     From(p0))) },
+			{ M(() => long.    Parse("")), N(() => L<string,long>    ((string p0) => DbFunc.ConvertTo<long>.    From(p0))) },
+			{ M(() => sbyte.   Parse("")), N(() => L<string,sbyte>   ((string p0) => DbFunc.ConvertTo<sbyte>.   From(p0))) },
+			{ M(() => float.   Parse("")), N(() => L<string,float>   ((string p0) => DbFunc.ConvertTo<float>.   From(p0))) },
+			{ M(() => ushort.  Parse("")), N(() => L<string,ushort>  ((string p0) => DbFunc.ConvertTo<ushort>.  From(p0))) },
+			{ M(() => uint.    Parse("")), N(() => L<string,uint>    ((string p0) => DbFunc.ConvertTo<uint>.    From(p0))) },
+			{ M(() => ulong.   Parse("")), N(() => L<string,ulong>   ((string p0) => DbFunc.ConvertTo<ulong>.   From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
 
 #if NET6_0_OR_GREATER
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => DateOnly.Parse("")), N(() => L<string,DateOnly>((string p0) => Sql.ConvertTo<DateOnly>.From(p0))) },
+			{ M(() => DateOnly.Parse("")), N(() => L<string,DateOnly>((string p0) => DbFunc.ConvertTo<DateOnly>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
 #endif
 
@@ -431,344 +431,344 @@ namespace mooSQL.linq.Linq
 
 			#region ToByte
 
-			{ M(() => Convert.ToByte((bool)   true)), N(() => L<bool,    byte>((bool     p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((byte)    0)  ), N(() => L<byte,    byte>((byte     p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((char)   '0') ), N(() => L<char,    byte>((char     p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte(DateTime.Now) ), N(() => L<DateTime,byte>((DateTime p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((decimal) 0)  ), N(() => L<decimal, byte>((decimal  p0) => Sql.ConvertTo<byte>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToByte((double)  0)  ), N(() => L<double,  byte>((double   p0) => Sql.ConvertTo<byte>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToByte((short)   0)  ), N(() => L<short,   byte>((short    p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((int)     0)  ), N(() => L<int,     byte>((int      p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((long)    0)  ), N(() => L<long,    byte>((long     p0) => Sql.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((bool)   true)), N(() => L<bool,    byte>((bool     p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((byte)    0)  ), N(() => L<byte,    byte>((byte     p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((char)   '0') ), N(() => L<char,    byte>((char     p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte(DateTime.Now) ), N(() => L<DateTime,byte>((DateTime p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((decimal) 0)  ), N(() => L<decimal, byte>((decimal  p0) => DbFunc.ConvertTo<byte>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToByte((double)  0)  ), N(() => L<double,  byte>((double   p0) => DbFunc.ConvertTo<byte>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToByte((short)   0)  ), N(() => L<short,   byte>((short    p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((int)     0)  ), N(() => L<int,     byte>((int      p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((long)    0)  ), N(() => L<long,    byte>((long     p0) => DbFunc.ConvertTo<byte>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToByte((object)  0)  ), N(() => L<object,  byte>((object   p0) => Sql.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((object)  0)  ), N(() => L<object,  byte>((object   p0) => DbFunc.ConvertTo<byte>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToByte((sbyte)   0)  ), N(() => L<sbyte,   byte>((sbyte    p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((float)   0)  ), N(() => L<float,   byte>((float    p0) => Sql.ConvertTo<byte>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToByte((sbyte)   0)  ), N(() => L<sbyte,   byte>((sbyte    p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((float)   0)  ), N(() => L<float,   byte>((float    p0) => DbFunc.ConvertTo<byte>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToByte((string) "0") ), N(() => L<string,  byte>((string   p0) => Sql.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((string) "0") ), N(() => L<string,  byte>((string   p0) => DbFunc.ConvertTo<byte>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToByte((ushort)  0)  ), N(() => L<ushort,  byte>((ushort   p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((uint)    0)  ), N(() => L<uint,    byte>((uint     p0) => Sql.ConvertTo<byte>.From(p0))) },
-			{ M(() => Convert.ToByte((ulong)   0)  ), N(() => L<ulong,   byte>((ulong    p0) => Sql.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((ushort)  0)  ), N(() => L<ushort,  byte>((ushort   p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((uint)    0)  ), N(() => L<uint,    byte>((uint     p0) => DbFunc.ConvertTo<byte>.From(p0))) },
+			{ M(() => Convert.ToByte((ulong)   0)  ), N(() => L<ulong,   byte>((ulong    p0) => DbFunc.ConvertTo<byte>.From(p0))) },
 
 #endregion
 
 			#region ToChar
 
-			{ M(() => Convert.ToChar((bool)   true)), N(() => L<bool,    char>((bool     p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((byte)    0)  ), N(() => L<byte,    char>((byte     p0) => Sql.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((bool)   true)), N(() => L<bool,    char>((bool     p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((byte)    0)  ), N(() => L<byte,    char>((byte     p0) => DbFunc.ConvertTo<char>.From(p0))) },
 			{ M(() => Convert.ToChar((char)   '0') ), N(() => L<char,    char>((char     p0) => p0                          )) },
-			{ M(() => Convert.ToChar(DateTime.Now) ), N(() => L<DateTime,char>((DateTime p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((decimal) 0)  ), N(() => L<decimal, char>((decimal  p0) => Sql.ConvertTo<char>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToChar((double)  0)  ), N(() => L<double,  char>((double   p0) => Sql.ConvertTo<char>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToChar((short)   0)  ), N(() => L<short,   char>((short    p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((int)     0)  ), N(() => L<int,     char>((int      p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((long)    0)  ), N(() => L<long,    char>((long     p0) => Sql.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar(DateTime.Now) ), N(() => L<DateTime,char>((DateTime p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((decimal) 0)  ), N(() => L<decimal, char>((decimal  p0) => DbFunc.ConvertTo<char>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToChar((double)  0)  ), N(() => L<double,  char>((double   p0) => DbFunc.ConvertTo<char>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToChar((short)   0)  ), N(() => L<short,   char>((short    p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((int)     0)  ), N(() => L<int,     char>((int      p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((long)    0)  ), N(() => L<long,    char>((long     p0) => DbFunc.ConvertTo<char>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToChar((object)  0)  ), N(() => L<object,  char>((object   p0) => Sql.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((object)  0)  ), N(() => L<object,  char>((object   p0) => DbFunc.ConvertTo<char>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToChar((sbyte)   0)  ), N(() => L<sbyte,   char>((sbyte    p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((float)   0)  ), N(() => L<float,   char>((float    p0) => Sql.ConvertTo<char>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToChar((string) "0") ), N(() => L<string,  char>((string   p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((ushort)  0)  ), N(() => L<ushort,  char>((ushort   p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((uint)    0)  ), N(() => L<uint,    char>((uint     p0) => Sql.ConvertTo<char>.From(p0))) },
-			{ M(() => Convert.ToChar((ulong)   0)  ), N(() => L<ulong,   char>((ulong    p0) => Sql.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((sbyte)   0)  ), N(() => L<sbyte,   char>((sbyte    p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((float)   0)  ), N(() => L<float,   char>((float    p0) => DbFunc.ConvertTo<char>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToChar((string) "0") ), N(() => L<string,  char>((string   p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((ushort)  0)  ), N(() => L<ushort,  char>((ushort   p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((uint)    0)  ), N(() => L<uint,    char>((uint     p0) => DbFunc.ConvertTo<char>.From(p0))) },
+			{ M(() => Convert.ToChar((ulong)   0)  ), N(() => L<ulong,   char>((ulong    p0) => DbFunc.ConvertTo<char>.From(p0))) },
 
 			#endregion
 
 			#region ToDateTime
 
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDateTime((object)  0)  ), N(() => L<object,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((string) "0") ), N(() => L<string,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((object)  0)  ), N(() => L<object,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((string) "0") ), N(() => L<string,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDateTime((bool)   true)), N(() => L<bool,    DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((byte)    0)  ), N(() => L<byte,    DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((char)   '0') ), N(() => L<char,    DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((bool)   true)), N(() => L<bool,    DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((byte)    0)  ), N(() => L<byte,    DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((char)   '0') ), N(() => L<char,    DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
 			{ M(() => Convert.ToDateTime(DateTime.Now) ), N(() => L<DateTime,DateTime>(p0 => p0                              )) },
-			{ M(() => Convert.ToDateTime((decimal) 0)  ), N(() => L<decimal, DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((double)  0)  ), N(() => L<double,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((short)   0)  ), N(() => L<short,   DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((int)     0)  ), N(() => L<int,   DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((long)    0)  ), N(() => L<long,   DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((sbyte)   0)  ), N(() => L<sbyte,   DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((float)   0)  ), N(() => L<float,   DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((ushort)  0)  ), N(() => L<ushort,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((uint)    0)  ), N(() => L<uint,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
-			{ M(() => Convert.ToDateTime((ulong)   0)  ), N(() => L<ulong,  DateTime>(p0 => Sql.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((decimal) 0)  ), N(() => L<decimal, DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((double)  0)  ), N(() => L<double,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((short)   0)  ), N(() => L<short,   DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((int)     0)  ), N(() => L<int,   DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((long)    0)  ), N(() => L<long,   DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((sbyte)   0)  ), N(() => L<sbyte,   DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((float)   0)  ), N(() => L<float,   DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((ushort)  0)  ), N(() => L<ushort,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((uint)    0)  ), N(() => L<uint,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
+			{ M(() => Convert.ToDateTime((ulong)   0)  ), N(() => L<ulong,  DateTime>(p0 => DbFunc.ConvertTo<DateTime>.From(p0))) },
 
 			#endregion
 
 			#region ToDecimal
 
-			{ M(() => Convert.ToDecimal((bool)   true)), N(() => L<bool,    decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((byte)    0)  ), N(() => L<byte,    decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((char)   '0') ), N(() => L<char,    decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal(DateTime.Now) ), N(() => L<DateTime,decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((decimal) 0)  ), N(() => L<decimal, decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((double)  0)  ), N(() => L<double,  decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((short)   0)  ), N(() => L<short,   decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((int)     0)  ), N(() => L<int,     decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((long)    0)  ), N(() => L<long,    decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((bool)   true)), N(() => L<bool,    decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((byte)    0)  ), N(() => L<byte,    decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((char)   '0') ), N(() => L<char,    decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal(DateTime.Now) ), N(() => L<DateTime,decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((decimal) 0)  ), N(() => L<decimal, decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((double)  0)  ), N(() => L<double,  decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((short)   0)  ), N(() => L<short,   decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((int)     0)  ), N(() => L<int,     decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((long)    0)  ), N(() => L<long,    decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDecimal((object)  0)  ), N(() => L<object,  decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((object)  0)  ), N(() => L<object,  decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDecimal((sbyte)   0)  ), N(() => L<sbyte,   decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((float)   0)  ), N(() => L<float,   decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((sbyte)   0)  ), N(() => L<sbyte,   decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((float)   0)  ), N(() => L<float,   decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDecimal((string) "0") ), N(() => L<string,  decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((string) "0") ), N(() => L<string,  decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDecimal((ushort)  0)  ), N(() => L<ushort,  decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((uint)    0)  ), N(() => L<uint,    decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
-			{ M(() => Convert.ToDecimal((ulong)   0)  ), N(() => L<ulong,   decimal>(p0 => Sql.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((ushort)  0)  ), N(() => L<ushort,  decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((uint)    0)  ), N(() => L<uint,    decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
+			{ M(() => Convert.ToDecimal((ulong)   0)  ), N(() => L<ulong,   decimal>(p0 => DbFunc.ConvertTo<decimal>.From(p0))) },
 
 #endregion
 
 			#region ToDouble
 
-			{ M(() => Convert.ToDouble((bool)   true)), N(() => L<bool,    double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((byte)    0)  ), N(() => L<byte,    double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((char)   '0') ), N(() => L<char,    double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble(DateTime.Now) ), N(() => L<DateTime,double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((decimal) 0)  ), N(() => L<decimal, double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((double)  0)  ), N(() => L<double,  double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((short)   0)  ), N(() => L<short,   double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((int)     0)  ), N(() => L<int,     double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((long)    0)  ), N(() => L<long,    double>(p0 => Sql.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((bool)   true)), N(() => L<bool,    double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((byte)    0)  ), N(() => L<byte,    double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((char)   '0') ), N(() => L<char,    double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble(DateTime.Now) ), N(() => L<DateTime,double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((decimal) 0)  ), N(() => L<decimal, double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((double)  0)  ), N(() => L<double,  double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((short)   0)  ), N(() => L<short,   double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((int)     0)  ), N(() => L<int,     double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((long)    0)  ), N(() => L<long,    double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDouble((object)  0)  ), N(() => L<object,  double>(p0 => Sql.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((object)  0)  ), N(() => L<object,  double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDouble((sbyte)   0)  ), N(() => L<sbyte,   double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((float)   0)  ), N(() => L<float,   double>(p0 => Sql.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((sbyte)   0)  ), N(() => L<sbyte,   double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((float)   0)  ), N(() => L<float,   double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDouble((string) "0") ), N(() => L<string,  double>(p0 => Sql.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((string) "0") ), N(() => L<string,  double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToDouble((ushort)  0)  ), N(() => L<ushort,  double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((uint)    0)  ), N(() => L<uint,    double>(p0 => Sql.ConvertTo<double>.From(p0))) },
-			{ M(() => Convert.ToDouble((ulong)   0)  ), N(() => L<ulong,   double>(p0 => Sql.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((ushort)  0)  ), N(() => L<ushort,  double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((uint)    0)  ), N(() => L<uint,    double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
+			{ M(() => Convert.ToDouble((ulong)   0)  ), N(() => L<ulong,   double>(p0 => DbFunc.ConvertTo<double>.From(p0))) },
 
 			#endregion
 
 			#region ToInt64
 
-			{ M(() => Convert.ToInt64((bool)   true)), N(() => L<bool,    long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((byte)    0)  ), N(() => L<byte,    long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((char)   '0') ), N(() => L<char,    long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64(DateTime.Now) ), N(() => L<DateTime,long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((decimal) 0)  ), N(() => L<decimal, long>(p0 => Sql.ConvertTo<long>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt64((double)  0)  ), N(() => L<double,  long>(p0 => Sql.ConvertTo<long>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt64((short)   0)  ), N(() => L<short,   long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((int)     0)  ), N(() => L<int,     long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((long)    0)  ), N(() => L<long,    long>(p0 => Sql.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((bool)   true)), N(() => L<bool,    long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((byte)    0)  ), N(() => L<byte,    long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((char)   '0') ), N(() => L<char,    long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64(DateTime.Now) ), N(() => L<DateTime,long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((decimal) 0)  ), N(() => L<decimal, long>(p0 => DbFunc.ConvertTo<long>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt64((double)  0)  ), N(() => L<double,  long>(p0 => DbFunc.ConvertTo<long>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt64((short)   0)  ), N(() => L<short,   long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((int)     0)  ), N(() => L<int,     long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((long)    0)  ), N(() => L<long,    long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt64((object)  0)  ), N(() => L<object,  long>(p0 => Sql.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((object)  0)  ), N(() => L<object,  long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt64((sbyte)   0)  ), N(() => L<sbyte,   long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((float)   0)  ), N(() => L<float,   long>(p0 => Sql.ConvertTo<long>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt64((sbyte)   0)  ), N(() => L<sbyte,   long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((float)   0)  ), N(() => L<float,   long>(p0 => DbFunc.ConvertTo<long>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt64((string) "0") ), N(() => L<string,  long>(p0 => Sql.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((string) "0") ), N(() => L<string,  long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt64((ushort)  0)  ), N(() => L<ushort,  long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((uint)    0)  ), N(() => L<uint,    long>(p0 => Sql.ConvertTo<long>.From(p0))) },
-			{ M(() => Convert.ToInt64((ulong)   0)  ), N(() => L<ulong,   long>(p0 => Sql.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((ushort)  0)  ), N(() => L<ushort,  long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((uint)    0)  ), N(() => L<uint,    long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
+			{ M(() => Convert.ToInt64((ulong)   0)  ), N(() => L<ulong,   long>(p0 => DbFunc.ConvertTo<long>.From(p0))) },
 
 			#endregion
 
 			#region ToInt32
 
-			{ M(() => Convert.ToInt32((bool)   true)), N(() => L<bool,    int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((byte)    0)  ), N(() => L<byte,    int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((char)   '0') ), N(() => L<char,    int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32(DateTime.Now) ), N(() => L<DateTime,int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((decimal) 0)  ), N(() => L<decimal, int>(p0 => Sql.ConvertTo<int>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt32((double)  0)  ), N(() => L<double,  int>(p0 => Sql.ConvertTo<int>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt32((short)   0)  ), N(() => L<short,   int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((int)     0)  ), N(() => L<int,     int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((long)    0)  ), N(() => L<long,    int>(p0 => Sql.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((bool)   true)), N(() => L<bool,    int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((byte)    0)  ), N(() => L<byte,    int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((char)   '0') ), N(() => L<char,    int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32(DateTime.Now) ), N(() => L<DateTime,int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((decimal) 0)  ), N(() => L<decimal, int>(p0 => DbFunc.ConvertTo<int>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt32((double)  0)  ), N(() => L<double,  int>(p0 => DbFunc.ConvertTo<int>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt32((short)   0)  ), N(() => L<short,   int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((int)     0)  ), N(() => L<int,     int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((long)    0)  ), N(() => L<long,    int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt32((object)  0)  ), N(() => L<object,  int>(p0 => Sql.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((object)  0)  ), N(() => L<object,  int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt32((sbyte)   0)  ), N(() => L<sbyte,   int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((float)   0)  ), N(() => L<float,   int>(p0 => Sql.ConvertTo<int>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt32((sbyte)   0)  ), N(() => L<sbyte,   int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((float)   0)  ), N(() => L<float,   int>(p0 => DbFunc.ConvertTo<int>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt32((string) "0") ), N(() => L<string,  int>(p0 => Sql.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((string) "0") ), N(() => L<string,  int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt32((ushort)  0)  ), N(() => L<ushort,  int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((uint)    0)  ), N(() => L<uint,    int>(p0 => Sql.ConvertTo<int>.From(p0))) },
-			{ M(() => Convert.ToInt32((ulong)   0)  ), N(() => L<ulong,   int>(p0 => Sql.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((ushort)  0)  ), N(() => L<ushort,  int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((uint)    0)  ), N(() => L<uint,    int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
+			{ M(() => Convert.ToInt32((ulong)   0)  ), N(() => L<ulong,   int>(p0 => DbFunc.ConvertTo<int>.From(p0))) },
 
 			#endregion
 
 			#region ToInt16
 
-			{ M(() => Convert.ToInt16((bool)   true)), N(() => L<bool,    short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((byte)    0)  ), N(() => L<byte,    short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((char)   '0') ), N(() => L<char,    short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16(DateTime.Now) ), N(() => L<DateTime,short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((decimal) 0)  ), N(() => L<decimal, short>(p0 => Sql.ConvertTo<short>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt16((double)  0)  ), N(() => L<double,  short>(p0 => Sql.ConvertTo<short>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToInt16((short)   0)  ), N(() => L<short,   short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((int)     0)  ), N(() => L<int,     short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((long)    0)  ), N(() => L<long,    short>(p0 => Sql.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((bool)   true)), N(() => L<bool,    short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((byte)    0)  ), N(() => L<byte,    short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((char)   '0') ), N(() => L<char,    short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16(DateTime.Now) ), N(() => L<DateTime,short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((decimal) 0)  ), N(() => L<decimal, short>(p0 => DbFunc.ConvertTo<short>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt16((double)  0)  ), N(() => L<double,  short>(p0 => DbFunc.ConvertTo<short>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt16((short)   0)  ), N(() => L<short,   short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((int)     0)  ), N(() => L<int,     short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((long)    0)  ), N(() => L<long,    short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt16((object)  0)  ), N(() => L<object,  short>(p0 => Sql.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((object)  0)  ), N(() => L<object,  short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt16((sbyte)   0)  ), N(() => L<sbyte,   short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((float)   0)  ), N(() => L<float,   short>(p0 => Sql.ConvertTo<short>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToInt16((sbyte)   0)  ), N(() => L<sbyte,   short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((float)   0)  ), N(() => L<float,   short>(p0 => DbFunc.ConvertTo<short>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt16((string) "0") ), N(() => L<string,  short>(p0 => Sql.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((string) "0") ), N(() => L<string,  short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToInt16((ushort)  0)  ), N(() => L<ushort,  short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((uint)    0)  ), N(() => L<uint,    short>(p0 => Sql.ConvertTo<short>.From(p0))) },
-			{ M(() => Convert.ToInt16((ulong)   0)  ), N(() => L<ulong,   short>(p0 => Sql.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((ushort)  0)  ), N(() => L<ushort,  short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((uint)    0)  ), N(() => L<uint,    short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
+			{ M(() => Convert.ToInt16((ulong)   0)  ), N(() => L<ulong,   short>(p0 => DbFunc.ConvertTo<short>.From(p0))) },
 
 			#endregion
 
 			#region ToSByte
 
-			{ M(() => Convert.ToSByte((bool)   true)), N(() => L<bool,    sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((byte)    0)  ), N(() => L<byte,    sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((char)   '0') ), N(() => L<char,    sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte(DateTime.Now) ), N(() => L<DateTime,sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((decimal) 0)  ), N(() => L<decimal, sbyte>(p0 => Sql.ConvertTo<sbyte>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToSByte((double)  0)  ), N(() => L<double,  sbyte>(p0 => Sql.ConvertTo<sbyte>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToSByte((short)   0)  ), N(() => L<short,   sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((int)     0)  ), N(() => L<int,     sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((long)    0)  ), N(() => L<long,    sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((bool)   true)), N(() => L<bool,    sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((byte)    0)  ), N(() => L<byte,    sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((char)   '0') ), N(() => L<char,    sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte(DateTime.Now) ), N(() => L<DateTime,sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((decimal) 0)  ), N(() => L<decimal, sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToSByte((double)  0)  ), N(() => L<double,  sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToSByte((short)   0)  ), N(() => L<short,   sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((int)     0)  ), N(() => L<int,     sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((long)    0)  ), N(() => L<long,    sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSByte((object)  0)  ), N(() => L<object,  sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((object)  0)  ), N(() => L<object,  sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSByte((sbyte)   0)  ), N(() => L<sbyte,   sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((float)   0)  ), N(() => L<float,   sbyte>(p0 => Sql.ConvertTo<sbyte>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToSByte((sbyte)   0)  ), N(() => L<sbyte,   sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((float)   0)  ), N(() => L<float,   sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSByte((string) "0") ), N(() => L<string,  sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((string) "0") ), N(() => L<string,  sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSByte((ushort)  0)  ), N(() => L<ushort,  sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((uint)    0)  ), N(() => L<uint,    sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
-			{ M(() => Convert.ToSByte((ulong)   0)  ), N(() => L<ulong,   sbyte>(p0 => Sql.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((ushort)  0)  ), N(() => L<ushort,  sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((uint)    0)  ), N(() => L<uint,    sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
+			{ M(() => Convert.ToSByte((ulong)   0)  ), N(() => L<ulong,   sbyte>(p0 => DbFunc.ConvertTo<sbyte>.From(p0))) },
 
 			#endregion
 
 			#region ToSingle
 
-			{ M(() => Convert.ToSingle((bool)   true)), N(() => L<bool,    float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((byte)    0)  ), N(() => L<byte,    float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((char)   '0') ), N(() => L<char,    float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle(DateTime.Now) ), N(() => L<DateTime,float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((decimal) 0)  ), N(() => L<decimal, float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((double)  0)  ), N(() => L<double,  float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((short)   0)  ), N(() => L<short,   float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((int)     0)  ), N(() => L<int,     float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((long)    0)  ), N(() => L<long,    float>(p0 => Sql.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((bool)   true)), N(() => L<bool,    float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((byte)    0)  ), N(() => L<byte,    float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((char)   '0') ), N(() => L<char,    float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle(DateTime.Now) ), N(() => L<DateTime,float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((decimal) 0)  ), N(() => L<decimal, float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((double)  0)  ), N(() => L<double,  float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((short)   0)  ), N(() => L<short,   float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((int)     0)  ), N(() => L<int,     float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((long)    0)  ), N(() => L<long,    float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSingle((object)  0)  ), N(() => L<object,  float>(p0 => Sql.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((object)  0)  ), N(() => L<object,  float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSingle((sbyte)   0)  ), N(() => L<sbyte,   float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((float)   0)  ), N(() => L<float,   float>(p0 => Sql.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((sbyte)   0)  ), N(() => L<sbyte,   float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((float)   0)  ), N(() => L<float,   float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSingle((string) "0") ), N(() => L<string,  float>(p0 => Sql.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((string) "0") ), N(() => L<string,  float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToSingle((ushort)  0)  ), N(() => L<ushort,  float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((uint)    0)  ), N(() => L<uint,    float>(p0 => Sql.ConvertTo<float>.From(p0))) },
-			{ M(() => Convert.ToSingle((ulong)   0)  ), N(() => L<ulong,   float>(p0 => Sql.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((ushort)  0)  ), N(() => L<ushort,  float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((uint)    0)  ), N(() => L<uint,    float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
+			{ M(() => Convert.ToSingle((ulong)   0)  ), N(() => L<ulong,   float>(p0 => DbFunc.ConvertTo<float>.From(p0))) },
 
 			#endregion
 
 			#region ToString
 
-			{ M(() => Convert.ToString((bool)   true)), N(() => L<bool,    string>(p0 => Sql.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((bool)   true)), N(() => L<bool,    string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
 #pragma warning disable RS0030, CA1305 // Do not used banned APIs
-			{ M(() => Convert.ToString((byte)    0)  ), N(() => L<byte,    string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((char)   '0') ), N(() => L<char,    string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString(DateTime.Now) ), N(() => L<DateTime,string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((decimal) 0)  ), N(() => L<decimal, string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((double)  0)  ), N(() => L<double,  string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((short)   0)  ), N(() => L<short,   string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((int)     0)  ), N(() => L<int,     string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((long)    0)  ), N(() => L<long,    string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((object)  0)  ), N(() => L<object,  string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((sbyte)   0)  ), N(() => L<sbyte,   string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((float)   0)  ), N(() => L<float,   string>(p0 => Sql.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((byte)    0)  ), N(() => L<byte,    string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((char)   '0') ), N(() => L<char,    string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString(DateTime.Now) ), N(() => L<DateTime,string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((decimal) 0)  ), N(() => L<decimal, string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((double)  0)  ), N(() => L<double,  string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((short)   0)  ), N(() => L<short,   string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((int)     0)  ), N(() => L<int,     string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((long)    0)  ), N(() => L<long,    string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((object)  0)  ), N(() => L<object,  string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((sbyte)   0)  ), N(() => L<sbyte,   string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((float)   0)  ), N(() => L<float,   string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
 			{ M(() => Convert.ToString((string) "0") ), N(() => L<string,  string>(p0 => p0                            )) },
-			{ M(() => Convert.ToString((ushort)  0)  ), N(() => L<ushort,  string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((uint)    0)  ), N(() => L<uint,    string>(p0 => Sql.ConvertTo<string>.From(p0))) },
-			{ M(() => Convert.ToString((ulong)   0)  ), N(() => L<ulong,   string>(p0 => Sql.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((ushort)  0)  ), N(() => L<ushort,  string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((uint)    0)  ), N(() => L<uint,    string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
+			{ M(() => Convert.ToString((ulong)   0)  ), N(() => L<ulong,   string>(p0 => DbFunc.ConvertTo<string>.From(p0))) },
 #pragma warning restore RS0030, CA1305 // Do not used banned APIs
 			#endregion
 
 			#region ToUInt16
 
-			{ M(() => Convert.ToUInt16((bool)   true)), N(() => L<bool,    ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((byte)    0)  ), N(() => L<byte,    ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((char)   '0') ), N(() => L<char,    ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16(DateTime.Now) ), N(() => L<DateTime,ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((decimal) 0)  ), N(() => L<decimal, ushort>(p0 => Sql.ConvertTo<ushort>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt16((double)  0)  ), N(() => L<double,  ushort>(p0 => Sql.ConvertTo<ushort>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt16((short)   0)  ), N(() => L<short,   ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((int)     0)  ), N(() => L<int,     ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((long)    0)  ), N(() => L<long,    ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((bool)   true)), N(() => L<bool,    ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((byte)    0)  ), N(() => L<byte,    ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((char)   '0') ), N(() => L<char,    ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16(DateTime.Now) ), N(() => L<DateTime,ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((decimal) 0)  ), N(() => L<decimal, ushort>(p0 => DbFunc.ConvertTo<ushort>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt16((double)  0)  ), N(() => L<double,  ushort>(p0 => DbFunc.ConvertTo<ushort>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt16((short)   0)  ), N(() => L<short,   ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((int)     0)  ), N(() => L<int,     ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((long)    0)  ), N(() => L<long,    ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt16((object)  0)  ), N(() => L<object,  ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((object)  0)  ), N(() => L<object,  ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt16((sbyte)   0)  ), N(() => L<sbyte,   ushort>(p0 => Sql.ConvertTo<ushort>.From(p0))) },
-			{ M(() => Convert.ToUInt16((float)   0)  ), N(() => L<float,   ushort>(p0 => Sql.ConvertTo<ushort>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt16((sbyte)   0)  ), N(() => L<sbyte,   ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0))) },
+			{ M(() => Convert.ToUInt16((float)   0)  ), N(() => L<float,   ushort>(p0 => DbFunc.ConvertTo<ushort>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt16((string) "0") ), N(() => L<string,  ushort>(p0 => Sql.ConvertTo<ushort>.From(p0)) ) },
+			{ M(() => Convert.ToUInt16((string) "0") ), N(() => L<string,  ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0)) ) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt16((ushort)  0)  ), N(() => L<ushort,  ushort>(p0 => Sql.ConvertTo<ushort>.From(p0)) ) },
-			{ M(() => Convert.ToUInt16((uint)    0)  ), N(() => L<uint,    ushort>(p0 => Sql.ConvertTo<ushort>.From(p0)) ) },
-			{ M(() => Convert.ToUInt16((ulong)   0)  ), N(() => L<ulong,   ushort>(p0 => Sql.ConvertTo<ushort>.From(p0)) ) },
+			{ M(() => Convert.ToUInt16((ushort)  0)  ), N(() => L<ushort,  ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0)) ) },
+			{ M(() => Convert.ToUInt16((uint)    0)  ), N(() => L<uint,    ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0)) ) },
+			{ M(() => Convert.ToUInt16((ulong)   0)  ), N(() => L<ulong,   ushort>(p0 => DbFunc.ConvertTo<ushort>.From(p0)) ) },
 
 			#endregion
 
 			#region ToUInt32
 
-			{ M(() => Convert.ToUInt32((bool)   true)), N(() => L<bool,    uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((byte)    0)  ), N(() => L<byte,    uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((char)   '0') ), N(() => L<char,    uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32(DateTime.Now) ), N(() => L<DateTime,uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((decimal) 0)  ), N(() => L<decimal, uint>(p0 => Sql.ConvertTo<uint>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt32((double)  0)  ), N(() => L<double,  uint>(p0 => Sql.ConvertTo<uint>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt32((short)   0)  ), N(() => L<short,   uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((int)     0)  ), N(() => L<int,     uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((long)    0)  ), N(() => L<long,    uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((bool)   true)), N(() => L<bool,    uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((byte)    0)  ), N(() => L<byte,    uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((char)   '0') ), N(() => L<char,    uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32(DateTime.Now) ), N(() => L<DateTime,uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((decimal) 0)  ), N(() => L<decimal, uint>(p0 => DbFunc.ConvertTo<uint>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt32((double)  0)  ), N(() => L<double,  uint>(p0 => DbFunc.ConvertTo<uint>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt32((short)   0)  ), N(() => L<short,   uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((int)     0)  ), N(() => L<int,     uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((long)    0)  ), N(() => L<long,    uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt32((object)  0)  ), N(() => L<object,  uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((object)  0)  ), N(() => L<object,  uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt32((sbyte)   0)  ), N(() => L<sbyte,   uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((float)   0)  ), N(() => L<float,   uint>(p0 => Sql.ConvertTo<uint>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt32((sbyte)   0)  ), N(() => L<sbyte,   uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((float)   0)  ), N(() => L<float,   uint>(p0 => DbFunc.ConvertTo<uint>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt32((string) "0") ), N(() => L<string,  uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((string) "0") ), N(() => L<string,  uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt32((ushort)  0)  ), N(() => L<ushort,  uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((uint)    0)  ), N(() => L<uint,    uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
-			{ M(() => Convert.ToUInt32((ulong)   0)  ), N(() => L<ulong,   uint>(p0 => Sql.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((ushort)  0)  ), N(() => L<ushort,  uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((uint)    0)  ), N(() => L<uint,    uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
+			{ M(() => Convert.ToUInt32((ulong)   0)  ), N(() => L<ulong,   uint>(p0 => DbFunc.ConvertTo<uint>.From(p0))) },
 
 			#endregion
 
 			#region ToUInt64
 
-			{ M(() => Convert.ToUInt64((bool)   true)), N(() => L<bool,    ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((byte)    0)  ), N(() => L<byte,    ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((char)   '0') ), N(() => L<char,    ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64(DateTime.Now) ), N(() => L<DateTime,ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((decimal) 0)  ), N(() => L<decimal, ulong>(p0 => Sql.ConvertTo<ulong>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt64((double)  0)  ), N(() => L<double,  ulong>(p0 => Sql.ConvertTo<ulong>.From(Sql.RoundToEven(p0)))) },
-			{ M(() => Convert.ToUInt64((short)   0)  ), N(() => L<short,   ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((int)     0)  ), N(() => L<int,     ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((long)    0)  ), N(() => L<long,    ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((bool)   true)), N(() => L<bool,    ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((byte)    0)  ), N(() => L<byte,    ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((char)   '0') ), N(() => L<char,    ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64(DateTime.Now) ), N(() => L<DateTime,ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((decimal) 0)  ), N(() => L<decimal, ulong>(p0 => DbFunc.ConvertTo<ulong>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt64((double)  0)  ), N(() => L<double,  ulong>(p0 => DbFunc.ConvertTo<ulong>.From(DbFunc.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt64((short)   0)  ), N(() => L<short,   ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((int)     0)  ), N(() => L<int,     ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((long)    0)  ), N(() => L<long,    ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt64((object)  0)  ), N(() => L<object,  ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((object)  0)  ), N(() => L<object,  ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt64((sbyte)   0)  ), N(() => L<sbyte,   ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((float)   0)  ), N(() => L<float,   ulong>(p0 => Sql.ConvertTo<ulong>.From(Sql.RoundToEven(p0)))) },
+			{ M(() => Convert.ToUInt64((sbyte)   0)  ), N(() => L<sbyte,   ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((float)   0)  ), N(() => L<float,   ulong>(p0 => DbFunc.ConvertTo<ulong>.From(DbFunc.RoundToEven(p0)))) },
 #pragma warning disable RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt64((string) "0") ), N(() => L<string,  ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((string) "0") ), N(() => L<string,  ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
 #pragma warning restore RS0030, CA1305, MA0011 // Do not used banned APIs
-			{ M(() => Convert.ToUInt64((ushort)  0)  ), N(() => L<ushort,  ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((uint)    0)  ), N(() => L<uint,    ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
-			{ M(() => Convert.ToUInt64((ulong)   0)  ), N(() => L<ulong,   ulong>(p0 => Sql.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((ushort)  0)  ), N(() => L<ushort,  ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((uint)    0)  ), N(() => L<uint,    ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
+			{ M(() => Convert.ToUInt64((ulong)   0)  ), N(() => L<ulong,   ulong>(p0 => DbFunc.ConvertTo<ulong>.From(p0))) },
 
 			#endregion
 
@@ -776,68 +776,68 @@ namespace mooSQL.linq.Linq
 
 			#region Math
 
-			{ M(() => Math.Abs    ((decimal)0)), N(() => L<decimal,decimal>((decimal p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((double) 0)), N(() => L<double, double> ((double  p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((short)  0)), N(() => L<short,  short>  ((short   p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((int)    0)), N(() => L<int,    int>    ((int     p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((long)   0)), N(() => L<long,    long>  ((long    p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((sbyte)  0)), N(() => L<sbyte,  sbyte>  ((sbyte   p) => Sql.Abs(p)!.Value )) },
-			{ M(() => Math.Abs    ((float)  0)), N(() => L<float,  float>  ((float   p) => Sql.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((decimal)0)), N(() => L<decimal,decimal>((decimal p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((double) 0)), N(() => L<double, double> ((double  p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((short)  0)), N(() => L<short,  short>  ((short   p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((int)    0)), N(() => L<int,    int>    ((int     p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((long)   0)), N(() => L<long,    long>  ((long    p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((sbyte)  0)), N(() => L<sbyte,  sbyte>  ((sbyte   p) => DbFunc.Abs(p)!.Value )) },
+			{ M(() => Math.Abs    ((float)  0)), N(() => L<float,  float>  ((float   p) => DbFunc.Abs(p)!.Value )) },
 
-			{ M(() => Math.Acos   (0)   ),       N(() => L<double,double>       ((double p)          => Sql.Acos   (p)!   .Value )) },
-			{ M(() => Math.Asin   (0)   ),       N(() => L<double,double>       ((double p)          => Sql.Asin   (p)!   .Value )) },
-			{ M(() => Math.Atan   (0)   ),       N(() => L<double,double>       ((double p)          => Sql.Atan   (p)!   .Value )) },
-			{ M(() => Math.Atan2  (0,0) ),       N(() => L<double,double,double>((double x,double y) => Sql.Atan2  (x, y)!.Value )) },
-			{ M(() => Math.Ceiling((decimal)0)), N(() => L<decimal,decimal>     ((decimal p)         => Sql.Ceiling(p)!   .Value )) },
-			{ M(() => Math.Ceiling((double)0)),  N(() => L<double,double>       ((double p)          => Sql.Ceiling(p)!   .Value )) },
-			{ M(() => Math.Cos            (0)),  N(() => L<double,double>       ((double p)          => Sql.Cos    (p)!   .Value )) },
-			{ M(() => Math.Cosh           (0)),  N(() => L<double,double>       ((double p)          => Sql.Cosh   (p)!   .Value )) },
-			{ M(() => Math.Exp            (0)),  N(() => L<double,double>       ((double p)          => Sql.Exp    (p)!   .Value )) },
-			{ M(() => Math.Floor ((decimal)0)),  N(() => L<decimal,decimal>     ((decimal p)         => Sql.Floor  (p)!   .Value )) },
-			{ M(() => Math.Floor  ((double)0)),  N(() => L<double,double>       ((double p)          => Sql.Floor  (p)!   .Value )) },
-			{ M(() => Math.Log            (0)),  N(() => L<double,double>       ((double p)          => Sql.Log    (p)!   .Value )) },
-			{ M(() => Math.Log          (0,0)),  N(() => L<double,double,double>((double m,double n) => Sql.Log    (n, m)!.Value )) },
-			{ M(() => Math.Log10          (0)),  N(() => L<double,double>       ((double p)          => Sql.Log10  (p)!   .Value )) },
+			{ M(() => Math.Acos   (0)   ),       N(() => L<double,double>       ((double p)          => DbFunc.Acos   (p)!   .Value )) },
+			{ M(() => Math.Asin   (0)   ),       N(() => L<double,double>       ((double p)          => DbFunc.Asin   (p)!   .Value )) },
+			{ M(() => Math.Atan   (0)   ),       N(() => L<double,double>       ((double p)          => DbFunc.Atan   (p)!   .Value )) },
+			{ M(() => Math.Atan2  (0,0) ),       N(() => L<double,double,double>((double x,double y) => DbFunc.Atan2  (x, y)!.Value )) },
+			{ M(() => Math.Ceiling((decimal)0)), N(() => L<decimal,decimal>     ((decimal p)         => DbFunc.Ceiling(p)!   .Value )) },
+			{ M(() => Math.Ceiling((double)0)),  N(() => L<double,double>       ((double p)          => DbFunc.Ceiling(p)!   .Value )) },
+			{ M(() => Math.Cos            (0)),  N(() => L<double,double>       ((double p)          => DbFunc.Cos    (p)!   .Value )) },
+			{ M(() => Math.Cosh           (0)),  N(() => L<double,double>       ((double p)          => DbFunc.Cosh   (p)!   .Value )) },
+			{ M(() => Math.Exp            (0)),  N(() => L<double,double>       ((double p)          => DbFunc.Exp    (p)!   .Value )) },
+			{ M(() => Math.Floor ((decimal)0)),  N(() => L<decimal,decimal>     ((decimal p)         => DbFunc.Floor  (p)!   .Value )) },
+			{ M(() => Math.Floor  ((double)0)),  N(() => L<double,double>       ((double p)          => DbFunc.Floor  (p)!   .Value )) },
+			{ M(() => Math.Log            (0)),  N(() => L<double,double>       ((double p)          => DbFunc.Log    (p)!   .Value )) },
+			{ M(() => Math.Log          (0,0)),  N(() => L<double,double,double>((double m,double n) => DbFunc.Log    (n, m)!.Value )) },
+			{ M(() => Math.Log10          (0)),  N(() => L<double,double>       ((double p)          => DbFunc.Log10  (p)!   .Value )) },
 
-			{ M(() => Math.Pow        (0,0) ), N(() => L<double,double,double>    ((double x,double y) => Sql.Power(x, y)!.Value )) },
+			{ M(() => Math.Pow        (0,0) ), N(() => L<double,double,double>    ((double x,double y) => DbFunc.Power(x, y)!.Value )) },
 
-			{ M(() => Sql.Round       (0m)  ), N(() => L<decimal?,decimal?>       ((decimal? d)          => Sql.Round(d, 0))) },
-			{ M(() => Sql.Round       (0.0) ), N(() => L<double?, double?>        ((double?  d)          => Sql.Round(d, 0))) },
+			{ M(() => DbFunc.Round       (0m)  ), N(() => L<decimal?,decimal?>       ((decimal? d)          => DbFunc.Round(d, 0))) },
+			{ M(() => DbFunc.Round       (0.0) ), N(() => L<double?, double?>        ((double?  d)          => DbFunc.Round(d, 0))) },
 
-			{ M(() => Sql.RoundToEven(0m)   ), N(() => L<decimal?,decimal?>       ((decimal? d)          => d - Sql.Floor(d) == 0.5m && Sql.Floor(d) % 2 == 0? Sql.Floor(d) : Sql.Round(d))) },
-			{ M(() => Sql.RoundToEven(0.0)  ), N(() => L<double?, double?>        ((double?  d)          => d - Sql.Floor(d) == 0.5  && Sql.Floor(d) % 2 == 0? Sql.Floor(d) : Sql.Round(d))) },
+			{ M(() => DbFunc.RoundToEven(0m)   ), N(() => L<decimal?,decimal?>       ((decimal? d)          => d - DbFunc.Floor(d) == 0.5m && DbFunc.Floor(d) % 2 == 0? DbFunc.Floor(d) : DbFunc.Round(d))) },
+			{ M(() => DbFunc.RoundToEven(0.0)  ), N(() => L<double?, double?>        ((double?  d)          => d - DbFunc.Floor(d) == 0.5  && DbFunc.Floor(d) % 2 == 0? DbFunc.Floor(d) : DbFunc.Round(d))) },
 
-			{ M(() => Sql.RoundToEven(0m, 0)), N(() => L<decimal?,int?,decimal?>((decimal? d,int? n) => d * 2 == Sql.Round(d * 2, n) && d != Sql.Round(d, n) ? Sql.Round(d / 2, n) * 2 : Sql.Round(d, n))) },
-			{ M(() => Sql.RoundToEven(0.0,0)), N(() => L<double?, int?,double?> ((double?  d,int? n) => d * 2 == Sql.Round(d * 2, n) && d != Sql.Round(d, n) ? Sql.Round(d / 2, n) * 2 : Sql.Round(d, n))) },
+			{ M(() => DbFunc.RoundToEven(0m, 0)), N(() => L<decimal?,int?,decimal?>((decimal? d,int? n) => d * 2 == DbFunc.Round(d * 2, n) && d != DbFunc.Round(d, n) ? DbFunc.Round(d / 2, n) * 2 : DbFunc.Round(d, n))) },
+			{ M(() => DbFunc.RoundToEven(0.0,0)), N(() => L<double?, int?,double?> ((double?  d,int? n) => d * 2 == DbFunc.Round(d * 2, n) && d != DbFunc.Round(d, n) ? DbFunc.Round(d / 2, n) * 2 : DbFunc.Round(d, n))) },
 
-			{ M(() => Math.Round     (0m)   ), N(() => L<decimal,decimal>         ( d    => Sql.RoundToEven(d)!.Value )) },
-			{ M(() => Math.Round     (0.0)  ), N(() => L<double, double>          ( d    => Sql.RoundToEven(d)!.Value )) },
+			{ M(() => Math.Round     (0m)   ), N(() => L<decimal,decimal>         ( d    => DbFunc.RoundToEven(d)!.Value )) },
+			{ M(() => Math.Round     (0.0)  ), N(() => L<double, double>          ( d    => DbFunc.RoundToEven(d)!.Value )) },
 
-			{ M(() => Math.Round     (0m, 0)), N(() => L<decimal,int,decimal>   ((d,n) => Sql.RoundToEven(d, n)!.Value )) },
-			{ M(() => Math.Round     (0.0,0)), N(() => L<double, int,double>    ((d,n) => Sql.RoundToEven(d, n)!.Value )) },
+			{ M(() => Math.Round     (0m, 0)), N(() => L<decimal,int,decimal>   ((d,n) => DbFunc.RoundToEven(d, n)!.Value )) },
+			{ M(() => Math.Round     (0.0,0)), N(() => L<double, int,double>    ((d,n) => DbFunc.RoundToEven(d, n)!.Value )) },
 
-			{ M(() => Math.Round (0m,    MidpointRounding.ToEven)), N(() => L<decimal,MidpointRounding,decimal>      ((d,  p) => p == MidpointRounding.ToEven ? Sql.RoundToEven(d)!.  Value : Sql.Round(d)!.  Value )) },
-			{ M(() => Math.Round (0.0,   MidpointRounding.ToEven)), N(() => L<double, MidpointRounding,double>       ((d,  p) => p == MidpointRounding.ToEven ? Sql.RoundToEven(d)!.  Value : Sql.Round(d)!.  Value )) },
+			{ M(() => Math.Round (0m,    MidpointRounding.ToEven)), N(() => L<decimal,MidpointRounding,decimal>      ((d,  p) => p == MidpointRounding.ToEven ? DbFunc.RoundToEven(d)!.  Value : DbFunc.Round(d)!.  Value )) },
+			{ M(() => Math.Round (0.0,   MidpointRounding.ToEven)), N(() => L<double, MidpointRounding,double>       ((d,  p) => p == MidpointRounding.ToEven ? DbFunc.RoundToEven(d)!.  Value : DbFunc.Round(d)!.  Value )) },
 
-			{ M(() => Math.Round (0m, 0, MidpointRounding.ToEven)), N(() => L<decimal,int,MidpointRounding,decimal>((d,n,p) => p == MidpointRounding.ToEven ? Sql.RoundToEven(d,n)!.Value : Sql.Round(d,n)!.Value )) },
-			{ M(() => Math.Round (0.0,0, MidpointRounding.ToEven)), N(() => L<double, int,MidpointRounding,double> ((d,n,p) => p == MidpointRounding.ToEven ? Sql.RoundToEven(d,n)!.Value : Sql.Round(d,n)!.Value )) },
+			{ M(() => Math.Round (0m, 0, MidpointRounding.ToEven)), N(() => L<decimal,int,MidpointRounding,decimal>((d,n,p) => p == MidpointRounding.ToEven ? DbFunc.RoundToEven(d,n)!.Value : DbFunc.Round(d,n)!.Value )) },
+			{ M(() => Math.Round (0.0,0, MidpointRounding.ToEven)), N(() => L<double, int,MidpointRounding,double> ((d,n,p) => p == MidpointRounding.ToEven ? DbFunc.RoundToEven(d,n)!.Value : DbFunc.Round(d,n)!.Value )) },
 
-			{ M(() => Math.Sign  ((decimal)0)), N(() => L<decimal,int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((double) 0)), N(() => L<double, int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((short)  0)), N(() => L<short,  int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((int)    0)), N(() => L<int,    int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((long)   0)), N(() => L<long,   int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((sbyte)  0)), N(() => L<sbyte,  int>(p => Sql.Sign(p)!.Value )) },
-			{ M(() => Math.Sign  ((float)  0)), N(() => L<float,  int>(p => Sql.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((decimal)0)), N(() => L<decimal,int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((double) 0)), N(() => L<double, int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((short)  0)), N(() => L<short,  int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((int)    0)), N(() => L<int,    int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((long)   0)), N(() => L<long,   int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((sbyte)  0)), N(() => L<sbyte,  int>(p => DbFunc.Sign(p)!.Value )) },
+			{ M(() => Math.Sign  ((float)  0)), N(() => L<float,  int>(p => DbFunc.Sign(p)!.Value )) },
 
-			{ M(() => Math.Sin   (0)), N(() => L<double,double>((double p) => Sql.Sin (p)!.Value )) },
-			{ M(() => Math.Sinh  (0)), N(() => L<double,double>((double p) => Sql.Sinh(p)!.Value )) },
-			{ M(() => Math.Sqrt  (0)), N(() => L<double,double>((double p) => Sql.Sqrt(p)!.Value )) },
-			{ M(() => Math.Tan   (0)), N(() => L<double,double>((double p) => Sql.Tan (p)!.Value )) },
-			{ M(() => Math.Tanh  (0)), N(() => L<double,double>((double p) => Sql.Tanh(p)!.Value )) },
+			{ M(() => Math.Sin   (0)), N(() => L<double,double>((double p) => DbFunc.Sin (p)!.Value )) },
+			{ M(() => Math.Sinh  (0)), N(() => L<double,double>((double p) => DbFunc.Sinh(p)!.Value )) },
+			{ M(() => Math.Sqrt  (0)), N(() => L<double,double>((double p) => DbFunc.Sqrt(p)!.Value )) },
+			{ M(() => Math.Tan   (0)), N(() => L<double,double>((double p) => DbFunc.Tan (p)!.Value )) },
+			{ M(() => Math.Tanh  (0)), N(() => L<double,double>((double p) => DbFunc.Tanh(p)!.Value )) },
 
-			{ M(() => Math.Truncate(0m)),  N(() => L<decimal,decimal>((decimal p) => Sql.Truncate(p)!.Value )) },
-			{ M(() => Math.Truncate(0.0)), N(() => L<double,double>  ((double  p) => Sql.Truncate(p)!.Value )) },
+			{ M(() => Math.Truncate(0m)),  N(() => L<decimal,decimal>((decimal p) => DbFunc.Truncate(p)!.Value )) },
+			{ M(() => Math.Truncate(0.0)), N(() => L<double,double>  ((double  p) => DbFunc.Truncate(p)!.Value )) },
 
 			#endregion
 
@@ -862,20 +862,20 @@ namespace mooSQL.linq.Linq
 		// Missing support for trimChars: Access, SqlCe, SybaseASE
 		// Firebird/MySQL - chars parameter treated as string, not as set of characters
 		[CLSCompliant(false)]
-		[Sql.Extension(ProviderName.Firebird      , "TRIM(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(TrailingRTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.ClickHouse    , "trim(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SqlServer     , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
-		[Sql.Extension(ProviderName.SqlCe         , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
-		[Sql.Extension(ProviderName.SqlServer2022 , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.DB2           , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Informix      , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Oracle        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.PostgreSQL    , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SapHana       , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SQLite        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Access        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
-		[Sql.Extension(ProviderName.MySql         , "TRIM(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(TrailingRTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Sybase        , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
+		[DbFunc.Extension(ProviderName.Firebird      , "TRIM(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(TrailingRTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.ClickHouse    , "trim(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SqlServer     , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
+		[DbFunc.Extension(ProviderName.SqlCe         , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
+		[DbFunc.Extension(ProviderName.SqlServer2022 , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.DB2           , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Informix      , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Oracle        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.PostgreSQL    , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SapHana       , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SQLite        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Access        , "RTRIM({0}, {1})"            , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
+		[DbFunc.Extension(ProviderName.MySql         , "TRIM(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(TrailingRTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Sybase        , "RTRIM({0})"                 , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilderNoTrimCharacters))]
 		public static string? TrimRight(string? str, [SqlQueryDependent] params char[] trimChars)
 		{
 			return str?.TrimEnd(trimChars);
@@ -884,28 +884,28 @@ namespace mooSQL.linq.Linq
 		// Missing support for trimChars: Access, SqlCe, SybaseASE
 		// Firebird/MySQL - chars parameter treated as string, not as set of characters
 		[CLSCompliant(false)]
-		[Sql.Expression(ProviderName.Firebird     , "TRIM(LEADING FROM {0})"    , ServerSideOnly = false, PreferServerSide = false)]
-		[Sql.Extension(ProviderName.ClickHouse    , "trim(LEADING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SqlServer2022 , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.DB2           , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Informix      , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Oracle        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.PostgreSQL    , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SapHana       , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SQLite        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.MySql         , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Access        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SqlServer     , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.SqlCe         , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
-		[Sql.Extension(ProviderName.Sybase        , "LTRIM({0})"                , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Expression(ProviderName.Firebird     , "TRIM(LEADING FROM {0})"    , ServerSideOnly = false, PreferServerSide = false)]
+		[DbFunc.Extension(ProviderName.ClickHouse    , "trim(LEADING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SqlServer2022 , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.DB2           , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Informix      , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Oracle        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.PostgreSQL    , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SapHana       , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SQLite        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.MySql         , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Access        , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SqlServer     , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.SqlCe         , "LTRIM({0}, {1})"           , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
+		[DbFunc.Extension(ProviderName.Sybase        , "LTRIM({0})"                , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
 		public static string? TrimLeft(string? str, [SqlQueryDependent] params char[] trimChars)
 		{
 			return str?.TrimStart(trimChars);
 		}
 
-		sealed class LTrimCharactersBuilder : Sql.IExtensionCallBuilder
+		sealed class LTrimCharactersBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(Sql.ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var stringExpression = builder.GetExpression("str")!;
 				var chars            = builder.GetValue<char[]>("trimChars");
@@ -927,9 +927,9 @@ namespace mooSQL.linq.Linq
 			}
 		}
 
-		sealed class TrailingRTrimCharactersBuilder : Sql.IExtensionCallBuilder
+		sealed class TrailingRTrimCharactersBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(Sql.ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var stringExpression = builder.GetExpression("str")!;
 				var chars            = builder.GetValue<char[]>("trimChars");
@@ -959,9 +959,9 @@ namespace mooSQL.linq.Linq
 			}
 		}
 
-		sealed class RTrimCharactersBuilder : Sql.IExtensionCallBuilder
+		sealed class RTrimCharactersBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(Sql.ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var stringExpression = builder.GetExpression("str")!;
 				var chars            = builder.GetValue<char[]>("trimChars");
@@ -983,9 +983,9 @@ namespace mooSQL.linq.Linq
 			}
 		}
 
-		sealed class RTrimCharactersBuilderNoTrimCharacters : Sql.IExtensionCallBuilder
+		sealed class RTrimCharactersBuilderNoTrimCharacters : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(Sql.ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var stringExpression = builder.GetExpression("str")!;
 				var chars            = builder.GetValue<char[]>("trimChars");
@@ -1007,9 +1007,9 @@ namespace mooSQL.linq.Linq
 
 		#region Provider specific functions
 
-		class ConvertToCaseCompareToBuilder : Sql.IExtensionCallBuilder
+		class ConvertToCaseCompareToBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(Sql.ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var str   = builder.GetExpression("str")!;
 				var value = builder.GetExpression("value")!;
@@ -1018,7 +1018,7 @@ namespace mooSQL.linq.Linq
 			}
 		}
 
-		[Sql.Extension(builderType: typeof(ConvertToCaseCompareToBuilder))]
+		[DbFunc.Extension(builderType: typeof(ConvertToCaseCompareToBuilder))]
 		public static int? ConvertToCaseCompareTo(string? str, string? value)
 		{
 			return str == null || value == null ? (int?)null : str.CompareTo(value);
@@ -1026,15 +1026,15 @@ namespace mooSQL.linq.Linq
 
 		// Access, DB2, Firebird, Informix, MySql, Oracle, PostgreSQL, SQLite
 		//
-		[Sql.Function(IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? AltStuff(string? str, int? startLocation, int? length, string? value)
 		{
-			return Sql.Stuff(str, startLocation, length, value);
+			return DbFunc.Stuff(str, startLocation, length, value);
 		}
 
 		// DB2
 		//
-		[Sql.Function(IsNullable = Sql.IsNullableType.SameAsFirstParameter)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static string? VarChar(object? obj, int? size)
 		{
 			return obj == null ? null : string.Format(CultureInfo.InvariantCulture, "{0}", obj);
@@ -1042,7 +1042,7 @@ namespace mooSQL.linq.Linq
 
 		// DB2
 		//
-		[Sql.Function(IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? Hex(Guid? guid)
 		{
 			return guid == null ? null : guid.ToString();
@@ -1051,10 +1051,10 @@ namespace mooSQL.linq.Linq
 		// DB2, PostgreSQL, Access, MS SQL, SqlCe
 		//
 		[CLSCompliant(false)]
-		[Sql.Function(                                         IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.DB2,        "Repeat",       IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.PostgreSQL, "Repeat",       IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.Access,     "string", 1, 0, IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(                                         IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.DB2,        "Repeat",       IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.PostgreSQL, "Repeat",       IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.Access,     "string", 1, 0, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? Replicate(string? str, int? count)
 		{
 			if (str == null || count == null)
@@ -1069,10 +1069,10 @@ namespace mooSQL.linq.Linq
 		}
 
 		[CLSCompliant(false)]
-		[Sql.Function(                                         IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.DB2,        "Repeat",       IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.PostgreSQL, "Repeat",       IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
-		[Sql.Function(ProviderName.Access,     "string", 1, 0, IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(                                         IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.DB2,        "Repeat",       IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.PostgreSQL, "Repeat",       IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(ProviderName.Access,     "string", 1, 0, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? Replicate(char? ch, int? count)
 		{
 			if (ch == null || count == null)
@@ -1086,10 +1086,10 @@ namespace mooSQL.linq.Linq
 
 		// MSSQL
 		//
-		[Sql.Function(IsNullable = Sql.IsNullableType.SameAsFirstParameter)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static decimal? Round(decimal? value, int precision, int mode) => 0;
 
-		[Sql.Function(IsNullable = Sql.IsNullableType.SameAsFirstParameter)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static double?  Round(double?  value, int precision, int mode) => 0;
 
 		// Access
@@ -1098,7 +1098,7 @@ namespace mooSQL.linq.Linq
 		// Access
 		//
 		[CLSCompliant(false)]
-		[Sql.Function("Int", 0)]
+		[DbFunc.Function("Int", 0)]
 		public static T AccessInt<T>(T value)
 		{
 			return value;
@@ -1107,7 +1107,7 @@ namespace mooSQL.linq.Linq
 		// Access
 		//
 		[CLSCompliant(false)]
-		[Sql.Function("Round", 0, 1)]
+		[DbFunc.Function("Round", 0, 1)]
 		public static double? AccessRound(double? value, int? precision)
 		{
 			if (value is null)
@@ -1119,7 +1119,7 @@ namespace mooSQL.linq.Linq
 		}
 
 		[CLSCompliant(false)]
-		[Sql.Function("Round", 0, 1)]
+		[DbFunc.Function("Round", 0, 1)]
 		public static decimal? AccessRound(decimal? value, int? precision)
 		{
 			if (value is null)
@@ -1132,14 +1132,14 @@ namespace mooSQL.linq.Linq
 
 		// Firebird
 		//
-		[Sql.Function("PI", ServerSideOnly = true, CanBeNull = false)]
+		[DbFunc.Function("PI", ServerSideOnly = true, CanBeNull = false)]
 		public static decimal DecimalPI() { return (decimal)Math.PI; }
-		[Sql.Function("PI", ServerSideOnly = true, CanBeNull = false)]
+		[DbFunc.Function("PI", ServerSideOnly = true, CanBeNull = false)]
 		public static double  DoublePI () { return          Math.PI; }
 
 		// Informix
 		//
-		[Sql.Function(IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static DateTime? Mdy(int? month, int? day, int? year)
 		{
 			return year == null || month == null || day == null ?
@@ -1149,24 +1149,24 @@ namespace mooSQL.linq.Linq
 
 		// ClickHouse
 		//
-		[Sql.Function("toDate32", ServerSideOnly = true, IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function("toDate32", ServerSideOnly = true, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		private static DateTime? ClickHouseGetDate(DateTimeOffset? dto) => throw new InvalidOperationException();
-		[Sql.Function("toDate32", ServerSideOnly = true, IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function("toDate32", ServerSideOnly = true, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		private static DateTime? ClickHouseGetDate(DateTime?       dt) => throw new InvalidOperationException();
 
 		// :-/
-		[Sql.Expression("toInt64((toUnixTimestamp64Nano(toDateTime64({0}, 7)) - toUnixTimestamp64Nano(toDateTime64(toDate32({0}), 7))) / 100)", ServerSideOnly = true, IsNullable = Sql.IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Primary)]
+		[DbFunc.Expression("toInt64((toUnixTimestamp64Nano(toDateTime64({0}, 7)) - toUnixTimestamp64Nano(toDateTime64(toDate32({0}), 7))) / 100)", ServerSideOnly = true, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Primary)]
 		private static TimeSpan? ClickHouseGetTime(DateTimeOffset? dto) => throw new InvalidOperationException();
-		[Sql.Expression("toInt64((toUnixTimestamp64Nano(toDateTime64({0}, 7)) - toUnixTimestamp64Nano(toDateTime64(toDate32({0}), 7))) / 100)", ServerSideOnly = true, IsNullable = Sql.IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Primary)]
+		[DbFunc.Expression("toInt64((toUnixTimestamp64Nano(toDateTime64({0}, 7)) - toUnixTimestamp64Nano(toDateTime64(toDate32({0}), 7))) / 100)", ServerSideOnly = true, IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Primary)]
 		private static TimeSpan? ClickHouseGetTime(DateTime? dt) => throw new InvalidOperationException();
 
-		[Sql.Function("roundBankers", IsNullable = Sql.IsNullableType.SameAsFirstParameter)]
+		[DbFunc.Function("roundBankers", IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		private static decimal? ClickHouseRoundToEven(decimal? value) => throw new InvalidOperationException();
-		[Sql.Function("roundBankers", IsNullable = Sql.IsNullableType.SameAsFirstParameter)]
+		[DbFunc.Function("roundBankers", IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		private static double? ClickHouseRoundToEven(double? value) => throw new InvalidOperationException();
-		[Sql.Function("roundBankers", IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function("roundBankers", IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		private static decimal? ClickHouseRoundToEven(decimal? value, int? precision) => throw new InvalidOperationException();
-		[Sql.Function("roundBankers", IsNullable = Sql.IsNullableType.IfAnyParameterNullable)]
+		[DbFunc.Function("roundBankers", IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		private static double? ClickHouseRoundToEven(double? value, int? precision) => throw new InvalidOperationException();
 
 		#endregion

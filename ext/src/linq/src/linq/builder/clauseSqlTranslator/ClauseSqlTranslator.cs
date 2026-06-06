@@ -124,9 +124,9 @@ namespace mooSQL.linq.Linq.Builder
 		/// <summary>
 		/// Contains information from which expression sequence were built. Used for Eager Loading.
 		/// </summary>
-		Dictionary<IBuildContext, Expression> _sequenceExpressions = new();
+		Dictionary<IClauseContext, Expression> _sequenceExpressions = new();
 
-		public Expression? GetSequenceExpression(IBuildContext sequence)
+		public Expression? GetSequenceExpression(IClauseContext sequence)
 		{
 			if (_sequenceExpressions.TryGetValue(sequence, out var expr))
 				return expr;
@@ -139,7 +139,7 @@ namespace mooSQL.linq.Linq.Builder
 			};
 		}
 
-		public void RegisterSequenceExpression(IBuildContext sequence, Expression expression)
+		public void RegisterSequenceExpression(IClauseContext sequence, Expression expression)
 		{
 			if (!_sequenceExpressions.ContainsKey(sequence))
 			{
@@ -163,7 +163,7 @@ namespace mooSQL.linq.Linq.Builder
 			Expression result;
 			do
 			{
-				result = MakeExpression(buildInfo.Parent, expression, flags);
+				result = BuildProjection(buildInfo.Parent, expression, flags);
 				result = UnwrapSequenceExpression(result);
 
 				if (ExpressionEqualityComparer.Instance.Equals(expression, result))
@@ -195,7 +195,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// </summary>
 		/// <param name="buildInfo"></param>
 		/// <returns></returns>
-		public IBuildContext BuildSequence(BuildInfo buildInfo)
+		public IClauseContext BuildSequence(BuildInfo buildInfo)
 		{
 			var buildResult = TryBuildSequence(buildInfo);
 			if (buildResult.BuildContext == null)
@@ -210,7 +210,7 @@ namespace mooSQL.linq.Linq.Builder
 			return buildResult.BuildContext;
 		}
 
-		public bool IsSequence(IBuildContext? parent, Expression expression)
+		public bool IsSequence(IClauseContext? parent, Expression expression)
 		{
 			using var query = QueryPool.Allocate();
 			return IsSequence(new BuildInfo(parent, expression, query.Value));

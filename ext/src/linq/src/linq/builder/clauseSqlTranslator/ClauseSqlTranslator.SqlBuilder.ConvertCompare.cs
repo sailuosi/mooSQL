@@ -62,7 +62,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public SearchConditionWord? TryGenerateComparison(
-			IBuildContext? context,
+			IClauseContext? context,
 			Expression     left,
 			Expression     right,
 			ProjectFlags   flags = ProjectFlags.SQL)
@@ -75,7 +75,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public SearchConditionWord GenerateComparison(
-			IBuildContext? context,
+			IClauseContext? context,
 			Expression     left,
 			Expression     right,
 			ProjectFlags   flags = ProjectFlags.SQL)
@@ -89,7 +89,7 @@ namespace mooSQL.linq.Linq.Builder
 			throw new SqlErrorExpression($"Could not compare '{left}' with {right}", typeof(bool)).CreateException();
 		}
 
-		Expression ConvertCompareExpression(IBuildContext? context, ExpressionType nodeType, Expression left, Expression right, ProjectFlags flags, Expression? originalExpression = null)
+		Expression ConvertCompareExpression(IClauseContext? context, ExpressionType nodeType, Expression left, Expression right, ProjectFlags flags, Expression? originalExpression = null)
 		{
 			Expression GetOriginalExpression()
 			{
@@ -719,7 +719,7 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		public bool CollectNullCompareExpressions(IBuildContext context, Expression expression, List<Expression> result)
+		public bool CollectNullCompareExpressions(IClauseContext context, Expression expression, List<Expression> result)
 		{
 			switch (expression.NodeType)
 			{

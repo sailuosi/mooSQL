@@ -144,7 +144,7 @@ internal partial class ClauseMethodVisitor
     static bool GetSimplifiedAggregationInfo(
         AggregationType                                        aggregationType,
         Type                                                   returnType,
-        IBuildContext                                          context,
+        IClauseContext                                          context,
         BuildInfo                                              buildInfo,
         Expression                                             expression,
         LambdaExpression?                                      inputValueLambda,
@@ -401,8 +401,8 @@ internal partial class ClauseMethodVisitor
         {
             var isSimple = false;
 
-            IBuildContext? sequence;
-            IBuildContext? placeholderSequence;
+            IClauseContext? sequence;
+            IClauseContext? placeholderSequence;
 
             var                 parentContext     = buildInfo.Parent!;
             var                 placeholderSelect = parentContext.SelectQuery;

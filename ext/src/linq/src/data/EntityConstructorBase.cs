@@ -30,7 +30,7 @@ namespace mooSQL.linq.Data
 
 		#region Entity Construction
 
-		public virtual List<LoadWithInfo>? GetTableLoadWith(Expression path)
+		public virtual List<IncludeInfo>? GetTableIncludes(Expression path)
 		{
 			return null;
 		}
@@ -168,7 +168,7 @@ namespace mooSQL.linq.Data
 
 			if (!flags.IsKeys() && level == 0 && purpose == FullEntityPurpose.Default)
 			{
-				var loadWith = GetTableLoadWith(currentPath);
+				var loadWith = GetTableIncludes(currentPath);
 
 				if (loadWith?.Count > 0)
 				{

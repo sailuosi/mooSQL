@@ -17,42 +17,42 @@ namespace mooSQL.linq.Linq.Translation
 
 		public SqlTypesTranslationDefault()
 		{
-			_registration.RegisterMember(() => Sql.Types.Bit,      ConvertBit);
-			_registration.RegisterMember(() => Sql.Types.BigInt,   ConvertBigInt);
-			_registration.RegisterMember(() => Sql.Types.Int,      ConvertInt);
-			_registration.RegisterMember(() => Sql.Types.SmallInt, ConvertSmallInt);
-			_registration.RegisterMember(() => Sql.Types.TinyInt,  ConvertTinyInt);
-			_registration.RegisterMember(() => Sql.Types.DefaultDecimal, ConvertDefaultDecimal);
+			_registration.RegisterMember(() => DbFunc.Types.Bit,      ConvertBit);
+			_registration.RegisterMember(() => DbFunc.Types.BigInt,   ConvertBigInt);
+			_registration.RegisterMember(() => DbFunc.Types.Int,      ConvertInt);
+			_registration.RegisterMember(() => DbFunc.Types.SmallInt, ConvertSmallInt);
+			_registration.RegisterMember(() => DbFunc.Types.TinyInt,  ConvertTinyInt);
+			_registration.RegisterMember(() => DbFunc.Types.DefaultDecimal, ConvertDefaultDecimal);
 
-			_registration.RegisterMethod(() => Sql.Types.Decimal(0),  ConvertDecimalPrecision);
-			_registration.RegisterMethod(() => Sql.Types.Decimal(0, 0), ConvertDecimalPrecisionScale);
+			_registration.RegisterMethod(() => DbFunc.Types.Decimal(0),  ConvertDecimalPrecision);
+			_registration.RegisterMethod(() => DbFunc.Types.Decimal(0, 0), ConvertDecimalPrecisionScale);
 
-			_registration.RegisterMember(() => Sql.Types.Money, ConvertMoney);
-			_registration.RegisterMember(() => Sql.Types.SmallMoney, ConvertSmallMoney);
+			_registration.RegisterMember(() => DbFunc.Types.Money, ConvertMoney);
+			_registration.RegisterMember(() => DbFunc.Types.SmallMoney, ConvertSmallMoney);
 			
 			//TODO: What is it?
-			_registration.RegisterMember(() => Sql.Types.Float, ConvertFloat);
+			_registration.RegisterMember(() => DbFunc.Types.Float, ConvertFloat);
 
-			_registration.RegisterMember(() => Sql.Types.Real, ConvertReal);
-			_registration.RegisterMember(() => Sql.Types.DateTime, ConvertDateTime);
-			_registration.RegisterMember(() => Sql.Types.DateTime2, ConvertDateTime2);
-			_registration.RegisterMember(() => Sql.Types.SmallDateTime, ConvertSmallDateTime);
-			_registration.RegisterMember(() => Sql.Types.Date, ConvertDate);
+			_registration.RegisterMember(() => DbFunc.Types.Real, ConvertReal);
+			_registration.RegisterMember(() => DbFunc.Types.DateTime, ConvertDateTime);
+			_registration.RegisterMember(() => DbFunc.Types.DateTime2, ConvertDateTime2);
+			_registration.RegisterMember(() => DbFunc.Types.SmallDateTime, ConvertSmallDateTime);
+			_registration.RegisterMember(() => DbFunc.Types.Date, ConvertDate);
 
 #if NET6_0_OR_GREATER
-			_registration.RegisterMember(() => Sql.Types.DateOnly, ConvertDateOnly);
+			_registration.RegisterMember(() => DbFunc.Types.DateOnly, ConvertDateOnly);
 #endif
-			_registration.RegisterMember(() => Sql.Types.Time, ConvertTime);
-			_registration.RegisterMember(() => Sql.Types.DateTimeOffset, ConvertDateTimeOffset);
-			_registration.RegisterMethod(() => Sql.Types.Char(0), ConvertCharLength);
-			_registration.RegisterMember(() => Sql.Types.DefaultChar, ConvertDefaultChar);
-			_registration.RegisterMethod(() => Sql.Types.VarChar(0), ConvertVarChar);
+			_registration.RegisterMember(() => DbFunc.Types.Time, ConvertTime);
+			_registration.RegisterMember(() => DbFunc.Types.DateTimeOffset, ConvertDateTimeOffset);
+			_registration.RegisterMethod(() => DbFunc.Types.Char(0), ConvertCharLength);
+			_registration.RegisterMember(() => DbFunc.Types.DefaultChar, ConvertDefaultChar);
+			_registration.RegisterMethod(() => DbFunc.Types.VarChar(0), ConvertVarChar);
 
-			_registration.RegisterMember(() => Sql.Types.DefaultVarChar, ConvertDefaultVarChar);
-			_registration.RegisterMethod(() => Sql.Types.NChar(0), ConvertNChar);
-			_registration.RegisterMember(() => Sql.Types.DefaultNChar, ConvertDefaultNChar);
-			_registration.RegisterMethod(() => Sql.Types.NVarChar(0), ConvertNVarChar);
-			_registration.RegisterMember(() => Sql.Types.DefaultNVarChar, ConvertDefaultNVarChar);
+			_registration.RegisterMember(() => DbFunc.Types.DefaultVarChar, ConvertDefaultVarChar);
+			_registration.RegisterMethod(() => DbFunc.Types.NChar(0), ConvertNChar);
+			_registration.RegisterMember(() => DbFunc.Types.DefaultNChar, ConvertDefaultNChar);
+			_registration.RegisterMethod(() => DbFunc.Types.NVarChar(0), ConvertNVarChar);
+			_registration.RegisterMember(() => DbFunc.Types.DefaultNVarChar, ConvertDefaultNVarChar);
 		}
 
 		#region Convert functions

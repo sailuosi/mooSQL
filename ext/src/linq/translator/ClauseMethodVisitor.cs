@@ -8,7 +8,7 @@ using mooSQL.linq.Reflection;
 namespace mooSQL.linq.translator;
 
 /// <summary>
-/// LINQ 方法调用访问器：CallUntil → VisitXxxCore → IBuildContext → StatementExpression。
+/// LINQ 方法调用访问器：CallUntil → VisitXxxCore → IClauseContext → StatementExpression。
 /// </summary>
 internal partial class ClauseMethodVisitor : MethodVisitor
 {

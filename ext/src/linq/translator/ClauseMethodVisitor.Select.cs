@@ -22,7 +22,7 @@ internal partial class ClauseMethodVisitor
 
         var selector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
 
-        _ = Context.Translator.MakeExpression(sequence, new ContextRefExpression(sequence.ElementType, sequence),
+        _ = Context.Translator.BuildProjection(sequence, new ContextRefExpression(sequence.ElementType, sequence),
             ProjectFlags.ExtractProjection);
 
         sequence.SetAlias(selector.Parameters[0].Name);

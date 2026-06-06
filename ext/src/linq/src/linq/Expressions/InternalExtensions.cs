@@ -53,7 +53,7 @@ namespace mooSQL.linq.Expressions
 			if (includingArrays && type.IsArray)
 				return type.GetElementType()!.IsConstantable(includingArrays);
 
-			if (type == typeof(Sql.SqlID))
+			if (type == typeof(DbFunc.SqlID))
 				return true;
 
 			return false;
@@ -144,7 +144,7 @@ namespace mooSQL.linq.Expressions
 
 		public static Expression SkipMethodChain(this Expression expr, DBInstance mappingSchema, out bool isQueryable)
 		{
-			return Sql.ExtensionAttribute.ExcludeExtensionChain(mappingSchema, expr, out isQueryable);
+			return DbFunc.ExtensionAttribute.ExcludeExtensionChain(mappingSchema, expr, out isQueryable);
 		}
 
 		public static Dictionary<Expression,Expression> GetExpressionAccessors(this Expression expression, Expression path)

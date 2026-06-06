@@ -31,7 +31,7 @@ internal static class ClauseCompiler
         ClauseSqlTranslator builder,
         Expression expression)
     {
-        var buildInfo = new BuildInfo((IBuildContext?)null, expression, new SelectQueryClause());
+        var buildInfo = new BuildInfo((IClauseContext?)null, expression, new SelectQueryClause());
         var session = StatementCompileSession.Create(builder, buildInfo);
         var resultExpr = session.VisitRoot(expression);
 

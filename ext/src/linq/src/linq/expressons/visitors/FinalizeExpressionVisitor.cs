@@ -24,7 +24,7 @@ namespace mooSQL.linq.Linq.Builder
 		Dictionary<Expression, (ParameterExpression variable, Expression assignment)>? _constructedAssignments;
 
 		ExpressionGenerator _generator = default!;
-		IBuildContext       _context   = default!;
+		IClauseContext       _context   = default!;
 		bool                _constructRun;
 
 		internal override Expression VisitSqlReaderIsNullExpression(SqlReaderIsNullExpression node)
@@ -96,7 +96,7 @@ namespace mooSQL.linq.Linq.Builder
 			return _context.Builder.Construct(_context.Builder.DBLive, node, ProjectFlags.Expression);
 		}
 
-		public Expression Finalize(Expression expression, IBuildContext context, ExpressionGenerator generator)
+		public Expression Finalize(Expression expression, IClauseContext context, ExpressionGenerator generator)
 		{
 			_visited = new HashSet<Expression>(ExpressionEqualityComparer.Instance);
 			_duplicates = default;

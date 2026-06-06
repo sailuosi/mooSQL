@@ -137,13 +137,10 @@ public partial class DBCash
         return kit;
     }
 
-    public static ITable<T> useQueryable<T>(int position)
+    public static IDbQuery<T> useQueryable<T>(int position)
     {
         return GetDBInstance(position).useQueryable<T>();
     }
-
-    /// <summary>Ext LINQ 入口别名，请优先使用 <see cref="useQueryable{T}"/>。</summary>
-    public static ITable<T> useEntity<T>(int position) => useQueryable<T>(position);
 
     public static DbBus<T> useBus<T>(int position)
     {

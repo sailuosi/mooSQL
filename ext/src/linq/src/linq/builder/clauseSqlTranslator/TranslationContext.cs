@@ -29,7 +29,7 @@ namespace mooSQL.linq.Linq.Builder
 			public DbDataType GetDbDataType(Type type) => _translationContext.DBLive.dialect.mapping.GetDbDataType(type);
 		}
         public DBInstance DBLive => Builder.DBLive;
-        public void Init(ClauseSqlTranslator builder, IBuildContext? currentContext, EntityColumn? currentColumnDescriptor, string? currentAlias)
+        public void Init(ClauseSqlTranslator builder, IClauseContext? currentContext, EntityColumn? currentColumnDescriptor, string? currentAlias)
 		{
 			Builder = builder;
 			CurrentContext = currentContext;
@@ -53,7 +53,7 @@ namespace mooSQL.linq.Linq.Builder
 		public ISqlExpressionFactory ExpressionFactory { get; }
 
 		public ClauseSqlTranslator Builder { get; private set; } = default!;
-		public IBuildContext? CurrentContext { get; private set; }
+		public IClauseContext? CurrentContext { get; private set; }
 		public EntityColumn? CurrentColumnDescriptor { get; private set; }
 		public string? CurrentAlias { get; private set; }
 

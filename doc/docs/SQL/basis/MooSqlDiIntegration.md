@@ -56,7 +56,7 @@ services.AddMooSql(App.Configuration);
 | `DBCash.newBulk(table, n)` | `new BulkTable(table, cash.getInstance(n))` 等 |
 | `DBCash.newBatchSQL(n)` | 与 `DBCash` 相同思路：`SQLKit` + `BatchSQL` |
 
-`useDb` / `LinqReadyBook` 仍仅存在于未改动的 `DBCash`；Ext 标准 Queryable 请使用 **`useQueryable` / `AsQueryable`**（`GetTable` 为 Linq2DB 兼容），与 **`useBus`（FastLinq）** 并行，见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
+`useDb` / `LinqReadyBook` 仍仅存在于未改动的 `DBCash`；Ext 标准 Queryable 请使用 **`useQueryable` / `AsQueryable`**，与 **`useBus`（FastLinq）** 并行，见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
 
 ## DI 路径下的日志目录
 

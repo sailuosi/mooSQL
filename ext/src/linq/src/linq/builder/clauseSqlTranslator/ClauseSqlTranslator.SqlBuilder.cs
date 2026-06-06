@@ -41,9 +41,9 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region Build Where
 
-		public IBuildContext? BuildWhere(
-			IBuildContext?   parent,
-			IBuildContext    sequence,
+		public IClauseContext? BuildWhere(
+			IClauseContext?   parent,
+			IClauseContext    sequence,
 			LambdaExpression condition,
 			bool             checkForSubQuery,
 			bool             enforceHaving,
@@ -114,7 +114,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region Build Skip/Take
 
-		public void BuildTake(IBuildContext sequence, IExpWord expr, TakeHintType? hints)
+		public void BuildTake(IClauseContext sequence, IExpWord expr, TakeHintType? hints)
 		{
 			var sql = sequence.SelectQuery;
 
@@ -135,7 +135,7 @@ namespace mooSQL.linq.Linq.Builder
 			sql.Select.Take(expr, hints);
 		}
 
-		public void BuildSkip(IBuildContext sequence, IExpWord expr)
+		public void BuildSkip(IClauseContext sequence, IExpWord expr)
 		{
 			var sql = sequence.SelectQuery;
 
@@ -164,7 +164,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public bool IsSupportedSubquery(IBuildContext parent, IBuildContext context, out string? errorMessage)
+		public bool IsSupportedSubquery(IClauseContext parent, IClauseContext context, out string? errorMessage)
 		{
 			errorMessage = null;
 
@@ -186,7 +186,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				cloningContext.UpdateContextParents();
 
-				var expr = parent.Builder.MakeExpression(clonedContext, new ContextRefExpression(clonedContext.ElementType, clonedContext), ProjectFlags.SQL);
+				var expr = parent.Builder.BuildProjection(clonedContext, new ContextRefExpression(clonedContext.ElementType, clonedContext), ProjectFlags.SQL);
 
 				expr = parent.Builder.ToColumns(clonedParentContext, expr);
 
@@ -235,7 +235,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		int _gettingSubquery;
 
-		public IBuildContext? GetSubQuery(IBuildContext context, Expression expr, ProjectFlags flags, out bool isSequence, out string? errorMessage)
+		public IClauseContext? GetSubQuery(IClauseContext context, Expression expr, ProjectFlags flags, out bool isSequence, out string? errorMessage)
 		{
 			var info = new BuildInfo(context, expr, new SelectQueryClause())
 			{
@@ -340,7 +340,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		private sealed class CanBeTranslatedToSqlContext
 		{
-			public CanBeTranslatedToSqlContext(ClauseSqlTranslator builder, IBuildContext buildContext, bool canBeCompiled)
+			public CanBeTranslatedToSqlContext(ClauseSqlTranslator builder, IClauseContext buildContext, bool canBeCompiled)
 			{
 				Builder       = builder;
 				BuildContext  = buildContext;
@@ -348,7 +348,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			public readonly ClauseSqlTranslator Builder;
-			public readonly IBuildContext     BuildContext;
+			public readonly IClauseContext     BuildContext;
 			public readonly bool              CanBeCompiled;
 		}
 
@@ -356,7 +356,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region Helpers
 
-		public IBuildContext? GetContext(IBuildContext? current, Expression? expression)
+		public IClauseContext? GetContext(IClauseContext? current, Expression? expression)
 		{
 			throw new NotImplementedException();
 		}
@@ -388,7 +388,7 @@ namespace mooSQL.linq.Linq.Builder
 				return _removeNullPropagationTransformer ??= TransformVisitor<ClauseSqlTranslator>.Create(this, static (ctx, e) => ctx.RemoveNullPropagation(e, false));
 		}
 
-		public Expression RemoveNullPropagation(IBuildContext context, Expression expr, ProjectFlags flags, bool toSql)
+		public Expression RemoveNullPropagation(IClauseContext context, Expression expr, ProjectFlags flags, bool toSql)
 		{
 			static bool? IsNull(Expression sqlExpr)
 			{

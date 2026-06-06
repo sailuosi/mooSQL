@@ -168,8 +168,8 @@ internal partial class ClauseMethodVisitor
     /// <summary>
     /// Appends GroupBy items to <paramref name="sequence"/> SelectQuery.
     /// </summary>
-    static bool AppendGrouping(IBuildContext sequence, List<SqlPlaceholderExpression> currentPlaceholders,
-        ClauseSqlTranslator builder, IBuildContext onSequence, Expression path, GroupingType groupingKind,
+    static bool AppendGrouping(IClauseContext sequence, List<SqlPlaceholderExpression> currentPlaceholders,
+        ClauseSqlTranslator builder, IClauseContext onSequence, Expression path, GroupingType groupingKind,
         ProjectFlags flags, [NotNullWhen(false)] out Expression? errorExpression)
     {
         errorExpression = null;
@@ -177,7 +177,7 @@ internal partial class ClauseMethodVisitor
         if (groupingKind == GroupingType.GroupBySets)
         {
             var hasSets  = false;
-            var expanded = builder.MakeExpression(onSequence, path, ProjectFlags.ExtractProjection);
+            var expanded = builder.BuildProjection(onSequence, path, ProjectFlags.ExtractProjection);
             foreach (var groupingSet in EnumGroupingSets(expanded))
             {
                 hasSets = true;

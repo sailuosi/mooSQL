@@ -523,13 +523,6 @@ namespace mooSQL.data.call
         }
 
         /// <summary>
-        /// 访问 LoadWith 调用节点（默认返回原节点）。
-        /// </summary>
-        public virtual MethodCall VisitLoadWith(LoadWithCall method)
-        {
-            return method;
-        }
-        /// <summary>
         /// 访问 LIKE 调用节点（默认返回原节点）。
         /// </summary>
         public virtual MethodCall VisitLike(LikeCall method)
@@ -548,14 +541,14 @@ namespace mooSQL.data.call
         /// <summary>
         /// 访问 LoadWithAsTable 调用节点（默认返回原节点）。
         /// </summary>
-        public virtual MethodCall VisitLoadWithAsTable(LoadWithAsTableCall method)
+        public virtual MethodCall VisitIncludesAsTable(IncludesAsTableCall method)
         {
             return method;
         }
         /// <summary>
-        /// 访问 LoadWithInternal 调用节点（默认返回原节点）。
+        /// 访问 IncludeInternal 调用节点（默认返回原节点）。
         /// </summary>
-        public virtual MethodCall VisitLoadWithInternal(LoadWithInternalCall method)
+        public virtual MethodCall VisitIncludeInternal(IncludeInternalCall method)
         {
             return method;
         }
@@ -846,9 +839,9 @@ namespace mooSQL.data.call
             return method;
         }
         /// <summary>
-        /// 访问 ThenLoad 调用节点（默认返回原节点）。
+        /// 访问 ThenInclude 调用节点（默认返回原节点）。
         /// </summary>
-        public virtual MethodCall VisitThenLoad(ThenLoadCall method)
+        public virtual MethodCall VisitThenInclude(ThenIncludeCall method)
         {
             return method;
 

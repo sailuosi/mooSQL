@@ -63,16 +63,16 @@ namespace mooSQL.linq.Extensions
 
 
 
-		public static Sql.ExpressionAttribute? GetExpressionAttribute(this MemberInfo member, DBInstance mappingSchema)
+		public static DbFunc.ExpressionAttribute? GetExpressionAttribute(this MemberInfo member, DBInstance mappingSchema)
 		{
-			//return mappingSchema.GetAttribute<Sql.ExpressionAttribute>(member.ReflectedType!, member);
-			return member.GetCustomAttribute<Sql.ExpressionAttribute>();
+			//return mappingSchema.GetAttribute<DbFunc.ExpressionAttribute>(member.ReflectedType!, member);
+			return member.GetCustomAttribute<DbFunc.ExpressionAttribute>();
 		}
 
-		public static Sql.TableFunctionAttribute? GetTableFunctionAttribute(this MemberInfo member, DBInstance mappingSchema)
+		public static DbFunc.TableFunctionAttribute? GetTableFunctionAttribute(this MemberInfo member, DBInstance mappingSchema)
 		{
-			//return mappingSchema.GetAttribute<Sql.TableFunctionAttribute>(member.ReflectedType!, member);
-			return member.GetCustomAttribute<Sql.TableFunctionAttribute>();
+			//return mappingSchema.GetAttribute<DbFunc.TableFunctionAttribute>(member.ReflectedType!, member);
+			return member.GetCustomAttribute<DbFunc.TableFunctionAttribute>();
 		}
 	}
 }

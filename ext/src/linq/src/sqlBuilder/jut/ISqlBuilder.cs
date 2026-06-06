@@ -38,6 +38,6 @@ namespace mooSQL.linq.SqlProvider
 		string?                                TablePath        { get; }
 		string?                                QueryName        { get; }
 
-		string? BuildSqlID(Sql.SqlID id);
+		string? BuildSqlID(DbFunc.SqlID id);
 	}
 }

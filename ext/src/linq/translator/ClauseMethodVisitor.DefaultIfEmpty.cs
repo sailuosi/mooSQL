@@ -24,7 +24,7 @@ internal partial class ClauseMethodVisitor
         var builder = Context.Builder;
         var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 
-        IBuildContext? result;
+        IClauseContext? result;
 
         if (buildInfo.SourceCardinality == SourceCardinality.Unknown)
         {

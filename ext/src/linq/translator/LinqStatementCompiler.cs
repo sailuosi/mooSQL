@@ -14,7 +14,7 @@ namespace mooSQL.linq.translator;
 /// <summary>
 /// translator 模块公共入口：将 LINQ 表达式编译为 Statement / SqlPlan，供非 DbBus 场景复用。
 /// </summary>
-public static class LinqStatementCompiler
+public static partial class LinqStatementCompiler
 {
     /// <summary>编译表达式为 Statement 结构与 SqlPlan（不执行查询）。</summary>
     public static StatementCompileResult Compile(

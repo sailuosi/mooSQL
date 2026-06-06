@@ -17,7 +17,7 @@ namespace mooSQL.linq.Linq.Builder
     sealed class BuildVisitor : ExpressionVisitorBase
 	{
 		ProjectFlags      _flags;
-		IBuildContext     _context = default!;
+		IClauseContext     _context = default!;
 		BuildFlags        _buildFlags;
 		bool              _forceSql;
 		bool              _disableParseNew;
@@ -108,7 +108,7 @@ namespace mooSQL.linq.Linq.Builder
 			return new NeedForceScope(this, needForce);
 		}
 
-		public Expression Build(IBuildContext context, Expression expression, ProjectFlags flags, BuildFlags buildFlags)
+		public Expression Build(IClauseContext context, Expression expression, ProjectFlags flags, BuildFlags buildFlags)
 		{
 			_flags = flags;
 			_context = context;
@@ -161,7 +161,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			var translated = asSql
 					? Builder.ConvertToSqlExpr(_context, expression, localFlags, columnDescriptor : _entityColumn, alias : alias)
-					: Builder.MakeExpression(_context, expression, localFlags);
+					: Builder.BuildProjection(_context, expression, localFlags);
 
 			// Handling GroupBy by group case. Maybe wrong decision, we can do such correction during Group building.
 			//
@@ -559,9 +559,9 @@ namespace mooSQL.linq.Linq.Builder
 
 		protected override Expression VisitMethodCall(MethodCallExpression node)
 		{
-			if (node.Method.DeclaringType == typeof(Sql))
+			if (node.Method.DeclaringType == typeof(DbFunc))
 			{
-				if (node.Method.Name == nameof(Sql.Alias))
+				if (node.Method.Name == nameof(DbFunc.Alias))
 				{
 					var saveAlias = _alias;
 
@@ -585,7 +585,7 @@ namespace mooSQL.linq.Linq.Builder
 			if (Builder.IsServerSideOnly(node, _flags.IsExpression()) || Builder.PreferServerSide(node, false))
 				localFlags = _flags.SqlFlag();
 
-			var method = Builder.MakeExpression(_context, node, localFlags);
+			var method = Builder.BuildProjection(_context, node, localFlags);
 
 			if (method is SqlErrorExpression)
 			{
@@ -610,7 +610,7 @@ namespace mooSQL.linq.Linq.Builder
 			//if (attr != null)
 			//{
 			//	// Handling AsNullable<T>, AsNotNull<T>, AsNotNullable<T>, ToNullable<T>, ToNotNull<T>, ToNotNullable<T>
-			//	if (!_flags.IsSql() && !attr.ServerSideOnly && attr.Expression == "{0}" && node.Method.DeclaringType == typeof(Sql))
+			//	if (!_flags.IsSql() && !attr.ServerSideOnly && attr.Expression == "{0}" && node.Method.DeclaringType == typeof(DbFunc))
 			//	{
 			//		var converted = Visit(node.Arguments[0]);
 			//		if (converted.Type != node.Type)
@@ -712,7 +712,7 @@ namespace mooSQL.linq.Linq.Builder
 			{
 				if (expr.NodeType == ExpressionType.MemberAccess || expr.NodeType == ExpressionType.Call)
 				{
-					transformed = Builder.MakeExpression(_context, expr, _flags);
+					transformed = Builder.BuildProjection(_context, expr, _flags);
 					if (!ExpressionEqualityComparer.Instance.Equals(transformed, expr))
 					{
 						transformed = Visit(transformed);

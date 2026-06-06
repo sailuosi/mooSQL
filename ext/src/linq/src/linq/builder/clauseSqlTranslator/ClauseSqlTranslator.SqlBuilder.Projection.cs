@@ -34,7 +34,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region Projection
 
-		public Expression Project(IBuildContext context, Expression? path, List<Expression>? nextPath, int nextIndex, ProjectFlags flags, Expression body, bool strict)
+		public Expression Project(IClauseContext context, Expression? path, List<Expression>? nextPath, int nextIndex, ProjectFlags flags, Expression body, bool strict)
 		{
 			MemberInfo? member = null;
 			Expression? next   = null;
@@ -650,7 +650,7 @@ namespace mooSQL.linq.Linq.Builder
 		int _makeCounter;
 #endif
 
-		public bool IsSimpleForCompilation(IBuildContext context, Expression expr)
+		public bool IsSimpleForCompilation(IClauseContext context, Expression expr)
 		{
 			if (CanBeConstant(expr))
 				return true;

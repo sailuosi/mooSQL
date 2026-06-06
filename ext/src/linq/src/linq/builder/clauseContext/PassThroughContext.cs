@@ -1,0 +1,57 @@
+﻿using System.Linq.Expressions;
+
+namespace mooSQL.linq.Linq.Builder
+{
+	using Mapping;
+    using mooSQL.data.model;
+    using SqlQuery;
+
+	abstract class PassThroughContext : ClauseContextBase
+	{
+		protected PassThroughContext(IClauseContext context, SelectQueryClause selectQuery) : base(context.Builder, context.ElementType, selectQuery)
+		{
+			Context = context;
+			Parent  = context.Parent;
+		}
+
+		protected PassThroughContext(IClauseContext context) : this(context, context.SelectQuery)
+		{
+		}
+
+
+		public          IClauseContext Context       { get; protected set; }
+
+		public override Expression?   Expression => Context.Expression;
+
+		public override Expression BuildProjection(Expression path, ProjectFlags flags)
+		{
+			var corrected = SequenceHelper.CorrectExpression(path, this, Context);
+			var result = Builder.BuildProjection(Context, corrected, flags);
+
+			if (flags.IsSql() && !flags.IsTest())
+			{
+				result = SequenceHelper.CorrectTrackingPath(result, Context, this);
+			}
+
+			return result;
+		}
+
+
+		public override void SetAlias(string? alias)
+		{
+			Context.SetAlias(alias);
+		}
+
+		public override BaseSentence GetResultStatement()
+		{
+			return Context.GetResultStatement();
+		}
+
+		public override void CompleteColumns()
+		{
+			Context.CompleteColumns();
+		}
+
+		public override bool IsOptional => Context.IsOptional;
+	}
+}

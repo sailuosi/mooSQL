@@ -173,8 +173,8 @@ namespace mooSQL.linq.Linq
 				public static MethodInfo Like12 = MethodOf(s => System.Data.Linq.SqlClient.SqlMethods.Like("", "", ' '));
 #endif
 
-				public static MethodInfo Like21 = MethodOf(s => Sql.Like(s, ""));
-				public static MethodInfo Like22 = MethodOf(s => Sql.Like(s, "", ' '));
+				public static MethodInfo Like21 = MethodOf(s => DbFunc.Like(s, ""));
+				public static MethodInfo Like22 = MethodOf(s => DbFunc.Like(s, "", ' '));
 			}
 
 			//public sealed class FormattableString : Expressor<FormattableString>

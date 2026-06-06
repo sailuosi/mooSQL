@@ -10,12 +10,12 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		public AnchorWord.AnchorKindEnum AnchorKind { get; }
 
-		public AnchorContext(IBuildContext? parent, IBuildContext sequence, AnchorWord.AnchorKindEnum anchorKind) : base(parent, sequence, null)
+		public AnchorContext(IClauseContext? parent, IClauseContext sequence, AnchorWord.AnchorKindEnum anchorKind) : base(parent, sequence, null)
 		{
 			AnchorKind = anchorKind;
 		}
 
-		public override Expression MakeExpression(Expression path, ProjectFlags flags)
+		public override Expression BuildProjection(Expression path, ProjectFlags flags)
 		{
 			if (SequenceHelper.IsSameContext(path, this) && flags.HasFlag(ProjectFlags.Root))
 			{
@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			if (!flags.HasFlag(ProjectFlags.SQL))
-				return base.MakeExpression(path, flags);
+				return base.BuildProjection(path, flags);
 
 			var correctedPath = SequenceHelper.CorrectExpression(path, this, Sequence);
 
@@ -41,7 +41,7 @@ namespace mooSQL.linq.Linq.Builder
 			return converted;
 		}
 
-		public override IBuildContext Clone(CloningContext context)
+		public override IClauseContext Clone(CloningContext context)
 		{
 			return new AnchorContext(Parent, context.CloneContext(Sequence), AnchorKind);
 		}

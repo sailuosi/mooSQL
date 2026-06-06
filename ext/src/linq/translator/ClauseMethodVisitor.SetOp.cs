@@ -35,7 +35,7 @@ internal partial class ClauseMethodVisitor
     static bool CanBuildSetOp(MethodCallExpression call)
         => call.Arguments.Count == 2 && call.IsQueryable();
 
-    static IBuildContext? BuildSetOp(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext? BuildSetOp(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var buildResult1 = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
         if (buildResult1.BuildContext == null)

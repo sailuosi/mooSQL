@@ -32,7 +32,7 @@ namespace mooSQL.linq.Linq.Translation
 		{
 			InitDefaultTranslators();
 
-			Registration.RegisterMethod(() => Sql.NewGuid(), TranslateNewGuidMethod);
+			Registration.RegisterMethod(() => DbFunc.NewGuid(), TranslateNewGuidMethod);
 			Registration.RegisterMethod(() => Guid.NewGuid(), TranslateNewGuidMethod);
 		}
 
@@ -143,10 +143,10 @@ namespace mooSQL.linq.Linq.Translation
 		{
 			translated = null;
 
-			if (methodCall.Method.DeclaringType != typeof(Sql))
+			if (methodCall.Method.DeclaringType != typeof(DbFunc))
 				return false;
 
-			if (methodCall.Method.Name != nameof(Sql.Convert))
+			if (methodCall.Method.Name != nameof(DbFunc.Convert))
 				return false;
 
 			if (methodCall.Arguments.Count != 1)

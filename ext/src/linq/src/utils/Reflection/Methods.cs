@@ -122,21 +122,21 @@ namespace mooSQL.linq.Reflection
 
 			public static readonly MethodInfo useQueryable = MemberHelper.MethodOfGeneric<DBInstance>(dc => dc.useQueryable<object>());
 
-			public static readonly MethodInfo LoadWithAsTable       = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.LoadWithAsTable(e => e.Single2));
+			public static readonly MethodInfo IncludesAsTable       = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.IncludesAsTable(e => e.Single2));
 
-			internal static readonly MethodInfo LoadWithInternal    = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWithInternal(null!, null));
+			internal static readonly MethodInfo IncludeInternal    = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.IncludeInternal(null!, null));
 
-			public static readonly MethodInfo LoadWith              = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Single2));
-			public static readonly MethodInfo LoadWithSingleFilter  = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Single2, eq => eq.Where(e => e.Value2 == 1)));
-			public static readonly MethodInfo LoadWithManyFilter    = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Many2,   eq => eq.Where(e => e.Value2 == 1)));
+			public static readonly MethodInfo Includes              = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Single2));
+			public static readonly MethodInfo IncludesSingleFilter  = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Single2, eq => eq.Where(e => e.Value2 == 1)));
+			public static readonly MethodInfo IncludesManyFilter    = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Many2,   eq => eq.Where(e => e.Value2 == 1)));
 
-			public static readonly MethodInfo ThenLoadFromSingle             = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Single2).ThenLoad(e => e.Single3));
-			public static readonly MethodInfo ThenLoadFromMany               = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Many2).ThenLoad(e => e.Single3));
+			public static readonly MethodInfo ThenIncludeFromSingle             = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Single2).ThenInclude(e => e.Single3));
+			public static readonly MethodInfo ThenIncludeFromMany               = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Many2).ThenInclude(e => e.Single3));
 
-			public static readonly MethodInfo ThenLoadFromSingleSingleFilter = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Single2).ThenLoad(e => e.Single3, eq => eq.Where(e => e.Value3 == 3)));
-			public static readonly MethodInfo ThenLoadFromSingleManyFilter   = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Single2).ThenLoad(e => e.Many3,   eq => eq.Where(e => e.Value3 == 3)));
-			public static readonly MethodInfo ThenLoadFromManySingleFilter   = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Many2).ThenLoad(e => e.Single3,   eq => eq.Where(e => e.Value3 == 3)));
-			public static readonly MethodInfo ThenLoadFromManyManyFilter     = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWith(e => e.Many2).ThenLoad(e => e.Many3,     eq => eq.Where(e => e.Value3 == 3)));
+			public static readonly MethodInfo ThenIncludeFromSingleSingleFilter = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Single2).ThenInclude(e => e.Single3, eq => eq.Where(e => e.Value3 == 3)));
+			public static readonly MethodInfo ThenIncludeFromSingleManyFilter   = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Single2).ThenInclude(e => e.Many3,   eq => eq.Where(e => e.Value3 == 3)));
+			public static readonly MethodInfo ThenIncludeFromManySingleFilter   = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Many2).ThenInclude(e => e.Single3,   eq => eq.Where(e => e.Value3 == 3)));
+			public static readonly MethodInfo ThenIncludeFromManyManyFilter     = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Includes(e => e.Many2).ThenInclude(e => e.Many3,     eq => eq.Where(e => e.Value3 == 3)));
 
 			public static readonly MethodInfo ElementAtLambda = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.ElementAt(() => 1));
 			public static readonly MethodInfo SkipLambda      = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Skip(() => 1));
@@ -170,20 +170,20 @@ namespace mooSQL.linq.Reflection
 
 			public static class GroupBy
 			{
-				public static readonly MethodInfo Rollup       = MemberHelper.MethodOfGeneric<linq.Sql.IGroupBy>(g => g.Rollup<object>(null!));
-				public static readonly MethodInfo Cube         = MemberHelper.MethodOfGeneric<linq.Sql.IGroupBy>(g => g.Cube<object>(null!));
-				public static readonly MethodInfo GroupingSets = MemberHelper.MethodOfGeneric<linq.Sql.IGroupBy>(g => g.GroupingSets<object>(null!));
+				public static readonly MethodInfo Rollup       = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.Rollup<object>(null!));
+				public static readonly MethodInfo Cube         = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.Cube<object>(null!));
+				public static readonly MethodInfo GroupingSets = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.GroupingSets<object>(null!));
 
-				public static readonly MethodInfo Grouping     = MemberHelper.MethodOf(() => linq.Sql.Grouping(null!));
+				public static readonly MethodInfo Grouping     = MemberHelper.MethodOf(() => linq.DbFunc.Grouping(null!));
 			}
 
 			public static class SqlExt
 			{
-				public static readonly MethodInfo ToNotNull        = MemberHelper.MethodOfGeneric<int?>(i => linq.Sql.ToNotNull(i));
-				public static readonly MethodInfo ToNotNullable    = MemberHelper.MethodOfGeneric<int?>(i => linq.Sql.ToNotNullable(i));
-				public static readonly MethodInfo Alias            = MemberHelper.MethodOfGeneric<int?>(i => linq.Sql.Alias(i, ""));
-				// don't use MethodOfGeneric here (Sql.Property treatened in special way by it)
-				public static readonly MethodInfo Property         = typeof(linq.Sql).GetMethodEx(nameof(linq.Sql.Property))!.GetGenericMethodDefinition();
+				public static readonly MethodInfo ToNotNull        = MemberHelper.MethodOfGeneric<int?>(i => linq.DbFunc.ToNotNull(i));
+				public static readonly MethodInfo ToNotNullable    = MemberHelper.MethodOfGeneric<int?>(i => linq.DbFunc.ToNotNullable(i));
+				public static readonly MethodInfo Alias            = MemberHelper.MethodOfGeneric<int?>(i => linq.DbFunc.Alias(i, ""));
+				// don't use MethodOfGeneric here (DbFunc.Property treatened in special way by it)
+				public static readonly MethodInfo Property         = typeof(linq.DbFunc).GetMethodEx(nameof(linq.DbFunc.Property))!.GetGenericMethodDefinition();
 			}
 
 			public static class Update

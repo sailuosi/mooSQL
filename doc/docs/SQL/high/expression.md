@@ -8,7 +8,7 @@ outline: deep
 
 **架构分工（2026-06）**：
 - **Fast LINQ**（本 ORM 特色）：经 **`useBus`** 进入 `IDbBus<T>`，配合 `BusQueryable` 扩展（Set、DoUpdate、LeftJoin、ToPageList 等），详见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
-- **Ext LINQ**（对标 EF / 通用 Queryable）：经 **`useQueryable` / `AsQueryable`** 使用标准 `IQueryable` 链式（`GetTable` 为 Linq2DB 兼容），见 `ext/src/linq/`。
+- **Ext LINQ**（对标 EF / 通用 Queryable）：经 **`useQueryable` / `AsQueryable`** 使用标准 `IQueryable` 链式，见 `ext/src/linq/`。
 
 下文 **`useBus` 示例均指 Fast LINQ 特色路径**。Queryable 的核心承载接口为 `IDbBus`，对应实现 `DbBus` / `EnDbBus`，职责类似 EF Core 的 `DbSet`，但扩展了 moo 特有的 Update/Delete/Join API。
 :::

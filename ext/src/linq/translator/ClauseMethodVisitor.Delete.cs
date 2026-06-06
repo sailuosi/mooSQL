@@ -29,7 +29,7 @@ internal partial class ClauseMethodVisitor
 
     static bool CanBuildDelete(MethodCallExpression call) => call.IsQueryable();
 
-    static IBuildContext? BuildDeleteCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext? BuildDeleteCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var deleteType = methodCall.Method.Name switch
         {
@@ -66,7 +66,7 @@ internal partial class ClauseMethodVisitor
         }
 
         LambdaExpression? outputExpression = null;
-        IBuildContext?    deletedContext   = null;
+        IClauseContext?    deletedContext   = null;
 
         if (deleteType != DeleteContext.DeleteTypeEnum.Delete)
         {

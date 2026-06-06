@@ -13,7 +13,7 @@ ClauseCompiler.Compile
   StatementCompileSession.VisitRoot（根入口，始终经 ExpressionVisitor）
     ClauseExpressionVisitor（Buddy，partial：EntityRoot/Enumerable/Scalar/ContextRef/Table/MethodChain）
       VisitMethodCall → CallUntil.CreateCall → ClauseMethodVisitor.VisitXxxCore
-      VisitConstant / VisitMember / VisitLambda / VisitNewArray → TryVisitXxx → IBuildContext
+      VisitConstant / VisitMember / VisitLambda / VisitNewArray → TryVisitXxx → IClauseContext
     ClauseMethodVisitor（partial：每个算子 VisitXxxCore + BuildXxxCore）
       VisitXxx → ResolveSourceContext（Buddy 优先）+ ToStatementCallOr
       Where/Having 谓词 → ClausePredicateVisitor（Like / LikeLeft / InList …）
@@ -36,7 +36,7 @@ ClauseCompiler.Compile
 | 2 | `VisitNonCall` → Resolver | `ClauseExpressionVisitor.cs` |
 | 3 | `TryBuildSequence` 兜底 | `ClauseSqlTranslator.cs` |
 | 4 | `*Async` 无 Call 类 | `pure/src/ado/call/methods/` |
-| 5 | 谓词 `MakeExpression` 单体 | `ClauseSqlTranslator.SqlBuilder.Predicate.cs` |
+| 5 | 谓词 `BuildProjection` 单体 | `ClauseSqlTranslator.SqlBuilder.Predicate.cs` |
 | 6 | 880 行 switch | `SequenceBuilderResolver.cs` |
 
 ---
@@ -45,7 +45,7 @@ ClauseCompiler.Compile
 
 ### 3.1 已合规（内联 VisitXxxCore）
 
-Where, Having, Select, OrderBy*, **ThenBy***, Take, Skip, Join*, GroupBy, GroupJoin, SelectMany, Distinct, Contains, DefaultIfEmpty, OfType, ElementAt*, LoadWith*, Insert/Update/Delete/InsertOrUpdate, Merge*, First/Single*, All/Any, Count/Sum/Min/Max/Average, Concat/Union/Except/Intersect
+Where, Having, Select, OrderBy*, **ThenBy***, Take, Skip, Join*, GroupBy, GroupJoin, SelectMany, Distinct, Contains, DefaultIfEmpty, OfType, ElementAt*, Includes*, Insert/Update/Delete/InsertOrUpdate, Merge*, First/Single*, All/Any, Count/Sum/Min/Max/Average, Concat/Union/Except/Intersect
 
 子序列解析：Where / OrderBy / Take-Skip / Distinct / Contains / AllAny / MooExt 已统一 **`ResolveSourceContext`**（Buddy 优先，嵌套 `TryBuildSequence` 回退）。
 
@@ -106,17 +106,26 @@ Where, Having, Select, OrderBy*, **ThenBy***, Take, Skip, Join*, GroupBy, GroupJ
 | E | 谓词 Visitor 化 | `ClausePredicateVisitor` + `ClauseFieldVisitor`；`BuildWhere` 统一入口；`Like` 编译/执行测试 | 已完成 |
 | F | 删除 SequenceBuilderResolver | 已删除；README 已更新 | 已完成 |
 | G | 编译入口与分发扫尾 | `StatementCompileSession` 根入口；删除 `BuildResult`；`ResolveSourceContext` 统一子序列；LikeLeft 对齐 | 已完成 |
-| H | MethodCallBuilder 彻底清理 | 删除 `ISequenceBuilder`/`MethodCallBuilder`/`ApplyBuilder`；算子逻辑迁入 `ClauseMethodVisitor.*`；Context 迁入 `buildContext/` | 已完成 |
+| H | MethodCallBuilder 彻底清理 | 删除 `ISequenceBuilder`/`MethodCallBuilder`/`ApplyBuilder`；算子逻辑迁入 `ClauseMethodVisitor.*`；Context 迁入 `clauseContext/` | 已完成 |
 
 ---
 
-## 六、设计原则 FAQ
+## 七、Fast ↔ Ext 词汇对照（Clause 编译管线）
+
+| Fast LINQ | Ext LINQ |
+|-----------|----------|
+| `FastCompileContext.LayerContext` | `IClauseContext` + `SelectQueryClause` |
+| `FastMethodVisitor.VisitXxx` | `ClauseMethodVisitor.VisitXxxCore` |
+| `FieldVisitor` | `ClauseFieldVisitor` + `BuildProjection` |
+| 直接写 `SQLBuilder` | `SentenceBag` → `ClauseTranslateVisitor` → `SQLBuilder` |
+
+---
 
 | 问题 | 答案 |
 |------|------|
 | `ApplyBuilder` 还算合规吗？ | **已删除**；全部算子内联至 `ClauseMethodVisitor.*` partial |
 | InList/Like 在序列还是谓词？ | **谓词层**（Fast 用 `WhereExpressionVisitor`） |
-| `ISequenceBuilder` 要删吗？ | **已删除**；写入 Statement 由 `VisitXxxCore` + `IBuildContext` + `ClauseSqlTranslator` 完成 |
+| `ISequenceBuilder` 要删吗？ | **已删除**；写入 Statement 由 `VisitXxxCore` + `IClauseContext` + `ClauseSqlTranslator` 完成 |
 | 与 Fast 完全一致的边界？ | **分发层一致**；语义层可不同 |
 
 ---

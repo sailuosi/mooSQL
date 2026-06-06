@@ -250,11 +250,11 @@ namespace mooSQL.linq.Extensions
 		//}
 
 		/// <summary>
-		/// Determines whether member info represent a Sql.Property method.
+		/// Determines whether member info represent a DbFunc.Property method.
 		/// </summary>
 		/// <param name="memberInfo">The member information.</param>
 		/// <returns>
-		///   <c>true</c> if member info is Sql.Property method; otherwise, <c>false</c>.
+		///   <c>true</c> if member info is DbFunc.Property method; otherwise, <c>false</c>.
 		/// </returns>
 		public static bool IsSqlPropertyMethodEx(this MemberInfo memberInfo)
 		{

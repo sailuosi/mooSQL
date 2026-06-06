@@ -123,7 +123,7 @@ namespace mooSQL.linq.Expressions
 
 		public SqlPlaceholderExpression WithSql(IExpWord sqlExpression)
 		{
-			if (Sql.Equals(sqlExpression))
+			if (Equals(Sql, sqlExpression))
 				return this;
 
 			var newPlaceholder = new SqlPlaceholderExpression(SelectQuery, sqlExpression, Path, Type, Alias, Index, TrackingPath);

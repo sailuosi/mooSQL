@@ -30,13 +30,6 @@ internal partial class ClauseMethodVisitor
         return method;
     }
 
-    public override MethodCall VisitIncludes(IncludesCall method)
-    {
-        var sequence = VisitChildSequence(method);
-        RegisterIncludesNav(method, sequence);
-        return method;
-    }
-
     public override MethodCall VisitSetPage(SetPageCall method)
         => VisitPaging(method, applySetPage: true);
 
@@ -55,7 +48,7 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitRise(RiseCall method)
         => VisitSubQueryWrap(method, addToSql: false);
 
-    IBuildContext? VisitChildSequence(MethodCall method)
+    IClauseContext? VisitChildSequence(MethodCall method)
     {
         if (method.callExpression is not MethodCallExpression methodCall || methodCall.Arguments.Count == 0)
             return null;
@@ -64,7 +57,7 @@ internal partial class ClauseMethodVisitor
         return ResolveSourceContext(methodCall, buildInfo);
     }
 
-    void RegisterIncludesNav(MethodCall method, IBuildContext? sequence)
+    void RegisterIncludesNav(MethodCall method, IClauseContext? sequence)
     {
         if (method.callExpression is not MethodCallExpression mc || mc.Arguments.Count < 2)
             return;

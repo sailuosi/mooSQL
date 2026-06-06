@@ -15,22 +15,22 @@ namespace mooSQL.linq.Linq
 	class CloningContext
 	{
 		Dictionary<Clause, Clause> _queryElements    = new (Utils.ObjectReferenceEqualityComparer<Clause>.Default);
-		Dictionary<IBuildContext, IBuildContext> _buildContexts    = new ();
-		HashSet<IBuildContext>                   _currentlyCloning = new ();
+		Dictionary<IClauseContext, IClauseContext> _buildContexts    = new ();
+		HashSet<IClauseContext>                   _currentlyCloning = new ();
 
 		public bool IsCloned(Clause queryElement)
 		{
 			return _queryElements.ContainsKey(queryElement);
 		}
 
-		public bool IsCloned(IBuildContext buildContext)
+		public bool IsCloned(IClauseContext buildContext)
 		{
 			return _buildContexts.ContainsKey(buildContext);
 		}
 
 		[return: NotNullIfNotNull(nameof(context))]
 		public TContext? CorrectContext<TContext>(TContext? context)
-			where TContext : IBuildContext
+			where TContext : IClauseContext
 		{
 			if (context == null)
 				return default;
@@ -153,7 +153,7 @@ namespace mooSQL.linq.Linq
 
 		[return: NotNullIfNotNull(nameof(buildContext))]
 		public TContext? CloneContext<TContext>(TContext? buildContext)
-		where TContext : IBuildContext
+		where TContext : IClauseContext
 		{
 			if (buildContext == null)
 				return default;
@@ -161,13 +161,13 @@ namespace mooSQL.linq.Linq
 			return (TContext)CloneRaw(buildContext);
 		}
 
-		public void RegisterCloned(IBuildContext oldContext, IBuildContext newContext)
+		public void RegisterCloned(IClauseContext oldContext, IClauseContext newContext)
 		{
 			_buildContexts[oldContext] = newContext;
 		}
 
 		[return: NotNullIfNotNull(nameof(buildContext))]
-		public IBuildContext? CloneRaw(IBuildContext? buildContext)
+		public IClauseContext? CloneRaw(IClauseContext? buildContext)
 		{
 			if (buildContext == null)
 				return null;

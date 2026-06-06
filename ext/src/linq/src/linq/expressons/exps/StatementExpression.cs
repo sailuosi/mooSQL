@@ -12,7 +12,7 @@ namespace mooSQL.linq.Expressions;
 sealed class StatementExpression : Expression, IEquatable<StatementExpression>
 {
     public StatementExpression(
-        IBuildContext buildContext,
+        IClauseContext buildContext,
         ClauseCompileContext? compileContext = null,
         Expression? projection = null)
     {
@@ -21,7 +21,7 @@ sealed class StatementExpression : Expression, IEquatable<StatementExpression>
         Projection     = projection ?? buildContext.Expression;
     }
 
-    public IBuildContext BuildContext { get; }
+    public IClauseContext BuildContext { get; }
 
     public ClauseCompileContext? CompileContext { get; }
 
@@ -36,14 +36,14 @@ sealed class StatementExpression : Expression, IEquatable<StatementExpression>
     public override bool CanReduce => false;
 
     public static StatementExpression FromBuildContext(
-        IBuildContext buildContext,
+        IClauseContext buildContext,
         ClauseCompileContext? compileContext = null,
         Expression? projection = null)
         => new(buildContext, compileContext, projection);
 
     public BaseSentence ToStatement() => BuildContext.GetResultStatement();
 
-    public StatementExpression WithBuildContext(IBuildContext buildContext)
+    public StatementExpression WithBuildContext(IClauseContext buildContext)
     {
         if (ReferenceEquals(buildContext, BuildContext))
             return this;
@@ -68,7 +68,7 @@ sealed class StatementExpression : Expression, IEquatable<StatementExpression>
     }
 
     public override string ToString()
-        => $"Stmt({BuildContextDebuggingHelper.GetContextInfo(BuildContext)}::{Type.Name})";
+        => $"Stmt({ClauseContextDebuggingHelper.GetContextInfo(BuildContext)}::{Type.Name})";
 
     public bool Equals(StatementExpression? other)
         => other != null

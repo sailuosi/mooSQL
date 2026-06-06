@@ -31,7 +31,7 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
-			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
 				var intDataType  = factory.GetDbDataType(typeof(int));
@@ -42,13 +42,13 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:      extractStr = "YEAR"; break;
-					case Sql.DateParts.Quarter:   partStr    = "Q"; break;
-					case Sql.DateParts.Month:     extractStr = "MONTH"; break;
-					case Sql.DateParts.DayOfYear: partStr    = "DDD"; break;
-					case Sql.DateParts.Day:       extractStr = "DAY"; break;
-					case Sql.DateParts.Week:      partStr    = "WW"; break;
-					case Sql.DateParts.WeekDay:
+					case DbFunc.DateParts.Year:      extractStr = "YEAR"; break;
+					case DbFunc.DateParts.Quarter:   partStr    = "Q"; break;
+					case DbFunc.DateParts.Month:     extractStr = "MONTH"; break;
+					case DbFunc.DateParts.DayOfYear: partStr    = "DDD"; break;
+					case DbFunc.DateParts.Day:       extractStr = "DAY"; break;
+					case DbFunc.DateParts.Week:      partStr    = "WW"; break;
+					case DbFunc.DateParts.WeekDay:
 					{
 						var weekDayFunc = factory.Mod(
 							factory.Increment(
@@ -63,10 +63,10 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 
 						return factory.Increment(weekDayFunc);
 					}
-					case Sql.DateParts.Hour:        extractStr = "HOUR"; break;
-					case Sql.DateParts.Minute:      extractStr = "MINUTE"; break;
-					case Sql.DateParts.Second:      extractStr = "SECOND"; break;
-					case Sql.DateParts.Millisecond: partStr    = "FF"; break;
+					case DbFunc.DateParts.Hour:        extractStr = "HOUR"; break;
+					case DbFunc.DateParts.Minute:      extractStr = "MINUTE"; break;
+					case DbFunc.DateParts.Second:      extractStr = "SECOND"; break;
+					case DbFunc.DateParts.Millisecond: partStr    = "FF"; break;
 					default:
 						return null;
 				}
@@ -83,7 +83,7 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 				{
 					resultExpression = factory.Function(intDataType, "TO_NUMBER", factory.Function(dataTimeType, "TO_CHAR", dateTimeExpression, factory.Value(partStr)));
 
-					if (datepart == Sql.DateParts.Millisecond)
+					if (datepart == DbFunc.DateParts.Millisecond)
 					{
 						resultExpression = factory.Div(intDataType, resultExpression, factory.Value(intDataType, 1000));
 					}
@@ -93,7 +93,7 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 			}
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
-				Sql.DateParts                                                       datepart)
+				DbFunc.DateParts                                                       datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
 				var dateType     = factory.GetDbDataType(dateTimeExpression);
@@ -102,17 +102,17 @@ namespace mooSQL.linq.DataProvider.Oracle.Translation
 				string expStr;
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:    expStr = "INTERVAL '1' YEAR"; break;
-					case Sql.DateParts.Quarter: expStr = "INTERVAL '3' MONTH"; break;
-					case Sql.DateParts.Month:   expStr = "INTERVAL '1' MONTH"; break;
-					case Sql.DateParts.DayOfYear:
-					case Sql.DateParts.WeekDay:
-					case Sql.DateParts.Day:         expStr = "INTERVAL '1' DAY"; break;
-					case Sql.DateParts.Week:        expStr = "INTERVAL '7' DAY"; break;
-					case Sql.DateParts.Hour:        expStr = "INTERVAL '1' HOUR"; break;
-					case Sql.DateParts.Minute:      expStr = "INTERVAL '1' MINUTE"; break;
-					case Sql.DateParts.Second:      expStr = "INTERVAL '1' SECOND"; break;
-					case Sql.DateParts.Millisecond: expStr = "INTERVAL '0.001' SECOND"; break;
+					case DbFunc.DateParts.Year:    expStr = "INTERVAL '1' YEAR"; break;
+					case DbFunc.DateParts.Quarter: expStr = "INTERVAL '3' MONTH"; break;
+					case DbFunc.DateParts.Month:   expStr = "INTERVAL '1' MONTH"; break;
+					case DbFunc.DateParts.DayOfYear:
+					case DbFunc.DateParts.WeekDay:
+					case DbFunc.DateParts.Day:         expStr = "INTERVAL '1' DAY"; break;
+					case DbFunc.DateParts.Week:        expStr = "INTERVAL '7' DAY"; break;
+					case DbFunc.DateParts.Hour:        expStr = "INTERVAL '1' HOUR"; break;
+					case DbFunc.DateParts.Minute:      expStr = "INTERVAL '1' MINUTE"; break;
+					case DbFunc.DateParts.Second:      expStr = "INTERVAL '1' SECOND"; break;
+					case DbFunc.DateParts.Millisecond: expStr = "INTERVAL '0.001' SECOND"; break;
 					default:
 						return null;
 				}

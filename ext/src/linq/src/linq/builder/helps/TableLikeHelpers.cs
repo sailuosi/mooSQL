@@ -94,7 +94,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public static Expression RemapToFields(
-			IBuildContext                                     subQueryContext,
+			IClauseContext                                     subQueryContext,
 			ITableNode?                                  parentTable,
 			List<FieldWord>                                    fields,
 			Dictionary<Expression, SqlPlaceholderExpression>  knownMap,

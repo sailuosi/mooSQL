@@ -15,11 +15,11 @@ namespace mooSQL.linq.Linq.Builder
 
 	class ProjectionVisitor : ExpressionVisitorBase
 	{
-		readonly IBuildContext _context;
+		readonly IClauseContext _context;
 
 		public ClauseSqlTranslator Builder => _context.Builder;
 
-		public ProjectionVisitor(IBuildContext context)
+		public ProjectionVisitor(IClauseContext context)
 		{
 			_context = context;
 		}
@@ -36,7 +36,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		protected override Expression VisitMember(MemberExpression node)
 		{
-			var newNode = Builder.MakeExpression(_context, node, ProjectFlags.ExtractProjection);
+			var newNode = Builder.BuildProjection(_context, node, ProjectFlags.ExtractProjection);
 			if (!ExpressionEqualityComparer.Instance.Equals(newNode, node))
 				return Visit(newNode);
 			return node;
@@ -44,7 +44,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		protected override Expression VisitMethodCall(MethodCallExpression node)
 		{
-			var newNode = Builder.MakeExpression(_context, node, ProjectFlags.ExtractProjection);
+			var newNode = Builder.BuildProjection(_context, node, ProjectFlags.ExtractProjection);
 
 			if (!ExpressionEqualityComparer.Instance.Equals(newNode, node))
 				return Visit(newNode);
@@ -59,7 +59,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		internal override Expression VisitContextRefExpression(ContextRefExpression node)
 		{
-			var newNode = Builder.MakeExpression(_context, node, ProjectFlags.ExtractProjection);
+			var newNode = Builder.BuildProjection(_context, node, ProjectFlags.ExtractProjection);
 			if (!ExpressionEqualityComparer.Instance.Equals(newNode, node))
 				return Visit(newNode);
 			return base.VisitContextRefExpression(node);

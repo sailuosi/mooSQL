@@ -16,7 +16,7 @@ namespace mooSQL.linq.Linq.Builder
 
 	internal static class SequenceHelper
 	{
-		public static Expression PrepareBody(LambdaExpression lambda, params IBuildContext[] sequences)
+		public static Expression PrepareBody(LambdaExpression lambda, params IClauseContext[] sequences)
 		{
 			var body = lambda.Parameters.Count == 0
 				? lambda.Body
@@ -45,22 +45,22 @@ namespace mooSQL.linq.Linq.Builder
 			return body;
 		}
 
-		public static Expression ReplaceBody(Expression body, ParameterExpression parameter, IBuildContext sequence)
+		public static Expression ReplaceBody(Expression body, ParameterExpression parameter, IClauseContext sequence)
 		{
 			var contextRef = new ContextRefExpression(parameter.Type, sequence, parameter.Name);
 			body = body.Replace(parameter, contextRef);
 			return body;
 		}
 
-		public static bool IsSameContext(Expression? expression, IBuildContext context)
+		public static bool IsSameContext(Expression? expression, IClauseContext context)
 		{
 			return expression == null
 				|| (expression is ContextRefExpression contextRef && contextRef.BuildContext == context);
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? CorrectExpression(Expression? expression, IBuildContext current,
-			IBuildContext                                       underlying)
+		public static Expression? CorrectExpression(Expression? expression, IClauseContext current,
+			IClauseContext                                       underlying)
 		{
 			if (expression != null)
 			{
@@ -71,7 +71,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull(nameof(expression))]
-		public static Expression? CorrectTrackingPath(ClauseSqlTranslator builder, Expression? expression, IBuildContext toContext)
+		public static Expression? CorrectTrackingPath(ClauseSqlTranslator builder, Expression? expression, IClauseContext toContext)
 		{
 			if (expression == null || expression.Find(1, (_, e) => e is SqlPlaceholderExpression) == null)
 				return expression;
@@ -88,7 +88,7 @@ namespace mooSQL.linq.Linq.Builder
 			return CorrectTrackingPath(builder, expression, null, toPath);
 		}
 
-		public static Expression CorrectTrackingPath(Expression expression, IBuildContext from, IBuildContext to)
+		public static Expression CorrectTrackingPath(Expression expression, IClauseContext from, IClauseContext to)
 		{
 			var result = expression.Transform((from, to), (ctx, e) =>
 			{
@@ -690,7 +690,7 @@ namespace mooSQL.linq.Linq.Builder
 			return toPath;
 		}
 
-		public static Expression ReplaceContext(Expression expression, IBuildContext current, IBuildContext onContext)
+		public static Expression ReplaceContext(Expression expression, IClauseContext current, IClauseContext onContext)
 		{
 			var newExpression = expression.Transform((expression, current, onContext), (ctx, e) =>
 			{
@@ -724,7 +724,7 @@ namespace mooSQL.linq.Linq.Builder
 			return newExpression;
 		}
 
-		public static Expression ReplaceContext(Expression expression, IBuildContext current, Expression onPath)
+		public static Expression ReplaceContext(Expression expression, IClauseContext current, Expression onPath)
 		{
 			var newExpression = expression.Transform((expression, current, onPath), (ctx, e) =>
 			{
@@ -803,7 +803,7 @@ namespace mooSQL.linq.Linq.Builder
 			};
 		}
 
-		public static Expression MoveToScopedContext(Expression expression, IBuildContext upTo)
+		public static Expression MoveToScopedContext(Expression expression, IClauseContext upTo)
 		{
 			var scoped        = new ScopeContext(upTo, upTo);
 			var newExpression = ReplaceContext(expression, upTo, scoped);
@@ -812,7 +812,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public static ITableContext? GetTableOrCteContext(ClauseSqlTranslator builder, Expression pathExpression)
 		{
-			var rootContext = builder.MakeExpression(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
+			var rootContext = builder.BuildProjection(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
 
 			var tableContext = rootContext?.BuildContext as ITableContext;
 
@@ -821,43 +821,43 @@ namespace mooSQL.linq.Linq.Builder
 
 		public static TableContext? GetTableContext(ClauseSqlTranslator builder, Expression pathExpression)
 		{
-			var rootContext = builder.MakeExpression(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
+			var rootContext = builder.BuildProjection(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
 
 			var tableContext = rootContext?.BuildContext as TableContext;
 
 			return tableContext;
 		}
 
-		public static TableContext? GetTableContext(IBuildContext context)
+		public static TableContext? GetTableContext(IClauseContext context)
 		{
 			var contextRef = new ContextRefExpression(context.ElementType, context);
 
 			var rootContext =
-				context.Builder.MakeExpression(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
+				context.Builder.BuildProjection(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
 
 			var tableContext = rootContext?.BuildContext as TableContext;
 
 			return tableContext;
 		}
 
-		public static CteTableContext? GetCteContext(IBuildContext context)
+		public static CteTableContext? GetCteContext(IClauseContext context)
 		{
 			var contextRef = new ContextRefExpression(context.ElementType, context);
 
 			var rootContext =
-				context.Builder.MakeExpression(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
+				context.Builder.BuildProjection(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
 
 			var tableContext = rootContext?.BuildContext as CteTableContext;
 
 			return tableContext;
 		}
 
-		public static ITableContext? GetTableOrCteContext(IBuildContext context)
+		public static ITableContext? GetTableOrCteContext(IClauseContext context)
 		{
 			var contextRef = new ContextRefExpression(context.ElementType, context);
 
 			var rootContext =
-				context.Builder.MakeExpression(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
+				context.Builder.BuildProjection(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
 
 			var tableContext = rootContext?.BuildContext as ITableContext;
 
@@ -896,7 +896,7 @@ namespace mooSQL.linq.Linq.Builder
 			return QueryHelper.IsDependsOnOuterSources(selectQuery);
 		}
 
-		static IBuildContext UnwrapSubqueryContext(IBuildContext context)
+		static IClauseContext UnwrapSubqueryContext(IClauseContext context)
 		{
 			var current = context;
 			while (true)
@@ -916,7 +916,7 @@ namespace mooSQL.linq.Linq.Builder
 			return current;
 		}
 
-		public static DefaultIfEmptyContext? GetDefaultIfEmptyContext(IBuildContext context)
+		public static DefaultIfEmptyContext? GetDefaultIfEmptyContext(IClauseContext context)
 		{
 			return UnwrapSubqueryContext(context) as DefaultIfEmptyContext;
 		}

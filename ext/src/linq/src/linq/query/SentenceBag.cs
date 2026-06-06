@@ -46,13 +46,13 @@ namespace mooSQL.linq.Linq
 
         public bool IsFinalized=false;
 
-        /// <summary>无 LoadWith、单语句时可缓存编译产物。</summary>
+        /// <summary>无 Includes、单语句时可缓存编译产物。</summary>
         public bool IsCacheable => NavColumns.Count == 0 && (Sentences?.Count ?? 0) <= 1;
 
         /// <summary>
         /// 中间环节的编辑器
         /// </summary>
-        public IBuildContext buildContext;
+        public IClauseContext buildContext;
 
         /** 结果执行器 **/
 

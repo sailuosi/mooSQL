@@ -7,7 +7,7 @@ namespace mooSQL.linq.Expressions
 
     sealed class ContextRefExpression : Expression, IEquatable<ContextRefExpression>
 	{
-		public ContextRefExpression(Type elementType, IBuildContext buildContext, string? alias = null)
+		public ContextRefExpression(Type elementType, IClauseContext buildContext, string? alias = null)
 		{
 			ElementType  = elementType;
 			BuildContext = buildContext ?? throw new ArgumentNullException(nameof(buildContext));
@@ -15,7 +15,7 @@ namespace mooSQL.linq.Expressions
 		}
 
 		public Type          ElementType  { get; }
-		public IBuildContext BuildContext { get; }
+		public IClauseContext BuildContext { get; }
 		public string?       Alias        { get; set; }
 
 		public override ExpressionType NodeType => ExpressionType.Extension;
@@ -23,7 +23,7 @@ namespace mooSQL.linq.Expressions
 
 		public override string ToString()
 		{
-			return $"Ref({BuildContextDebuggingHelper.GetContextInfo(BuildContext)}::{Type.Name})";
+			return $"Ref({ClauseContextDebuggingHelper.GetContextInfo(BuildContext)}::{Type.Name})";
 		}
 
 		public override bool CanReduce => false;
@@ -36,7 +36,7 @@ namespace mooSQL.linq.Expressions
 			return new ContextRefExpression(type, BuildContext);
 		}
 
-		public ContextRefExpression WithContext(IBuildContext buildContext)
+		public ContextRefExpression WithContext(IClauseContext buildContext)
 		{
 			if (buildContext == BuildContext)
 				return this;

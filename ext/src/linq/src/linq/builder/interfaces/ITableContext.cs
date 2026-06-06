@@ -6,12 +6,12 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data.model;
     using mooSQL.linq.SqlQuery;
 
-	interface ITableContext : IBuildContext
+	interface ITableContext : IClauseContext
 	{
 		public Type     ObjectType { get; }
 		public TableWord SqlTable { get; }
 
-		public LoadWithInfo  LoadWithRoot { get; set; }
-		public MemberInfo[]? LoadWithPath { get; set; }
+		public IncludeInfo  IncludeRoot { get; set; }
+		public MemberInfo[]? IncludePath { get; set; }
 	}
 }

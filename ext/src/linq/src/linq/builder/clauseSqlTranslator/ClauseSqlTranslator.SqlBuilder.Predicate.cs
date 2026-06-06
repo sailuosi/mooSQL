@@ -35,7 +35,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
         #region Predicate Converter
 
-        IAffirmWord? ConvertPredicate(IBuildContext? context, Expression expression, ProjectFlags flags, out SqlErrorExpression? error)
+        IAffirmWord? ConvertPredicate(IClauseContext? context, Expression expression, ProjectFlags flags, out SqlErrorExpression? error)
 		{
 			error = null;
 
@@ -120,8 +120,8 @@ namespace mooSQL.linq.Linq.Builder
 					if (ClausePredicateVisitor.TryConvertMooExtension(this, context, e, flags, out var mooPredicate))
 						return mooPredicate;
 
-					if (e.Method.Name          == nameof(Sql.Alias) && e.Object == null && e.Arguments.Count == 2 &&
-						e.Method.DeclaringType == typeof(Sql))
+					if (e.Method.Name          == nameof(DbFunc.Alias) && e.Object == null && e.Arguments.Count == 2 &&
+						e.Method.DeclaringType == typeof(DbFunc))
 					{
 						predicate = ConvertPredicate(context, e.Arguments[0], flags, out error);
 						return predicate;
@@ -197,7 +197,7 @@ namespace mooSQL.linq.Linq.Builder
 					if (attr != null && attr.GetIsPredicate(expression))
 						break;
 
-					var processed = MakeExpression(context, expression, flags);
+					var processed = BuildProjection(context, expression, flags);
 					if (!ReferenceEquals(processed, expression))
 					{
 						return ConvertPredicate(context, processed, flags, out error);
@@ -266,7 +266,7 @@ namespace mooSQL.linq.Linq.Builder
 
         #region ConvertEnumConversion
 
-        IAffirmWord? ConvertEnumConversion(IBuildContext context, Expression left, AffirmWord.Operator op, Expression right)
+        IAffirmWord? ConvertEnumConversion(IClauseContext context, Expression left, AffirmWord.Operator op, Expression right)
 		{
 			Expression value;
 			Expression operand;
@@ -554,7 +554,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		private IAffirmWord? ConvertInPredicate(IBuildContext context, MethodCallExpression expression)
+		private IAffirmWord? ConvertInPredicate(IClauseContext context, MethodCallExpression expression)
 		{
 			var e        = expression;
 			var argIndex = e.Object != null ? 0 : 1;
@@ -622,7 +622,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region ColumnDescriptor Helpers
 
-		public EntityColumn? SuggestColumnDescriptor(IBuildContext? context, Expression expr, ProjectFlags flags)
+		public EntityColumn? SuggestColumnDescriptor(IClauseContext? context, Expression expr, ProjectFlags flags)
 		{
 			expr = expr.Unwrap();
 
@@ -635,12 +635,12 @@ namespace mooSQL.linq.Linq.Builder
 			return null;
 		}
 
-		public EntityColumn? SuggestColumnDescriptor(IBuildContext? context, Expression expr1, Expression expr2, ProjectFlags flags)
+		public EntityColumn? SuggestColumnDescriptor(IClauseContext? context, Expression expr1, Expression expr2, ProjectFlags flags)
 		{
 			return SuggestColumnDescriptor(context, expr1, flags) ?? SuggestColumnDescriptor(context, expr2, flags);
 		}
 
-		public EntityColumn? SuggestColumnDescriptor(IBuildContext? context, ReadOnlyCollection<Expression> expressions, ProjectFlags flags)
+		public EntityColumn? SuggestColumnDescriptor(IClauseContext? context, ReadOnlyCollection<Expression> expressions, ProjectFlags flags)
 		{
 			foreach (var expr in expressions)
 			{
@@ -656,7 +656,7 @@ namespace mooSQL.linq.Linq.Builder
 
         #region LIKE predicate
 
-        IAffirmWord? CreateStringPredicate(IBuildContext? context, MethodCallExpression expression, mooSQL.data.model.affirms.SearchString.SearchKind kind, IExpWord caseSensitive, ProjectFlags flags)
+        IAffirmWord? CreateStringPredicate(IClauseContext? context, MethodCallExpression expression, mooSQL.data.model.affirms.SearchString.SearchKind kind, IExpWord caseSensitive, ProjectFlags flags)
 		{
 			var e = expression;
 
@@ -674,7 +674,7 @@ namespace mooSQL.linq.Linq.Builder
 			return new mooSQL.data.model.affirms.SearchString(o, false, a, kind, caseSensitive);
 		}
 
-        IAffirmWord ConvertLikePredicate(IBuildContext context, MethodCallExpression expression, ProjectFlags flags)
+        IAffirmWord ConvertLikePredicate(IClauseContext context, MethodCallExpression expression, ProjectFlags flags)
 		{
 			var e  = expression;
 
@@ -718,7 +718,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public IAffirmWord MakeIsPredicate<TContext>(
 			TContext                              getSqlContext,
-			IBuildContext                         context,
+			IClauseContext                         context,
 			IReadOnlyList<EntiyInherit>     inheritanceMapping,
 			Type                                  toType,
 			Func<TContext,string, IExpWord> getSql)
@@ -832,17 +832,17 @@ namespace mooSQL.linq.Linq.Builder
 			return null;
 		}
 
-        IAffirmWord? MakeIsPredicate(IBuildContext context, TypeBinaryExpression expression, ProjectFlags flags, out SqlErrorExpression? error)
+        IAffirmWord? MakeIsPredicate(IClauseContext context, TypeBinaryExpression expression, ProjectFlags flags, out SqlErrorExpression? error)
 		{
 			var predicateExpr = MakeIsPredicateExpression(context, expression);
 
 			return ConvertPredicate(context, predicateExpr, flags, out error);
 		}
 
-		Expression MakeIsPredicateExpression(IBuildContext context, TypeBinaryExpression expression)
+		Expression MakeIsPredicateExpression(IClauseContext context, TypeBinaryExpression expression)
 		{
 			var typeOperand = expression.TypeOperand;
-			var table       = new TableContext(this, DBLive, new BuildInfo((IBuildContext?)null, ExpressionInstances.UntypedNull, new SelectQueryClause()), null);
+			var table       = new TableContext(this, DBLive, new BuildInfo((IClauseContext?)null, ExpressionInstances.UntypedNull, new SelectQueryClause()), null);
 
 			if (typeOperand == table.ObjectType)
 			{

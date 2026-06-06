@@ -60,7 +60,7 @@ internal partial class ClauseMethodVisitor
 
     static bool CanBuildInsert(MethodCallExpression call) => call.IsQueryable();
 
-    static void ExtractInsertSequence(ref IBuildContext sequence, out InsertContext insertContext)
+    static void ExtractInsertSequence(ref IClauseContext sequence, out InsertContext insertContext)
     {
         if (sequence is InsertContext ic)
         {
@@ -74,7 +74,7 @@ internal partial class ClauseMethodVisitor
         }
     }
 
-    static IBuildContext BuildInsertCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildInsertCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -242,23 +242,23 @@ internal partial class ClauseMethodVisitor
         return insertContext;
     }
 
-    static IBuildContext BuildIntoCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildIntoCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var source = methodCall.Arguments[0].Unwrap();
         var into   = methodCall.Arguments[1].Unwrap();
 
-        IBuildContext sequence;
-        IBuildContext destinationSequence;
+        IClauseContext sequence;
+        IClauseContext destinationSequence;
 
         if (source.IsNullValue() || typeof(DBInstance).IsSameOrParentOf(source.Type))
         {
-            sequence = builder.BuildSequence(new BuildInfo((IBuildContext?)null, into, new SelectQueryClause()));
+            sequence = builder.BuildSequence(new BuildInfo((IClauseContext?)null, into, new SelectQueryClause()));
             destinationSequence = sequence;
         }
         else
         {
             sequence = builder.BuildSequence(new BuildInfo(buildInfo, source));
-            destinationSequence = builder.BuildSequence(new BuildInfo((IBuildContext?)null, into, new SelectQueryClause()));
+            destinationSequence = builder.BuildSequence(new BuildInfo((IClauseContext?)null, into, new SelectQueryClause()));
         }
 
         var insertStatement = new InsertSentence(sequence.SelectQuery);
@@ -271,7 +271,7 @@ internal partial class ClauseMethodVisitor
         return insertContext;
     }
 
-    static IBuildContext BuildValueCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildValueCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
         var extract  = methodCall.Arguments[1].UnwrapLambda();

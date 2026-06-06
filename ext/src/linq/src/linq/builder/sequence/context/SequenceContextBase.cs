@@ -8,10 +8,10 @@ namespace mooSQL.linq.Linq.Builder
 	using SqlQuery;
     using mooSQL.data.model;
 
-    [DebuggerDisplay("{BuildContextDebuggingHelper.GetContextInfo(this)}")]
-	abstract class SequenceContextBase : BuildContextBase
+    [DebuggerDisplay("{ClauseContextDebuggingHelper.GetContextInfo(this)}")]
+	abstract class SequenceContextBase : ClauseContextBase
 	{
-		protected SequenceContextBase(IBuildContext? parent, IBuildContext[] sequences, LambdaExpression? lambda)
+		protected SequenceContextBase(IClauseContext? parent, IClauseContext[] sequences, LambdaExpression? lambda)
 			: base(sequences[0].Builder, sequences[0].ElementType, sequences[0].SelectQuery)
 		{
 			Parent          = parent;
@@ -20,21 +20,21 @@ namespace mooSQL.linq.Linq.Builder
 			Sequence.Parent = this;
 		}
 
-		protected SequenceContextBase(IBuildContext? parent, IBuildContext sequence, LambdaExpression? lambda)
+		protected SequenceContextBase(IClauseContext? parent, IClauseContext sequence, LambdaExpression? lambda)
 			: this(parent, new[] { sequence }, lambda)
 		{
 		}
 
-		public          IBuildContext[] Sequences     { get; set; }
+		public          IClauseContext[] Sequences     { get; set; }
 		public          Expression?     Body          { get; set; }
-		public          IBuildContext   Sequence      => Sequences[0];
+		public          IClauseContext   Sequence      => Sequences[0];
 
 		public override Expression? Expression => Body;
 
-		public override Expression MakeExpression(Expression path, ProjectFlags flags)
+		public override Expression BuildProjection(Expression path, ProjectFlags flags)
 		{
 			var newPath = SequenceHelper.CorrectExpression(path, this, Sequence);
-			var result = Builder.MakeExpression(Sequence, newPath, flags);
+			var result = Builder.BuildProjection(Sequence, newPath, flags);
 
 			if (ExpressionEqualityComparer.Instance.Equals(newPath, result))
 				return path;

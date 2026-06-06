@@ -24,7 +24,7 @@ namespace mooSQL.linq.Linq.Builder
 				Builder = builder;
 			}
 
-			public override List<LoadWithInfo>? GetTableLoadWith(Expression path)
+			public override List<IncludeInfo>? GetTableIncludes(Expression path)
 			{
 				var unwrapped = path.UnwrapConvert();
 				var table     = SequenceHelper.GetTableOrCteContext(Builder, unwrapped);
@@ -32,7 +32,7 @@ namespace mooSQL.linq.Linq.Builder
 				if (table == null)
 					return null;
 
-				return Builder.GetTableLoadWith(table);
+				return Builder.GetTableIncludes(table);
 			}
 
 			public override Expression? TryConstructFullEntity(SqlGenericConstructorExpression constructorExpression, Type constructType, ProjectFlags flags, bool checkInheritance, out string? error)

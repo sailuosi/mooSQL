@@ -69,7 +69,7 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
-			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, Sql.DateParts datepart)
+			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory     = translationContext.ExpressionFactory;
 				var intDataType = factory.GetDbDataType(typeof(int));
@@ -78,16 +78,16 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:    partStr = "year"; break;
-					case Sql.DateParts.Quarter: partStr = "quarter"; break;
-					case Sql.DateParts.Month:   partStr = "month"; break;
-					case Sql.DateParts.DayOfYear:
+					case DbFunc.DateParts.Year:    partStr = "year"; break;
+					case DbFunc.DateParts.Quarter: partStr = "quarter"; break;
+					case DbFunc.DateParts.Month:   partStr = "month"; break;
+					case DbFunc.DateParts.DayOfYear:
 					{
 						return factory.Function(intDataType, "DayOfYear", dateTimeExpression);
 					}
-					case Sql.DateParts.Day:  partStr = "day"; break;
-					case Sql.DateParts.Week: partStr = "week"; break;
-					case Sql.DateParts.WeekDay:
+					case DbFunc.DateParts.Day:  partStr = "day"; break;
+					case DbFunc.DateParts.Week: partStr = "week"; break;
+					case DbFunc.DateParts.WeekDay:
 					{
 						var addDaysFunc = factory.Function(factory.GetDbDataType(dateTimeExpression), "Date_Add", dateTimeExpression,
 							factory.Fragment(intDataType, "interval {0} day", factory.Value(intDataType, 1)));
@@ -96,10 +96,10 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 
 						return factory.Increment(weekDayFunc);
 					}
-					case Sql.DateParts.Hour:        partStr = "hour"; break;
-					case Sql.DateParts.Minute:      partStr = "minute"; break;
-					case Sql.DateParts.Second:      partStr = "second"; break;
-					case Sql.DateParts.Millisecond:
+					case DbFunc.DateParts.Hour:        partStr = "hour"; break;
+					case DbFunc.DateParts.Minute:      partStr = "minute"; break;
+					case DbFunc.DateParts.Second:      partStr = "second"; break;
+					case DbFunc.DateParts.Millisecond:
 					{
 						// (MICROSECOND(your_datetime_column) DIV 1000) 
 
@@ -118,7 +118,7 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 			}
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
-				Sql.DateParts                                                       datepart)
+				DbFunc.DateParts                                                       datepart)
 			{
 				var factory       = translationContext.ExpressionFactory;
 				var dateType      = factory.GetDbDataType(dateTimeExpression);
@@ -128,17 +128,17 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 				string expStr;
 				switch (datepart)
 				{
-					case Sql.DateParts.Year:        expStr = "Interval {0} Year"; break;
-					case Sql.DateParts.Quarter:     expStr = "Interval {0} Quarter"; break;
-					case Sql.DateParts.Month:       expStr = "Interval {0} Month"; break;
-					case Sql.DateParts.DayOfYear:
-					case Sql.DateParts.WeekDay:
-					case Sql.DateParts.Day:         expStr = "Interval {0} Day"; break;
-					case Sql.DateParts.Week:        expStr = "Interval {0} Week"; break;
-					case Sql.DateParts.Hour:        expStr = "Interval {0} Hour"; break;
-					case Sql.DateParts.Minute:      expStr = "Interval {0} Minute"; break;
-					case Sql.DateParts.Second:      expStr = "Interval {0} Second"; break;
-					case Sql.DateParts.Millisecond: expStr = "Interval {0} Millisecond"; break;
+					case DbFunc.DateParts.Year:        expStr = "Interval {0} Year"; break;
+					case DbFunc.DateParts.Quarter:     expStr = "Interval {0} Quarter"; break;
+					case DbFunc.DateParts.Month:       expStr = "Interval {0} Month"; break;
+					case DbFunc.DateParts.DayOfYear:
+					case DbFunc.DateParts.WeekDay:
+					case DbFunc.DateParts.Day:         expStr = "Interval {0} Day"; break;
+					case DbFunc.DateParts.Week:        expStr = "Interval {0} Week"; break;
+					case DbFunc.DateParts.Hour:        expStr = "Interval {0} Hour"; break;
+					case DbFunc.DateParts.Minute:      expStr = "Interval {0} Minute"; break;
+					case DbFunc.DateParts.Second:      expStr = "Interval {0} Second"; break;
+					case DbFunc.DateParts.Millisecond: expStr = "Interval {0} Millisecond"; break;
 					default:
 						return null;
 				}

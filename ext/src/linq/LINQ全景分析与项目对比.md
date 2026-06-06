@@ -64,7 +64,7 @@ public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expres
 |------|-------------|------|
 | **Ext LINQ 合计** | **413** | `ext/src/linq` 全量 |
 | `translator/` | 58 | 双访问器、编译收尾、执行、SqlPlan |
-| `buildContext/` | 41 | `IBuildContext` 实现 + `UpdateBuilder` 辅助 |
+| `clauseContext/` | 41 | `IClauseContext` 实现 + `UpdateBuilder` 辅助 |
 | `clauseSqlTranslator/` | 14 | SQL 语义引擎（原 ExpressionBuilder 拆分体） |
 | `sequence/` | 3 | 仅 `BuildSequenceResult` + 2 个 context 基类（**methodCall/ 已删除**） |
 | **Pure Fast LINQ** | **36** | `pure/src/linq` |
@@ -82,12 +82,12 @@ ext/src/linq/
 │   ├── SentenceExecutor*.cs            # Execute 层
 │   └── plan/                           # SqlPlan / StatementStructure
 ├── src/linq/builder/
-│   ├── buildContext/        # ★ IBuildContext（41 文件）
-│   ├── clauseSqlTranslator/ # ★ SQL 工具（MakeExpression / BuildWhere…）
+│   ├── clauseContext/        # ★ IClauseContext（41 文件）
+│   ├── clauseSqlTranslator/ # ★ SQL 工具（BuildProjection / BuildWhere…）
 │   └── sequence/            # 遗留最小壳（3 文件）
 ├── src/linq/query/          # QueryMate、ExpressionQuery
 ├── src/sqlBuilder/          # Statement → SQLBuilder 辅助
-└── src/outcast/             # 公开 API 垫片（待 rename → publicapi/）
+└── src/api/             # 公开 API 垫片（待 rename → publicapi/）
 ```
 
 ---
@@ -114,7 +114,7 @@ Expression
   → SentenceExecutor                                     // 统一执行
       → ClauseTranslateVisitor → SQLBuilder
       → kit.query<T>().ToList()
-      → NavColumnLoader（LoadWith）
+      → NavColumnLoader（Includes）
 ```
 
 ### Phase H：MethodCallBuilder 彻底清理（2026-06 完成）
@@ -127,7 +127,7 @@ VisitRoot
       → CallUntil → ClauseMethodVisitor.VisitXxx
   → ResolveSourceContext（Buddy 优先 → TryBuildSequence 回退）
   → ClauseSqlTranslator 辅助
-  → IBuildContext
+  → IClauseContext
   → StatementExpression → SentenceBag
 ```
 
@@ -135,9 +135,9 @@ VisitRoot
 |--------|------|
 | `ISequenceBuilder` | `ClauseExpressionVisitor.*` 序列根 partial |
 | `MethodCallBuilder` + `ApplyBuilder` | `ClauseMethodVisitor.*.cs` 内联 `VisitXxxCore` |
-| `*Builder.cs` 壳（~60+ 文件） | 逻辑迁入 visitor partial；Context 迁入 `buildContext/` |
+| `*Builder.cs` 壳（~60+ 文件） | 逻辑迁入 visitor partial；Context 迁入 `clauseContext/` |
 | `BuildsMethodCall` 特性 | 显式 `VisitXxx` 注册 |
-| `methodCall/` 目录 | 仅保留 `buildContext/UpdateBuilder.cs`（DML set-expression 静态辅助） |
+| `methodCall/` 目录 | 仅保留 `clauseContext/UpdateBuilder.cs`（DML set-expression 静态辅助） |
 
 `ClauseMethodVisitor.Bindings.cs` 现 **仅保留** `VisitAlias` 透传。
 
@@ -149,7 +149,7 @@ VisitRoot
 | `ClauseExpressionVisitor` | 序列根 partial：EntityRoot / Enumerable / Scalar / ContextRef / Table / MethodChain |
 | `ClauseMethodVisitor` | 全部算子 `VisitXxx` + `BuildXxxCore`（~30 个 partial） |
 | `ClauseCompileContext` | `StatementResult` 唯一成功槽 → `ToSentenceBag` |
-| `ClauseSqlTranslator` | SQL 语义（MakeExpression / ConvertToSql / BuildWhere 等） |
+| `ClauseSqlTranslator` | SQL 语义（BuildProjection / ConvertToSql / BuildWhere 等） |
 | `ClausePredicateVisitor` | Where/Having 谓词；Like / LikeLeft 统一 `Like` IR |
 | `ClauseCompiler` | 编译收尾 + `ApplyLikePatternSubstitutes` |
 | `LinqStatementCompiler` | 公开 API：只编译 → `SqlPlan` |
@@ -161,7 +161,7 @@ VisitRoot
 |------|-------------|------|
 | 查询核心 | Where, Select, OrderBy, TakeSkip, Join, Distinct, GroupBy, GroupJoin, SelectMany | ✅ |
 | 量化/集合 | AllAny, Contains, FirstSingle, DefaultIfEmpty, ElementAt, OfType, Aggregate | ✅ |
-| 集合运算 | SetOp, LoadWith | ✅ |
+| 集合运算 | SetOp, Includes | ✅ |
 | DML | Insert, Update, Delete, InsertOrUpdate, MultiInsert, Dml, AsUpdatable | ✅ |
 | Merge | Merge（全链内联，原 12 个 MergeBuilder partial） | ✅ |
 | 元数据 | QueryMeta, TableMeta, Table | ✅ |
@@ -202,9 +202,9 @@ Expression
 |------|-----------|----------|
 | 中间产物 | 无独立 Statement，直接操作 `SQLBuilder` | `SentenceBag` + `SelectQueryClause` |
 | 编译器复杂度 | 轻（**36** 文件） | 重（**413** 文件） |
-| 分发模型 | `FastMethodVisitor` 单访问器 | Buddy 双访问器 + `IBuildContext` |
+| 分发模型 | `FastMethodVisitor` 单访问器 | Buddy 双访问器 + `IClauseContext` |
 | 可 inspect / 缓存 | 有限（`FastLinqParseCache`） | `SqlPlan`、`LinqStatementCompiler`、`IsCacheable` |
-| LINQ 能力面 | Where/Join/Update/Delete/分页/导航等 | 更广：LoadWith、Merge、SetOp、InsertOrUpdate、Association to-one 等 |
+| LINQ 能力面 | Where/Join/Update/Delete/分页/导航等 | 更广：Includes、Merge、SetOp、InsertOrUpdate、Association to-one 等 |
 | 执行路径 | `FastMethodVisitor` 内 `kit.query<T>()` | `SentenceExecutor` → `ClauseTranslateVisitor` → `kit.query<T>()` |
 
 ### Fast 模块目录
@@ -246,7 +246,7 @@ pure/src/linq/
 | 写法 | `IDbBus` + `BusQueryable` 扩展 | 标准 `IQueryable` / `IDbQuery<T>` | 链式 + 字段选择器 Lambda | 贴近 SQL 链式 | 实体 CRUD 门面 |
 | 入口 | **`useBus` / `useDbBus`** | **`useQueryable` / `AsQueryable`** | `useClip` | `useSQL` | `useRepo` |
 | 编译 | 表达式 → 直接写 Builder | 表达式 → Statement → Builder | 无编译，直接写 Builder | 无 | 内部调 Fast useBus |
-| 能力广度 | 中（偏项目实践） | **高**（Merge/LoadWith/UPSERT…） | 中 | **最全** | 常见场景 |
+| 能力广度 | 中（偏项目实践） | **高**（Merge/Includes/UPSERT…） | 中 | **最全** | 常见场景 |
 | 可测试性 | 中 | **高**（Statement 级断言、`SqlPlan`） | 高 | 高 | 中 |
 | 定位 | **ORM 特色、默认业务路径** | **对标 EF / 通用 Queryable** | 类型安全片段 | 复杂 SQL | CRUD |
 
@@ -258,7 +258,7 @@ pure/src/linq/
 | 复杂查询、动态 SQL | SQLBuilder |
 | 类型安全、可控 Lambda | SQLClip |
 | **mooSQL 特色**：表达式化 Update/Delete、Bus Join、分页、InjectSQL | **`useBus`（Fast LINQ）** |
-| **EF 式标准 Queryable**、LoadWith/Merge/UPSERT、Statement 级测试 | **Ext LINQ（`useQueryable` / `AsQueryable`）** |
+| **EF 式标准 Queryable**、Includes/Merge/UPSERT、Statement 级测试 | **Ext LINQ（`useQueryable` / `AsQueryable`）** |
 
 ---
 
@@ -294,7 +294,7 @@ flowchart TB
         MV[ClauseMethodVisitor partials]
         EV <-->|Buddy| MV
         CST[ClauseSqlTranslator]
-        CTX[buildContext / IBuildContext]
+        CTX[buildContext / IClauseContext]
     end
     subgraph removed [已删除]
         MCB[MethodCallBuilder]
@@ -335,7 +335,7 @@ flowchart TB
 #### 待办（摘自 `src/README.md`）
 
 - Jet 等无原生 OFFSET 方言的 Take/Skip 客户端截断 fallback
-- `outcast/` → `publicapi/` 重命名
+- `api/` → `publicapi/` 重命名
 - SQLClip ↔ Expression 双向互操作
 - 真异步流式 `IAsyncEnumerable`
 - 更多方言矩阵文档与 EF 方法对齐
@@ -346,7 +346,7 @@ flowchart TB
 
 | 问题 | 答案 |
 |------|------|
-| **最大变化是什么？** | Ext 完成 **Compile/Execute 分离** + **MethodCallBuilder 全量清理**；编译仅经双访问器 + `IBuildContext` |
+| **最大变化是什么？** | Ext 完成 **Compile/Execute 分离** + **MethodCallBuilder 全量清理**；编译仅经双访问器 + `IClauseContext` |
 | **还有两套 LINQ 吗？** | **是，且为架构目标**：Fast（useBus）与 Ext（标准 Queryable）**并行** |
 | **Ext 编译器入口？** | `EntityVisitFactory` → `EntityVisitCompiler` → `QueryMate.GetQuery` → `ClauseCompiler` |
 | **useBus 走哪条？** | **Fast LINQ**（`FastLinqFactory`） |
@@ -363,7 +363,7 @@ flowchart TB
 | **双访问器对齐 FastLinq** | `ext/src/linq/双访问器对齐FastLinq-迁移清单.md` | Phase A～H 清单；MethodCallBuilder 清理验收 |
 | Ext LINQ 三层架构 | `ext/src/linq/src/README.md` | Compile → SentenceBag → Execute |
 | 编译过程解析 | `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` | `StatementCompileSession`、`ClauseCompiler` |
-| **编译层开发指南** | `ext/src/linq/core/ExtLinq编译层开发指南-双访问器与MakeExpression.md` | 双访问器 Buddy 机制、`MakeExpression`、Expression → `SelectQueryClause` 走读 |
+| **编译层开发指南** | `ext/src/linq/core/ExtLinq编译层开发指南-双访问器与BuildProjection.md` | 双访问器 Buddy 机制、`BuildProjection`、Expression → `SelectQueryClause` 走读 |
 | 执行过程解析 | `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` | `SentenceExecutor` |
 | Fast LINQ 架构 | `doc/docs/moohelp/arch/linq-architecture.md` | 双轨定位 + FastMethodVisitor |
 | SQLBuilder API | `pure/src/ado/builder/API说明文档.md` | 链式 API 参考 |
@@ -379,5 +379,5 @@ var sql = result.Plan.SqlPreview;
 // 内部调试（同程序集）
 var bag = QueryMate.GetQuery<MyEntity>(db, ref expression, out _);
 // bag.Sentences[0].Statement → SelectQueryClause
-// bag.NavColumns → LoadWith 注册列
+// bag.NavColumns → Includes 注册列
 ```

@@ -63,7 +63,7 @@ internal sealed partial class ClauseExpressionVisitor : ExpressionVisitor
         return buildInfo;
     }
 
-    void SetStatementResult(IBuildContext? context)
+    void SetStatementResult(IClauseContext? context)
     {
         if (context != null)
             Context.StatementResult = StatementExpression.FromBuildContext(context, Context);

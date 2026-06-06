@@ -474,7 +474,7 @@ namespace mooSQL.linq.SqlProvider
 				return predicate;
 
 			// Here, several optimisations would already have occured:
-			// - If both expressions could be evaluated, Sql.IsDistinct would have been evaluated client-side.
+			// - If both expressions could be evaluated, DbFunc.IsDistinct would have been evaluated client-side.
 			// - If both expressions could not be null, an Equals expression would have been used instead.
 
 			// The only remaining case that we'd like to simplify is when one expression is the constant null.

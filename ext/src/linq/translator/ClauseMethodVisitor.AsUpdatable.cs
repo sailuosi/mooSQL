@@ -37,10 +37,10 @@ internal partial class ClauseMethodVisitor
 
     static bool CanBuildAsUpdatable(MethodCallExpression call) => call.IsQueryable();
 
-    static IBuildContext BuildAsUpdatableCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildAsUpdatableCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-    static IBuildContext BuildAsValueInsertableCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildAsValueInsertableCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

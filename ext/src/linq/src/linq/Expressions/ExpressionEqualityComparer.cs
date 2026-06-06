@@ -21,7 +21,7 @@ namespace mooSQL.linq.Expressions
     using Reflection;
 
 	/// <summary>
-	///     This API supports the linq2db infrastructure and is not intended to be used
+	///     Internal expression infrastructure API and is not intended to be used
 	///     directly from your code. This API may change or be removed in future releases.
 	/// </summary>
 	public sealed class ExpressionEqualityComparer : IEqualityComparer<Expression>

@@ -206,14 +206,14 @@ namespace mooSQL.linq.Linq.Builder
 
 		Dictionary<SqlCacheKey, Expression>? _associations;
 
-		public Expression TryCreateAssociation(Expression expression, ContextRefExpression rootContext, IBuildContext? forContext, ProjectFlags flags)
+		public Expression TryCreateAssociation(Expression expression, ContextRefExpression rootContext, IClauseContext? forContext, ProjectFlags flags)
 		{
 			var associationDescriptor = GetAssociationDescriptor(expression, out var memberInfo);
 
 			if (associationDescriptor == null || memberInfo == null)
 				return expression;
 
-			var associationRoot = (ContextRefExpression)MakeExpression(rootContext.BuildContext, rootContext, flags.AssociationRootFlag());
+			var associationRoot = (ContextRefExpression)BuildProjection(rootContext.BuildContext, rootContext, flags.AssociationRootFlag());
 
 			_associations ??= new Dictionary<SqlCacheKey, Expression>(SqlCacheKey.SqlCacheKeyComparer);
 
@@ -223,7 +223,7 @@ namespace mooSQL.linq.Linq.Builder
 			if (_associations.TryGetValue(key, out var associationExpression))
 				return associationExpression;
 
-			LoadWithInfo? loadWith     = null;
+			IncludeInfo? loadWith     = null;
 			MemberInfo[]? loadWithPath = null;
 
 			var   prevIsOuter = flags.HasFlag(ProjectFlags.ForceOuterAssociation);
@@ -236,8 +236,8 @@ namespace mooSQL.linq.Linq.Builder
 
 			if (table != null)
 			{
-				loadWith     = table.LoadWithRoot;
-				loadWithPath = table.LoadWithPath;
+				loadWith     = table.IncludeRoot;
+				loadWithPath = table.IncludePath;
 				if (table.IsOptional)
 					isOptional = true;
 			}
@@ -251,7 +251,7 @@ namespace mooSQL.linq.Linq.Builder
 			Expression? notNullCheck = null;
 			if (associationDescriptor.IsList && (prevIsOuter || flags.IsSubquery()) && !flags.IsExtractProjection())
 			{
-				var keys = MakeExpression(forContext, rootContext, flags.SqlFlag().KeyFlag());
+				var keys = BuildProjection(forContext, rootContext, flags.SqlFlag().KeyFlag());
 				if (forContext != null)
 					notNullCheck = ExtractNotNullCheck(forContext, keys, flags.SqlFlag());
 			}
@@ -306,7 +306,7 @@ namespace mooSQL.linq.Linq.Builder
 			return associationExpression;
 		}
 
-		Expression? ExtractNotNullCheck(IBuildContext context, Expression expr, ProjectFlags flags)
+		Expression? ExtractNotNullCheck(IClauseContext context, Expression expr, ProjectFlags flags)
 		{
 			SqlPlaceholderExpression? notNull = null;
 
@@ -408,7 +408,7 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		public bool GetAssociationTransformation(IBuildContext buildContext, [NotNullWhen(true)] out Expression? transformation)
+		public bool GetAssociationTransformation(IClauseContext buildContext, [NotNullWhen(true)] out Expression? transformation)
 		{
 			transformation = null;
 			if (_associations == null)

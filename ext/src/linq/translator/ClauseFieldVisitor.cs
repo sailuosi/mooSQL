@@ -10,7 +10,7 @@ namespace mooSQL.linq.translator;
 /// </summary>
 internal static class ClauseFieldVisitor
 {
-    public static IExpWord? ConvertField(ClauseSqlTranslator builder, IBuildContext context, Expression expr, ProjectFlags flags)
+    public static IExpWord? ConvertField(ClauseSqlTranslator builder, IClauseContext context, Expression expr, ProjectFlags flags)
     {
         if (expr == null)
             return null;

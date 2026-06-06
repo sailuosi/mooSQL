@@ -464,7 +464,7 @@ namespace mooSQL.linq.Linq.Builder
 			if (_isServerSideOnlyCache != null && _isServerSideOnlyCache.TryGetValue(expr, out var result))
 				return result;
 
-			if (expr.Type == typeof(Sql.SqlID))
+			if (expr.Type == typeof(DbFunc.SqlID))
 			{
 				result = true;
 			}

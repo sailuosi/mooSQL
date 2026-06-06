@@ -11,7 +11,7 @@ using mooSQL.utils;
 namespace mooSQL.linq.translator;
 
 /// <summary>
-/// 双工访问器编译阶段的共享状态，封装原 BuildInfo / IBuildContext 栈。
+/// 双工访问器编译阶段的共享状态，封装原 BuildInfo / IClauseContext 栈。
 /// </summary>
 internal sealed class ClauseCompileContext
 {
@@ -31,7 +31,7 @@ internal sealed class ClauseCompileContext
 
     public StatementExpression? StatementResult { get; set; }
 
-    public IBuildContext? BuildContext => StatementResult?.BuildContext;
+    public IClauseContext? BuildContext => StatementResult?.BuildContext;
 
     public Dictionary<Type, List<EntityColumn>> NavColumns { get; }
 

@@ -107,7 +107,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public ParameterAccessor? BuildParameter(
-			IBuildContext?     context,
+			IClauseContext?     context,
 			Expression         expr,
             EntityColumn?  columnDescriptor,
 			bool               forceConstant           = false,

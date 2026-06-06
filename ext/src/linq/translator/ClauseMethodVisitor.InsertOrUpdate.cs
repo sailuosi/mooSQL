@@ -30,7 +30,7 @@ internal partial class ClauseMethodVisitor
 
     static bool CanBuildInsertOrUpdate(MethodCallExpression call) => call.IsQueryable();
 
-    static IBuildContext BuildInsertOrUpdateCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildInsertOrUpdateCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

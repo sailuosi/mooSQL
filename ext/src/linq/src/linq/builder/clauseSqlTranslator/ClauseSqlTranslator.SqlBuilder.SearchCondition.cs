@@ -14,7 +14,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region Search Condition Builder
 
-		public void BuildSearchCondition(IBuildContext? context, Expression expression, ProjectFlags flags, SearchConditionWord searchCondition)
+		public void BuildSearchCondition(IClauseContext? context, Expression expression, ProjectFlags flags, SearchConditionWord searchCondition)
 		{
 			if (!BuildSearchCondition(context, expression, flags, searchCondition, out var error))
 			{
@@ -22,7 +22,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		public bool BuildSearchCondition(IBuildContext? context, Expression expression, ProjectFlags flags, SearchConditionWord searchCondition, [NotNullWhen(false)] out SqlErrorExpression? error)
+		public bool BuildSearchCondition(IClauseContext? context, Expression expression, ProjectFlags flags, SearchConditionWord searchCondition, [NotNullWhen(false)] out SqlErrorExpression? error)
 		{
 			switch (expression.NodeType)
 			{

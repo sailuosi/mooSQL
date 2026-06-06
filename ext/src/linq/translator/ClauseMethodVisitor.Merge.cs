@@ -68,7 +68,7 @@ internal partial class ClauseMethodVisitor
         return ToStatementCallOr(method, buildContext);
     }
 
-    static IBuildContext? BuildMergeClause(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext? BuildMergeClause(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         if (CanBuildMergeStart(methodCall))
             return BuildMergeStart(builder, buildInfo, methodCall);
@@ -148,7 +148,7 @@ internal partial class ClauseMethodVisitor
     static bool CanBuildUpdateWhenNotMatchedBySource(MethodCallExpression call)
         => call.IsSameGenericMethod(UpdateWhenNotMatchedBySourceAndMethodInfo);
 
-    static IBuildContext BuildMergeStart(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildMergeStart(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var disableFilters = methodCall.Arguments[0] is not MethodCallExpression mc || mc.Method.Name != nameof(LinqExtensions.AsCte);
         if (disableFilters)
@@ -173,7 +173,7 @@ internal partial class ClauseMethodVisitor
         return new MergeContext(merge, target);
     }
 
-    static IBuildContext BuildMergeExecute(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildMergeExecute(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -244,7 +244,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildMergeInto(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildMergeInto(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var sourceContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], new SelectQueryClause()));
         var target        = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1]) { AssociationsAsSubQueries = true });
@@ -267,7 +267,7 @@ internal partial class ClauseMethodVisitor
         return new MergeContext(merge, target, source);
     }
 
-    static IBuildContext BuildOn(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildOn(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -342,7 +342,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildUsing(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildUsing(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -361,7 +361,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildUsingTarget(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildUsingTarget(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -374,13 +374,13 @@ internal partial class ClauseMethodVisitor
         var sourceContextRef = new ContextRefExpression(genericArguments[0], clonedTargetContext, "source");
 
         var source                = new TableLikeQueryContext(targetContextRef, sourceContextRef);
-        mergeContext.Sequences    = new IBuildContext[] { mergeContext.Sequence, source };
+        mergeContext.Sequences    = new IClauseContext[] { mergeContext.Sequence, source };
         mergeContext.Merge.Source = source.Source;
 
         return mergeContext;
     }
 
-    static IBuildContext BuildInsertWhenNotMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildInsertWhenNotMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -430,7 +430,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildDeleteWhenMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildDeleteWhenMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -456,7 +456,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildDeleteWhenNotMatchedBySource(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildDeleteWhenNotMatchedBySource(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -478,7 +478,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildUpdateWhenMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildUpdateWhenMatched(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -544,7 +544,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildUpdateWhenMatchedThenDelete(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildUpdateWhenMatchedThenDelete(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -614,7 +614,7 @@ internal partial class ClauseMethodVisitor
         return mergeContext;
     }
 
-    static IBuildContext BuildUpdateWhenNotMatchedBySource(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext BuildUpdateWhenNotMatchedBySource(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
     {
         var mergeContext = (MergeContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

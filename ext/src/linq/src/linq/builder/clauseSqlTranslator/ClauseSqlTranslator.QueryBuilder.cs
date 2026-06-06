@@ -69,7 +69,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		public TExpression UpdateNesting<TExpression>(IBuildContext upToContext, TExpression expression)
+		public TExpression UpdateNesting<TExpression>(IClauseContext upToContext, TExpression expression)
 			where TExpression : Expression
 		{
 			var corrected = UpdateNesting(upToContext.SelectQuery, expression);
@@ -124,7 +124,7 @@ namespace mooSQL.linq.Linq.Builder
 			return (TExpression)withColumns;
 		}
 
-		public Expression ToColumns(IBuildContext rootContext, Expression expression)
+		public Expression ToColumns(IClauseContext rootContext, Expression expression)
 		{
 			return ToColumns(rootContext.SelectQuery, expression);
 		}
@@ -147,7 +147,7 @@ namespace mooSQL.linq.Linq.Builder
 
 								if (placeholder.Sql is RowWord)
 								{
-									throw new SooQueryException("Sql.Row(...) cannot be top level expression.");
+									throw new SooQueryException("DbFunc.Row(...) cannot be top level expression.");
 								}
 
 								if (ReferenceEquals(placeholder.SelectQuery, context.rootQuery))
@@ -177,7 +177,7 @@ namespace mooSQL.linq.Linq.Builder
 			return withColumns;
 		}
 
-		public bool TryConvertToSql(IBuildContext? context, Expression expression, ProjectFlags flags,
+		public bool TryConvertToSql(IClauseContext? context, Expression expression, ProjectFlags flags,
 			EntityColumn? columnDescriptor, [NotNullWhen(true)] out IExpWord? sqlExpression,
 			[NotNullWhen(false)] out SqlErrorExpression? error)
 		{
@@ -213,7 +213,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		public SqlPlaceholderExpression? TryConvertToSqlPlaceholder(IBuildContext context, Expression expression, ProjectFlags flags, EntityColumn? columnDescriptor = null)
+		public SqlPlaceholderExpression? TryConvertToSqlPlaceholder(IClauseContext context, Expression expression, ProjectFlags flags, EntityColumn? columnDescriptor = null)
 		{
 			flags |= ProjectFlags.SQL;
 			flags &= ~ProjectFlags.Expression;
@@ -234,7 +234,7 @@ namespace mooSQL.linq.Linq.Builder
 			return (SqlPlaceholderExpression)converted;
 		}
 
-		public static SqlErrorExpression CreateSqlError(IBuildContext? context, Expression expression)
+		public static SqlErrorExpression CreateSqlError(IClauseContext? context, Expression expression)
 		{
 			return new SqlErrorExpression(context, expression);
 		}
@@ -244,7 +244,7 @@ namespace mooSQL.linq.Linq.Builder
 			return null != expression.Find(0, (_, e) => e is SqlErrorExpression);
 		}
 
-		public Expression ConvertExtension(Sql.ExpressionAttribute attr, IBuildContext context, Expression expr, ProjectFlags flags)
+		public Expression ConvertExtension(DbFunc.ExpressionAttribute attr, IClauseContext context, Expression expr, ProjectFlags flags)
 		{
 			var rootContext     = context;
 			var rootSelectQuery = context.SelectQuery;
@@ -286,7 +286,7 @@ namespace mooSQL.linq.Linq.Builder
 			return expr;
 		}
 
-		public Expression HandleExtension(IBuildContext context, Expression expr, ProjectFlags flags)
+		public Expression HandleExtension(IClauseContext context, Expression expr, ProjectFlags flags)
 		{
 			// Handling ExpressionAttribute
 			//
@@ -347,7 +347,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 		}
 
-		public Expression FinalizeConstructors(IBuildContext context, Expression inputExpression, bool deduplicate)
+		public Expression FinalizeConstructors(IClauseContext context, Expression inputExpression, bool deduplicate)
 		{
 			using var finalizeVisitor = _finalizeVisitorPool.Allocate();
 			var generator       = new ExpressionGenerator();
@@ -365,11 +365,11 @@ namespace mooSQL.linq.Linq.Builder
 		{
 			public Expression     SequenceExpression = null!;
 			public string?        ErrorMessage;
-			public IBuildContext? Context;
+			public IClauseContext? Context;
 			public bool           IsSequence;
 		}
 
-		public Expression CorrectRoot(IBuildContext? currentContext, Expression expr)
+		public Expression CorrectRoot(IClauseContext? currentContext, Expression expr)
 		{
 			if (expr is MethodCallExpression mc && mc.IsQueryable())
 			{
@@ -386,7 +386,7 @@ namespace mooSQL.linq.Linq.Builder
 				return CorrectRoot(di.Sequence, new ContextRefExpression(expr.Type, di.Sequence));
 			}
 
-			var newExpr = MakeExpression(currentContext, expr, ProjectFlags.Traverse);
+			var newExpr = BuildProjection(currentContext, expr, ProjectFlags.Traverse);
 			if (!ExpressionEqualityComparer.Instance.Equals(newExpr, expr))
 			{
 				newExpr = CorrectRoot(currentContext, newExpr);
@@ -395,7 +395,7 @@ namespace mooSQL.linq.Linq.Builder
 			return newExpr;
 		}
 
-		public ContextRefExpression? GetRootContext(IBuildContext? currentContext, Expression? expression, bool isAggregation)
+		public ContextRefExpression? GetRootContext(IClauseContext? currentContext, Expression? expression, bool isAggregation)
 		{
 			if (expression == null)
 				return null;
@@ -411,7 +411,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 			else if (expression is ContextRefExpression)
 			{
-				var newExpression = MakeExpression(currentContext, expression, isAggregation ? ProjectFlags.AggregationRoot : ProjectFlags.Root);
+				var newExpression = BuildProjection(currentContext, expression, isAggregation ? ProjectFlags.AggregationRoot : ProjectFlags.Root);
 
 				if (!ExpressionEqualityComparer.Instance.Equals(newExpression, expression))
 					expression = GetRootContext(currentContext, newExpression, isAggregation);
@@ -475,7 +475,7 @@ namespace mooSQL.linq.Linq.Builder
 		Dictionary<SubqueryCacheKey, SubQueryContextInfo>? _buildContextCache;
 		Dictionary<SubqueryCacheKey, SubQueryContextInfo>? _testBuildContextCache;
 
-		SubQueryContextInfo GetSubQueryContext(IBuildContext inContext, ref IBuildContext context, Expression expr, ProjectFlags flags)
+		SubQueryContextInfo GetSubQueryContext(IClauseContext inContext, ref IClauseContext context, Expression expr, ProjectFlags flags)
 		{
 			context   = inContext;
 			var testExpression = CorrectRoot(context, expr);
@@ -519,10 +519,10 @@ namespace mooSQL.linq.Linq.Builder
 			return info;
 		}
 
-		public static bool IsSingleElementContext(IBuildContext context)
+		public static bool IsSingleElementContext(IClauseContext context)
 			=> context is FirstSingleContext;
 
-		Expression TranslateDetails(IBuildContext context, Expression expr, ProjectFlags flags)
+		Expression TranslateDetails(IClauseContext context, Expression expr, ProjectFlags flags)
 		{
 			using var visitor = _buildVisitorPool.Allocate();
 			return visitor.Value.Build(context, expr, flags, BuildFlags.ForceAssignments | BuildFlags.IgnoreRoot);
@@ -560,7 +560,7 @@ namespace mooSQL.linq.Linq.Builder
 			return newExpr;
 		}
 
-		public Expression? TryGetSubQueryExpression(IBuildContext context, Expression expr, string? alias, ProjectFlags flags, out bool isSequence, out Expression? corrected)
+		public Expression? TryGetSubQueryExpression(IClauseContext context, Expression expr, string? alias, ProjectFlags flags, out bool isSequence, out Expression? corrected)
 		{
 			isSequence = false;
 			corrected  = null;
@@ -667,7 +667,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public bool PreferServerSide(Expression expr, bool enforceServerSide)
 		{
-			if (expr.Type == typeof(Sql.SqlID))
+			if (expr.Type == typeof(DbFunc.SqlID))
 				return true;
 
 			switch (expr.NodeType)
@@ -739,7 +739,7 @@ namespace mooSQL.linq.Linq.Builder
 		#region BuildMultipleQuery
 
 		public Expression? AssociationRoot;
-		public Stack<Tuple<AccessorMember, IBuildContext, List<LoadWithInfo[]>?>>? AssociationPath;
+		public Stack<Tuple<AccessorMember, IClauseContext, List<IncludeInfo[]>?>>? AssociationPath;
 
 		#endregion
 

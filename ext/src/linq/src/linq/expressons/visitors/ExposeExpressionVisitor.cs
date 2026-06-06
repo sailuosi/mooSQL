@@ -97,9 +97,9 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 
 			if (node.Method.IsSqlPropertyMethodEx())
 			{
-				// transform Sql.Property into member access
+				// transform DbFunc.Property into member access
 				if (node.Arguments[1].Type != typeof(string))
-					throw new ArgumentException("Only strings are allowed for member name in Sql.Property expressions.");
+					throw new ArgumentException("Only strings are allowed for member name in DbFunc.Property expressions.");
 
 				var entity               = Visit(node.Arguments[0].UnwrapConvertToObject());
 				var memberNameExpression = Visit(node.Arguments[1]);
@@ -303,7 +303,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 
 		bool TryConvertIQueryable(Expression node, out Expression converted)
 		{
-			if (typeof(IQueryable).IsSameOrParentOf(node.Type) && !typeof(Sql.IQueryableContainer).IsSameOrParentOf(node.Type))
+			if (typeof(IQueryable).IsSameOrParentOf(node.Type) && !typeof(DbFunc.IQueryableContainer).IsSameOrParentOf(node.Type))
 			{
 				if (node is MethodCallExpression mc)
 				{
@@ -364,7 +364,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 			if (expression.NodeType is ExpressionType.Call)
 			{
 				var mc = (MethodCallExpression)expression;
-				//if (mc.Method.DeclaringType != null && MappingSchema.HasAttribute<Sql.QueryExtensionAttribute>(mc.Method.DeclaringType, mc.Method))
+				//if (mc.Method.DeclaringType != null && MappingSchema.HasAttribute<DbFunc.QueryExtensionAttribute>(mc.Method.DeclaringType, mc.Method))
 				//	return mc;
 			}
 
@@ -514,7 +514,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 			{
 				return Expression.Call(
 					null,
-					MemberHelper.MethodOf<T?>(p => Sql.ToNotNull(p)),
+					MemberHelper.MethodOf<T?>(p => DbFunc.ToNotNull(p)),
 					expression.Expression!);
 			}
 		}
@@ -553,15 +553,15 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 					case ExpressionType.Subtract:
 					case ExpressionType.SubtractChecked:
 
-						Sql.DateParts datePart;
+						DbFunc.DateParts datePart;
 
 						switch (node.Member.Name)
 						{
-							case "TotalMilliseconds": datePart = Sql.DateParts.Millisecond; break;
-							case "TotalSeconds"     : datePart = Sql.DateParts.Second;      break;
-							case "TotalMinutes"     : datePart = Sql.DateParts.Minute;      break;
-							case "TotalHours"       : datePart = Sql.DateParts.Hour;        break;
-							case "TotalDays"        : datePart = Sql.DateParts.Day;         break;
+							case "TotalMilliseconds": datePart = DbFunc.DateParts.Millisecond; break;
+							case "TotalSeconds"     : datePart = DbFunc.DateParts.Second;      break;
+							case "TotalMinutes"     : datePart = DbFunc.DateParts.Minute;      break;
+							case "TotalHours"       : datePart = DbFunc.DateParts.Hour;        break;
+							case "TotalDays"        : datePart = DbFunc.DateParts.Day;         break;
 							default                 : return null;
 						}
 
@@ -570,7 +570,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 							&& ex.Right.Type == typeof(DateTime))
 						{
 							var method = MemberHelper.MethodOf(
-										() => Sql.DateDiff(Sql.DateParts.Day, DateTime.MinValue, DateTime.MinValue));
+										() => DbFunc.DateDiff(DbFunc.DateParts.Day, DateTime.MinValue, DateTime.MinValue));
 
 							var call   =
 										Expression.Convert(
@@ -587,7 +587,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 						else
 						{
 							var method = MemberHelper.MethodOf(
-										() => Sql.DateDiff(Sql.DateParts.Day, DateTimeOffset.MinValue, DateTimeOffset.MinValue));
+										() => DbFunc.DateDiff(DbFunc.DateParts.Day, DateTimeOffset.MinValue, DateTimeOffset.MinValue));
 
 							var call =
 								Expression.Convert(
@@ -653,11 +653,11 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 					if (!ExpressionEqualityComparer.Instance.Equals(queryable.Expression, node))
 						return Visit(queryable.Expression);
 				}
-				else if (node.Value is Sql.IQueryableContainer queryableContainer)
+				else if (node.Value is DbFunc.IQueryableContainer queryableContainer)
 				{
 					return Visit(queryableContainer.Query.Expression);
 				}
-				/*else if (node.Value is Sql.ISqlExtension)
+				/*else if (node.Value is DbFunc.ISqlExtension)
 				{
 					return Expression.Constant(null, node.Type);
 				}*/

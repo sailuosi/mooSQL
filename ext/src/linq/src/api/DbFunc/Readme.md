@@ -1,0 +1,43 @@
+# mooSQL DbFunc — LINQ 可翻译数据库函数
+
+`DbFunc` 是 Ext LINQ 在 Lambda 表达式中使用的**数据库函数静态类**，对标 EF 的 `EF.Functions`、SqlSugar 的 `SqlFunc`。
+
+## 用法
+
+```csharp
+using mooSQL.linq;
+
+var q = db.useQueryable<Order>()
+    .Where(o => DbFunc.Between(o.Amount, 100, 500))
+    .Where(o => o.Name != null && DbFunc.Like(o.Name, "%test%"));
+```
+
+编译时，`ClauseFieldVisitor` / `MemberTranslatorResolver` 将 `DbFunc.*` 调用翻译为 Pure 层 `SelectQueryClause` 中的 `FunctionWord` / `ExpressionWord`。
+
+## 属性
+
+| 属性 | 说明 |
+|------|------|
+| `[DbFunc.Expression("...")]` | 自定义 SQL 表达式模板 |
+| `[DbFunc.Function("name")]` | 映射到数据库函数名 |
+| `[DbFunc.Extension(...)]` | 复杂扩展（如 `Between`） |
+
+`DbFuncExpressionAttribute` 是 `[DbFunc.Expression]` 的推荐别名，长期将合并进 Pure 层 `SQLExpression` 方言实例。
+
+## 与 Pure 的关系
+
+- **当前**：函数定义在 `ext/src/linq/src/api/DbFunc/`，由 Ext 编译层解析
+- **目标**：常用函数逐步迁入 `pure/src/ado/data/dialect/SQLExpression.*`，Ext 仅查 Pure 注册表
+
+## 自定义扩展
+
+```csharp
+public static partial class MyDbFunc
+{
+    [DbFunc.Expression("NULLIF({0}, {1})", PreferServerSide = true)]
+    public static T? NullIf<T>(T? value, T compareTo) where T : struct
+        => value;
+}
+```
+
+详见 [`ext/src/linq/core/ClauseCompile-Glossary.md`](../../core/ClauseCompile-Glossary.md)。

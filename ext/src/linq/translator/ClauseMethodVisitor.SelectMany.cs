@@ -87,7 +87,7 @@ internal partial class ClauseMethodVisitor
             new ContextRefExpression(collection.ElementType, collection), buildInfo.GetFlags(),
             buildFlags: BuildFlags.ForceAssignments);
 
-        var expanded = builder.MakeExpression(sequence, new ContextRefExpression(collection.ElementType, collection), ProjectFlags.ExtractProjection);
+        var expanded = builder.BuildProjection(sequence, new ContextRefExpression(collection.ElementType, collection), ProjectFlags.ExtractProjection);
 
         collection = new SubQueryContext(collection);
 

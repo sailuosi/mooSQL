@@ -21,7 +21,7 @@ namespace mooSQL.linq.Linq.Builder
 
 
 
-		public Expression BuildSqlExpression(IBuildContext context, Expression expression, ProjectFlags flags, string? alias = null, BuildFlags buildFlags = BuildFlags.None)
+		public Expression BuildSqlExpression(IClauseContext context, Expression expression, ProjectFlags flags, string? alias = null, BuildFlags buildFlags = BuildFlags.None)
 		{
 			using var visitor =  _buildVisitorPool.Allocate();
 
@@ -29,7 +29,7 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		public Expression ExtractProjection(IBuildContext context, Expression expression)
+		public Expression ExtractProjection(IClauseContext context, Expression expression)
 		{
 			var projectVisitor = new ProjectionVisitor(context);
 			var projected      = projectVisitor.Visit(expression);
@@ -39,7 +39,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		bool _handlingAlias;
 
-		Expression CheckForAlias(IBuildContext context, MemberExpression memberExpression, EntityInfo entityDescriptor, string alias, ProjectFlags flags)
+		Expression CheckForAlias(IClauseContext context, MemberExpression memberExpression, EntityInfo entityDescriptor, string alias, ProjectFlags flags)
 		{
 			if (_handlingAlias)
 				return memberExpression;
@@ -52,7 +52,7 @@ namespace mooSQL.linq.Linq.Builder
 			var newPath     = Expression.MakeMemberAccess(memberExpression.Expression, otherProp);
 
 			_handlingAlias = true;
-			var aliasResult = MakeExpression(context, newPath, flags);
+			var aliasResult = BuildProjection(context, newPath, flags);
 			_handlingAlias = false;
 
 			if (aliasResult is not SqlErrorExpression && aliasResult is not DefaultValueExpression)
@@ -63,7 +63,7 @@ namespace mooSQL.linq.Linq.Builder
 			return memberExpression;
 		}
 
-		public bool HandleAlias(IBuildContext context, Expression expression, ProjectFlags flags, [NotNullWhen(true)] out Expression? result)
+		public bool HandleAlias(IClauseContext context, Expression expression, ProjectFlags flags, [NotNullWhen(true)] out Expression? result)
 		{
 			result = null;
 

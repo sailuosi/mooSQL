@@ -4,7 +4,7 @@ namespace mooSQL.linq.Linq.Builder
 {
 	readonly struct BuildSequenceResult
 	{
-		public BuildSequenceResult(IBuildContext? buildContext)
+		public BuildSequenceResult(IClauseContext? buildContext)
 		{
 			BuildContext    = buildContext;
 			ErrorExpression = null;
@@ -28,9 +28,9 @@ namespace mooSQL.linq.Linq.Builder
 
 		public static BuildSequenceResult NotSupported()                                                               => new();
 		public static BuildSequenceResult Error(Expression          errorExpression, string? additionalDetails = null) => new(errorExpression, additionalDetails);
-		public static BuildSequenceResult FromContext(IBuildContext buildContext) => new(buildContext);
+		public static BuildSequenceResult FromContext(IClauseContext buildContext) => new(buildContext);
 
-		public IBuildContext? BuildContext      { get; }
+		public IClauseContext? BuildContext      { get; }
 		public Expression?    ErrorExpression   { get; }
 		public string?        AdditionalDetails { get; }
 

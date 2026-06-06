@@ -223,7 +223,7 @@ namespace mooSQL.linq.SqlProvider
 			if (!ReferenceEquals(newElement, element))
 				return Visit(newElement);
 
-			if (element.Value is Sql.SqlID)
+			if (element.Value is DbFunc.SqlID)
 				return element;
 
 			if (!DBLive.dialect.mapping.CanConvertToSql(element.Value))
@@ -1259,7 +1259,7 @@ namespace mooSQL.linq.SqlProvider
 				}
 
 				default:
-					throw new LinqException("Inappropriate SqlRow expression, only Sql.Row() and sub-selects are valid.");
+					throw new LinqException("Inappropriate SqlRow expression, only DbFunc.Row() and sub-selects are valid.");
 			}
 
 			// Default ExprExpr translation is ok

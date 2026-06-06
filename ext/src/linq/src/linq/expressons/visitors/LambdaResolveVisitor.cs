@@ -15,12 +15,12 @@ namespace mooSQL.linq.Linq.Builder
 
 	class LambdaResolveVisitor : ExpressionVisitorBase
 	{
-		readonly IBuildContext _context;
+		readonly IClauseContext _context;
 		bool _inLambda;
 
 		public ClauseSqlTranslator Builder => _context.Builder;
 
-		public LambdaResolveVisitor(IBuildContext context)
+		public LambdaResolveVisitor(IClauseContext context)
 		{
 			_context = context;
 		}

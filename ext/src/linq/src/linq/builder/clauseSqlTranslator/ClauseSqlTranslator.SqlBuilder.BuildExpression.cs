@@ -34,7 +34,7 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region BuildExpression
 
-		public Expression ConvertToExtensionSql(IBuildContext context, ProjectFlags flags, Expression expression, EntityColumn? columnDescriptor, bool? inlineParameters)
+		public Expression ConvertToExtensionSql(IClauseContext context, ProjectFlags flags, Expression expression, EntityColumn? columnDescriptor, bool? inlineParameters)
 		{
 
 			try
@@ -113,7 +113,7 @@ namespace mooSQL.linq.Linq.Builder
 		[DebuggerDisplay("S: {SelectQuery?.SourceID} F: {Flags}, E: {Expression}, C: {Context}")]
 		readonly struct SqlCacheKey
 		{
-			public SqlCacheKey(Expression? expression, IBuildContext? context, EntityColumn? columnDescriptor, SelectQueryClause? selectQuery, ProjectFlags flags)
+			public SqlCacheKey(Expression? expression, IClauseContext? context, EntityColumn? columnDescriptor, SelectQueryClause? selectQuery, ProjectFlags flags)
 			{
 				Expression       = expression;
 				Context          = context;
@@ -123,7 +123,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			public Expression?       Expression       { get; }
-			public IBuildContext?    Context          { get; }
+			public IClauseContext?    Context          { get; }
 			public EntityColumn? ColumnDescriptor { get; }
 			public SelectQueryClause?      SelectQuery      { get; }
 			public ProjectFlags      Flags            { get; }
@@ -200,7 +200,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		Dictionary<SqlCacheKey, Expression> _cachedSql        = new(SqlCacheKey.SqlCacheKeyComparer);
 
-		public SqlPlaceholderExpression ConvertToSqlPlaceholder(IBuildContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
+		public SqlPlaceholderExpression ConvertToSqlPlaceholder(IClauseContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
 		{
 			var expr = ConvertToSqlExpr(context, expression, flags, unwrap, columnDescriptor,
 				isPureExpression : isPureExpression, forceParameter : forceParameter);
@@ -216,7 +216,7 @@ namespace mooSQL.linq.Linq.Builder
 			return placeholder;
 		}
 
-		public IExpWord ConvertToSql(IBuildContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
+		public IExpWord ConvertToSql(IClauseContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
 		{
 			var placeholder = ConvertToSqlPlaceholder(context, expression, flags, unwrap : unwrap,
 				columnDescriptor : columnDescriptor, isPureExpression : isPureExpression, forExtension : forExtension,
@@ -224,7 +224,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			return placeholder.Sql;
 		}
-        public IExpWord ConvertToSqlEn(IBuildContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
+        public IExpWord ConvertToSqlEn(IClauseContext? context, Expression expression, ProjectFlags flags = ProjectFlags.SQL, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, bool forceParameter = false)
         {
             var placeholder = ConvertToSqlPlaceholder(context, expression, flags, unwrap: unwrap,
                 columnDescriptor: null, isPureExpression: isPureExpression, forExtension: forExtension,
@@ -233,7 +233,7 @@ namespace mooSQL.linq.Linq.Builder
             return placeholder.Sql;
         }
 
-        public static SqlPlaceholderExpression CreatePlaceholder(IBuildContext? context, IExpWord sqlExpression,
+        public static SqlPlaceholderExpression CreatePlaceholder(IClauseContext? context, IExpWord sqlExpression,
 			Expression path, Type? convertType = null, string? alias = null, int? index = null, Expression? trackingPath = null)
 		{
 			var placeholder = new SqlPlaceholderExpression(context?.SelectQuery, sqlExpression, path, convertType, alias, index, trackingPath ?? path);
@@ -258,7 +258,7 @@ namespace mooSQL.linq.Linq.Builder
 		/// <param name="isPureExpression"></param>
 		/// <param name="alias"></param>
 		/// <returns></returns>
-		public Expression ConvertToSqlExpr(IBuildContext? context, Expression expression,
+		public Expression ConvertToSqlExpr(IClauseContext? context, Expression expression,
 			ProjectFlags flags = ProjectFlags.SQL,
 			bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forceParameter = false,
 			string? alias = null)
@@ -289,7 +289,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			var newExpr = expression;
 
-			newExpr = MakeExpression(context, newExpr, flags);
+			newExpr = BuildProjection(context, newExpr, flags);
 
 			if (newExpr is SqlErrorExpression)
 				return newExpr;
@@ -301,13 +301,13 @@ namespace mooSQL.linq.Linq.Builder
 				if (newExpr is MethodCallExpression mc)
 				{
 					var type = mc.Object?.Type ?? mc.Method.DeclaringType;
-					//if (type != null && MappingSchema.HasAttribute<Sql.ExpressionAttribute>(type, mc.Method))
+					//if (type != null && MappingSchema.HasAttribute<DbFunc.ExpressionAttribute>(type, mc.Method))
 					//	valid = false;
 				}
 				else if (newExpr is MemberExpression me)
 				{
 					var type = me.Expression?.Type ?? me.Member.DeclaringType;
-					//if (type != null && MappingSchema.HasAttribute<Sql.ExpressionAttribute>(type, me.Member))
+					//if (type != null && MappingSchema.HasAttribute<DbFunc.ExpressionAttribute>(type, me.Member))
 					//	valid = false;
 				}
 
@@ -480,7 +480,7 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
-		Expression ConvertToSqlInternal(IBuildContext? context, Expression expression, ProjectFlags flags, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, string? alias = null)
+		Expression ConvertToSqlInternal(IClauseContext? context, Expression expression, ProjectFlags flags, bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forExtension = false, string? alias = null)
 		{
 			if (unwrap)
 				expression = expression.Unwrap();
@@ -773,7 +773,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					if (attr != null)
 					{
-						// Otherwise should be handled by MakeExpression
+						// Otherwise should be handled by BuildProjection
 						if (IsSequence(context, mc))
 						{
 							if (attr.ServerSideOnly)
@@ -1015,7 +1015,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		static ObjectPool<TranslationContext> _translationContexts = new ObjectPool<TranslationContext>(() => new TranslationContext(), c => c.Cleanup(), 100);
 
-		public Expression? TranslateMember(IBuildContext? context, ProjectFlags flags, EntityColumn? columnDescriptor, string? alias, Expression memberExpression)
+		public Expression? TranslateMember(IClauseContext? context, ProjectFlags flags, EntityColumn? columnDescriptor, string? alias, Expression memberExpression)
 		{
 			if (context == null)
 				return null;
@@ -1051,7 +1051,7 @@ namespace mooSQL.linq.Linq.Builder
 			return null;
 		}
 
-		bool IsAlreadyTranslated(IBuildContext? context, ProjectFlags flags, EntityColumn? columnDescriptor, Expression memberExpression, out SqlCacheKey cacheKey, [NotNullWhen(true)] out Expression? translatedExpression)
+		bool IsAlreadyTranslated(IClauseContext? context, ProjectFlags flags, EntityColumn? columnDescriptor, Expression memberExpression, out SqlCacheKey cacheKey, [NotNullWhen(true)] out Expression? translatedExpression)
 		{
 			var cacheFlags = flags & ~ProjectFlags.Keys;
 			cacheFlags &= ~ProjectFlags.ForExtension;
@@ -1087,7 +1087,7 @@ namespace mooSQL.linq.Linq.Builder
 			return false;
 		}
 
-		public IExpWord? TryConvertFormatToSql(IBuildContext? context, MethodCallExpression mc, bool isPureExpression, ProjectFlags flags)
+		public IExpWord? TryConvertFormatToSql(IClauseContext? context, MethodCallExpression mc, bool isPureExpression, ProjectFlags flags)
 		{
 			// TODO: move PrepareRawSqlArguments to more correct location
 			TableRawSqlHelper.PrepareRawSqlArguments(mc, null,
@@ -1108,7 +1108,7 @@ namespace mooSQL.linq.Linq.Builder
 			return QueryHelper.ConvertFormatToConcatenation(format, sqlArguments);
 		}
 
-		public Expression ConvertExtensionToSql(IBuildContext context, ProjectFlags flags, Sql.ExpressionAttribute attr, MethodCallExpression mc, bool checkAggregateRoot)
+		public Expression ConvertExtensionToSql(IClauseContext context, ProjectFlags flags, DbFunc.ExpressionAttribute attr, MethodCallExpression mc, bool checkAggregateRoot)
 		{
 
 
@@ -1172,7 +1172,7 @@ namespace mooSQL.linq.Linq.Builder
 			return sqlExpression;
 		}
 
-        IExpWord? ConvertToInlinedSqlExpression(IBuildContext? context, Expression newExpr)
+        IExpWord? ConvertToInlinedSqlExpression(IClauseContext? context, Expression newExpr)
 		{
             IExpWord? innerSql;
 			innerSql = EvaluateExpression<IExpWord>(newExpr);
@@ -1189,7 +1189,7 @@ namespace mooSQL.linq.Linq.Builder
 			return new InlinedSqlWord(param.SqlParameter, innerSql);
 		}
 
-		public IExpWord? ConvertToSqlConvertible(IBuildContext? context, Expression expression)
+		public IExpWord? ConvertToSqlConvertible(IClauseContext? context, Expression expression)
 		{
 			if (EvaluateExpression(Expression.Convert(expression, typeof(IToSqlConverter))) is not IToSqlConverter converter)
 				throw new SooQueryException($"Expression '{expression}' cannot be converted to `IToSqlConverter`");

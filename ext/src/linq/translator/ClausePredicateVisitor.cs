@@ -15,9 +15,9 @@ namespace mooSQL.linq.translator;
 internal sealed class ClausePredicateVisitor
 {
     readonly ClauseSqlTranslator _translator;
-    readonly IBuildContext _sequence;
+    readonly IClauseContext _sequence;
 
-    public ClausePredicateVisitor(ClauseSqlTranslator translator, IBuildContext sequence)
+    public ClausePredicateVisitor(ClauseSqlTranslator translator, IClauseContext sequence)
     {
         _translator = translator;
         _sequence = sequence;
@@ -45,7 +45,7 @@ internal sealed class ClausePredicateVisitor
     /// </summary>
     public static bool TryConvertMooExtension(
         ClauseSqlTranslator builder,
-        IBuildContext? context,
+        IClauseContext? context,
         MethodCallExpression expression,
         ProjectFlags flags,
         [NotNullWhen(true)] out IAffirmWord? predicate)
@@ -100,7 +100,7 @@ internal sealed class ClausePredicateVisitor
         return false;
     }
 
-    static IAffirmWord? ConvertLike(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)
+    static IAffirmWord? ConvertLike(ClauseSqlTranslator builder, IClauseContext context, MethodCallExpression e, ProjectFlags flags)
     {
         if (!TryGetExtensionField(e, out var fieldExpr, out var valueArgs) || valueArgs.Length < 1)
             return null;
@@ -195,7 +195,7 @@ internal sealed class ClausePredicateVisitor
             };
         };
 
-    static IAffirmWord? ConvertLikeLeft(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)
+    static IAffirmWord? ConvertLikeLeft(ClauseSqlTranslator builder, IClauseContext context, MethodCallExpression e, ProjectFlags flags)
     {
         if (!TryGetExtensionField(e, out var fieldExpr, out var valueArgs) || valueArgs.Length < 1)
             return null;
@@ -273,7 +273,7 @@ internal sealed class ClausePredicateVisitor
         builder.ParametersContext.RegisterAccessorSubstitute(accessor, CreatePatternSubstitute(accessor.ValueAccessor, wrap));
     }
 
-    static IAffirmWord? ConvertInList(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)
+    static IAffirmWord? ConvertInList(ClauseSqlTranslator builder, IClauseContext context, MethodCallExpression e, ProjectFlags flags)
     {
         if (!TryGetExtensionField(e, out var fieldExpr, out var valueArgs) || valueArgs.Length < 1)
             return null;
@@ -314,7 +314,7 @@ internal sealed class ClausePredicateVisitor
         }
     }
 
-    static IAffirmWord? ConvertIsNull(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, bool isNot, ProjectFlags flags)
+    static IAffirmWord? ConvertIsNull(ClauseSqlTranslator builder, IClauseContext context, MethodCallExpression e, bool isNot, ProjectFlags flags)
     {
         if (!TryGetExtensionField(e, out var fieldExpr, out _))
             return null;
@@ -323,7 +323,7 @@ internal sealed class ClausePredicateVisitor
         return new IsNull(field, isNot);
     }
 
-    static IAffirmWord? ConvertIsNullOrWhiteSpace(ClauseSqlTranslator builder, IBuildContext context, MethodCallExpression e, ProjectFlags flags)
+    static IAffirmWord? ConvertIsNullOrWhiteSpace(ClauseSqlTranslator builder, IClauseContext context, MethodCallExpression e, ProjectFlags flags)
     {
         if (!TryGetExtensionField(e, out var fieldExpr, out _))
             return null;

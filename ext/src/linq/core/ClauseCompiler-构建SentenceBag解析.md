@@ -34,7 +34,7 @@
 |------|------|
 | `OptimizationContext` / `ParametersContext` | 表达式优化与参数收集 |
 | `DBLive` / `Expression` | 数据库实例与当前表达式 |
-| `MakeExpression` / `ConvertToSql` / `BuildWhere` | 表达式 → SQL 片段 |
+| `BuildProjection` / `ConvertToSql` / `BuildWhere` | 表达式 → SQL 片段 |
 | `TryBuildSequence` | **`[Obsolete]`** 嵌套序列专用；内部委托 `StatementCompileSession` |
 | `ExpandToRoot` | 查询根展开 |
 
@@ -63,7 +63,7 @@ StatementCompileSession.Create(translator, buildInfo)
 ```30:50:ext/src/linq/translator/ClauseCompiler.cs
 public static SentenceBag<T> Compile<T>(ClauseSqlTranslator builder, Expression expression)
 {
-    var buildInfo = new BuildInfo((IBuildContext?)null, expression, new SelectQueryClause());
+    var buildInfo = new BuildInfo((IClauseContext?)null, expression, new SelectQueryClause());
     var session = StatementCompileSession.Create(builder, buildInfo);
     var resultExpr = session.VisitRoot(expression);
 
@@ -103,13 +103,13 @@ public BuildSequenceResult TryBuildSequence(BuildInfo buildInfo)
 
 ---
 
-### 6. IBuildContext 与 ClauseMethodVisitor（保留）
+### 6. IClauseContext 与 ClauseMethodVisitor（保留）
 
 编译业务逻辑由双访问器 + Context 体系完成：
 
 - `ClauseMethodVisitor.*`：全部 LINQ 算子 `VisitXxxCore` / `BuildXxxCore`
-- `IBuildContext` + `buildContext/*`：维护 `SelectQueryClause`、`GetResultStatement()`
-- `ClauseSqlTranslator`：SQL 语义工具（`BuildWhere`、`MakeExpression` 等）
+- `IClauseContext` + `clauseContext/*`：维护 `SelectQueryClause`、`GetResultStatement()`
+- `ClauseSqlTranslator`：SQL 语义工具（`BuildWhere`、`BuildProjection` 等）
 
 **已删除**：`ISequenceBuilder`、`MethodCallBuilder`、`ApplyBuilder`、`*Builder.cs` 壳。
 
@@ -127,7 +127,7 @@ public BuildSequenceResult TryBuildSequence(BuildInfo buildInfo)
 <details>
 <summary>Phase 1 归档：BuildQuery 概要（已删除）</summary>
 
-原 `BuildQuery<T>` 在编译期调用 `MakeExpression` → `FinalizeProjection` → `SetRunQuery` → `BuildMapper`，生成 `DbDataReader` 行映射 Lambda。Phase 2 起全部由 `SentenceExecutor` + `SQLBuilder.query<T>()` 替代。
+原 `BuildQuery<T>` 在编译期调用 `BuildProjection` → `FinalizeProjection` → `SetRunQuery` → `BuildMapper`，生成 `DbDataReader` 行映射 Lambda。Phase 2 起全部由 `SentenceExecutor` + `SQLBuilder.query<T>()` 替代。
 </details>
 
 ---

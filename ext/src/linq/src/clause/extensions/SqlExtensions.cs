@@ -92,13 +92,13 @@ namespace mooSQL.linq.SqlQuery
 			=> expression.Type.IsSqlRow();
 
 		private static bool IsSqlRow(this Type type)
-			=> type.IsGenericType == true && type.GetGenericTypeDefinition() == typeof(Sql.SqlRow<,>);
+			=> type.IsGenericType == true && type.GetGenericTypeDefinition() == typeof(DbFunc.SqlRow<,>);
 
 		internal static ReadOnlyCollection<Expression> GetSqlRowValues(this Expression expr)
 		{
 			return expr is MethodCallExpression { Method.Name: "Row" } call
 				? call.Arguments
-				: throw new SooQueryException("Calls to Sql.Row() are the only valid expressions of type SqlRow.");
+				: throw new SooQueryException("Calls to DbFunc.Row() are the only valid expressions of type SqlRow.");
 		}
 
 

@@ -12,7 +12,7 @@ internal sealed partial class ClauseExpressionVisitor
 {
     static bool CanBuildMethodChain(MethodCallExpression methodCall, BuildInfo buildInfo, ClauseSqlTranslator builder)
     {
-        var functions = Sql.ExtensionAttribute.GetExtensionAttributes(methodCall, builder.DBLive);
+        var functions = DbFunc.ExtensionAttribute.GetExtensionAttributes(methodCall, builder.DBLive);
         if (functions.Length == 0)
             return false;
 
@@ -20,12 +20,12 @@ internal sealed partial class ClauseExpressionVisitor
         if (function is { IsAggregate: false, IsWindowFunction: false })
             return false;
 
-        if (typeof(Sql.IQueryableContainer).IsSameOrParentOf(methodCall.Method.ReturnType))
+        if (typeof(DbFunc.IQueryableContainer).IsSameOrParentOf(methodCall.Method.ReturnType))
             return false;
 
         var root = methodCall.SkipMethodChain(builder.DBLive, out var isQueryable);
 
-        root = builder.MakeExpression(null, root, ProjectFlags.Root);
+        root = builder.BuildProjection(null, root, ProjectFlags.Root);
 
         if (root is ContextRefExpression)
             return true;
@@ -54,21 +54,21 @@ internal sealed partial class ClauseExpressionVisitor
     static BuildSequenceResult BuildMethodChainCore(ClauseSqlTranslator builder, BuildInfo buildInfo)
     {
         var methodCall = (MethodCallExpression)buildInfo.Expression;
-        var functions = Sql.ExtensionAttribute.GetExtensionAttributes(methodCall, builder.DBLive);
+        var functions = DbFunc.ExtensionAttribute.GetExtensionAttributes(methodCall, builder.DBLive);
 
         var root = methodCall.SkipMethodChain(builder.DBLive, out _);
 
-        while (root.NodeType == ExpressionType.Constant && typeof(Sql.IQueryableContainer).IsSameOrParentOf(root.Type))
+        while (root.NodeType == ExpressionType.Constant && typeof(DbFunc.IQueryableContainer).IsSameOrParentOf(root.Type))
         {
-            var evaluated = ((Sql.IQueryableContainer)root.EvaluateExpression()!).Query.Expression;
+            var evaluated = ((DbFunc.IQueryableContainer)root.EvaluateExpression()!).Query.Expression;
             methodCall = (MethodCallExpression)methodCall.Replace(root, evaluated);
             root       = evaluated.SkipMethodChain(builder.DBLive, out _);
         }
 
-        IBuildContext? sequence;
+        IClauseContext? sequence;
 
         root = builder.ConvertExpressionTree(root);
-        var rootContextref = builder.MakeExpression(null, root, ProjectFlags.Root) as ContextRefExpression;
+        var rootContextref = builder.BuildProjection(null, root, ProjectFlags.Root) as ContextRefExpression;
 
         var finalFunction = functions.First();
 

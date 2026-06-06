@@ -34,7 +34,7 @@ internal partial class ClauseMethodVisitor
     static bool CanBuildMultiInsert(MethodCallExpression call)
         => call.Method.DeclaringType == typeof(MultiInsertExtensions);
 
-    static readonly Dictionary<MethodInfo, Func<ClauseSqlTranslator, MethodCallExpression, BuildInfo, IBuildContext>> MultiInsertMethodBuilders = new()
+    static readonly Dictionary<MethodInfo, Func<ClauseSqlTranslator, MethodCallExpression, BuildInfo, IClauseContext>> MultiInsertMethodBuilders = new()
     {
         { Methods.Begin,       BuildMultiInsertBegin },
         { Methods.Into,        BuildMultiInsertInto        },
@@ -45,7 +45,7 @@ internal partial class ClauseMethodVisitor
         { Methods.InsertFirst, BuildMultiInsertFirst },
     };
 
-    static IBuildContext BuildMultiInsertCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var genericMethod = methodCall.Method.GetGenericMethodDefinition();
         return MultiInsertMethodBuilders.TryGetValue(genericMethod, out var build)
@@ -53,7 +53,7 @@ internal partial class ClauseMethodVisitor
             : throw new InvalidOperationException("Unknown method " + methodCall.Method.Name);
     }
 
-    static void ExtractMultiInsertSequence(IBuildContext sequence, out TableLikeQueryContext source, out MultiInsertContext multiInsertContext)
+    static void ExtractMultiInsertSequence(IClauseContext sequence, out TableLikeQueryContext source, out MultiInsertContext multiInsertContext)
     {
         if (sequence is MultiInsertContext ic)
         {
@@ -67,7 +67,7 @@ internal partial class ClauseMethodVisitor
         }
     }
 
-    static IBuildContext BuildMultiInsertBegin(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertBegin(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sourceContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -77,7 +77,7 @@ internal partial class ClauseMethodVisitor
         return new MultiInsertContext(source);
     }
 
-    static IBuildContext BuildMultiInsertTargetTable(
+    static IClauseContext BuildMultiInsertTargetTable(
         ClauseSqlTranslator builder,
         BuildInfo         buildInfo,
         bool              isConditional,
@@ -120,7 +120,7 @@ internal partial class ClauseMethodVisitor
         return multiInsertContext;
     }
 
-    static IBuildContext BuildMultiInsertInto(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertInto(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertTargetTable(
             builder,
             buildInfo,
@@ -130,7 +130,7 @@ internal partial class ClauseMethodVisitor
             methodCall.Arguments[1],
             methodCall.Arguments[2].UnwrapLambda());
 
-    static IBuildContext BuildMultiInsertWhen(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertWhen(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertTargetTable(
             builder,
             buildInfo,
@@ -140,7 +140,7 @@ internal partial class ClauseMethodVisitor
             methodCall.Arguments[2],
             methodCall.Arguments[3].UnwrapLambda());
 
-    static IBuildContext BuildMultiInsertElse(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertElse(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertTargetTable(
             builder,
             buildInfo,
@@ -150,7 +150,7 @@ internal partial class ClauseMethodVisitor
             methodCall.Arguments[1],
             methodCall.Arguments[2].UnwrapLambda());
 
-    static IBuildContext BuildMultiInsertInsert(ClauseSqlTranslator builder, BuildInfo buildInfo, MultiInsertType type, Expression query)
+    static IClauseContext BuildMultiInsertInsert(ClauseSqlTranslator builder, BuildInfo buildInfo, MultiInsertType type, Expression query)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, query));
         ExtractMultiInsertSequence(sequence, out _, out var multiInsertContext);
@@ -161,12 +161,12 @@ internal partial class ClauseMethodVisitor
         return multiInsertContext;
     }
 
-    static IBuildContext BuildMultiInsertInsert(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertInsert(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertInsert(builder, buildInfo, MultiInsertType.Unconditional, methodCall.Arguments[0]);
 
-    static IBuildContext BuildMultiInsertAll(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertAll(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertInsert(builder, buildInfo, MultiInsertType.All, methodCall.Arguments[0]);
 
-    static IBuildContext BuildMultiInsertFirst(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildMultiInsertFirst(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         => BuildMultiInsertInsert(builder, buildInfo, MultiInsertType.First, methodCall.Arguments[0]);
 }

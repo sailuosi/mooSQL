@@ -31,7 +31,7 @@ namespace mooSQL.linq.Linq.Builder
 			Expression?           additionalCondition,
 			bool                  inline,
 			bool?                 enforceDefault,
-			LoadWithInfo?         loadWith,
+			IncludeInfo?         loadWith,
 			MemberInfo[]?         loadWithPath,
 			out bool?             isOptional)
 		{
@@ -224,7 +224,7 @@ namespace mooSQL.linq.Linq.Builder
 				var body = definedQueryMethod.Body;
 
 				body = Expression.Call(
-					Methods.SooQuery.LoadWithInternal.MakeGenericMethod(body.Type),
+					Methods.SooQuery.IncludeInternal.MakeGenericMethod(body.Type),
 					body,
 					Expression.Constant(loadWith),
 					Expression.Constant(path, typeof(MemberInfo[])));
@@ -340,7 +340,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public static Expression BuildAssociationQuery(ClauseSqlTranslator builder, ContextRefExpression tableContext,
-			AccessorMember onMember, AssociationDescriptor descriptor, Expression? additionalCondition, bool inline, LoadWithInfo? loadwith, MemberInfo[]? loadWithPath, ref bool? isOptional)
+			AccessorMember onMember, AssociationDescriptor descriptor, Expression? additionalCondition, bool inline, IncludeInfo? loadwith, MemberInfo[]? loadWithPath, ref bool? isOptional)
 		{
 			var elementType     = descriptor.GetElementType(builder.DBLive);
 			var parentExactType = descriptor.GetParentElementType();

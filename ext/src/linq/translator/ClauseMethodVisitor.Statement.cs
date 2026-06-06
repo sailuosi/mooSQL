@@ -10,10 +10,10 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitStatement(StatementCall method)
         => method;
 
-    protected MethodCall ToStatementCallOr(MethodCall fallback, IBuildContext? buildContext)
+    protected MethodCall ToStatementCallOr(MethodCall fallback, IClauseContext? buildContext)
         => buildContext == null ? fallback : ToStatementCall(buildContext)!;
 
-    protected StatementCall? ToStatementCall(IBuildContext? buildContext)
+    protected StatementCall? ToStatementCall(IClauseContext? buildContext)
     {
         if (buildContext == null)
             return null;
@@ -34,7 +34,7 @@ internal partial class ClauseMethodVisitor
         => result.BuildContext is { } ctx ? ToStatementCall(ctx) : null;
 
     /// <summary>从 Buddy 子树或嵌套 <see cref="ClauseSqlTranslator.TryBuildSequence"/> 解析序列上下文。</summary>
-    protected IBuildContext? ResolveSourceContext(
+    protected IClauseContext? ResolveSourceContext(
         MethodCallExpression methodCall,
         BuildInfo buildInfo,
         BuildInfo? sequenceBuildInfo = null)

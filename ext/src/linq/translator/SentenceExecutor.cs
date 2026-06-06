@@ -96,6 +96,9 @@ internal static partial class SentenceExecutor
         return await kit.queryUniqueAsync<TResult>().ConfigureAwait(false);
     }
 
+    internal static SQLBuilder BuildSqlBuilderPublic(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
+        => BuildSqlBuilder(bag, db, expression, parameters);
+
     static SQLBuilder BuildSqlBuilder(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         var sentence = bag.Sentences[0];

@@ -48,7 +48,7 @@ internal partial class ClauseMethodVisitor
 
     static bool CanBuildUpdate(MethodCallExpression call) => call.IsQueryable();
 
-    static void ExtractUpdateSequence(BuildInfo buildInfo, ref IBuildContext sequence, out UpdateContext updateContext)
+    static void ExtractUpdateSequence(BuildInfo buildInfo, ref IClauseContext sequence, out UpdateContext updateContext)
     {
         if (sequence is UpdateContext current)
         {
@@ -63,7 +63,7 @@ internal partial class ClauseMethodVisitor
         updateContext.LastBuildInfo = buildInfo;
     }
 
-    static IBuildContext? BuildUpdateCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext? BuildUpdateCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var updateType = methodCall.Method.Name switch
         {
@@ -159,7 +159,7 @@ internal partial class ClauseMethodVisitor
             {
                 objectType = genericArguments[1];
                 var expr = methodCall.Arguments[1].Unwrap();
-                IBuildContext into;
+                IClauseContext into;
 
                 var setter     = methodCall.Arguments[2].UnwrapLambda();
                 var setterExpr = SequenceHelper.PrepareBody(setter, sequence);
@@ -306,7 +306,7 @@ internal partial class ClauseMethodVisitor
         return updateContext;
     }
 
-    static IBuildContext BuildSetCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+    static IClauseContext BuildSetCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
     {
         var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 

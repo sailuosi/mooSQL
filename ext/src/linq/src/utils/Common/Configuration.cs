@@ -48,7 +48,7 @@ namespace mooSQL.linq.Common
 	}
 
 	/// <summary>
-	/// Contains global linq2db settings.
+	/// Contains global Ext LINQ settings.
 	/// </summary>
 	
 	public static class Configuration
@@ -67,14 +67,14 @@ namespace mooSQL.linq.Common
 		public static bool UseEnumValueNameForStringColumns = true;
 
 		/// <summary>
-		/// Defines value to pass to <see cref="Task.ConfigureAwait(bool)"/> method for all linq2db internal await operations.
+		/// Defines value to pass to <see cref="Task.ConfigureAwait(bool)"/> method for all Ext LINQ internal await operations.
 		/// Default value: <c>false</c>.
 		/// </summary>
 		public static bool ContinueOnCapturedContext;
 
 		/// <summary>
 		/// Enables mapping expression to be compatible with <see cref="CommandBehavior.SequentialAccess"/> behavior.
-		/// Note that it doesn't switch linq2db to use <see cref="CommandBehavior.SequentialAccess"/> behavior for
+		/// Note that it doesn't switch mooSQL to use <see cref="CommandBehavior.SequentialAccess"/> behavior for
 		/// queries, so this optimization could be used for <see cref="CommandBehavior.Default"/> too.
 		/// Default value: <c>false</c>.
 		/// </summary>

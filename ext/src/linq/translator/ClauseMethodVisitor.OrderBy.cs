@@ -51,7 +51,7 @@ internal partial class ClauseMethodVisitor
             Expression sqlExpr;
             var body = SequenceHelper.PrepareBody(lambda, sequence).Unwrap();
 
-            if (body is MethodCallExpression mc && mc.Method.DeclaringType == typeof(Sql) && mc.Method.Name == nameof(Sql.Ordinal))
+            if (body is MethodCallExpression mc && mc.Method.DeclaringType == typeof(DbFunc) && mc.Method.Name == nameof(DbFunc.Ordinal))
             {
                 sqlExpr = Context.Builder.ConvertToSqlExpr(sequence, mc.Arguments[0], orderByProjectFlags);
                 byIndex = true;
