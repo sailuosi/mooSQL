@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data;
 
     [BuildsMethodCall("GroupBy")]
-	sealed class GroupByBuilder : MethodCallBuilder
+	static class GroupByBuilder
 	{
 		static readonly MethodInfo[] GroupingSetMethods = { Methods.SooQuery.GroupBy.Rollup, Methods.SooQuery.GroupBy.Cube, Methods.SooQuery.GroupBy.GroupingSets };
 
@@ -50,7 +50,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new GroupByBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
 		internal static IEnumerable<Expression> EnumGroupingSets(Expression expression)
 		{
@@ -105,7 +105,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		 */
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			//GroupBy(c => c.ParentID)
 			var sequenceExpr    = methodCall.Arguments[0];

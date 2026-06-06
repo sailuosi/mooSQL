@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 
     [BuildsMethodCall("Contains")]
 	[BuildsMethodCall("ContainsAsync", CanBuildName = nameof(CanBuildAsyncMethod))]
-	sealed class ContainsBuilder : MethodCallBuilder
+	static class ContainsBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 		{
@@ -29,24 +29,6 @@ namespace mooSQL.linq.Linq.Builder
 				&& call.Arguments.Count == 3
 				// Contains over constant works through ConvertPredicate
 				&& !builder.CanBeCompiled(call.Arguments[0], false);
-		}
-
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var innerQuery = new SelectQueryClause();
-
-			var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], innerQuery));
-			if (buildResult.BuildContext == null)
-				return buildResult;
-
-			var sequence = new SubQueryContext(buildResult.BuildContext);
-
-			var containsContext = new ContainsContext(buildInfo.Parent, methodCall, buildInfo.SelectQuery, sequence);
-			var placeholder     = containsContext.TryCreatePlaceholder();
-			if (placeholder == null)
-				return BuildSequenceResult.Error(methodCall, ErrorHelper.Error_Correlated_Subqueries);
-
-			return BuildSequenceResult.FromContext(containsContext);
 		}
 
 		public static bool IsConstant(MethodCallExpression methodCall)

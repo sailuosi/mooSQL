@@ -18,7 +18,7 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsMethodCall("Average", "Min", "Max", "Sum", "Count", "LongCount")]
 	[BuildsMethodCall("AverageAsync", "MinAsync", "MaxAsync", "SumAsync", "CountAsync", "LongCountAsync", 
 		CanBuildName = nameof(CanBuildAsyncMethod))]
-	sealed class AggregationBuilder : MethodCallBuilder
+	static class AggregationBuilder
 	{
 		internal enum AggregationType
 		{
@@ -37,7 +37,7 @@ namespace mooSQL.linq.Linq.Builder
 			=> call.IsAsyncExtension();
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new AggregationBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
 		static Type ExtractTaskType(Type taskType)
 		{
@@ -138,12 +138,9 @@ namespace mooSQL.linq.Linq.Builder
 			return aggregationType;
 		}
 
-		public override bool IsAggregationContext(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> true;
-
 		static string[] AllowedNames = new string[] { nameof(Queryable.Select), nameof(Queryable.Where), nameof(Queryable.Distinct) };
 
-		bool GetSimplifiedAggregationInfo(
+		static bool GetSimplifiedAggregationInfo(
 			AggregationType                                        aggregationType, 
 			Type                                                   returnType,
 			IBuildContext                                          context, 
@@ -337,7 +334,7 @@ namespace mooSQL.linq.Linq.Builder
 			return true;
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			SqlPlaceholderExpression functionPlaceholder;
 			AggregationContext       context;

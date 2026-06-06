@@ -8,13 +8,13 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.linq.Expressions;
 
 	[BuildsMethodCall("ElementAt", "ElementAtOrDefault", "ElementAtAsync", "ElementAtOrDefaultAsync")]
-	sealed class ElementAtBuilder : MethodCallBuilder
+	static class ElementAtBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo buildInfo, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new ElementAtBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
 		public enum MethodKind
 		{
@@ -34,7 +34,7 @@ namespace mooSQL.linq.Linq.Builder
 			};
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequqnceArg  = methodCall.Arguments[0];
 			var elementAtArg = methodCall.Arguments[1];

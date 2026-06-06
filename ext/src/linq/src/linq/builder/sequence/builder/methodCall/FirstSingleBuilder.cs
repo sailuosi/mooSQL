@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("First", "FirstOrDefault", "Single", "SingleOrDefault")]
 	[BuildsMethodCall("FirstAsync", "FirstOrDefaultAsync", "SingleAsync", "SingleOrDefaultAsync", 
 		CanBuildName = nameof(CanBuildAsyncMethod))]
-	sealed class FirstSingleBuilder : MethodCallBuilder
+	static class FirstSingleBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable() && call.Arguments.Count <= 2;
@@ -22,7 +22,7 @@ namespace mooSQL.linq.Linq.Builder
 			=> call.IsAsyncExtension() && call.Arguments.Count <= 3;
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new FirstSingleBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
 		public enum MethodKind
 		{
@@ -48,7 +48,7 @@ namespace mooSQL.linq.Linq.Builder
 			};
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var argument = methodCall.Arguments[0];
 			var argumentCount = methodCall.Arguments.Count;

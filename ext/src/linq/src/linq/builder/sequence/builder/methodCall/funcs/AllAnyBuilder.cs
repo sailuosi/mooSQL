@@ -11,60 +11,12 @@ namespace mooSQL.linq.Linq.Builder
 
 	[BuildsMethodCall("All", "Any")]
 	[BuildsMethodCall("AllAsync", "AnyAsync", CanBuildName = nameof(CanBuildAsyncMethod))]
-	internal sealed class AllAnyBuilder : MethodCallBuilder
+	internal static class AllAnyBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 		public static bool CanBuildAsyncMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsAsyncExtension();
-
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequenceBuildInfo = new BuildInfo(buildInfo, methodCall.Arguments[0])
-			{
-				/*CopyTable = true,*/
-				CreateSubQuery = true,
-				SourceCardinality = SourceCardinality.Unknown,
-				SelectQuery = new SelectQueryClause()
-			};
-
-			var buildResult = builder.TryBuildSequence(sequenceBuildInfo);
-			if (buildResult.BuildContext == null)
-				return buildResult;
-
-			var sequence = buildResult.BuildContext;
-
-			var isAsync = methodCall.Method.DeclaringType == typeof(AsyncExtensions);
-
-			if (methodCall.Arguments.Count == (isAsync ? 3 : 2))
-			{
-				if (sequence.SelectQuery.Select.TakeValue != null ||
-				    sequence.SelectQuery.Select.SkipValue != null)
-				{
-					sequence = new SubQueryContext(sequence);
-				}
-
-				var condition = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-
-				if (methodCall.Method.Name.StartsWith("All"))
-					condition = Expression.Lambda(Expression.Not(condition.Body), condition.Name, condition.Parameters);
-
-				sequence = builder.BuildWhere(buildInfo.Parent, sequence,
-					condition : condition, checkForSubQuery : true, enforceHaving : false,
-					isTest : buildInfo.IsTest);
-
-				if (sequence == null)
-					return BuildSequenceResult.Error(methodCall);
-
-				sequence.SetAlias(condition.Parameters[0].Name);
-			}
-
-			// finalizing context
-			_ = builder.MakeExpression(sequence, new ContextRefExpression(methodCall.Method.GetGenericArguments()[0], sequence),
-				ProjectFlags.ExtractProjection);
-
-			return BuildSequenceResult.FromContext(new AllAnyContext(buildInfo.Parent, buildInfo.SelectQuery, methodCall, sequence));
-		}
 
 		internal sealed class AllAnyContext : SequenceContextBase
 		{

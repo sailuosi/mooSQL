@@ -9,15 +9,15 @@ namespace mooSQL.linq.Linq.Builder
 	using SqlQuery;
 
 	[BuildsMethodCall("SelectMany")]
-	sealed class SelectManyBuilder : MethodCallBuilder
+	static class SelectManyBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new SelectManyBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var genericArguments = methodCall.Method.GetGenericArguments();
 

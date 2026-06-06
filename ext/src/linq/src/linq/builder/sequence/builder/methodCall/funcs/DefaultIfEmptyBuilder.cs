@@ -10,13 +10,13 @@ namespace mooSQL.linq.Linq.Builder
 	using SqlQuery;
 
 	[BuildsMethodCall("DefaultIfEmpty")]
-	sealed class DefaultIfEmptyBuilder : MethodCallBuilder
+	static class DefaultIfEmptyBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new DefaultIfEmptyBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
 		static ReadOnlyCollection<Expression>? PrepareNoNullConditions(ClauseSqlTranslator builder, IBuildContext notNullHandlerSequence, IBuildContext sequence, IBuildContext nullabilitySequence, bool allowNullField)
 		{
@@ -59,7 +59,7 @@ namespace mooSQL.linq.Linq.Builder
 			return notNull.AsReadOnly();
 		}
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 

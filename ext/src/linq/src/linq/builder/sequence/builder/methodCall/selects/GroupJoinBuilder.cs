@@ -11,16 +11,16 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.linq.Expressions;
     using mooSQL.data.model;
 
-    [BuildsMethodCall("GroupJoin")]
-	sealed class GroupJoinBuilder : MethodCallBuilder
+	[BuildsMethodCall("GroupJoin")]
+	static class GroupJoinBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsQueryable();
 
 		internal static BuildSequenceResult Compile(ClauseSqlTranslator builder, BuildInfo buildInfo)
-			=> new GroupJoinBuilder().BuildSequence(builder, buildInfo);
+			=> BuildCore(builder, (MethodCallExpression)buildInfo.Expression, buildInfo);
 
-		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+		static BuildSequenceResult BuildCore(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var outerExpression = methodCall.Arguments[0];
 			var outerContextResult = builder.TryBuildSequence(new BuildInfo(buildInfo, outerExpression, buildInfo.SelectQuery));

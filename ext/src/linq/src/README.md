@@ -67,7 +67,7 @@ SQLBuilder → query<T>() → 实体结果
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  用户 API                                                        │
-│  ExpressionQuery / EntityProvider / IQueryable 扩展             │
+│  ExpressionQuery / IExpressionQuery / IQueryable 扩展          │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ Expression
                             ▼
@@ -147,7 +147,7 @@ MethodCall
   ├─ 已内联 VisitXxx（高频、逻辑稳定）
   │     Where / Having / Select / OrderBy* / Take / Skip / Join*
   ├─ ApplyBuilder<T>（显式绑定 ISequenceBuilder，~45 个方法，见 Bindings.cs）
-  │     见 ClauseMethodVisitor.Bindings.cs（由 gen_bindings.py 生成）
+  │     见 ClauseMethodVisitor.Bindings.cs（手动维护；`translator/tools/` 已移除）
   ├─ DispatchPassThrough（AsQueryable / Alias 等透传）
   ├─ MooExt（DoUpdate / InjectSQL / SetPage / Sink 等，对标 FastMethodVisitor）
   ├─ Async（*AsyncCall + VisitXxxAsync）
@@ -163,20 +163,16 @@ translator/
   ClauseMethodVisitor.OrderBy.cs
   ClauseMethodVisitor.TakeSkip.cs
   ClauseMethodVisitor.Join.cs
-  ClauseMethodVisitor.Bindings.cs   # 自动生成
+  ClauseMethodVisitor.Bindings.cs   # ApplyBuilder 分发表（手动维护）
 ```
 
-重新生成 Bindings：
-
-```bash
-python ext/src/linq/translator/tools/gen_bindings.py
-```
+新增 LINQ 方法时：在对应 `*Builder` 实现 `CanBuildMethod`，并在 `ClauseMethodVisitor.Bindings.cs` 或新的内联 partial 中注册。
 
 ### IBuildContext 与 Builder 体系（保留）
 
 编译阶段的 **业务逻辑未重写**，仍由原有 Builder 体系完成：
 
-- `ISequenceBuilder` / `MethodCallBuilder`：处理具体 LINQ 方法
+- `ISequenceBuilder` / `MethodCallBuilder`：仍用于 `ApplyBuilder<T>` 路径；高频算子已内联到 `ClauseMethodVisitor`，对应 `*Builder` 多为静态 `CanBuildMethod` + `Compile`/`BuildCore`
 - `IBuildContext`：维护 `SelectQueryClause`、投影、`MakeExpression`
 - `ClauseSqlTranslator.MakeExpression` / `ConvertToSql`：表达式 → SQL 片段
 
@@ -284,7 +280,8 @@ Execute
 
 ```
 ext/src/linq/
-├── core/                    # 对外编译器入口
+├── core/                    # 对外编译器入口（仅 EntityVisitFactory / EntityVisitCompiler）
+│   EntityVisitFactory.cs
 │   EntityVisitCompiler.cs
 ├── translator/              # ★ 新三层架构核心
 │   ClauseCompiler.cs        # 编译收尾 → SentenceBag
@@ -401,9 +398,9 @@ Expression
 | DML 变体 | ⏳ | InsertWithOutput 等仍走 `ApplyBuilder` |
 | Merge / SetOp | ✅ | `ClauseMethodVisitor.Merge.cs` / `SetOp.cs`；`SetOperationBuilder.Compile` / `MergeBuilder.Compile` |
 
-内联后运行 `python ext/src/linq/translator/tools/gen_bindings.py` 同步 `ClauseMethodVisitor.Bindings.cs`。
+新增内联算子时同步更新 `ClauseMethodVisitor.Bindings.cs`，移除已内联方法的 `ApplyBuilder` 条目。
 
-**接口清理：** `IQueryRunner` 已移除 `Preambles`、`MapperExpression`。
+**已移除：** `EntityLinqFactory`、`EntityQueryCompiler`、`EntityProvider`、`CompiledTableT`、`IQueryRunner` 执行链、`zeroNeed/`、`IQueryParametersNormalizer`、`extensionBuilder/` stub、`DemoVisitor`。
 
 **ExpressionBuilder 主文件** 现约 **569 行**（Where/Take/Helpers/CTE 等）；Projection / BuildExpression / Predicate 等已拆至 partial。
 
@@ -414,7 +411,7 @@ Expression
 | 项 | 状态 | 说明 |
 |----|------|------|
 | DML 迁入 `SentenceExecutor` | ✅ | `SentenceExecutor.Dml.cs`：Insert/Update/Delete + InsertOrUpdate 两步策略 |
-| `QueryRunner` 精简 | ✅ | 仅保留 `Cache<T>` / `ClearCaches`；删除 DML 与 `InsertOrReplace` |
+| `QueryRunner` 精简 | ✅ | 仅保留 `CacheCleaners` / `ClearCaches`；删除 DML 与 `InsertOrReplace` |
 | `GetAsyncEnumerator` | ✅ | 委托 `loadResultList` → `MaterializedResultEnumerable` |
 | `ExecuteObjectAsync` | ✅ | 写操作走 `ExeNonQueryAsync`；查询走 `queryAsync` / `queryUniqueAsync` |
 | `GetSqlText` | ✅ | 支持多语句（InsertOrUpdate 展开后拼接 SQL） |

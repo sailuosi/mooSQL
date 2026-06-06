@@ -34,7 +34,7 @@ internal partial class ClauseMethodVisitor
         if (!AllAnyBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
             return method;
 
-        return ToStatementCallOr(method, new AllAnyBuilder().BuildSequence(Context.Builder, buildInfo).BuildContext);
+        return VisitAllAny(method);
     }
 
     MethodCall VisitAggregationAsync(MethodCall method)
@@ -70,7 +70,7 @@ internal partial class ClauseMethodVisitor
         if (!ContainsBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
             return method;
 
-        return ToStatementCallOr(method, new ContainsBuilder().BuildSequence(Context.Builder, buildInfo).BuildContext);
+        return VisitContainsCore(method);
     }
 
     MethodCall VisitElementAtAsyncCore(MethodCall method)
