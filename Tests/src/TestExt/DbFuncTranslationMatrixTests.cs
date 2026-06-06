@@ -1019,4 +1019,48 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Same(SooFunc.Ext, DbFunc.Ext);
 #pragma warning restore CS0618
     }
+
+    [Fact]
+    public void Matrix_Replace_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var replace = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.Replace),
+            new[] { typeof(string), typeof(string), typeof(string) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(replace);
+        Assert.NotNull(entry);
+        Assert.Contains("REPLACE", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_IsNullOrWhiteSpace_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var method = typeof(DbFunc).GetMethod(
+            "IsNullOrWhiteSpace",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic,
+            null,
+            new[] { typeof(string) },
+            null)!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(method);
+        Assert.NotNull(entry);
+        Assert.True(entry!.IsNullOrWhiteSpacePredicate);
+        Assert.True(entry.IsPredicate);
+    }
+
+    [Fact]
+    public void Matrix_RowNumber_IsWindowOverPredicate()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var rowNumber = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.RowNumber),
+            new[] { typeof(SooFunctionExtension.ISqlExtension) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(rowNumber);
+        Assert.NotNull(entry);
+        Assert.True(entry!.IsWindowOverPredicate);
+        Assert.True(entry.IsWindowFunction);
+    }
 }

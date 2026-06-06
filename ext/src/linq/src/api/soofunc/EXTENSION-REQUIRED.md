@@ -16,13 +16,13 @@
 
 | API | 文件 |
 |-----|------|
-| Analytic Over 链 / RowNumber().Over() | `SooFunctionExtension.Analytic.cs` |
-| StringAgg / ConcatWs / Median | `SooFunctionExtension.Strings.cs`、`Aggregate.cs` |
-| Convert / Cast / FieldExpr | `SooFunctionExtension.Expressions.cs` |
-| SqlRow / Overlaps | `SooFunctionExtension.Row.*` |
-| GroupBy / Grouping | `SooFunctionExtension.GroupBy.cs` |
+| Analytic Over 链 / RowNumber().Over() | `SooFunctionExtension.Analytic.cs` — Over 子句 **P2/P3** 经 `WindowOverClauseRenderer` 收集 IR |
+| StringAgg / ConcatWs / Median | `Strings.cs` / `Aggregate.cs` |
+| Convert / Cast / FieldExpr | `Expressions.cs` |
+| SqlRow / Overlaps | `Row.*` |
+| GroupBy / Grouping | `GroupBy.cs` |
 
-## 兼容
+## Registry 头 + Extension Over
 
-- `DbFunc.Ext` → `[Obsolete]` → `SooFunc.Ext` → `SooFunctionExtension.Ext`
-- Bootstrap 注册 Count/Sum/Avg/RowNumber 的 `MethodInfo` 来自 `typeof(SooFunctionExtension)`
+- `RowNumber()` — registry `ROW_NUMBER()` + `IsWindowOverPredicate`
+- `.Over().OrderBy()` — Token 链短期保留；IR 渲染见 `WindowOverClause` + `windowOver()`

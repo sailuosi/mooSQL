@@ -37,6 +37,9 @@ namespace mooSQL.data
         public override string charIndex(string substring, string str, string start)
             => $"LOCATE({substring}, {str}, {start})";
 
+        public override string isNullOrWhiteSpace(string expr)
+            => $"({expr} IS NULL OR TRIM({expr}) = '')";
+
         public override string dateDiffHour(string start, string end)
             => $"TIMESTAMPDIFF(HOUR, {start}, {end})";
 

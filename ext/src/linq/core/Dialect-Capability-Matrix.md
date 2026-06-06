@@ -29,11 +29,11 @@
 
 ### 编译路径
 
-1. `AnalyticFunctions.RowNumber` → `DbFuncRegistry`（`ROW_NUMBER()` 模板 + `IsWindowFunction`）
-2. `.Over().OrderBy(...)` → `[Extension]` Token 链；NULLS 后缀由 `AppendNullsPositionSuffix` 处理（R15 删除 `OrderItemBuilder`）
+1. `SooFunctionExtension.RowNumber` → `DbFuncRegistry`（`ROW_NUMBER()` 模板 + `IsWindowFunction` + `IsWindowOverPredicate`）
+2. `.Over().OrderBy(...)` → `[Extension]` Token 链；**P2/P3** 编译期由 `WindowOverClauseRenderer` 收集为 `WindowOverClause` IR
 3. Select 投影：`ShouldProjectBodyToColumns` → 列精简
 
-> R14 评估：`RowNumber()` 本体已 registry-first；Over/PartitionBy/OrderBy 为接口链式 `[Extension]`，短期保留属性链。
+> R14 评估：`RowNumber()` 本体已 registry-first；Over 子句经 Extension Token 链 + **WindowOverClause IR**（`IsWindowOverPredicate`）；Token 属性短期保留至 P3 全量替代。
 
 ## DateDiff（R10–R11）
 
@@ -58,9 +58,11 @@
 | 函数 / 链 | 编译路径 | 可否 registry-only | 说明 |
 |-----------|----------|-------------------|------|
 | Like / Between / 字符串 / NullIf / Coalesce / Concat / DateDiff | `DbFuncRegistry` | ✅ | R17–R21 完成 |
+| **Replace / CharIndex / Math 单参** | `DbFuncRegistry` | ✅ | Phase 3 registry 增量 |
+| **IsNullOrWhiteSpace** | `IsNullOrWhiteSpacePredicate` | ✅ | `string.IsNullOrWhiteSpace` → `DbFunc.IsNullOrWhiteSpace` |
 | In / NotIn | `IsInListPredicate` | ✅ | `SqlExtensions` + 列表展开 |
-| **RowNumber()** | Registry `ROW_NUMBER()` | 部分 | 函数头 registry-first |
-| **`.Over().OrderBy()`** | `[Extension]` Token 链 | ❌ | 窗口帧语法；须 `GetExtensionAttributes` |
+| **RowNumber()** | Registry `ROW_NUMBER()` + `IsWindowOverPredicate` | 部分 | 函数头 registry-first；Over IR 见 `WindowOverClauseRenderer` |
+| **`.Over().OrderBy()`** | Extension Token 链 + **WindowOverClause IR** | 过渡 | P3 `IsWindowOverPredicate` 已接线；Token 链仍保留 |
 | **Collate** | `[Extension]` + Builder | ❌ | 多方言 Builder（PG/DB2/默认） |
 | **Grouping** | `[Extension]` 聚合 | ❌ | `GROUPING(...)` |
 | **DatePart / DateAdd** | registry + MemberTranslator + compile | ✅ 四方言 R28 | Pure 片段 + `MSSQLClauseTranslator` |

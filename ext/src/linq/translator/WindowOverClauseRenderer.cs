@@ -3,10 +3,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using mooSQL.data;
 using mooSQL.data.model;
+using mooSQL.linq.SqlQuery;
 
 namespace mooSQL.linq.translator;
 
-/// <summary>从 Extension 链 NamedParameters 收集 <see cref="WindowOverClause"/>（Phase F P2）。</summary>
+/// <summary>从 Extension 链 NamedParameters 收集 <see cref="WindowOverClause"/>（Phase F P2/P3）。</summary>
 internal static class WindowOverClauseRenderer
 {
     static readonly Regex FunctionHeadPattern = new(@"\{function\}", RegexOptions.Compiled);
@@ -19,14 +20,12 @@ internal static class WindowOverClauseRenderer
         if (!extension.Expr.Contains("OVER", System.StringComparison.OrdinalIgnoreCase))
             return false;
 
-        var partitions = CollectExpressionSql(extension, "partition_expr");
-        var orderItems = CollectOrderItems(extension);
-        if (partitions.Count == 0 && orderItems.Count == 0)
-            return false;
-
         var functionSql = ResolveFunctionSql(extension);
         if (string.IsNullOrEmpty(functionSql))
             return false;
+
+        var partitions = CollectExpressionSql(extension, "partition_expr");
+        var orderItems = CollectOrderItems(extension);
 
         var clause = new WindowOverClause
         {
@@ -40,6 +39,13 @@ internal static class WindowOverClauseRenderer
 
     static string? ResolveFunctionSql(DbFunc.SqlExtension extension)
     {
+        foreach (var p in extension.GetParametersByName(SooFunctionExtension.FunctionToken))
+        {
+            var sql = SqlFragment(p);
+            if (!string.IsNullOrEmpty(sql))
+                return sql;
+        }
+
         foreach (var p in extension.GetParametersByName("function"))
         {
             var sql = SqlFragment(p);
@@ -52,7 +58,10 @@ internal static class WindowOverClauseRenderer
             return null;
 
         var overIdx = expr.IndexOf(" OVER", System.StringComparison.OrdinalIgnoreCase);
-        return overIdx > 0 ? expr[..overIdx].Trim() : null;
+        if (overIdx > 0)
+            return expr[..overIdx].Trim();
+
+        return null;
     }
 
     static List<string> CollectExpressionSql(DbFunc.SqlExtension extension, string paramName)
@@ -108,6 +117,6 @@ internal static class WindowOverClauseRenderer
         if (param.Expression is ValueWord vw)
             return vw.Value?.ToString();
 
-        return null;
+        return param.Expression.ToDebugString();
     }
 }

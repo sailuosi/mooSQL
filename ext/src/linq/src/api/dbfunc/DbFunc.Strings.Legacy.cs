@@ -84,7 +84,6 @@ namespace mooSQL.linq
 		}
 
 		[Function(                              IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "reverseUTF8", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Reverse(string? str)
 		{
 			if (string.IsNullOrEmpty(str)) return str;
@@ -96,7 +95,6 @@ namespace mooSQL.linq
 
 		[Function(                           PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.SQLite,     "LeftStr",  PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "leftUTF8", PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Left(string? str, int? length)
 		{
 			if (length == null || str == null) return null;
@@ -151,7 +149,6 @@ namespace mooSQL.linq
 
 		[Function("RIGHT",                    PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.SQLite,     "RightStr",  PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "rightUTF8", PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Extension(ProviderName.Oracle,    "",          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable, BuilderType = typeof(OracleRightBuilder))]
 		[Extension(ProviderName.SqlCe,     "",          PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable, BuilderType = typeof(SqlCeRightBuilder))]
 		public static string? Right(string? str, int? length)
@@ -164,7 +161,6 @@ namespace mooSQL.linq
 		}
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "concat(substringUTF8({0}, 1, {1} - 1), {3}, substringUTF8({0}, {1} + {2}))", PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Stuff(string? str, int? start, int? length, string? newString)
 		{
 			if (str == null || start == null || length == null || newString == null) return null;
@@ -178,22 +174,18 @@ namespace mooSQL.linq
 		}
 
 		[Function(ServerSideOnly = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "concat(substringUTF8({0}, 1, {1} - 1), {3}, substringUTF8({0}, {1} + {2}))", PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string Stuff(IEnumerable<string> characterExpression, int? start, int? length, string replaceWithExpression)
 		{
 			throw new NotImplementedException();
 		}
 
 		[Function(                                                        IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.SapHana,    "Lpad('',{0},' ')",                    IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "leftPadUTF8('', toUInt32({0}), ' ')", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Space(int? length)
 		{
 			return length == null || length.Value < 0 ? null : "".PadRight(length.Value);
 		}
 
 		[Function(               Name = "LPad",                            IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "leftPadUTF8({0}, toUInt32({1}), {2})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? PadLeft(string? str, int? length, char? paddingChar)
 		{
 			if (str == null || length == null || paddingChar == null) return null;
@@ -204,7 +196,6 @@ namespace mooSQL.linq
 		}
 
 		[Function(               Name = "RPad",         IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "rightPadUTF8({0}, toUInt32({1}), {2})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? PadRight(string? str, int? length, char? paddingChar)
 		{
 			if (str == null || length == null || paddingChar == null) return null;
@@ -226,7 +217,6 @@ namespace mooSQL.linq
 
 		[Function(                              IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Sybase,     "Str_Replace", IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "replaceAll",  IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Replace(string? str, char? oldValue, char? newValue)
 		{
 			if (str == null || oldValue == null || newValue == null) return null;
@@ -270,7 +260,6 @@ namespace mooSQL.linq
 		[Extension(ProviderName.MySql,         typeof(IsNullOrWhiteSpaceMySqlBuilder),                       IsPredicate = true)]
 		[Extension(ProviderName.Firebird,      typeof(IsNullOrWhiteSpaceFirebirdBuilder),                    IsPredicate = true)]
 		[Extension(ProviderName.SqlCe,         typeof(IsNullOrWhiteSpaceSqlCeBuilder),                       IsPredicate = true)]
-		[Expression(ProviderName.ClickHouse, $"empty(replaceRegexpAll(coalesce({{0}}, ''), '{WHITESPACES_REGEX}', ''))", IsPredicate = true)]
 		internal static bool IsNullOrWhiteSpace(string? str) => string.IsNullOrWhiteSpace(str);
 
 		// str IS NULL OR REPLACE...(str, WHITEPACES, '') == ''

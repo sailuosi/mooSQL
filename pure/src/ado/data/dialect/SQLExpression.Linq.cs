@@ -189,5 +189,13 @@ namespace mooSQL.data
         /// <summary>CharIndex(substring, str, start) — 1-based start。</summary>
         public virtual string charIndex(string substring, string str, string start)
             => $"CHARINDEX({substring}, {str}, {start})";
+
+        /// <summary>Replace(str, oldValue, newValue)。</summary>
+        public virtual string replace(string str, string oldValue, string newValue)
+            => $"REPLACE({str}, {oldValue}, {newValue})";
+
+        /// <summary>string.IsNullOrWhiteSpace 谓词（{0}=expr）；方言可 override 为 TRIM/LTRIM/RLIKE 等。</summary>
+        public virtual string isNullOrWhiteSpace(string expr)
+            => $"({expr} IS NULL OR TRIM({expr}) = '')";
     }
 }

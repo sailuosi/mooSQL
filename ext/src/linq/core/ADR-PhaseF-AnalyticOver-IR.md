@@ -20,8 +20,8 @@
 | 阶段 | 工作 |
 |------|------|
 | P1（本轮） | IR + ADR + 矩阵 |
-| P2 | Extension Builder 收集 Partition/Order 填入 `WindowOverClause` |
-| P3 | registry `IsWindowOverPredicate` 替代 Token 链 |
+| P2 | Extension Builder 收集 Partition/Order 填入 `WindowOverClause` — **已完成**（`WindowOverClauseRenderer`） |
+| P3 | registry `IsWindowOverPredicate` 接线 — **已完成**；Token 链全量替代 **延期**（见 [`ADR-PhaseF-Extension-Retention.md`](ADR-PhaseF-Extension-Retention.md)） |
 
 ## 验收
 

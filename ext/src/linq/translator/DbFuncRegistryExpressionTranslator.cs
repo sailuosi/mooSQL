@@ -94,6 +94,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return collateSql;
         }
 
+        if (entry.IsNullOrWhiteSpacePredicate)
+        {
+            var iowSql = TranslateIsNullOrWhiteSpace(builder, context, mc, db);
+            if (iowSql != null)
+                return iowSql;
+        }
+
         if (entry.SqlTemplate == null)
             return null;
 
@@ -121,6 +128,7 @@ internal static class DbFuncRegistryExpressionTranslator
             || entry.IsNullIfPredicate
             || entry.IsConcatPredicate
             || entry.IsCollatePredicate
+            || entry.IsNullOrWhiteSpacePredicate
             || entry.IsInListPredicate)
             return null;
 
@@ -157,7 +165,9 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate
-                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate && !entry.IsCollatePredicate))
+                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate
+                              && !entry.IsNullIfPredicate && !entry.IsConcatPredicate && !entry.IsCollatePredicate
+                              && !entry.IsNullOrWhiteSpacePredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -385,6 +395,31 @@ internal static class DbFuncRegistryExpressionTranslator
             ParametersNullabilityType.IfAnyParameterNullable,
             null,
             exprPh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static Expression? TranslateIsNullOrWhiteSpace(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count < 1)
+            return null;
+
+        var argExpr = builder.ConvertToSqlExpr(context, mc.Arguments[0], ProjectFlags.SQL);
+        if (argExpr is not SqlPlaceholderExpression argPh)
+            return null;
+
+        var format = db.dialect.expression.isNullOrWhiteSpace("{0}");
+        var sql = new ExpressionWord(
+            typeof(bool),
+            format,
+            PrecedenceLv.Primary,
+            SqlFlags.IsPredicate,
+            ParametersNullabilityType.IfAnyParameterNullable,
+            null,
+            argPh.Sql);
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
     }
 

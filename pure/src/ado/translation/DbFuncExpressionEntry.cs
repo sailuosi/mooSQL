@@ -29,6 +29,8 @@ namespace mooSQL.data.translation
         public bool IsDatePartPredicate { get; init; }
         /// <summary>Collate(expr, collation) — 由 <see cref="SQLExpression.collate"/> / collateDb2 方言片段翻译。</summary>
         public bool IsCollatePredicate { get; init; }
+        /// <summary>IsNullOrWhiteSpace(str) — 由 <see cref="SQLExpression.isNullOrWhiteSpace"/> 方言片段翻译。</summary>
+        public bool IsNullOrWhiteSpacePredicate { get; init; }
         /// <summary>窗口 OVER 子句 — 由 <see cref="WindowOverClause"/> IR 渲染（Phase F P2/P3）。</summary>
         public bool IsWindowOverPredicate { get; init; }
     }

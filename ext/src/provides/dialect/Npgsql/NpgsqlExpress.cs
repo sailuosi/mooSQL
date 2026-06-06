@@ -34,6 +34,9 @@ namespace mooSQL.data
         public override string charIndex(string substring, string str, string start)
             => $"(CASE WHEN {start} <= 0 THEN 0 ELSE STRPOS(SUBSTRING({str} FROM {start}::int), {substring}) + {start}::int - 1 END)";
 
+        public override string isNullOrWhiteSpace(string expr)
+            => $"({expr} IS NULL OR BTRIM({expr}, E' \\t\\n\\r\\f\\u0085\\u00a0') = '')";
+
         public override string dateDiffHour(string start, string end)
             => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 3600";
 

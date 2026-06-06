@@ -32,6 +32,8 @@ internal static class DbFuncRegistryBootstrap
         RegisterDateDiff(registry);
         RegisterMath(registry, expr);
         RegisterCharIndex(registry, expr);
+        RegisterReplace(registry, expr);
+        RegisterIsNullOrWhiteSpace(registry, expr);
     }
 
     static void RegisterLike(DbFuncRegistry registry, SQLExpression expr)
@@ -257,7 +259,8 @@ internal static class DbFuncRegistryBootstrap
             {
                 SqlTemplate = "ROW_NUMBER()",
                 PreferServerSide = true,
-                IsWindowFunction = true
+                IsWindowFunction = true,
+                IsWindowOverPredicate = true
             });
     }
 
@@ -332,6 +335,51 @@ internal static class DbFuncRegistryBootstrap
                 threeArg,
                 new DbFuncExpressionEntry { SqlTemplate = expr.charIndex("{0}", "{1}", "{2}"), PreferServerSide = true });
         }
+    }
+
+    static void RegisterReplace(DbFuncRegistry registry, SQLExpression expr)
+    {
+        var replaceStr = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.Replace),
+            new[] { typeof(string), typeof(string), typeof(string) });
+        if (replaceStr != null)
+        {
+            registry.Register(
+                replaceStr,
+                new DbFuncExpressionEntry { SqlTemplate = expr.replace("{0}", "{1}", "{2}"), PreferServerSide = true });
+        }
+
+        var replaceChar = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.Replace),
+            new[] { typeof(string), typeof(char?), typeof(char?) });
+        if (replaceChar != null)
+        {
+            registry.Register(
+                replaceChar,
+                new DbFuncExpressionEntry { SqlTemplate = expr.replace("{0}", "{1}", "{2}"), PreferServerSide = true });
+        }
+    }
+
+    static void RegisterIsNullOrWhiteSpace(DbFuncRegistry registry, SQLExpression expr)
+    {
+        var method = typeof(DbFunc).GetMethod(
+            "IsNullOrWhiteSpace",
+            BindingFlags.Static | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(string) },
+            null);
+        if (method == null)
+            return;
+
+        registry.Register(
+            method,
+            new DbFuncExpressionEntry
+            {
+                SqlTemplate = expr.isNullOrWhiteSpace("{0}"),
+                IsPredicate = true,
+                PreferServerSide = true,
+                IsNullOrWhiteSpacePredicate = true
+            });
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)
