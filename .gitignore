@@ -24,3 +24,4 @@ bin-release/
 .vs/
 dist/
 Tests/src/TestExt/DBTest.Config.cs
+artifacts

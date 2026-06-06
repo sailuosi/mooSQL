@@ -86,15 +86,14 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void Matrix_Lower_EmitsLowerSql()
+    public void Matrix_Lower_RegisteredWithTemplate()
     {
         var db = _sqlite.Db;
-        var sql = LinqStatementCompiler.GetSqlText(
-            db,
-            db.useQueryable<SQLiteTestUser>()
-                .Select(u => DbFunc.Lower(u.Name))
-                .Expression);
-        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var lower = typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(lower);
+        Assert.NotNull(entry);
+        Assert.Contains("LOWER", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

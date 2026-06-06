@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R3 后续）
+
+- **Between struct 重载注册**：`RegisterBetween` 同时注册 `T : IComparable` 与 `T : struct` 两套泛型，`u.Age.Between(18, 65)` 端到端 compile 产出 `BETWEEN`
+- **字符串函数注册表扩展**：Lower / Upper / Trim + Pure `SQLExpression.lower/upper/trim`
+- **谓词 fallback**：`ConvertPredicate` 在 Extension 路径前再次尝试注册表，避免 `No sequence found`
+- **Union compile**：暂 `[Skip]`（SetOp 稳定后补 GetSqlText）；**Concat** compile 结构测通过
+
 ### 新增（Phase D/E R2）
 
 - **`DbFuncRegistryExpressionTranslator`** — 注册表 `SqlTemplate` 实际翻译（Like/Between/Substring/DateAdd/Length）；`RegistryAwareMemberTranslator` 不再仅 inspect
