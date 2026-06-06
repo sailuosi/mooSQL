@@ -56,6 +56,50 @@ namespace mooSQL.data
         public override string dateDiffQuarter(string start, string end)
             => $"TIMESTAMPDIFF(QUARTER, {start}, {end})";
 
+        public override string? datePartYear(string date) => $"EXTRACT(YEAR FROM {date})";
+
+        public override string? datePartQuarter(string date) => $"QUARTER({date})";
+
+        public override string? datePartMonth(string date) => $"EXTRACT(MONTH FROM {date})";
+
+        public override string? datePartDay(string date) => $"EXTRACT(DAY FROM {date})";
+
+        public override string? datePartDayOfYear(string date) => $"DAYOFYEAR({date})";
+
+        public override string? datePartWeek(string date) => $"WEEK({date})";
+
+        public override string? datePartWeekDay(string date) => $"(WEEKDAY({date}) + 1)";
+
+        public override string? datePartHour(string date) => $"EXTRACT(HOUR FROM {date})";
+
+        public override string? datePartMinute(string date) => $"EXTRACT(MINUTE FROM {date})";
+
+        public override string? datePartSecond(string date) => $"EXTRACT(SECOND FROM {date})";
+
+        public override string? datePartMillisecond(string date) => $"(MICROSECOND({date}) DIV 1000)";
+
+        public override string? dateAddDay(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} DAY)";
+
+        public override string? dateAddMonth(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MONTH)";
+
+        public override string? dateAddYear(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} YEAR)";
+
+        public override string? dateAddHour(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} HOUR)";
+
+        public override string? dateAddMinute(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MINUTE)";
+
+        public override string? dateAddSecond(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} SECOND)";
+
+        public override string? dateAddWeek(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} WEEK)";
+
+        public override string? dateAddQuarter(string amount, string date) => $"DATE_ADD({date}, INTERVAL ({amount}) * 3 MONTH)";
+
+        public override string? dateAddDayOfYear(string amount, string date) => dateAddDay(amount, date);
+
+        public override string? dateAddWeekDay(string amount, string date) => dateAddDay(amount, date);
+
+        public override string? dateAddMillisecond(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MICROSECOND)";
+
         #region DML语句
         /// <summary>
         /// 创建普通的select语句

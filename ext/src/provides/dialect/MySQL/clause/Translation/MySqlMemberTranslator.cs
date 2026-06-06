@@ -72,81 +72,25 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 		{
 			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
-				var factory     = translationContext.ExpressionFactory;
+				var factory = translationContext.ExpressionFactory;
 				var intDataType = factory.GetDbDataType(typeof(int));
+				var template = DateSqlTemplateResolver.ResolveDatePartFormat(translationContext.DBLive.dialect.expression, datepart);
+				if (template == null)
+					return null;
 
-				string partStr;
-
-				switch (datepart)
-				{
-					case DbFunc.DateParts.Year:    partStr = "year"; break;
-					case DbFunc.DateParts.Quarter: partStr = "quarter"; break;
-					case DbFunc.DateParts.Month:   partStr = "month"; break;
-					case DbFunc.DateParts.DayOfYear:
-					{
-						return factory.Function(intDataType, "DayOfYear", dateTimeExpression);
-					}
-					case DbFunc.DateParts.Day:  partStr = "day"; break;
-					case DbFunc.DateParts.Week: partStr = "week"; break;
-					case DbFunc.DateParts.WeekDay:
-					{
-						var addDaysFunc = factory.Function(factory.GetDbDataType(dateTimeExpression), "Date_Add", dateTimeExpression,
-							factory.Fragment(intDataType, "interval {0} day", factory.Value(intDataType, 1)));
-
-						var weekDayFunc = factory.Function(intDataType, "WeekDay", addDaysFunc);
-
-						return factory.Increment(weekDayFunc);
-					}
-					case DbFunc.DateParts.Hour:        partStr = "hour"; break;
-					case DbFunc.DateParts.Minute:      partStr = "minute"; break;
-					case DbFunc.DateParts.Second:      partStr = "second"; break;
-					case DbFunc.DateParts.Millisecond:
-					{
-						// (MICROSECOND(your_datetime_column) DIV 1000) 
-
-						var microsecondFunc = factory.Div(intDataType, factory.Function(intDataType, "Microsecond", dateTimeExpression), 1000);
-						return microsecondFunc;
-					}
-					default:
-						return null;
-				}
-
-				var extractDbType = intDataType;
-
-				var resultExpression = factory.Function(extractDbType, "Extract", factory.Fragment(intDataType, partStr + " from {0}", dateTimeExpression));
-
-				return resultExpression;
+				return factory.Fragment(intDataType, template, dateTimeExpression);
 			}
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
-				DbFunc.DateParts                                                       datepart)
+				DbFunc.DateParts datepart)
 			{
-				var factory       = translationContext.ExpressionFactory;
-				var dateType      = factory.GetDbDataType(dateTimeExpression);
-				var intDbType     = factory.GetDbDataType(typeof(int));
-				var intervalType  = intDbType.WithDataType(DataFam.Interval);
+				var factory = translationContext.ExpressionFactory;
+				var dateType = factory.GetDbDataType(dateTimeExpression);
+				var template = DateSqlTemplateResolver.ResolveDateAddFormat(translationContext.DBLive.dialect.expression, datepart);
+				if (template == null)
+					return null;
 
-				string expStr;
-				switch (datepart)
-				{
-					case DbFunc.DateParts.Year:        expStr = "Interval {0} Year"; break;
-					case DbFunc.DateParts.Quarter:     expStr = "Interval {0} Quarter"; break;
-					case DbFunc.DateParts.Month:       expStr = "Interval {0} Month"; break;
-					case DbFunc.DateParts.DayOfYear:
-					case DbFunc.DateParts.WeekDay:
-					case DbFunc.DateParts.Day:         expStr = "Interval {0} Day"; break;
-					case DbFunc.DateParts.Week:        expStr = "Interval {0} Week"; break;
-					case DbFunc.DateParts.Hour:        expStr = "Interval {0} Hour"; break;
-					case DbFunc.DateParts.Minute:      expStr = "Interval {0} Minute"; break;
-					case DbFunc.DateParts.Second:      expStr = "Interval {0} Second"; break;
-					case DbFunc.DateParts.Millisecond: expStr = "Interval {0} Millisecond"; break;
-					default:
-						return null;
-				}
-
-				var resultExpression = factory.Function(dateType, "Date_Add", dateTimeExpression, factory.Fragment(intervalType, expStr, increment));
-
-				return resultExpression;
+				return factory.Fragment(dateType, template, increment, dateTimeExpression);
 			}
 
 			protected override IExpWord? TranslateMakeDateTime(

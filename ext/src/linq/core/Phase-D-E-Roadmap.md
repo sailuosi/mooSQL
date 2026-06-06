@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R25 完成）**  
+> 最后更新：**2026-06-06（R26 完成，收紧验收）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -44,10 +44,32 @@
 | **R23** | 嵌套 DbFunc 编译 + ExpressionWord `{0}` 渲染 | ✅ | **139/139** |
 | **R24** | SQLite DatePart MemberTranslator + 矩阵 `{0}` 断言 | ✅ | **139/139** |
 | **R25** | DateAdd 方言化（`IsDateAddPredicate`）+ SQLite Member + 文档收敛 | ✅ | **143/143** |
+| **R26** | DatePart registry + Npgsql/MySQL Pure 片段 + MemberTranslator | ✅ | **150/150** |
 
 ---
 
-## 目录结构（R6 后）
+## 验收标准（收紧版，Phase D/E）
+
+> R25 后验收口径收紧：**DatePart/DateAdd 须 Pure 片段 + registry/Member 三方言（SQLite/Npgsql/MySQL）**；Analytic Over 等仍列 Phase F。
+
+| # | 验收项 | 要求 | 状态 |
+|---|--------|------|------|
+| 1 | 矩阵 | `DbFuncTranslationMatrixTests` ≥ 30，覆盖 registry 已注册函数 | ✅ **79+** |
+| 2 | 常用 DbFunc 无属性 | Like/Between/字符串/NullIf/Coalesce/DateDiff/**DatePart**/DateAdd 无 `[Extension]`/`[Expression]`/`[Function]` | ✅ |
+| 3 | TestLinq | net6.0 全绿 | ✅ **150/150** |
+| 4 | 三入口 | LINQ / SQLBuilder / SQLClip 同 SQL（**18 组**） | ✅ |
+| 5 | ADR CI | `run-ext-linq-ci.ps1` | ✅ |
+| 6 | `api/dbfunc/` | stub 已合并；目录保留方法体 + Extension 必需项（`EXTENSION-REQUIRED.md`） | ✅ |
+| **7** | **DatePart Pure 片段** | `datePart*` override 于 **SQLite + Npgsql + MySQL** | ✅ R26 |
+| **8** | **DatePart registry** | `IsDatePartPredicate` + Bootstrap 注册 + 静态 `DbFunc.DatePart` compile | ✅ R26 |
+| **9** | **DateAdd Pure 片段** | `dateAdd*` override 于 **SQLite + Npgsql + MySQL** | ✅ R26 |
+| **10** | **MemberTranslator 挂接** | Npgsql/MySQL/SQLite DatePart/DateAdd 走 `DateSqlTemplateResolver` | ✅ R26 |
+
+**Phase D/E 收紧验收已达成**（Analytic Over / Collate / StringAgg / E.5/E.6 → Phase F）。
+
+### 矩阵测试（`DbFuncTranslationMatrixTests`）
+
+含 R26 多方言 DatePart、`Matrix_RegistryFirst_*`、DateDiff/DateAdd 无 Extension 等。
 
 ```
 ext/src/linq/src/api/
@@ -82,14 +104,14 @@ pure/src/ado/
 | D.3 多属性消歧 | 按方言 `Configuration` 选取 | ✅ R5 | `MappingExtensions.PickExpressionAttribute` |
 | D.4 注册表优先 | MethodCall 先 registry 再属性链 | ✅ R5 | `ClauseSqlTranslator.QueryBuilder` |
 | D.5 Select 投影 | 函数 / 匿名 / MemberInit 列精简 | ✅ R6–R8 | 含 `new { X = DbFunc.Lower(...) }` 矩阵测 |
-| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R18 | `length`/`substring` SQLite override；字符串函数 registry-first |
-| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R21 | DateDiff/NullIf/Concat 专用 predicate；DateDiff 无 PreferExtensionAttribute |
-| D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
+| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | ✅ R26 | 字符串/DateDiff/DateAdd/DatePart 三方言 |
+| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | ✅ R26 | DatePart/DateAdd registry；Analytic 链仍 Extension（Phase F） |
+| D.8 MemberTranslator | 方言 Date 走 Pure 模板 + registry | ✅ R26 | SQLite/Npgsql/MySQL `DateSqlTemplateResolver` |
 | D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` stub | ✅ R11–R25 | Collate/TableIDType 已合并；`EXTENSION-REQUIRED.md` 界定目录保留范围 |
 
 ### 已注册函数（Bootstrap，R6）
 
-Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、**DateAdd**（`IsDateAddPredicate`）、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（`IsNullIfPredicate`，无 `[Expression]`）、**Coalesce**（无 `[Expression]`）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（`IsDateDiffPredicate`）。
+Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd（`IsDateAddPredicate`）、**DatePart**（`IsDatePartPredicate` R26）、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**、**Coalesce**、**Count/Sum/Average**、**DateDiff**（`IsDateDiffPredicate`）。
 
 ### 矩阵测试（73 项，`DbFuncTranslationMatrixTests`）
 
@@ -106,7 +128,7 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.1 正向桥接 | `LinqStatementCompiler.ToSQLBuilder(s)` | ✅ | Expression → SQLBuilder |
 | E.1 逆向桥接 | `LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder` | ✅ | `ConditionalWeakTable` 附着 |
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
-| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R22 | 三入口 16 组（+CombinedPredicates） |
+| E.2 桥接测试 | Union / 结构 / 双路径一致性 | ✅ R8–R22 | 三入口 **18 组** |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
 | E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER / Registry 边界 | ✅ R11–R22 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
@@ -250,28 +272,31 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 4. ✅ **矩阵 +3** — `Matrix_DateAdd_MemberDay_*`、`Matrix_DateAdd_ExpressFormat`
 5. ✅ **文档** — `api/dbfunc/EXTENSION-REQUIRED.md` + `Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`
 
-## R26 建议批次（可选）
+## R26 完成项（2026-06-06）
 
-1. **PostgreSQL DatePart** — `NpgsqlExpress.datePart*` + MemberTranslator override
-2. **MySQL DateAdd/DatePart** — Express override（若与 SQL Server 默认不同）
+1. ✅ **DatePart registry-first** — `IsDatePartPredicate` + `TranslateDatePart` + Bootstrap 三 overload
+2. ✅ **Npgsql/MySQL Pure 片段** — `datePart*` / `dateAdd*` override（`NpgsqlExpress` / `MySQLExpress`）
+3. ✅ **MemberTranslator** — `NpgsqlMemberTranslator`；MySQL/SQLite 统一 `DateSqlTemplateResolver`
+4. ✅ **收紧验收 #7–#10** — 多方言矩阵 + `WithDialect` 隔离 fixture
+5. ✅ **150/150** TestLinq + CI
+
+## R27 建议批次（Phase F 入口）
+
+1. **MSSQL datePart\*** — `MSSQLExpress` + SqlServer MemberTranslator Pure 模板
+2. **Analytic Over registry 评估** — 单开 Phase F
 
 ---
 
-## 验收标准（Phase D/E 整体完成）
+## 验收标准（历史 — R25 宽松版）
 
-- [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
-- [x] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串/DateDiff/DateAdd ✅；见 `EXTENSION-REQUIRED.md`）  
-- [x] `TestLinq` net6.0 全绿（**143/143**）  
-- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（**18 组** ✅）  
-- [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
+<details>
+<summary>R25 六项（已 supersede）</summary>
 
-- [x] `api/dbfunc/` stub 已合并；目录保留 DbFunc 方法体 + Extension 必需项（见 `EXTENSION-REQUIRED.md`）
+- [x] 矩阵 ≥30、[x] 常用 DbFunc 无属性、[x] 143 测试、[x] 三入口 18 组、[x] CI、[x] api/dbfunc stub 合并
 
-**Phase D/E 核心目标已达成**；Analytic Over / Collate / StringAgg 等列为后续 Phase（非 D/E 阻塞项）。
+</details>
 
-### 矩阵测试（73 项，`DbFuncTranslationMatrixTests`）
-
-含 R25 DateAdd、R24 DatePart、`Matrix_RegistryFirst_*`、DateDiff 无 Extension 等。
+### 矩阵测试（R25 计数 73 项）
 
 ---
 

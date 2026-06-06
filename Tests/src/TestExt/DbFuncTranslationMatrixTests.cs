@@ -232,6 +232,36 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.DoesNotContain("{0}", sql);
     }
 
+    static void WithDialect(DBInstance db, Dialect dialect, System.Action<DBInstance> run)
+    {
+        var original = db.dialect;
+        try
+        {
+            dialect.dbInstance = db;
+            dialect.db = db.config;
+            db.dialect = dialect;
+            DbFuncRegistryBootstrap.EnsureRegistered(db);
+            run(db);
+        }
+        finally
+        {
+            db.dialect = original;
+        }
+    }
+
+    [Fact]
+    public void Matrix_DatePart_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var datePart = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.DatePart) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?));
+        var entry = db.dialect.dbFuncRegistry.Resolve(datePart);
+        Assert.NotNull(entry);
+        Assert.True(entry!.IsDatePartPredicate);
+        Assert.Empty(datePart.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+    }
+
     [Fact]
     public void Matrix_DatePart_Year_Select_EmitsStrftime()
     {
@@ -262,18 +292,57 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Theory]
     [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Month), "%m")]
     [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Day), "%d")]
-    public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string strftimeToken)
+    [InlineData(typeof(NpgsqlDialect), nameof(DbFunc.DateParts.Year), "DATE_PART")]
+    [InlineData(typeof(MySQLDialect), nameof(DbFunc.DateParts.Year), "EXTRACT")]
+    public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
         var part = (DbFunc.DateParts)System.Enum.Parse(typeof(DbFunc.DateParts), partName);
         var format = part switch
         {
+            DbFunc.DateParts.Year  => dialect.expression.datePartYear("{0}"),
             DbFunc.DateParts.Month => dialect.expression.datePartMonth("{0}"),
             DbFunc.DateParts.Day   => dialect.expression.datePartDay("{0}"),
             _                      => null
         };
         Assert.NotNull(format);
-        Assert.Contains(strftimeToken, format!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(typeof(NpgsqlDialect), "DATE_PART")]
+    [InlineData(typeof(MySQLDialect), "EXTRACT")]
+    public void Matrix_DatePart_StaticCall_DialectSql(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        WithDialect(_sqlite.Db, dialect, db =>
+        {
+            var sql = LinqStatementCompiler.GetSqlText(
+                db,
+                db.useQueryable<SQLiteTestUser>()
+                    .Select(u => DbFunc.DatePart(DbFunc.DateParts.Year, u.CreatedAt))
+                    .Expression);
+            Assert.Contains(expectedFragment, sql, System.StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("{0}", sql);
+        });
+    }
+
+    [Theory]
+    [InlineData(typeof(NpgsqlDialect), "DATE_PART")]
+    [InlineData(typeof(MySQLDialect), "EXTRACT")]
+    public void Matrix_DatePart_MemberYear_DialectSql(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        WithDialect(_sqlite.Db, dialect, db =>
+        {
+            var sql = LinqStatementCompiler.GetSqlText(
+                db,
+                db.useQueryable<SQLiteTestUser>()
+                    .Where(u => u.CreatedAt.Year > 2000)
+                    .Expression);
+            Assert.Contains(expectedFragment, sql, System.StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("{0}", sql);
+        });
     }
 
     [Fact]
@@ -739,6 +808,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Upper), new[] { typeof(string) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Trim), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.DatePart) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?)));
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m => m.Name == nameof(DbFunc.DateDiff) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?)));

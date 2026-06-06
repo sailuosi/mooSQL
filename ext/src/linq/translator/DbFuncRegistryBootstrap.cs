@@ -24,6 +24,7 @@ internal static class DbFuncRegistryBootstrap
         RegisterBetween(registry, expr);
         RegisterInList(registry);
         RegisterStringDate(registry, expr);
+        RegisterDatePart(registry);
         RegisterNullIfCoalesce(registry, expr);
         RegisterAggregates(registry);
         RegisterAnalyticRow(registry, expr);
@@ -132,6 +133,25 @@ internal static class DbFuncRegistryBootstrap
                 trim,
                 new DbFuncExpressionEntry { SqlTemplate = expr.trim("{0}"), PreferServerSide = true });
         }
+    }
+
+    static void RegisterDatePart(DbFuncRegistry registry)
+    {
+        var entry = new DbFuncExpressionEntry { PreferServerSide = true, IsDatePartPredicate = true };
+        RegisterDatePartOverload(registry, typeof(DateTime?), entry);
+#if NET6_0_OR_GREATER
+        RegisterDatePartOverload(registry, typeof(DateOnly?), entry);
+        RegisterDatePartOverload(registry, typeof(DateTimeOffset?), entry);
+#endif
+    }
+
+    static void RegisterDatePartOverload(DbFuncRegistry registry, Type dateType, DbFuncExpressionEntry entry)
+    {
+        var datePart = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DatePart),
+            new[] { typeof(DbFunc.DateParts), dateType });
+        if (datePart != null)
+            registry.Register(datePart, entry);
     }
 
     static void RegisterNullIfCoalesce(DbFuncRegistry registry, SQLExpression expr)

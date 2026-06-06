@@ -65,6 +65,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return dateAddSql;
         }
 
+        if (entry.IsDatePartPredicate)
+        {
+            var datePartSql = TranslateDatePart(builder, context, mc, db);
+            if (datePartSql != null)
+                return datePartSql;
+        }
+
         if (entry.IsNullIfPredicate)
         {
             var nullIfSql = TranslateNullIf(builder, context, mc, db);
@@ -111,6 +118,7 @@ internal static class DbFuncRegistryExpressionTranslator
             || entry.PreferExtensionAttribute
             || entry.IsDateDiffPredicate
             || entry.IsDateAddPredicate
+            || entry.IsDatePartPredicate
             || entry.IsNullIfPredicate
             || entry.IsConcatPredicate
             || entry.IsInListPredicate)
@@ -149,7 +157,7 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
-                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
+                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -256,7 +264,7 @@ internal static class DbFuncRegistryExpressionTranslator
         if (amountExpr is not SqlPlaceholderExpression amountPh || dateExpr is not SqlPlaceholderExpression datePh)
             return null;
 
-        var format = ResolveDateAddFormat(db.dialect.expression, part);
+        var format = DateSqlTemplateResolver.ResolveDateAddFormat(db.dialect.expression, part);
         if (format == null)
             return null;
 
@@ -264,25 +272,28 @@ internal static class DbFuncRegistryExpressionTranslator
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
     }
 
-    static string? ResolveDateAddFormat(SQLExpression expression, DbFunc.DateParts part)
+    static Expression? TranslateDatePart(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
     {
-        const string amount = "{0}";
-        const string date = "{1}";
-        return part switch
-        {
-            DbFunc.DateParts.Year         => expression.dateAddYear(amount, date),
-            DbFunc.DateParts.Quarter      => expression.dateAddQuarter(amount, date),
-            DbFunc.DateParts.Month        => expression.dateAddMonth(amount, date),
-            DbFunc.DateParts.Week         => expression.dateAddWeek(amount, date),
-            DbFunc.DateParts.Day          => expression.dateAddDay(amount, date),
-            DbFunc.DateParts.DayOfYear    => expression.dateAddDayOfYear(amount, date),
-            DbFunc.DateParts.WeekDay      => expression.dateAddWeekDay(amount, date),
-            DbFunc.DateParts.Hour         => expression.dateAddHour(amount, date),
-            DbFunc.DateParts.Minute       => expression.dateAddMinute(amount, date),
-            DbFunc.DateParts.Second       => expression.dateAddSecond(amount, date),
-            DbFunc.DateParts.Millisecond  => expression.dateAddMillisecond(amount, date),
-            _                             => null
-        };
+        if (mc.Arguments.Count < 2)
+            return null;
+
+        if (!TryGetConstantDatePart(mc.Arguments[0], out var part))
+            return null;
+
+        var dateExpr = builder.ConvertToSqlExpr(context, mc.Arguments[1], ProjectFlags.SQL);
+        if (dateExpr is not SqlPlaceholderExpression datePh)
+            return null;
+
+        var format = DateSqlTemplateResolver.ResolveDatePartFormat(db.dialect.expression, part);
+        if (format == null)
+            return null;
+
+        var sql = new ExpressionWord(typeof(int), format, PrecedenceLv.Primary, datePh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
     }
 
     static Expression? TranslateNullIf(

@@ -50,6 +50,57 @@ namespace mooSQL.data
         public override string dateDiffWeek(string start, string end)
             => $"TRUNC(DATE_PART('day', {end}::timestamp - {start}::timestamp) / 7)";
 
+        static string PgDatePart(string field, string date) => $"DATE_PART('{field}', {date}::timestamp)::int";
+
+        public override string? datePartYear(string date) => PgDatePart("year", date);
+
+        public override string? datePartQuarter(string date) => PgDatePart("quarter", date);
+
+        public override string? datePartMonth(string date) => PgDatePart("month", date);
+
+        public override string? datePartDay(string date) => PgDatePart("day", date);
+
+        public override string? datePartDayOfYear(string date) => PgDatePart("doy", date);
+
+        public override string? datePartWeek(string date) => PgDatePart("week", date);
+
+        public override string? datePartWeekDay(string date) => $"({PgDatePart("dow", date)} + 1)";
+
+        public override string? datePartHour(string date) => PgDatePart("hour", date);
+
+        public override string? datePartMinute(string date) => PgDatePart("minute", date);
+
+        public override string? datePartSecond(string date) => PgDatePart("second", date);
+
+        public override string? datePartMillisecond(string date)
+            => $"((EXTRACT(MILLISECONDS FROM {date}::timestamp))::int % 1000)";
+
+        static string PgDateAdd(string unit, string amount, string date)
+            => $"({date}::timestamp + ({amount}::text || ' {unit}')::interval)";
+
+        public override string? dateAddDay(string amount, string date) => PgDateAdd("day", amount, date);
+
+        public override string? dateAddMonth(string amount, string date) => PgDateAdd("month", amount, date);
+
+        public override string? dateAddYear(string amount, string date) => PgDateAdd("year", amount, date);
+
+        public override string? dateAddHour(string amount, string date) => PgDateAdd("hour", amount, date);
+
+        public override string? dateAddMinute(string amount, string date) => PgDateAdd("minute", amount, date);
+
+        public override string? dateAddSecond(string amount, string date) => PgDateAdd("second", amount, date);
+
+        public override string? dateAddWeek(string amount, string date) => PgDateAdd("week", amount, date);
+
+        public override string? dateAddQuarter(string amount, string date)
+            => $"({date}::timestamp + (({amount})::text || ' month')::interval * 3)";
+
+        public override string? dateAddDayOfYear(string amount, string date) => dateAddDay(amount, date);
+
+        public override string? dateAddWeekDay(string amount, string date) => dateAddDay(amount, date);
+
+        public override string? dateAddMillisecond(string amount, string date) => PgDateAdd("millisecond", amount, date);
+
         #region DML语句
         public override string buildSelect(FragSQL frag)
         {

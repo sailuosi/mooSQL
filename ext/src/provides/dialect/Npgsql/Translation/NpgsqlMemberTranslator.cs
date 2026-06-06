@@ -3,10 +3,10 @@ using mooSQL.data.model;
 using mooSQL.linq.Linq.Translation;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.DataProvider.SQLite.Translation;
+namespace mooSQL.linq.DataProvider.Npgsql.Translation;
 
-/// <summary>SQLite MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/>。</summary>
-public class SQLiteMemberTranslator : DefaultMemberTranslator
+/// <summary>Npgsql MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/> 片段。</summary>
+public class NpgsqlMemberTranslator : DefaultMemberTranslator
 {
     protected override IMemberTranslator CreateDateMemberTranslator() => new DateFunctionsTranslator();
 

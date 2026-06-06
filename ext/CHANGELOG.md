@@ -15,6 +15,14 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R26）
+
+- **收紧验收 #7–#10** — DatePart/DateAdd Pure 片段须覆盖 SQLite + Npgsql + MySQL
+- **DatePart registry-first** — `IsDatePartPredicate` + `TranslateDatePart` + Bootstrap
+- **Npgsql/MySQL Express** — `datePart*` / `dateAdd*` override
+- **MemberTranslator** — `NpgsqlMemberTranslator`；`DateSqlTemplateResolver` 共享模板解析
+- **矩阵 +7** — 多方言 DatePart registry/compile；`WithDialect` fixture 隔离
+
 ### 新增（Phase D/E R25）
 
 - **DateAdd registry-first** — `IsDateAddPredicate` + Pure `dateAdd*` + `TranslateDateAdd`（不再用 `SqlTemplate = expr.dateAdd(...)`）
