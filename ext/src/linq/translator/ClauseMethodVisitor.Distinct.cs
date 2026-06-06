@@ -3,6 +3,7 @@ using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
 using mooSQL.linq.Reflection;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace mooSQL.linq.translator;
 
@@ -17,7 +18,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!DistinctBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildDistinct(methodCall))
             return method;
 
         var sequence = ResolveSourceContext(methodCall, buildInfo);
@@ -46,6 +47,16 @@ internal partial class ClauseMethodVisitor
             _ = Context.Builder.UpdateNesting(outerSubqueryContext, sqlExpr);
         }
 
-        return ToStatementCallOr(method, new DistinctBuilder.DistinctContext(outerSubqueryContext));
+        return ToStatementCallOr(method, new DistinctContext(outerSubqueryContext));
     }
+
+    static readonly MethodInfo[] DistinctMethods =
+    {
+        Methods.Queryable.Distinct,
+        Methods.Enumerable.Distinct,
+        Methods.SooQuery.SelectDistinct
+    };
+
+    static bool CanBuildDistinct(MethodCallExpression call)
+        => call.IsSameGenericMethod(DistinctMethods);
 }

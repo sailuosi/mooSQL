@@ -32,18 +32,8 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		#region Sequence
 
-		public bool TryFindBuilder(BuildInfo info, [NotNullWhen(true)] out ISequenceBuilder? builder)
-		{
-			builder = ClauseExpressionVisitor.TryResolveBuilder(info, this);
-			return builder != null;
-		}
-
-		public ISequenceBuilder FindBuilder(BuildInfo info)
-		{
-			return TryFindBuilder(info, out var builder)
-				? builder
-				: throw new LinqException($"Sequence '{SqlErrorExpression.PrepareExpressionString(info.Expression)}' cannot be converted to SQL.");
-		}
+		public bool CanBuildSequence(BuildInfo info, out bool isSequence)
+			=> ClauseExpressionVisitor.CanBuildSequence(info, this, out isSequence);
 
 		#endregion
 
@@ -67,7 +57,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		public CommentWord?                      Tag;
 		public List<QueryExtension>?         SqlQueryExtensions;
-		public List<TableBuilder.TableContext>? TablesInScope;
+		public List<TableContext>? TablesInScope;
 
 
 		public ClauseSqlTranslator(
@@ -232,10 +222,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			buildInfo.Expression = ExpandToRoot(originalExpression, buildInfo);
 
-			if (!TryFindBuilder(buildInfo, out var builder))
-				return false;
-			
-			return builder.IsSequence(this, buildInfo);
+			return CanBuildSequence(buildInfo, out var isSequence) && isSequence;
 		}
 
 		#endregion

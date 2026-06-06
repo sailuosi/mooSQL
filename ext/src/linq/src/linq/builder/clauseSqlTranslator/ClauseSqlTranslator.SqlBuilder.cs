@@ -56,7 +56,7 @@ namespace mooSQL.linq.Linq.Builder
 				var root = sequence.Builder.GetRootContext(sequence,
 					new ContextRefExpression(sequence.ElementType, sequence), true);
 
-				if (root != null && root.BuildContext is GroupByBuilder.GroupByContext groupByContext)
+				if (root != null && root.BuildContext is GroupByContext groupByContext)
 				{
 					buildSequnce = groupByContext.SubQuery;
 				}

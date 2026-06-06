@@ -13,7 +13,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!SelectBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildSelect(methodCall))
             return method;
 
         var sequence = ResolveSourceContext(methodCall, buildInfo);
@@ -36,5 +36,14 @@ internal partial class ClauseMethodVisitor
         context.Debug_MethodCall = methodCall;
 #endif
         return ToStatementCallOr(method, context);
+    }
+
+    static bool CanBuildSelect(MethodCallExpression call)
+    {
+        if (!call.IsQueryable())
+            return false;
+
+        var lambda = (LambdaExpression)call.Arguments[1].Unwrap();
+        return lambda.Parameters.Count is 1 or 2;
     }
 }

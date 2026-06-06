@@ -343,16 +343,16 @@ namespace mooSQL.linq.Linq.Builder
 
 				var query = clonedTargetContext.SelectQuery;
 
-				var targetTable = MergeBuilder.GetTargetTable(targetContext);
+				var targetTable = MergeContext.GetTargetTable(targetContext);
 				if (targetTable == null)
 					throw new NotImplementedException("Currently, only CTEs are supported as the target of a merge. You can fix by calling .AsCte() before calling .Merge()");
 
-				var clonedTargetTable = MergeBuilder.GetTargetTable(clonedTargetContext);
+				var clonedTargetTable = MergeContext.GetTargetTable(clonedTargetContext);
 
 				if (clonedTargetTable == null)
 					throw new InvalidOperationException();
 
-				query = MergeBuilder.ReplaceSourceInQuery(query, clonedTargetTable, targetTable);
+				query = MergeContext.ReplaceSourceInQuery(query, clonedTargetTable, targetTable);
 
 				// creating subquery placeholder
 				var resultPlaceholder = ClauseSqlTranslator.CreatePlaceholder(TargetContextRef.BuildContext, query, placeholder.Path);

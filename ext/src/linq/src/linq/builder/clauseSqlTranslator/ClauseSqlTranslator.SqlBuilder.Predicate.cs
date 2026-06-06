@@ -695,7 +695,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		#region MakeIsPredicate
 
-		public IAffirmWord MakeIsPredicate(TableBuilder.TableContext table, Type typeOperand)
+		public IAffirmWord MakeIsPredicate(TableContext table, Type typeOperand)
 		{
 			if (typeOperand == table.ObjectType)
 			{
@@ -842,7 +842,7 @@ namespace mooSQL.linq.Linq.Builder
 		Expression MakeIsPredicateExpression(IBuildContext context, TypeBinaryExpression expression)
 		{
 			var typeOperand = expression.TypeOperand;
-			var table       = new TableBuilder.TableContext(this, DBLive, new BuildInfo((IBuildContext?)null, ExpressionInstances.UntypedNull, new SelectQueryClause()), null);
+			var table       = new TableContext(this, DBLive, new BuildInfo((IBuildContext?)null, ExpressionInstances.UntypedNull, new SelectQueryClause()), null);
 
 			if (typeOperand == table.ObjectType)
 			{

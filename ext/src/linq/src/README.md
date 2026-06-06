@@ -118,15 +118,15 @@ SQLBuilder → query<T>() → 实体结果
 
 ```
 MethodCallExpression
-    → CallUntil.CreateCall(node)        // 强类型 MethodCall 节点
-    → ClauseMethodVisitor.VisitXxx      // 按方法名分发
-    → ISequenceBuilder / IBuildContext  // 复用既有 Builder 业务逻辑
+    → CallUntil.CreateCall(node)
+    → ClauseMethodVisitor.VisitXxxCore
+    → IBuildContext → StatementExpression
 ```
 
 | 组件 | 职责 |
 |------|------|
-| `ClauseExpressionVisitor` | 按 `ExpressionType` 分发序列根（`VisitConstant`/`VisitMember`/`VisitLambda`/`VisitExtension` 等）；已注册 MethodCall → `ClauseMethodVisitor`；未注册 Call → 扩展 Builder |
-| `ClauseMethodVisitor` | 按 LINQ 方法名 VisitXxx，内联或 ApplyBuilder 到既有 Builder（对齐 FastLinq 双访问器） |
+| `ClauseExpressionVisitor` | 序列根 partial（EntityRoot/Enumerable/Scalar/ContextRef/Table/MethodChain）；已注册 MethodCall → `ClauseMethodVisitor` |
+| `ClauseMethodVisitor` | 全部 LINQ 算子 `VisitXxxCore` + `BuildXxxCore`（无 ApplyBuilder） |
 | `ClauseCompileContext` | 编译上下文（`StatementResult` 为唯一成功槽；`ToSentenceBag(stmt)` 组 Bag） |
 | `StatementCompileSession` | 双访问器装配 + 统一 `VisitRoot`（根编译入口） |
 | `StatementExpression` / `StatementCall` | 编译成功节点 / MethodVisitor 回传载体（对齐 Fast `ExpressionCall`） |
@@ -134,47 +134,23 @@ MethodCallExpression
 | `ClausePredicateVisitor` | Where 谓词（Like/LikeLeft 统一 `Like` IR + 参数 substitute；逐步替代 Predicate.cs 部分逻辑） |
 | `ClauseCompiler` | 编译收尾：收集 Statement、参数、NavColumns → `SentenceBag` |
 
-### ISequenceBuilder 内聚度（Phase 5 评估）
-
-- **保留独立类**：Merge / MultiInsert / 子查询嵌套等复杂算子（`MergeBuilder`、`MultiInsertBuilder` 等）。
-- **已内联到 `ClauseMethodVisitor`**：Where / Select / OrderBy / **ThenBy** / Take-Skip / Join / Distinct / Contains / AllAny 等，经 `ToStatementCallOr` 回传 `StatementExpression`；子序列统一 **`ResolveSourceContext`**。
-- **结论**：`ISequenceBuilder` 作为 **ClauseSqlTranslator 的工具** 保留；不再由单一 `ExpressionBuilder` 编排。
-
-### MethodCall 分发策略
+### MethodCall 分发策略（MethodCallBuilder 清理后）
 
 ```
 MethodCall
-  ├─ 已内联 VisitXxx（高频、逻辑稳定）
-  │     Where / Having / Select / OrderBy* / Take / Skip / Join*
-  ├─ ApplyBuilder<T>（显式绑定 ISequenceBuilder，~45 个方法，见 Bindings.cs）
-  │     见 ClauseMethodVisitor.Bindings.cs（手动维护；`translator/tools/` 已移除）
-  ├─ DispatchPassThrough（AsQueryable / Alias 等透传）
-  ├─ MooExt（DoUpdate / InjectSQL / SetPage / Sink 等，对标 FastMethodVisitor）
-  ├─ Async（*AsyncCall + VisitXxxAsync）
-  └─ 未注册 Call → ClauseExpressionVisitor.VisitMethodCall（扩展 Builder）
+  ├─ VisitXxxCore（全部算子，ClauseMethodVisitor.*.cs partial）
+  ├─ DispatchPassThrough（AsQueryable / Alias）
+  ├─ MooExt（DoUpdate / InjectSQL / SetPage / Sink 等）
+  └─ Async（*AsyncCall → 复用 sync VisitXxxCore）
 ```
 
-**内联文件：**
+新增 LINQ 方法时：在 `ClauseMethodVisitor.*.cs` 添加 `VisitXxx` + `BuildXxxCore`；Context 类放 `buildContext/`。
 
-```
-translator/
-  ClauseMethodVisitor.Where.cs
-  ClauseMethodVisitor.Select.cs
-  ClauseMethodVisitor.OrderBy.cs
-  ClauseMethodVisitor.TakeSkip.cs
-  ClauseMethodVisitor.Join.cs
-  ClauseMethodVisitor.Bindings.cs   # ApplyBuilder 分发表（手动维护）
-```
+### IBuildContext 与编译后端（保留）
 
-新增 LINQ 方法时：在对应 `*Builder` 实现 `CanBuildMethod`，并在 `ClauseMethodVisitor.Bindings.cs` 或新的内联 partial 中注册。
-
-### IBuildContext 与 Builder 体系（保留）
-
-编译阶段的 **业务逻辑未重写**，仍由原有 Builder 体系完成：
-
-- `ISequenceBuilder` / `MethodCallBuilder`：仍用于 `ApplyBuilder<T>` 路径；高频算子已内联到 `ClauseMethodVisitor`，对应 `*Builder` 多为静态 `CanBuildMethod` + `Compile`/`BuildCore`
-- `IBuildContext`：维护 `SelectQueryClause`、投影、`MakeExpression`
-- `ClauseSqlTranslator.MakeExpression` / `ConvertToSql`：表达式 → SQL 片段
+- `IBuildContext` + `buildContext/*`：维护 `SelectQueryClause`、投影、`MakeExpression`
+- `ClauseSqlTranslator`：SQL 工具（MakeExpression / ConvertToSql / BuildWhere 等）
+- **已删除**：`ISequenceBuilder`、`MethodCallBuilder`、`*Builder.cs` 壳、`ApplyBuilder`
 
 根编译（`ClauseCompiler.Compile`）流程：
 
@@ -286,8 +262,8 @@ ext/src/linq/
 ├── translator/              # ★ 新三层架构核心
 │   ClauseCompiler.cs        # 编译收尾 → SentenceBag
 │   ClauseExpressionVisitor.cs
-│   ClauseMethodVisitor*.cs  # 方法分发（内联 VisitXxxCore + ApplyBuilder）
-│   ClauseMethodVisitor.Bindings.cs  # ApplyBuilder 分发表（手动维护，勿用已废弃的 gen_bindings.py）
+│   ClauseMethodVisitor*.cs  # 全部算子 VisitXxxCore（无 ApplyBuilder）
+│   ClauseExpressionVisitor*.cs  # 序列根 partial
 │   ClauseMethodVisitor.MooExt.cs / .Async.cs
 │   ClausePredicateVisitor.cs / ClauseFieldVisitor.cs
 │   ClausePredicateVisitor.cs
@@ -299,7 +275,7 @@ ext/src/linq/
     │   ├── helps/           # QueryHelper、优化辅助
     │   └── visitors/        # 语句级 Visitor（优化、校正）
     ├── linq/                # 面向用户的 LINQ 核心
-    │   ├── builder/         # ClauseSqlTranslator + IBuildContext + Builder 体系
+    │   ├── builder/         # ClauseSqlTranslator + buildContext/ + IBuildContext
     │   ├── expressons/      # ExpressionQuery、DbQuery
     │   ├── query/           # SentenceBag、BasicSentenceRunner、QueryMate
     │   └── Translation/     # 方言函数翻译

@@ -11,17 +11,18 @@
 ```
 ClauseCompiler.Compile
   StatementCompileSession.VisitRoot（根入口，始终经 ExpressionVisitor）
-    ClauseExpressionVisitor（Buddy）
-      VisitMethodCall → CallUntil.CreateCall → ClauseMethodVisitor.VisitXxx
-      VisitConstant / VisitMember / VisitLambda / VisitNewArray / VisitExtension → 对应 ISequenceBuilder
-      VisitMethodCall（CreateCall==null）→ MethodChain / QueryExtension / Table Builder
-    ClauseMethodVisitor
-      VisitXxx → ResolveSourceContext（Buddy 优先）+ 内联 / ToStatementCallOr / ApplyBuilder
+    ClauseExpressionVisitor（Buddy，partial：EntityRoot/Enumerable/Scalar/ContextRef/Table/MethodChain）
+      VisitMethodCall → CallUntil.CreateCall → ClauseMethodVisitor.VisitXxxCore
+      VisitConstant / VisitMember / VisitLambda / VisitNewArray → TryVisitXxx → IBuildContext
+    ClauseMethodVisitor（partial：每个算子 VisitXxxCore + BuildXxxCore）
+      VisitXxx → ResolveSourceContext（Buddy 优先）+ ToStatementCallOr
       Where/Having 谓词 → ClausePredicateVisitor（Like / LikeLeft / InList …）
   → StatementExpression → ClauseCompileContext.ToSentenceBag
 ```
 
-**嵌套序列**（子查询 / Builder 内部）：`TryBuildSequence`（`[Obsolete]`），由 `ResolveSourceContext` 回退调用。
+**嵌套序列**：`TryBuildSequence`（`[Obsolete]`）仍经 `StatementCompileSession.VisitRoot`；`ResolveSourceContext` Buddy 优先后回退。
+
+**已移除**：`ISequenceBuilder`、`MethodCallBuilder`、`ApplyBuilder`、`*Builder.cs` 壳文件、`BuildsMethodCall` 特性。
 
 **Fast 参照**：[`pure/src/linq/fast/FastLinqCompiler.cs`](../../pure/src/linq/fast/FastLinqCompiler.cs)、[`BaseTranslateVisitor.cs`](../../pure/src/linq/translator/BaseTranslateVisitor.cs)、[`FastMethodVisitor.cs`](../../pure/src/linq/fast/FastMethodVisitor.cs)
 
@@ -48,9 +49,9 @@ Where, Having, Select, OrderBy*, **ThenBy***, Take, Skip, Join*, GroupBy, GroupJ
 
 子序列解析：Where / OrderBy / Take-Skip / Distinct / Contains / AllAny / MooExt 已统一 **`ResolveSourceContext`**（Buddy 优先，嵌套 `TryBuildSequence` 回退）。
 
-### 3.2 ApplyBuilder（已走 MethodVisitor，可选内联）
+### 3.2 已全部内联（MethodCallBuilder 清理完成）
 
-约 45 个，见 `ClauseMethodVisitor.Bindings.cs`（ThenBy 已内联至 `ClauseMethodVisitor.OrderBy.cs`）
+原 `ApplyBuilder` / `*Builder.cs` 长尾算子均已迁入 `ClauseMethodVisitor.*.cs` partial（DML、Merge、Table 元数据、Query 修饰等）。`ClauseMethodVisitor.Bindings.cs` 仅保留 `VisitAlias` 透传。
 
 ### 3.3 DispatchLegacy（P0 → `ClauseMethodVisitor.MooExt.cs`）
 
@@ -71,18 +72,20 @@ Where, Having, Select, OrderBy*, **ThenBy***, Take, Skip, Join*, GroupBy, GroupJ
 
 ## 四、ExpressionVisitor 清单
 
-### 4.1 序列根（P1 → `ClauseExpressionVisitor.VisitXxx`）
+### 4.1 序列根（`ClauseExpressionVisitor.*.cs` partial）
 
-| 节点 | Builder |
+| 节点 | Partial |
 |------|---------|
-| Constant `EntityQueryable<>` | EntityBusBuilder |
-| Constant/Member `IEnumerable<>` | EnumerableBuilder |
-| Lambda 标量 | ScalarSelectBuilder |
-| ContextRefExpression | ContextRefBuilder |
+| Constant `EntityQueryable<>` | `ClauseExpressionVisitor.EntityRoot.cs` |
+| Constant/Member `IEnumerable<>` | `ClauseExpressionVisitor.Enumerable.cs` |
+| Lambda 标量 | `ClauseExpressionVisitor.Scalar.cs` |
+| ContextRefExpression | `ClauseExpressionVisitor.ContextRef.cs` |
+| Table function / Cte / FromSql | `ClauseExpressionVisitor.Table.cs` + `ClauseMethodVisitor.Table.cs` |
+| Extension method chains | `ClauseExpressionVisitor.MethodChain.cs` |
 
-### 4.2 未注册 MethodCall 扩展（`ClauseExpressionVisitor.VisitMethodCall`）
+### 4.2 未注册 MethodCall 扩展
 
-MethodChainBuilder、QueryExtensionBuilder、TableBuilder.CanBuildAttributedMethods
+已由 `ClauseExpressionVisitor.MethodChain.cs` 与 `ClauseExpressionVisitor.Table.cs` 处理（原 MethodChainBuilder / TableBuilder 已删除）。
 
 ### 4.3 谓词子树（`ClausePredicateVisitor.cs`）
 
@@ -103,6 +106,7 @@ MethodChainBuilder、QueryExtensionBuilder、TableBuilder.CanBuildAttributedMeth
 | E | 谓词 Visitor 化 | `ClausePredicateVisitor` + `ClauseFieldVisitor`；`BuildWhere` 统一入口；`Like` 编译/执行测试 | 已完成 |
 | F | 删除 SequenceBuilderResolver | 已删除；README 已更新 | 已完成 |
 | G | 编译入口与分发扫尾 | `StatementCompileSession` 根入口；删除 `BuildResult`；`ResolveSourceContext` 统一子序列；LikeLeft 对齐 | 已完成 |
+| H | MethodCallBuilder 彻底清理 | 删除 `ISequenceBuilder`/`MethodCallBuilder`/`ApplyBuilder`；算子逻辑迁入 `ClauseMethodVisitor.*`；Context 迁入 `buildContext/` | 已完成 |
 
 ---
 
@@ -110,9 +114,9 @@ MethodChainBuilder、QueryExtensionBuilder、TableBuilder.CanBuildAttributedMeth
 
 | 问题 | 答案 |
 |------|------|
-| `ApplyBuilder` 算不算合规？ | **算**，已是 MethodVisitor 路径 |
-| InList/Like 在序列还是谓词？ | **谓词层**（Fast 用 `WhereExpressionVisitor`）；序列级 Visit 仅作过渡 |
-| `ISequenceBuilder` 要删吗？ | **不删**，是 Ext 的「写入 Statement」后端，对标 Fast 的 `SQLBuilder` 操作 |
+| `ApplyBuilder` 还算合规吗？ | **已删除**；全部算子内联至 `ClauseMethodVisitor.*` partial |
+| InList/Like 在序列还是谓词？ | **谓词层**（Fast 用 `WhereExpressionVisitor`） |
+| `ISequenceBuilder` 要删吗？ | **已删除**；写入 Statement 由 `VisitXxxCore` + `IBuildContext` + `ClauseSqlTranslator` 完成 |
 | 与 Fast 完全一致的边界？ | **分发层一致**；语义层可不同 |
 
 ---

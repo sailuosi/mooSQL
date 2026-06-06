@@ -1090,7 +1090,7 @@ namespace mooSQL.linq.Linq.Builder
 		public IExpWord? TryConvertFormatToSql(IBuildContext? context, MethodCallExpression mc, bool isPureExpression, ProjectFlags flags)
 		{
 			// TODO: move PrepareRawSqlArguments to more correct location
-			TableBuilder.PrepareRawSqlArguments(mc, null,
+			TableRawSqlHelper.PrepareRawSqlArguments(mc, null,
 				out var format, out var arguments);
 
 			var sqlArguments = new List<IExpWord>();
@@ -1124,7 +1124,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				currentContext = rootContext?.BuildContext ?? currentContext;
 
-				if (currentContext is GroupByBuilder.GroupByContext groupCtx)
+				if (currentContext is GroupByContext groupCtx)
 				{
 					currentContext = groupCtx.SubQuery;
 				}

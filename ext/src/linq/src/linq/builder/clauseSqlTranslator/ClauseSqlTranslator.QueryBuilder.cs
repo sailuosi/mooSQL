@@ -255,7 +255,7 @@ namespace mooSQL.linq.Linq.Builder
 				rootContext = root.BuildContext;
 			}
 
-			if (rootContext is GroupByBuilder.GroupByContext groupBy)
+			if (rootContext is GroupByContext groupBy)
 			{
 				rootSelectQuery = groupBy.SubQuery.SelectQuery;
 			}
@@ -381,7 +381,7 @@ namespace mooSQL.linq.Linq.Builder
 					return mc.Update(null, args);
 				}
 			}
-			else if (expr is ContextRefExpression { BuildContext: DefaultIfEmptyBuilder.DefaultIfEmptyContext di })
+			else if (expr is ContextRefExpression { BuildContext: DefaultIfEmptyContext di })
 			{
 				return CorrectRoot(di.Sequence, new ContextRefExpression(expr.Type, di.Sequence));
 			}
@@ -520,7 +520,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public static bool IsSingleElementContext(IBuildContext context)
-			=> context is FirstSingleBuilder.FirstSingleContext;
+			=> context is FirstSingleContext;
 
 		Expression TranslateDetails(IBuildContext context, Expression expr, ProjectFlags flags)
 		{

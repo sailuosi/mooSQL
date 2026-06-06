@@ -16,7 +16,7 @@ namespace mooSQL.linq.Linq.Builder
 				? $"{context.GetType().Name}{contextId}(<none>)"
 				: $"{context.GetType().Name}{contextId}({context.SelectQuery.SourceID})";
 
-			if (context is TableBuilder.TableContext tc)
+			if (context is TableContext tc)
 			{
 				result += $"(T: {tc.SqlTable.SourceID})";
 			}

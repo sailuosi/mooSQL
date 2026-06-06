@@ -1,8 +1,8 @@
 using mooSQL.data.call;
 using mooSQL.data.model;
 using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
 using mooSQL.linq.ext;
+using mooSQL.linq.Linq.Builder;
 using System.Linq.Expressions;
 
 namespace mooSQL.linq.translator;
@@ -18,8 +18,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!AllAnyBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder)
-            && !AllAnyBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildAllAny(methodCall) && !CanBuildAllAnyAsync(methodCall))
             return method;
 
         var sequenceBuildInfo = new BuildInfo(buildInfo, methodCall.Arguments[0])
@@ -32,6 +31,7 @@ internal partial class ClauseMethodVisitor
         var sequence = ResolveSourceContext(methodCall, buildInfo, sequenceBuildInfo);
         if (sequence == null)
             return method;
+
         var isAsync = methodCall.Method.DeclaringType == typeof(AsyncExtensions);
 
         if (methodCall.Arguments.Count == (isAsync ? 3 : 2))
@@ -64,6 +64,9 @@ internal partial class ClauseMethodVisitor
             ProjectFlags.ExtractProjection);
 
         return ToStatementCallOr(method,
-            new AllAnyBuilder.AllAnyContext(buildInfo.Parent, buildInfo.SelectQuery, methodCall, sequence));
+            new AllAnyContext(buildInfo.Parent, buildInfo.SelectQuery, methodCall, sequence));
     }
+
+    static bool CanBuildAllAny(MethodCallExpression call) => call.IsQueryable();
+    static bool CanBuildAllAnyAsync(MethodCallExpression call) => call.IsAsyncExtension();
 }

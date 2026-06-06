@@ -819,23 +819,23 @@ namespace mooSQL.linq.Linq.Builder
 			return tableContext;
 		}
 
-		public static TableBuilder.TableContext? GetTableContext(ClauseSqlTranslator builder, Expression pathExpression)
+		public static TableContext? GetTableContext(ClauseSqlTranslator builder, Expression pathExpression)
 		{
 			var rootContext = builder.MakeExpression(null, pathExpression, ProjectFlags.Table) as ContextRefExpression;
 
-			var tableContext = rootContext?.BuildContext as TableBuilder.TableContext;
+			var tableContext = rootContext?.BuildContext as TableContext;
 
 			return tableContext;
 		}
 
-		public static TableBuilder.TableContext? GetTableContext(IBuildContext context)
+		public static TableContext? GetTableContext(IBuildContext context)
 		{
 			var contextRef = new ContextRefExpression(context.ElementType, context);
 
 			var rootContext =
 				context.Builder.MakeExpression(context, contextRef, ProjectFlags.Table) as ContextRefExpression;
 
-			var tableContext = rootContext?.BuildContext as TableBuilder.TableContext;
+			var tableContext = rootContext?.BuildContext as TableContext;
 
 			return tableContext;
 		}
@@ -916,9 +916,9 @@ namespace mooSQL.linq.Linq.Builder
 			return current;
 		}
 
-		public static DefaultIfEmptyBuilder.DefaultIfEmptyContext? GetDefaultIfEmptyContext(IBuildContext context)
+		public static DefaultIfEmptyContext? GetDefaultIfEmptyContext(IBuildContext context)
 		{
-			return UnwrapSubqueryContext(context) as DefaultIfEmptyBuilder.DefaultIfEmptyContext;
+			return UnwrapSubqueryContext(context) as DefaultIfEmptyContext;
 		}
 
 		public static Expression UnwrapDefaultIfEmpty(Expression expression)

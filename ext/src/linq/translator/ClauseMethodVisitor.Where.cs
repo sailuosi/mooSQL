@@ -17,7 +17,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!WhereBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildWhere(methodCall))
             return method;
 
         var sequence = ResolveSourceContext(methodCall, buildInfo);
@@ -43,4 +43,7 @@ internal partial class ClauseMethodVisitor
         result.SetAlias(condition.Parameters[0].Name);
         return ToStatementCallOr(method, result);
     }
+
+    static bool CanBuildWhere(MethodCallExpression call)
+        => call.IsQueryable();
 }

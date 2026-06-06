@@ -9,50 +9,8 @@ namespace mooSQL.linq.translator;
 /// 表达式树访问器：按 <see cref="ExpressionType"/> 分发序列根；
 /// 已注册 <see cref="MethodCall"/> 走 <see cref="ClauseMethodVisitor"/>。
 /// </summary>
-internal sealed class ClauseExpressionVisitor : ExpressionVisitor
+internal sealed partial class ClauseExpressionVisitor : ExpressionVisitor
 {
-    delegate bool CanBuildSequenceRoot(Expression expression, BuildInfo info, ClauseSqlTranslator builder);
-
-    readonly struct SequenceRootBinding(CanBuildSequenceRoot canBuild, ISequenceBuilder builder)
-    {
-        public CanBuildSequenceRoot CanBuild { get; } = canBuild;
-        public ISequenceBuilder Builder { get; } = builder;
-    }
-
-    static class BuilderPool<T> where T : ISequenceBuilder, new()
-    {
-        public static readonly T Instance = new();
-    }
-
-    static readonly SequenceRootBinding[] ConstantBindings =
-    [
-        new((e, i, b) => EntityBusBuilder.CanBuild(e, i, b), BuilderPool<EntityBusBuilder>.Instance),
-        new((e, i, b) => EnumerableBuilder.CanBuild(e, i, b), BuilderPool<EnumerableBuilder>.Instance),
-    ];
-
-    static readonly SequenceRootBinding[] EnumerableBindings =
-    [
-        new((e, i, b) => EnumerableBuilder.CanBuild(e, i, b), BuilderPool<EnumerableBuilder>.Instance),
-    ];
-
-    static readonly SequenceRootBinding[] LambdaBindings =
-    [
-        new((e, i, b) => ScalarSelectBuilder.CanBuild(e, i, b), BuilderPool<ScalarSelectBuilder>.Instance),
-    ];
-
-    static readonly SequenceRootBinding[] ExtensionMethodBindings =
-    [
-        new((e, i, b) => e is MethodCallExpression mc && MethodChainBuilder.CanBuild(mc, i, b),
-            BuilderPool<MethodChainBuilder>.Instance),
-        new((e, i, b) => e is MethodCallExpression mc && TableBuilder.CanBuildAttributedMethods(mc, i, b),
-            BuilderPool<TableBuilder>.Instance),
-    ];
-
-    static readonly SequenceRootBinding[] ContextRefBindings =
-    [
-        new((_, i, b) => ContextRefBuilder.CanBuild(i, b), BuilderPool<ContextRefBuilder>.Instance),
-    ];
-
     readonly ClauseMethodVisitor _methodVisitor;
 
     public ClauseExpressionVisitor(ClauseMethodVisitor methodVisitor)
@@ -66,68 +24,49 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
         set => _methodVisitor.Context = value;
     }
 
-    /// <summary>供 <see cref="ClauseSqlTranslator.TryFindBuilder"/> 快速解析 Builder（不构建序列）。</summary>
-    internal static ISequenceBuilder? TryResolveBuilder(BuildInfo info, ClauseSqlTranslator builder)
+    /// <summary>供 <see cref="ClauseSqlTranslator.IsSequence"/> 快速判断能否构建序列（不构建）。</summary>
+    internal static bool CanBuildSequence(BuildInfo info, ClauseSqlTranslator builder, out bool isSequence)
     {
         info.Expression = info.Expression.Unwrap();
-        return Resolve(info.Expression, info, builder, SelectBindings(info.Expression));
+        var expression = info.Expression;
+        isSequence = false;
+
+        switch (expression)
+        {
+            case ConstantExpression c:
+                if (CanBuildEntityRoot(c, info, builder)) { isSequence = true; return true; }
+                if (CanBuildEnumerable(c, info, builder)) { isSequence = true; return true; }
+                return false;
+            case MemberExpression:
+            case NewArrayExpression:
+                if (CanBuildEnumerable(expression, info, builder)) { isSequence = true; return true; }
+                return false;
+            case LambdaExpression:
+                if (CanBuildScalar(expression, info, builder)) { isSequence = true; return true; }
+                return false;
+            case MethodCallExpression mc:
+                if (CanBuildMethodChain(mc, info, builder)) { isSequence = true; return true; }
+                if (CanBuildTableAttributed(mc, info, builder)) { isSequence = true; return true; }
+                return false;
+            case ContextRefExpression:
+                if (CanBuildContextRef(info, builder)) { isSequence = true; return true; }
+                return false;
+            default:
+                return false;
+        }
     }
 
-    static SequenceRootBinding[] SelectBindings(Expression expression)
-        => expression switch
-        {
-            ConstantExpression           => ConstantBindings,
-            MemberExpression             => EnumerableBindings,
-            NewArrayExpression             => EnumerableBindings,
-            LambdaExpression             => LambdaBindings,
-            MethodCallExpression           => ExtensionMethodBindings,
-            ContextRefExpression           => ContextRefBindings,
-            _                            => [],
-        };
-
-    static BuildInfo PrepareBuildInfo(Expression expression, BuildInfo template)
+    BuildInfo PrepareBuildInfo(Expression expression)
     {
-        var buildInfo = new BuildInfo(template.Parent, expression, template.SelectQuery);
+        var buildInfo = new BuildInfo(Context.RootBuildInfo.Parent, expression, Context.RootBuildInfo.SelectQuery);
         buildInfo.Expression = buildInfo.Expression.Unwrap();
         return buildInfo;
     }
 
-    static ISequenceBuilder? Resolve(
-        Expression expression,
-        BuildInfo info,
-        ClauseSqlTranslator builder,
-        SequenceRootBinding[] bindings)
+    void SetStatementResult(IBuildContext? context)
     {
-        foreach (var binding in bindings)
-        {
-            if (binding.CanBuild(expression, info, builder))
-                return binding.Builder;
-        }
-
-        return null;
-    }
-
-    static BuildSequenceResult BuildOrNotSupported(
-        Expression expression,
-        BuildInfo info,
-        ClauseSqlTranslator builder,
-        SequenceRootBinding[] bindings)
-    {
-        var sequenceBuilder = Resolve(expression, info, builder, bindings);
-        return sequenceBuilder == null
-            ? BuildSequenceResult.NotSupported()
-            : sequenceBuilder.BuildSequence(builder, info);
-    }
-
-    BuildInfo PrepareBuildInfo(Expression expression)
-        => PrepareBuildInfo(expression, Context.RootBuildInfo);
-
-    void ApplyBindings(Expression expression, SequenceRootBinding[] bindings)
-    {
-        var buildInfo = PrepareBuildInfo(expression);
-        var result = BuildOrNotSupported(expression, buildInfo, Context.Builder, bindings);
-        if (result.BuildContext is { } ctx)
-            Context.StatementResult = StatementExpression.FromBuildContext(ctx, Context);
+        if (context != null)
+            Context.StatementResult = StatementExpression.FromBuildContext(context, Context);
     }
 
     static Expression FinishVisit(Expression fallback, ClauseCompileContext context)
@@ -143,31 +82,50 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
             return FinishVisit(node, Context);
         }
 
-        ApplyBindings(node, ExtensionMethodBindings);
+        var buildInfo = PrepareBuildInfo(node);
+        if (TryVisitMethodChain(node, buildInfo))
+            return FinishVisit(node, Context);
+        if (TryVisitTableAttributed(node, buildInfo))
+            return FinishVisit(node, Context);
+
         return FinishVisit(node, Context);
     }
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
-        ApplyBindings(node, ConstantBindings);
+        var buildInfo = PrepareBuildInfo(node);
+        if (TryVisitEntityRoot(node, buildInfo))
+            return FinishVisit(node, Context);
+        if (TryVisitEnumerable(node, buildInfo))
+            return FinishVisit(node, Context);
+
         return FinishVisit(node, Context);
     }
 
     protected override Expression VisitMember(MemberExpression node)
     {
-        ApplyBindings(node, EnumerableBindings);
+        var buildInfo = PrepareBuildInfo(node);
+        if (TryVisitEnumerable(node, buildInfo))
+            return FinishVisit(node, Context);
+
         return FinishVisit(node, Context);
     }
 
     protected override Expression VisitNewArray(NewArrayExpression node)
     {
-        ApplyBindings(node, EnumerableBindings);
+        var buildInfo = PrepareBuildInfo(node);
+        if (TryVisitEnumerable(node, buildInfo))
+            return FinishVisit(node, Context);
+
         return FinishVisit(node, Context);
     }
 
     protected override Expression VisitLambda<T>(Expression<T> node)
     {
-        ApplyBindings(node, LambdaBindings);
+        var buildInfo = PrepareBuildInfo(node);
+        if (TryVisitScalar(node, buildInfo))
+            return FinishVisit(node, Context);
+
         return FinishVisit(node, Context);
     }
 
@@ -178,8 +136,9 @@ internal sealed class ClauseExpressionVisitor : ExpressionVisitor
 
         if (node is ContextRefExpression)
         {
-            ApplyBindings(node, ContextRefBindings);
-            return FinishVisit(node, Context);
+            var buildInfo = PrepareBuildInfo(node);
+            if (TryVisitContextRef(buildInfo))
+                return FinishVisit(node, Context);
         }
 
         return base.VisitExtension(node);

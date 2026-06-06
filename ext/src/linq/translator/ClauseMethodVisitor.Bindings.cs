@@ -1,56 +1,8 @@
-﻿using mooSQL.data.call;
-using mooSQL.linq.Linq.Builder;
-using System.Linq.Expressions;
-
-namespace mooSQL.linq.translator;
-
-internal partial class ClauseMethodVisitor
-{
-    public override MethodCall VisitAlias(AliasCall method) => DispatchPassThrough(method);
-    public override MethodCall VisitAsCte(AsCteCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
-    public override MethodCall VisitAsQueryable(AsQueryableCall method) => DispatchPassThrough(method);
-    public override MethodCall VisitAsSubQuery(AsSubQueryCall method) => ApplyBuilder<AsSubQueryBuilder>(method, AsSubQueryBuilder.CanBuildMethod);
-    public override MethodCall VisitAsUpdatable(AsUpdatableCall method) => ApplyBuilder<AsUpdatableBuilder>(method, AsUpdatableBuilder.CanBuildMethod);
-    public override MethodCall VisitAsValueInsertable(AsValueInsertableCall method) => ApplyBuilder<AsValueInsertableBuilder>(method, AsValueInsertableBuilder.CanBuildMethod);
-    public override MethodCall VisitCast(CastCall method) => ApplyBuilder<CastBuilder>(method, CastBuilder.CanBuildMethod);
-    public override MethodCall VisitCrossJoin(CrossJoinCall method) => ApplyBuilder<AllJoinsLinqBuilder>(method, AllJoinsLinqBuilder.CanBuildMethod);
-    public override MethodCall VisitDatabaseName(DatabaseNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitDeleteWithOutput(DeleteWithOutputCall method) => ApplyBuilder<DeleteBuilder>(method, DeleteBuilder.CanBuildMethod);
-    public override MethodCall VisitDeleteWithOutputInto(DeleteWithOutputIntoCall method) => ApplyBuilder<DeleteBuilder>(method, DeleteBuilder.CanBuildMethod);
-    public override MethodCall VisitDisableGuard(DisableGuardCall method) => ApplyBuilder<DisableGroupingGuardBuilder>(method, DisableGroupingGuardBuilder.CanBuildMethod);
-    public override MethodCall VisitDrop(DropCall method) => ApplyBuilder<DropBuilder>(method, DropBuilder.CanBuildMethod);
-    public override MethodCall VisitElse(ElseCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitFromSql(FromSqlCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
-    public override MethodCall VisitFromSqlScalar(FromSqlScalarCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
-    public override MethodCall VisitGetCte(GetCteCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
-    public override MethodCall VisitUseQueryable(UseQueryableCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildTableMethods);
-    public override MethodCall VisitHasUniqueKey(HasUniqueKeyCall method) => ApplyBuilder<HasUniqueKeyBuilder>(method, HasUniqueKeyBuilder.CanBuildMethod);
-    public override MethodCall VisitIgnoreFilters(IgnoreFiltersCall method) => ApplyBuilder<IgnoreFiltersBuilder>(method, IgnoreFiltersBuilder.CanBuildMethod);
-    public override MethodCall VisitInlineParameters(InlineParametersCall method) => ApplyBuilder<InlineParametersBuilder>(method, InlineParametersBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertAll(InsertAllCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertFirst(InsertFirstCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertWithIdentity(InsertWithIdentityCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertWithOutput(InsertWithOutputCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInsertWithOutputInto(InsertWithOutputIntoCall method) => ApplyBuilder<InsertBuilder>(method, InsertBuilder.CanBuildMethod);
-    public override MethodCall VisitInto(IntoCall method) => ApplyBuilder<InsertBuilder.Into>(method, InsertBuilder.Into.CanBuildMethod);
-    public override MethodCall VisitIsTemporary(IsTemporaryCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitMultiInsert(MultiInsertCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitQueryName(QueryNameCall method) => ApplyBuilder<QueryNameBuilder>(method, QueryNameBuilder.CanBuildMethod);
-    public override MethodCall VisitRemoveOrderBy(RemoveOrderByCall method) => ApplyBuilder<RemoveOrderByBuilder>(method, RemoveOrderByBuilder.CanBuildMethod);
-    public override MethodCall VisitSchemaName(SchemaNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitSelectQuery(SelectQueryCall method) => ApplyBuilder<SelectQueryBuilder>(method, SelectQueryBuilder.CanBuildMethod);
-    public override MethodCall VisitServerName(ServerNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitSet(SetCall method) => ApplyBuilder<UpdateBuilder.Set>(method, UpdateBuilder.Set.CanBuildMethod);
-    public override MethodCall VisitTableFromExpression(TableFromExpressionCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildTableMethods);
-    public override MethodCall VisitTableID(TableIDCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitTableName(TableNameCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitTableOptions(TableOptionsCall method) => ApplyBuilder<TableAttributeBuilder>(method, TableAttributeBuilder.CanBuildMethod);
-    public override MethodCall VisitTagQuery(TagQueryCall method) => ApplyBuilder<TagQueryBuilder>(method, TagQueryBuilder.CanBuildMethod);
-    public override MethodCall VisitTruncate(TruncateCall method) => ApplyBuilder<TruncateBuilder>(method, TruncateBuilder.CanBuildMethod);
-    public override MethodCall VisitUpdateWithOutput(UpdateWithOutputCall method) => ApplyBuilder<UpdateBuilder>(method, UpdateBuilder.CanBuildMethod);
-    public override MethodCall VisitUpdateWithOutputInto(UpdateWithOutputIntoCall method) => ApplyBuilder<UpdateBuilder>(method, UpdateBuilder.CanBuildMethod);
-    public override MethodCall VisitValue(ValueCall method) => ApplyBuilder<InsertBuilder.Value>(method, InsertBuilder.Value.CanBuildMethod);
-    public override MethodCall VisitWhen(WhenCall method) => ApplyBuilder<MultiInsertBuilder>(method, MultiInsertBuilder.CanBuildMethod);
-    public override MethodCall VisitWith(WithCall method) => ApplyBuilder<WithTableExpressionBuilder>(method, WithTableExpressionBuilder.CanBuildMethod);
-    public override MethodCall VisitWithTableExpression(WithTableExpressionCall method) => ApplyBuilder<WithTableExpressionBuilder>(method, WithTableExpressionBuilder.CanBuildMethod);
-}
+﻿using mooSQL.data.call;
+
+namespace mooSQL.linq.translator;
+
+internal partial class ClauseMethodVisitor
+{
+    public override MethodCall VisitAlias(AliasCall method) => DispatchPassThrough(method);
+}

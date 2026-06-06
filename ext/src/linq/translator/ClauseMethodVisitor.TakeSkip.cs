@@ -17,7 +17,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!TakeSkipBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildTakeSkip(methodCall))
             return method;
 
         var sequence = ResolveSourceContext(methodCall, buildInfo);
@@ -65,4 +65,7 @@ internal partial class ClauseMethodVisitor
 
         return ToStatementCallOr(method, sequence);
     }
+
+    static bool CanBuildTakeSkip(MethodCallExpression call)
+        => call.IsQueryable();
 }

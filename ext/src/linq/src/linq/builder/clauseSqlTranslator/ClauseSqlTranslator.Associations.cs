@@ -285,7 +285,7 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					sequence.SetAlias(alias);
 				}
-				else if (sequence is FirstSingleBuilder.FirstSingleContext firstSingle)
+				else if (sequence is FirstSingleContext firstSingle)
 				{
 					firstSingle.JoinAlias = alias;
 				}

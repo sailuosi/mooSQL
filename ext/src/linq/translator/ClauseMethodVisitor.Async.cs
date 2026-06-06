@@ -31,7 +31,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!AllAnyBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildAllAnyAsync(methodCall))
             return method;
 
         return VisitAllAny(method);
@@ -42,11 +42,10 @@ internal partial class ClauseMethodVisitor
         if (method.callExpression is not MethodCallExpression methodCall)
             return method;
 
-        var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!AggregationBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildAggregationAsync(methodCall))
             return method;
 
-        return ToStatementCallOr(method, AggregationBuilder.Compile(Context.Builder, buildInfo).BuildContext);
+        return VisitAggregation(method);
     }
 
     MethodCall VisitFirstSingleAsync(MethodCall method)
@@ -55,10 +54,10 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!FirstSingleBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildFirstSingleAsync(methodCall, buildInfo, Context.Builder))
             return method;
 
-        return ToStatementCallOr(method, FirstSingleBuilder.Compile(Context.Builder, buildInfo).BuildContext);
+        return VisitFirstSingle(method);
     }
 
     MethodCall VisitContainsAsyncCore(MethodCall method)
@@ -67,7 +66,7 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!ContainsBuilder.CanBuildAsyncMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildContainsAsync(methodCall, Context.Builder))
             return method;
 
         return VisitContainsCore(method);
@@ -79,9 +78,9 @@ internal partial class ClauseMethodVisitor
             return method;
 
         var buildInfo = Context.CreateBuildInfo(methodCall);
-        if (!ElementAtBuilder.CanBuildMethod(methodCall, buildInfo, Context.Builder))
+        if (!CanBuildElementAt(methodCall))
             return method;
 
-        return ToStatementCallOr(method, ElementAtBuilder.Compile(Context.Builder, buildInfo).BuildContext);
+        return VisitElementAtCore(method);
     }
 }
