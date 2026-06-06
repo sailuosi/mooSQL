@@ -28,6 +28,7 @@ internal static class DbFuncRegistryExpressionTranslator
             Precedence        = entry.Precedence == 0 ? PrecedenceLv.Primary : entry.Precedence;
             IsPure            = entry.IsPure;
             IsWindowFunction  = entry.IsWindowFunction;
+            IsAggregate       = entry.IsAggregate;
         }
     }
 

@@ -24,6 +24,8 @@ internal static class DbFuncRegistryBootstrap
         RegisterBetween(registry);
         RegisterInList(registry);
         RegisterStringDate(registry, expr);
+        RegisterNullIfCoalesce(registry, expr);
+        RegisterAggregates(registry);
         RegisterAnalyticRow(registry, expr);
     }
 
@@ -129,6 +131,65 @@ internal static class DbFuncRegistryBootstrap
                 trim,
                 new DbFuncExpressionEntry { SqlTemplate = expr.trim("{0}"), PreferServerSide = true });
         }
+    }
+
+    static void RegisterNullIfCoalesce(DbFuncRegistry registry, SQLExpression expr)
+    {
+        foreach (var nullIf in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                     .Where(m => m.Name == nameof(DbFunc.NullIf) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2))
+        {
+            registry.Register(
+                nullIf,
+                new DbFuncExpressionEntry { SqlTemplate = expr.nullIf("{0}", "{1}"), PreferServerSide = true });
+        }
+
+        foreach (var coalesce in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                     .Where(m => m.Name == nameof(DbFunc.Coalesce) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2))
+        {
+            registry.Register(
+                coalesce,
+                new DbFuncExpressionEntry { SqlTemplate = expr.coalesce("{0}", "{1}"), PreferServerSide = true });
+        }
+    }
+
+    static void RegisterAggregates(DbFuncRegistry registry)
+    {
+        var ext = typeof(DbFunc.ISqlExtension);
+        static DbFuncExpressionEntry Agg(string template) => new()
+        {
+            SqlTemplate = template,
+            PreferServerSide = true,
+            IsAggregate = true,
+            IsWindowFunction = true
+        };
+
+        var count = typeof(AnalyticFunctions).GetMethod(
+            nameof(AnalyticFunctions.Count),
+            BindingFlags.Public | BindingFlags.Static,
+            null,
+            new[] { ext },
+            null);
+        if (count != null)
+            registry.Register(count, Agg("COUNT(*)"));
+
+        var countExpr = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Count) && m.IsGenericMethodDefinition
+                && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext);
+        if (countExpr != null)
+            registry.Register(countExpr, Agg("COUNT({0})"));
+
+        var sum = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Sum) && m.IsGenericMethodDefinition
+                && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext);
+        if (sum != null)
+            registry.Register(sum, Agg("SUM({0})"));
+
+        var average = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Average) && m.IsGenericMethodDefinition
+                && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext
+                && m.GetParameters()[1].ParameterType == typeof(object));
+        if (average != null)
+            registry.Register(average, Agg("AVG({0})"));
     }
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)

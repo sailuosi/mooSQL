@@ -530,24 +530,47 @@ namespace mooSQL.linq
 
 			public static ExtensionAttribute[] GetExtensionAttributes(Expression expression, DBInstance mapping, bool forFirstConfiguration = true)
 			{
-				MemberInfo memberInfo;
-
-				switch (expression.NodeType)
+				MemberInfo? memberInfo = expression.NodeType switch
 				{
-					case ExpressionType.MemberAccess:
-						memberInfo = ((MemberExpression) expression).Member;
-						break;
-					case ExpressionType.Call:
-						memberInfo = ((MethodCallExpression) expression).Method;
-						break;
-					default:
-						return new ExtensionAttribute[] { };
-				}
+					ExpressionType.MemberAccess => ((MemberExpression)expression).Member,
+					ExpressionType.Call         => ((MethodCallExpression)expression).Method,
+					_                           => null
+				};
 
-				//var attributes = mapping.GetAttributes<ExtensionAttribute>(memberInfo.ReflectedType!, memberInfo, forFirstConfiguration: forFirstConfiguration);
+				if (memberInfo == null)
+					return Array.Empty<ExtensionAttribute>();
 
-				//return attributes;
-				return new ExtensionAttribute[] { };
+				var all = memberInfo.GetAttributes<ExtensionAttribute>(inherit: true);
+				if (all.Length == 0)
+					return all;
+
+				var configuration = MappingExtensions.GetDialectConfiguration(mapping);
+				var primary       = PickExtensionAttributes(all, configuration);
+
+				if (forFirstConfiguration)
+					return primary;
+
+				var primaryTokens = new HashSet<string>(
+					primary.Where(a => !string.IsNullOrEmpty(a.TokenName)).Select(a => a.TokenName!));
+
+				return all
+					.Where(a => !string.IsNullOrEmpty(a.TokenName) && !primaryTokens.Contains(a.TokenName!))
+					.Where(a => !string.IsNullOrEmpty(a.Configuration)
+					            && (configuration == null || !string.Equals(a.Configuration, configuration, StringComparison.OrdinalIgnoreCase)))
+					.ToArray();
+			}
+
+			static ExtensionAttribute[] PickExtensionAttributes(ExtensionAttribute[] attrs, string? configuration)
+			{
+				if (attrs.Length <= 1)
+					return attrs;
+
+				var matched = attrs.Where(a =>
+					string.IsNullOrEmpty(a.Configuration) ||
+					(configuration != null && string.Equals(a.Configuration, configuration, StringComparison.OrdinalIgnoreCase)))
+					.ToArray();
+
+				return matched.Length > 0 ? matched : attrs;
 			}
 
 			public static Expression ExcludeExtensionChain(DBInstance mapping, Expression expr, out bool isQueryable)

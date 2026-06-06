@@ -15,5 +15,7 @@ namespace mooSQL.data.translation
         public bool IsNotInListPredicate { get; init; }
         /// <summary>窗口函数（ROW_NUMBER 等 ISqlExtension 链）。</summary>
         public bool IsWindowFunction { get; init; }
+        /// <summary>聚合函数（COUNT/SUM/AVG 等 ISqlExtension 链）。</summary>
+        public bool IsAggregate { get; init; }
     }
 }

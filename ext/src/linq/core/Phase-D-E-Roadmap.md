@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R6 完成）**  
+> 最后更新：**2026-06-06（R7 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -25,7 +25,7 @@
 | R4 | Union SQL 渲染、Debug ToString 栈溢出修复 | ✅ | Union 断言 |
 | R5 | 多属性消歧、PreferServerSide 注册表优先、Select 函数投影 | ✅ | Lower/Substring Select |
 | **R6** | **`api/DbFunc/` 物理收缩**、RowNumber 注册、匿名 Select 列精简 | ✅ | **68/68** |
-| R7 | 注册表扩展 + 属性链收缩 + 矩阵补全 | 📋 待排 | 目标 75+ |
+| **R7** | 注册表扩展 + `GetExtensionAttributes` 修复 + RowNumber Over 端到端 | ✅ | **74/74**（矩阵 24） |
 | R8 | MemberTranslator 方言副本收敛 | 📋 待排 | — |
 | R9 | `api/dbfunc` stub 删除（注册表全覆盖后） | 📋 远期 | — |
 
@@ -61,23 +61,23 @@ pure/src/ado/
 |----|------|------|------|
 | D.0 注册挂接 | `Dialect.dbFuncRegistry` + Bootstrap | ✅ | `EnsureRegistered` 在 `MemberTranslatorResolver` 首调 |
 | D.1 注册表翻译 | Like / Between / In / Substring / DateAdd / Length / Lower / Upper / Trim / Concat | ✅ | `DbFuncRegistryExpressionTranslator` |
-| D.1 RowNumber | `AnalyticFunctions.RowNumber` + `IsWindowFunction` | ✅ R6 | 注册表 inspect；**扩展链 OVER 仍走 `[Extension]`** |
+| D.1 RowNumber | `AnalyticFunctions.RowNumber` + `IsWindowFunction` | ✅ R6–R7 | 注册表 + **`GetExtensionAttributes` 修复后 Over 链 compile** |
 | D.2 属性层迁出 | `ExpressionAttribute` / `ExtensionAttribute` → `translation/` | ✅ | R2 + R6 物理删除旧 `DbFunc/` |
 | D.3 多属性消歧 | 按方言 `Configuration` 选取 | ✅ R5 | `MappingExtensions.PickExpressionAttribute` |
 | D.4 注册表优先 | MethodCall 先 registry 再属性链 | ✅ R5 | `ClauseSqlTranslator.QueryBuilder` |
 | D.5 Select 投影 | 函数 / 匿名 / MemberInit 列精简 | ✅ R6 | `ShouldProjectBodyToColumns` + `IsForceParameter` 空 converter 防护 |
-| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 部分 | `rowNumber(orderBy)` 等未全部接入编译链 |
-| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | ❌ R7 | stub 仍在 `api/dbfunc/` |
+| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 部分 | `nullIf`/`coalesce` 已接入；`rowNumber(orderBy)` 等未全部 registry-only |
+| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7 | NullIf/Coalesce/Count/Sum/Avg 已注册；DateDiff 等仍走 `[Extension]` |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | ❌ R8 | 仍为 switch + `RegistryAwareMemberTranslator` 包装 |
 | D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | ❌ R9 | 需注册表 + 矩阵全覆盖 |
 
 ### 已注册函数（Bootstrap，R6）
 
-Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**。
+Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（全泛型）、**Coalesce**（全泛型）、**Count/Sum/Average**（ISqlExtension 链）。
 
-### 矩阵测试（18 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（24 项，`DbFuncTranslationMatrixTests`）
 
-NullCompare、Like、Between、In、Substring、Lower/Substring Where+Select、DateAdd、RowNumber 注册、匿名 Select 列精简。
+NullCompare、Like、Between、In、Substring、Lower/Substring Where+Select、DateAdd、RowNumber 注册 + **Over 端到端**、匿名 Select、**NullIf/Coalesce**、**Count/Sum/Avg 注册**。
 
 ---
 
@@ -98,30 +98,22 @@ NullCompare、Like、Between、In、Substring、Lower/Substring Where+Select、D
 
 ---
 
-## R7 建议批次（下一迭代）
+## R7 完成项（2026-06-06）
 
-优先级从高到低：
+1. ✅ **注册表扩展（D.7）** — NullIf/Coalesce + Count/Sum/Avg ISqlExtension 链；Pure `nullIf`/`coalesce`  
+2. ✅ **RowNumber 端到端（D.6）** — `GetExtensionAttributes` 修复 + `Matrix_RowNumber_Over_EmitsRowNumberSql`  
+3. 📋 **嵌套投影 / SQLClip / 构建卫生** — 留 R8 批次
 
-1. **注册表扩展（D.7）**  
-   - 迁入常用 Aggregate（`Count`/`Sum`/`Avg` 窗口链除外）、`Coalesce`/`IsNull`、`DateDiff` 等  
-   - 每函数一条 `Matrix_*` 断言（compile-only）
+## R8 建议批次（下一迭代）
 
-2. **RowNumber 端到端（D.6）**  
-   - 除 registry resolve 外，增加 `Select` + `.Over()` 链 SQL 含 `ROW_NUMBER` 的 compile 测（不连库）
-
-3. **嵌套投影（D.5 补）**  
-   - `Select(u => new { X = DbFunc.Lower(u.Name) })` — 匿名 + MethodCall 混合列
-
-4. **SQLClip 互操作（E.2）**  
-   - `FromLinqExpression` → 执行 → 与 `useQueryable` 同 SQL 快照对比
-
-5. **构建卫生**  
-   - Pure/Ext csproj 排除 `**/artifacts/**`，避免 `OutputPath` 污染导致 CS0579  
-   - `de-linq2db-rename.py` 路径更新为 `api/dbfunc`
+1. **嵌套投影（D.5 补）** — `Select(u => new { X = DbFunc.Lower(u.Name) })`  
+2. **SQLClip 互操作（E.2）** — `FromLinqExpression` 与 `useQueryable` SQL 快照对比  
+3. **DateDiff 注册** — 首参 `DateParts` 需专用 Builder，非简单模板  
+4. **构建卫生** — csproj 排除 `**/artifacts/**`；`de-linq2db-rename.py` 路径更新
 
 ---
 
-## R8 / R9（远期）
+## R8 / R9（MemberTranslator / stub 删除）
 
 - **R8**：`MemberTranslatorResolver` 默认 `CombinedMemberTranslator` + registry，删除 `SqlServerMemberTranslator` / `MySqlMemberTranslator` 重复逻辑  
 - **R9**：注册表覆盖 `api/dbfunc/` 全部 stub 后，删除 `[DbFunc.Extension]` fallback 与 stub 文件；公开 API 文档改为 Pure 片段
@@ -137,7 +129,7 @@ NullCompare、Like、Between、In、Substring、Lower/Substring Where+Select、D
 - [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例  
 - [ ] ADR 边界脚本 CI 通过
 
-当前：**5/6 项未达成**（矩阵 18/30，stub 未删，SQLClip 往返未测）。
+当前：**4/6 项未达成**（矩阵 24/30，stub 未删，SQLClip 往返未测）。
 
 ---
 

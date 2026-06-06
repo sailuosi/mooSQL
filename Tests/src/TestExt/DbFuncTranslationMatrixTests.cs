@@ -229,4 +229,96 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("name", sql, System.StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("email", sql, System.StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Matrix_NullIf_RegisteredAndEmits()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var nullIfs = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.NullIf) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2)
+            .ToList();
+        Assert.NotEmpty(nullIfs);
+        Assert.All(nullIfs, m => Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(m)));
+
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.NullIf(u.Name, ""))
+                .Expression);
+        Assert.Contains("NULLIF", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Coalesce_RegisteredAndEmits()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var coalesces = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.Coalesce) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2)
+            .ToList();
+        Assert.NotEmpty(coalesces);
+        Assert.All(coalesces, m => Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(m)));
+
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Coalesce(u.Name, u.Email))
+                .Expression);
+        Assert.Contains("COALESCE", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_CountExt_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var count = typeof(AnalyticFunctions).GetMethod(
+            nameof(AnalyticFunctions.Count),
+            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(count);
+        Assert.NotNull(entry);
+        Assert.Contains("COUNT", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.True(entry.IsAggregate);
+    }
+
+    [Fact]
+    public void Matrix_SumExt_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sum = typeof(AnalyticFunctions).GetMethods()
+            .First(m => m.Name == nameof(AnalyticFunctions.Sum) && m.IsGenericMethodDefinition);
+        var entry = db.dialect.dbFuncRegistry.Resolve(sum);
+        Assert.NotNull(entry);
+        Assert.Contains("SUM", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.True(entry.IsAggregate);
+    }
+
+    [Fact]
+    public void Matrix_AvgExt_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var avg = typeof(AnalyticFunctions).GetMethods()
+            .First(m => m.Name == nameof(AnalyticFunctions.Average) && m.IsGenericMethodDefinition
+                && m.GetParameters()[1].ParameterType == typeof(object));
+        var entry = db.dialect.dbFuncRegistry.Resolve(avg);
+        Assert.NotNull(entry);
+        Assert.Contains("AVG", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.True(entry.IsAggregate);
+    }
+
+    [Fact]
+    public void Matrix_RowNumber_Over_EmitsRowNumberSql()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
+                .Expression);
+        Assert.Contains("ROW_NUMBER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("OVER", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
 }

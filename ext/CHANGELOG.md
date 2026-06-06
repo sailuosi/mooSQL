@@ -15,6 +15,12 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R7）
+
+- **`GetExtensionAttributes` 恢复**：`DbFunc.ExtensionAttribute.GetExtensionAttributes` 从成员读取 `[Extension]` 并按方言 Configuration 筛选；修复窗口函数链（`RowNumber().Over().OrderBy().ToValue()`）在 Select 投影内被当作客户端闭包执行的问题
+- **注册表扩展（D.7）**：NullIf / Coalesce 全泛型重载 + Pure `nullIf`/`coalesce` 片段；`Count`/`Sum`/`Average` ISqlExtension 链注册（`IsAggregate` + `IsWindowFunction`）；`DbFuncExpressionEntry.IsAggregate` 透传
+- **矩阵 +7**：NullIf/Coalesce 注册与 SQL 断言；Count/Sum/Avg 注册 inspect；`Matrix_RowNumber_Over_EmitsRowNumberSql` 端到端 `ROW_NUMBER` + `OVER`
+
 ### 新增（Phase D/E R6）
 
 - **`api/DbFunc/` 物理收缩**：属性/基础设施统一在 `api/translation/`；函数 stub 迁至 `api/dbfunc/`；删除旧 `DbFunc/` 目录
