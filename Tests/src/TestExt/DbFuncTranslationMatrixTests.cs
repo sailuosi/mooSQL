@@ -107,6 +107,26 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Between_NoExtensionAttribute()
+    {
+        var methods = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name is nameof(DbFunc.Between) or nameof(DbFunc.NotBetween));
+        foreach (var method in methods)
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+    }
+
+    [Fact]
+    public void Matrix_Between_RegistryUsesDialectBetween()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var between = typeof(DbFunc).GetMethods()
+            .First(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3);
+        var entry = db.dialect.dbFuncRegistry.Resolve(between)!;
+        Assert.Contains("BETWEEN", entry.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_Lower_RegisteredWithTemplate()
     {
         var db = _sqlite.Db;
@@ -556,20 +576,6 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var format = dialect.expression.dateDiffDay("{0}", "{1}");
         Assert.NotNull(format);
         Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public void Matrix_Between_NoExtensionBuilderType()
-    {
-        var methods = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Where(m => m.Name is nameof(DbFunc.Between) or nameof(DbFunc.NotBetween));
-        foreach (var method in methods)
-        {
-            var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
-                .Cast<DbFunc.ExtensionAttribute>();
-            foreach (var attr in attrs)
-                Assert.Null(attr.BuilderType);
-        }
     }
 
     [Theory]

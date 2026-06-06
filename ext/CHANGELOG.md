@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R20）
+
+- **Between/NotBetween 无 Extension**：移除空 `[Extension]`/`[Obsolete]`；registry-only
+- **物理删除 `DbFunc.GroupBy.cs`**（`IGroupBy`/`Grouping` 合并进 `DbFunc.cs`）
+- **三入口快照 +2**：`ThreeEntrySnapshot_Upper`、`ThreeEntrySnapshot_NullIf`
+- **矩阵 +2**：`Matrix_Between_NoExtensionAttribute`、`Matrix_Between_RegistryUsesDialectBetween`
+
 ### 新增（Phase D/E R19）
 
 - **Like registry-only**：移除 `[Function]`/`[Obsolete]`；Bootstrap 使用 `expr.like` / 三参数 ESCAPE

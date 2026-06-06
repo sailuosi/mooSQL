@@ -31,9 +31,9 @@ var q = db.useQueryable<Order>()
 
 ### 已 registry-first（Bootstrap 注册 + 矩阵覆盖）
 
-Like（无 `[Function]` R19）、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf、Coalesce、Count/Sum/Avg、RowNumber、DateDiff。
+Like、**Between/NotBetween**（无 `[Extension]` R20）、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf、Coalesce、Count/Sum/Avg、RowNumber、DateDiff。
 
-`api/dbfunc/` 删除（D.9）进行中：**DbFunc.Ordinal.cs 已删**（R19）；Between.cs（R18）、Coalesce.cs（R16）已删。
+`api/dbfunc/` 删除（D.9）进行中：**GroupBy.cs 已删**（R20）；Ordinal（R19）、Between（R18）、Coalesce（R16）已删。
 
 ## 自定义扩展
 

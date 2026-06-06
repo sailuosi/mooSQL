@@ -187,29 +187,28 @@ namespace mooSQL.linq
 
 		public static T Coalesce<T>(T? a, T b) where T : struct => a ?? b;
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
-		[Obsolete("Prefer DbFuncRegistry / dialect.expression.between; Extension Builder removed in R12.")]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="ExtensionAttribute"/>。</summary>
 		public static bool Between<T>(this T value, T low, T high)
 			where T : IComparable
 		{
 			return value != null && value.CompareTo(low) >= 0 && value.CompareTo(high) <= 0;
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="ExtensionAttribute"/>。</summary>
 		public static bool Between<T>(this T? value, T? low, T? high)
 			where T : struct, IComparable
 		{
 			return value != null && value.Value.CompareTo(low) >= 0 && value.Value.CompareTo(high) <= 0;
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="ExtensionAttribute"/>。</summary>
 		public static bool NotBetween<T>(this T value, T low, T high)
 			where T : IComparable
 		{
 			return value != null && (value.CompareTo(low) < 0 || value.CompareTo(high) > 0);
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		/// <summary>registry-first（Bootstrap）；无 <see cref="ExtensionAttribute"/>。</summary>
 		public static bool NotBetween<T>(this T? value, T? low, T? high)
 			where T : struct, IComparable
 		{
@@ -1395,6 +1394,38 @@ namespace mooSQL.linq
 		[Function  (ProviderName.SqlServer    , "IDENT_INCR", ServerSideOnly = true, CanBeNull = true)]
 		[Expression(                  "NULL"      , ServerSideOnly = true, CanBeNull = true)]
 		internal static object? IdentityStep(string tableName) => throw new LinqException($"'{nameof(IdentityStep)}' is server side only property.");
+		#endregion
+
+		#region GroupBy
+
+		public interface IGroupBy
+		{
+			public bool None { get; }
+			public T Rollup<T>(T rollupKey);
+			public T Cube<T>(T cubeKey);
+			public T GroupingSets<T>(T setsExpression);
+		}
+
+		sealed class GroupByImpl : IGroupBy
+		{
+			public bool None => true;
+
+			public T Rollup<T>(T rollupKey)
+				=> throw new LinqException($"'{nameof(Rollup)}' should not be called directly.");
+
+			public T Cube<T>(T cubeKey)
+				=> throw new LinqException($"'{nameof(Cube)}' should not be called directly.");
+
+			public T GroupingSets<T>(T setsExpression)
+				=> throw new LinqException($"'{nameof(GroupingSets)}' should not be called directly.");
+		}
+
+		public static IGroupBy GroupBy = new GroupByImpl();
+
+		[Extension("GROUPING({fields, ', '})", ServerSideOnly = true, CanBeNull = false, IsAggregate = true)]
+		public static int Grouping([ExprParameter(ParameterKind = ExprParameterKind.Values)] params object[] fields)
+			=> throw new LinqException($"'{nameof(Grouping)}' should not be called directly.");
+
 		#endregion
 
 		#region Ordinal

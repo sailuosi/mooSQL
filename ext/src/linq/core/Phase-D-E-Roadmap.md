@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R19 完成）**  
+> 最后更新：**2026-06-06（R20 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -38,7 +38,8 @@
 | **R17** | NullIf registry-only + 方言 Expression 收敛 + 三入口 Substring/In | ✅ | **117/117** |
 | **R18** | Lower/Upper/Trim/Substring/Concat registry-only + Between.cs 删除 | ✅ | **124/124** |
 | **R19** | Like registry-only + Ordinal.cs 删除 + 三入口 Length/Trim | ✅ | **128/128** |
-| R20 | Between Extension 元数据收敛 / 更多 stub 合并 | 📋 待排 | — |
+| **R20** | Between/NotBetween 无 Extension + GroupBy.cs 删除 + 三入口 Upper/NullIf | ✅ | **131/131** |
+| R21 | DateDiff Extension 收敛 / 更多 stub 合并 | 📋 待排 | — |
 
 ---
 
@@ -80,7 +81,7 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R18 | `length`/`substring` SQLite override；字符串函数 registry-first |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R18 | DateDiff/NullIf/Concat 专用 predicate 标志 |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R19 | Between/Coalesce/Ordinal.cs 已删；Like 无 Function |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R20 | Between/Coalesce/Ordinal/GroupBy.cs 已删；Between 无 Extension |
 
 ### 已注册函数（Bootstrap，R6）
 
@@ -101,7 +102,7 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.1 正向桥接 | `LinqStatementCompiler.ToSQLBuilder(s)` | ✅ | Expression → SQLBuilder |
 | E.1 逆向桥接 | `LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder` | ✅ | `ConditionalWeakTable` 附着 |
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
-| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R19 | 三入口 12 组（+Length/Trim） |
+| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R20 | 三入口 14 组（+Upper/NullIf） |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
 | E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ✅ R11 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
@@ -202,29 +203,36 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 5. ✅ **三入口快照 +2** — `ThreeEntrySnapshot_Length`、`ThreeEntrySnapshot_Trim`
 6. ✅ **矩阵 +2** — `Matrix_Like_NoFunctionAttribute`、`Matrix_Like_RegistryUsesDialectLike`
 
-## R20 建议批次（下一迭代）
+## R20 完成项（2026-06-06）
 
-1. **Between/NotBetween Extension 元数据收敛** — 评估移除空 `[Extension]`
-2. **更多 stub 物理删除** — `DbFunc.GroupBy.cs` 等薄文件评估
-3. **三入口快照扩展** — Upper / NullIf 等
+1. ✅ **Between/NotBetween 无 Extension** — 移除空 `[Extension]`/`[Obsolete]`；registry-only
+2. ✅ **物理删除 `DbFunc.GroupBy.cs`** — `IGroupBy`/`Grouping` 合并进 `DbFunc.cs`
+3. ✅ **三入口快照 +2** — `ThreeEntrySnapshot_Upper`、`ThreeEntrySnapshot_NullIf`
+4. ✅ **矩阵 +2** — `Matrix_Between_NoExtensionAttribute`、`Matrix_Between_RegistryUsesDialectBetween`
+
+## R21 建议批次（下一迭代）
+
+1. **DateDiff Extension 元数据收敛** — 评估 `PreferExtensionAttribute` 是否可进一步 registry-only
+2. **更多 stub 物理删除** — `DbFunc.Types.cs` 等评估
+3. **三入口快照扩展** — Coalesce / RowNumber 等
 
 ---
 
 ## 验收标准（Phase D/E 整体完成）
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
-- [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（**Like ✅** + R18 字符串函数 ✅）  
-- [x] `TestLinq` net6.0 全绿（**128/128**）  
-- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（12 组 ✅）  
+- [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串函数 ✅）  
+- [x] `TestLinq` net6.0 全绿（**131/131**）  
+- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（14 组 ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Coalesce.cs、Between.cs、Ordinal.cs 已删 ✅，物理删除留 R20）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Between/Coalesce/Ordinal/GroupBy.cs 已删 ✅，留 R21）
 
-当前：**1/6 项未达成**（矩阵 62 ✅，Like registry-only ✅，三入口 12 组 ✅）。
+当前：**1/6 项未达成**（矩阵 64 ✅，Between 无 Extension ✅，三入口 14 组 ✅）。
 
-### 矩阵测试（62 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（64 项，`DbFuncTranslationMatrixTests`）
 
-含 R19 Like 无 Function/Obsolete、Between 方言模板等。
+含 R20 Between 无 Extension、方言 between 模板等。
 
 ---
 
