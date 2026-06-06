@@ -1,0 +1,695 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
+
+namespace mooSQL.linq
+{
+	using Common;
+	using Common.Internal;
+	using Expressions;
+	using Extensions;
+	using Linq.Builder;
+	using Mapping;
+    using mooSQL.data;
+    using mooSQL.data.model;
+    using mooSQL.utils;
+    using SqlQuery;
+    using mooSQL.linq.translator;
+
+	public partial class DbFunc
+	{
+		public partial class ExtensionAttribute
+		{
+			private static readonly ConcurrentDictionary<Type, IExtensionCallBuilder> _builders = new ();
+
+			public string? TokenName { get; set; }
+
+			protected class ExtensionBuilder<TContext>: ISqExtensionBuilder
+			{
+				readonly TContext              _context;
+				readonly ConvertFunc<TContext> _convert;
+
+				public ExtensionBuilder(
+					TContext              context,
+					IExpressionEvaluator  evaluator,
+					string?               configuration,
+					object?               builderValue,
+					DBInstance          dataContext,
+                    SelectQueryClause           query,
+					SqlExtension          extension,
+					ConvertFunc<TContext> converter,
+					MemberInfo            member,
+					Expression[]          arguments,
+					IsNullableType        isNullable,
+					bool?                 canBeNull)
+				{
+					_context      = context;
+					Evaluator     = evaluator;
+					Configuration = configuration;
+					BuilderValue  = builderValue;
+					Query         = query       ?? throw new ArgumentNullException(nameof(query));
+					Extension     = extension   ?? throw new ArgumentNullException(nameof(extension));
+					_convert      = converter   ?? throw new ArgumentNullException(nameof(converter));
+					Member        = member;
+					Method        = member as MethodInfo;
+					Arguments     = arguments ?? throw new ArgumentNullException(nameof(arguments));
+					IsNullable    = isNullable;
+					CanBeNull     = canBeNull;
+				}
+
+				public MethodInfo?  Method { get; }
+
+				public IExpWord? ConvertExpression(Expression expr, bool unwrap, EntityColumn? columnDescriptor, bool? inlineParameters)
+				{
+					if (unwrap)
+						expr = expr.UnwrapConvert();
+
+					var converted = _convert(_context, expr, columnDescriptor, inlineParameters);
+					if (converted is SqlPlaceholderExpression placeholder)
+						return placeholder.Sql;
+
+					return null;
+				}
+
+				#region ISqExtensionBuilder Members
+
+				public IExpressionEvaluator Evaluator        { get; }
+				public string?              Configuration    { get; }
+				public object?              BuilderValue     { get; }
+
+                public DBInstance DBLive { get; }
+				public SelectQueryClause          Query            { get; }
+				public MemberInfo           Member           { get; }
+				public SqlExtension         Extension        { get; }
+				public IExpWord?      ResultExpression { get; set; }
+				public bool                 IsConvertible    { get; set; } = true;
+				public Expression[]         Arguments        { get; }
+				public IsNullableType       IsNullable       { get; }
+				public bool?                CanBeNull        { get; }
+
+				public string Expression
+				{
+					get => Extension.Expr;
+					set => Extension.Expr = value;
+				}
+
+				public T GetValue<T>(int index)
+				{
+					var value = (T)Evaluator.Evaluate(Arguments[index])!;
+					return value;
+				}
+
+				public T GetValue<T>(string argName)
+				{
+					if (Method != null)
+					{
+						var parameters = Method.GetParameters();
+
+						for (var i = 0; i < parameters.Length; i++)
+							if (parameters[i].Name == argName)
+								return GetValue<T>(i);
+					}
+
+					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
+				}
+
+				public object GetObjectValue(int index)
+				{
+					var value = Evaluator.Evaluate(Arguments[index])!;
+					return value;
+				}
+
+				public object GetObjectValue(string argName)
+				{
+					if (Method != null)
+					{
+						var parameters = Method.GetParameters();
+
+						for (var i = 0; i < parameters.Length; i++)
+							if (parameters[i].Name == argName)
+								return GetObjectValue(i);
+					}
+
+					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
+				}
+
+				public IExpWord? GetExpression(int index, bool unwrap, bool? inlineParameters = null)
+				{
+					return ConvertExpression(Arguments[index], unwrap, null, inlineParameters);
+				}
+
+				public IExpWord? GetExpression(string argName, bool unwrap, bool? inlineParameters = null)
+				{
+					if (Method != null)
+					{
+						var parameters = Method.GetParameters();
+						for (int i = 0; i < parameters.Length; i++)
+						{
+							if (parameters[i].Name == argName)
+							{
+								return GetExpression(i, unwrap);
+							}
+						}
+					}
+
+					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
+				}
+
+				public IExpWord? ConvertToSqlExpression()
+				{
+					return ConvertToSqlExpression(Extension.Precedence);
+				}
+
+				public IExpWord? ConvertToSqlExpression(int precedence)
+				{
+					var converted = BuildSqlExpression(Query, Extension, Extension.SystemType!, precedence,
+						(Extension.IsAggregate      ? SqlFlags.IsAggregate      : SqlFlags.None) |
+						(Extension.IsPure           ? SqlFlags.IsPure           : SqlFlags.None) |
+						(Extension.IsPredicate      ? SqlFlags.IsPredicate      : SqlFlags.None) |
+						(Extension.IsWindowFunction ? SqlFlags.IsWindowFunction : SqlFlags.None),
+						Extension.CanBeNull, IsNullableType.Undefined);
+
+					if (converted is SqlPlaceholderExpression placeholder)
+						return placeholder.Sql;
+
+					return null;
+				}
+
+				public IExpWord? ConvertExpressionToSql(Expression expression, bool unwrap, bool? inlineParameters = null)
+				{
+					return ConvertExpression(expression, unwrap, null, inlineParameters);
+				}
+
+				public object? EvaluateExpression(Expression expression)
+				{
+					if (expression == null)
+						return null;
+
+					return Evaluator.Evaluate(expression);
+				}
+
+				public SqlExtensionParam AddParameter(string name, IExpWord expr)
+				{
+					return Extension.AddParameter(name, expr);
+				}
+
+				#endregion
+
+			}
+
+			protected List<SqlExtensionParam>? BuildFunctionsChain<TContext>(TContext context, DBInstance DB, IExpressionEvaluator evaluator, SelectQueryClause query, Expression expr, ConvertFunc<TContext> converter, out Expression? error)
+			{
+				error = null;
+				var chains           = new List<SqlExtensionParam>();
+				Expression? current  = expr;
+
+				while (current != null)
+				{
+					MemberInfo?   memberInfo = null;
+					Expression[]? arguments  = null;
+					Expression?   next       = null;
+
+					switch (current.NodeType)
+					{
+						case ExpressionType.MemberAccess :
+							{
+								var memberExpr = (MemberExpression)current;
+
+								memberInfo = memberExpr.Member;
+								arguments  = new Expression [] { };
+								next       = memberExpr.Expression;
+
+								break;
+							}
+
+						case ExpressionType.Call :
+							{
+								var call = (MethodCallExpression) current;
+
+								memberInfo = call.Method;
+								arguments  = call.Arguments.ToArray();
+
+								if (call.Method.IsStatic)
+									next = call.Arguments.FirstOrDefault();
+								else
+									next = call.Object;
+
+								break;
+							}
+
+						case ExpressionType.Constant:
+							{
+								if (typeof(IQueryableContainer).IsSameOrParentOf(current.Type))
+								{
+									next = current.EvaluateExpression<IQueryableContainer>()!.Query.Expression;
+								}
+								break;
+							}
+					}
+
+					if (memberInfo != null)
+					{
+						var attributes = GetExtensionAttributes(current, DB);
+						var tokenNames = attributes.Where(a => !string.IsNullOrEmpty(a.TokenName))
+							.Select(a => a.TokenName!).ToList();
+						var namedAttributes = GetExtensionAttributes(current, DB, false)
+							.Where(e => !string.IsNullOrEmpty(e.TokenName) && !tokenNames.Contains(e.TokenName!));
+
+						var continueChain   = false;
+
+						foreach (var attr in attributes.Concat(namedAttributes))
+						{
+							var param = attr.BuildExtensionParam(context, expr, DB, evaluator, query, memberInfo, arguments!, converter, out error);
+
+							if (param == null)
+							{
+								return null;
+							}
+
+							continueChain = continueChain || !string.IsNullOrEmpty(param.Name) ||
+							                param.Extension != null && param.Extension.ChainPrecedence != -1;
+							chains.Add(param);
+						}
+
+						if (!continueChain)
+							break;
+					}
+
+					current = next;
+				}
+
+				return chains;
+			}
+
+			SqlExtensionParam? BuildExtensionParam<TContext>(TContext context, Expression extensionExpression, DBInstance dataContext, IExpressionEvaluator evaluator, SelectQueryClause query, MemberInfo member, Expression[] arguments, ConvertFunc<TContext> converter, out Expression? error)
+			{
+				var method = member as MethodInfo;
+				var type   = member.GetMemberType();
+				if (method != null)
+					type = method.ReturnType ?? type;
+				else if (member is PropertyInfo)
+					type = ((PropertyInfo)member).PropertyType;
+
+				var extension = new SqlExtension(type, Expression!, Precedence, ChainPrecedence, IsAggregate, IsWindowFunction, IsPure, IsPredicate, IsNullable, _canBeNull);
+
+				SqlExtensionParam? result = null;
+
+				if (method != null)
+				{
+					var parameters = method.GetParameters();
+
+					var genericDefinition        = method.IsGenericMethod ? method.GetGenericMethodDefinition() : method;
+					var templateParameters       = genericDefinition.GetParameters();
+					var templateGenericArguments = genericDefinition.GetGenericArguments();
+					var descriptorMapping        = new Dictionary<Type, EntityColumn?>();
+
+					for (var i = 0; i < parameters.Length; i++)
+					{
+						var arg   = arguments[i];
+						var param = parameters[i];
+
+						bool? inlineParameters = null;
+
+						var names = new HashSet<string>();
+						foreach (var a in param.GetAttributes<ExprParameterAttribute>())
+						{
+							if (a.DoNotParameterize)
+								inlineParameters = true;
+
+							names.Add(a.Name ?? param.Name!);
+						}
+
+						if (names.Count > 0)
+						{
+							if (method.IsGenericMethod)
+							{
+								var templateParam  = templateParameters[i];
+								var elementType    = templateParam.ParameterType!;
+								var argElementType = param.ParameterType;
+								descriptorMapping.TryGetValue(elementType, out var descriptor);
+
+								Expression[] sqlExpressions;
+								if (arg is NewArrayExpression arrayInit)
+								{
+									sqlExpressions = new Expression[arrayInit.Expressions.Count];
+									for (var j = 0; j < sqlExpressions.Length; j++)
+										sqlExpressions[j] = converter(context, arrayInit.Expressions[j], descriptor, inlineParameters);
+								}
+								else
+								{
+									var callDescriptor = descriptor;
+
+									if (callDescriptor != null && callDescriptor.UnderType != arg.Type && !(callDescriptor.UnderType.IsAssignableFrom(arg.Type) || arg.Type.IsAssignableFrom(callDescriptor.UnderType)))
+									{
+										callDescriptor = null;
+									}
+
+									var sqlExpression = converter(context, arg, callDescriptor, inlineParameters);
+									sqlExpressions = new[] { sqlExpression };
+								}
+
+								if (descriptor == null)
+								{
+									descriptor = sqlExpressions.OfType<SqlPlaceholderExpression>().Select(p => QueryHelper.GetColumnDescriptor(p.Sql)).FirstOrDefault(static d => d != null);
+									if (descriptor != null)
+									{
+										foreach (var pair
+										         in TypeHelper.EnumTypeRemapping(elementType, argElementType, templateGenericArguments))
+										{
+#if NET6_0_OR_GREATER
+											descriptorMapping.TryAdd(pair.Item1, descriptor);
+#else
+											if (!descriptorMapping.ContainsKey(pair.Item1))
+												descriptorMapping.Add(pair.Item1, descriptor);
+#endif
+										}
+									}
+								}
+
+								foreach (var name in names)
+								foreach (var expr in sqlExpressions)
+								{
+									if (expr is not SqlPlaceholderExpression placeholder)
+									{
+										error = expr;
+										return null;
+									}
+
+									extension.AddParameter(name!, placeholder.Sql);
+								}
+							}
+							else
+							{
+								Expression?   sqlExpression  = null;
+								Expression[]? sqlExpressions = null;
+								if (arg is NewArrayExpression arrayInit)
+								{
+									sqlExpressions = new Expression[arrayInit.Expressions.Count];
+									for (var j = 0; j < sqlExpressions.Length; j++)
+										sqlExpressions[j] = converter(context, arrayInit.Expressions[j], null, inlineParameters);
+								}
+								else
+									sqlExpression = converter(context, arg, null, inlineParameters);
+
+								foreach (var name in names)
+									if (sqlExpressions != null)
+									{
+										foreach (var sqlExpr in sqlExpressions)
+										{
+											if (sqlExpr is not SqlPlaceholderExpression placeholder)
+											{
+												error = sqlExpr;
+												return null;
+											}
+											extension.AddParameter(name!, placeholder.Sql);
+										}
+									}
+									else
+									{
+										if (sqlExpression is not SqlPlaceholderExpression placeholder)
+										{
+											error = sqlExpression;
+											return null;
+										}
+										extension.AddParameter(name!, placeholder.Sql);
+									}
+							}
+						}
+					}
+				}
+
+				if (AppendNullsPositionSuffix && method is MethodInfo orderMethod)
+					AppendNullsPositionSuffixToExtension(evaluator, orderMethod, arguments, extension);
+
+				if (BuilderType != null)
+				{
+					var callBuilder = _builders.GetOrAdd(BuilderType, static t =>
+						{
+							if (Activator.CreateInstance(t)! is IExtensionCallBuilder res)
+								return res;
+
+							throw new ArgumentException(
+								$"Type '{t}' does not implement {nameof(IExtensionCallBuilder)} interface.");
+						}
+					);
+
+					var builder = new ExtensionBuilder<TContext>(context, evaluator, Configuration, BuilderValue, dataContext,
+						query, extension, converter, member, arguments, IsNullable, _canBeNull);
+
+					callBuilder.Build(builder);
+
+					if (!builder.IsConvertible)
+					{
+						error = extensionExpression;
+						return null;
+					}
+
+					result = builder.ResultExpression != null ?
+						new SqlExtensionParam(TokenName, builder.ResultExpression) :
+						new SqlExtensionParam(TokenName, builder.Extension);
+				}
+
+				error  =   null;
+				result ??= new SqlExtensionParam(TokenName, extension);
+
+				return result;
+			}
+
+			static void AppendNullsPositionSuffixToExtension(
+				IExpressionEvaluator evaluator,
+				MethodInfo method,
+				Expression[] arguments,
+				SqlExtension extension)
+			{
+				var parameters = method.GetParameters();
+				for (var i = 0; i < parameters.Length; i++)
+				{
+					if (parameters[i].ParameterType != typeof(SooFunctionExtension.NullsPosition))
+						continue;
+					if (parameters[i].GetCustomAttribute<SqlQueryDependentAttribute>() == null)
+						continue;
+
+					var nulls = (SooFunctionExtension.NullsPosition)evaluator.Evaluate(arguments[i])!;
+					extension.Expr += nulls switch
+					{
+						SooFunctionExtension.NullsPosition.First => " NULLS FIRST",
+						SooFunctionExtension.NullsPosition.Last  => " NULLS LAST",
+						_                   => string.Empty
+					};
+					break;
+				}
+			}
+
+			static IEnumerable<Expression> ExtractArray(Expression expression)
+			{
+				var array = (NewArrayExpression) expression;
+				return array.Expressions;
+			}
+
+			public static Expression BuildSqlExpression(SelectQueryClause query, SqlExtension root, Type systemType, int precedence,
+				SqlFlags flags, bool? canBeNull, IsNullableType isNullable)
+			{
+				var resolvedParams = new Dictionary<SqlExtensionParam, string?>();
+				var resolving      = new HashSet<SqlExtensionParam>();
+				var newParams      = new List<IExpWord>();
+
+				Expression? valueProviderError = null;
+
+				Func<object?, string, string?, string?>? valueProvider = null;
+				Stack<SqlExtension>                      current       = new Stack<SqlExtension>();
+
+				// TODO: implement context
+				valueProvider = (_, name, delimiter) =>
+				{
+					var found = root.GetParametersByName(name);
+					if (current.Count != 0)
+						found = current.Peek().GetParametersByName(name).Concat(found);
+					string? result = null;
+					foreach (var p in found)
+					{
+						if (resolvedParams.TryGetValue(p, out var paramValue))
+						{
+							result = paramValue;
+						}
+						else
+						{
+							if (resolving.Contains(p))
+								throw new InvalidOperationException("Circular reference");
+
+							resolving.Add(p);
+							var ext = p.Extension;
+							if (ext != null)
+							{
+								current.Push(ext);
+								paramValue = ResolveExpressionValues(_, ext.Expr, valueProvider!, out var error);
+								valueProviderError ??= error;
+								current.Pop();
+							}
+							else
+							{
+								if (p.Expression != null)
+								{
+									paramValue = string.Format(CultureInfo.InvariantCulture, "{{{0}}}", newParams.Count);
+									newParams.Add(p.Expression);
+								}
+							}
+
+							resolvedParams.Add(p, paramValue);
+
+							if (string.IsNullOrEmpty(paramValue))
+								continue;
+
+							if (!string.IsNullOrEmpty(result))
+								result += delimiter;
+							result += paramValue;
+						}
+
+						if (delimiter == null && !string.IsNullOrEmpty(result))
+							break;
+					}
+
+					return result;
+				};
+
+				var expr = ResolveExpressionValues(null, root.Expr, valueProvider, out var error);
+
+				if (valueProviderError != null)
+					return valueProviderError;
+
+				if (error != null)
+					return error;
+
+				var sqlExpression = new ExpressionWord(systemType, expr, precedence, flags,
+                    ToParametersNullabilityType(isNullable), canBeNull, newParams.ToArray());
+
+				// Placeholder path will be set later
+				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpression, System.Linq.Expressions.Expression.Default(systemType));
+			}
+
+			public override Expression GetExpression<TContext>(TContext context, DBInstance DB, IExpressionEvaluator evaluator, SelectQueryClause query, Expression expression, ConvertFunc<TContext> converter)
+			{
+				// chain starts from the tail
+				var chain  = BuildFunctionsChain(context, DB, evaluator, query, expression, converter, out var error);
+
+				if (chain == null)
+					return expression;
+
+				if (chain.Count == 0)
+					throw new InvalidOperationException($"No sequence found for expression '{expression}'");
+
+				var ordered = chain
+					.Select(static (c, i) => Tuple.Create(c, i))
+					.OrderByDescending(static t => t.Item1.Extension?.ChainPrecedence ?? int.MinValue)
+					.ThenByDescending(static t => t.Item2)
+					.Select(static t => t.Item1)
+					.ToArray();
+
+				var main    = ordered.FirstOrDefault(static c => c.Extension != null);
+
+				if (main == null)
+				{
+					var replaced = chain.Where(static c => c.Expression != null).ToArray();
+					if (replaced.Length == 0)
+						throw new InvalidOperationException($"Cannot find root sequence for expression '{expression}'");
+					else if (replaced.Length > 1)
+						throw new InvalidOperationException($"Multiple root sequences found for expression '{expression}'");
+
+					return ClauseSqlTranslator.CreatePlaceholder(query, replaced[0].Expression!, expression);
+				}
+
+				var mainExtension = main.Extension!;
+
+				// suggesting type
+				mainExtension.SystemType = expression.Type;
+
+				// calculating that extension is aggregate
+				var isAggregate  = ordered.Any(static c => c.Extension?.IsAggregate == true);
+				var isPure       = ordered.All(static c => c.Extension?.IsPure != false);
+				var isWindowFunc = ordered.Any(static c => c.Extension?.IsWindowFunction == true);
+				var isPredicate  = mainExtension.IsPredicate;
+
+				// calculating replacements
+				var replacementMap = ordered
+					.Where(c => c.Extension != mainExtension)
+					.Select(static (c, i) => Tuple.Create(c, i))
+					.GroupBy(static e => e.Item1.Name ?? "")
+					.Select(static g => new
+					{
+						Name = g.Key,
+						UnderName = g
+							.OrderByDescending(static e => e.Item1.Extension?.ChainPrecedence ?? int.MinValue)
+							.ThenBy(static e => e.Item2)
+							.Select(static e => e.Item1)
+							.ToArray()
+					})
+					.ToArray();
+
+				foreach (var c in replacementMap)
+				{
+					var first = c.UnderName[0];
+					if (c.Name.Length == 0 || first.Extension == null)
+					{
+						for (var i = 0; i < c.UnderName.Length; i++)
+						{
+							var e = c.UnderName[i];
+							mainExtension.AddParameter(e);
+						}
+					}
+					else
+					{
+						var firstPrecedence = first.Extension.ChainPrecedence;
+						mainExtension.AddParameter(first);
+						// append all replaced under superior
+						for (int i = 1; i < c.UnderName.Length; i++)
+						{
+							var item = c.UnderName[i];
+							if (firstPrecedence > (item.Extension?.ChainPrecedence ?? int.MinValue))
+								first.Extension.AddParameter(item);
+							else
+								mainExtension.AddParameter(item);
+						}
+					}
+				}
+
+				// TODO: Really not precise nullability calculation. In the future move to window functions to MemberTranslator
+				var canBeNull = mainExtension.CanBeNull;
+				if (canBeNull == null)
+				{
+					foreach (var c in ordered)
+					{
+						if (c.Extension != null && c.Extension.CanBeNull != null)
+						{
+							canBeNull = c.Extension.CanBeNull;
+							break;
+						}
+					}
+				}
+
+				//TODO: Precedence calculation
+				if (isWindowFunc)
+					WindowOverClauseRenderer.TryRewriteOverClause(mainExtension, DB.dialect.expression);
+
+				var res = BuildSqlExpression(query, mainExtension, mainExtension.SystemType,
+					mainExtension.Precedence,
+					(isAggregate  ? SqlFlags.IsAggregate      : SqlFlags.None) |
+					(isPure       ? SqlFlags.IsPure           : SqlFlags.None) |
+					(isPredicate  ? SqlFlags.IsPredicate      : SqlFlags.None) |
+					(isWindowFunc ? SqlFlags.IsWindowFunction : SqlFlags.None),
+					canBeNull, IsNullable);
+
+				return res;
+			}
+
+			public override string GetObjectID()
+			{
+				return $"{base.GetObjectID()}.{TokenName}.{IdentifierBuilder.GetObjectID(BuilderType)}.{BuilderValue}.{ChainPrecedence}.";
+			}
+
+		}
+	}
+}

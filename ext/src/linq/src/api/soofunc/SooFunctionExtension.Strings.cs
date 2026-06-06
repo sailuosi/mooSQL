@@ -13,13 +13,13 @@ namespace mooSQL.linq
     using mooSQL.data.model;
     using SqlQuery;
 
-	public static partial class DbFunc
+	public static partial class SooFunctionExtension
 	{
 		#region StringAggregate
 
-		sealed class StringAggSql2017Builder : IExtensionCallBuilder
+		sealed class StringAggSql2017Builder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				IExpWord data;
 				if (builder.Arguments.Length == 2)
@@ -45,9 +45,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		sealed class StringAggSapHanaBuilder : IExtensionCallBuilder
+		sealed class StringAggSapHanaBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var separator = builder.GetExpression("separator");
 
@@ -167,14 +167,14 @@ namespace mooSQL.linq
 
 		#region ConcatStrings
 
-		sealed class CommonConcatWsArgumentsBuilder : IExtensionCallBuilder
+		sealed class CommonConcatWsArgumentsBuilder : DbFunc.IExtensionCallBuilder
 		{
 			static ExpressionWord IsNullExpression(string isNullFormat, IExpWord value)
 			{
 				return new ExpressionWord(typeof(string), isNullFormat, value);
 			}
 
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var arguments = (NewArrayExpression)builder.Arguments[1];
 				if (arguments.Expressions.Count == 0 && builder.BuilderValue != null)
@@ -196,13 +196,13 @@ namespace mooSQL.linq
 			}
 		}
 
-		abstract class BaseEmulationConcatWsBuilder : IExtensionCallBuilder
+		abstract class BaseEmulationConcatWsBuilder : DbFunc.IExtensionCallBuilder
 		{
 			protected abstract ExpressionWord IsNullExpression(IExpWord value);
 			protected abstract ExpressionWord StringConcatExpression(IExpWord value1, IExpWord value2);
 			protected abstract ExpressionWord TruncateExpression(IExpWord value, IExpWord separator);
 
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var separator = builder.GetExpression(0)!;
 				var arguments = (NewArrayExpression)builder.Arguments[1];

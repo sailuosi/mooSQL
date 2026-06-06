@@ -37,9 +37,9 @@ public class ExtLinqPhaseFGETests : IClassFixture<LinqSqliteTestFixture>
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(collate));
 
-        var stringAgg = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .First(m => m.Name == nameof(DbFunc.StringAggregate) && m.IsGenericMethodDefinition);
-        Assert.NotEmpty(stringAgg.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+        var stringAgg = typeof(SooFunctionExtension).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(SooFunctionExtension.StringAggregate) && m.IsGenericMethodDefinition);
+        Assert.NotEmpty(stringAgg.GetCustomAttributes(typeof(SooFunctionExtension.ExtensionAttribute), inherit: true));
     }
 
     [Fact]

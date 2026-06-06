@@ -21,11 +21,11 @@ namespace mooSQL.linq
     using SqlProvider;
 	using SqlQuery;
 
-	public partial class DbFunc
+	public static partial class SooFunctionExtension
 	{
-		private sealed class FieldsExprBuilderDirect : IExtensionCallBuilder
+		private sealed class FieldsExprBuilderDirect : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var fieldsExpr = (LambdaExpression)builder.Arguments[1].Unwrap();
 				var qualified = builder.Arguments.Length <= 2 || builder.GetValue<bool>(2);
@@ -47,9 +47,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		private sealed class FieldNameBuilderDirect : IExtensionCallBuilder
+		private sealed class FieldNameBuilderDirect : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var fieldExpr    = (LambdaExpression) builder.Arguments[1].Unwrap();
 				var qualified    = builder.Arguments.Length <= 2 || builder.GetValue<bool>(2);
@@ -73,9 +73,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		sealed class FieldNameBuilder : IExtensionCallBuilder
+		sealed class FieldNameBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var fieldExpr    = builder.GetExpression(0)!;
 				var qualified    = builder.Arguments.Length <= 1 || builder.GetValue<bool>(1);
@@ -276,9 +276,9 @@ namespace mooSQL.linq
 			public override TableOptions TableOptions => _table.TableOptions;
 		}
 
-		private sealed class TableNameBuilderDirect : IExtensionCallBuilder
+		private sealed class TableNameBuilderDirect : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var tableExpr    = builder.EvaluateExpression(builder.Arguments[0]);
 				var tableType    = ((MethodInfo)builder.Member).GetGenericArguments()[0];
@@ -334,9 +334,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		private sealed class TableNameBuilder : IExtensionCallBuilder
+		private sealed class TableNameBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var tableExpr = builder.GetExpression(0);
 				var sqlTable  = QueryHelper.ExtractSqlTable(tableExpr);
@@ -373,17 +373,17 @@ namespace mooSQL.linq
 			}
 		}
 
-		private sealed class TableSourceBuilder : IExtensionCallBuilder
+		private sealed class TableSourceBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				builder.ResultExpression = AliasPlaceholderWord.Instance;
 			}
 		}
 
-		private sealed class TableOrColumnAsFieldBuilder : IExtensionCallBuilder
+		private sealed class TableOrColumnAsFieldBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var tableOrColumnExpr = builder.GetExpression(0)!;
 
@@ -393,9 +393,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		private sealed class TableAsFieldBuilder : IExtensionCallBuilder
+		private sealed class TableAsFieldBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var tableExpr = builder.GetExpression(0)!;
 
@@ -413,7 +413,7 @@ namespace mooSQL.linq
 
 		static Expression<Func<TEntity, string, TColumn>> TableFieldIml<TEntity, TColumn>()
 		{
-			return (entity, fieldName) => Property<TColumn>(entity, fieldName);
+			return (entity, fieldName) => DbFunc.Property<TColumn>(entity, fieldName);
 		}
 
 		[Extension("", BuilderType = typeof(TableOrColumnAsFieldBuilder))]
@@ -519,9 +519,9 @@ namespace mooSQL.linq
 			throw new SooQueryException("'DbFunc.TableExpr' is server side only method and used only for generating custom SQL parts");
 		}
 
-		class AliasExprBuilder : IExtensionCallBuilder
+		class AliasExprBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				builder.ResultExpression = AliasPlaceholderWord.Instance;
 			}
@@ -545,9 +545,9 @@ namespace mooSQL.linq
 		[Extension(builderType: typeof(AliasExprBuilder), ServerSideOnly = true)]
 		public static IExpWord AliasExpr() => AliasPlaceholderWord.Instance;
 
-		sealed class ExprBuilder : IExtensionCallBuilder
+		sealed class ExprBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				Linq.Builder.TableRawSqlHelper.PrepareRawSqlArguments(builder.Arguments[0],
 					builder.Arguments.Length > 1 ? builder.Arguments[1] : null,
@@ -566,7 +566,7 @@ namespace mooSQL.linq
 						format,
                         PrecedenceLv.Primary,
 						memberType == typeof(bool) ? SqlFlags.IsPredicate | SqlFlags.IsPure : SqlFlags.IsPure,
-                        ExpressionAttribute.ToParametersNullabilityType(builder.IsNullable),
+                        DbFunc.ExpressionAttribute.ToParametersNullabilityType(builder.IsNullable),
 						builder.CanBeNull,
 						sqlArguments!);
 				}

@@ -32,6 +32,11 @@ namespace mooSQL.data
         public override string dateDiffDay(string start, string end)
             => $"TIMESTAMPDIFF(DAY, {start}, {end})";
 
+        public override string charIndex(string substring, string str) => $"LOCATE({substring}, {str})";
+
+        public override string charIndex(string substring, string str, string start)
+            => $"LOCATE({substring}, {str}, {start})";
+
         public override string dateDiffHour(string start, string end)
             => $"TIMESTAMPDIFF(HOUR, {start}, {end})";
 

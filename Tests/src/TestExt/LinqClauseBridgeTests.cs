@@ -200,7 +200,7 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         var expr = db.useQueryable<SQLiteTestUser>()
-            .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
+            .Select(u => SooFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);

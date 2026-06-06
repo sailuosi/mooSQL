@@ -30,6 +30,8 @@ internal static class DbFuncRegistryBootstrap
         RegisterAnalyticRow(registry, expr);
         RegisterCollate(registry);
         RegisterDateDiff(registry);
+        RegisterMath(registry, expr);
+        RegisterCharIndex(registry, expr);
     }
 
     static void RegisterLike(DbFuncRegistry registry, SQLExpression expr)
@@ -176,7 +178,7 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterAggregates(DbFuncRegistry registry)
     {
-        var ext = typeof(DbFunc.ISqlExtension);
+        var ext = typeof(SooFunctionExtension.ISqlExtension);
         static DbFuncExpressionEntry Agg(string template) => new()
         {
             SqlTemplate = template,
@@ -185,8 +187,8 @@ internal static class DbFuncRegistryBootstrap
             IsWindowFunction = true
         };
 
-        var count = typeof(AnalyticFunctions).GetMethod(
-            nameof(AnalyticFunctions.Count),
+        var count = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.Count),
             BindingFlags.Public | BindingFlags.Static,
             null,
             new[] { ext },
@@ -194,20 +196,20 @@ internal static class DbFuncRegistryBootstrap
         if (count != null)
             registry.Register(count, Agg("COUNT(*)"));
 
-        var countExpr = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Count) && m.IsGenericMethodDefinition
+        var countExpr = typeof(SooFunctionExtension).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(SooFunctionExtension.Count) && m.IsGenericMethodDefinition
                 && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext);
         if (countExpr != null)
             registry.Register(countExpr, Agg("COUNT({0})"));
 
-        var sum = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Sum) && m.IsGenericMethodDefinition
+        var sum = typeof(SooFunctionExtension).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(SooFunctionExtension.Sum) && m.IsGenericMethodDefinition
                 && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext);
         if (sum != null)
             registry.Register(sum, Agg("SUM({0})"));
 
-        var average = typeof(AnalyticFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == nameof(AnalyticFunctions.Average) && m.IsGenericMethodDefinition
+        var average = typeof(SooFunctionExtension).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(SooFunctionExtension.Average) && m.IsGenericMethodDefinition
                 && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == ext
                 && m.GetParameters()[1].ParameterType == typeof(object));
         if (average != null)
@@ -240,11 +242,11 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)
     {
-        var rowNumber = typeof(AnalyticFunctions).GetMethod(
-            nameof(AnalyticFunctions.RowNumber),
+        var rowNumber = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.RowNumber),
             BindingFlags.Public | BindingFlags.Static,
             null,
-            new[] { typeof(DbFunc.ISqlExtension) },
+            new[] { typeof(SooFunctionExtension.ISqlExtension) },
             null);
         if (rowNumber == null)
             return;
@@ -271,6 +273,65 @@ internal static class DbFuncRegistryBootstrap
         registry.Register(
             collate,
             new DbFuncExpressionEntry { PreferServerSide = true, IsCollatePredicate = true });
+    }
+
+    static void RegisterMath(DbFuncRegistry registry, SQLExpression expr)
+    {
+        var templates = new Dictionary<string, Func<SQLExpression, string>>(System.StringComparer.Ordinal)
+        {
+            [nameof(DbFunc.Abs)] = e => e.abs("{0}"),
+            [nameof(DbFunc.Acos)] = e => e.acos("{0}"),
+            [nameof(DbFunc.Asin)] = e => e.asin("{0}"),
+            [nameof(DbFunc.Atan)] = e => e.atan("{0}"),
+            [nameof(DbFunc.Ceiling)] = e => e.ceiling("{0}"),
+            [nameof(DbFunc.Cos)] = e => e.cos("{0}"),
+            [nameof(DbFunc.Cosh)] = e => e.cosh("{0}"),
+            [nameof(DbFunc.Exp)] = e => e.exp("{0}"),
+            [nameof(DbFunc.Floor)] = e => e.floor("{0}"),
+            [nameof(DbFunc.Log)] = e => e.log("{0}"),
+            [nameof(DbFunc.Log10)] = e => e.log10("{0}"),
+            [nameof(DbFunc.Sign)] = e => e.sign("{0}"),
+            [nameof(DbFunc.Sin)] = e => e.sin("{0}"),
+            [nameof(DbFunc.Sinh)] = e => e.sinh("{0}"),
+            [nameof(DbFunc.Sqrt)] = e => e.sqrt("{0}"),
+            [nameof(DbFunc.Tan)] = e => e.tan("{0}"),
+            [nameof(DbFunc.Tanh)] = e => e.tanh("{0}"),
+        };
+
+        foreach (var method in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static))
+        {
+            if (method.DeclaringType != typeof(DbFunc) || method.GetParameters().Length != 1)
+                continue;
+            if (!templates.TryGetValue(method.Name, out var templateFactory))
+                continue;
+
+            registry.Register(
+                method,
+                new DbFuncExpressionEntry { SqlTemplate = templateFactory(expr), PreferServerSide = true });
+        }
+    }
+
+    static void RegisterCharIndex(DbFuncRegistry registry, SQLExpression expr)
+    {
+        var twoArg = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.CharIndex),
+            new[] { typeof(string), typeof(string) });
+        if (twoArg != null)
+        {
+            registry.Register(
+                twoArg,
+                new DbFuncExpressionEntry { SqlTemplate = expr.charIndex("{0}", "{1}"), PreferServerSide = true });
+        }
+
+        var threeArg = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.CharIndex),
+            new[] { typeof(string), typeof(string), typeof(int?) });
+        if (threeArg != null)
+        {
+            registry.Register(
+                threeArg,
+                new DbFuncExpressionEntry { SqlTemplate = expr.charIndex("{0}", "{1}", "{2}"), PreferServerSide = true });
+        }
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)

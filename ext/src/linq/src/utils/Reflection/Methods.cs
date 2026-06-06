@@ -170,11 +170,11 @@ namespace mooSQL.linq.Reflection
 
 			public static class GroupBy
 			{
-				public static readonly MethodInfo Rollup       = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.Rollup<object>(null!));
-				public static readonly MethodInfo Cube         = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.Cube<object>(null!));
-				public static readonly MethodInfo GroupingSets = MemberHelper.MethodOfGeneric<linq.DbFunc.IGroupBy>(g => g.GroupingSets<object>(null!));
+				public static readonly MethodInfo Rollup       = MemberHelper.MethodOfGeneric<linq.SooFunctionExtension.IGroupBy>(g => g.Rollup<object>(null!));
+				public static readonly MethodInfo Cube         = MemberHelper.MethodOfGeneric<linq.SooFunctionExtension.IGroupBy>(g => g.Cube<object>(null!));
+				public static readonly MethodInfo GroupingSets = MemberHelper.MethodOfGeneric<linq.SooFunctionExtension.IGroupBy>(g => g.GroupingSets<object>(null!));
 
-				public static readonly MethodInfo Grouping     = MemberHelper.MethodOf(() => linq.DbFunc.Grouping(null!));
+				public static readonly MethodInfo Grouping     = MemberHelper.MethodOf(() => linq.SooFunctionExtension.Grouping(null!));
 			}
 
 			public static class SqlExt

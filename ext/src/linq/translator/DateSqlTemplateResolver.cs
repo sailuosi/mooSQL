@@ -2,7 +2,7 @@ using mooSQL.data;
 
 namespace mooSQL.linq.translator;
 
-/// <summary>DatePart / DateAdd 方言 SQL 片段解析（Pure <see cref="SQLExpression"/>）。</summary>
+/// <summary>DatePart / DateAdd / DateDiff 方言 SQL 片段解析（Pure <see cref="SQLExpression"/>）。</summary>
 internal static class DateSqlTemplateResolver
 {
     public static string? ResolveDatePartFormat(SQLExpression expression, DbFunc.DateParts part)
@@ -42,6 +42,25 @@ internal static class DateSqlTemplateResolver
             DbFunc.DateParts.Minute       => expression.dateAddMinute(amount, date),
             DbFunc.DateParts.Second       => expression.dateAddSecond(amount, date),
             DbFunc.DateParts.Millisecond  => expression.dateAddMillisecond(amount, date),
+            _                             => null
+        };
+    }
+
+    public static string? ResolveDateDiffFormat(SQLExpression expression, DbFunc.DateParts part)
+    {
+        const string start = "{0}";
+        const string end = "{1}";
+        return part switch
+        {
+            DbFunc.DateParts.Year         => expression.dateDiffYear(start, end),
+            DbFunc.DateParts.Quarter      => expression.dateDiffQuarter(start, end),
+            DbFunc.DateParts.Month        => expression.dateDiffMonth(start, end),
+            DbFunc.DateParts.Week         => expression.dateDiffWeek(start, end),
+            DbFunc.DateParts.Day          => expression.dateDiffDay(start, end),
+            DbFunc.DateParts.Hour         => expression.dateDiffHour(start, end),
+            DbFunc.DateParts.Minute       => expression.dateDiffMinute(start, end),
+            DbFunc.DateParts.Second       => expression.dateDiffSecond(start, end),
+            DbFunc.DateParts.Millisecond  => expression.dateDiffMillisecond(start, end),
             _                             => null
         };
     }

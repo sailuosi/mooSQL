@@ -8,7 +8,7 @@ using mooSQL.linq.SqlQuery;
 using mooSQL.linq.Common.Internal;
 using mooSQL.data.model;
 
-partial class DbFunc
+public static partial class SooFunctionExtension
 {
 	public static partial class SqlRow
 	{

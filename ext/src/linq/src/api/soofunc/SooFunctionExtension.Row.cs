@@ -7,11 +7,11 @@ namespace mooSQL.linq
     using mooSQL.data.model.affirms;
     using SqlQuery;
 
-	partial class DbFunc
+	public static partial class SooFunctionExtension
 	{
-		sealed class RowBuilder : IExtensionCallBuilder
+		sealed class RowBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var args = Array.ConvertAll(builder.Arguments, x => builder.ConvertExpressionToSql(x));
 
@@ -25,9 +25,9 @@ namespace mooSQL.linq
 			}
 		}
 
-		sealed class OverlapsBuilder : IExtensionCallBuilder
+		sealed class OverlapsBuilder : DbFunc.IExtensionCallBuilder
 		{
-			public void Build(ISqExtensionBuilder builder)
+			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
 				var args = Array.ConvertAll(builder.Arguments, x => builder.ConvertExpressionToSql(x));
 

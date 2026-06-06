@@ -417,9 +417,9 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var rowNumber = typeof(AnalyticFunctions).GetMethod(
-            nameof(AnalyticFunctions.RowNumber),
-            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var rowNumber = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.RowNumber),
+            new[] { typeof(SooFunctionExtension.ISqlExtension) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(rowNumber);
         Assert.NotNull(entry);
         Assert.Contains("ROW_NUMBER", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
@@ -602,9 +602,9 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var count = typeof(AnalyticFunctions).GetMethod(
-            nameof(AnalyticFunctions.Count),
-            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var count = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.Count),
+            new[] { typeof(SooFunctionExtension.ISqlExtension) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(count);
         Assert.NotNull(entry);
         Assert.Contains("COUNT", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
@@ -616,8 +616,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var sum = typeof(AnalyticFunctions).GetMethods()
-            .First(m => m.Name == nameof(AnalyticFunctions.Sum) && m.IsGenericMethodDefinition);
+        var sum = typeof(SooFunctionExtension).GetMethods()
+            .First(m => m.Name == nameof(SooFunctionExtension.Sum) && m.IsGenericMethodDefinition);
         var entry = db.dialect.dbFuncRegistry.Resolve(sum);
         Assert.NotNull(entry);
         Assert.Contains("SUM", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
@@ -629,8 +629,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var avg = typeof(AnalyticFunctions).GetMethods()
-            .First(m => m.Name == nameof(AnalyticFunctions.Average) && m.IsGenericMethodDefinition
+        var avg = typeof(SooFunctionExtension).GetMethods()
+            .First(m => m.Name == nameof(SooFunctionExtension.Average) && m.IsGenericMethodDefinition
                 && m.GetParameters()[1].ParameterType == typeof(object));
         var entry = db.dialect.dbFuncRegistry.Resolve(avg);
         Assert.NotNull(entry);
@@ -760,7 +760,6 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
             new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(dateDiff);
         Assert.NotNull(entry);
-        Assert.False(entry!.PreferExtensionAttribute);
         Assert.True(entry.IsDateDiffPredicate);
     }
 
@@ -797,12 +796,12 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Fact]
     public void Matrix_Analytic_OverChain_RequiresExtensionAttributes()
     {
-        var overMethod = typeof(AnalyticFunctions.IAnalyticFunctionWithoutWindow<long>)
+        var overMethod = typeof(SooFunctionExtension.IAnalyticFunctionWithoutWindow<long>)
             .GetMethods()
-            .First(m => m.Name == nameof(AnalyticFunctions.IAnalyticFunctionWithoutWindow<long>.Over));
+            .First(m => m.Name == nameof(SooFunctionExtension.IAnalyticFunctionWithoutWindow<long>.Over));
         Assert.NotEmpty(overMethod.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
 
-        var orderByMethod = typeof(AnalyticFunctions.INeedsOrderByOnly<long>)
+        var orderByMethod = typeof(SooFunctionExtension.INeedsOrderByOnly<long>)
             .GetMethods()
             .First(m => m.Name == "OrderBy" && m.GetParameters().Length == 1);
         var orderItemAttrs = orderByMethod.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
@@ -846,12 +845,12 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Fact]
     public void Matrix_RegistryFirst_ExtensionRequired()
     {
-        var grouping = typeof(DbFunc).GetMethod(nameof(DbFunc.Grouping))!;
+        var grouping = typeof(SooFunctionExtension).GetMethod(nameof(SooFunctionExtension.Grouping))!;
         Assert.NotEmpty(grouping.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
 
-        var rowNumber = typeof(AnalyticFunctions).GetMethod(
-            nameof(AnalyticFunctions.RowNumber),
-            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var rowNumber = typeof(SooFunctionExtension).GetMethod(
+            nameof(SooFunctionExtension.RowNumber),
+            new[] { typeof(SooFunctionExtension.ISqlExtension) })!;
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(rowNumber));
@@ -880,7 +879,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var sql = LinqStatementCompiler.GetSqlText(
             db,
             db.useQueryable<SQLiteTestUser>()
-                .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id, DbFunc.NullsPosition.First).ToValue())
+                .Select(u => SooFunc.Ext!.RowNumber().Over().OrderBy(u.Id, SooFunctionExtension.NullsPosition.First).ToValue())
                 .Expression);
         Assert.Contains("NULLS FIRST", sql, System.StringComparison.OrdinalIgnoreCase);
     }
@@ -888,8 +887,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Fact]
     public void Matrix_Analytic_OrderItemBuilder_Removed()
     {
-        Assert.Null(typeof(AnalyticFunctions).GetNestedType("OrderItemBuilder", System.Reflection.BindingFlags.NonPublic));
-        var orderByWithNulls = typeof(AnalyticFunctions.INeedsOrderByOnly<long>)
+        Assert.Null(typeof(SooFunctionExtension).GetNestedType("OrderItemBuilder", System.Reflection.BindingFlags.NonPublic));
+        var orderByWithNulls = typeof(SooFunctionExtension.INeedsOrderByOnly<long>)
             .GetMethods()
             .First(m => m.Name == "OrderBy" && m.GetParameters().Length == 2);
         var orderItemExt = orderByWithNulls.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
@@ -937,7 +936,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var sql = LinqStatementCompiler.GetSqlText(
             db,
             db.useQueryable<SQLiteTestUser>()
-                .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
+                .Select(u => SooFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
                 .Expression);
         Assert.Contains("ROW_NUMBER", sql, System.StringComparison.OrdinalIgnoreCase);
         Assert.Contains("OVER", sql, System.StringComparison.OrdinalIgnoreCase);
@@ -987,5 +986,37 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
             "ROW_NUMBER() OVER (PARTITION BY [u].[DeptId] ORDER BY [u].[Id] NULLS FIRST)",
             clause.RenderWithFunction("ROW_NUMBER()", dialect.expression),
             System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Math_Abs_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var abs = typeof(DbFunc).GetMethod(nameof(DbFunc.Abs), new[] { typeof(int?) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(abs);
+        Assert.NotNull(entry);
+        Assert.Contains("ABS", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(typeof(SQLiteDialect), "INSTR")]
+    [InlineData(typeof(MySQLDialect), "LOCATE")]
+    [InlineData(typeof(NpgsqlDialect), "STRPOS")]
+    [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
+    public void Matrix_CharIndex_RegistryTemplate(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.charIndex("{0}", "{1}");
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_SooFunc_Ext_ForwardsToSooFunctionExtension()
+    {
+        Assert.Same(SooFunctionExtension.Ext, SooFunc.Ext);
+#pragma warning disable CS0618
+        Assert.Same(SooFunc.Ext, DbFunc.Ext);
+#pragma warning restore CS0618
     }
 }

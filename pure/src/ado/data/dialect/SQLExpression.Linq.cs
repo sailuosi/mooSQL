@@ -163,5 +163,31 @@ namespace mooSQL.data
             => string.IsNullOrEmpty(overBody)
                 ? $"{functionSql} OVER ()"
                 : $"{functionSql} OVER ({overBody})";
+
+        /// <summary>单参数数学函数（registry-first 默认 SQL Server 风格）。</summary>
+        public virtual string abs(string expr) => $"ABS({expr})";
+        public virtual string acos(string expr) => $"ACOS({expr})";
+        public virtual string asin(string expr) => $"ASIN({expr})";
+        public virtual string atan(string expr) => $"ATAN({expr})";
+        public virtual string ceiling(string expr) => $"CEILING({expr})";
+        public virtual string cos(string expr) => $"COS({expr})";
+        public virtual string cosh(string expr) => $"COSH({expr})";
+        public virtual string exp(string expr) => $"EXP({expr})";
+        public virtual string floor(string expr) => $"FLOOR({expr})";
+        public virtual string log(string expr) => $"LOG({expr})";
+        public virtual string log10(string expr) => $"LOG10({expr})";
+        public virtual string sign(string expr) => $"SIGN({expr})";
+        public virtual string sin(string expr) => $"SIN({expr})";
+        public virtual string sinh(string expr) => $"SINH({expr})";
+        public virtual string sqrt(string expr) => $"SQRT({expr})";
+        public virtual string tan(string expr) => $"TAN({expr})";
+        public virtual string tanh(string expr) => $"TANH({expr})";
+
+        /// <summary>CharIndex(substring, str) — 1-based；方言 override 于 Express。</summary>
+        public virtual string charIndex(string substring, string str) => $"CHARINDEX({substring}, {str})";
+
+        /// <summary>CharIndex(substring, str, start) — 1-based start。</summary>
+        public virtual string charIndex(string substring, string str, string start)
+            => $"CHARINDEX({substring}, {str}, {start})";
     }
 }

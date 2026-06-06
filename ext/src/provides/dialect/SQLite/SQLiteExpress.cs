@@ -35,6 +35,11 @@ namespace mooSQL.data
         public override string dateDiffDay(string start, string end)
             => $"round((julianday({end}) - julianday({start})))";
 
+        public override string charIndex(string substring, string str) => $"INSTR({str}, {substring})";
+
+        public override string charIndex(string substring, string str, string start)
+            => $"(CASE WHEN {start} < 1 THEN 0 ELSE INSTR(SUBSTR({str}, {start}), {substring}) + {start} - 1 END)";
+
         public override string dateDiffHour(string start, string end)
             => $"round((julianday({end}) - julianday({start})) * 24)";
 

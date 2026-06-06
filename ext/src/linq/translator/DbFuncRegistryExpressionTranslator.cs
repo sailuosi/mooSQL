@@ -94,14 +94,6 @@ internal static class DbFuncRegistryExpressionTranslator
                 return collateSql;
         }
 
-        if (entry.PreferExtensionAttribute)
-        {
-            var extAttr = mc.Method.GetExpressionAttribute(db);
-            if (extAttr != null)
-                return TranslateWithAttribute(builder, context, flags, extAttr, mc, checkAggregateRoot);
-            return null;
-        }
-
         if (entry.SqlTemplate == null)
             return null;
 
@@ -123,7 +115,6 @@ internal static class DbFuncRegistryExpressionTranslator
         DbFuncExpressionEntry entry)
     {
         if (entry.SqlTemplate == null
-            || entry.PreferExtensionAttribute
             || entry.IsDateDiffPredicate
             || entry.IsDateAddPredicate
             || entry.IsDatePartPredicate
@@ -165,7 +156,7 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
-        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
+        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate
                               && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate && !entry.IsCollatePredicate))
             return null;
 
@@ -248,7 +239,7 @@ internal static class DbFuncRegistryExpressionTranslator
         if (startExpr is not SqlPlaceholderExpression startPh || endExpr is not SqlPlaceholderExpression endPh)
             return null;
 
-        var format = ResolveDateDiffFormat(db.dialect.expression, part);
+        var format = DateSqlTemplateResolver.ResolveDateDiffFormat(db.dialect.expression, part);
         if (format == null)
             return null;
 
@@ -410,25 +401,6 @@ internal static class DbFuncRegistryExpressionTranslator
 
         part = default;
         return false;
-    }
-
-    static string? ResolveDateDiffFormat(SQLExpression expression, DbFunc.DateParts part)
-    {
-        const string start = "{0}";
-        const string end = "{1}";
-        return part switch
-        {
-            DbFunc.DateParts.Year         => expression.dateDiffYear(start, end),
-            DbFunc.DateParts.Quarter      => expression.dateDiffQuarter(start, end),
-            DbFunc.DateParts.Month        => expression.dateDiffMonth(start, end),
-            DbFunc.DateParts.Week         => expression.dateDiffWeek(start, end),
-            DbFunc.DateParts.Day          => expression.dateDiffDay(start, end),
-            DbFunc.DateParts.Hour         => expression.dateDiffHour(start, end),
-            DbFunc.DateParts.Minute       => expression.dateDiffMinute(start, end),
-            DbFunc.DateParts.Second       => expression.dateDiffSecond(start, end),
-            DbFunc.DateParts.Millisecond  => expression.dateDiffMillisecond(start, end),
-            _                             => null
-        };
     }
 
     static Expression TranslateBetween(

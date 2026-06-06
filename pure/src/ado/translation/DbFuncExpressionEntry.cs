@@ -17,9 +17,7 @@ namespace mooSQL.data.translation
         public bool IsWindowFunction { get; init; }
         /// <summary>聚合函数（COUNT/SUM/AVG 等 ISqlExtension 链）。</summary>
         public bool IsAggregate { get; init; }
-        /// <summary>翻译时委托至方法上的 <see cref="DbFunc.ExtensionAttribute"/>（BuilderType 等），而非 SqlTemplate。</summary>
-        public bool PreferExtensionAttribute { get; init; }
-        /// <summary>DateDiff(part, start, end) — 由 <see cref="SQLExpression"/> 方言片段翻译，失败时回退 Extension。</summary>
+        /// <summary>DateDiff(part, start, end) — 由 <see cref="SQLExpression"/> 方言片段翻译。</summary>
         public bool IsDateDiffPredicate { get; init; }
         /// <summary>NullIf(value, compareTo) — 由 <see cref="SQLExpression.nullIf"/> 方言片段翻译。</summary>
         public bool IsNullIfPredicate { get; init; }
@@ -31,5 +29,7 @@ namespace mooSQL.data.translation
         public bool IsDatePartPredicate { get; init; }
         /// <summary>Collate(expr, collation) — 由 <see cref="SQLExpression.collate"/> / collateDb2 方言片段翻译。</summary>
         public bool IsCollatePredicate { get; init; }
+        /// <summary>窗口 OVER 子句 — 由 <see cref="WindowOverClause"/> IR 渲染（Phase F P2/P3）。</summary>
+        public bool IsWindowOverPredicate { get; init; }
     }
 }

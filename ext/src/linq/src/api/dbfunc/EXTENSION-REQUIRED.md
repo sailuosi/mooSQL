@@ -1,43 +1,21 @@
-# DbFunc — 仍须 `[Extension]` / 属性链的 API
+# DbFunc — registry-first 标量 API 边界
 
-Phase D/E **registry-first** 目标：常用谓词与标量函数走 `Dialect.dbFuncRegistry` + `SQLExpression.Linq`；下列 API 因链式语法、多方言 Builder 或窗口帧，**短期保留** `[DbFunc.Extension]`。
+Phase D/E：**标量 / 谓词** 走 `Dialect.dbFuncRegistry` + `SQLExpression.Linq`（无方法级 `[Extension]`）。
 
-## Registry-first（无方法级 `[Extension]` / `[Expression]`）
+**Extension 链函数族** 已迁至 [`SooFunctionExtension`](../soofunc/EXTENSION-REQUIRED.md)（入口 `SooFunc.Ext`）。
 
-| 函数 | Bootstrap 入口 | 方言片段 |
-|------|----------------|----------|
-| Like / Like+Escape | `SqlTemplate` | `expression.like` |
-| Between / NotBetween | `SqlTemplate` | `expression.between` / `notBetween` |
-| In / NotIn | `IsInListPredicate` | 列表展开 |
-| Substring / Length / Lower / Upper / Trim | `SqlTemplate` | `expression.*` |
-| Concat | `IsConcatPredicate` | `expression.concat` |
-| NullIf | `IsNullIfPredicate` | `expression.nullIf` |
-| Coalesce | `SqlTemplate` | `expression.coalesce` |
-| DateDiff | `IsDateDiffPredicate` | `expression.dateDiff*` |
-| DateAdd | `IsDateAddPredicate` | `expression.dateAdd*` |
-| DatePart | `IsDatePartPredicate` | `expression.datePart*`（SQLite/Npgsql/MySQL/MSSQL R27） |
-| DatePart / `.Year` 等 Member | MemberTranslator | 同上 Pure 片段 |
-| **Collate** | `IsCollatePredicate` | `expression.collate` / `collateDb2`（Npgsql 引号 override） |
+## Registry-first（`api/dbfunc/`）
 
-矩阵：`Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`、`Matrix_RegistryFirst_ExtensionRequired`。
+| 函数 | Bootstrap 入口 |
+|------|----------------|
+| Like / Between / In | `SqlTemplate` / `IsInListPredicate` |
+| Substring / Length / Lower / Upper / Trim / Concat | `SqlTemplate` / `IsConcatPredicate` |
+| NullIf / Coalesce / Collate | 专用 predicate |
+| DateDiff / DateAdd / DatePart | `IsDate*Predicate` |
 
-## 仍须 Extension（Phase F — 见 ADR）
+## 目录
 
-> 详细决策：[`ADR-PhaseF-Extension-Retention.md`](../../core/ADR-PhaseF-Extension-Retention.md)
+- **保留**：`DbFunc.cs`、`DbFunc.DateTime*.cs`、`DbFunc.TableID.cs`
+- **已迁出至 `api/soofunc/`**：Analytic、StringAgg、Convert、Row、GroupBy
 
-| API | 原因 | 文件 |
-|-----|------|------|
-| **Analytic Over 链** | `Over().PartitionBy().OrderBy()` Token 链；IR 已落地，Token 链待 P2/P3 | `DbFunc.Analytic.cs` — [`ADR-PhaseF-AnalyticOver-IR.md`](../../core/ADR-PhaseF-AnalyticOver-IR.md) |
-| **RowNumber().Over()** | 函数头 registry；`.Over()` 仍为 Extension | 同上 |
-| **Grouping** | `GROUPING(...)` 聚合 | `DbFunc.cs` |
-| **StringAgg / ConcatWs / Median 等** | `WITHIN GROUP` / 排序子句 — **延期** | `DbFunc.Aggregate.cs`、`DbFunc.Strings.cs` — [`ADR-PhaseF-StringAggregate-Deferral.md`](../../core/ADR-PhaseF-StringAggregate-Deferral.md) |
-| **Row 生成列** | T4 `DbFunc.Row.generated.cs` | `DbFunc.Row.*` |
-| **Convert / Cast 链** | 类型转换 Builder | `DbFunc.Expressions.cs` |
-
-## `api/dbfunc/` 目录边界
-
-- **保留**：`DbFunc` partial 方法体（客户端 fallback）、Analytic/Aggregate 链、用户扩展示例（Readme 自定义 `partial class`）。
-- **已删除**：独立 stub 文件（Between、Like、Types、GroupBy、Collate、TableIDType 等，R18–R22）。
-- **不删除整个目录**：`DbFunc` 公开 API 仍在此；registry 注册在 `translator/DbFuncRegistryBootstrap.cs`，Pure 片段在 `SQLExpression.Linq.cs`。
-
-属性定义在 `api/translation/`；编译入口 `DbFuncRegistryExpressionTranslator` + `RegistryAwareMemberTranslator`。
+属性在 `api/translation/`；注册在 `DbFuncRegistryBootstrap.cs`。

@@ -29,6 +29,11 @@ namespace mooSQL.data
         public override string dateDiffDay(string start, string end)
             => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 86400";
 
+        public override string charIndex(string substring, string str) => $"STRPOS({str}, {substring})";
+
+        public override string charIndex(string substring, string str, string start)
+            => $"(CASE WHEN {start} <= 0 THEN 0 ELSE STRPOS(SUBSTRING({str} FROM {start}::int), {substring}) + {start}::int - 1 END)";
+
         public override string dateDiffHour(string start, string end)
             => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 3600";
 

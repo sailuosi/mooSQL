@@ -12,12 +12,12 @@ namespace mooSQL.linq;
 using mooSQL.linq.SqlQuery;
 using mooSQL.linq.Common.Internal;
 
-partial class Sql
+partial class SooFunctionExtension
 {
 <#
 	var MaxMemberCount = 10;
 #>
-	public static partial class SqlRow
+	public static partial class SooFunctionExtensionRow
 	{
 		public const int MaxMemberCount = <#= MaxMemberCount #>;
 
