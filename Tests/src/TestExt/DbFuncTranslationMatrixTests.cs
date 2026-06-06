@@ -415,6 +415,19 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.True(entry.IsDateDiffPredicate);
     }
 
+    [Theory]
+    [InlineData(typeof(MSSQLDialect), "DATEDIFF")]
+    [InlineData(typeof(MySQLDialect), "TIMESTAMPDIFF")]
+    [InlineData(typeof(SQLiteDialect), "julianday")]
+    [InlineData(typeof(NpgsqlDialect), "EXTRACT")]
+    public void Matrix_DateDiff_ExpressFormatMatchesDialect(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.dateDiffDay("{0}", "{1}");
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public void Matrix_RowNumber_Over_EmitsRowNumberSql()
     {

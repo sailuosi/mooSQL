@@ -29,6 +29,21 @@ namespace mooSQL.data
             return "`" + value.Replace("`", "``") + "`";
         }
 
+        public override string dateDiffDay(string start, string end)
+            => $"TIMESTAMPDIFF(DAY, {start}, {end})";
+
+        public override string dateDiffHour(string start, string end)
+            => $"TIMESTAMPDIFF(HOUR, {start}, {end})";
+
+        public override string dateDiffMinute(string start, string end)
+            => $"TIMESTAMPDIFF(MINUTE, {start}, {end})";
+
+        public override string dateDiffSecond(string start, string end)
+            => $"TIMESTAMPDIFF(SECOND, {start}, {end})";
+
+        public override string dateDiffMillisecond(string start, string end)
+            => $"TIMESTAMPDIFF(MICROSECOND, {start}, {end}) DIV 1000";
+
         #region DML语句
         /// <summary>
         /// 创建普通的select语句

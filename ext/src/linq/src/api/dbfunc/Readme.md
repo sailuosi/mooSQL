@@ -29,6 +29,12 @@ var q = db.useQueryable<Order>()
 - **当前**：函数 stub 在 `ext/src/linq/src/api/dbfunc/`，属性与翻译基础设施在 `api/translation/`
 - **目标**：常用函数逐步迁入 `pure/src/ado/data/dialect/SQLExpression.*`，Ext 仅查 Pure 注册表
 
+### 已 registry-first（Bootstrap 注册 + 矩阵覆盖）
+
+Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf/Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；未覆盖方言仍走 `[Extension]` Builder）。
+
+`api/dbfunc/` 删除（D.9）待其余 Analytic/Row/Strings 等全部迁入后再执行。
+
 ## 自定义扩展
 
 ```csharp

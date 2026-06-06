@@ -25,6 +25,21 @@ namespace mooSQL.data
             }
             return "[" + value + "]";
         }
+
+        public override string dateDiffDay(string start, string end)
+            => $"DATEDIFF(day, {start}, {end})";
+
+        public override string dateDiffHour(string start, string end)
+            => $"DATEDIFF(hour, {start}, {end})";
+
+        public override string dateDiffMinute(string start, string end)
+            => $"DATEDIFF(minute, {start}, {end})";
+
+        public override string dateDiffSecond(string start, string end)
+            => $"DATEDIFF(second, {start}, {end})";
+
+        public override string dateDiffMillisecond(string start, string end)
+            => $"DATEDIFF(millisecond, {start}, {end})";
         /// <summary>
         /// 
         /// </summary>

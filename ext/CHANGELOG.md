@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R11）
+
+- **多方言 DateDiff Pure 片段**：`MSSQLExpress`（`DATEDIFF`）、`MySQLExpress`（`TIMESTAMPDIFF`）、`NpgsqlExpress`（`EXTRACT/EPOCH`）；矩阵 `Matrix_DateDiff_ExpressFormatMatchesDialect`
+- **E.4 方言能力矩阵**：[`Dialect-Capability-Matrix.md`](src/linq/core/Dialect-Capability-Matrix.md)（Take/Skip/ROW_NUMBER/DateDiff）
+- **三入口 NotBetween 快照**：`ThreeEntrySnapshot_NotBetween`
+- **D.9 进度**：`api/dbfunc/Readme.md` 标注已 registry-first 函数清单（stub 目录保留）
+
 ### 新增（Phase D/E R10）
 
 - **DateDiff registry-only（SQLite）**：`IsDateDiffPredicate` + Pure `SQLExpression.dateDiffDay/Hour/...`；`SQLiteExpress` override `julianday` 公式；失败时仍回退 `[Extension]` Builder
@@ -120,7 +127,7 @@ db.useQueryable<User>();
 - **`api/translation/` + `api/dbfunc/`** — 属性与 stub 分目录；旧 `DbFunc/` 已删除
 - **注册表实际翻译** + PreferServerSide 优先 + Union SQL + Select 投影（函数/匿名）
 - **Phase E 基础设施**：ADR、`LinqClauseBridge`、`ToSQLBuilder(s)`、`FromLinqExpression`
-- **测试**：`TestLinq` **85/85**（矩阵 32 + Bridge 三入口 Between）
+- **测试**：`TestLinq` **90/90**（矩阵 36 + Bridge 三入口 Between/NotBetween）
 
 #### 下一批（R11，建议）
 

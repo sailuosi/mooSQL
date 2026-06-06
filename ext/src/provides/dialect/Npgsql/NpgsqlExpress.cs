@@ -26,6 +26,21 @@ namespace mooSQL.data
             return "\""+value+"\"";
         }
 
+        public override string dateDiffDay(string start, string end)
+            => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 86400";
+
+        public override string dateDiffHour(string start, string end)
+            => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 3600";
+
+        public override string dateDiffMinute(string start, string end)
+            => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 60";
+
+        public override string dateDiffSecond(string start, string end)
+            => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp))";
+
+        public override string dateDiffMillisecond(string start, string end)
+            => $"ROUND(EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) * 1000)";
+
         #region DML语句
         public override string buildSelect(FragSQL frag)
         {

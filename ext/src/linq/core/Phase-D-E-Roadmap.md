@@ -1,7 +1,7 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R10 完成）**  
-> 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
+> 最后更新：**2026-06-06（R11 完成）**  
+> 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
 
@@ -29,7 +29,8 @@
 | **R8** | 嵌套投影 + SQLClip 快照 + DateDiff 修复 + 矩阵 30 + 构建卫生 | ✅ | **81/81**（矩阵 30） |
 | **R9** | NotBetween E2E + DateDiff PreferExtensionAttribute + MemberTranslator 默认 | ✅ | **84/84**（矩阵 32） |
 | **R10** | DateDiff registry-only（SQLite）+ MemberTranslator 继承 + 三入口快照 | ✅ | **85/85** |
-| R11 | `api/dbfunc` stub 删除 + 多方言 dateDiff | 📋 待排 | — |
+| **R11** | 多方言 dateDiff + E.4 能力矩阵 + NotBetween 三入口 | ✅ | **90/90** |
+| R12 | `api/dbfunc` stub 分批删除 | 📋 待排 | — |
 
 ---
 
@@ -71,7 +72,7 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R10 | `nullIf`/`coalesce`/`dateDiff*`（SQLite）已接入 |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R10 | DateDiff `IsDateDiffPredicate` + Extension 回退 |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | ❌ R9 | 需注册表 + 矩阵全覆盖 |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11 | Readme 标注 registry-first 清单；目录未删 |
 
 ### 已注册函数（Bootstrap，R6）
 
@@ -94,7 +95,7 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
 | E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R10 | 三入口快照（Between + 复合 Where） |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
-| E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ❌ | README 长期项仍 open |
+| E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ✅ R11 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
 | E.6 真异步流式 | `IAsyncEnumerable` 逐条读库 | ❌ | — |
 
@@ -129,11 +130,18 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 3. ✅ **`RegistryAwareMemberTranslator`** — 覆盖 PreferExtensionAttribute / IsDateDiffPredicate  
 4. ✅ **三入口 Between 快照** — `ThreeEntrySnapshot_DbFuncBetween`
 
-## R11 建议批次（下一迭代）
+## R11 完成项（2026-06-06）
 
-1. **多方言 dateDiff\*** — MSSQL `DATEDIFF`、MySQL `TIMESTAMPDIFF` 等 Pure override  
-2. **stub 删除（D.9）** — 注册表全覆盖后移除 `api/dbfunc/`  
-3. **E.4 方言能力矩阵** — Take/Skip / ROW_NUMBER 策略文档
+1. ✅ **多方言 dateDiff\*** — MSSQL / MySQL / PostgreSQL `*Express` override  
+2. ✅ **E.4 能力矩阵** — Take/Skip/ROW_NUMBER/DateDiff 文档  
+3. ✅ **三入口 NotBetween 快照**  
+4. 🟡 **D.9 进度** — registry-first 清单（stub 目录保留）
+
+## R12 建议批次（下一迭代）
+
+1. **stub 分批删除** — 从 Between/Like 等已 registry-only 的 `[Extension]` Builder 开始  
+2. **DateDiff Year/Month/Week** — 扩展 `dateDiffYear` 等 Pure 片段  
+3. **三入口快照扩展** — Lower/DateDiff 等 DbFunc 表达式
 
 ---
 
@@ -141,12 +149,13 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
 - [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径）  
-- [x] `TestLinq` net6.0 全绿（**85/85**）  
-- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between 快照 ✅，其余待补）  
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例  
-- [ ] ADR 边界脚本 CI 通过
+- [x] `TestLinq` net6.0 全绿（**90/90**）  
+- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between + NotBetween ✅）  
+- [ ] ADR 边界脚本 CI 通过（本地脚本 ✅）
 
-当前：**3/6 项未达成**（矩阵 32/32 ✅，NotBetween E2E ✅，stub 未删，三入口快照部分完成）。
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Readme 清单 ✅，物理删除留 R12）
+
+当前：**2/6 项未达成**（矩阵 36 ✅，DateDiff 四方言 ✅，stub 未删，三入口部分完成）。
 
 ---
 
