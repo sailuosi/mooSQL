@@ -51,6 +51,22 @@
 
 **全部 DateDiff 方言已无 Extension Builder**（R12–R16）。Legacy Express 见 `ext/src/provides/dialect/legacy/DateDiffLegacyExpress.cs`。
 
+**R21**：DateDiff 三 overload 已移除全部 `[Extension]`；Bootstrap 仅 `IsDateDiffPredicate` → `TranslateDateDiff` → 方言 `dateDiff*`。
+
+## Registry-first 边界（R22）
+
+| 函数 / 链 | 编译路径 | 可否 registry-only | 说明 |
+|-----------|----------|-------------------|------|
+| Like / Between / 字符串 / NullIf / Coalesce / Concat / DateDiff | `DbFuncRegistry` | ✅ | R17–R21 完成 |
+| In / NotIn | `IsInListPredicate` | ✅ | `SqlExtensions` + 列表展开 |
+| **RowNumber()** | Registry `ROW_NUMBER()` | 部分 | 函数头 registry-first |
+| **`.Over().OrderBy()`** | `[Extension]` Token 链 | ❌ | 窗口帧语法；须 `GetExtensionAttributes` |
+| **Collate** | `[Extension]` + Builder | ❌ | 多方言 Builder（PG/DB2/默认） |
+| **Grouping** | `[Extension]` 聚合 | ❌ | `GROUPING(...)` |
+| **DatePart / DateAdd** | `DateFunctionsTranslatorBase` | ❌（MemberTranslator） | 非 DbFuncRegistry；方言 `*MemberTranslator` override |
+
+> **结论**：Analytic Over 链与 Collate 短期保留属性链；常用 DbFunc 谓词/函数已 registry-first（见矩阵 `Matrix_RegistryFirst_ExtensionRequired`）。
+
 ## 相关代码
 
 ```

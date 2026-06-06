@@ -612,6 +612,27 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.All(orderItemAttrs, a => Assert.Null(a.BuilderType));
     }
 
+    [Fact]
+    public void Matrix_RegistryFirst_ExtensionRequired()
+    {
+        var collate = typeof(DbFunc).GetMethod(nameof(DbFunc.Collate), new[] { typeof(string), typeof(string) })!;
+        Assert.NotEmpty(collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+        Assert.Contains(
+            collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+                .Cast<DbFunc.ExtensionAttribute>(),
+            a => a.BuilderType != null);
+
+        var grouping = typeof(DbFunc).GetMethod(nameof(DbFunc.Grouping))!;
+        Assert.NotEmpty(grouping.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+
+        var rowNumber = typeof(AnalyticFunctions).GetMethod(
+            nameof(AnalyticFunctions.RowNumber),
+            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(rowNumber));
+    }
+
     [Theory]
     [InlineData(typeof(OracleDialect), "CAST")]
     [InlineData(typeof(JetSQLDialect), "DATEDIFF")]

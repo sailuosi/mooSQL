@@ -404,6 +404,26 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ThreeEntrySnapshot_CombinedPredicates()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => u.Age.Between(18, 65) && DbFunc.Like(u.Name, "%a%"))
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("BETWEEN", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIKE", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Union_LinqCompilesStructure()
     {
         var db = _sqlite.Db;

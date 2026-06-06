@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R21 完成）**  
+> 最后更新：**2026-06-06（R22 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -40,7 +40,8 @@
 | **R19** | Like registry-only + Ordinal.cs 删除 + 三入口 Length/Trim | ✅ | **128/128** |
 | **R20** | Between/NotBetween 无 Extension + GroupBy.cs 删除 + 三入口 Upper/NullIf | ✅ | **131/131** |
 | **R21** | DateDiff 无 Extension + Types.cs 删除 + 三入口 Coalesce | ✅ | **129/129** |
-| R22 | Analytic Over 链 / 更多 stub 合并 | 📋 待排 | — |
+| **R22** | Registry 边界文档 + Collate/TableIDType 合并 + 三入口组合谓词 | ✅ | **131/131** |
+| R23 | DatePart MemberTranslator / 嵌套 DbFunc 编译 | 📋 待排 | — |
 
 ---
 
@@ -82,7 +83,7 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R18 | `length`/`substring` SQLite override；字符串函数 registry-first |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R21 | DateDiff/NullIf/Concat 专用 predicate；DateDiff 无 PreferExtensionAttribute |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R21 | Types/GroupBy/Between/Coalesce/Ordinal 已删；DateDiff 无 Extension |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R22 | Collate/TableIDType 已合并；Types/GroupBy 等已删 |
 
 ### 已注册函数（Bootstrap，R6）
 
@@ -103,9 +104,9 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.1 正向桥接 | `LinqStatementCompiler.ToSQLBuilder(s)` | ✅ | Expression → SQLBuilder |
 | E.1 逆向桥接 | `LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder` | ✅ | `ConditionalWeakTable` 附着 |
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
-| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R21 | 三入口 15 组（+Coalesce） |
+| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R22 | 三入口 16 组（+CombinedPredicates） |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
-| E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ✅ R11 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
+| E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER / Registry 边界 | ✅ R11–R22 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
 | E.6 真异步流式 | `IAsyncEnumerable` 逐条读库 | ❌ | — |
 
@@ -218,11 +219,18 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_Coalesce`
 4. ✅ **矩阵收敛** — `Matrix_DateDiff_NoExtensionAttribute`；移除旧 Builder inspect 测
 
-## R22 建议批次（下一迭代）
+## R22 完成项（2026-06-06）
 
-1. **Analytic Over 链** — 仍依赖 `[Extension]` Token（不可 registry-only，文档固化）
-2. **更多 stub 物理删除** — `DbFunc.Collate.cs` 等评估
-3. **三入口快照扩展** — DatePart / InList 变体等
+1. ✅ **Registry-first 边界文档（E.4）** — `Dialect-Capability-Matrix.md` 路径表（Analytic Over / Collate / DatePart）
+2. ✅ **物理删除 `DbFunc.Collate.cs`、`DbFunc.TableIDType.cs`** — 合并进 `DbFunc.cs` / `DbFunc.TableID.cs`
+3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_CombinedPredicates`（Between + Like）
+4. ✅ **矩阵 +1** — `Matrix_RegistryFirst_ExtensionRequired`
+
+## R23 建议批次（下一迭代）
+
+1. **嵌套 DbFunc 编译** — `Trim(Lower(...))` 内层 SQL 未展开（占位符残留）
+2. **DatePart SQLite MemberTranslator** — 或 registry `datePart` 片段
+3. **更多 stub 物理删除** — 评估剩余 `api/dbfunc/` 文件
 
 ---
 
@@ -230,17 +238,17 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
 - [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串/DateDiff ✅）  
-- [x] `TestLinq` net6.0 全绿（**129/129**）  
-- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（15 组 ✅）  
+- [x] `TestLinq` net6.0 全绿（**131/131**）  
+- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（16 组 ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Types/GroupBy/Between/Coalesce/Ordinal 已删 ✅，留 R22）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Collate/TableIDType 已合并 ✅，留 R23）
 
-当前：**1/6 项未达成**（矩阵 62 ✅，DateDiff 无 Extension ✅，三入口 15 组 ✅）。
+当前：**1/6 项未达成**（矩阵 63 ✅，Registry 边界文档 ✅，三入口 16 组 ✅）。
 
-### 矩阵测试（62 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（63 项，`DbFuncTranslationMatrixTests`）
 
-含 R21 DateDiff 无 Extension、Coalesce 三入口等。
+含 R22 `Matrix_RegistryFirst_ExtensionRequired`、DateDiff 无 Extension 等。
 
 ---
 

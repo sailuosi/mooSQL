@@ -33,7 +33,7 @@ var q = db.useQueryable<Order>()
 
 Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf、Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（无 `[Extension]` R21）。
 
-`api/dbfunc/` 删除（D.9）进行中：**Types.cs 已删**（R21）；GroupBy（R20）、Ordinal（R19）、Between（R18）、Coalesce（R16）已删。
+`api/dbfunc/` 删除（D.9）进行中：**Collate.cs、TableIDType.cs 已删**（R22，合并进主文件）；Types/GroupBy/Ordinal/Between/Coalesce 已删。
 
 ## 自定义扩展
 

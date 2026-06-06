@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R22）
+
+- **Registry-first 边界文档**：`Dialect-Capability-Matrix.md` 新增路径表（Analytic Over / Collate / DatePart）
+- **物理删除 `DbFunc.Collate.cs`、`DbFunc.TableIDType.cs`**（合并进 `DbFunc.cs` / `DbFunc.TableID.cs`）
+- **三入口快照 +1**：`ThreeEntrySnapshot_CombinedPredicates`
+- **矩阵 +1**：`Matrix_RegistryFirst_ExtensionRequired`
+
 ### 新增（Phase D/E R21）
 
 - **DateDiff registry-only**：三 overload 移除全部 `[Extension]`；Bootstrap 去掉 `PreferExtensionAttribute`

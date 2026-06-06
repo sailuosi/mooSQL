@@ -10,6 +10,13 @@ namespace mooSQL.linq
 
 	public partial class DbFunc
 	{
+		public enum SqlIDType
+		{
+			TableAlias,
+			TableName,
+			TableSpec
+		}
+
 		public readonly struct SqlID : IToSqlConverter, IEquatable<SqlID>
 		{
 			public SqlIDType Type { get; }
