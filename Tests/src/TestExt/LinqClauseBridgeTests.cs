@@ -305,7 +305,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
         Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
-        Assert.Contains("DATEADD", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("DATETIME", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", linqSql);
     }
 
     [Fact]
@@ -441,6 +442,25 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
         Assert.Contains("TRIM", linqSql, System.StringComparison.OrdinalIgnoreCase);
         Assert.Contains("LOWER", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", linqSql);
+    }
+
+    [Fact]
+    public void ThreeEntrySnapshot_DatePart()
+    {
+        var db = _sqlite.Db;
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => DbFunc.DatePart(DbFunc.DateParts.Year, u.CreatedAt) > 2000)
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("STRFTIME", linqSql, System.StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("{0}", linqSql);
     }
 

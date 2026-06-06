@@ -1,6 +1,7 @@
 using mooSQL.data;
 using mooSQL.linq.DataProvider.MySql.Translation;
 using mooSQL.linq.DataProvider.SqlServer.Translation;
+using mooSQL.linq.DataProvider.SQLite.Translation;
 using mooSQL.linq.Linq.Translation;
 
 namespace mooSQL.linq.translator;
@@ -18,6 +19,7 @@ internal static class MemberTranslatorResolver
         {
             nameof(MSSQLDialect) => new SqlServerMemberTranslator(),
             "MySQLDialect"       => new MySqlMemberTranslator(),
+            nameof(SQLiteDialect)=> new SQLiteMemberTranslator(),
             _                    => new DefaultMemberTranslator()
         };
 

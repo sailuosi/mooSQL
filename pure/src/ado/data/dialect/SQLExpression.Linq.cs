@@ -32,9 +32,42 @@ namespace mooSQL.data
         public virtual string substring(string expr, string start, string? length = null)
             => length == null ? $"SUBSTRING({expr}, {start})" : $"SUBSTRING({expr}, {start}, {length})";
 
-        /// <summary>DATEADD 片段（默认 DATEADD，MySQL 等方言 override）。</summary>
+        /// <summary>DATEADD 片段（默认 SQL Server；MySQL/SQLite 等方言 override dateAdd*）。</summary>
         public virtual string dateAdd(string part, string amount, string date)
             => $"DATEADD({part}, {amount}, {date})";
+
+        /// <summary>DateAdd 天；{0}=amount，{1}=date。</summary>
+        public virtual string? dateAddDay(string amount, string date) => $"DATEADD(Day, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 年。</summary>
+        public virtual string? dateAddYear(string amount, string date) => $"DATEADD(Year, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 季度。</summary>
+        public virtual string? dateAddQuarter(string amount, string date) => $"DATEADD(Quarter, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 月。</summary>
+        public virtual string? dateAddMonth(string amount, string date) => $"DATEADD(Month, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 周。</summary>
+        public virtual string? dateAddWeek(string amount, string date) => $"DATEADD(Week, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 小时。</summary>
+        public virtual string? dateAddHour(string amount, string date) => $"DATEADD(Hour, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 分钟。</summary>
+        public virtual string? dateAddMinute(string amount, string date) => $"DATEADD(Minute, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 秒。</summary>
+        public virtual string? dateAddSecond(string amount, string date) => $"DATEADD(Second, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 毫秒。</summary>
+        public virtual string? dateAddMillisecond(string amount, string date) => $"DATEADD(Millisecond, Cast({amount} As Int), {date})";
+
+        /// <summary>DateAdd 年中日序 / 星期（按天计）。</summary>
+        public virtual string? dateAddDayOfYear(string amount, string date) => dateAddDay(amount, date);
+
+        /// <summary>DateAdd 星期几偏移（按天计）。</summary>
+        public virtual string? dateAddWeekDay(string amount, string date) => dateAddDay(amount, date);
 
         /// <summary>ROW_NUMBER 窗口片段（方言可 override）。</summary>
         public virtual string rowNumber(string orderBy) => $"ROW_NUMBER() OVER(ORDER BY {orderBy})";
@@ -83,5 +116,38 @@ namespace mooSQL.data
 
         /// <summary>DateDiff 季度。</summary>
         public virtual string? dateDiffQuarter(string start, string end) => null;
+
+        /// <summary>DatePart 年；{0}=date。</summary>
+        public virtual string? datePartYear(string date) => null;
+
+        /// <summary>DatePart 月。</summary>
+        public virtual string? datePartMonth(string date) => null;
+
+        /// <summary>DatePart 日。</summary>
+        public virtual string? datePartDay(string date) => null;
+
+        /// <summary>DatePart 小时。</summary>
+        public virtual string? datePartHour(string date) => null;
+
+        /// <summary>DatePart 分钟。</summary>
+        public virtual string? datePartMinute(string date) => null;
+
+        /// <summary>DatePart 秒。</summary>
+        public virtual string? datePartSecond(string date) => null;
+
+        /// <summary>DatePart 年中日序。</summary>
+        public virtual string? datePartDayOfYear(string date) => null;
+
+        /// <summary>DatePart 季度。</summary>
+        public virtual string? datePartQuarter(string date) => null;
+
+        /// <summary>DatePart 周。</summary>
+        public virtual string? datePartWeek(string date) => null;
+
+        /// <summary>DatePart 星期（0=Sunday …）。</summary>
+        public virtual string? datePartWeekDay(string date) => null;
+
+        /// <summary>DatePart 毫秒。</summary>
+        public virtual string? datePartMillisecond(string date) => null;
     }
 }

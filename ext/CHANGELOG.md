@@ -15,6 +15,21 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R25）
+
+- **DateAdd registry-first** — `IsDateAddPredicate` + Pure `dateAdd*` + `TranslateDateAdd`（不再用 `SqlTemplate = expr.dateAdd(...)`）
+- **SQLite DateAdd MemberTranslator** — `Datetime(..., '+' || ... ' Days')` 等
+- **三入口 DateAdd** — SQLite 断言 `DATETIME` + 无 `{0}` 占位符
+- **矩阵 +4** — `Matrix_DateAdd_MemberDay_*`、`Matrix_DateAdd_ExpressFormat`、`Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`
+- **文档** — `api/dbfunc/EXTENSION-REQUIRED.md`（registry-first vs Extension 边界）
+
+### 新增（Phase D/E R24）
+
+- **SQLite DatePart MemberTranslator** — `SQLiteMemberTranslator` + Pure `datePart*` / `SQLiteExpress` strftime
+- **矩阵断言加强** — Like/Upper/Lower/Length/Trim/Substring 等 `DoesNotContain("{0}")`
+- **三入口快照 +1** — `ThreeEntrySnapshot_DatePart`
+- **矩阵 +4** — `Matrix_DatePart_*`（Year 调用、Member.Year、Express 格式）
+
 ### 新增（Phase D/E R23）
 
 - **嵌套 DbFunc 编译修复**：`TryTranslateSimpleTemplate` 直接 `CollectCallSqlArgs`（递归展开内层 registry 调用）

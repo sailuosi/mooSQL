@@ -31,9 +31,11 @@ var q = db.useQueryable<Order>()
 
 ### 已 registry-first（Bootstrap 注册 + 矩阵覆盖）
 
-Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf、Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（无 `[Extension]` R21）。
+Like、Between/NotBetween、In/NotIn、Substring、Concat、**DateAdd**（`IsDateAddPredicate` R25）、Length、Lower/Upper/Trim、NullIf、Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（无 `[Extension]` R21）。
 
-`api/dbfunc/` 删除（D.9）进行中：**Collate.cs、TableIDType.cs 已删**（R22，合并进主文件）；Types/GroupBy/Ordinal/Between/Coalesce 已删。
+`api/dbfunc/`：**stub 已合并**（R18–R22）；目录保留 `DbFunc` 方法体与 Analytic/Aggregate 链。边界见 [`EXTENSION-REQUIRED.md`](EXTENSION-REQUIRED.md)。
+
+DatePart 走 MemberTranslator（SQLite R24 ✅）；DateAdd registry + SQLite Member（R25 ✅）。
 
 ## 自定义扩展
 

@@ -25,5 +25,7 @@ namespace mooSQL.data.translation
         public bool IsNullIfPredicate { get; init; }
         /// <summary>Concat(params …) — 由 <see cref="SQLExpression.stringConcat"/> 链折叠翻译。</summary>
         public bool IsConcatPredicate { get; init; }
+        /// <summary>DateAdd(part, amount, date) — 由 <see cref="SQLExpression"/> 方言 dateAdd* 片段翻译。</summary>
+        public bool IsDateAddPredicate { get; init; }
     }
 }

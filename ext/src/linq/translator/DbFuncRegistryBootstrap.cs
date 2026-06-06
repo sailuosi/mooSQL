@@ -98,7 +98,7 @@ internal static class DbFuncRegistryBootstrap
         {
             registry.Register(
                 dateAdd,
-                new DbFuncExpressionEntry { SqlTemplate = expr.dateAdd("{0}", "{1}", "{2}"), PreferServerSide = true });
+                new DbFuncExpressionEntry { PreferServerSide = true, IsDateAddPredicate = true });
         }
 
         var length = typeof(DbFunc).GetMethod(nameof(DbFunc.Length), new[] { typeof(string) });

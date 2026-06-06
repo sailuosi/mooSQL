@@ -58,6 +58,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return dateDiffSql;
         }
 
+        if (entry.IsDateAddPredicate)
+        {
+            var dateAddSql = TranslateDateAdd(builder, context, mc, db);
+            if (dateAddSql != null)
+                return dateAddSql;
+        }
+
         if (entry.IsNullIfPredicate)
         {
             var nullIfSql = TranslateNullIf(builder, context, mc, db);
@@ -103,6 +110,7 @@ internal static class DbFuncRegistryExpressionTranslator
         if (entry.SqlTemplate == null
             || entry.PreferExtensionAttribute
             || entry.IsDateDiffPredicate
+            || entry.IsDateAddPredicate
             || entry.IsNullIfPredicate
             || entry.IsConcatPredicate
             || entry.IsInListPredicate)
@@ -141,7 +149,7 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
-                              && !entry.IsDateDiffPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
+                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -229,6 +237,52 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var sql = new ExpressionWord(typeof(int), format, PrecedenceLv.Primary, startPh.Sql, endPh.Sql);
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static Expression? TranslateDateAdd(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count < 3)
+            return null;
+
+        if (!TryGetConstantDatePart(mc.Arguments[0], out var part))
+            return null;
+
+        var amountExpr = builder.ConvertToSqlExpr(context, mc.Arguments[1], ProjectFlags.SQL);
+        var dateExpr = builder.ConvertToSqlExpr(context, mc.Arguments[2], ProjectFlags.SQL);
+        if (amountExpr is not SqlPlaceholderExpression amountPh || dateExpr is not SqlPlaceholderExpression datePh)
+            return null;
+
+        var format = ResolveDateAddFormat(db.dialect.expression, part);
+        if (format == null)
+            return null;
+
+        var sql = new ExpressionWord(mc.Type, format, PrecedenceLv.Primary, amountPh.Sql, datePh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static string? ResolveDateAddFormat(SQLExpression expression, DbFunc.DateParts part)
+    {
+        const string amount = "{0}";
+        const string date = "{1}";
+        return part switch
+        {
+            DbFunc.DateParts.Year         => expression.dateAddYear(amount, date),
+            DbFunc.DateParts.Quarter      => expression.dateAddQuarter(amount, date),
+            DbFunc.DateParts.Month        => expression.dateAddMonth(amount, date),
+            DbFunc.DateParts.Week         => expression.dateAddWeek(amount, date),
+            DbFunc.DateParts.Day          => expression.dateAddDay(amount, date),
+            DbFunc.DateParts.DayOfYear    => expression.dateAddDayOfYear(amount, date),
+            DbFunc.DateParts.WeekDay      => expression.dateAddWeekDay(amount, date),
+            DbFunc.DateParts.Hour         => expression.dateAddHour(amount, date),
+            DbFunc.DateParts.Minute       => expression.dateAddMinute(amount, date),
+            DbFunc.DateParts.Second       => expression.dateAddSecond(amount, date),
+            DbFunc.DateParts.Millisecond  => expression.dateAddMillisecond(amount, date),
+            _                             => null
+        };
     }
 
     static Expression? TranslateNullIf(

@@ -27,6 +27,7 @@ internal sealed class RegistryAwareMemberTranslator : IMemberTranslator
             var entry = _db.dialect.dbFuncRegistry.Resolve(mc.Method);
             if (entry != null && (entry.SqlTemplate != null || entry.IsInListPredicate
                                   || entry.PreferExtensionAttribute || entry.IsDateDiffPredicate
+                                  || entry.IsDateAddPredicate
                                   || entry.IsNullIfPredicate || entry.IsConcatPredicate))
             {
                 var translated = DbFuncRegistryExpressionTranslator.TryTranslate(translationContext, mc, _db);

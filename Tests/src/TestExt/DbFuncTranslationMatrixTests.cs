@@ -4,6 +4,7 @@ using mooSQL.linq.Tools;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace TestMooSQL.src;
@@ -59,6 +60,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Where(u => DbFunc.Like(u.Name, "%Alice%"))
                 .Expression);
         Assert.Contains("LIKE", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
     }
 
     [Fact]
@@ -202,6 +204,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Expression);
         Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("u.email", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
     }
 
     [Fact]
@@ -226,6 +229,51 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Select(u => DbFunc.Substring(u.Name, 1, 3))
                 .Expression);
         Assert.Contains("SUBSTR", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Fact]
+    public void Matrix_DatePart_Year_Select_EmitsStrftime()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.DatePart(DbFunc.DateParts.Year, u.CreatedAt))
+                .Expression);
+        Assert.Contains("STRFTIME", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("%Y", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Fact]
+    public void Matrix_DatePart_MemberYear_Where_EmitsStrftime()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => u.CreatedAt.Year > 2000)
+                .Expression);
+        Assert.Contains("STRFTIME", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Theory]
+    [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Month), "%m")]
+    [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Day), "%d")]
+    public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string strftimeToken)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var part = (DbFunc.DateParts)System.Enum.Parse(typeof(DbFunc.DateParts), partName);
+        var format = part switch
+        {
+            DbFunc.DateParts.Month => dialect.expression.datePartMonth("{0}"),
+            DbFunc.DateParts.Day   => dialect.expression.datePartDay("{0}"),
+            _                      => null
+        };
+        Assert.NotNull(format);
+        Assert.Contains(strftimeToken, format!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -235,13 +283,40 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         var dateAdd = typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!;
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(dateAdd));
+        Assert.Empty(dateAdd.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+        Assert.Empty(dateAdd.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
 
         var sql = LinqStatementCompiler.GetSqlText(
             db,
             db.useQueryable<SQLiteTestUser>()
                 .Where(u => DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt) > u.CreatedAt)
                 .Expression);
-        Assert.Contains("DATEADD", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("DATETIME", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Fact]
+    public void Matrix_DateAdd_MemberDay_Where_EmitsDatetime()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => u.CreatedAt.AddDays(1) > u.CreatedAt)
+                .Expression);
+        Assert.Contains("DATETIME", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Theory]
+    [InlineData(typeof(SQLiteDialect), "Days")]
+    [InlineData(typeof(MSSQLDialect), "DATEADD")]
+    public void Matrix_DateAdd_ExpressFormat(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.dateAddDay("{0}", "{1}");
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -493,6 +568,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Select(u => DbFunc.Upper(u.Name))
                 .Expression);
         Assert.Contains("UPPER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
     }
 
     [Fact]
@@ -550,6 +626,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Select(u => DbFunc.Length(u.Name))
                 .Expression);
         Assert.Contains("LENGTH", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
     }
 
     [Fact]
@@ -641,6 +718,34 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
             .ToList();
         Assert.NotEmpty(orderItemAttrs);
         Assert.All(orderItemAttrs, a => Assert.Null(a.BuilderType));
+    }
+
+    [Fact]
+    public void Matrix_RegistryFirst_CommonDbFuncs_NoAttributes()
+    {
+        static void AssertNoDbFuncAttributes(MethodInfo method)
+        {
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.FunctionAttribute), inherit: true));
+        }
+
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Like), new[] { typeof(string), typeof(string) })!);
+        var between = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3);
+        AssertNoDbFuncAttributes(between);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Substring), new[] { typeof(string), typeof(int?), typeof(int?) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Length), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Upper), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Trim), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.DateDiff) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?)));
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.NullIf) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2));
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.Coalesce) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2));
     }
 
     [Fact]

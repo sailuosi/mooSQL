@@ -50,6 +50,56 @@ namespace mooSQL.data
         public override string substring(string expr, string start, string? length = null)
             => length == null ? $"Substr({expr}, {start})" : $"Substr({expr}, {start}, {length})";
 
+        static string StrftimeInt(string format, string date)
+            => $"Cast(Strftime('{format}', {date}) As Integer)";
+
+        public override string datePartYear(string date) => StrftimeInt("%Y", date);
+
+        public override string datePartMonth(string date) => StrftimeInt("%m", date);
+
+        public override string datePartDay(string date) => StrftimeInt("%d", date);
+
+        public override string datePartHour(string date) => StrftimeInt("%H", date);
+
+        public override string datePartMinute(string date) => StrftimeInt("%M", date);
+
+        public override string datePartSecond(string date) => StrftimeInt("%S", date);
+
+        public override string datePartDayOfYear(string date) => StrftimeInt("%j", date);
+
+        public override string datePartQuarter(string date)
+            => $"((Cast(Strftime('%m', {date}) As Integer)-1)/3+1)";
+
+        public override string datePartWeek(string date) => StrftimeInt("%W", date);
+
+        public override string datePartWeekDay(string date) => StrftimeInt("%w", date);
+
+        public override string datePartMillisecond(string date)
+            => $"Cast((Cast(Strftime('%f', {date}) As Real)*1000) As Integer) % 1000";
+
+        static string SqliteDateAddModifier(string unit, string amount, string date)
+            => $"Datetime({date}, '+' || Cast({amount} As Text) || ' {unit}')";
+
+        public override string? dateAddDay(string amount, string date) => SqliteDateAddModifier("Days", amount, date);
+
+        public override string? dateAddMonth(string amount, string date) => SqliteDateAddModifier("Months", amount, date);
+
+        public override string? dateAddYear(string amount, string date) => SqliteDateAddModifier("Years", amount, date);
+
+        public override string? dateAddHour(string amount, string date) => SqliteDateAddModifier("Hours", amount, date);
+
+        public override string? dateAddMinute(string amount, string date) => SqliteDateAddModifier("Minutes", amount, date);
+
+        public override string? dateAddSecond(string amount, string date) => SqliteDateAddModifier("Seconds", amount, date);
+
+        public override string? dateAddWeek(string amount, string date)
+            => $"Datetime({date}, '+' || Cast(({amount}) * 7 As Text) || ' Days')";
+
+        public override string? dateAddQuarter(string amount, string date) => SqliteDateAddModifier("Months", $"({amount})*3", date);
+
+        public override string? dateAddMillisecond(string amount, string date)
+            => $"Datetime({date}, '+' || Cast({amount} As Text) || ' Milliseconds')";
+
         /// <summary>
         /// 创建普通的select语句
         /// </summary>

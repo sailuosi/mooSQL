@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R22 完成）**  
+> 最后更新：**2026-06-06（R25 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -41,7 +41,9 @@
 | **R20** | Between/NotBetween 无 Extension + GroupBy.cs 删除 + 三入口 Upper/NullIf | ✅ | **131/131** |
 | **R21** | DateDiff 无 Extension + Types.cs 删除 + 三入口 Coalesce | ✅ | **129/129** |
 | **R22** | Registry 边界文档 + Collate/TableIDType 合并 + 三入口组合谓词 | ✅ | **131/131** |
-| R23 | DatePart MemberTranslator / 嵌套 DbFunc 编译 | 📋 待排 | — |
+| **R23** | 嵌套 DbFunc 编译 + ExpressionWord `{0}` 渲染 | ✅ | **139/139** |
+| **R24** | SQLite DatePart MemberTranslator + 矩阵 `{0}` 断言 | ✅ | **139/139** |
+| **R25** | DateAdd 方言化（`IsDateAddPredicate`）+ SQLite Member + 文档收敛 | ✅ | **143/143** |
 
 ---
 
@@ -83,13 +85,13 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R18 | `length`/`substring` SQLite override；字符串函数 registry-first |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R21 | DateDiff/NullIf/Concat 专用 predicate；DateDiff 无 PreferExtensionAttribute |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R22 | Collate/TableIDType 已合并；Types/GroupBy 等已删 |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` stub | ✅ R11–R25 | Collate/TableIDType 已合并；`EXTENSION-REQUIRED.md` 界定目录保留范围 |
 
 ### 已注册函数（Bootstrap，R6）
 
-Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（`IsNullIfPredicate`，无 `[Expression]`）、**Coalesce**（无 `[Expression]`）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（`IsDateDiffPredicate`）。
+Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、**DateAdd**（`IsDateAddPredicate`）、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（`IsNullIfPredicate`，无 `[Expression]`）、**Coalesce**（无 `[Expression]`）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（`IsDateDiffPredicate`）。
 
-### 矩阵测试（32 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（73 项，`DbFuncTranslationMatrixTests`）
 
 NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/Trim/Length Select、DateAdd、**DateDiff（Extension/julianday + registry inspect）**、RowNumber 注册 + Over 端到端、匿名 Select（含 **DbFunc 嵌套**）、NullIf/Coalesce、Count/Sum/Avg 注册。
 
@@ -233,29 +235,43 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_NestedStringFuncs`
 4. ✅ **矩阵 +2** — `Matrix_NestedStringFuncs_TrimLower_*`
 
-## R24 建议批次（下一迭代）
+## R24 完成项（2026-06-06）
 
-1. **DatePart SQLite MemberTranslator** — 或 registry `datePart` 片段
-2. **更多 stub 物理删除** — 评估剩余 `api/dbfunc/` 文件
-3. **矩阵断言加强** — 常用函数 `DoesNotContain("{0}")`
+1. ✅ **SQLite DatePart** — `SQLiteMemberTranslator` + Pure `datePart*` / `strftime`
+2. ✅ **矩阵断言加强** — 常用 registry 函数 `DoesNotContain("{0}")`
+3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_DatePart`
+4. ✅ **矩阵 +4** — `Matrix_DatePart_*`
+
+## R25 完成项（2026-06-06）
+
+1. ✅ **DateAdd registry-first** — `IsDateAddPredicate` + Pure `dateAdd*` + `TranslateDateAdd`
+2. ✅ **SQLite DateAdd MemberTranslator** — `SQLiteMemberTranslator.TranslateDateTimeDateAdd` + `Datetime(...)` 片段
+3. ✅ **三入口 DateAdd** — SQLite 断言 `DATETIME` + `DoesNotContain("{0}")`
+4. ✅ **矩阵 +3** — `Matrix_DateAdd_MemberDay_*`、`Matrix_DateAdd_ExpressFormat`
+5. ✅ **文档** — `api/dbfunc/EXTENSION-REQUIRED.md` + `Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`
+
+## R26 建议批次（可选）
+
+1. **PostgreSQL DatePart** — `NpgsqlExpress.datePart*` + MemberTranslator override
+2. **MySQL DateAdd/DatePart** — Express override（若与 SQL Server 默认不同）
 
 ---
 
 ## 验收标准（Phase D/E 整体完成）
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
-- [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串/DateDiff ✅）  
-- [x] `TestLinq` net6.0 全绿（**134/134**）  
-- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（**17 组** ✅）  
+- [x] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串/DateDiff/DateAdd ✅；见 `EXTENSION-REQUIRED.md`）  
+- [x] `TestLinq` net6.0 全绿（**143/143**）  
+- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（**18 组** ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Collate/TableIDType 已合并 ✅，留 R24）
+- [x] `api/dbfunc/` stub 已合并；目录保留 DbFunc 方法体 + Extension 必需项（见 `EXTENSION-REQUIRED.md`）
 
-当前：**1/6 项未达成**（矩阵 65 ✅，Registry 边界文档 ✅，三入口 17 组 ✅）。
+**Phase D/E 核心目标已达成**；Analytic Over / Collate / StringAgg 等列为后续 Phase（非 D/E 阻塞项）。
 
-### 矩阵测试（65 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（73 项，`DbFuncTranslationMatrixTests`）
 
-含 R23 嵌套字符串、`Matrix_RegistryFirst_ExtensionRequired`、DateDiff 无 Extension 等。
+含 R25 DateAdd、R24 DatePart、`Matrix_RegistryFirst_*`、DateDiff 无 Extension 等。
 
 ---
 

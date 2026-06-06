@@ -63,7 +63,7 @@
 | **`.Over().OrderBy()`** | `[Extension]` Token 链 | ❌ | 窗口帧语法；须 `GetExtensionAttributes` |
 | **Collate** | `[Extension]` + Builder | ❌ | 多方言 Builder（PG/DB2/默认） |
 | **Grouping** | `[Extension]` 聚合 | ❌ | `GROUPING(...)` |
-| **DatePart / DateAdd** | `DateFunctionsTranslatorBase` | ❌（MemberTranslator） | 非 DbFuncRegistry；方言 `*MemberTranslator` override |
+| **DatePart / DateAdd** | MemberTranslator + registry | ✅ SQLite R24–R25 | Pure `datePart*` / `dateAdd*`；`IsDateAddPredicate` registry 路径 |
 
 > **结论**：Analytic Over 链与 Collate 短期保留属性链；常用 DbFunc 谓词/函数已 registry-first（见矩阵 `Matrix_RegistryFirst_ExtensionRequired`）。
 
