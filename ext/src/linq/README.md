@@ -1,6 +1,11 @@
 ﻿# LINQ 模块文档索引
 
-> **全景分析（2026-06）** → [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)  
+> **架构目标（2026-06）**  
+> - **Fast LINQ**（`pure/src/linq`）：本 ORM 特色，经 **`useBus` / `useDbBus`** 进入 `IDbBus<T>`，持续增强。  
+> - **Ext LINQ**（本目录）：对标 **EF / 通用 Queryable**，入口为 **`useEntity` / `Table<T>`** 等标准 `IQueryable` 习惯。  
+> 详见 [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)。
+
+> **全景分析** → [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)  
 > **双访问器对齐 FastLinq（迁移清单）** → [双访问器对齐FastLinq-迁移清单.md](./双访问器对齐FastLinq-迁移清单.md)  
 > **Phase 2 架构详解** → [src/README.md](./src/README.md)
 

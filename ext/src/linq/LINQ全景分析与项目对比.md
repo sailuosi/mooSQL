@@ -1,23 +1,42 @@
 # mooSQL LINQ 全景分析与项目对比
 
 > **更新日期：2026-06**  
-> 基于 Phase 2 重构后的代码状态整理。涵盖 Fast LINQ（`pure/src/linq`）与 Ext LINQ（`ext/src/linq`）两条主线，以及与整体项目的定位对比。
+> 基于 Phase 2 重构后的代码状态整理。涵盖 **Fast LINQ**（`pure/src/linq`，本 ORM 特色 / useBus）与 **Ext LINQ**（`ext/src/linq`，对标 EF / 标准 Queryable）两条并行主线。
 
 ---
 
-## 一、当前 LINQ 全景：三条路径，正在收敛
+## 一、架构目标：双轨并行
 
-项目里现在有 **三套编译器**，但执行终点已经统一：
+mooSQL 的 LINQ 不是「新替旧」，而是 **两条长期共存的主线**：
 
-| 路径 | 工厂 | 编译器 | 默认入口 | 状态 |
-|------|------|--------|----------|------|
-| **Fast LINQ** | `FastLinqFactory` | `FastLinqCompiler` | `db.useDbBus<T>()` | **生产默认** |
-| **Entity LINQ** | `EntityLinqFactory` | `EntityQueryCompiler` | 手动注入工厂 | Phase 2 已落地 |
-| **Entity Visit** | `EntityVisitFactory` | `EntityVisitCompiler` | 测试 `CreateBus` / `useBus` | 与上者 **实现相同** |
+| 主线 | 定位 | 入口 | 工厂 / 编译器 | 演进 |
+|------|------|------|---------------|------|
+| **Fast LINQ** | **本 ORM 特色**，Bus 扩展与项目实践深度结合 | `useBus` / `useDbBus` → `IDbBus<T>` | `FastLinqFactory` → `FastLinqCompiler` | **持续增强**，业务默认推荐 |
+| **Ext LINQ** | **对标 EF Core、Linq2DB、SqlSugar Queryable** 等通用能力 | `useEntity` / `Table<T>` → `ITable<T>` / 标准 `IQueryable` | `EntityLinqFactory` / `EntityVisitFactory` → `EntityQueryCompiler` / `EntityVisitCompiler` | 能力对齐、Statement 级测试、Queryable 生态 |
 
-### 关键变化
+### 入口对照
 
-`EntityQueryCompiler` 和 `EntityVisitCompiler` 的 `DoCompile` **已完全一致**，都走 `SentenceExecutor`：
+```csharp
+// Fast — mooSQL 特色（BusQueryable：Set / DoUpdate / LeftJoin / ToPageList …）
+var bus = db.useDbBus<User>();
+bus.Where(u => u.Id > 0).ToPageList(1, 20);
+
+// Ext — 与 EF / 其他 ORM 相同的 Queryable 习惯
+var table = new Table<User>(db);   // 或 DBCash.useEntity<User>(n)
+table.Where(u => u.Id > 0).Take(20).ToList();
+```
+
+### 编译器关系
+
+项目内 **三套编译器类名**，但分属两条主线：
+
+| 路径 | 工厂 | 编译器 | 所属主线 |
+|------|------|--------|----------|
+| **Fast LINQ** | `FastLinqFactory` | `FastLinqCompiler` | useBus 特色路径 |
+| **Entity LINQ** | `EntityLinqFactory` | `EntityQueryCompiler` | Ext 标准 Queryable |
+| **Entity Visit** | `EntityVisitFactory` | `EntityVisitCompiler` | Ext（与 EntityQueryCompiler **实现相同**，工厂名区分场景） |
+
+`EntityQueryCompiler` 与 `EntityVisitCompiler` 的 `DoCompile` **已完全一致**，均走 `SentenceExecutor`：
 
 ```csharp
 // ext/src/linq/core/EntityQueryCompiler.cs（EntityVisitCompiler 相同）
@@ -35,19 +54,16 @@ public override Func<QueryContext, TResult> DoCompile<TResult>(Expression expres
 }
 ```
 
-**生产入口**仍用 Fast 路径（`pure/src/utils/door/DBQueryableExtension.cs`）：
+**Pure 层生产入口**（`DBInstance.useDbBus<T>()`）注入 `FastLinqFactory`：
 
 ```csharp
+// pure/src/utils/door/DBQueryableExtension.cs
 var fac = new FastLinqFactory();
 ```
 
-**集成测试**已切到 Ext 新路径（`Tests/src/TestHelpers/LinqSqliteTestHelper.cs`）：
+**Ext 集成测试**使用 `EntityVisitFactory`（`Tests/src/TestHelpers/LinqSqliteTestHelper.cs`），验证标准 Queryable 编译链，**不表示 Ext 将取代 Fast 成为 useBus 默认实现**。
 
-```csharp
-var factory = new EntityVisitFactory();
-```
-
-**结论**：Ext LINQ 已完成 Phase 2 重构；Fast 与 Ext **执行哲学已对齐**（都落到 `SQLBuilder.query<T>()`），但 **编译中间层仍不同**，生产尚未切换。
+**结论**：Fast 与 Ext **编译中间层不同，执行终点相同**（`SQLBuilder.query<T>()`）；二者 **并行发展**，而非合并为单一路径。
 
 ---
 
@@ -119,9 +135,9 @@ BuildSqlBuilder(bag, db, expression, parameters)
 
 ---
 
-## 三、Fast LINQ（`pure/src/linq`）—— 未大改，仍是生产主力
+## 三、Fast LINQ（`pure/src/linq`）—— 本 ORM 特色，useBus 主线
 
-Fast 路径仍是 **单阶段、直达 SQLBuilder**：
+Fast 路径是 mooSQL **自研特色查询层**：经 **`useBus` / `useDbBus`** 进入 `IDbBus<T>`，通过 `BusQueryable` 提供 `Set`、`DoUpdate`、`LeftJoin`、`ToPageList` 等与 SQLBuilder 深度集成的扩展。编译为 **单阶段、直达 SQLBuilder**：
 
 ```
 Expression
@@ -163,8 +179,8 @@ pure/src/linq/
 
 ```
 应用层
-  Repository ──useDbBus──→ Fast LINQ（生产）
-  LINQ 测试   ──EntityVisitFactory──→ Ext LINQ（Phase 2）
+  业务查询 ──useBus / useDbBus──→ Fast LINQ（特色主线，持续增强）
+  EF 式 Queryable ──useEntity / Table<T>──→ Ext LINQ（对标 EF / 通用 Queryable）
   SQLClip / SQLBuilder ──链式 API──→ 直接构建
         ↓
   SQLBuilder（中枢）
@@ -178,12 +194,13 @@ pure/src/linq/
 
 | 维度 | **Fast LINQ** | **Ext LINQ** | **SQLClip** | **SQLBuilder** | **Repository** |
 |------|---------------|--------------|-------------|----------------|----------------|
-| 写法 | 标准 `IQueryable` | 同左（`ExpressionQuery` 等） | 链式 + 字段选择器 Lambda | 贴近 SQL 链式 | 实体 CRUD 门面 |
-| 编译 | 表达式 → 直接写 Builder | 表达式 → Statement → Builder | 无编译，直接写 Builder | 无 | 内部调 LINQ |
-| 能力广度 | 中 | **高**（Merge/LoadWith/UPSERT…） | 中 | **最全** | 常见场景 |
+| 写法 | `IDbBus` + `BusQueryable` 扩展 | 标准 `IQueryable` / `ITable<T>` | 链式 + 字段选择器 Lambda | 贴近 SQL 链式 | 实体 CRUD 门面 |
+| 入口 | **`useBus` / `useDbBus`** | **`useEntity` / `Table<T>`** | `useClip` | `useSQL` | `useRepo` |
+| 编译 | 表达式 → 直接写 Builder | 表达式 → Statement → Builder | 无编译，直接写 Builder | 无 | 内部调 Fast useBus |
+| 能力广度 | 中（偏项目实践） | **高**（Merge/LoadWith/UPSERT…） | 中 | **最全** | 常见场景 |
 | 可测试性 | 中 | **高**（Statement 级断言、`SqlPlan`） | 高 | 高 | 中 |
-| 生产使用 | **是** | 测试中验证，待切换 | 是 | 是 | 是 |
-| 与方言关系 | 经 SQLBuilder | 经 Statement + `ClauseTranslateVisitor` + SQLBuilder | 经 SQLBuilder | 直接 | 经 LINQ |
+| 定位 | **ORM 特色、默认业务路径** | **对标 EF / 通用 Queryable** | 类型安全片段 | 复杂 SQL | CRUD |
+| 与方言关系 | 经 SQLBuilder | 经 Statement + `ClauseTranslateVisitor` + SQLBuilder | 经 SQLBuilder | 直接 | 经 Fast LINQ |
 
 ### 与 `SQLExpression.dml.cs` 的关系
 
@@ -196,29 +213,41 @@ pure/src/linq/
 | 简单 CRUD | Repository |
 | 复杂查询、动态 SQL | SQLBuilder |
 | 类型安全、可控 Lambda | SQLClip |
-| 标准 LINQ 链式、Join/导航/表达式化 Update | `useDbBus`（Fast LINQ） |
-| LoadWith/Merge/UPSERT/Statement 级测试 | Ext LINQ（`EntityVisitFactory`） |
+| **mooSQL 特色**：表达式化 Update/Delete、Bus Join、分页、InjectSQL | **`useBus`（Fast LINQ）** |
+| **EF 式标准 Queryable**、LoadWith/Merge/UPSERT、Statement 级测试 | **Ext LINQ（`useEntity` / `Table<T>`）** |
 
 ---
 
-## 五、项目演进方向
+## 五、演进方向
 
 ```mermaid
 flowchart LR
-    subgraph now [当前]
+    subgraph fast [Fast LINQ — useBus 特色]
         A[FastLinqCompiler] --> B[SQLBuilder]
+    end
+    subgraph ext [Ext LINQ — 标准 Queryable]
         C[EntityVisitCompiler] --> D[SentenceBag]
         D --> E[ClauseTranslateVisitor]
         E --> B
     end
-    subgraph future [演进方向]
+    subgraph shared [共同终点]
         B --> F["query&lt;T&gt;() 统一映射"]
-        C -.->|能力更全| G[替换 Fast 为默认]
-        D -.->|SqlPlan inspect| H[与 SQLClip 互操作]
+    end
+    subgraph evolve [并行演进]
+        A -.->|持续增强 Bus API| G[Fast 特色能力]
+        C -.->|对齐 EF / Queryable| H[LoadWith / Merge / SqlPlan]
     end
 ```
 
-### 已完成（Phase 2 + 分发层扫尾）
+### Fast LINQ（useBus）
+
+- 持续完善 `BusQueryable` 扩展与 `FastMethodVisitor` 语义
+- 性能与编译缓存（`FastLinqParseCache`）
+- 与 Repository、权限、SQLBuilder 的项目集成
+
+### Ext LINQ（标准 Queryable）
+
+#### 已完成（Phase 2 + 分发层扫尾）
 
 - Compile / Execute 分离
 - `StatementCompileSession` 根入口；`BuildResult` 过渡槽已删除
@@ -236,7 +265,7 @@ flowchart LR
 - `outcast/` → `publicapi/` 重命名
 - SQLClip ↔ Expression 双向互操作
 - 真异步流式 `IAsyncEnumerable`
-- 生产入口从 `FastLinqFactory` 切换到 `EntityVisitFactory`
+- Ext 侧更多 EF / Linq2DB Queryable 方法对齐与方言矩阵文档
 
 ---
 
@@ -245,10 +274,12 @@ flowchart LR
 | 问题 | 答案 |
 |------|------|
 | **最大变化是什么？** | Ext LINQ 完成 **Compile / Execute 分离**；废弃 Mapper/Preamble；统一 `SentenceExecutor` + `query<T>()` |
-| **还有两套 LINQ 吗？** | 有。Fast（生产）与 Ext（测试/增强）**编译路径不同，执行终点相同** |
+| **还有两套 LINQ 吗？** | **是，且为架构目标**：Fast（useBus 特色）与 Ext（标准 Queryable）**并行**，编译路径不同、执行终点相同 |
 | **EntityQueryCompiler vs EntityVisitCompiler？** | 当前 **代码相同**，仅工厂类名不同 |
-| **与整体项目关系？** | LINQ 仍是应用层入口之一；Ext 强化了 Pure 的 `ClauseTranslateVisitor`；SQLBuilder 仍是唯一执行中枢 |
-| **文档同步情况** | `src/README.md`、`core/ClauseCompiler-*.md`、本文件、迁移清单已同步；`doc/docs/moohelp/arch/linq-architecture.md` 仍只描述 Fast 路径 |
+| **useBus 走哪条？** | **Fast LINQ**（`FastLinqFactory`），mooSQL 特色主线 |
+| **Ext 入口是什么？** | **`useEntity` / `Table<T>`** 等标准 Queryable，对标 EF 与其他 ORM |
+| **与整体项目关系？** | Fast 为业务默认；Ext 补齐通用 Queryable 与可测试编译层；SQLBuilder 仍是唯一执行中枢 |
+| **文档同步情况** | 本文件、`linq-architecture.md`、`src/README.md` 已对齐双轨定位 |
 
 ---
 
@@ -260,7 +291,7 @@ flowchart LR
 | Ext LINQ 三层架构 | `ext/src/linq/src/README.md` | Compile → SentenceBag → Execute 完整说明 |
 | 编译过程解析 | `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` | `StatementCompileSession`、`ClauseCompiler`、无 BuildQuery/Mapper |
 | 执行过程解析 | `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` | `SentenceExecutor`、无 Preambles |
-| Fast LINQ 架构 | `doc/docs/moohelp/arch/linq-architecture.md` | `pure/src/linq` 访问器与 FastMethodVisitor |
+| Fast LINQ 架构 | `doc/docs/moohelp/arch/linq-architecture.md` | 双轨定位 + `pure/src/linq` / FastMethodVisitor |
 | SQLBuilder API | `pure/src/ado/builder/API说明文档.md` | 链式 API 参考 |
 
 ### 调试入口

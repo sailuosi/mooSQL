@@ -151,7 +151,7 @@ public partial class DBCash
         var db = GetDBInstance(position);
 
         var connect = new DbContext();
-        var fac = new EntityVisitFactory();
+        var fac = new FastLinqFactory();   // Fast LINQ — mooSQL 特色路径
         connect.Factory = fac;
         connect.DB = db;
         return new EnDbBus<T>(connect,typeof(T), fac);

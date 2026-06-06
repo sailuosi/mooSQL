@@ -4,9 +4,13 @@ outline: deep
 # 表达式
 
 ::: info
-表达式是mooSQL对LINQ支持的第一步。通过表达式，可以构造仓储、工作单元等上层功能。Queryable表达式定义倾向于用户侧使用而声明，它伴随一个对应的翻译器，对mooSQL而言，翻译器的主要工作是将Queryable表达式转换为SQL，并执行。
+表达式是 mooSQL 对 LINQ 支持的核心能力之一。通过表达式，可以构造仓储、工作单元等上层功能。
 
-对本作，queryable的核心承载接口为 IDbBus接口，对应实现类为 DbBus类。其职责对应于efcore下的DbSet类。是linq的核心承载体，所有linq to sql方法都由此而铺展开来。
+**架构分工（2026-06）**：
+- **Fast LINQ**（本 ORM 特色）：经 **`useBus`** 进入 `IDbBus<T>`，配合 `BusQueryable` 扩展（Set、DoUpdate、LeftJoin、ToPageList 等），详见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
+- **Ext LINQ**（对标 EF / 通用 Queryable）：经 **`useEntity` / `Table<T>`** 使用标准 `IQueryable` 链式，见 `ext/src/linq/`。
+
+下文 **`useBus` 示例均指 Fast LINQ 特色路径**。Queryable 的核心承载接口为 `IDbBus`，对应实现 `DbBus` / `EnDbBus`，职责类似 EF Core 的 `DbSet`，但扩展了 moo 特有的 Update/Delete/Join API。
 :::
 ::: warning
 表达式写法的优点在于快速获取某个实体类，以及更新、插入、删除某个实体类。

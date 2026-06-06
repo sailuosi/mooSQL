@@ -1,5 +1,15 @@
 ﻿# mooSQL.Ext LINQ 子项目
 
+## 架构定位
+
+**Ext LINQ 对标 EF Core、Linq2DB、SqlSugar `Queryable` 等框架的通用 LINQ 能力**，入口采用与业界一致的 **标准 Queryable 习惯**：
+
+- `DBCash.useEntity<T>(n)` / `new Table<T>(db)` → `ITable<T>`
+- 标准 `System.Linq.Queryable` 链式（Where / Select / OrderBy / GroupBy …）
+- Linq2DB 风格扩展（LoadWith、Merge、SetOp、InsertOrUpdate 等）
+
+**与 Fast LINQ 的关系**：Fast（`pure/src/linq`）经 **`useBus`** 走 mooSQL 特色 `IDbBus` + `BusQueryable`，两条主线 **并行、不互相替代**。详见 [LINQ全景分析与项目对比.md](../LINQ全景分析与项目对比.md)。
+
 ## 项目说明
 
 本子项目是对 **mooSQL.Pure** 核心库的增强层，主要提供：
@@ -14,6 +24,14 @@
 ---
 
 ## 设计目标
+
+### 与 Fast LINQ 的分工
+
+| | **Fast LINQ**（Pure） | **Ext LINQ**（本目录） |
+|--|----------------------|------------------------|
+| 入口 | `useBus` / `useDbBus` | `useEntity` / `Table<T>` |
+| 目标 | mooSQL 特色、项目实践 | 对标 EF / 通用 Queryable |
+| 编译 | 单阶段 → SQLBuilder | Compile → SentenceBag → Execute |
 
 ### 问题背景
 

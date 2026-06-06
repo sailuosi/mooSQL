@@ -14,10 +14,19 @@ var ufw = DBCash.useUnitOfWork(0);
 ````
 
 ## useBus
-获取查询表达式的实例
+获取 **Fast LINQ** 查询表达式实例（mooSQL 特色路径：`IDbBus` + `BusQueryable` 扩展）。对标 EF 的标准 Queryable 请使用 **`useEntity`**（Ext LINQ）。
+
 ````c#
 var db = DBCash.useBus<SysUserConfig>(0);
 var dt = db.Count();
+````
+
+## useEntity
+获取 **Ext LINQ** 标准 Queryable 入口（`ITable<T>` / `Table<T>`），用法接近 EF Core `DbSet`、SqlSugar `Queryable`。
+
+````c#
+var table = DBCash.useEntity<SysUserConfig>(0);
+var dt = table.Where(u => u.uc_Key.Contains("a")).ToList();
 ````
 
 

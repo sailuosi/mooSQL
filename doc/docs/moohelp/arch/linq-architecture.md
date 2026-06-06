@@ -1,10 +1,48 @@
 # mooSQL LINQ 模块代码架构说明
 
-本文档描述 `pure/src/linq` 及相关调用链（ado/call、expression）的架构，包括功能点、调用链路、模块分工与设计模式。
+本文档描述 mooSQL 两条 LINQ 主线的架构定位、入口约定，以及 **Fast LINQ**（`pure/src/linq`）的实现细节。
 
 ---
 
-## 一、功能点概览
+## 〇、双轨定位（架构目标）
+
+mooSQL 的 LINQ 能力分为 **两条并行主线**，职责清晰、长期共存：
+
+| 维度 | **Fast LINQ**（本 ORM 特色） | **Ext LINQ**（对标 EF / 通用 Queryable） |
+|------|------------------------------|------------------------------------------|
+| **代码位置** | `pure/src/linq` | `ext/src/linq` |
+| **定位** | mooSQL 自研特色查询层，贴近项目实践 | 对标 EF Core、Linq2DB、SqlSugar `Queryable` 等通用 LINQ 能力 |
+| **入口** | **`useBus` / `useDbBus`** → `IDbBus<T>` / `EnDbBus<T>` | **`useEntity` / `Table<T>`** → `ITable<T>` / `IQueryable<T>` 标准链式 |
+| **工厂** | `FastLinqFactory` → `FastLinqCompiler` | `EntityLinqFactory` / `EntityVisitFactory` → `EntityQueryCompiler` / `EntityVisitCompiler` |
+| **扩展 API** | `BusQueryable`：`Set`、`DoUpdate`、`LeftJoin`、`ToPageList`、`InjectSQL` 等 moo 扩展 | 标准 `System.Linq.Queryable` + Linq2DB 风格扩展（LoadWith、Merge、SetOp 等） |
+| **编译路径** | 表达式 → 直接写 `SQLBuilder`（单阶段） | 表达式 → `SentenceBag` → `ClauseTranslateVisitor` → `SQLBuilder`（Compile / Execute 分离） |
+| **演进方向** | **持续增强**，作为业务侧默认推荐路径 | **能力对齐与测试**，覆盖 EF 等框架常见 Queryable 用法 |
+
+### 入口示例
+
+```csharp
+// Fast LINQ — mooSQL 特色，走 useBus
+var bus = DBCash.useBus<User>(0);          // 或 db.useDbBus<User>()
+var list = bus.Where(u => u.IsActive)
+    .Set(u => u.Name, "x")
+    .DoUpdate();
+
+// Ext LINQ — 标准 Queryable 入口，对标 EF / 其他 ORM
+var table = DBCash.useEntity<User>(0);     // Table<T> / ITable<T>
+var list2 = table.Where(u => u.IsActive).ToList();
+```
+
+### 执行终点
+
+两条主线 **不互相替代**：编译中间层不同，但执行均落到 Pure 层 `SQLBuilder.query<T>()`，实体映射不维护双轨 Mapper。
+
+Ext LINQ 详细说明见 [`ext/src/linq/LINQ全景分析与项目对比.md`](../../../../ext/src/linq/LINQ全景分析与项目对比.md)、[`ext/src/linq/src/README.md`](../../../../ext/src/linq/src/README.md)。
+
+---
+
+## 一、Fast LINQ 功能点概览
+
+> 以下章节专述 `pure/src/linq`（Fast LINQ）及 ado/call、expression 调用链。
 
 ### 1.1 核心能力
 
@@ -33,9 +71,9 @@
 ### 2.1 从“入口”到“执行”的总体流程
 
 ```
-用户代码（如 db.Query<User>().Where(...).ToList()）
+用户代码（如 db.useDbBus<User>().Where(...).ToList()）
     ↓
-DbContext / EnDbBus<T> → EntityQueryable<T>（IQueryable）
+DbContext / EnDbBus<T> → EntityQueryable<T>（IQueryable / IDbBus）
     ↓
 LINQ 扩展（Where/Select/...）通过 IQueryProvider.CreateQuery 不断包装 Expression
     ↓
@@ -121,7 +159,7 @@ BaseQueryCompiler.Execute：fun(context) → 实际执行 SQL（query/count/doUp
 ### 4.2 抽象工厂 + 策略
 
 - **LinqDbFactory**：抽象工厂，负责 `GetEntityQueryProvider(DB)`、`CreateEntityQueryable<T>`、**GetQueryCompiler(DB)**。  
-  **FastLinqFactory** 提供“Fast 编译”策略：`GetQueryCompiler` 返回 `FastLinqCompiler`，从而把“如何编译”与“会话/可查询”解耦，便于以后扩展其他编译器实现。
+  **FastLinqFactory** 是 **useBus 路径的默认工厂**：`GetQueryCompiler` 返回 `FastLinqCompiler`。Ext 侧另有 `EntityLinqFactory` / `EntityVisitFactory` 供标准 Queryable 路径使用，与 Fast 并行而非替换。
 
 ### 4.3 提供器模式（IQueryProvider）
 
@@ -177,7 +215,18 @@ BaseQueryCompiler.Execute：fun(context) → 实际执行 SQL（query/count/doUp
 ## 六、扩展点小结
 
 - **新 LINQ 方法**：在 `BusQueryable` 中加扩展方法（构造 `Expression.Call` + CreateQuery/Execute）；在 ado/call 中加对应 `XxxCall` 与 `MethodCallFactory` 映射；在 **FastMethodVisitor** 中实现 `VisitXxx`，必要时配合 FieldVisitor/WhereExpressionVisitor 等。
-- **新编译器**：实现 `IQueryCompiler`（或继承 `BaseQueryCompiler`），在 **LinqDbFactory** 子类中 `GetQueryCompiler` 返回该实现。
+- **新编译器**：实现 `IQueryCompiler`（或继承 `BaseQueryCompiler`），在 **LinqDbFactory** 子类中 `GetQueryCompiler` 返回该实现（Ext 路径见 `ext/src/linq/core/`）。
 - **新输出类型**：在 `basis/outputs` 或等价处增加 DTO，在对应 Visit 方法里设置 `Context.onRunQuery` 返回该类型（可参考 `ExecuteQueryPageT`、UpdateWithOutput/DeleteWithOutput）。
 
-以上即为 LINQ 模块的功能点、调用链路、分工与设计模式说明，可作为阅读与扩展该部分代码的参考。
+---
+
+## 七、相关文档
+
+| 文档 | 路径 | 内容 |
+|------|------|------|
+| LINQ 全景与对比 | `ext/src/linq/LINQ全景分析与项目对比.md` | 双轨定位、Ext Phase 2、选型建议 |
+| Ext 三层架构 | `ext/src/linq/src/README.md` | Compile → SentenceBag → Execute |
+| 表达式用法 | `doc/docs/SQL/high/expression.md` | useBus 与 Bus 扩展 API |
+| 双访问器迁移 | `ext/src/linq/双访问器对齐FastLinq-迁移清单.md` | Ext 编译分发层对齐 Fast 形态 |
+
+以上即为 mooSQL LINQ 双轨定位及 Fast LINQ 实现说明，可作为阅读与扩展该部分代码的参考。

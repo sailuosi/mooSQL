@@ -1,5 +1,7 @@
 # Ext LINQ 双访问器对齐 FastLinq — 迁移清单
 
+> **架构背景**：Fast LINQ（`useBus`）为本 ORM 特色主线；Ext LINQ 对标 EF / 标准 Queryable（`useEntity` / `Table<T>`）。二者并行，本清单仅描述 Ext 编译分发层与 Fast 形态的对齐，**不表示 Ext 将取代 Fast 成为 useBus 默认实现**。
+
 > **目标**：编译分发层与 FastLinq 同构——**所有 MethodCall 走 MethodVisitor**，**所有 Expression 节点走 ExpressionVisitor**；差异仅在翻译产物（`SentenceBag` / `Statement` vs `SQLBuilder`）。
 
 ---

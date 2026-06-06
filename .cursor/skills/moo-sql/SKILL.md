@@ -25,11 +25,12 @@ mooSQL2024/
 ├── pure/src/          # 核心模块
 │   ├── ado/           # ADO.NET 核心层
 │   ├── adoext/        # 扩展层（仓储、SQLClip）
-│   ├── linq/          # LINQ 支持
+│   ├── linq/          # Fast LINQ（useBus 特色路径）
 │   ├── auth/          # 认证授权
 │   ├── config/        # 配置管理
 │   └── excel/         # Excel 支持
 ├── ext/               # 扩展功能
+│   └── src/linq/      # Ext LINQ（标准 Queryable，对标 EF）
 └── ExcelReader/       # Excel 读取器
 ```
 
@@ -68,6 +69,8 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 | 批量操作 | UnitOfWork + Repository |
 | 动态 SQL | SQLBuilder 链式构建 |
 | 类型安全 | SQLClip Lambda 表达式 |
+| mooSQL 特色 LINQ（Set/DoUpdate/ Bus Join） | **useBus**（Fast LINQ） |
+| EF 式标准 Queryable / LoadWith / Merge | **useEntity**（Ext LINQ，`ext/src/linq`） |
 
 ## 核心组件位置
 
@@ -90,6 +93,8 @@ var builder = db.useSQL();      // SQLBuilder
 var clip = db.useClip();        // SQLClip
 var repo = db.useRepo<User>();  // Repository
 var uow = db.useWork();         // UnitOfWork
+var bus = db.useDbBus<User>();  // Fast LINQ（特色，useBus 同路径）
+// Ext 标准 Queryable: new Table<User>(db) 或 DBCash.useEntity<User>(n)
 ```
 
 ## 相关 Skills
