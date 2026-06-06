@@ -1,4 +1,5 @@
 using mooSQL.data;
+using mooSQL.linq;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -117,6 +118,25 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     /// <summary>忽略参数占位符名差异（@p / @vw_*）。</summary>
     static string NormalizeSqlForCompare(string sql)
         => Regex.Replace(NormalizeSql(sql), @"@\w+", "@p", RegexOptions.None);
+
+    [Fact]
+    public void ThreeEntrySnapshot_DbFuncBetween()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => u.Age.Between(18, 65))
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("BETWEEN", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
 
     [Fact]
     public void Union_LinqCompilesStructure()

@@ -9,10 +9,11 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 
 	using mooSQL.data;
 	using mooSQL.data.model;
+	using mooSQL.linq.translator;
 
 	using SqlQuery;
 
-	public class SqlServerMemberTranslator : ProviderMemberTranslatorDefault
+	public class SqlServerMemberTranslator : DefaultMemberTranslator
 	{
 		protected class SqlTypesTranslation : SqlTypesTranslationDefault
 		{

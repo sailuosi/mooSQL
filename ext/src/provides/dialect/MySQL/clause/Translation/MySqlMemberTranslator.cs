@@ -9,8 +9,9 @@ namespace mooSQL.linq.DataProvider.MySql.Translation
 	using Linq.Translation;
 	using mooSQL.data.model;
 	using mooSQL.data;
+	using mooSQL.linq.translator;
 
-	public class MySqlMemberTranslator : ProviderMemberTranslatorDefault
+	public class MySqlMemberTranslator : DefaultMemberTranslator
 	{
 		class SqlTypesTranslation : SqlTypesTranslationDefault
 		{

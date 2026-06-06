@@ -203,7 +203,12 @@ internal static class DbFuncRegistryBootstrap
 
         registry.Register(
             dateDiff,
-            new DbFuncExpressionEntry { PreferServerSide = true, PreferExtensionAttribute = true });
+            new DbFuncExpressionEntry
+            {
+                PreferServerSide = true,
+                IsDateDiffPredicate = true,
+                PreferExtensionAttribute = true
+            });
     }
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)

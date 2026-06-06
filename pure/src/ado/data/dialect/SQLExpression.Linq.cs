@@ -51,5 +51,20 @@ namespace mooSQL.data
 
         /// <summary>NULLIF 片段。</summary>
         public virtual string nullIf(string left, string right) => $"NULLIF({left}, {right})";
+
+        /// <summary>DateDiff 天；{0}=start，{1}=end。方言 override，默认 null 表示走 Ext Extension Builder。</summary>
+        public virtual string? dateDiffDay(string start, string end) => null;
+
+        /// <summary>DateDiff 小时。</summary>
+        public virtual string? dateDiffHour(string start, string end) => null;
+
+        /// <summary>DateDiff 分钟。</summary>
+        public virtual string? dateDiffMinute(string start, string end) => null;
+
+        /// <summary>DateDiff 秒。</summary>
+        public virtual string? dateDiffSecond(string start, string end) => null;
+
+        /// <summary>DateDiff 毫秒。</summary>
+        public virtual string? dateDiffMillisecond(string start, string end) => null;
     }
 }

@@ -32,6 +32,21 @@ namespace mooSQL.data
             return "[" + value + "]";
         }
 
+        public override string dateDiffDay(string start, string end)
+            => $"round((julianday({end}) - julianday({start})))";
+
+        public override string dateDiffHour(string start, string end)
+            => $"round((julianday({end}) - julianday({start})) * 24)";
+
+        public override string dateDiffMinute(string start, string end)
+            => $"round((julianday({end}) - julianday({start})) * 1440)";
+
+        public override string dateDiffSecond(string start, string end)
+            => $"round((julianday({end}) - julianday({start})) * 86400)";
+
+        public override string dateDiffMillisecond(string start, string end)
+            => $"round((julianday({end}) - julianday({start})) * 86400000)";
+
         /// <summary>
         /// 创建普通的select语句
         /// </summary>

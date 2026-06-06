@@ -412,6 +412,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var entry = db.dialect.dbFuncRegistry.Resolve(dateDiff);
         Assert.NotNull(entry);
         Assert.True(entry!.PreferExtensionAttribute);
+        Assert.True(entry.IsDateDiffPredicate);
     }
 
     [Fact]

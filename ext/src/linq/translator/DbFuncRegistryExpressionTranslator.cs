@@ -51,6 +51,13 @@ internal static class DbFuncRegistryExpressionTranslator
         if (entry.IsInListPredicate)
             return TranslateInList(builder, context, mc, db, entry.IsNotInListPredicate);
 
+        if (entry.IsDateDiffPredicate)
+        {
+            var dateDiffSql = TranslateDateDiff(builder, context, mc, db);
+            if (dateDiffSql != null)
+                return dateDiffSql;
+        }
+
         if (entry.PreferExtensionAttribute)
         {
             var extAttr = mc.Method.GetExpressionAttribute(db);
@@ -78,7 +85,7 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
-        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute))
+        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute && !entry.IsDateDiffPredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -128,6 +135,58 @@ internal static class DbFuncRegistryExpressionTranslator
 
     static bool IsBetweenTemplate(string template)
         => template.Contains("BETWEEN", StringComparison.OrdinalIgnoreCase);
+
+    static Expression? TranslateDateDiff(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count < 3)
+            return null;
+
+        if (!TryGetConstantDatePart(mc.Arguments[0], out var part))
+            return null;
+
+        var startExpr = builder.ConvertToSqlExpr(context, mc.Arguments[1], ProjectFlags.SQL);
+        var endExpr = builder.ConvertToSqlExpr(context, mc.Arguments[2], ProjectFlags.SQL);
+        if (startExpr is not SqlPlaceholderExpression startPh || endExpr is not SqlPlaceholderExpression endPh)
+            return null;
+
+        var format = ResolveDateDiffFormat(db.dialect.expression, part);
+        if (format == null)
+            return null;
+
+        var sql = new ExpressionWord(typeof(int), format, PrecedenceLv.Primary, startPh.Sql, endPh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static bool TryGetConstantDatePart(Expression expr, out DbFunc.DateParts part)
+    {
+        if (expr is ConstantExpression { Value: DbFunc.DateParts value })
+        {
+            part = value;
+            return true;
+        }
+
+        part = default;
+        return false;
+    }
+
+    static string? ResolveDateDiffFormat(SQLExpression expression, DbFunc.DateParts part)
+    {
+        const string start = "{0}";
+        const string end = "{1}";
+        return part switch
+        {
+            DbFunc.DateParts.Day         => expression.dateDiffDay(start, end),
+            DbFunc.DateParts.Hour        => expression.dateDiffHour(start, end),
+            DbFunc.DateParts.Minute      => expression.dateDiffMinute(start, end),
+            DbFunc.DateParts.Second      => expression.dateDiffSecond(start, end),
+            DbFunc.DateParts.Millisecond => expression.dateDiffMillisecond(start, end),
+            _                            => null
+        };
+    }
 
     static Expression TranslateBetween(
         ClauseSqlTranslator builder,
