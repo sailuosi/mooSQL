@@ -32,6 +32,7 @@ namespace mooSQL.data
         {
             expression = new MSSQLExpress(this);
             sentence = new MSSQLSentence(this);
+            clauseTranslator = new MSSQLClauseTranslator(this);
             mapping = new MSSQLMappingPanel();
             function = new MSSQLFunction();
             initDBVersion();

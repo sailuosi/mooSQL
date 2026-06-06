@@ -313,6 +313,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Theory]
     [InlineData(typeof(NpgsqlDialect), "DATE_PART")]
     [InlineData(typeof(MySQLDialect), "EXTRACT")]
+    [InlineData(typeof(MSSQLDialect), "DATEPART")]
     public void Matrix_DatePart_StaticCall_DialectSql(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -331,6 +332,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Theory]
     [InlineData(typeof(NpgsqlDialect), "DATE_PART")]
     [InlineData(typeof(MySQLDialect), "EXTRACT")]
+    [InlineData(typeof(MSSQLDialect), "DATEPART")]
     public void Matrix_DatePart_MemberYear_DialectSql(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -392,6 +394,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Theory]
+    [InlineData(typeof(MSSQLDialect), "DATEADD")]
     [InlineData(typeof(MySQLDialect), "DATE_ADD")]
     [InlineData(typeof(NpgsqlDialect), "interval")]
     public void Matrix_DateAdd_StaticCall_DialectSql(System.Type dialectType, string expectedFragment)

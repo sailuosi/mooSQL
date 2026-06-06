@@ -15,6 +15,11 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R28）
+
+- **MSSQLClauseTranslator** — 补全 MSSQL Ext LINQ compile 链（`clauseTranslator` 挂接）
+- **MSSQL compile 矩阵** — DatePart/DateAdd StaticCall + MemberYear 含 MSSQL
+
 ### 新增（Phase D/E R27）
 
 - **MSSQLExpress `datePart*`** — `DATEPART(part, date)` 全套 override
