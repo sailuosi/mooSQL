@@ -2,7 +2,7 @@
 
 > **架构目标（2026-06）**  
 > - **Fast LINQ**（`pure/src/linq`）：本 ORM 特色，经 **`useBus` / `useDbBus`** 进入 `IDbBus<T>`，持续增强。  
-> - **Ext LINQ**（本目录）：对标 **EF / 通用 Queryable**，入口为 **`useEntity` / `Table<T>`** 等标准 `IQueryable` 习惯。  
+> - **Ext LINQ**（本目录）：对标 **EF / 通用 Queryable**，入口为 **`useQueryable` / `AsQueryable`**（`GetTable` 为 Linq2DB 兼容）。
 > 详见 [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)。
 
 > **全景分析** → [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)  

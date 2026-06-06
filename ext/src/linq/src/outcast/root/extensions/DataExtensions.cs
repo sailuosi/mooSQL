@@ -11,13 +11,10 @@ namespace mooSQL.linq
 	{
 		/// <summary>
 		/// Returns queryable source for specified mapping class mapped to database table or view.
+		/// Linq2DB 兼容 / 表达式树 <c>Methods.LinqToDB.GetTable</c> 专用；业务代码请优先 <see cref="DBExtLinqExtension.useQueryable{T}"/>.
 		/// </summary>
 		public static ITable<T> GetTable<T>(this DBInstance dataContext)
-			where T : class
-		{
-			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
-
-			return new Table<T>(dataContext);
-		}
+			where T : notnull
+			=> ExtLinqEntry.CreateTable<T>(dataContext);
 	}
 }

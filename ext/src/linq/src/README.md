@@ -4,7 +4,7 @@
 
 **Ext LINQ 对标 EF Core、Linq2DB、SqlSugar `Queryable` 等框架的通用 LINQ 能力**，入口采用与业界一致的 **标准 Queryable 习惯**：
 
-- `DBCash.useEntity<T>(n)` / `new Table<T>(db)` → `ITable<T>`
+- `db.useQueryable<T>()` / `db.AsQueryable<T>()` → `ITable<T>`（`GetTable<T>()` 为 Linq2DB 兼容）
 - 标准 `System.Linq.Queryable` 链式（Where / Select / OrderBy / GroupBy …）
 - Linq2DB 风格扩展（LoadWith、Merge、SetOp、InsertOrUpdate 等）
 
@@ -29,7 +29,7 @@
 
 | | **Fast LINQ**（Pure） | **Ext LINQ**（本目录） |
 |--|----------------------|------------------------|
-| 入口 | `useBus` / `useDbBus` | `useEntity` / `Table<T>` |
+| 入口 | `useBus` / `useDbBus` | `useQueryable` / `AsQueryable` |
 | 目标 | mooSQL 特色、项目实践 | 对标 EF / 通用 Queryable |
 | 编译 | 单阶段 → SQLBuilder | Compile → SentenceBag → Execute |
 

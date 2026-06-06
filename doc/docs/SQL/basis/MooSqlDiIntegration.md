@@ -51,11 +51,12 @@ services.AddMooSql(App.Configuration);
 | `DBCash.useSQL(n)` | `new SQLKit()` 并 `setDBInstance(cash.getInstance(n))`（或与现有 `SQLKit` 封装保持一致） |
 | `DBCash.newKit(name)` | 同上，使用 `getInstance(name)` |
 | `DBCash.useBus<T>(n)` | `new DbContext` + **`FastLinqFactory`**，`DB` 赋为 `getInstance(n)`，再 `new EnDbBus<T>(...)`（与 `DBCash.useBus` / `useDbBus` 一致，Fast LINQ 特色路径） |
-| `DBCash.useEntity<T>(n)` | `new Table<T>(cash.getInstance(n))`（Ext LINQ 标准 Queryable 入口） |
+| `DBCash.useQueryable<T>(n)` | `cash.getInstance(n).useQueryable<T>()`（Ext LINQ 标准 Queryable 入口） |
+| `DBCash.useEntity<T>(n)` | 同 `useQueryable`（别名） |
 | `DBCash.newBulk(table, n)` | `new BulkTable(table, cash.getInstance(n))` 等 |
 | `DBCash.newBatchSQL(n)` | 与 `DBCash` 相同思路：`SQLKit` + `BatchSQL` |
 
-`useDb` / `LinqReadyBook` 仍仅存在于未改动的 `DBCash`；Ext 标准 Queryable 请使用 **`useEntity` / `Table<T>`**（`EntityLinqFactory`），与 **`useBus`（FastLinq）** 并行，见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
+`useDb` / `LinqReadyBook` 仍仅存在于未改动的 `DBCash`；Ext 标准 Queryable 请使用 **`useQueryable` / `AsQueryable`**（`GetTable` 为 Linq2DB 兼容），与 **`useBus`（FastLinq）** 并行，见 [LINQ 架构说明](../../moohelp/arch/linq-architecture.md)。
 
 ## DI 路径下的日志目录
 

@@ -292,4 +292,38 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
 
         Assert.Contains(rows, u => u.Name == "Alice");
     }
+
+    [Fact]
+    public void useQueryable_Where_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+
+        var rows = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 20).ToList();
+
+        Assert.True(rows.Count >= 2);
+        Assert.Contains(rows, u => u.Name == "Alice");
+        Assert.Contains(rows, u => u.Name == "Bob");
+    }
+
+    [Fact]
+    public void AsQueryable_Where_ExecutesSameAsUseQueryable()
+    {
+        var db = _sqlite.Db;
+
+        var fromUse = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
+        var fromAs = db.AsQueryable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
+
+        Assert.Equal(fromUse, fromAs);
+    }
+
+    [Fact]
+    public void GetTable_Where_ExecutesSameAsUseQueryable()
+    {
+        var db = _sqlite.Db;
+
+        var fromUse = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
+        var fromGet = db.GetTable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
+
+        Assert.Equal(fromUse, fromGet);
+    }
 }

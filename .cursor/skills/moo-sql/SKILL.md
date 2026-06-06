@@ -70,7 +70,7 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 | 动态 SQL | SQLBuilder 链式构建 |
 | 类型安全 | SQLClip Lambda 表达式 |
 | mooSQL 特色 LINQ（Set/DoUpdate/ Bus Join） | **useBus**（Fast LINQ） |
-| EF 式标准 Queryable / LoadWith / Merge | **useEntity**（Ext LINQ，`ext/src/linq`） |
+| EF 式标准 Queryable / LoadWith / Merge | **useQueryable**（Ext LINQ，`ext/src/linq`） |
 
 ## 核心组件位置
 
@@ -94,7 +94,7 @@ var clip = db.useClip();        // SQLClip
 var repo = db.useRepo<User>();  // Repository
 var uow = db.useWork();         // UnitOfWork
 var bus = db.useDbBus<User>();  // Fast LINQ（特色，useBus 同路径）
-// Ext 标准 Queryable: new Table<User>(db) 或 DBCash.useEntity<User>(n)
+// Ext 标准 Queryable: db.useQueryable<User>() 或 DBCash.useQueryable<User>(n)
 ```
 
 ## 相关 Skills
