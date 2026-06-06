@@ -226,11 +226,18 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_CombinedPredicates`（Between + Like）
 4. ✅ **矩阵 +1** — `Matrix_RegistryFirst_ExtensionRequired`
 
-## R23 建议批次（下一迭代）
+## R23 完成项（2026-06-06）
 
-1. **嵌套 DbFunc 编译** — `Trim(Lower(...))` 内层 SQL 未展开（占位符残留）
-2. **DatePart SQLite MemberTranslator** — 或 registry `datePart` 片段
-3. **更多 stub 物理删除** — 评估剩余 `api/dbfunc/` 文件
+1. ✅ **嵌套 DbFunc 编译** — `Trim(Lower(...))` 等嵌套 registry 调用正确展开
+2. ✅ **`ExpressionWord` 渲染** — Pure `VisitExpression` 替换模板占位符（修复 `{0}` 残留）
+3. ✅ **三入口快照 +1** — `ThreeEntrySnapshot_NestedStringFuncs`
+4. ✅ **矩阵 +2** — `Matrix_NestedStringFuncs_TrimLower_*`
+
+## R24 建议批次（下一迭代）
+
+1. **DatePart SQLite MemberTranslator** — 或 registry `datePart` 片段
+2. **更多 stub 物理删除** — 评估剩余 `api/dbfunc/` 文件
+3. **矩阵断言加强** — 常用函数 `DoesNotContain("{0}")`
 
 ---
 
@@ -238,17 +245,17 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
 - [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]`/`[Function]` 亦可 compile（Like/Between/字符串/DateDiff ✅）  
-- [x] `TestLinq` net6.0 全绿（**131/131**）  
-- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（16 组 ✅）  
+- [x] `TestLinq` net6.0 全绿（**134/134**）  
+- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（**17 组** ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Collate/TableIDType 已合并 ✅，留 R23）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Collate/TableIDType 已合并 ✅，留 R24）
 
-当前：**1/6 项未达成**（矩阵 63 ✅，Registry 边界文档 ✅，三入口 16 组 ✅）。
+当前：**1/6 项未达成**（矩阵 65 ✅，Registry 边界文档 ✅，三入口 17 组 ✅）。
 
-### 矩阵测试（63 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（65 项，`DbFuncTranslationMatrixTests`）
 
-含 R22 `Matrix_RegistryFirst_ExtensionRequired`、DateDiff 无 Extension 等。
+含 R23 嵌套字符串、`Matrix_RegistryFirst_ExtensionRequired`、DateDiff 无 Extension 等。
 
 ---
 

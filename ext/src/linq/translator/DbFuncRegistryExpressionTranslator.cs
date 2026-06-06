@@ -86,8 +86,49 @@ internal static class DbFuncRegistryExpressionTranslator
         if (IsBetweenTemplate(entry.SqlTemplate))
             return TranslateBetween(builder, context, mc, entry.SqlTemplate);
 
+        if (TryTranslateSimpleTemplate(builder, context, mc, entry) is { } simpleSql)
+            return simpleSql;
+
         var attr = new RegistryBackedExpressionAttribute(entry);
         return TranslateWithAttribute(builder, context, flags, attr, mc, checkAggregateRoot);
+    }
+
+    /// <summary>单模板 registry 函数直接收集 SQL 参数，避免 <see cref="DbFunc.ExpressionAttribute.GetExpression"/> 嵌套参数转换失败。</summary>
+    static Expression? TryTranslateSimpleTemplate(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DbFuncExpressionEntry entry)
+    {
+        if (entry.SqlTemplate == null
+            || entry.PreferExtensionAttribute
+            || entry.IsDateDiffPredicate
+            || entry.IsNullIfPredicate
+            || entry.IsConcatPredicate
+            || entry.IsInListPredicate)
+            return null;
+
+        try
+        {
+            var args = CollectCallSqlArgs(builder, context, mc);
+            var precedence = entry.Precedence == 0 ? PrecedenceLv.Primary : entry.Precedence;
+            var sql = new ExpressionWord(
+                mc.Type,
+                entry.SqlTemplate,
+                precedence,
+                (entry.IsAggregate ? SqlFlags.IsAggregate : SqlFlags.None)
+                | (entry.IsPure ? SqlFlags.IsPure : SqlFlags.None)
+                | (entry.IsPredicate ? SqlFlags.IsPredicate : SqlFlags.None)
+                | (entry.IsWindowFunction ? SqlFlags.IsWindowFunction : SqlFlags.None),
+                ParametersNullabilityType.NotNullable,
+                null,
+                args);
+            return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+        }
+        catch (SooQueryException)
+        {
+            return null;
+        }
     }
 
     public static Expression? TryTranslate(
@@ -135,7 +176,7 @@ internal static class DbFuncRegistryExpressionTranslator
             builder,
             currentContext.SelectQuery,
             mc,
-            static (ctx, e, descriptor, inline) => ctx.this_.ConvertToExtensionSql(ctx.context, ctx.flags, e, descriptor, inline));
+            static (ctx, e, descriptor, inline) => ConvertRegistryArgument(ctx, e, descriptor, inline));
 
         if (sqlExpression is SqlPlaceholderExpression placeholder)
         {
@@ -146,6 +187,20 @@ internal static class DbFuncRegistryExpressionTranslator
         }
 
         return sqlExpression;
+    }
+
+    /// <summary>嵌套 registry 参数优先走 <see cref="ClauseSqlTranslator.ConvertToSqlExpr"/>，避免 ForExtension 路径无法展开内层 DbFunc。</summary>
+    static Expression ConvertRegistryArgument(
+        (ClauseSqlTranslator this_, IClauseContext context, ProjectFlags flags) ctx,
+        Expression e,
+        EntityColumn? descriptor,
+        bool? inline)
+    {
+        var converted = ctx.this_.ConvertToSqlExpr(ctx.context, e, ctx.flags.SqlFlag(), columnDescriptor: descriptor);
+        if (converted is SqlPlaceholderExpression or SqlErrorExpression)
+            return converted;
+
+        return ctx.this_.ConvertToExtensionSql(ctx.context, ctx.flags, e, descriptor, inline);
     }
 
     static bool IsBetweenTemplate(string template)

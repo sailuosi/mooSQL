@@ -698,9 +698,10 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 		protected static bool HasParameters(IExpWord expr)
 		{
-			var hasParameters  = null != expr.Find(ClauseType.SqlParameter);
+			if (expr is ExpressionWord { Parameters.Length: > 0 })
+				return true;
 
-			return hasParameters;
+			return null != expr.Find(ClauseType.SqlParameter);
 		}
 
 		static T NormalizeExpressions<T>(T expression, bool allowMutation)

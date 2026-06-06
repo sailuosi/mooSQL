@@ -15,6 +15,14 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R23）
+
+- **嵌套 DbFunc 编译修复**：`TryTranslateSimpleTemplate` 直接 `CollectCallSqlArgs`（递归展开内层 registry 调用）
+- **`ExpressionWord` SQL 渲染**：`ClauseTranslateVisitor.VisitExpression` 用 `Parameters` 替换 `{0}` 占位符
+- **`HasParameters` 收敛**：`BasicSqlOptimizer` 识别 `ExpressionWord.Parameters`
+- **三入口快照 +1**：`ThreeEntrySnapshot_NestedStringFuncs`
+- **矩阵 +2**：`Matrix_NestedStringFuncs_TrimLower_*`（列 + 常量）
+
 ### 新增（Phase D/E R22）
 
 - **Registry-first 边界文档**：`Dialect-Capability-Matrix.md` 新增路径表（Analytic Over / Collate / DatePart）

@@ -22,8 +22,17 @@ namespace mooSQL.linq
         /// </summary>
         public override Clause VisitExpression(ExpressionWord field)
         {
-            var tar = field.Expr;
-            return new SQLFragClause(tar);
+            var expr = field.Expr;
+            if (field.Parameters.Length > 0 && expr.IndexOf('{') >= 0)
+            {
+                var args = new object[field.Parameters.Length];
+                for (var i = 0; i < field.Parameters.Length; i++)
+                    args[i] = VisitIExpWord(field.Parameters[i]).ToString() ?? string.Empty;
+
+                expr = string.Format(CultureInfo.InvariantCulture, expr, args);
+            }
+
+            return new SQLFragClause(expr);
         }
         /// <summary>
         /// 转译case

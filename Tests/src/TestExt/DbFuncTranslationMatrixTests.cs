@@ -506,6 +506,37 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Select(u => DbFunc.Trim(u.Name))
                 .Expression);
         Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Fact]
+    public void Matrix_NestedStringFuncs_TrimLower_EmitsNestedSql()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Trim(DbFunc.Lower(u.Name)))
+                .Expression);
+        Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Fact]
+    public void Matrix_NestedStringFuncs_TrimLowerConstant_EmitsNestedSql()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Trim(DbFunc.Lower("  Hi  ")))
+                .Expression);
+        Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
     }
 
     [Fact]

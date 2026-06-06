@@ -424,6 +424,27 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ThreeEntrySnapshot_NestedStringFuncs()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Select(u => DbFunc.Trim(DbFunc.Lower(u.Name)))
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("TRIM", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LOWER", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", linqSql);
+    }
+
+    [Fact]
     public void Union_LinqCompilesStructure()
     {
         var db = _sqlite.Db;
