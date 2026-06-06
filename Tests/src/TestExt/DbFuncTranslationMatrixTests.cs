@@ -1,5 +1,6 @@
 using mooSQL.data;
 using mooSQL.linq;
+using mooSQL.linq.Tools;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace TestMooSQL.src;
 /// DbFunc / Pure 注册表翻译矩阵（compile-only，不连库执行）。
 /// 每新增迁移函数，在此追加一条断言。
 /// </summary>
+[Collection("DbFuncMatrix")]
 public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
 {
     readonly LinqSqliteTestFixture _sqlite;
@@ -48,11 +50,108 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Like_EmitsLikeSql()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => DbFunc.Like(u.Name, "%Alice%"))
+                .Expression);
+        Assert.Contains("LIKE", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Between_EmitsBetween()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>().Where(u => u.Age.Between(18, 65)).Expression);
+        Assert.Contains("BETWEEN", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Between_StructOverload_Registered()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var betweens = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3)
+            .ToList();
+        Assert.Equal(2, betweens.Count);
+        Assert.All(betweens, m => Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(m)));
+    }
+
+    [Fact]
+    public void Matrix_Lower_EmitsLowerSql()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Lower(u.Name))
+                .Expression);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_In_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var inMethod = typeof(mooSQL.linq.Tools.SqlExtensions).GetMethods()
+            .First(m => m.Name == nameof(mooSQL.linq.Tools.SqlExtensions.In) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2);
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(inMethod));
+    }
+
+    [Fact]
+    public void Matrix_In_EmitsInList()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => new int?[] { 18, 25, 30 }.Contains(u.Age))
+                .Expression);
+        Assert.Contains(" IN ", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_Substring_RegisteredInRegistry()
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         var sub = typeof(DbFunc).GetMethod(nameof(DbFunc.Substring), new[] { typeof(string), typeof(int?), typeof(int?) })!;
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(sub));
+    }
+
+    [Fact]
+    public void Matrix_Substring_RegistryTemplate()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sub = typeof(DbFunc).GetMethod(nameof(DbFunc.Substring), new[] { typeof(string), typeof(int?), typeof(int?) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(sub);
+        Assert.NotNull(entry);
+        Assert.Contains("SUBSTRING", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_DateAdd_RegisteredAndCompiles()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var dateAdd = typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!;
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(dateAdd));
+
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt) > u.CreatedAt)
+                .Expression);
+        Assert.Contains("DATEADD", sql, System.StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -28,7 +28,8 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.data.model.affirms;
     using mooSQL.data.Mapping;
     using mooSQL.utils;
-    using mooSQL.data.mapping;
+	using mooSQL.data.mapping;
+    using mooSQL.linq.translator;
 
     partial class ClauseSqlTranslator
 	{
@@ -768,6 +769,10 @@ namespace mooSQL.linq.Linq.Builder
 					{
 						return ConvertToSqlExpr(context, expr, flags : flags, unwrap : unwrap, columnDescriptor : columnDescriptor, isPureExpression : isPureExpression, alias : alias);
 					}
+
+					var registrySql = DbFuncRegistryExpressionTranslator.TryTranslate(this, context, flags, mc, DBLive, checkAggregateRoot: true);
+					if (registrySql != null)
+						return registrySql;
 
 					var attr = mc.Method.GetExpressionAttribute(DBLive);
 

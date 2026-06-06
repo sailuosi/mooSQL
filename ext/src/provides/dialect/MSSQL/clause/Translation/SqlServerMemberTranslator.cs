@@ -64,6 +64,7 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
 				DbFunc.DateParts                                                       datepart)
 			{
+				// 静态 DbFunc.DateAdd 优先走 DbFuncRegistry；此处保留实例/扩展 DateAdd 的 SqlServer 方言。
 				var factory = translationContext.ExpressionFactory;
 				var dateType = factory.GetDbDataType(dateTimeExpression);
 

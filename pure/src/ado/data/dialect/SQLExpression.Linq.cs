@@ -35,8 +35,15 @@ namespace mooSQL.data
         /// <summary>ROW_NUMBER 窗口片段（方言可 override）。</summary>
         public virtual string rowNumber(string orderBy) => $"ROW_NUMBER() OVER(ORDER BY {orderBy})";
 
+        /// <summary>IN 列表谓词片段（字面量列表由 Ext 编译层展开）。</summary>
+        public virtual string inList(string expr, string values) => $"{expr} IN ({values})";
+
         /// <summary>字符串拼接（复用 stringConcat 链）。</summary>
         public virtual string concat(string left, string right)
             => stringConcat(left, right);
+
+        public virtual string lower(string expr) => $"LOWER({expr})";
+        public virtual string upper(string expr) => $"UPPER({expr})";
+        public virtual string trim(string expr) => $"TRIM({expr})";
     }
 }

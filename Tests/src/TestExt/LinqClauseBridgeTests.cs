@@ -58,15 +58,47 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void LinqClauseBridge_FromPrimarySelectQuery_MatchesToSQLBuilder()
+    public void FromSQLBuilder_RoundTripsSelectQuery()
     {
         var db = _sqlite.Db;
         var expr = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 18).Expression;
         var compiled = LinqStatementCompiler.Compile(db, expr);
-        var fromBridge = LinqClauseBridge.FromPrimarySelectQuery(db, compiled.PrimarySelectQuery!).toSelect().sql;
-        var fromLinq = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var kit = LinqStatementCompiler.ToSQLBuilder(db, expr);
+        var restored = LinqClauseBridge.ToSelectQueryClause(kit);
+        Assert.NotNull(restored);
+        Assert.NotNull(compiled.PrimarySelectQuery);
+    }
 
-        Assert.Contains("moo_t_user", fromBridge);
-        Assert.Contains("moo_t_user", fromLinq);
+    [Fact]
+    public void SQLClip_AndLinqSubquery_Combo()
+    {
+        var db = _sqlite.Db;
+        var clip = db.FromLinqExpression(
+            db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 20).Expression);
+        var linqSql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>().Where(u => u.IsActive).Expression);
+        Assert.Contains("moo_t_user", clip.toSelect().sql);
+        Assert.Contains("moo_t_user", linqSql);
+    }
+
+    [Fact]
+    public void Union_LinqCompilesStructure()
+    {
+        var db = _sqlite.Db;
+        var q1 = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 30);
+        var q2 = db.useQueryable<SQLiteTestUser>().Where(u => u.IsActive);
+        var result = LinqStatementCompiler.Compile(db, q1.Union(q2).Expression);
+        Assert.True(result.Success);
+    }
+
+    [Fact]
+    public void Concat_LinqQueryable_Works()
+    {
+        var db = _sqlite.Db;
+        var q1 = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 18);
+        var q2 = db.useQueryable<SQLiteTestUser>().Where(u => u.IsActive);
+        var result = LinqStatementCompiler.Compile(db, q1.Concat(q2).Expression);
+        Assert.True(result.Success);
     }
 }

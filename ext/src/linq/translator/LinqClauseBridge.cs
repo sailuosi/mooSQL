@@ -7,7 +7,7 @@ using mooSQL.linq.translator;
 namespace mooSQL.linq.translator;
 
 /// <summary>SentenceBag / SelectQueryClause ↔ SQLBuilder 桥接。</summary>
-public static class LinqClauseBridge
+public static partial class LinqClauseBridge
 {
     /// <summary>从编译结果获取可执行的 <see cref="SQLBuilder"/>。</summary>
     public static SQLBuilder ToSQLBuilder(this StatementCompileResult result, DBInstance db, object?[]? parameters = null)
@@ -29,7 +29,10 @@ public static class LinqClauseBridge
         var clause = new SelectSentence(selectQuery);
         var translated = db.dialect.clauseTranslator.Prepare(db).Visit(clause);
         if (translated is SQLBuilderClause builderClause)
+        {
+            AttachSelectQuery(builderClause.Builder, selectQuery);
             return builderClause.Builder;
+        }
 
         throw new InvalidOperationException("Expected SQLBuilderClause from SelectQueryClause translation.");
     }

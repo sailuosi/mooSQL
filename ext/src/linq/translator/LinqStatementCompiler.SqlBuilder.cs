@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.data;
+using mooSQL.data.model;
 using mooSQL.linq.Linq;
 
 namespace mooSQL.linq.translator;
@@ -67,7 +68,10 @@ public static partial class LinqStatementCompiler
         foreach (var sentence in bag.Sentences)
         {
             var single = new SentenceBag { DBLive = db, srcExp = expr, Sentences = new List<SentenceItem> { sentence } };
-            kits.Add(SentenceExecutor.BuildSqlBuilderPublic(single, db, expr, parameters));
+            var kit = SentenceExecutor.BuildSqlBuilderPublic(single, db, expr, parameters);
+            if (sentence.Statement is SelectSentence selectSentence)
+                LinqClauseBridge.AttachSelectQuery(kit, selectSentence.SelectQuery);
+            kits.Add(kit);
         }
 
         return kits;

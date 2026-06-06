@@ -50,10 +50,12 @@ namespace mooSQL.data.call
         /// <returns></returns>
         public static MethodCall Create(string type)
         {
+            var t = GetCallType(type);
+            if (t == null)
+                return null;
+
             if (!_cache.TryGetValue(type, out var func))
             {
-                // 构建表达式树：new T()
-                var t= GetCallType(type);
                 var newExpr = Expression.New(t);
                 var lambda = Expression.Lambda<Func<MethodCall>>(
                     newExpr

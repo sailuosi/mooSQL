@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using mooSQL.data;
 using mooSQL.data.translation;
+using mooSQL.linq.Tools;
 
 namespace mooSQL.linq.translator;
 
@@ -21,8 +22,9 @@ internal static class DbFuncRegistryBootstrap
         var expr = db.dialect.expression;
         RegisterLike(registry);
         RegisterBetween(registry);
+        RegisterInList(registry);
         RegisterStringDate(registry, expr);
-        RegisterAnalyticRow(registry);
+        RegisterAnalyticRow(registry, expr);
     }
 
     static void RegisterLike(DbFuncRegistry registry)
@@ -38,22 +40,37 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterBetween(DbFuncRegistry registry)
     {
-        var between = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3);
-        if (between == null)
-            return;
+        var betweenEntry = new DbFuncExpressionEntry { SqlTemplate = "{0} BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true };
+        var notBetweenEntry = new DbFuncExpressionEntry { SqlTemplate = "{0} NOT BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true };
 
-        registry.Register(
-            between,
-            new DbFuncExpressionEntry { SqlTemplate = "{0} BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true });
+        foreach (var between in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                     .Where(m => m.Name == nameof(DbFunc.Between) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3))
+            registry.Register(between, betweenEntry);
 
-        var notBetween = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == nameof(DbFunc.NotBetween) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3);
-        if (notBetween != null)
+        foreach (var notBetween in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                     .Where(m => m.Name == nameof(DbFunc.NotBetween) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3))
+            registry.Register(notBetween, notBetweenEntry);
+    }
+
+    static void RegisterInList(DbFuncRegistry registry)
+    {
+        foreach (var method in typeof(mooSQL.linq.Tools.SqlExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
+            if (method.Name != nameof(mooSQL.linq.Tools.SqlExtensions.In) && method.Name != nameof(mooSQL.linq.Tools.SqlExtensions.NotIn))
+                continue;
+            if (!method.IsGenericMethodDefinition)
+                continue;
+
             registry.Register(
-                notBetween,
-                new DbFuncExpressionEntry { SqlTemplate = "{0} NOT BETWEEN {1} AND {2}", IsPredicate = true, PreferServerSide = true });
+                method,
+                new DbFuncExpressionEntry
+                {
+                    SqlTemplate = "IN",
+                    IsPredicate = true,
+                    PreferServerSide = true,
+                    IsInListPredicate = true,
+                    IsNotInListPredicate = method.Name == nameof(mooSQL.linq.Tools.SqlExtensions.NotIn)
+                });
         }
     }
 
@@ -80,11 +97,44 @@ internal static class DbFuncRegistryBootstrap
                 dateAdd,
                 new DbFuncExpressionEntry { SqlTemplate = expr.dateAdd("{0}", "{1}", "{2}"), PreferServerSide = true });
         }
+
+        var length = typeof(DbFunc).GetMethod(nameof(DbFunc.Length), new[] { typeof(string) });
+        if (length != null)
+        {
+            registry.Register(
+                length,
+                new DbFuncExpressionEntry { SqlTemplate = "LENGTH({0})", PreferServerSide = true });
+        }
+
+        var lower = typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) });
+        if (lower != null)
+        {
+            registry.Register(
+                lower,
+                new DbFuncExpressionEntry { SqlTemplate = expr.lower("{0}"), PreferServerSide = true });
+        }
+
+        var upper = typeof(DbFunc).GetMethod(nameof(DbFunc.Upper), new[] { typeof(string) });
+        if (upper != null)
+        {
+            registry.Register(
+                upper,
+                new DbFuncExpressionEntry { SqlTemplate = expr.upper("{0}"), PreferServerSide = true });
+        }
+
+        var trim = typeof(DbFunc).GetMethod(nameof(DbFunc.Trim), new[] { typeof(string) });
+        if (trim != null)
+        {
+            registry.Register(
+                trim,
+                new DbFuncExpressionEntry { SqlTemplate = expr.trim("{0}"), PreferServerSide = true });
+        }
     }
 
-    static void RegisterAnalyticRow(DbFuncRegistry registry)
+    static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)
     {
-        // RowNumber 为 ISqlExtension 扩展，保留 Ext DbFunc.Analytic 适配；注册表仅占位 inspect。
+        // RowNumber 为 ISqlExtension 扩展链，保留 Ext DbFunc.Analytic 适配；Pure 片段供方言 override。
+        _ = expr.rowNumber("{0}");
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)

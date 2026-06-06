@@ -15,9 +15,16 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
-### 新增
+### 新增（Phase D/E R2）
 
-- **`LinqStatementCompiler.ToSQLBuilder`** — Clause IR → `SQLBuilder` 桥接
+- **`DbFuncRegistryExpressionTranslator`** — 注册表 `SqlTemplate` 实际翻译（Like/Between/Substring/DateAdd/Length）；`RegistryAwareMemberTranslator` 不再仅 inspect
+- **In/NotIn 注册表** — `SqlExtensions.In/NotIn` 注册 + `IsInListPredicate` 元数据
+- **`LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder`** — SQLBuilder ↔ SelectQueryClause 逆向桥接（`ConditionalWeakTable`）
+- **属性层迁出** — `DbFunc.ExpressionAttribute` / `ExtensionAttribute` → `api/translation/`
+- **Pure `SQLExpression.inList`** — IN 列表方言片段
+- **矩阵测试扩展** — Like/Between/In compile 断言；`CallUntil` 未知方法名安全返回 null
+
+### 新增
 - **`LinqStatementCompiler.GetSqlText`** — 公开 SQL 预览
 - **`DbFuncExpressionAttribute`** — `[DbFunc.Expression]` 推荐别名
 - **Pure `SQLExpression.Linq`** — `between` / `isNull` 等方言片段（迁移起点）

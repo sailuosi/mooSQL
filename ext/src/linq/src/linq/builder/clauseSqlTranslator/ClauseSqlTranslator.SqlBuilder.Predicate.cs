@@ -192,10 +192,31 @@ namespace mooSQL.linq.Linq.Builder
 					if (predicate != null)
 						return predicate;
 
+					if (!DbFuncRegistryExpressionTranslator.IsInListMethod(e.Method))
+					{
+						var registrySql = DbFuncRegistryExpressionTranslator.TryTranslate(this, context!, flags, e, DBLive, checkAggregateRoot: true);
+						if (registrySql is SqlPlaceholderExpression { Sql: IAffirmWord registryAffirm })
+							return registryAffirm;
+					}
+
 					var attr = e.Method.GetExpressionAttribute(DBLive);
 
 					if (attr != null && attr.GetIsPredicate(expression))
+					{
+						var entry = DBLive.dialect.dbFuncRegistry.Resolve(e.Method);
+						if (entry?.SqlTemplate != null
+						    && !DbFuncRegistryExpressionTranslator.IsInListMethod(e.Method))
+						{
+							var registrySql = DbFuncRegistryExpressionTranslator.TryTranslate(this, context!, flags, e, DBLive, checkAggregateRoot: true);
+							if (registrySql is SqlPlaceholderExpression { Sql: IAffirmWord registryAffirm })
+								return registryAffirm;
+						}
+
+						var extSql = ConvertExtensionToSql(context!, flags, attr, e, checkAggregateRoot: true);
+						if (extSql is SqlPlaceholderExpression { Sql: IAffirmWord extAffirm })
+							return extAffirm;
 						break;
+					}
 
 					var processed = BuildProjection(context, expression, flags);
 					if (!ReferenceEquals(processed, expression))
@@ -616,6 +637,23 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			return null;
+		}
+
+		/// <summary>供 DbFuncRegistry 列表 IN 谓词翻译复用。</summary>
+		internal IAffirmWord? TryBuildInListPredicate(IClauseContext context, MethodCallExpression expression)
+		{
+			if (DbFuncRegistryExpressionTranslator.IsInListMethod(expression.Method) && expression.Object != null)
+			{
+				var elementType = expression.Method.GetGenericArguments()[0];
+				var contains = Expression.Call(
+					EnumerableMethods.First(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2)
+						.MakeGenericMethod(elementType),
+					expression.Arguments[0],
+					expression.Object);
+				return ConvertInPredicate(context, contains);
+			}
+
+			return ConvertInPredicate(context, expression);
 		}
 
 		#endregion

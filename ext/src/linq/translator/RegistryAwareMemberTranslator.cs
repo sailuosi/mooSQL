@@ -22,11 +22,15 @@ internal sealed class RegistryAwareMemberTranslator : IMemberTranslator
     {
         DbFuncRegistryBootstrap.EnsureRegistered(_db);
 
-        if (memberExpression is MethodCallExpression mc
-            && mc.Method.DeclaringType == typeof(DbFunc)
-            && _db.dialect.dbFuncRegistry.Resolve(mc.Method) != null)
+        if (memberExpression is MethodCallExpression mc)
         {
-            // 注册表命中：仍走 DbFunc 属性翻译（ExpressionAttribute / Extension），注册表供 inspect 与 Pure 迁移。
+            var entry = _db.dialect.dbFuncRegistry.Resolve(mc.Method);
+            if (entry != null && (entry.SqlTemplate != null || entry.IsInListPredicate))
+            {
+                var translated = DbFuncRegistryExpressionTranslator.TryTranslate(translationContext, mc, _db);
+                if (translated != null)
+                    return translated;
+            }
         }
 
         return _inner.Translate(translationContext, memberExpression, translationFlags);

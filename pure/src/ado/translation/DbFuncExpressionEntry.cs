@@ -10,5 +10,8 @@ namespace mooSQL.data.translation
         public int Precedence { get; init; } = 100;
         public bool IsPure { get; init; } = true;
         public string? DialectConfiguration { get; init; }
+        /// <summary>列表 IN / NOT IN 谓词（由 Ext 编译层专用翻译，非字符串模板）。</summary>
+        public bool IsInListPredicate { get; init; }
+        public bool IsNotInListPredicate { get; init; }
     }
 }
