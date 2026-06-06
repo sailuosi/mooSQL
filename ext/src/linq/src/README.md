@@ -76,7 +76,7 @@ SQLBuilder → query<T>() → 实体结果
 │  StatementCompileSession.VisitRoot（ClauseCompiler 根入口）        │
 │    → ClauseExpressionVisitor + ClauseMethodVisitor（Buddy）       │
 │    → StatementCall → StatementExpression（树上产物）              │
-│    → IBuildContext / ISequenceBuilder（工具，非编排器）           │
+│    → IBuildContext + ClauseSqlTranslator（工具，非编排器）      │
 │    → ClauseCompiler.Build → SentenceBag                          │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ SentenceBag（Statement）
@@ -161,7 +161,7 @@ StatementCompileSession.Create(translator, buildInfo)
   → StatementExpression → ClauseCompileContext.ToSentenceBag
 ```
 
-`TryBuildSequence`（`[Obsolete]`，嵌套序列专用）：`ResolveSourceContext` 回退、各 `*Builder` 内部子序列解析。
+`TryBuildSequence`（`[Obsolete]`，嵌套序列专用）：`ResolveSourceContext` 回退、`BuildExpression` 子序列解析。
 
 ### 已移除的编译期职责
 
@@ -371,10 +371,10 @@ Expression
 | Count / Sum / Min / Max / Average | ✅ | `ClauseMethodVisitor.Aggregate.cs` |
 | DefaultIfEmpty / OfType / ElementAt* | ✅ | 各对应 partial |
 | DML 主入口内联 | ✅ | `ClauseMethodVisitor.Dml.cs`（Insert/Update/Delete/InsertOrUpdate） |
-| DML 变体 | ⏳ | InsertWithOutput 等仍走 `ApplyBuilder` |
-| Merge / SetOp | ✅ | `ClauseMethodVisitor.Merge.cs` / `SetOp.cs`；`SetOperationBuilder.Compile` / `MergeBuilder.Compile` |
+| DML 变体 | ✅ | `ClauseMethodVisitor.Insert.cs` / `Update.cs` / `Delete.cs` / `MultiInsert.cs` 等 |
+| Merge / SetOp | ✅ | `ClauseMethodVisitor.Merge.cs` / `SetOp.cs` |
 
-新增内联算子时同步更新 `ClauseMethodVisitor.Bindings.cs`，移除已内联方法的 `ApplyBuilder` 条目。
+新增算子时在 `ClauseMethodVisitor.*.cs` 添加 `VisitXxx` + `BuildXxxCore`；Context 类放 `buildContext/`。
 
 **已移除：** `EntityLinqFactory`、`EntityQueryCompiler`、`EntityProvider`、`CompiledTableT`、`IQueryRunner` 执行链、`zeroNeed/`、`IQueryParametersNormalizer`、`extensionBuilder/` stub、`DemoVisitor`。
 

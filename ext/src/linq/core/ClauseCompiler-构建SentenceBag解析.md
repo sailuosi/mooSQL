@@ -99,17 +99,19 @@ public BuildSequenceResult TryBuildSequence(BuildInfo buildInfo)
 }
 ```
 
-调用方：`ResolveSourceContext` 回退、各 `ISequenceBuilder.BuildSequence` 内部、`BuildExpression` 子序列等。
+调用方：`ResolveSourceContext` 回退、`BuildExpression` 子序列、嵌套子查询等。
 
 ---
 
-### 6. ISequenceBuilder 与 IBuildContext（保留）
+### 6. IBuildContext 与 ClauseMethodVisitor（保留）
 
-编译业务逻辑仍由 linq2db 移植的 Builder 体系完成：
+编译业务逻辑由双访问器 + Context 体系完成：
 
-- `ISequenceBuilder`：具体 LINQ 算子写入 `SelectQueryClause`
-- `IBuildContext`：维护查询上下文、`GetResultStatement()`
-- 高频算子已内联至 `ClauseMethodVisitor.*`；长尾仍经 `ApplyBuilder`（`Bindings.cs`）
+- `ClauseMethodVisitor.*`：全部 LINQ 算子 `VisitXxxCore` / `BuildXxxCore`
+- `IBuildContext` + `buildContext/*`：维护 `SelectQueryClause`、`GetResultStatement()`
+- `ClauseSqlTranslator`：SQL 语义工具（`BuildWhere`、`MakeExpression` 等）
+
+**已删除**：`ISequenceBuilder`、`MethodCallBuilder`、`ApplyBuilder`、`*Builder.cs` 壳。
 
 ---
 

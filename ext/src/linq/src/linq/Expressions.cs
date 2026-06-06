@@ -270,17 +270,21 @@ namespace mooSQL.linq.Linq
 		{
 			get
 			{
-//				if (_members == null)
-//				{
-//					lock (_memberSync)
-//#pragma warning disable CA1508 // Avoid dead conditional code
-//						_members ??= LoadMembers();
-//#pragma warning restore CA1508 // Avoid dead conditional code
-//				}
+				if (_members == null)
+				{
+					lock (_memberSync)
+						_members ??= LoadMembers();
+				}
 
 				return _members;
 			}
 		}
+
+		static Dictionary<string,Dictionary<MemberHelper.MemberInfoWithType,IExpressionInfo>> LoadMembers()
+			=> new(StringComparer.Ordinal)
+			{
+				{ "", _commonMembers }
+			};
 
 		interface ISetInfo
 		{
