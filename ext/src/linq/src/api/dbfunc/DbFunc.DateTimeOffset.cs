@@ -66,13 +66,13 @@ namespace mooSQL.linq
 		[CLSCompliant(false)]
 		[Extension(               "",              PreferServerSide = true)]
 		[Extension(PN.MySql,      "",              PreferServerSide = true)]
-		[Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
-		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
+		[Extension(PN.DB2,        "",              PreferServerSide = true)]
+		[Extension(PN.SapHana,    "",              PreferServerSide = true)]
 		[Extension(PN.SQLite,     "",              PreferServerSide = true)]
 		[Extension(PN.PostgreSQL, "",              PreferServerSide = true)]
 		[Extension(PN.Oracle,     "",              PreferServerSide = true)]
 		[Extension(PN.Access,     "",              PreferServerSide = true)]
-		[Extension(PN.ClickHouse, "",              BuilderType = typeof(DateDiffBuilderClickHouse))]
+		[Extension(PN.ClickHouse, "",              PreferServerSide = true)]
 		public static int? DateDiff(DateParts part, DateTimeOffset? startDate, DateTimeOffset? endDate)
 		{
 			if (startDate == null || endDate == null)

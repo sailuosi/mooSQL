@@ -15,6 +15,12 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R16）
+
+- **DateDiff 全方言 Builder 删除（D.9 完成）**：DB2/ClickHouse/SapHana → `DateDiffLegacyExpress.cs`；**所有 DateDiff Extension 无 BuilderType**
+- **Coalesce registry-only**：删除 `DbFunc.Coalesce.cs`；方法迁入 `DbFunc.cs` 且无 `[Expression]`
+- **矩阵 +5**：`Matrix_DateDiff_AllDialects_NoExtensionBuilder`、`Matrix_Coalesce_NoExpressionAttribute` 等
+
 ### 新增（Phase D/E R15）
 
 - **DateDiff Oracle/Access Builder 删除**：`OracleExpress` / `JetSQLExpress` `dateDiff*`；矩阵 `Matrix_DateDiff_OracleAccess_*`

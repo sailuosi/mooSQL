@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R15 完成）**  
+> 最后更新：**2026-06-06（R16 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -34,7 +34,8 @@
 | **R13** | DateDiff SQLite/PG Builder 删除 + 重载注册 + CI 脚本 | ✅ | **99/99** |
 | **R14** | DateDiff MSSQL/MySQL Builder 删除 + RowNumber 三入口 + Over 链评估 | ✅ | **102/102** |
 | **R15** | DateDiff Oracle/Access + OrderItemBuilder 删除 | ✅ | **107/107** |
-| R16 | DateDiff DB2/ClickHouse/SapHana + stub 物理删除 | 📋 待排 | — |
+| **R16** | DateDiff 全方言 Builder 删除 + Coalesce registry-only | ✅ | **112/112** |
+| R17 | 更多 stub 物理删除 / NullIf 方言 Expression 收敛 | 📋 待排 | — |
 
 ---
 
@@ -76,7 +77,7 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R10 | `nullIf`/`coalesce`/`dateDiff*`（SQLite）已接入 |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R10 | DateDiff `IsDateDiffPredicate` + Extension 回退 |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R15 | DateDiff 六方言 + OrderItemBuilder 已删 |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R16 | DateDiff 全方言 Builder 已删；Coalesce.cs 已删 |
 
 ### 已注册函数（Bootstrap，R6）
 
@@ -167,29 +168,35 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 2. ✅ **OrderItemBuilder 删除** — `ExtensionAttribute.AppendNullsPositionSuffix`  
 3. ✅ **矩阵 +4** — Oracle/Access inspect、Nulls FIRST compile、OrderItemBuilder 移除断言
 
-## R16 建议批次（下一迭代）
+## R16 完成项（2026-06-06）
 
-1. **DateDiff DB2/ClickHouse/SapHana** → Pure `dateDiff*`（需方言 Express 或 fallback 保留）  
-2. **物理删除 `api/dbfunc/`** 中已 registry-first 的冗余 stub  
-3. **常用 DbFunc 无 `[Extension]` compile** 路径扩展
+1. ✅ **DateDiff 全方言 Builder 删除** — DB2/ClickHouse/SapHana → `DateDiffLegacyExpress.cs`  
+2. ✅ **Coalesce registry-only** — 删除 `DbFunc.Coalesce.cs`（无 `[Expression]`）  
+3. ✅ **矩阵 +5** — 全方言无 Builder、Legacy Express 格式、Coalesce 无 Expression
+
+## R17 建议批次（下一迭代）
+
+1. **NullIf 方言 Expression 收敛** — Access/SqlCe 迁入 Pure 或 registry  
+2. **更多 stub 物理删除** — 已 registry-first 的薄 stub 合并  
+3. **三入口快照扩展** — Substring / In 等
 
 ---
 
 ## 验收标准（Phase D/E 整体完成）
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
-- [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径）  
-- [x] `TestLinq` net6.0 全绿（**107/107**）  
+- [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径；Coalesce ✅）  
+- [x] `TestLinq` net6.0 全绿（**112/112**）  
 - [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between/NotBetween/Lower/DateDiff/Like/RowNumberOver ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Readme 清单 ✅，物理删除留 R16）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Coalesce.cs 已删 ✅，物理删除留 R17）
 
-当前：**2/6 项未达成**（矩阵 48 ✅，DateDiff 六方言 registry-only ✅，OrderItemBuilder 已删，三入口 6 组 ✅）。
+当前：**1/6 项未达成**（矩阵 52 ✅，DateDiff 全方言 registry-only ✅，Coalesce 无 Expression ✅，三入口 6 组 ✅）。
 
-### 矩阵测试（48 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（52 项，`DbFuncTranslationMatrixTests`）
 
-含 Oracle/Access DateDiff、OrderBy NULLS FIRST、OrderItemBuilder 移除 inspect 等 R15 新增项。
+含 DateDiff 全方言无 Builder、Legacy Express 格式、Coalesce registry-only 等 R16 新增项。
 
 ---
 

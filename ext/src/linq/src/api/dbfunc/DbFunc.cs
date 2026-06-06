@@ -190,6 +190,12 @@ namespace mooSQL.linq
 		{
 			return value.HasValue && compareTo.HasValue && EqualityComparer<T>.Default.Equals(value.Value, compareTo.Value) ? null : value;
 		}
+
+		/// <summary>registry-first（Bootstrap <see cref="mooSQL.data.translation.DbFuncRegistry"/>）；无 <see cref="ExpressionAttribute"/>。</summary>
+		public static T? Coalesce<T>(T? a, T b) where T : class => a ?? b;
+
+		public static T Coalesce<T>(T? a, T b) where T : struct => a ?? b;
+
 		#endregion
 
 		#region NoConvert

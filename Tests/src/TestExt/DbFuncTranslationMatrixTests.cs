@@ -282,6 +282,39 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Coalesce_NoExpressionAttribute()
+    {
+        var coalesces = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.Coalesce) && m.IsGenericMethodDefinition);
+        foreach (var method in coalesces)
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+    }
+
+    [Fact]
+    public void Matrix_DateDiff_AllDialects_NoExtensionBuilder()
+    {
+        var method = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
+        var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+            .Cast<DbFunc.ExtensionAttribute>();
+        Assert.NotEmpty(attrs);
+        Assert.All(attrs, a => Assert.Null(a.BuilderType));
+    }
+
+    [Theory]
+    [InlineData(typeof(ClickHouseExpress), "date_diff")]
+    [InlineData(typeof(SapHanaExpress), "Days_Between")]
+    [InlineData(typeof(DB2Express), "Days")]
+    public void Matrix_DateDiff_LegacyDialect_ExpressFormat(System.Type expressType, string expectedFragment)
+    {
+        var express = (SQLExpression)System.Activator.CreateInstance(expressType, new SQLiteDialect())!;
+        var format = express.dateDiffDay("{0}", "{1}");
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_CountExt_RegisteredInRegistry()
     {
         var db = _sqlite.Db;
