@@ -51,6 +51,14 @@ internal static class DbFuncRegistryExpressionTranslator
         if (entry.IsInListPredicate)
             return TranslateInList(builder, context, mc, db, entry.IsNotInListPredicate);
 
+        if (entry.PreferExtensionAttribute)
+        {
+            var extAttr = mc.Method.GetExpressionAttribute(db);
+            if (extAttr != null)
+                return TranslateWithAttribute(builder, context, flags, extAttr, mc, checkAggregateRoot);
+            return null;
+        }
+
         if (entry.SqlTemplate == null)
             return null;
 
@@ -70,7 +78,7 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
-        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate))
+        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);

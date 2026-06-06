@@ -27,6 +27,7 @@ internal static class DbFuncRegistryBootstrap
         RegisterNullIfCoalesce(registry, expr);
         RegisterAggregates(registry);
         RegisterAnalyticRow(registry, expr);
+        RegisterDateDiff(registry);
     }
 
     static void RegisterLike(DbFuncRegistry registry)
@@ -190,6 +191,19 @@ internal static class DbFuncRegistryBootstrap
                 && m.GetParameters()[1].ParameterType == typeof(object));
         if (average != null)
             registry.Register(average, Agg("AVG({0})"));
+    }
+
+    static void RegisterDateDiff(DbFuncRegistry registry)
+    {
+        var dateDiff = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(DateTime?), typeof(DateTime?) });
+        if (dateDiff == null)
+            return;
+
+        registry.Register(
+            dateDiff,
+            new DbFuncExpressionEntry { PreferServerSide = true, PreferExtensionAttribute = true });
     }
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)

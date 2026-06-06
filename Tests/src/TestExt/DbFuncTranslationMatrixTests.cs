@@ -391,6 +391,30 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_NotBetween_EmitsNotBetween()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>().Where(u => u.Age.NotBetween(18, 65)).Expression);
+        Assert.Contains("NOT BETWEEN", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_DateDiff_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var dateDiff = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(dateDiff);
+        Assert.NotNull(entry);
+        Assert.True(entry!.PreferExtensionAttribute);
+    }
+
+    [Fact]
     public void Matrix_RowNumber_Over_EmitsRowNumberSql()
     {
         var db = _sqlite.Db;

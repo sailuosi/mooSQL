@@ -18,7 +18,7 @@ internal static class MemberTranslatorResolver
         {
             nameof(MSSQLDialect) => new SqlServerMemberTranslator(),
             "MySQLDialect"       => new MySqlMemberTranslator(),
-            _                    => new CombinedMemberTranslator()
+            _                    => new DefaultMemberTranslator()
         };
 
         return new RegistryAwareMemberTranslator(inner, db);

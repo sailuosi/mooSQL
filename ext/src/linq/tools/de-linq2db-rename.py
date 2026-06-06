@@ -23,7 +23,9 @@ def mv(src, dst):
         print(f"mv {src} -> {dst}")
 
 def rename_sql_files():
-    dbf = ROOT / "src/api/DbFunc"
+    dbf = ROOT / "src/api/dbfunc"
+    if not dbf.exists():
+        dbf = ROOT / "src/api/DbFunc"
     if not dbf.exists():
         return
     for f in list(dbf.glob("Sql.*")):
@@ -34,7 +36,7 @@ def rename_sql_files():
 
 # Phase 1: directories
 mv("src/outcast", "src/api")
-mv("src/api/Sql", "src/api/DbFunc")
+mv("src/api/Sql", "src/api/dbfunc")
 rename_sql_files()
 
 # merge buildContext into clauseContext

@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R8 进行中）**  
+> 最后更新：**2026-06-06（R9 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -26,8 +26,9 @@
 | R5 | 多属性消歧、PreferServerSide 注册表优先、Select 函数投影 | ✅ | Lower/Substring Select |
 | **R6** | **`api/DbFunc/` 物理收缩**、RowNumber 注册、匿名 Select 列精简 | ✅ | **68/68** |
 | **R7** | 注册表扩展 + `GetExtensionAttributes` 修复 + RowNumber Over 端到端 | ✅ | **74/74**（矩阵 24） |
-| **R8** | 嵌套投影 + SQLClip 快照 + DateDiff 修复 + 矩阵 30 + 构建卫生 | 🟡 | **81/81**（矩阵 30） |
-| R9 | MemberTranslator 收敛 + `api/dbfunc` stub 删除 | 📋 待排 | — |
+| **R8** | 嵌套投影 + SQLClip 快照 + DateDiff 修复 + 矩阵 30 + 构建卫生 | ✅ | **81/81**（矩阵 30） |
+| **R9** | NotBetween E2E + DateDiff PreferExtensionAttribute + MemberTranslator 默认 | ✅ | **84/84**（矩阵 32） |
+| R10 | `api/dbfunc` stub 删除 + registry-only 路径 | 📋 待排 | — |
 
 ---
 
@@ -67,17 +68,17 @@ pure/src/ado/
 | D.4 注册表优先 | MethodCall 先 registry 再属性链 | ✅ R5 | `ClauseSqlTranslator.QueryBuilder` |
 | D.5 Select 投影 | 函数 / 匿名 / MemberInit 列精简 | ✅ R6–R8 | 含 `new { X = DbFunc.Lower(...) }` 矩阵测 |
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 部分 | `nullIf`/`coalesce` 已接入；`rowNumber(orderBy)` 等未全部 registry-only |
-| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7 | NullIf/Coalesce/Count/Sum/Avg 已注册；DateDiff 等仍走 `[Extension]` |
-| D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | ❌ R8 | 仍为 switch + `RegistryAwareMemberTranslator` 包装 |
+| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R9 | NullIf/Coalesce/Count/Sum/Avg 已注册；DateDiff 注册 + PreferExtensionAttribute |
+| D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9 | 默认 `DefaultMemberTranslator`；MSSQL/MySQL 仍保留方言副本 |
 | D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | ❌ R9 | 需注册表 + 矩阵全覆盖 |
 
 ### 已注册函数（Bootstrap，R6）
 
-Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（全泛型）、**Coalesce**（全泛型）、**Count/Sum/Average**（ISqlExtension 链）。
+Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（全泛型）、**Coalesce**（全泛型）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（PreferExtensionAttribute）。
 
-### 矩阵测试（30 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（32 项，`DbFuncTranslationMatrixTests`）
 
-NullCompare、Like、Between/NotBetween、In、Substring、Lower/Upper/Trim/Length Select、DateAdd、**DateDiff（Extension/julianday）**、RowNumber 注册 + Over 端到端、匿名 Select（含 **DbFunc 嵌套**）、NullIf/Coalesce、Count/Sum/Avg 注册。
+NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/Trim/Length Select、DateAdd、**DateDiff（Extension/julianday + registry inspect）**、RowNumber 注册 + Over 端到端、匿名 Select（含 **DbFunc 嵌套**）、NullIf/Coalesce、Count/Sum/Avg 注册。
 
 ---
 
@@ -90,7 +91,7 @@ NullCompare、Like、Between/NotBetween、In、Substring、Lower/Upper/Trim/Leng
 | E.1 正向桥接 | `LinqStatementCompiler.ToSQLBuilder(s)` | ✅ | Expression → SQLBuilder |
 | E.1 逆向桥接 | `LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder` | ✅ | `ConditionalWeakTable` 附着 |
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
-| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8 | `SQLClip_FromLinqExpression_MatchesGetSqlText` 快照；Union 已有 |
+| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R9 | `SQLClip_FromLinqExpression_MatchesGetSqlText` + `ToSQLBuilder_MatchesGetSqlText` |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
 | E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ❌ | README 长期项仍 open |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
@@ -112,19 +113,19 @@ NullCompare、Like、Between/NotBetween、In、Substring、Lower/Upper/Trim/Leng
 4. ✅ **矩阵 30 项** + csproj 排除 `artifacts/**`  
 5. 📋 **DateDiff 注册表 / NotBetween 端到端 / MemberTranslator** — 留 R9
 
-## R9 建议批次（下一迭代）
+## R9 完成项（2026-06-06）
 
-1. **DateDiff 注册表** — 首参 `DateParts` 需专用 Builder 或方言片段  
-2. **NotBetween 端到端** — 扩展方法 `u.Age.NotBetween` SQL 断言（当前仅 registry inspect）  
-3. **MemberTranslator 收敛（D.8）** — 删除 MSSQL/MySQL 重复副本  
-4. **构建卫生** — `de-linq2db-rename.py` 路径更新
+1. ✅ **NotBetween 端到端** — `VisitAffirmBetween` 尊重 `IsNot` → `whereNotBetween`  
+2. ✅ **DateDiff 注册表** — `PreferExtensionAttribute` + 矩阵 inspect  
+3. ✅ **MemberTranslator 默认（D.8 部分）** — `DefaultMemberTranslator` 替代空组合  
+4. ✅ **桥接快照** — `ToSQLBuilder_MatchesGetSqlText`  
+5. ✅ **工具路径** — `de-linq2db-rename.py` `api/dbfunc`
 
----
+## R10 建议批次（下一迭代）
 
-## R9 / R10（stub 删除）
-
-- **R9**：`MemberTranslatorResolver` 统一 registry，删除方言 MemberTranslator 重复逻辑  
-- **R10**：注册表覆盖 `api/dbfunc/` 全部 stub 后，删除 `[DbFunc.Extension]` fallback 与 stub 文件
+1. **registry-only DateDiff** — 减少 `[Extension]` Builder 依赖  
+2. **stub 删除（D.9）** — 注册表全覆盖后移除 `api/dbfunc/`  
+3. **MSSQL/MySQL MemberTranslator 收敛** — 统一 registry 查询
 
 ---
 
@@ -132,12 +133,12 @@ NullCompare、Like、Between/NotBetween、In、Substring、Lower/Upper/Trim/Leng
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
 - [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径）  
-- [x] `TestLinq` net6.0 全绿  
-- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（快照测）  
+- [x] `TestLinq` net6.0 全绿（**84/84**）  
+- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（快照测部分完成）  
 - [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例  
 - [ ] ADR 边界脚本 CI 通过
 
-当前：**3/6 项未达成**（矩阵 30/30 ✅，stub 未删，三入口快照部分完成）。
+当前：**3/6 项未达成**（矩阵 32/32 ✅，NotBetween E2E ✅，stub 未删，三入口快照部分完成）。
 
 ---
 

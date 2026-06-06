@@ -15,6 +15,14 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R9）
+
+- **`PreferExtensionAttribute`**：`DbFuncExpressionEntry` 新增标志；`DateDiff` 注册表命中后走 `[Extension]` Builder（方言 `julianday` 等），避免多属性模板叠加
+- **`DefaultMemberTranslator`**：非 MSSQL/MySQL 方言默认 `DateFunctionsTranslatorBase`；`MemberTranslatorResolver` 不再返回空 `CombinedMemberTranslator`
+- **NotBetween 端到端**：`ClauseTranslateVisitor.VisitAffirmBetween` 按 `IsNot` 调用 `whereNotBetween`；`Matrix_NotBetween_EmitsNotBetween` 通过
+- **桥接快照**：`ToSQLBuilder_MatchesGetSqlText`（LINQ → SQLBuilder vs `GetSqlText`）
+- **工具路径**：`de-linq2db-rename.py` 更新 `api/DbFunc` → `api/dbfunc`
+
 ### 新增（Phase D/E R8）
 
 - **`PickExtensionAttributes` 方言优先**：方言专用 `[Extension]` 不再与默认配置叠加，修复 `DateDiff` 等多属性函数 compile 时 `Multiple root sequences` 错误
@@ -105,19 +113,24 @@ db.useQueryable<User>();
 - **`api/translation/` + `api/dbfunc/`** — 属性与 stub 分目录；旧 `DbFunc/` 已删除
 - **注册表实际翻译** + PreferServerSide 优先 + Union SQL + Select 投影（函数/匿名）
 - **Phase E 基础设施**：ADR、`LinqClauseBridge`、`ToSQLBuilder(s)`、`FromLinqExpression`
-- **测试**：`TestLinq` **68/68**（`DbFuncTranslationMatrixTests` 18 项 + Bridge/Registry/Compile）
+- **测试**：`TestLinq` **84/84**（`DbFuncTranslationMatrixTests` 32 项 + Bridge/Registry/Compile）
 
-#### 下一批（R7，建议）
+#### 下一批（R10，建议）
 
 | 优先级 | 项 |
 |--------|-----|
-| P0 | 注册表扩展（Aggregate / Coalesce / DateDiff 等）+ 矩阵测 |
-| P1 | RowNumber `.Over()` 端到端 compile 断言 |
-| P1 | `new { X = DbFunc.Lower(u.Name) }` 混合投影 |
-| P2 | SQLClip ↔ LINQ SQL 快照对比测 |
-| P2 | csproj 排除 `artifacts/`，防 CS0579 污染 |
+| P0 | 注册表覆盖 DateDiff 等仍走 `[Extension]` 的函数 |
+| P1 | 删除 `api/dbfunc/` stub 与 `[Extension]` fallback |
+| P2 | 三入口 SQL 快照更完整（SQLClip / SQLBuilder / LINQ） |
+| P2 | 方言 Take/Skip / ROW_NUMBER 能力矩阵文档 |
 
-#### 远期（R8–R9）
+#### 已完成（R7–R9）
+
+- R7：NullIf/Coalesce/Aggregate 注册 + RowNumber Over 端到端  
+- R8：嵌套投影 + SQLClip 快照 + DateDiff 方言优先 + 矩阵 30  
+- R9：NotBetween E2E + DateDiff PreferExtensionAttribute + DefaultMemberTranslator
+
+#### 远期（R10+）
 
 - MemberTranslator 方言副本收敛 → 统一 registry 查询
 - 注册表全覆盖后删除 `api/dbfunc/` stub 与 `[Extension]` fallback

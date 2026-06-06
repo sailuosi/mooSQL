@@ -71,7 +71,10 @@ namespace mooSQL.linq
 
             var val1= VisitIExpWord(clause.Expr2);
             var val2 = VisitIExpWord(clause.Expr3);
-            builder.whereBetween(field, val1, val2);
+            if (clause.IsNot)
+                builder.whereNotBetween(field, val1, val2);
+            else
+                builder.whereBetween(field, val1, val2);
             return clause;
         }
         /// <summary>

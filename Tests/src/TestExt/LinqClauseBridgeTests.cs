@@ -84,6 +84,20 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ToSQLBuilder_MatchesGetSqlText()
+    {
+        var db = _sqlite.Db;
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => u.Age > 18 && u.IsActive)
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+
+        Assert.Equal(NormalizeSqlForCompare(linqSql), NormalizeSqlForCompare(builderSql));
+    }
+
+    [Fact]
     public void SQLClip_FromLinqExpression_MatchesGetSqlText()
     {
         var db = _sqlite.Db;
