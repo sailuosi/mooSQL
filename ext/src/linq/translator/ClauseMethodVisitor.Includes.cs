@@ -42,7 +42,7 @@ internal partial class ClauseMethodVisitor
     {
         ITableContext? table = null;
 
-        IncludeInfo lastLoadWith;
+        IncludeInfo lastInclude;
 
         if (methodCall.Method.Name == "IncludeInternal")
         {
@@ -51,12 +51,12 @@ internal partial class ClauseMethodVisitor
             if (table == null)
                 return null;
 
-            var loadWith     = methodCall.Arguments[1].EvaluateExpression<IncludeInfo>();
-            var loadWithPath = methodCall.Arguments[2].EvaluateExpression<MemberInfo[]>();
+            var includeInfo     = methodCall.Arguments[1].EvaluateExpression<IncludeInfo>();
+            var includePath = methodCall.Arguments[2].EvaluateExpression<MemberInfo[]>();
 
-            table.IncludeRoot = loadWith!;
-            table.IncludePath = loadWithPath;
-            lastLoadWith       = loadWith!;
+            table.IncludeRoot = includeInfo!;
+            table.IncludePath = includePath;
+            lastInclude       = includeInfo!;
         }
         else
         {
@@ -93,7 +93,7 @@ internal partial class ClauseMethodVisitor
 
             table = extractResult.Value.context ?? throw new SooQueryException("Unable to find table for Includes association.");
 
-            var tableLoadWith = table.IncludeRoot;
+            var tableIncludeRoot = table.IncludeRoot;
 
             if (methodCall.Method.Name == "ThenInclude")
             {
@@ -105,7 +105,7 @@ internal partial class ClauseMethodVisitor
                 if (lastPath == null)
                     throw new SooQueryException($"ThenInclude should follow Includes. Cannot find previous property for '{path}'.");
 
-                lastLoadWith = MergeInclude(lastPath, associations);
+                lastInclude = MergeInclude(lastPath, associations);
 
                 if (methodCall.Arguments.Count == 3)
                 {
@@ -117,9 +117,9 @@ internal partial class ClauseMethodVisitor
             }
             else if (methodCall.Method.Name == "Includes" || methodCall.Method.Name == "IncludesAsTable")
             {
-                var lastPath = CorrectLastPath(tableLoadWith, table.IncludePath);
+                var lastPath = CorrectLastPath(tableIncludeRoot, table.IncludePath);
 
-                if (tableLoadWith == null)
+                if (tableIncludeRoot == null)
                     throw new InvalidOperationException();
 
                 if (methodCall.Arguments.Count == 3)
@@ -130,18 +130,18 @@ internal partial class ClauseMethodVisitor
                         CheckFilterFunc(lastElement.MemberInfo.GetMemberType(), lastElement.FilterFunc!.Type, sequence.Builder.DBLive);
                 }
 
-                lastLoadWith = MergeInclude(lastPath, associations);
+                lastInclude = MergeInclude(lastPath, associations);
             }
             else
                 throw new InvalidOperationException();
         }
 
-        var loadWithSequence = sequence as IncludeContext ?? new IncludeContext(sequence, table!);
-        loadWithSequence.LastIncludeInfo = lastLoadWith;
+        var includeSequence = sequence as IncludeContext ?? new IncludeContext(sequence, table!);
+        includeSequence.LastIncludeInfo = lastInclude;
 
-        RegisterIncludeNavColumns(builder, table, lastLoadWith);
+        RegisterIncludeNavColumns(builder, table, lastInclude);
 
-        return loadWithSequence;
+        return includeSequence;
     }
 
     static void CheckFilterFunc(Type expectedType, Type filterType, DBInstance mappingSchema)
@@ -156,12 +156,12 @@ internal partial class ClauseMethodVisitor
             throw new LinqException("Invalid filter function usage.");
     }
 
-    static IncludeInfo CorrectLastPath(IncludeInfo lastPath, MemberInfo[]? loadWithPath)
+    static IncludeInfo CorrectLastPath(IncludeInfo lastPath, MemberInfo[]? includePath)
     {
-        if (loadWithPath?.Length > 0)
+        if (includePath?.Length > 0)
         {
             var current = lastPath;
-            foreach (var memberInfo in loadWithPath)
+            foreach (var memberInfo in includePath)
             {
                 var found = current.NextInfos?.FirstOrDefault(li =>
                     MemberInfoEqualityComparer.Default.Equals(li.MemberInfo, memberInfo));
@@ -176,14 +176,14 @@ internal partial class ClauseMethodVisitor
         return lastPath;
     }
 
-    static void RegisterIncludeNavColumns(ClauseSqlTranslator builder, ITableContext? table, IncludeInfo lastLoadWith)
+    static void RegisterIncludeNavColumns(ClauseSqlTranslator builder, ITableContext? table, IncludeInfo lastInclude)
     {
         if (table?.ObjectType == null)
             return;
 
         var entityType = table.ObjectType;
         var ed = builder.DBLive.client.EntityCash.getEntityInfo(entityType);
-        var info = lastLoadWith;
+        var info = lastInclude;
         while (info != null)
         {
             if (info.MemberInfo != null)
@@ -225,11 +225,11 @@ internal partial class ClauseMethodVisitor
         if (context == null)
             return default;
 
-        var loadWithInfos = members
+        var includeInfos = members
             .Select((m, i) => new IncludeInfo(m, true) { MemberFilter = i == 0 ? filterExpression : null })
             .ToArray();
 
-        return (context, loadWithInfos);
+        return (context, includeInfos);
     }
 
     static (ITableContext? context, List<MemberInfo> members) GetAssociations(ClauseSqlTranslator builder, ITableContext? parentContext, Expression expression, Expression? stopExpression)
@@ -374,9 +374,9 @@ internal partial class ClauseMethodVisitor
         return (context ?? parentContext, members);
     }
 
-    static IncludeInfo MergeInclude(IncludeInfo loadWith, IncludeInfo[] defined)
+    static IncludeInfo MergeInclude(IncludeInfo includeRoot, IncludeInfo[] defined)
     {
-        var current = loadWith;
+        var current = includeRoot;
 
         for (var index = 0; index < defined.Length; index++)
         {

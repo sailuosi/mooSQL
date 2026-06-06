@@ -31,8 +31,8 @@ namespace mooSQL.linq.Linq.Builder
 			Expression?           additionalCondition,
 			bool                  inline,
 			bool?                 enforceDefault,
-			IncludeInfo?         loadWith,
-			MemberInfo[]?         loadWithPath,
+			IncludeInfo?         includeInfo,
+			MemberInfo[]?         includePath,
 			out bool?             isOptional)
 		{
 			Expression dataContextExpr = SqlQueryRootExpression.Create(DB);
@@ -214,40 +214,40 @@ namespace mooSQL.linq.Linq.Builder
 				});
 			}
 
-			if (loadWith != null)
+			if (includeInfo != null)
 			{
 				var newPath = new[] { association.MemberInfo };
-				var path = loadWithPath == null || loadWithPath.Length == 0
+				var path = includePath == null || includePath.Length == 0
 					? newPath
-					: loadWithPath.Concat(newPath).ToArray();
+					: includePath.Concat(newPath).ToArray();
 
 				var body = definedQueryMethod.Body;
 
 				body = Expression.Call(
 					Methods.SooQuery.IncludeInternal.MakeGenericMethod(body.Type),
 					body,
-					Expression.Constant(loadWith),
+					Expression.Constant(includeInfo),
 					Expression.Constant(path, typeof(MemberInfo[])));
 
 				definedQueryMethod = Expression.Lambda(body, definedQueryMethod.Parameters);
 			}
 
-			if (loadWith?.NextInfos != null)
+			if (includeInfo?.NextInfos != null)
 			{
-				var associationLoadWith = loadWith.NextInfos
+				var associationInclude = includeInfo.NextInfos
 					.FirstOrDefault(li =>
 						MemberInfoEqualityComparer.Default.Equals(li.MemberInfo, association.MemberInfo));
 
-				associationLoadWith ??= loadWith.NextInfos
+				associationInclude ??= includeInfo.NextInfos
 					.FirstOrDefault(li =>
 						li.MemberInfo?.Name == association.MemberInfo.Name);
 
-				if (associationLoadWith != null &&
-				    (associationLoadWith.MemberFilter != null || associationLoadWith.FilterFunc != null))
+				if (associationInclude != null &&
+				    (associationInclude.MemberFilter != null || associationInclude.FilterFunc != null))
 				{
 					var body = definedQueryMethod.Body.Unwrap();
 
-					var memberFilter = associationLoadWith.MemberFilter;
+					var memberFilter = associationInclude.MemberFilter;
 					if (memberFilter != null)
 					{
 						var elementType = EagerLoading.GetEnumerableElementType(memberFilter.Parameters[0].Type,
@@ -258,19 +258,19 @@ namespace mooSQL.linq.Linq.Builder
 							Methods.Queryable.AsQueryable.MakeGenericMethod(objectType), filterBody);
 					}
 
-					var loadWithFunc = associationLoadWith.FilterFunc;
+					var includeFilterFunc = associationInclude.FilterFunc;
 
-					if (loadWithFunc != null)
+					if (includeFilterFunc != null)
 					{
-						loadWithFunc = loadWithFunc.Unwrap();
-						if (loadWithFunc is LambdaExpression lambda)
+						includeFilterFunc = includeFilterFunc.Unwrap();
+						if (includeFilterFunc is LambdaExpression lambda)
 						{
 							body = lambda.GetBody(body);
 						}
 						else
 						{
-							var filterDelegate = builder.EvaluateExpression<Delegate>(loadWithFunc) ??
-							                     throw new LinqException($"Cannot convert filter function '{loadWithFunc}' to Delegate.");
+							var filterDelegate = builder.EvaluateExpression<Delegate>(includeFilterFunc) ??
+							                     throw new LinqException($"Cannot convert filter function '{includeFilterFunc}' to Delegate.");
 
 							var argumentType = filterDelegate.GetType().GetGenericArguments()[0].GetGenericArguments()[0];
 							// check for fake argument q => q
@@ -340,7 +340,7 @@ namespace mooSQL.linq.Linq.Builder
 		}
 
 		public static Expression BuildAssociationQuery(ClauseSqlTranslator builder, ContextRefExpression tableContext,
-			AccessorMember onMember, AssociationDescriptor descriptor, Expression? additionalCondition, bool inline, IncludeInfo? loadwith, MemberInfo[]? loadWithPath, ref bool? isOptional)
+			AccessorMember onMember, AssociationDescriptor descriptor, Expression? additionalCondition, bool inline, IncludeInfo? includeInfo, MemberInfo[]? includePath, ref bool? isOptional)
 		{
 			var elementType     = descriptor.GetElementType(builder.DBLive);
 			var parentExactType = descriptor.GetParentElementType();
@@ -348,7 +348,7 @@ namespace mooSQL.linq.Linq.Builder
 			var queryMethod = CreateAssociationQueryLambda(
 				builder,builder.DBLive, onMember, descriptor, elementType /*tableContext.OriginalType*/, parentExactType, elementType,
 				additionalCondition,
-				inline, isOptional, loadwith, loadWithPath, out isOptional);
+				inline, isOptional, includeInfo, includePath, out isOptional);
 
 			var correctedContext = tableContext.WithType(parentExactType);
 

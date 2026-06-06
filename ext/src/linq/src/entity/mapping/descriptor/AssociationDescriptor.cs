@@ -107,7 +107,7 @@ namespace mooSQL.linq.Mapping
 		/// </summary>
 		public Expression? Predicate           { get; }
 		/// <summary>
-		/// Gets optional association value storage field or property name. Used with LoadWith.
+		/// Gets optional association value storage field or property name. Used with Includes.
 		/// </summary>
 		public string?     Storage             { get; }
 		/// <summary>
@@ -147,8 +147,8 @@ namespace mooSQL.linq.Mapping
 			if (!string.IsNullOrEmpty(AliasName))
 				return AliasName!;
 
-			if (Configuration.Sql.AssociationAliasFormat != null)
-				return string.Format(CultureInfo.InvariantCulture, Configuration.Sql.AssociationAliasFormat, MemberInfo.Name);
+			if (ExtLinqOptions.Sql.AssociationAliasFormat != null)
+				return string.Format(CultureInfo.InvariantCulture, ExtLinqOptions.Sql.AssociationAliasFormat, MemberInfo.Name);
 
 			return string.Empty;
 		}
@@ -334,7 +334,7 @@ namespace mooSQL.linq.Mapping
 			// OUTER JOIN are usually materialized in non-nullable, but empty, collections.
 			// For example, `IList<Product> Products` might well require an OUTER JOIN.
 			// Neither `IList<Product>?` nor `IList<Product?>` would be correct.
-			return Configuration.UseNullableTypesMetadata && !IsList && Nullability.TryAnalyzeMember(MemberInfo, out var isNullable)
+			return ExtLinqOptions.UseNullableTypesMetadata && !IsList && Nullability.TryAnalyzeMember(MemberInfo, out var isNullable)
 				? isNullable
 				: true;
 		}

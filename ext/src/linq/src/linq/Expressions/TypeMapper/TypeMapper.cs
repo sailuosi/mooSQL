@@ -1304,7 +1304,7 @@ namespace mooSQL.linq.Expressions
 		public async Task<TR?> WrapTask<TR>(Task instanceTask, Type instanceType, CancellationToken cancellationToken)
 			where TR : TypeWrapper
 		{
-			await instanceTask.ConfigureAwait(Configuration.ContinueOnCapturedContext);
+			await instanceTask.ConfigureAwait(ExtLinqOptions.ContinueOnCapturedContext);
 
 			return (TR?)WrapTask(typeof(TR), instanceTask);
 		}

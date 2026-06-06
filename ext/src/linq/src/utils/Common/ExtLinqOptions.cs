@@ -51,7 +51,7 @@ namespace mooSQL.linq.Common
 	/// Contains global Ext LINQ settings.
 	/// </summary>
 	
-	public static class Configuration
+	public static class ExtLinqOptions
 	{
 		/// <summary>
 		/// If <c>true</c> - non-primitive and non-enum value types (structures) will be treated as scalar types (e.g. <see cref="DateTime"/>) during mapping;

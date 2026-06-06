@@ -197,42 +197,125 @@ internal static partial class SentenceExecutor
     {
         using var _ = ActivityService.Start(ActivityID.ExecuteNonQuery2);
         var cmds = PrepareCommands(context);
-        var n = context.dataContext.ExeNonQuery(cmds[0]);
-        if (n != 0)
-            return n;
+        if (cmds.Count < 2)
+            return context.dataContext.ExeNonQuery(cmds[0]);
 
-        return context.dataContext.ExeNonQuery(cmds[1]);
+        using var tran = context.dataContext.beginTransaction();
+        try
+        {
+            var n = tran.SetSQL(cmds[0]).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            if (n != 0)
+            {
+                tran.CommitOrRollback();
+                return n;
+            }
+
+            var inserted = tran.SetSQL(cmds[1]).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            tran.CommitOrRollback();
+            return inserted;
+        }
+        catch
+        {
+            tran.CommitOrRollback();
+            throw;
+        }
     }
 
     static async Task<object?> ExecuteNonQueryQuery2Async(RunnerContext context)
     {
         using var _ = ActivityService.Start(ActivityID.ExecuteNonQuery2Async);
         var cmds = PrepareCommands(context);
-        var n = await context.dataContext.ExeNonQueryAsync(cmds[0], context.cancellationToken);
-        if (n != 0)
-            return n;
+        if (cmds.Count < 2)
+            return await context.dataContext.ExeNonQueryAsync(cmds[0], context.cancellationToken).ConfigureAwait(false);
 
-        return await context.dataContext.ExeNonQueryAsync(cmds[1], context.cancellationToken);
+        using var tran = context.dataContext.beginTransaction();
+        try
+        {
+            var n = tran.SetSQL(cmds[0]).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            if (n != 0)
+            {
+                tran.CommitOrRollback();
+                return n;
+            }
+
+            var inserted = tran.SetSQL(cmds[1]).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            tran.CommitOrRollback();
+            return inserted;
+        }
+        catch
+        {
+            tran.CommitOrRollback();
+            throw;
+        }
     }
 
     static int ExecuteQueryQuery2(RunnerContext context)
     {
         using var _ = ActivityService.Start(ActivityID.ExecuteScalarAlternative);
         var cmds = PrepareCommands(context);
-        var n = context.dataContext.ExeQueryScalar(cmds[0]);
-        if (n != null)
-            return 0;
+        if (cmds.Count < 2)
+        {
+            var exists = context.dataContext.ExeQueryScalar(cmds[0]);
+            return exists != null ? 0 : context.dataContext.ExeNonQuery(cmds[0]);
+        }
 
-        return context.dataContext.ExeNonQuery(cmds[1]);
+        using var tran = context.dataContext.beginTransaction();
+        try
+        {
+            var exists = tran.SetSQL(cmds[0]).Executing((executor, ctx) => executor.ExecuteScalar(ctx));
+            if (exists != null)
+            {
+                tran.CommitOrRollback();
+                return 0;
+            }
+
+            var inserted = tran.SetSQL(cmds[1]).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            tran.CommitOrRollback();
+            return inserted;
+        }
+        catch
+        {
+            tran.CommitOrRollback();
+            throw;
+        }
     }
 
     static async Task<object?> ExecuteQueryQuery2Async(RunnerContext context)
     {
         var cmds = PrepareCommands(context);
-        var n = await context.dataContext.ExeQueryScalarAsync(cmds[0], context.cancellationToken);
-        if (n != null)
+        if (cmds.Count < 2)
+        {
+            var scalar = await context.dataContext.ExeQueryScalarAsync(cmds[0], context.cancellationToken).ConfigureAwait(false);
+            return scalar != null ? 0 : await context.dataContext.ExeNonQueryAsync(cmds[0], context.cancellationToken).ConfigureAwait(false);
+        }
+
+        return await Task.Run(() => (object?)ExecuteQueryQuery2(context)).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 多语句 DML 在同一事务中顺序执行（InsertOrUpdate 展开等场景）。
+    /// </summary>
+    internal static int ExecuteWriteBatchInTransaction(RunnerContext context, IReadOnlyList<SQLCmd> cmds)
+    {
+        if (cmds.Count == 0)
             return 0;
 
-        return await context.dataContext.ExeNonQueryAsync(cmds[1], context.cancellationToken);
+        if (cmds.Count == 1)
+            return context.dataContext.ExeNonQuery(cmds[0]);
+
+        using var tran = context.dataContext.beginTransaction();
+        try
+        {
+            var total = 0;
+            foreach (var cmd in cmds)
+                total += tran.SetSQL(cmd).Executing((executor, ctx) => executor.ExecuteNonQuery(ctx));
+            tran.CommitOrRollback();
+            return total;
+        }
+        catch
+        {
+            tran.CommitOrRollback();
+            throw;
+        }
     }
 }

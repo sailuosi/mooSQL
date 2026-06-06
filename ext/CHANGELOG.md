@@ -2,6 +2,14 @@
 
 ## 未发布 — Ext LINQ 去 Linq2DB 化
 
+### 新增（Phase G/F/E 收尾 — 2026-06-06）
+
+- **`Configuration` → `ExtLinqOptions`** — 全局 Ext LINQ 设置类重命名
+- **Phase G** — 清理 linq2db 注释/XML；内部 `LoadWith` 术语改 `Includes`
+- **Phase F ADR** — [`ADR-PhaseF-Extension-Retention.md`](ext/src/linq/core/ADR-PhaseF-Extension-Retention.md)（Analytic Over / Collate / StringAggregate 保留 Extension）
+- **E.5** — InsertOrUpdate 多语句路径 `LiveTransaction` 统一事务
+- **E.6** — `DBInstance.StreamQueryAsync` + `StreamingResultEnumerable` 真异步逐行读库
+
 ### 破坏性 API 变更
 
 | 旧 API | 新 API |
@@ -12,6 +20,7 @@
 | `IBuildContext`（内部） | `IClauseContext` |
 | `MakeExpression`（内部） | `BuildProjection` |
 | `outcast/` 目录 | `api/` |
+| `Configuration`（Ext LINQ 全局设置） | `ExtLinqOptions` |
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 

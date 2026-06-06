@@ -795,8 +795,7 @@ namespace mooSQL.linq.Linq.Builder
 			return false;
 		}
 
-		// restores original types, lost due to C# compiler optimizations
-		// e.g. see https://github.com/linq2db/linq2db/issues/2041
+		// restores original types, lost due to C# compiler optimizations (issue #2041)
 		private static bool RestoreCompare(ref Expression op1, ref Expression op2)
 		{
 			if (op1.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked)
@@ -848,8 +847,7 @@ namespace mooSQL.linq.Linq.Builder
 					op2 = Expression.Convert(op2conv2.Operand, op1conv.Operand.Type);
 					return true;
 				}
-				// https://github.com/linq2db/linq2db/issues/2039
-				// byte, sbyte and ushort comparison operands upcasted to int
+				// byte, sbyte and ushort comparison operands upcasted to int (issue #2039)
 				else if (op2.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked
 					&& op2 is UnaryExpression op2conv1
 					&& op1conv.Operand.Type == op2conv1.Operand.Type
@@ -860,8 +858,7 @@ namespace mooSQL.linq.Linq.Builder
 					return true;
 				}
 
-				// https://github.com/linq2db/linq2db/issues/2166
-				// generates expression:
+				// nullable enum vs underlying type compare (issue #2166)
 				// Convert(member, int) == const(value, int)
 				// we must replace it with:
 				// member == const(value, member_type)

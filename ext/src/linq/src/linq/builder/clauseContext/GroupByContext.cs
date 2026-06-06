@@ -132,10 +132,10 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					var ex = new SooQueryException(
 						
-						"You should explicitly specify selected fields for server-side GroupBy() call or add AsEnumerable() call before GroupBy() to perform client-side grouping.Set Configuration.Linq.GuardGrouping = false to disable this check.Additionally this guard exception can be disabled by extension GroupBy(...).DisableGuard().NOTE! By disabling this guard you accept Eager Loading for grouping query."
+						"You should explicitly specify selected fields for server-side GroupBy() call or add AsEnumerable() call before GroupBy() to perform client-side grouping.Set ExtLinqOptions.Linq.GuardGrouping = false to disable this check.Additionally this guard exception can be disabled by extension GroupBy(...).DisableGuard().NOTE! By disabling this guard you accept Eager Loading for grouping query."
 					)
 					{
-						HelpLink = "https://github.com/linq2db/linq2db/issues/365"
+						HelpLink = "https://github.com/mooSQL/mooSQL/issues/365"
 					};
 
 					throw ex;
@@ -375,7 +375,7 @@ namespace mooSQL.linq.Linq.Builder
 				{
 #if NET6_0_OR_GREATER
 					_grouped ??= (await _elements.ToListAsync(_cancellationToken)
-							.ConfigureAwait(Configuration.ContinueOnCapturedContext))
+							.ConfigureAwait(ExtLinqOptions.ContinueOnCapturedContext))
 						.GroupBy(_groupingKey)
 						.GetEnumerator();
 #else

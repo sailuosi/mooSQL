@@ -38,6 +38,8 @@ var list2 = table.Where(u => u.IsActive).ToList();
 
 Ext LINQ 详细说明见 [`ext/src/linq/LINQ全景分析与项目对比.md`](../../../../ext/src/linq/LINQ全景分析与项目对比.md)、[`ext/src/linq/src/README.md`](../../../../ext/src/linq/src/README.md)。
 
+**Ext LINQ 去 Linq2DB 化（2026-06-06）**：Phase A–E 已完成（158+ TestLinq）；Phase G 收尾注释/`ExtLinqOptions`；Phase F 保留 Analytic/Collate/StringAggregate 的 Extension（见 [`ADR-PhaseF-Extension-Retention.md`](../../../../ext/src/linq/core/ADR-PhaseF-Extension-Retention.md)）；E.5 多语句事务、E.6 `StreamQueryAsync` 逐行读库已落地。
+
 ---
 
 ## 一、Fast LINQ 功能点概览

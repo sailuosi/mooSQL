@@ -737,6 +737,14 @@ namespace mooSQL.data
                 return cmd.ExecuteReaderAsync(context, token);
             });
         }
+
+#if NET5_0_OR_GREATER
+        /// <summary>
+        /// 逐行异步读取 SELECT，枚举完成前保持连接打开。
+        /// </summary>
+        public IAsyncEnumerable<T> StreamQueryAsync<T>(SQLCmd sql, CancellationToken cancellationToken = default)
+            => new context.QueryRowStream<T>(this, sql, cancellationToken);
+#endif
         /// <summary>
         /// 允许用户自定义行读取逻辑
         /// </summary>

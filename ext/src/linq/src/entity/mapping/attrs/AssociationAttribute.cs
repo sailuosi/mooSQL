@@ -28,7 +28,7 @@ namespace mooSQL.linq.Mapping
 		/// <summary>Inline custom query expression.</summary>
 		public Expression? QueryExpression { get; set; }
 
-		/// <summary>Storage member for LoadWith.</summary>
+		/// <summary>Storage member for Includes navigation.</summary>
 		public string? Storage { get; set; }
 
 		public string? AssociationSetterExpressionMethod { get; set; }

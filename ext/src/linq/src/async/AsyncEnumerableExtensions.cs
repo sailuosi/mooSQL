@@ -18,9 +18,9 @@ namespace mooSQL.linq.Async
 
 			var result = new List<T>();
 			var enumerator = source.GetAsyncEnumerator(cancellationToken);
-			await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+			await using (enumerator.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 			{
-				while (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				while (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 				{
 					result.Add(enumerator.Current);
 				}
@@ -33,7 +33,7 @@ namespace mooSQL.linq.Async
 			this IAsyncEnumerable<T> source,
 			CancellationToken        cancellationToken = default)
 		{
-			return (await source.ToListAsync(cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext)).ToArray();
+			return (await source.ToListAsync(cancellationToken).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext)).ToArray();
 		}
 
 		public static async Task<T?> FirstOrDefaultAsync<T>(
@@ -43,9 +43,9 @@ namespace mooSQL.linq.Async
 			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var enumerator = source.GetAsyncEnumerator(cancellationToken);
-			await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+			await using (enumerator.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 			{
-				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					return enumerator.Current;
 				return default;
 			}
@@ -56,9 +56,9 @@ namespace mooSQL.linq.Async
 			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var enumerator = source.GetAsyncEnumerator(token);
-			await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+			await using (enumerator.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 			{
-				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					return enumerator.Current;
 			}
 
@@ -72,13 +72,13 @@ namespace mooSQL.linq.Async
 			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var enumerator = source.GetAsyncEnumerator(cancellationToken);
-			await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+			await using (enumerator.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 			{
-				if (!await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (!await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					return default;
 
 				var first = enumerator.Current;
-				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					throw new InvalidOperationException("The input sequence contains more than one element.");
 
 				return first;
@@ -90,13 +90,13 @@ namespace mooSQL.linq.Async
 			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var enumerator = source.GetAsyncEnumerator(cancellationToken);
-			await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+			await using (enumerator.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 			{
-				if (!await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (!await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					throw new InvalidOperationException("Sequence contains no elements.");
 
 				var first = enumerator.Current;
-				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
+				if (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
 					throw new InvalidOperationException("Sequence contains more than one element.");
 
 				return first;

@@ -20,7 +20,7 @@ namespace mooSQL.linq.Expressions
 		public static readonly ConstantExpression Constant0  = Expression.Constant(0);
 		public static readonly ConstantExpression Constant1  = Expression.Constant(1);
 
-		// those constants used by linq2db but not covered by _int32Constants array
+		// constants not covered by _int32Constants array
 		public static readonly ConstantExpression Constant26  = Expression.Constant(26);
 		public static readonly ConstantExpression Constant29  = Expression.Constant(29);
 

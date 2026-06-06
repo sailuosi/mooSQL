@@ -27,7 +27,7 @@ namespace mooSQL.linq
 				else
 					data = builder.GetExpression("selector")!;
 
-				// https://github.com/linq2db/linq2db/issues/1765
+				// StringAgg: infer column DbType from source/selector (issue #1765)
 				var descriptor = QueryHelper.GetColumnDescriptor(data);
 				if (descriptor != null)
 				{

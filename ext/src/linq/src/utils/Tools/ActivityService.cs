@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -44,7 +44,7 @@ namespace mooSQL.linq.Tools
 #if NET5_0_OR_GREATER
             public ConfiguredValueTaskAwaitable DisposeAsync()
 			{
-				return activity.DisposeAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return activity.DisposeAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 #endif
 
@@ -102,7 +102,7 @@ namespace mooSQL.linq.Tools
 			{
 				foreach (var activity in activities)
 					if (activity is not null)
-						await activity.DisposeAsync().ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+						await activity.DisposeAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 #endif
 

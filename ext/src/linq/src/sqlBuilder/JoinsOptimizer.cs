@@ -152,7 +152,7 @@ namespace mooSQL.linq.SqlProvider
 				return false;
 
 			// some table extensions also could affect cardinality
-			// https://github.com/linq2db/linq2db/pull/4016
+			// join optimization: avoid redundant subquery when possible (see upstream issue #4016)
 			if (join.Table.FindISrc() is TableWord { SqlQueryExtensions.Count: > 0 })
 				return false;
 

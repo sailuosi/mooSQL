@@ -42,7 +42,7 @@ namespace mooSQL.linq.Extensions
 					{
 						var type = Converter.GetDefaultMappingFromEnumType(null, systemType)!;
 
-						//if (Configuration.UseEnumValueNameForStringColumns && type == typeof(string) &&
+						//if (ExtLinqOptions.UseEnumValueNameForStringColumns && type == typeof(string) &&
 						//    mappingSchema.GetMapValues(underlyingType)             == null)
 						//	return new ValueWord(type, string.Format(CultureInfo.InvariantCulture, "{0}", originalValue));
 						// Converter.ChangeType(originalValue, type, mappingSchema)

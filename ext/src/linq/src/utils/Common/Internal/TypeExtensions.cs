@@ -20,7 +20,7 @@ namespace mooSQL.linq.Common.Internal
 		//internal static bool IsNullableType(this Type type)
 		//	=> !type.IsValueType || type.IsNullable();
 
-		// don't change visibility, used by linq2db.EntityFramework
+		// don't change visibility; consumed by EF Core integration adapters
 		public static bool IsInteger(this Type type)
 		{
 			type = type.UnwrapNullableType();

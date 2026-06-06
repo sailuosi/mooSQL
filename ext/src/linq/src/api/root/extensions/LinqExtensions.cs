@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -590,9 +590,9 @@ namespace mooSQL.linq.ext
 				currentQueryable.Expression);
 
 			if (currentQueryable is IExpressionQuery query)
-				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentQueryable.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentQueryable.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		/// <summary>
@@ -630,7 +630,7 @@ namespace mooSQL.linq.ext
 			MemberHelper.MethodOf(() => InsertOrUpdate<int>(null!,null!,null!)).GetGenericMethodDefinition();
 
 		/// <summary>
-		/// 插入新记录到目标表中，如果目标表中已经存在具有相同主键值的记录，则更新现有记录。
+		/// ?????�?�???????????????????????????????????????�????????????�??
 		/// When <c>null</c> value or expression without field setters passed to <paramref name="onDuplicateKeyUpdateSetter"/>, this method
 		/// implements <c>INSERT IF NOT EXISTS</c> logic.
 		/// </summary>
@@ -696,9 +696,9 @@ namespace mooSQL.linq.ext
 				currentSource.Expression, Expression.Quote(insertSetter), onDuplicateKeyUpdateSetter != null ? Expression.Quote(onDuplicateKeyUpdateSetter) : Expression.Constant(null, typeof(Expression<Func<T, T>>)));
 
 			if (currentSource is IExpressionQuery query)
-				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		static readonly MethodInfo _insertOrUpdateMethodInfo2 =
@@ -785,9 +785,9 @@ namespace mooSQL.linq.ext
 				Expression.Quote(keySelector));
 
 			if (currentSource is IExpressionQuery query)
-				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		#endregion
@@ -803,7 +803,7 @@ namespace mooSQL.linq.ext
 		/// <param name="target">Dropped table.</param>
 		/// <param name="throwExceptionIfNotExists">If <c>false</c>, any exception during drop operation will be silently catched and <c>0</c> returned.
 		/// This behavior is not correct and will be fixed in future to mask only missing table exceptions.
-		/// Tracked by <a href="https://github.com/linq2db/linq2db/issues/798">issue</a>.
+		/// Tracked by upstream issue #798 (Drop should only swallow missing-table errors).
 		/// Default value: <c>true</c>.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
 		public static int Drop<T>( this IDbQuery<T> target, bool throwExceptionIfNotExists = true)
@@ -843,7 +843,7 @@ namespace mooSQL.linq.ext
 		/// <param name="target">Dropped table.</param>
 		/// <param name="throwExceptionIfNotExists">If <c>false</c>, any exception during drop operation will be silently catched and <c>0</c> returned.
 		/// This behavior is not correct and will be fixed in future to mask only missing table exceptions.
-		/// Tracked by <a href="https://github.com/linq2db/linq2db/issues/798">issue</a>.
+		/// Tracked by upstream issue #798 (Drop should only swallow missing-table errors).
 		/// Default value: <c>true</c>.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
@@ -869,17 +869,17 @@ namespace mooSQL.linq.ext
 			if (throwExceptionIfNotExists)
 			{
 				if (query != null)
-					return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+					return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-				return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 
 			try
 			{
 				if (query != null)
-					return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+					return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-				return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 			catch
 			{
@@ -944,9 +944,9 @@ namespace mooSQL.linq.ext
 				currentSource.Expression, ExpressionInstances.Boolean(resetIdentity));
 
 			if (currentSource is IExpressionQuery query)
-				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<int>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentSource.Provider.Execute<int>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		#endregion
@@ -1120,9 +1120,9 @@ namespace mooSQL.linq.ext
 					currentSource.Expression, Expression.Quote(index));
 
 			if (currentSource is IExpressionQuery query)
-				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		static readonly MethodInfo _elementAtOrDefaultMethodInfo = MemberHelper.MethodOf(() => ElementAtOrDefault<int>(null!,null!)).GetGenericMethodDefinition();
@@ -1177,9 +1177,9 @@ namespace mooSQL.linq.ext
 					currentSource.Expression, Expression.Quote(index));
 
 			if (currentSource is IExpressionQuery query)
-				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+				return await query.ExecuteAsync<TSource>(expr, token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 
-			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
+			return await Task.Run(() => currentSource.Provider.Execute<TSource>(expr), token).ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
 		}
 
 		#endregion
@@ -1190,10 +1190,9 @@ namespace mooSQL.linq.ext
 
 		/// <summary>
 		/// Filters source query using HAVING SQL clause.
-		/// In general you don't need to use this method as linq2db is able to propely identify current context for
-		/// <see cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})"/> method and generate
-		/// HAVING clause.
-		/// <a href="https://github.com/linq2db/linq2db/issues/133">More details</a>.
+		/// In general you don't need to use this method as Ext LINQ identifies the current context for
+		/// <see cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})"/> and generates
+		/// HAVING when appropriate (issue #133).
 		/// </summary>
 		/// <typeparam name="TSource">Source query record type.</typeparam>
 		/// <param name="source">Source query to filter.</param>

@@ -432,6 +432,18 @@ namespace mooSQL.data
             }
             return runner.ExeQueryReaderAsync(cmd,token);
         }
+
+#if NET5_0_OR_GREATER
+        /// <summary>
+        /// 逐行异步读取 SELECT 结果（真流式，非整表缓冲）。
+        /// </summary>
+        public IAsyncEnumerable<T> StreamQueryAsync<T>(SQLCmd cmd, CancellationToken cancellationToken = default, DBExecutor runner = null)
+        {
+            if (runner == null)
+                runner = new DBExecutor(this);
+            return runner.StreamQueryAsync<T>(cmd, cancellationToken);
+        }
+#endif
         /// <summary>
         /// 允许用户自定义行读取逻辑
         /// </summary>

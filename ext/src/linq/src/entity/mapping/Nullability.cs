@@ -18,10 +18,7 @@ namespace mooSQL.linq.Mapping
 				// Create() throws InvalidOperationException if feature flag NullabilityInfoContextSupport is false.
 				// This happens when build is configured to aggressively trim C# nullability attributes,
 				// which is the default for MAUI and Blazor targets.
-				// Linq2db still works and users have two choices:
-				// 1. Rely on good old [Column] or [NotNullable] attributes instead;
-				// 2. Prevent aggressive trimming by adding the following property to csproj:
-				//    <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+				// Ext LINQ still works; users can rely on [Column]/[NotNullable] or enable NullabilityInfoContextSupport in csproj.
 				context.Create(fieldInfo);
 
 #else
