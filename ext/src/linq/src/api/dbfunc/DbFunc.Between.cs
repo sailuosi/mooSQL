@@ -1,61 +1,36 @@
 ﻿using System;
 
-using System;
-
 namespace mooSQL.linq
 {
-    using mooSQL.data.model;
-    using mooSQL.data.model.affirms;
-    using SqlQuery;
-
 	partial class DbFunc
 	{
-
-		[Extension("", "", PreferServerSide = true, IsPredicate = true, BuilderType = typeof(BetweenBuilder))]
-		[Obsolete("Prefer DbFuncRegistry / dialect.expression.between; removal planned when api/DbFunc merges into Pure.")]
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
+		[Obsolete("Prefer DbFuncRegistry / dialect.expression.between; Extension Builder removed in R12.")]
 		public static bool Between<T>(this T value, T low, T high)
 			where T : IComparable
 		{
 			return value != null && value.CompareTo(low) >= 0 && value.CompareTo(high) <= 0;
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true, BuilderType = typeof(BetweenBuilder))]
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
 		public static bool Between<T>(this T? value, T? low, T? high)
 			where T : struct, IComparable
 		{
 			return value != null && value.Value.CompareTo(low) >= 0 && value.Value.CompareTo(high) <= 0;
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true, BuilderType = typeof(NotBetweenBuilder))]
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
 		public static bool NotBetween<T>(this T value, T low, T high)
 			where T : IComparable
 		{
 			return value != null && (value.CompareTo(low) < 0 || value.CompareTo(high) > 0);
 		}
 
-		[Extension("", "", PreferServerSide = true, IsPredicate = true, BuilderType = typeof(NotBetweenBuilder))]
+		[Extension("", "", PreferServerSide = true, IsPredicate = true)]
 		public static bool NotBetween<T>(this T? value, T? low, T? high)
 			where T : struct, IComparable
 		{
 			return value != null && (value.Value.CompareTo(low) < 0 || value.Value.CompareTo(high) > 0);
-		}
-
-		private sealed class BetweenBuilder : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var args = Array.ConvertAll(builder.Arguments, x => builder.ConvertExpressionToSql(x)!);
-				builder.ResultExpression = new SearchConditionWord(false, new Between(args[0], false, args[1], args[2]));
-			}
-		}
-
-		private sealed class NotBetweenBuilder : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var args = Array.ConvertAll(builder.Arguments, x => builder.ConvertExpressionToSql(x)!);
-				builder.ResultExpression = new SearchConditionWord(false, new Between(args[0], true, args[1], args[2]));
-			}
 		}
 	}
 }

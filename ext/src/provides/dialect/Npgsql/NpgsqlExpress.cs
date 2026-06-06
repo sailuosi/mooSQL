@@ -41,6 +41,15 @@ namespace mooSQL.data
         public override string dateDiffMillisecond(string start, string end)
             => $"ROUND(EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) * 1000)";
 
+        public override string dateDiffYear(string start, string end)
+            => $"(DATE_PART('year', {end}::date) - DATE_PART('year', {start}::date))";
+
+        public override string dateDiffMonth(string start, string end)
+            => $"((DATE_PART('year', {end}::date) - DATE_PART('year', {start}::date)) * 12 + (DATE_PART('month', {end}::date) - DATE_PART('month', {start}::date)))";
+
+        public override string dateDiffWeek(string start, string end)
+            => $"TRUNC(DATE_PART('day', {end}::timestamp - {start}::timestamp) / 7)";
+
         #region DML语句
         public override string buildSelect(FragSQL frag)
         {

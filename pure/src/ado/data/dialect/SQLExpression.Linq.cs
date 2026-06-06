@@ -66,5 +66,14 @@ namespace mooSQL.data
 
         /// <summary>DateDiff 毫秒。</summary>
         public virtual string? dateDiffMillisecond(string start, string end) => null;
+
+        /// <summary>DateDiff 年。</summary>
+        public virtual string? dateDiffYear(string start, string end) => null;
+
+        /// <summary>DateDiff 月。</summary>
+        public virtual string? dateDiffMonth(string start, string end) => null;
+
+        /// <summary>DateDiff 周。</summary>
+        public virtual string? dateDiffWeek(string start, string end) => null;
     }
 }

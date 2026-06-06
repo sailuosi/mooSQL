@@ -44,6 +44,15 @@ namespace mooSQL.data
         public override string dateDiffMillisecond(string start, string end)
             => $"TIMESTAMPDIFF(MICROSECOND, {start}, {end}) DIV 1000";
 
+        public override string dateDiffYear(string start, string end)
+            => $"TIMESTAMPDIFF(YEAR, {start}, {end})";
+
+        public override string dateDiffMonth(string start, string end)
+            => $"TIMESTAMPDIFF(MONTH, {start}, {end})";
+
+        public override string dateDiffWeek(string start, string end)
+            => $"TIMESTAMPDIFF(WEEK, {start}, {end})";
+
         #region DML语句
         /// <summary>
         /// 创建普通的select语句

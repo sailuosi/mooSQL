@@ -120,6 +120,43 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         => Regex.Replace(NormalizeSql(sql), @"@\w+", "@p", RegexOptions.None);
 
     [Fact]
+    public void ThreeEntrySnapshot_DbFuncLower()
+    {
+        var db = _sqlite.Db;
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => DbFunc.Lower(u.Name) == "alice")
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("LOWER", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ThreeEntrySnapshot_DateDiff()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => DbFunc.DateDiff(DbFunc.DateParts.Day, u.CreatedAt, DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt)) > 0)
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("julianday", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void ThreeEntrySnapshot_NotBetween()
     {
         var db = _sqlite.Db;

@@ -15,6 +15,12 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R12）
+
+- **Between/NotBetween stub 瘦身（D.9 首批）**：删除 `BetweenBuilder`/`NotBetweenBuilder`；`[Extension]` 仅保留 `IsPredicate` 元数据；矩阵 `Matrix_Between_NoExtensionBuilderType`
+- **DateDiff Year/Month/Week**：Pure `dateDiffYear/Month/Week` + MSSQL/MySQL/PostgreSQL override；`ResolveDateDiffFormat` 扩展
+- **三入口快照 +2**：`ThreeEntrySnapshot_DbFuncLower`、`ThreeEntrySnapshot_DateDiff`
+
 ### 新增（Phase D/E R11）
 
 - **多方言 DateDiff Pure 片段**：`MSSQLExpress`（`DATEDIFF`）、`MySQLExpress`（`TIMESTAMPDIFF`）、`NpgsqlExpress`（`EXTRACT/EPOCH`）；矩阵 `Matrix_DateDiff_ExpressFormatMatchesDialect`
@@ -127,7 +133,7 @@ db.useQueryable<User>();
 - **`api/translation/` + `api/dbfunc/`** — 属性与 stub 分目录；旧 `DbFunc/` 已删除
 - **注册表实际翻译** + PreferServerSide 优先 + Union SQL + Select 投影（函数/匿名）
 - **Phase E 基础设施**：ADR、`LinqClauseBridge`、`ToSQLBuilder(s)`、`FromLinqExpression`
-- **测试**：`TestLinq` **90/90**（矩阵 36 + Bridge 三入口 Between/NotBetween）
+- **测试**：`TestLinq` **95/95**（矩阵 39 + Bridge 五组三入口快照）
 
 #### 下一批（R11，建议）
 

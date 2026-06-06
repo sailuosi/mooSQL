@@ -33,7 +33,7 @@ var q = db.useQueryable<Order>()
 
 Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf/Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；未覆盖方言仍走 `[Extension]` Builder）。
 
-`api/dbfunc/` 删除（D.9）待其余 Analytic/Row/Strings 等全部迁入后再执行。
+`api/dbfunc/` 删除（D.9）进行中：Between/NotBetween **Extension Builder 已移除**（R12）；DateDiff/Analytic Builder 仍保留作回退。
 
 ## 自定义扩展
 

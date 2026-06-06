@@ -429,6 +429,37 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Between_NoExtensionBuilderType()
+    {
+        var methods = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name is nameof(DbFunc.Between) or nameof(DbFunc.NotBetween));
+        foreach (var method in methods)
+        {
+            var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+                .Cast<DbFunc.ExtensionAttribute>();
+            foreach (var attr in attrs)
+                Assert.Null(attr.BuilderType);
+        }
+    }
+
+    [Theory]
+    [InlineData(typeof(MSSQLDialect), DbFunc.DateParts.Year, "DATEDIFF")]
+    [InlineData(typeof(NpgsqlDialect), DbFunc.DateParts.Month, "DATE_PART")]
+    public void Matrix_DateDiff_YearMonthWeek_ExpressFormat(System.Type dialectType, DbFunc.DateParts part, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = part switch
+        {
+            DbFunc.DateParts.Year  => dialect.expression.dateDiffYear("{0}", "{1}"),
+            DbFunc.DateParts.Month => dialect.expression.dateDiffMonth("{0}", "{1}"),
+            DbFunc.DateParts.Week  => dialect.expression.dateDiffWeek("{0}", "{1}"),
+            _ => null
+        };
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_RowNumber_Over_EmitsRowNumberSql()
     {
         var db = _sqlite.Db;

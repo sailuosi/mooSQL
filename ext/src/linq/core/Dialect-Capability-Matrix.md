@@ -40,8 +40,8 @@
 | SQLite | `IsDateDiffPredicate` | `SQLiteExpress.dateDiff*`（julianday） |
 | SQL Server | 同左 | `MSSQLExpress` → `DATEDIFF` |
 | MySQL | 同左 | `MySQLExpress` → `TIMESTAMPDIFF` |
-| PostgreSQL | 同左 | `NpgsqlExpress` → `EXTRACT(EPOCH …)` |
-| 其它 | 回退 `[Extension]` Builder | `api/dbfunc/DbFunc.DateTime.cs` |
+| PostgreSQL | 同左 | `NpgsqlExpress` → `EXTRACT/EPOCH` + Year/Month/Week |
+| 其它 | 回退 `[Extension]` Builder | `api/dbfunc/DbFunc.DateTime.cs`（R13 收敛） |
 
 ## 相关代码
 

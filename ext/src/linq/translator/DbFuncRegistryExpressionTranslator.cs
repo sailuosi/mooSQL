@@ -179,12 +179,15 @@ internal static class DbFuncRegistryExpressionTranslator
         const string end = "{1}";
         return part switch
         {
-            DbFunc.DateParts.Day         => expression.dateDiffDay(start, end),
-            DbFunc.DateParts.Hour        => expression.dateDiffHour(start, end),
-            DbFunc.DateParts.Minute      => expression.dateDiffMinute(start, end),
-            DbFunc.DateParts.Second      => expression.dateDiffSecond(start, end),
-            DbFunc.DateParts.Millisecond => expression.dateDiffMillisecond(start, end),
-            _                            => null
+            DbFunc.DateParts.Year         => expression.dateDiffYear(start, end),
+            DbFunc.DateParts.Month        => expression.dateDiffMonth(start, end),
+            DbFunc.DateParts.Week         => expression.dateDiffWeek(start, end),
+            DbFunc.DateParts.Day          => expression.dateDiffDay(start, end),
+            DbFunc.DateParts.Hour         => expression.dateDiffHour(start, end),
+            DbFunc.DateParts.Minute       => expression.dateDiffMinute(start, end),
+            DbFunc.DateParts.Second       => expression.dateDiffSecond(start, end),
+            DbFunc.DateParts.Millisecond  => expression.dateDiffMillisecond(start, end),
+            _                             => null
         };
     }
 

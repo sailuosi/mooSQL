@@ -40,6 +40,15 @@ namespace mooSQL.data
 
         public override string dateDiffMillisecond(string start, string end)
             => $"DATEDIFF(millisecond, {start}, {end})";
+
+        public override string dateDiffYear(string start, string end)
+            => $"DATEDIFF(year, {start}, {end})";
+
+        public override string dateDiffMonth(string start, string end)
+            => $"DATEDIFF(month, {start}, {end})";
+
+        public override string dateDiffWeek(string start, string end)
+            => $"DATEDIFF(week, {start}, {end})";
         /// <summary>
         /// 
         /// </summary>
