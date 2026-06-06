@@ -385,6 +385,25 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ThreeEntrySnapshot_Coalesce()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Select(u => DbFunc.Coalesce(u.Name, u.Email))
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("COALESCE", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Union_LinqCompilesStructure()
     {
         var db = _sqlite.Db;

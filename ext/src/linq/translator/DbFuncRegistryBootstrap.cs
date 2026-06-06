@@ -198,8 +198,7 @@ internal static class DbFuncRegistryBootstrap
         var entry = new DbFuncExpressionEntry
         {
             PreferServerSide = true,
-            IsDateDiffPredicate = true,
-            PreferExtensionAttribute = true
+            IsDateDiffPredicate = true
         };
 
         RegisterDateDiffOverload(registry, typeof(DateTime?), entry);

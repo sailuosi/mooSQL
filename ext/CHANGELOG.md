@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R21）
+
+- **DateDiff registry-only**：三 overload 移除全部 `[Extension]`；Bootstrap 去掉 `PreferExtensionAttribute`
+- **物理删除 `DbFunc.Types.cs`**（`DbFunc.Types` 合并进 `DbFunc.cs`）
+- **三入口快照 +1**：`ThreeEntrySnapshot_Coalesce`
+- **矩阵收敛**：`Matrix_DateDiff_NoExtensionAttribute`；移除旧 Extension Builder inspect 测
+
 ### 新增（Phase D/E R20）
 
 - **Between/NotBetween 无 Extension**：移除空 `[Extension]`/`[Obsolete]`；registry-only

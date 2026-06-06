@@ -408,15 +408,13 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void Matrix_DateDiff_AllDialects_NoExtensionBuilder()
+    public void Matrix_DateDiff_NoExtensionAttribute()
     {
-        var method = typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
-        var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
-            .Cast<DbFunc.ExtensionAttribute>();
-        Assert.NotEmpty(attrs);
-        Assert.All(attrs, a => Assert.Null(a.BuilderType));
+        var methods = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.DateDiff));
+        Assert.NotEmpty(methods);
+        foreach (var method in methods)
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
     }
 
     [Theory]
@@ -561,7 +559,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
             new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(dateDiff);
         Assert.NotNull(entry);
-        Assert.True(entry!.PreferExtensionAttribute);
+        Assert.False(entry!.PreferExtensionAttribute);
         Assert.True(entry.IsDateDiffPredicate);
     }
 
@@ -596,48 +594,6 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void Matrix_DateDiff_NoSqlitePgExtensionBuilder()
-    {
-        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!);
-#if NET6_0_OR_GREATER
-        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateOnly?), typeof(System.DateOnly?) })!);
-        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateTimeOffset?), typeof(System.DateTimeOffset?) })!);
-#endif
-    }
-
-    static void AssertDateDiffSqlitePgHasNoBuilder(System.Reflection.MethodInfo method)
-    {
-        AssertDateDiffExtensionHasNoBuilder(method, ProviderName.SQLite, ProviderName.PostgreSQL);
-    }
-
-    static void AssertDateDiffExtensionHasNoBuilder(System.Reflection.MethodInfo method, params string?[] configurations)
-    {
-        var configSet = new System.Collections.Generic.HashSet<string?>(configurations);
-        var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
-            .Cast<DbFunc.ExtensionAttribute>();
-        foreach (var attr in attrs)
-        {
-            if (configSet.Contains(attr.Configuration))
-                Assert.Null(attr.BuilderType);
-        }
-    }
-
-    [Fact]
-    public void Matrix_DateDiff_MssqlMysql_NoExtensionBuilder()
-    {
-        var method = typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
-        AssertDateDiffExtensionHasNoBuilder(method, null, ProviderName.SqlServer, ProviderName.MySql);
-    }
-
-    [Fact]
     public void Matrix_Analytic_OverChain_RequiresExtensionAttributes()
     {
         var overMethod = typeof(AnalyticFunctions.IAnalyticFunctionWithoutWindow<long>)
@@ -654,15 +610,6 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
             .ToList();
         Assert.NotEmpty(orderItemAttrs);
         Assert.All(orderItemAttrs, a => Assert.Null(a.BuilderType));
-    }
-
-    [Fact]
-    public void Matrix_DateDiff_OracleAccess_NoExtensionBuilder()
-    {
-        var method = typeof(DbFunc).GetMethod(
-            nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
-        AssertDateDiffExtensionHasNoBuilder(method, ProviderName.Oracle, ProviderName.Access);
     }
 
     [Theory]

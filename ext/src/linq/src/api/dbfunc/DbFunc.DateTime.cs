@@ -119,16 +119,8 @@ namespace mooSQL.linq
 
 		#region DateDiff
 
+		/// <summary>registry-first（Bootstrap <see cref="mooSQL.data.translation.DbFuncExpressionEntry.IsDateDiffPredicate"/>）；无 <see cref="ExtensionAttribute"/>。</summary>
 		[CLSCompliant(false)]
-		[Extension(               "",              PreferServerSide = true)]
-		[Extension(PN.MySql,      "",              PreferServerSide = true)]
-		[Extension(PN.DB2,        "",              PreferServerSide = true)]
-		[Extension(PN.SapHana,    "",              PreferServerSide = true)]
-		[Extension(PN.SQLite,     "",              PreferServerSide = true)]
-		[Extension(PN.Oracle,     "",              PreferServerSide = true)]
-		[Extension(PN.PostgreSQL, "",              PreferServerSide = true)]
-		[Extension(PN.Access,     "",              PreferServerSide = true)]
-		[Extension(PN.ClickHouse, "",              PreferServerSide = true)]
 		public static int? DateDiff(DateParts part, DateTime? startDate, DateTime? endDate)
 		{
 			if (startDate == null || endDate == null)
