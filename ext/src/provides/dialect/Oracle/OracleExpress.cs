@@ -101,29 +101,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string buildPagedSelect(FragSQL frag)
         {
-            if (this._oracleDialect.Is12cOrHigher()) {
-                //OFFSET 5 ROWS FETCH NEXT 5 ROWS ONLY;
-                var sb= new StringBuilder();
-                var tar= this.buildPagedSelectTail(frag, (sb) => {
-                    if (frag.pageSize > -1)
-                    {
-                        int end = frag.pageSize * (frag.pageNum - 1);
-                        sb.Append("OFFSET ");
-                        sb.Append(end);
-                        sb.Append(" ROWS FETCH NEXT ");
-                        sb.Append(frag.pageSize);
-                        sb.Append(" ROWS ONLY ");
+            if (!HasSkipTakePaging(frag))
+                return base.buildPagedSelect(frag);
 
-                    }
-                    else if (frag.toped > -1)
-                    {
-                        sb.Append(" FETCH FIRST ");
-                        sb.Append(frag.toped);
-                        sb.Append(" ROWS ONLY ");
-                    }
-                });
-                return tar;
-            }
+            if (_oracleDialect.Is12cOrHigher())
+                return buildPagedSelectTail(frag, sb => AppendOffsetFetch(sb, frag));
+
             /* 标准三层嵌套的翻页写法，Oracle 12c以下版本
              SELECT * FROM (
                 SELECT tt.*, ROWNUM AS rn FROM (

@@ -22,6 +22,8 @@ public sealed class StatementStructure
 
     public int? SkipValue { get; init; }
 
+    public bool HasSkip { get; init; }
+
     public bool IsDistinct { get; init; }
 
     public bool HasAggregate { get; init; }

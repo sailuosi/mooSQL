@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using mooSQL.data.model;
+using mooSQL.linq;
 using mooSQL.linq.SqlQuery;
 
 namespace mooSQL.linq.translator;
 
 internal static class StatementStructureReader
 {
-    public static StatementStructure Read(BaseSentence statement)
+    public static StatementStructure Read(BaseSentence statement, IReadOnlyParaValues? parameterValues = null)
     {
         var sq = statement.SelectQuery;
         if (sq == null)
@@ -30,9 +31,10 @@ internal static class StatementStructureReader
             HasWhere            = !sq.Where.IsEmpty,
             WherePredicateCount = sq.Where.SearchCondition.Predicates.Count,
             OrderByCount        = sq.OrderBy.Items.Count,
-            TakeValue           = TryReadInt(sq.Select.TakeValue),
+            TakeValue           = TryReadInt(sq.Select.TakeValue, parameterValues),
             HasTake             = sq.Select.TakeValue != null,
-            SkipValue           = TryReadInt(sq.Select.SkipValue),
+            SkipValue           = TryReadInt(sq.Select.SkipValue, parameterValues),
+            HasSkip             = sq.Select.SkipValue != null,
             IsDistinct          = sq.Select.IsDistinct,
             HasAggregate        = HasAggregation(sq),
             FromTables          = fromTables,
@@ -99,23 +101,11 @@ internal static class StatementStructureReader
         return null;
     }
 
-    static int? TryReadInt(IExpWord? value)
+    static int? TryReadInt(IExpWord? value, IReadOnlyParaValues? parameterValues = null)
     {
-        if (value is ValueWord { Value: int i })
-            return i;
-        if (value is ValueWord { Value: long l } && l <= int.MaxValue)
-            return (int)l;
-        if (value is ParameterWord { Value: int pi })
-            return pi;
-        if (value is ParameterWord { Value: long pl } && pl <= int.MaxValue)
-            return (int)pl;
-
-        if (value is ValueWord vw && vw.Value != null && int.TryParse(vw.Value.ToString(), out var parsed))
-            return parsed;
-        if (value is ParameterWord pw && pw.Value != null && int.TryParse(pw.Value.ToString(), out parsed))
-            return parsed;
-
-        return null;
+        return ClauseTranslateVisitor.TryResolveInt(value, parameterValues, out var resolved)
+            ? resolved
+            : null;
     }
 
     static bool HasAggregation(SelectQueryClause sq)

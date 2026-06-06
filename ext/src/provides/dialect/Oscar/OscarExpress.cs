@@ -38,35 +38,13 @@ namespace mooSQL.data
             sb.Append(frag.selectInner);
             this.buildSelectFromToOrderPart(frag, sb);
 
-            if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
+            AppendLimitOffset(sb, frag);
 
             return sb.ToString();
         }
         /// <inheritdoc/>
         public override string buildPagedSelect(FragSQL frag)
-        {
-            return this.buildPagedSelectTail(frag, (sb) => {
-                if (frag.pageSize > -1)
-                {
-                    int end = frag.pageSize * (frag.pageNum - 1);
-                    sb.Append("LIMIT ");
-                    sb.Append(frag.pageSize);
-                    sb.Append(" OFFSET ");
-                    sb.Append(end);
-                }
-                else if (frag.toped > -1)
-                {
-                    sb.Append("LIMIT ");
-                    sb.Append(frag.toped);
-                    sb.Append(" ");
-                }
-            });
-        }
+            => HasSkipTakePaging(frag) ? buildSelect(frag) : base.buildPagedSelect(frag);
         /// <inheritdoc/>
         public override string buildInsert(FragSQL frag)
         {

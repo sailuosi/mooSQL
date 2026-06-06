@@ -45,13 +45,7 @@ namespace mooSQL.data
             }
             sb.Append(frag.selectInner);
             this.buildSelectFromToOrderPart(frag, sb);
-
-            if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
+            AppendLimitOffset(sb, frag);
 
             return sb.ToString();
         }
@@ -68,45 +62,32 @@ namespace mooSQL.data
 
         public override string buildPagedSelect(FragSQL frag)
         {
-            if (this.isMySQL80More()==false) {
-                //LIMIT 10, 10;  -- 跳过前10条，取第11-20条
-                return this.buildPagedSelectTail(frag, (sb) => {
-                    if (frag.pageSize > -1)
-                    {
-                        int end = frag.pageSize * (frag.pageNum - 1);
-                        sb.Append("LIMIT ");
-                        sb.Append(end);
-                        sb.Append(" , ");
-                        sb.Append(frag.pageSize);
+            if (!HasSkipTakePaging(frag))
+                return base.buildPagedSelect(frag);
 
-                    }
-                    else if (frag.toped > -1)
+            if (!isMySQL80More())
+            {
+                var skip = ResolveSkipNum(frag);
+                var take = ResolveTake(frag);
+                return buildPagedSelectTail(frag, sb =>
+                {
+                    if (skip >= 0 && take >= 0)
                     {
                         sb.Append("LIMIT ");
-                        sb.Append(frag.toped);
-                        sb.Append(" ");
+                        sb.Append(skip);
+                        sb.Append(" , ");
+                        sb.Append(take);
+                    }
+                    else if (take >= 0)
+                    {
+                        sb.Append("LIMIT ");
+                        sb.Append(take);
+                        sb.Append(' ');
                     }
                 });
-                //return buildPagedByRowNumber(frag);
             }
-            //LIMIT 每页行数 OFFSET 跳过的行数;
-            return this.buildPagedSelectTail(frag, (sb) => {
-                if (frag.pageSize > -1)
-                {
-                    int end = frag.pageSize * (frag.pageNum - 1);
-                    sb.Append("LIMIT ");
-                    sb.Append(frag.pageSize);
-                    sb.Append(" OFFSET ");
-                    sb.Append(end);
 
-                }
-                else if (frag.toped > -1)
-                {
-                    sb.Append("LIMIT ");
-                    sb.Append(frag.toped);
-                    sb.Append(" ");
-                }
-            });
+            return buildSelect(frag);
         }
 
         /// <summary>

@@ -62,6 +62,34 @@ public class StatementStructureTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void LinqStatementCompiler_SkipTake_ProducesStructureWithSkipAndTake()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var result = Compile(db, bus.OrderBy(u => u.Id).Skip(23).Take(10));
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.PrimaryStructure);
+        Assert.True(result.PrimaryStructure!.HasSkip);
+        Assert.True(result.PrimaryStructure.HasTake);
+        Assert.Equal(23, result.PrimaryStructure.SkipValue);
+        Assert.Equal(10, result.PrimaryStructure.TakeValue);
+    }
+
+    [Fact]
+    public void LinqStatementCompiler_SkipTake_SqlPreviewContainsOffsetLimit()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var result = Compile(db, bus.OrderBy(u => u.Id).Skip(23).Take(10));
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.Plan.SqlPreview);
+        Assert.Contains("OFFSET 23", result.Plan.SqlPreview!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 10", result.Plan.SqlPreview!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void LinqStatementCompiler_Association_ProducesInnerJoinSnapshot()
     {
         var db = _sqlite.Db;

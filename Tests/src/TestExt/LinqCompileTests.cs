@@ -150,7 +150,68 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.NotNull(sq.Select.TakeValue);
 
         var sql = RequireSql(bag, db, expr);
-        Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 5", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EntityVisit_SkipTake_Aligned_SqlUsesOffsetLimit()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.OrderBy(u => u.Id).Skip(20).Take(10));
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("OFFSET 20", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 10", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EntityVisit_SkipTake_NonAligned_SqlUsesExactOffset()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.OrderBy(u => u.Id).Skip(23).Take(10));
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("OFFSET 23", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("OFFSET 20", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 10", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EntityVisit_SkipOnly_SqlUsesOffset()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var (bag, expr) = Compile(db, bus.OrderBy(u => u.Id).Skip(2));
+
+        var sql = RequireSql(bag, db, expr);
+        Assert.Contains("OFFSET 2", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EntityVisit_SkipTake_ExecutesAgainstSqlite()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+
+        var rows = bus.OrderBy(u => u.Id).Skip(1).Take(1).ToList();
+
+        Assert.Single(rows);
+        Assert.Equal(2, rows[0].Id);
+    }
+
+    [Fact]
+    public void SqlBuilder_SetPage_MatchesSkipTakeOffsetLimit()
+    {
+        var db = _sqlite.Db;
+        var setPageSql = db.useSQL().setTable(SQLiteTestFixture.UserTable).setPage(10, 3).toSelect().sql;
+        var skipTakeSql = db.useSQL().setTable(SQLiteTestFixture.UserTable).skipTake(20, 10).toSelect().sql;
+
+        Assert.Contains("OFFSET 20", setPageSql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 10", setPageSql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("OFFSET 20", skipTakeSql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT 10", skipTakeSql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

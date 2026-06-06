@@ -47,16 +47,12 @@ namespace mooSQL.data
             }
             sb.Append(frag.selectInner);
             this.buildSelectFromToOrderPart(frag, sb);
-
-            if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
+            AppendLimitOffset(sb, frag);
 
             return sb.ToString();
         }
+
+        public override string buildPagedSelect(FragSQL frag) => buildSelect(frag);
         /// <summary>
         /// 创建普通的插值语句
         /// </summary>

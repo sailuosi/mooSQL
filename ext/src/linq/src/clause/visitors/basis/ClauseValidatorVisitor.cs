@@ -358,6 +358,13 @@ namespace mooSQL.linq.SqlQuery.Visitors
 					return selectQuery;
 				}
 			}
+			else if (selectQuery.Select.SkipValue != null
+			         && selectQuery.Select.TakeValue == null
+			         && !_providerFlags.GetIsSkipSupportedFlag(null, selectQuery.Select.SkipValue))
+			{
+				SetInvalid("Provider does not support Skip without Take.");
+				return selectQuery;
+			}
 
 			var saveParent = _parentQuery;
 			_parentQuery = selectQuery;

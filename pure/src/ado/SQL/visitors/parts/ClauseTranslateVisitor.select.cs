@@ -257,18 +257,7 @@ namespace mooSQL.linq
         public override Clause VisitSelectClause(SelectClause clause)
         {
             if (clause == null) { return clause; }
-            if (clause.TakeValue != null)
-            {
-                var takeClause = VisitIExpWord(clause.TakeValue);
-                if (TryResolveInt(clause.TakeValue, out var takeVal))
-                    builder.top(takeVal);
-            }
-            if (clause.SkipValue != null)
-            {
-                var skipClause = VisitIExpWord(clause.SkipValue);
-                if (TryResolveInt(clause.SkipValue, out var skipVal) && TryResolveInt(clause.TakeValue, out var takeVal2))
-                    builder.setPage(takeVal2, skipVal / Math.Max(takeVal2, 1) + 1);
-            }
+            ApplyTakeSkip(clause);
             //遍历明细
             if (clause.Columns != null && clause.Columns.Count > 0)
             {
@@ -639,21 +628,94 @@ namespace mooSQL.linq
             return res;
         }
 
-        static bool TryResolveInt(IExpWord? word, out int value)
+        void ApplyTakeSkip(SelectClause clause)
+        {
+            var hasSkip = clause.SkipValue != null;
+            var hasTake = clause.TakeValue != null;
+            if (!hasSkip && !hasTake)
+                return;
+
+            if (hasSkip)
+                VisitIExpWord(clause.SkipValue);
+            if (hasTake)
+                VisitIExpWord(clause.TakeValue);
+
+            var skip = hasSkip && TryResolvePagingInt(clause.SkipValue, out var skipVal) ? skipVal : -1;
+            var take = hasTake && TryResolvePagingInt(clause.TakeValue, out var takeVal) ? takeVal : -1;
+
+            if (skip < 0 && take < 0)
+                return;
+
+            if (skip < 0)
+                skip = 0;
+
+            builder.skipTake(skip, take);
+        }
+
+        bool TryResolvePagingInt(IExpWord? word, out int value)
+            => TryResolveInt(word, ParameterValues, out value);
+
+        public static bool TryResolveInt(IExpWord? word, IReadOnlyParaValues? parameterValues, out int value)
         {
             value = 0;
             if (word == null)
                 return false;
 
-            if (word is ParameterWord pw && pw.Value is int iv)
+            if (word is ValueWord { Value: int i })
             {
-                value = iv;
+                value = i;
                 return true;
             }
 
-            if (word is ValueWord vw && vw.Value is int vv)
+            if (word is ValueWord { Value: long l } && l <= int.MaxValue)
             {
-                value = vv;
+                value = (int)l;
+                return true;
+            }
+
+            if (word is ParameterWord { Value: int pi })
+            {
+                value = pi;
+                return true;
+            }
+
+            if (word is ParameterWord { Value: long pl } && pl <= int.MaxValue)
+            {
+                value = (int)pl;
+                return true;
+            }
+
+            if (word is ParameterWord pw
+                && parameterValues != null
+                && parameterValues.TryGetValue(pw, out var parameterValue)
+                && parameterValue?.ProviderValue != null)
+            {
+                var providerValue = parameterValue.ProviderValue;
+                if (providerValue is int pvi)
+                {
+                    value = pvi;
+                    return true;
+                }
+
+                if (providerValue is long pvl && pvl <= int.MaxValue)
+                {
+                    value = (int)pvl;
+                    return true;
+                }
+
+                if (int.TryParse(providerValue.ToString(), out value))
+                    return true;
+            }
+
+            if (word is ValueWord vw && vw.Value != null && int.TryParse(vw.Value.ToString(), out var parsed))
+            {
+                value = parsed;
+                return true;
+            }
+
+            if (word is ParameterWord pw2 && pw2.Value != null && int.TryParse(pw2.Value.ToString(), out parsed))
+            {
+                value = parsed;
                 return true;
             }
 

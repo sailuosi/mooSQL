@@ -122,12 +122,62 @@ namespace mooSQL.data
 
         }
 
+        /// <summary>是否含有 skip/take 分页修饰。</summary>
+        public static bool HasSkipTakePaging(FragSQL frag)
+            => frag.skipNum >= 0 || frag.pageSize >= 0;
+
+        /// <summary>解析 skip 行数（优先 skipNum，兼容旧 pageNum 路径）。</summary>
+        protected static int ResolveSkipNum(FragSQL frag)
+        {
+            if (frag.skipNum >= 0)
+                return frag.skipNum;
+            if (frag.pageNum > 0 && frag.pageSize > 0)
+                return frag.pageSize * (frag.pageNum - 1);
+            return -1;
+        }
+
+        /// <summary>解析 take 行数（pageSize 优先，兼容 toped）。</summary>
+        protected static int ResolveTake(FragSQL frag)
+            => frag.pageSize >= 0 ? frag.pageSize : frag.toped;
+
+        /// <summary>追加 LIMIT/OFFSET 风格分页子句（SQLite / MySQL 8+ / PostgreSQL）。</summary>
+        protected void AppendLimitOffset(StringBuilder sb, FragSQL frag)
+        {
+            var skip = ResolveSkipNum(frag);
+            var take = ResolveTake(frag);
+            if (skip < 0 && take < 0)
+                return;
+            if (skip >= 0 && take >= 0)
+                sb.Append("LIMIT ").Append(take).Append(" OFFSET ").Append(skip).Append(' ');
+            else if (take >= 0)
+                sb.Append("LIMIT ").Append(take).Append(' ');
+            else if (skip >= 0)
+                sb.Append("LIMIT -1 OFFSET ").Append(skip).Append(' ');
+        }
+
+        /// <summary>追加 OFFSET/FETCH 风格分页子句（SQL Server 2012+ / Oracle 12c+）。</summary>
+        protected void AppendOffsetFetch(StringBuilder sb, FragSQL frag)
+        {
+            var skip = ResolveSkipNum(frag);
+            var take = ResolveTake(frag);
+            if (skip < 0 && take < 0)
+                return;
+            if (skip >= 0 && take >= 0)
+                sb.Append("OFFSET ").Append(skip).Append(" ROWS FETCH NEXT ").Append(take).Append(" ROWS ONLY ");
+            else if (take >= 0)
+                sb.Append("FETCH FIRST ").Append(take).Append(" ROWS ONLY ");
+            else if (skip >= 0)
+                sb.Append("OFFSET ").Append(skip).Append(" ROWS ");
+        }
+
         /// <summary>
         /// 构建分页模式的查询SQL
         /// </summary>
         /// <param name="frag"></param>
         /// <returns></returns>
         public virtual string buildPagedSelect(FragSQL frag) {
+            if (HasSkipTakePaging(frag))
+                return buildSelect(frag);
             return this.buildPagedByRowNumber(frag);
         }
         /// <summary>
@@ -170,7 +220,11 @@ namespace mooSQL.data
             frag.selectInner += "," + nfie;
             frag.hasRowNumber = false;
             string cksqlSimple = this.buildSelect(frag);
-            var cksql = wrapPaged(asName, cksqlSimple, frag.pageSize, frag.pageNum, orderby);
+            var take = ResolveTake(frag);
+            var skip = ResolveSkipNum(frag);
+            var cksql = skip >= 0 && take > 0
+                ? wrapPagedBySkip(asName, cksqlSimple, skip, take, orderby)
+                : wrapPaged(asName, cksqlSimple, frag.pageSize, frag.pageNum, orderby);
 
 
             return cksql;
@@ -286,12 +340,19 @@ namespace mooSQL.data
         public string wrapPaged(string orderColName, string readSql, int pageSize, int pageNum, string orderByPart)
         {
             int end = pageSize * (pageNum - 1);
+            return wrapPagedBySkip(orderColName, readSql, end, pageSize, orderByPart);
+        }
+
+        /// <summary>按绝对 skip/take 包裹 ROW_NUMBER 分页结果（支持非对齐偏移）。</summary>
+        public string wrapPagedBySkip(string orderColName, string readSql, int skipNum, int take, string orderByPart = null)
+        {
             FragSQL sql = new FragSQL();
             sql.selectInner = "*";
             sql.fromInner = "datares";
-            sql.whereInner = orderColName + " > " + end;
+            sql.whereInner = orderColName + " > " + skipNum;
             sql.orderbyInner = orderByPart;
-            sql.toped = pageSize;
+            sql.pageSize = take;
+            sql.skipNum = -1;
             return "WITH datares AS ( " + readSql + " ) " + buildSelect(sql);
         }
 

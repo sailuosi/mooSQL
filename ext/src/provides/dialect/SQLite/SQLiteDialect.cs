@@ -29,6 +29,10 @@ namespace mooSQL.data
             mapping = new DefaultMappingPanel();
             function = new SQLLiteFunction();
 
+            Option.ProviderFlags.IsTakeSupported = true;
+            Option.ProviderFlags.IsSkipSupported = true;
+            Option.ProviderFlags.IsSkipSupportedIfTake = true;
+
             this.initVersions();
         }
 #if NET5_0_OR_GREATER

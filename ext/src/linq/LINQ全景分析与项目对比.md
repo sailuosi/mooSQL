@@ -256,12 +256,13 @@ flowchart LR
 - `ClauseMethodVisitor` 双访问器 + 高频算子内联（含 ThenBy）
 - `ClausePredicateVisitor`：Like / LikeLeft 编译与 SQLite 执行
 - `LinqStatementCompiler` 公开编译 API
-- SQLite 端到端测试（`LinqCompileTests` 25 项）
+- SQLite 端到端测试（`LinqCompileTests`，含 Take/Skip 对齐与非对齐、`setPage` 回归）
+- Take/Skip SQL 下推：`SQLBuilder.skipTake`、`setPage` 归一化、方言 `LIMIT`/`OFFSET`
 - `NavColumnLoader`、`SqlPlan`、`StatementStructureTests`
 
 ### 未完成项（摘自 `src/README.md`）
 
-- Take/Skip 非对齐分页、仅 Skip
+- Jet 等无原生 OFFSET 方言的 Take/Skip 客户端截断 fallback
 - `outcast/` → `publicapi/` 重命名
 - SQLClip ↔ Expression 双向互操作
 - 真异步流式 `IAsyncEnumerable`

@@ -124,11 +124,15 @@ namespace mooSQL.data
         /// </summary>
         public string havingPart = "";
         /// <summary>
-        /// 分页大小，默认为10。
+        /// 分页 take（与 skipTake / LINQ Take 公用；-1 表示未限制行数）
         /// </summary>
-        public int pageSize = 10;
+        public int pageSize = -1;
         /// <summary>
-        /// 当前页码，默认为-1。小于0时查询全部数据。大于等于0时按分页查询。
+        /// 跳过的行数（与 LINQ Skip 同构；-1 表示未跳过）
+        /// </summary>
+        public int skipNum = -1;
+        /// <summary>
+        /// 当前页码（setPage 元数据；SQL 生成优先读 skipNum/pageSize）
         /// </summary>
         public int pageNum = -1;//如果页面小于0，查询全部
         private bool numSeted = false;
@@ -213,7 +217,8 @@ namespace mooSQL.data
             this.setFragIndex = 0;
             this.rows.Clear();
 
-            this.pageSize = 10;
+            this.pageSize = -1;
+            this.skipNum = -1;
             this.pageNum = -1;//如果页面小于0，查询全部
             this.numSeted = false;
             this.tableName = "";
@@ -346,9 +351,21 @@ namespace mooSQL.data
         /// top 方法（返回 SqlGoup）。
         /// </summary>
         public SqlGoup top(int num) {
-            this.toped = num;
+            return skipTake(0, num);
+        }
+
+        /// <summary>
+        /// 设置 skip/take 分页（与 LINQ Skip/Take 同构；take=-1 表示仅跳过不限制行数）
+        /// </summary>
+        public SqlGoup skipTake(int skip, int take)
+        {
+            skipNum = skip;
+            pageSize = take;
+            toped = -1;
             return this;
         }
+
+        internal bool HasSkipTakePaging() => skipNum >= 0 || pageSize >= 0;
 
         /// <summary>
         /// getSetFrag 方法（返回 SetFrag）。
@@ -984,7 +1001,8 @@ namespace mooSQL.data
             this.setIndex = 0;
             this.rows.Clear();
 
-            this.pageSize = 10;
+            this.pageSize = -1;
+            this.skipNum = -1;
             this.pageNum = -1;//如果页面小于0，查询全部
             this.numSeted = false;
             this.tableName = "";
@@ -1021,7 +1039,8 @@ namespace mooSQL.data
          * @return
          */
         public SqlGoup clearPage() {
-            this.pageSize = 10;
+            this.pageSize = -1;
+            this.skipNum = -1;
             this.pageNum = -1;//如果页面小于0，查询全部
             this.numSeted = false;
             this.numField = "oonum";
@@ -1192,9 +1211,8 @@ namespace mooSQL.data
         /// setPage 方法（返回 SqlGoup）。
         /// </summary>
         public SqlGoup setPage(int size, int num) {
-            this.pageNum = num;
-            this.pageSize = size;
-            return this;
+            pageNum = num;
+            return skipTake(size * (num - 1), size);
         }
         /// <summary>
         /// 调用SQL创建成功的切面事件。
@@ -1347,6 +1365,9 @@ namespace mooSQL.data
             {
                 sql.orderbyInner =this.buildOrderByConent();
             }
+            sql.skipNum = skipNum;
+            sql.pageSize = pageSize >= 0 ? pageSize : (toped >= 0 ? toped : -1);
+            sql.pageNum = pageNum;
             return sql;
         }
 
@@ -1394,6 +1415,7 @@ namespace mooSQL.data
                 rowNumberFieldName = this.numField;
             }
             //补上翻页参数
+            frag.skipNum = this.skipNum;
             frag.pageSize = this.pageSize;
             frag.pageNum = this.pageNum;
             frag.rowNumberFieldName = this.rowNumberFieldName;
@@ -1433,7 +1455,7 @@ namespace mooSQL.data
             //此时不分页，直接查询
             string sql = "";
 
-            if (this.pageNum <= 0) {
+            if (!HasSkipTakePaging()) {
                 sql = this.buildSelectNoPage(true);
             }
             else {

@@ -49,78 +49,34 @@ namespace mooSQL.data
             }
             buildSelectFromToOrderPart(frag, sb);
 
-            if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
+            AppendLimitOffset(sb, frag);
 
             return sb.ToString();
         }
 
         public override string buildPagedSelect(FragSQL frag)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT ");
-            if (frag.distincted)
-            {
-                sb.Append("DISTINCT ");
-            }
-            sb.Append(frag.selectInner);
-            sb.Append(" ");
-            sb.Append("FROM ");
-            sb.Append(frag.fromInner);
-            sb.Append(" ");
-            if (!string.IsNullOrWhiteSpace(frag.whereInner))
-            {
-                sb.Append("WHERE ");
-                sb.Append(frag.whereInner);
-                sb.Append(" ");
-            }
+            if (!HasSkipTakePaging(frag))
+                return base.buildPagedSelect(frag);
 
-            if (!string.IsNullOrWhiteSpace(frag.groupByInner))
+            var skip = ResolveSkipNum(frag);
+            var take = ResolveTake(frag);
+            return buildPagedSelectTail(frag, sb =>
             {
-                sb.Append("GROUP BY ");
-                sb.Append(frag.groupByInner);
-                sb.Append(" ");
-            }
-            if (!string.IsNullOrWhiteSpace(frag.havingInner))
-            {
-                sb.Append("HAVING ");
-                sb.Append(frag.havingInner);
-                sb.Append(" ");
-            }
-
-            if (!string.IsNullOrWhiteSpace(frag.rowNumberOrderBy))
-            {
-                sb.Append("ORDER BY ");
-                sb.Append(frag.rowNumberOrderBy);
-                sb.Append(" ");
-            }
-            else if (!string.IsNullOrWhiteSpace(frag.orderbyInner))
-            {
-                sb.Append("ORDER BY ");
-                sb.Append(frag.orderbyInner);
-                sb.Append(" ");
-            }
-
-            if (frag.pageSize > -1) {
-                int end = frag.pageSize * (frag.pageNum - 1);
-                sb.Append("LIMIT ");
-                sb.Append(end);
-                sb.Append(" ,");
-                sb.Append(frag.pageSize);
-
-            }
-            else if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
-
-            return sb.ToString();
+                if (skip >= 0 && take >= 0)
+                {
+                    sb.Append("LIMIT ");
+                    sb.Append(skip);
+                    sb.Append(" ,");
+                    sb.Append(take);
+                }
+                else if (take >= 0)
+                {
+                    sb.Append("LIMIT ");
+                    sb.Append(take);
+                    sb.Append(' ');
+                }
+            });
         }
 
 

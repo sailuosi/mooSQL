@@ -44,11 +44,15 @@ namespace mooSQL.data.builder
         /// </summary>
         public string orderbyInner = "";
         /// <summary>
-        /// 分页时的页面大小
+        /// 分页时的页面大小（与 LINQ Take / skipTake 的 take 公用）
         /// </summary>
         public int pageSize = -1;
         /// <summary>
-        /// 页码
+        /// 跳过的行数（与 LINQ Skip 同构；-1 表示未设置）
+        /// </summary>
+        public int skipNum = -1;
+        /// <summary>
+        /// 页码（setPage 元数据；SQL 生成优先读 skipNum/pageSize）
         /// </summary>
         public int pageNum = -1;
         /// <summary>

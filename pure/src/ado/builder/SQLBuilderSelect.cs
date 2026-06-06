@@ -162,7 +162,20 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder top(int num)
         {
-            current.top(num);
+            return skipTake(0, num);
+        }
+
+        /// <summary>
+        /// 设置 skip/take 分页（与 LINQ Skip/Take 同构；take=-1 表示仅跳过不限制行数）
+        /// </summary>
+        public SQLBuilder skipTake(int skip, int take)
+        {
+            if (unionHolder.Count > 1)
+            {
+                unionHolder.unitedWraper.skipTake(skip, take);
+                return this;
+            }
+            current.skipTake(skip, take);
             return this;
         }
         /// <summary>
@@ -525,13 +538,13 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder setPage(int size, int num)
         {
-
-            if (this.unionHolder.Count > 1)
+            if (unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.setPage(size, num);
                 return this;
             }
-            current.setPage(size, num);
+            current.pageNum = num;
+            current.skipTake(size * (num - 1), size);
             return this;
         }
     }

@@ -74,12 +74,7 @@ namespace mooSQL.data
                 sb.Append(" ");
             }
 
-            if (frag.toped > -1)
-            {
-                sb.Append("LIMIT ");
-                sb.Append(frag.toped);
-                sb.Append(" ");
-            }
+            AppendLimitOffset(sb, frag);
 
             return sb.ToString();
         }

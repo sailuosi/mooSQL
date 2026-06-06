@@ -149,32 +149,15 @@ namespace mooSQL.data
          */
         public override string buildPagedSelect(FragSQL frag)
         {
-            var ver = this.dialect.CurVersion;
+            if (!HasSkipTakePaging(frag))
+                return base.buildPagedSelect(frag);
 
-            if (ver !=null && ver.VersionNumber >= 11) {
-                //当 SQL server的版本在 2012以后，翻页支持 OFFSET 40 ROWS FETCH NEXT 10 ROWS ONLY; 这样的语法
-                var sb = new StringBuilder();
-                var tar = this.buildPagedSelectTail(frag, (sb) => {
-                    if (frag.pageSize > -1)
-                    {
-                        int end = frag.pageSize * (frag.pageNum - 1);
-                        sb.Append("OFFSET ");
-                        sb.Append(end);
-                        sb.Append(" ROWS FETCH NEXT ");
-                        sb.Append(frag.pageSize);
-                        sb.Append(" ROWS ONLY ");
+            var ver = dialect.CurVersion;
 
-                    }
-                    else if (frag.toped > -1)
-                    {
-                        sb.Append(" FETCH FIRST ");
-                        sb.Append(frag.toped);
-                        sb.Append(" ROWS ONLY ");
-                    }
-                });
-                return tar;
-            }
-            return this.buildPagedByRowNumber(frag);
+            if (ver != null && ver.VersionNumber >= 11)
+                return buildPagedSelectTail(frag, sb => AppendOffsetFetch(sb, frag));
+
+            return buildPagedByRowNumber(frag);
         }
 
         public override string buildInsert(FragSQL frag)

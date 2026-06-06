@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.data;
+using mooSQL.data.model;
 using mooSQL.linq.Linq;
 
 namespace mooSQL.linq.translator;
@@ -28,9 +29,12 @@ internal static class SqlPlanBuilder
         {
             foreach (var sentence in bag.Sentences)
             {
+                var parameterValues = new SqlParameterValues();
+                QueryMate.SetParameters(bag, expression, db, null, sentence, parameterValues);
+
                 items.Add(new StatementPlanItem
                 {
-                    Structure       = StatementStructureReader.Read(sentence.Statement),
+                    Structure       = StatementStructureReader.Read(sentence.Statement, parameterValues),
                     DebugTree       = sentence.Statement.SelectQuery?.SqlText,
                     ParameterCount  = sentence.ParameterAccessors?.Count ?? 0
                 });
