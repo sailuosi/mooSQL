@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R13）
+
+- **DateDiff SQLite/PG Builder 删除（D.9）**：删除 `DateDiffBuilderSQLite` / `DateDiffBuilderPostgreSql`；三类型重载 registry 注册；矩阵 `Matrix_DateDiff_NoSqlitePgExtensionBuilder`
+- **DateDiff Quarter**：Pure `dateDiffQuarter` + MSSQL/MySQL override
+- **CI 脚本**：`ext/src/linq/tools/run-ext-linq-ci.ps1`（边界检查 + TestLinq）
+- **三入口 Like 快照**：`ThreeEntrySnapshot_DbFuncLike`
+
 ### 新增（Phase D/E R12）
 
 - **Between/NotBetween stub 瘦身（D.9 首批）**：删除 `BetweenBuilder`/`NotBetweenBuilder`；`[Extension]` 仅保留 `IsPredicate` 元数据；矩阵 `Matrix_Between_NoExtensionBuilderType`

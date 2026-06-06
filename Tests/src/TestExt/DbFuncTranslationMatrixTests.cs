@@ -460,6 +460,64 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_DateDiff_NoSqlitePgExtensionBuilder()
+    {
+        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!);
+#if NET6_0_OR_GREATER
+        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateOnly?), typeof(System.DateOnly?) })!);
+        AssertDateDiffSqlitePgHasNoBuilder(typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTimeOffset?), typeof(System.DateTimeOffset?) })!);
+#endif
+    }
+
+    static void AssertDateDiffSqlitePgHasNoBuilder(System.Reflection.MethodInfo method)
+    {
+        var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+            .Cast<DbFunc.ExtensionAttribute>();
+        foreach (var attr in attrs)
+        {
+            if (attr.Configuration is ProviderName.SQLite or ProviderName.PostgreSQL)
+                Assert.Null(attr.BuilderType);
+        }
+    }
+
+    [Fact]
+    public void Matrix_DateDiff_Overloads_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var dateDiff = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(dateDiff));
+#if NET6_0_OR_GREATER
+        var dateOnlyDiff = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateOnly?), typeof(System.DateOnly?) })!;
+        var dateTimeOffsetDiff = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTimeOffset?), typeof(System.DateTimeOffset?) })!;
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(dateOnlyDiff));
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(dateTimeOffsetDiff));
+#endif
+    }
+
+    [Theory]
+    [InlineData(typeof(MSSQLDialect), "QUARTER")]
+    public void Matrix_DateDiff_Quarter_ExpressFormat(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.dateDiffQuarter("{0}", "{1}");
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_RowNumber_Over_EmitsRowNumberSql()
     {
         var db = _sqlite.Db;

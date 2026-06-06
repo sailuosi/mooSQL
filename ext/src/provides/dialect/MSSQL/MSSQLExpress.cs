@@ -49,6 +49,9 @@ namespace mooSQL.data
 
         public override string dateDiffWeek(string start, string end)
             => $"DATEDIFF(week, {start}, {end})";
+
+        public override string dateDiffQuarter(string start, string end)
+            => $"DATEDIFF(quarter, {start}, {end})";
         /// <summary>
         /// 
         /// </summary>

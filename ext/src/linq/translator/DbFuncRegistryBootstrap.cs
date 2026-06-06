@@ -195,20 +195,27 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterDateDiff(DbFuncRegistry registry)
     {
+        var entry = new DbFuncExpressionEntry
+        {
+            PreferServerSide = true,
+            IsDateDiffPredicate = true,
+            PreferExtensionAttribute = true
+        };
+
+        RegisterDateDiffOverload(registry, typeof(DateTime?), entry);
+#if NET6_0_OR_GREATER
+        RegisterDateDiffOverload(registry, typeof(DateOnly?), entry);
+        RegisterDateDiffOverload(registry, typeof(DateTimeOffset?), entry);
+#endif
+    }
+
+    static void RegisterDateDiffOverload(DbFuncRegistry registry, Type dateType, DbFuncExpressionEntry entry)
+    {
         var dateDiff = typeof(DbFunc).GetMethod(
             nameof(DbFunc.DateDiff),
-            new[] { typeof(DbFunc.DateParts), typeof(DateTime?), typeof(DateTime?) });
-        if (dateDiff == null)
-            return;
-
-        registry.Register(
-            dateDiff,
-            new DbFuncExpressionEntry
-            {
-                PreferServerSide = true,
-                IsDateDiffPredicate = true,
-                PreferExtensionAttribute = true
-            });
+            new[] { typeof(DbFunc.DateParts), dateType, dateType });
+        if (dateDiff != null)
+            registry.Register(dateDiff, entry);
     }
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)

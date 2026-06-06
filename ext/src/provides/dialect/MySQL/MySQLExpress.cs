@@ -53,6 +53,9 @@ namespace mooSQL.data
         public override string dateDiffWeek(string start, string end)
             => $"TIMESTAMPDIFF(WEEK, {start}, {end})";
 
+        public override string dateDiffQuarter(string start, string end)
+            => $"TIMESTAMPDIFF(QUARTER, {start}, {end})";
+
         #region DML语句
         /// <summary>
         /// 创建普通的select语句

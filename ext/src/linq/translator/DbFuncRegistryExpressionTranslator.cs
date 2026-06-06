@@ -180,6 +180,7 @@ internal static class DbFuncRegistryExpressionTranslator
         return part switch
         {
             DbFunc.DateParts.Year         => expression.dateDiffYear(start, end),
+            DbFunc.DateParts.Quarter      => expression.dateDiffQuarter(start, end),
             DbFunc.DateParts.Month        => expression.dateDiffMonth(start, end),
             DbFunc.DateParts.Week         => expression.dateDiffWeek(start, end),
             DbFunc.DateParts.Day          => expression.dateDiffDay(start, end),

@@ -241,57 +241,6 @@ namespace mooSQL.linq
 			}
 		}
 
-		sealed class DateDiffBuilderSQLite : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var part = builder.GetValue<DateParts>(0);
-				var startDate = builder.GetExpression(1);
-				var endDate = builder.GetExpression(2);
-
-				if (startDate is null || endDate is null)
-				{
-					builder.IsConvertible = false;
-					return;
-				}
-
-				var expStr = "round((julianday({1}) - julianday({0}))";
-				expStr += part switch
-				{
-					DateParts.Day         => ")",
-					DateParts.Hour        => " * 24)",
-					DateParts.Minute      => " * 1440)",
-					DateParts.Second      => " * 86400)",
-					DateParts.Millisecond => " * 86400000)",
-					_                     => throw new InvalidOperationException($"Unexpected datepart: {part}"),
-				};
-				builder.ResultExpression = new ExpressionWord(typeof(int), expStr, startDate, endDate );
-			}
-		}
-
-		sealed class DateDiffBuilderPostgreSql : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var part = builder.GetValue<DateParts>(0);
-				var startDate = builder.GetExpression(1)!;
-				var endDate = builder.GetExpression(2)!;
-				var expStr = part switch
-				{
-					DateParts.Year        => "(DATE_PART('year', {1}::date) - DATE_PART('year', {0}::date))",
-					DateParts.Month       => "((DATE_PART('year', {1}::date) - DATE_PART('year', {0}::date)) * 12 + (DATE_PART('month', {1}'::date) - DATE_PART('month', {0}::date)))",
-					DateParts.Week        => "TRUNC(DATE_PART('day', {1}::timestamp - {0}::timestamp) / 7)",
-					DateParts.Day         => "EXTRACT(EPOCH FROM ({1}::timestamp - {0}::timestamp)) / 86400",
-					DateParts.Hour        => "EXTRACT(EPOCH FROM ({1}::timestamp - {0}::timestamp)) / 3600",
-					DateParts.Minute      => "EXTRACT(EPOCH FROM ({1}::timestamp - {0}::timestamp)) / 60",
-					DateParts.Second      => "EXTRACT(EPOCH FROM ({1}::timestamp - {0}::timestamp))",
-					DateParts.Millisecond => "ROUND(EXTRACT(EPOCH FROM ({1}::timestamp - {0}::timestamp)) * 1000)",
-					_                     => throw new InvalidOperationException($"Unexpected datepart: {part}"),
-				};
-				builder.ResultExpression = new ExpressionWord(typeof(int), expStr, PrecedenceLv.Multiplicative, startDate, endDate);
-			}
-		}
-
 		sealed class DateDiffBuilderAccess : IExtensionCallBuilder
 		{
 			public void Build(ISqExtensionBuilder builder)
@@ -419,9 +368,9 @@ namespace mooSQL.linq
 		[Extension(PN.MySql,      "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
 		[Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
 		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
-		[Extension(PN.SQLite,     "",              BuilderType = typeof(DateDiffBuilderSQLite))]
+		[Extension(PN.SQLite,     "",              PreferServerSide = true)]
 		[Extension(PN.Oracle,     "",              BuilderType = typeof(DateDiffBuilderOracle))]
-		[Extension(PN.PostgreSQL, "",              BuilderType = typeof(DateDiffBuilderPostgreSql))]
+		[Extension(PN.PostgreSQL, "",              PreferServerSide = true)]
 		[Extension(PN.Access,     "",              BuilderType = typeof(DateDiffBuilderAccess))]
 		[Extension(PN.ClickHouse, "",              BuilderType = typeof(DateDiffBuilderClickHouse))]
 		public static int? DateDiff(DateParts part, DateTime? startDate, DateTime? endDate)

@@ -75,5 +75,8 @@ namespace mooSQL.data
 
         /// <summary>DateDiff 周。</summary>
         public virtual string? dateDiffWeek(string start, string end) => null;
+
+        /// <summary>DateDiff 季度。</summary>
+        public virtual string? dateDiffQuarter(string start, string end) => null;
     }
 }
