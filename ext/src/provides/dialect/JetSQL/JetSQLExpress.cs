@@ -25,6 +25,18 @@ namespace mooSQL.data
             return "[" + value + "]";
         }
 
+        static string accessDateDiff(string unit, string start, string end)
+            => $"DATEDIFF('{unit}', {start}, {end})";
+
+        public override string dateDiffYear(string start, string end) => accessDateDiff("yyyy", start, end);
+        public override string dateDiffQuarter(string start, string end) => accessDateDiff("q", start, end);
+        public override string dateDiffMonth(string start, string end) => accessDateDiff("m", start, end);
+        public override string dateDiffDay(string start, string end) => accessDateDiff("d", start, end);
+        public override string dateDiffWeek(string start, string end) => accessDateDiff("ww", start, end);
+        public override string dateDiffHour(string start, string end) => accessDateDiff("h", start, end);
+        public override string dateDiffMinute(string start, string end) => accessDateDiff("n", start, end);
+        public override string dateDiffSecond(string start, string end) => accessDateDiff("s", start, end);
+
         public override string buildSelect(FragSQL frag)
         {
             var sb = new StringBuilder();

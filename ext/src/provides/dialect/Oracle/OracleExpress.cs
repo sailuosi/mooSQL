@@ -51,6 +51,28 @@ namespace mooSQL.data
         {
             return 1000;
         }
+
+        public override string dateDiffWeek(string start, string end)
+            => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) / 7";
+
+        public override string dateDiffDay(string start, string end)
+            => $"(CAST ({end} as DATE) - CAST ({start} as DATE))";
+
+        public override string dateDiffHour(string start, string end)
+            => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 24";
+
+        public override string dateDiffMinute(string start, string end)
+            => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 1440";
+
+        public override string dateDiffSecond(string start, string end)
+            => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 86400";
+
+        public override string dateDiffMillisecond(string start, string end)
+            => "1000 * (EXTRACT(SECOND FROM CAST (" + end + " as TIMESTAMP) - CAST (" + start + " as TIMESTAMP))"
+               + " + 60 * (EXTRACT(MINUTE FROM CAST (" + end + " as TIMESTAMP) - CAST (" + start + " as TIMESTAMP))"
+               + " + 60 * (EXTRACT(HOUR FROM CAST (" + end + " as TIMESTAMP) - CAST (" + start + " as TIMESTAMP))"
+               + " + 24 * EXTRACT(DAY FROM CAST (" + end + " as TIMESTAMP) - CAST (" + start + " as TIMESTAMP)))))";
+
         #region DML语句
         /// <summary>
         /// 构建Select语句，Oracle特有的分页方式。

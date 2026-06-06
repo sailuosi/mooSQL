@@ -502,6 +502,9 @@ namespace mooSQL.linq
 			public Type?     BuilderType     { get; set; }
 			public object?   BuilderValue    { get; set; }
 
+			/// <summary>编译时按 <see cref="NullsPosition"/> 参数追加 NULLS FIRST/LAST（替代 OrderItemBuilder）。</summary>
+			public bool      AppendNullsPositionSuffix { get; set; }
+
 			/// <summary>
 			/// Defines in which order process extensions. Items will be ordered Descending.
 			/// </summary>
@@ -860,6 +863,9 @@ namespace mooSQL.linq
 					}
 				}
 
+				if (AppendNullsPositionSuffix && method is MethodInfo orderMethod)
+					AppendNullsPositionSuffixToExtension(evaluator, orderMethod, arguments, extension);
+
 				if (BuilderType != null)
 				{
 					var callBuilder = _builders.GetOrAdd(BuilderType, static t =>
@@ -892,6 +898,31 @@ namespace mooSQL.linq
 				result ??= new SqlExtensionParam(TokenName, extension);
 
 				return result;
+			}
+
+			static void AppendNullsPositionSuffixToExtension(
+				IExpressionEvaluator evaluator,
+				MethodInfo method,
+				Expression[] arguments,
+				SqlExtension extension)
+			{
+				var parameters = method.GetParameters();
+				for (var i = 0; i < parameters.Length; i++)
+				{
+					if (parameters[i].ParameterType != typeof(NullsPosition))
+						continue;
+					if (parameters[i].GetCustomAttribute<SqlQueryDependentAttribute>() == null)
+						continue;
+
+					var nulls = (NullsPosition)evaluator.Evaluate(arguments[i])!;
+					extension.Expr += nulls switch
+					{
+						NullsPosition.First => " NULLS FIRST",
+						NullsPosition.Last  => " NULLS LAST",
+						_                   => string.Empty
+					};
+					break;
+				}
 			}
 
 			static IEnumerable<Expression> ExtractArray(Expression expression)

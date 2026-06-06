@@ -31,9 +31,9 @@ var q = db.useQueryable<Order>()
 
 ### 已 registry-first（Bootstrap 注册 + 矩阵覆盖）
 
-Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf/Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；Oracle/DB2/Access/ClickHouse/SapHana 仍走 `[Extension]` Builder）。
+Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf/Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；DB2/ClickHouse/SapHana 仍走 `[Extension]` Builder）。
 
-`api/dbfunc/` 删除（D.9）进行中：Between/NotBetween + DateDiff 主流方言（SQLite/PG/MSSQL/MySQL）**Extension Builder 已移除**（R12–R14）；Analytic `OrderItemBuilder` 仍保留。
+`api/dbfunc/` 删除（D.9）进行中：Between/NotBetween + DateDiff 六方言（SQLite/PG/MSSQL/MySQL/Oracle/Access）**Extension Builder 已移除**；Analytic `OrderItemBuilder` 已删（R15 `AppendNullsPositionSuffix`）。
 
 ## 自定义扩展
 

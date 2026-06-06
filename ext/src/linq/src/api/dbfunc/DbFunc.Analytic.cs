@@ -54,27 +54,6 @@ namespace mooSQL.linq
 
 		#region Call Builders
 
-		sealed class OrderItemBuilder : DbFunc.IExtensionCallBuilder
-		{
-			public void Build(DbFunc.ISqExtensionBuilder builder)
-			{
-				var nulls = builder.GetValue<DbFunc.NullsPosition>("nulls");
-				switch (nulls)
-				{
-					case DbFunc.NullsPosition.None :
-						break;
-					case DbFunc.NullsPosition.First :
-						builder.Expression += " NULLS FIRST";
-						break;
-					case DbFunc.NullsPosition.Last :
-						builder.Expression += " NULLS LAST";
-						break;
-					default :
-						throw new InvalidOperationException($"Unexpected nulls position: {nulls}");
-				}
-			}
-		}
-
 		sealed class ApplyAggregateModifier : DbFunc.IExtensionCallBuilder
 		{
 			public void Build(DbFunc.ISqExtensionBuilder builder)
@@ -183,7 +162,7 @@ namespace mooSQL.linq
 			IOrderedAcceptOverReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
@@ -191,7 +170,7 @@ namespace mooSQL.linq
 			IOrderedAcceptOverReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 
@@ -211,13 +190,13 @@ namespace mooSQL.linq
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 
@@ -258,13 +237,13 @@ namespace mooSQL.linq
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 
@@ -293,7 +272,7 @@ namespace mooSQL.linq
 			IOrderedReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
@@ -301,7 +280,7 @@ namespace mooSQL.linq
 			IOrderedReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 
@@ -314,7 +293,7 @@ namespace mooSQL.linq
 			IOrderedReadyToWindowing<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
@@ -322,7 +301,7 @@ namespace mooSQL.linq
 			IOrderedReadyToWindowing<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 
@@ -347,13 +326,13 @@ namespace mooSQL.linq
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr}", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 
-			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", BuilderType = typeof(OrderItemBuilder))]
+			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] DbFunc.NullsPosition nulls);
 		}
 

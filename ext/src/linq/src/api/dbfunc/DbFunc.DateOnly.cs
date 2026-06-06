@@ -63,7 +63,8 @@ namespace mooSQL.linq
 		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
 		[Extension(PN.SQLite,     "",              PreferServerSide = true)]
 		[Extension(PN.PostgreSQL, "",              PreferServerSide = true)]
-		[Extension(PN.Access,     "",              BuilderType = typeof(DateDiffBuilderAccess))]
+		[Extension(PN.Oracle,     "",              PreferServerSide = true)]
+		[Extension(PN.Access,     "",              PreferServerSide = true)]
 		[Extension(PN.ClickHouse, "",              BuilderType = typeof(DateDiffBuilderClickHouse))]
 		public static int? DateDiff(DateParts part, DateOnly? startDate, DateOnly? endDate)
 		{

@@ -521,6 +521,52 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_DateDiff_OracleAccess_NoExtensionBuilder()
+    {
+        var method = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
+        AssertDateDiffExtensionHasNoBuilder(method, ProviderName.Oracle, ProviderName.Access);
+    }
+
+    [Theory]
+    [InlineData(typeof(OracleDialect), "CAST")]
+    [InlineData(typeof(JetSQLDialect), "DATEDIFF")]
+    public void Matrix_DateDiff_OracleAccess_ExpressFormat(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.dateDiffDay("{0}", "{1}");
+        Assert.NotNull(format);
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_RowNumberOver_OrderByNullsFirst_Compiles()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id, DbFunc.NullsPosition.First).ToValue())
+                .Expression);
+        Assert.Contains("NULLS FIRST", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Analytic_OrderItemBuilder_Removed()
+    {
+        Assert.Null(typeof(AnalyticFunctions).GetNestedType("OrderItemBuilder", System.Reflection.BindingFlags.NonPublic));
+        var orderByWithNulls = typeof(AnalyticFunctions.INeedsOrderByOnly<long>)
+            .GetMethods()
+            .First(m => m.Name == "OrderBy" && m.GetParameters().Length == 2);
+        var orderItemExt = orderByWithNulls.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+            .Cast<DbFunc.ExtensionAttribute>()
+            .First(a => a.TokenName == "order_item");
+        Assert.Null(orderItemExt.BuilderType);
+        Assert.True(orderItemExt.AppendNullsPositionSuffix);
+    }
+
+    [Fact]
     public void Matrix_DateDiff_Overloads_RegisteredInRegistry()
     {
         var db = _sqlite.Db;

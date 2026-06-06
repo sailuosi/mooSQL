@@ -15,6 +15,11 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R15）
+
+- **DateDiff Oracle/Access Builder 删除**：`OracleExpress` / `JetSQLExpress` `dateDiff*`；矩阵 `Matrix_DateDiff_OracleAccess_*`
+- **OrderItemBuilder 删除**：`ExtensionAttribute.AppendNullsPositionSuffix`；`Matrix_Analytic_OrderItemBuilder_Removed`、`Matrix_RowNumberOver_OrderByNullsFirst_Compiles`
+
 ### 新增（Phase D/E R14）
 
 - **DateDiff MSSQL/MySQL Builder 删除（D.9）**：删除 `DateDiffBuilder`；SqlServer/MySQL/默认方言 `PreferServerSide`；矩阵 `Matrix_DateDiff_MssqlMysql_NoExtensionBuilder`

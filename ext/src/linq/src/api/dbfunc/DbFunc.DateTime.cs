@@ -202,84 +202,6 @@ namespace mooSQL.linq
 			}
 		}
 
-		sealed class DateDiffBuilderAccess : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var part = builder.GetValue<DateParts>(0);
-				var startDate = builder.GetExpression(1);
-				var endDate = builder.GetExpression(2);
-
-				if (startDate is null || endDate is null)
-				{
-					builder.IsConvertible = false;
-					return;
-				}
-
-				var expStr = "DATEDIFF('";
-
-#pragma warning disable CA2208 // Instantiate argument exceptions correctly
-				expStr += part switch
-				{
-					DateParts.Year        => "yyyy",
-					DateParts.Quarter     => "q",
-					DateParts.Month       => "m",
-					DateParts.DayOfYear   => "y",
-					DateParts.Day         => "d",
-					DateParts.WeekDay     => "w",
-					DateParts.Week        => "ww",
-					DateParts.Hour        => "h",
-					DateParts.Minute      => "n",
-					DateParts.Second      => "s",
-					DateParts.Millisecond => throw new ArgumentOutOfRangeException(nameof(part), part, "Access doesn't support milliseconds interval."),
-					_                     => throw new InvalidOperationException($"Unexpected datepart: {part}"),
-				};
-#pragma warning restore CA2208 // Instantiate argument exceptions correctly
-
-				expStr += "', {0}, {1})";
-
-				builder.ResultExpression = new ExpressionWord(typeof(int), expStr, startDate, endDate);
-			}
-		}
-
-		sealed class DateDiffBuilderOracle : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var part = builder.GetValue<DateParts>(0);
-				var startDate = builder.GetExpression(1);
-				var endDate = builder.GetExpression(2);
-
-				if (startDate is null || endDate is null)
-				{
-					builder.IsConvertible = false;
-					return;
-				}
-
-				var expStr = part switch
-				{
-					// DateParts.Year        => "({1} - {0}) / 365",
-					// DateParts.Month       => "({1} - {0}) / 30",
-					DateParts.Week        => "(CAST ({1} as DATE) - CAST ({0} as DATE)) / 7",
-					DateParts.Day         => "(CAST ({1} as DATE) - CAST ({0} as DATE))",
-					DateParts.Hour        => "(CAST ({1} as DATE) - CAST ({0} as DATE)) * 24",
-					DateParts.Minute      => "(CAST ({1} as DATE) - CAST ({0} as DATE)) * 1440",
-					DateParts.Second      => "(CAST ({1} as DATE) - CAST ({0} as DATE)) * 86400",
-
-					// this is tempting to use but leads to precision loss on big intervals
-					//DateParts.Millisecond => "1000 * (EXTRACT(SECOND FROM CAST ({1} as TIMESTAMP) - CAST ({0} as TIMESTAMP)) + (CAST ({1} as DATE) - CAST ({0} as DATE)) * 86400)",
-
-					// could be really ugly on big start/end expressions
-					DateParts.Millisecond => "1000 * (EXTRACT(SECOND FROM CAST ({1} as TIMESTAMP) - CAST ({0} as TIMESTAMP))"
-					+ " + 60 * (EXTRACT(MINUTE FROM CAST ({1} as TIMESTAMP) - CAST ({0} as TIMESTAMP))"
-					+ " + 60 * (EXTRACT(HOUR FROM CAST ({1} as TIMESTAMP) - CAST ({0} as TIMESTAMP))"
-					+ " + 24 * EXTRACT(DAY FROM CAST ({1} as TIMESTAMP) - CAST ({0} as TIMESTAMP)))))",
-					_                     => throw new InvalidOperationException($"Unexpected datepart: {part}"),
-				};
-				builder.ResultExpression = new ExpressionWord(typeof(int), expStr, PrecedenceLv.Multiplicative, startDate, endDate);
-			}
-		}
-
 		sealed class DateDiffBuilderClickHouse : IExtensionCallBuilder
 		{
 			public void Build(ISqExtensionBuilder builder)
@@ -330,9 +252,9 @@ namespace mooSQL.linq
 		[Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
 		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
 		[Extension(PN.SQLite,     "",              PreferServerSide = true)]
-		[Extension(PN.Oracle,     "",              BuilderType = typeof(DateDiffBuilderOracle))]
+		[Extension(PN.Oracle,     "",              PreferServerSide = true)]
 		[Extension(PN.PostgreSQL, "",              PreferServerSide = true)]
-		[Extension(PN.Access,     "",              BuilderType = typeof(DateDiffBuilderAccess))]
+		[Extension(PN.Access,     "",              PreferServerSide = true)]
 		[Extension(PN.ClickHouse, "",              BuilderType = typeof(DateDiffBuilderClickHouse))]
 		public static int? DateDiff(DateParts part, DateTime? startDate, DateTime? endDate)
 		{

@@ -30,7 +30,7 @@
 ### 编译路径
 
 1. `AnalyticFunctions.RowNumber` → `DbFuncRegistry`（`ROW_NUMBER()` 模板 + `IsWindowFunction`）
-2. `.Over().OrderBy(...)` → `[Extension]` Token 链（**不可 registry-only**；`OrderItemBuilder` 仅用于 NULLS FIRST/LAST）
+2. `.Over().OrderBy(...)` → `[Extension]` Token 链；NULLS 后缀由 `AppendNullsPositionSuffix` 处理（R15 删除 `OrderItemBuilder`）
 3. Select 投影：`ShouldProjectBodyToColumns` → 列精简
 
 > R14 评估：`RowNumber()` 本体已 registry-first；Over/PartitionBy/OrderBy 为接口链式 `[Extension]`，短期保留属性链。
@@ -43,9 +43,11 @@
 | SQL Server | 同左 | `MSSQLExpress` → `DATEDIFF` |
 | MySQL | 同左 | `MySQLExpress` → `TIMESTAMPDIFF` |
 | PostgreSQL | 同左 | `NpgsqlExpress` → `EXTRACT/EPOCH` + Year/Month/Week |
-| 其它 | 回退 `[Extension]` Builder | Oracle/DB2/Access/ClickHouse/SapHana（R15 收敛） |
+| Oracle | 同左 | `OracleExpress` → `CAST ... DATE` 差值公式 |
+| Access/JetSQL | 同左 | `JetSQLExpress` → `DATEDIFF('unit', ...)` |
+| DB2/ClickHouse/SapHana | 回退 `[Extension]` Builder | R16 收敛 |
 
-主流四方言（SQLite/SqlServer/MySQL/PostgreSQL）已无 DateDiff Extension Builder（R12–R14）。
+主流六方言（SQLite/SqlServer/MySQL/PostgreSQL/Oracle/Access）已无 DateDiff Extension Builder（R12–R15）。
 
 ## 相关代码
 
