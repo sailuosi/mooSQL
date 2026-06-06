@@ -200,7 +200,7 @@ namespace mooSQL.linq.Expressions
 				type == typeof(Queryable) ||
 				enumerable && type == typeof(Enumerable) ||
 				type == typeof(LinqExtensions)  ||
-				//type == typeof(DataExtensions)  ||
+				type == typeof(BusQueryable)    ||
 				type == typeof(DbQueryExtensions) ;
 		}
 

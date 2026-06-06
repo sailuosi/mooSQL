@@ -45,8 +45,13 @@ db.GetTable<User>();
 db.useQueryable<User>();
 ```
 
-### 后续（Phase D 进行中）
+### 后续（Phase D / E — 已完成基础设施）
 
-- `DbFunc` 函数族分批迁入 Pure `SQLExpression`
-- `TranslationRegistration` 上移至 Pure 共享层
-- 满足迁移条件后删除 `ext/src/linq/src/api/DbFunc/`
+- **Pure `DbFuncRegistry`**：`Dialect.dbFuncRegistry` + `DbFuncRegistryBootstrap`（Like/Between/Substring/Concat/DateAdd）
+- **`TranslationRegistration`** 已上移至 `mooSQL.data.translation`
+- **`SQLExpression.Linq`**：`between` / `isNull` / `like` / `substring` / `dateAdd` / `concat` / `rowNumber`
+- **`api/DbFunc/`**：属性翻译基础设施（`ExpressionAttribute` / `ExtensionAttribute`）仍保留；已迁移项标记 `[Obsolete]`，运行时仍走属性链，注册表供 inspect 与 Pure 对齐
+- **最终推荐 API**：`db.dialect.expression.*` + `db.dialect.dbFuncRegistry`（编译仍兼容 `DbFunc.*`）
+- **Includes 编译**：`BusQueryable` 纳入 `IsQueryable`；`ResolveSourceContext` 修复 `useQueryable().Includes()` 路径
+- **Phase E**：`ADR-CompileExecute-Boundary.md`、`check-compile-execute-boundary.ps1`、`LinqClauseBridge`、`ToSQLBuilders`、`DBInstance.FromLinqExpression`
+- **测试**：`DbFuncTranslationMatrixTests` / `DbFuncRegistryTests` / `LinqClauseBridgeTests`（51/51 绿）

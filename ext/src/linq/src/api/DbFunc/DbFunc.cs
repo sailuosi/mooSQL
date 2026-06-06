@@ -448,6 +448,7 @@ namespace mooSQL.linq
 		}
 
 		[Function(ServerSideOnly = true, IsPredicate = true)]
+		[Obsolete("Prefer db.dialect.expression.like via DbFuncRegistry; retained for attribute translation.")]
 		public static bool Like(string? matchExpression, string? pattern)
 		{
 #if !NETFRAMEWORK

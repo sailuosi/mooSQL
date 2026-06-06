@@ -1,45 +1,34 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using mooSQL.linq.Mapping;
-
 namespace mooSQL.linq.Linq.Translation
 {
     using mooSQL.data;
     using mooSQL.data.model;
+    using mooSQL.data.translation;
     using mooSQL.linq.Expressions;
 
+    public interface ITranslationContext
+    {
+        Expression Translate(Expression expression, TranslationFlags translationFlags = TranslationFlags.Sql);
 
-	[Flags]
-	public enum TranslationFlags
-	{
-		None = 0,
-		Expression = 1,
-		Sql        = 1 << 1,
-	}
+        DBInstance DBLive { get; }
 
-	public interface ITranslationContext
-	{
-		Expression Translate(Expression expression, TranslationFlags translationFlags = TranslationFlags.Sql);
+        ISqlExpressionFactory ExpressionFactory { get; }
 
-		public DBInstance DBLive {  get; }
+        EntityColumn? CurrentColumnDescriptor { get; }
+        SelectQueryClause CurrentSelectQuery { get; }
+        string? CurrentAlias { get; }
 
+        SqlPlaceholderExpression CreatePlaceholder(SelectQueryClause selectQuery, IExpWord sqlExpression, Expression basedOn);
+        SqlErrorExpression CreateErrorExpression(Expression basedOn, string message);
 
-		public ISqlExpressionFactory ExpressionFactory { get; }
+        bool CanBeCompiled(Expression expression, TranslationFlags translationFlags);
+        bool IsServerSideOnly(Expression expression, TranslationFlags translationFlags);
+        bool IsPreferServerSide(Expression expression, TranslationFlags translationFlags);
 
-		public EntityColumn? CurrentColumnDescriptor { get; }
-		public SelectQueryClause       CurrentSelectQuery      { get; }
-		public string?           CurrentAlias            { get; }
-
-		SqlPlaceholderExpression CreatePlaceholder(SelectQueryClause selectQuery, IExpWord sqlExpression, Expression basedOn);
-		SqlErrorExpression CreateErrorExpression(Expression basedOn, string message);
-
-		public bool CanBeCompiled(Expression      expression, TranslationFlags translationFlags);
-		public bool IsServerSideOnly(Expression   expression, TranslationFlags translationFlags);
-		public bool IsPreferServerSide(Expression expression, TranslationFlags translationFlags);
-
-		bool    CanBeEvaluated(Expression  expression);
-		object? Evaluate(Expression        expression);
-		bool    TryEvaluate(IExpWord expression, out object? result);
-	}
+        bool CanBeEvaluated(Expression expression);
+        object? Evaluate(Expression expression);
+        bool TryEvaluate(IExpWord expression, out object? result);
+    }
 }

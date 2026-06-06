@@ -37,6 +37,9 @@
     <Compile Include="src\TestExt\LinqCompileTests.cs" />
     <Compile Include="src\TestExt\StatementStructureTests.cs" />
     <Compile Include="src\TestExt\DbFuncTranslationTests.cs" />
+    <Compile Include="src\TestExt\DbFuncRegistryTests.cs" />
+    <Compile Include="src\TestExt\DbFuncTranslationMatrixTests.cs" />
+    <Compile Include="src\TestExt\LinqClauseBridgeTests.cs" />
     <Compile Include="src\TestHelpers\LinqSqliteTestHelper.cs" />
     <Compile Include="src\TestHelpers\LinqSqliteTestFixture.cs" />
     <Compile Include="src\TestHelpers\SQLiteTestEntities.cs" />

@@ -56,4 +56,30 @@ public class DbFuncTranslationTests : IClassFixture<LinqSqliteTestFixture>
         var exprAttr = typeof(DbFunc.ExpressionAttribute);
         Assert.True(exprAttr.IsNestedPublic);
     }
+
+    [Fact]
+    public void Includes_Compile_SucceedsOnUseQueryable()
+    {
+        var db = _sqlite.Db;
+        var result = LinqStatementCompiler.Compile(
+            db,
+            db.useQueryable<SQLiteTestUser>().Includes(u => u.Orders!).Expression);
+
+        Assert.Null(result.ErrorExpression);
+        Assert.True(result.Success);
+        Assert.NotNull(result.PrimarySelectQuery);
+    }
+
+    [Fact]
+    public void Includes_Compile_SucceedsOnDbBus()
+    {
+        var db = _sqlite.Db;
+        var bus = LinqSqliteTestHelper.CreateBus<SQLiteTestUser>(db);
+        var result = LinqStatementCompiler.Compile(
+            db,
+            bus.Includes(u => u.Orders!).Expression);
+
+        Assert.Null(result.ErrorExpression);
+        Assert.True(result.Success);
+    }
 }

@@ -613,13 +613,13 @@ namespace mooSQL.linq.Linq.Builder
 					}
 				}
 
-				// Force nullability
-				if (QueryHelper.IsNullValue(lOriginal))
+				// Force nullability (constant null may become ParameterWord when CompareNullsAsValues)
+				if (QueryHelper.IsNullValue(lOriginal) || left.IsNullValue())
 				{
 					rOriginal = NullabilityWord.ApplyNullability(rOriginal, true);
 					predicate = new IsNull(rOriginal, op == AffirmWord.Operator.NotEqual);
 				}
-				else if (QueryHelper.IsNullValue(rOriginal))
+				else if (QueryHelper.IsNullValue(rOriginal) || right.IsNullValue())
 				{
 					lOriginal = NullabilityWord.ApplyNullability(lOriginal, true);
 					predicate = new IsNull(lOriginal, op == AffirmWord.Operator.NotEqual);

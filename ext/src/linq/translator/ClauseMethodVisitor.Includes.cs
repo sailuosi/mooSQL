@@ -28,19 +28,18 @@ internal partial class ClauseMethodVisitor
         if (!CanBuildInclude(methodCall))
             return method;
 
-        return ToStatementCallOr(method, BuildInclude(Context.Builder, buildInfo, methodCall));
+        var sequence = ResolveSourceContext(methodCall, buildInfo);
+        if (sequence == null)
+            return method;
+
+        return ToStatementCallOr(method, BuildInclude(Context.Builder, buildInfo, methodCall, sequence));
     }
 
     static bool CanBuildInclude(MethodCallExpression call)
         => call.IsQueryable();
 
-    static IClauseContext? BuildInclude(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall)
+    static IClauseContext? BuildInclude(ClauseSqlTranslator builder, BuildInfo buildInfo, MethodCallExpression methodCall, IClauseContext sequence)
     {
-        var buildResult = builder.TryBuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-        if (buildResult.BuildContext == null)
-            return null;
-        var sequence = buildResult.BuildContext;
-
         ITableContext? table = null;
 
         IncludeInfo lastLoadWith;
@@ -73,6 +72,8 @@ internal partial class ClauseMethodVisitor
                 if (sequence is IncludeContext lw)
                     table = lw.RegisterContext as ITableContext;
             }
+
+            table ??= SequenceHelper.GetTableOrCteContext(sequence);
 
             var path = SequenceHelper.PrepareBody(selector, sequence);
 

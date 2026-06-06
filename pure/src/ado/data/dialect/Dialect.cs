@@ -53,6 +53,9 @@ namespace mooSQL.data
         /// SQL函数
         /// </summary>
         public SooSQLFunction function;
+
+        /// <summary>LINQ DbFunc 表达式注册表（Ext 编译层查询）。</summary>
+        public translation.DbFuncRegistry dbFuncRegistry { get; } = new();
         /// <summary>
         /// 数据库参数
         /// </summary>

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using System;
+
 namespace mooSQL.linq
 {
     using mooSQL.data.model;
@@ -10,6 +12,7 @@ namespace mooSQL.linq
 	{
 
 		[Extension("", "", PreferServerSide = true, IsPredicate = true, BuilderType = typeof(BetweenBuilder))]
+		[Obsolete("Prefer DbFuncRegistry / dialect.expression.between; removal planned when api/DbFunc merges into Pure.")]
 		public static bool Between<T>(this T value, T low, T high)
 			where T : IComparable
 		{
