@@ -75,6 +75,12 @@ namespace mooSQL.data
         public override string? datePartMillisecond(string date)
             => $"((EXTRACT(MILLISECONDS FROM {date}::timestamp))::int % 1000)";
 
+        public override string collate(string exprPlaceholder, string collationLiteral)
+        {
+            var escaped = collationLiteral.Replace("\"", "\"\"");
+            return $"{exprPlaceholder} COLLATE \"{escaped}\"";
+        }
+
         static string PgDateAdd(string unit, string amount, string date)
             => $"({date}::timestamp + ({amount}::text || ' {unit}')::interval)";
 

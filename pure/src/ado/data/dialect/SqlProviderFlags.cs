@@ -282,7 +282,7 @@ namespace mooSQL.data
 		/// 提供程序支持嵌套深度大于 1 时引用外部作用域的列子查询（且带 Take）。
 		/// </summary>
 		/// <remarks>
-		/// 仅用于 Oracle 11。linq2db 通过 ROWNUM 模拟 Take(n)，会导致额外嵌套。
+		/// 仅用于 Oracle 11。通过 ROWNUM 模拟 Take(n) 时会导致额外嵌套。
 		/// 默认值：<c>true</c>。
 		/// </remarks>
 		[DataMember(Order = 43), DefaultValue(true)]

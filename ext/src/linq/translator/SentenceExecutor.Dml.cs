@@ -289,7 +289,7 @@ internal static partial class SentenceExecutor
             return scalar != null ? 0 : await context.dataContext.ExeNonQueryAsync(cmds[0], context.cancellationToken).ConfigureAwait(false);
         }
 
-        return await Task.Run(() => (object?)ExecuteQueryQuery2(context)).ConfigureAwait(false);
+        return await Task.FromResult<object?>(ExecuteQueryQuery2(context)).ConfigureAwait(false);
     }
 
     /// <summary>

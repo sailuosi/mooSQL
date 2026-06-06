@@ -17,6 +17,7 @@ Phase D/E **registry-first** 目标：常用谓词与标量函数走 `Dialect.db
 | DateAdd | `IsDateAddPredicate` | `expression.dateAdd*` |
 | DatePart | `IsDatePartPredicate` | `expression.datePart*`（SQLite/Npgsql/MySQL/MSSQL R27） |
 | DatePart / `.Year` 等 Member | MemberTranslator | 同上 Pure 片段 |
+| **Collate** | `IsCollatePredicate` | `expression.collate` / `collateDb2`（Npgsql 引号 override） |
 
 矩阵：`Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`、`Matrix_RegistryFirst_ExtensionRequired`。
 
@@ -26,11 +27,10 @@ Phase D/E **registry-first** 目标：常用谓词与标量函数走 `Dialect.db
 
 | API | 原因 | 文件 |
 |-----|------|------|
-| **Analytic Over 链** | `Over().PartitionBy().OrderBy()` Token 链、`GetExtensionAttributes` | `DbFunc.Analytic.cs` |
+| **Analytic Over 链** | `Over().PartitionBy().OrderBy()` Token 链；IR 已落地，Token 链待 P2/P3 | `DbFunc.Analytic.cs` — [`ADR-PhaseF-AnalyticOver-IR.md`](../../core/ADR-PhaseF-AnalyticOver-IR.md) |
 | **RowNumber().Over()** | 函数头 registry；`.Over()` 仍为 Extension | 同上 |
-| **Collate** | 多方言 `BuilderType`（PG/DB2/默认） | `DbFunc.cs` |
 | **Grouping** | `GROUPING(...)` 聚合 | `DbFunc.cs` |
-| **StringAgg / ConcatWs / Median 等** | `WITHIN GROUP` / 排序子句；列 DbType 推断 | `DbFunc.Aggregate.cs`、`DbFunc.Strings.cs` |
+| **StringAgg / ConcatWs / Median 等** | `WITHIN GROUP` / 排序子句 — **延期** | `DbFunc.Aggregate.cs`、`DbFunc.Strings.cs` — [`ADR-PhaseF-StringAggregate-Deferral.md`](../../core/ADR-PhaseF-StringAggregate-Deferral.md) |
 | **Row 生成列** | T4 `DbFunc.Row.generated.cs` | `DbFunc.Row.*` |
 | **Convert / Cast 链** | 类型转换 Builder | `DbFunc.Expressions.cs` |
 

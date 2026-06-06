@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
@@ -86,6 +87,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return concatSql;
         }
 
+        if (entry.IsCollatePredicate)
+        {
+            var collateSql = TranslateCollate(builder, context, mc, db);
+            if (collateSql != null)
+                return collateSql;
+        }
+
         if (entry.PreferExtensionAttribute)
         {
             var extAttr = mc.Method.GetExpressionAttribute(db);
@@ -121,6 +129,7 @@ internal static class DbFuncRegistryExpressionTranslator
             || entry.IsDatePartPredicate
             || entry.IsNullIfPredicate
             || entry.IsConcatPredicate
+            || entry.IsCollatePredicate
             || entry.IsInListPredicate)
             return null;
 
@@ -157,7 +166,7 @@ internal static class DbFuncRegistryExpressionTranslator
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
-                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate))
+                              && !entry.IsDateDiffPredicate && !entry.IsDateAddPredicate && !entry.IsDatePartPredicate && !entry.IsNullIfPredicate && !entry.IsConcatPredicate && !entry.IsCollatePredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -348,6 +357,48 @@ internal static class DbFuncRegistryExpressionTranslator
 
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, acc!, mc);
     }
+
+    static readonly Regex CollateNameValidator = new(@"^[a-zA-Z0-9_\.-@]+$", RegexOptions.Compiled);
+
+    static Expression? TranslateCollate(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count < 2)
+            return null;
+
+        if (mc.Arguments[1] is not ConstantExpression { Value: string collation })
+            return null;
+
+        if (!ValidateCollationName(collation))
+            throw new InvalidOperationException($"Invalid collation: {collation}");
+
+        var exprArg = builder.ConvertToSqlExpr(context, mc.Arguments[0], ProjectFlags.SQL);
+        if (exprArg is not SqlPlaceholderExpression exprPh)
+            return null;
+
+        var expression = db.dialect.expression;
+        string format;
+        if (expression.GetType().Name == "DB2Express")
+            format = expression.collateDb2("{0}", collation);
+        else
+            format = expression.collate("{0}", collation);
+
+        var sql = new ExpressionWord(
+            mc.Type,
+            format,
+            PrecedenceLv.Primary,
+            SqlFlags.IsPure,
+            ParametersNullabilityType.IfAnyParameterNullable,
+            null,
+            exprPh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static bool ValidateCollationName(string collation)
+        => !string.IsNullOrWhiteSpace(collation) && CollateNameValidator.IsMatch(collation);
 
     static bool TryGetConstantDatePart(Expression expr, out DbFunc.DateParts part)
     {

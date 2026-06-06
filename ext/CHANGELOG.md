@@ -5,10 +5,14 @@
 ### 新增（Phase G/F/E 收尾 — 2026-06-06）
 
 - **`Configuration` → `ExtLinqOptions`** — 全局 Ext LINQ 设置类重命名
-- **Phase G** — 清理 linq2db 注释/XML；内部 `LoadWith` 术语改 `Includes`
-- **Phase F ADR** — [`ADR-PhaseF-Extension-Retention.md`](ext/src/linq/core/ADR-PhaseF-Extension-Retention.md)（Analytic Over / Collate / StringAggregate 保留 Extension）
-- **E.5** — InsertOrUpdate 多语句路径 `LiveTransaction` 统一事务
+- **Phase G** — 清理 linq2db 注释/XML；内部 `LoadWith` 术语改 `Includes`；Pure/provides 注释中性化
+- **Phase F P1** — `WindowOverClause` IR + [`ADR-PhaseF-AnalyticOver-IR.md`](ext/src/linq/core/ADR-PhaseF-AnalyticOver-IR.md)
+- **Phase F P2 Collate** — `IsCollatePredicate` + Pure `collate()` / Npgsql / DB2 `collateDb2()`
+- **Phase F P2 StringAgg** — 延期 [`ADR-PhaseF-StringAggregate-Deferral.md`](ext/src/linq/core/ADR-PhaseF-StringAggregate-Deferral.md)
+- **Phase F ADR** — [`ADR-PhaseF-Extension-Retention.md`](ext/src/linq/core/ADR-PhaseF-Extension-Retention.md)（Analytic Over / StringAggregate 保留 Extension）
+- **E.5** — InsertOrUpdate 多语句路径 `LiveTransaction` 统一事务；异步路径去除 `Task.Run`
 - **E.6** — `DBInstance.StreamQueryAsync` + `StreamingResultEnumerable` 真异步逐行读库
+- **R29** — TestLinq **162/162**（矩阵 88 + Phase F/G/E 4）
 
 ### 破坏性 API 变更
 

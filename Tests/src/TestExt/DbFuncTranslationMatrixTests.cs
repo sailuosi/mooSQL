@@ -846,13 +846,6 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Fact]
     public void Matrix_RegistryFirst_ExtensionRequired()
     {
-        var collate = typeof(DbFunc).GetMethod(nameof(DbFunc.Collate), new[] { typeof(string), typeof(string) })!;
-        Assert.NotEmpty(collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
-        Assert.Contains(
-            collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
-                .Cast<DbFunc.ExtensionAttribute>(),
-            a => a.BuilderType != null);
-
         var grouping = typeof(DbFunc).GetMethod(nameof(DbFunc.Grouping))!;
         Assert.NotEmpty(grouping.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
 
@@ -862,6 +855,11 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(rowNumber));
+
+        var collate = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(DbFunc.Collate));
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(collate));
+        Assert.Empty(collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
     }
 
     [Theory]
@@ -943,5 +941,51 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Expression);
         Assert.Contains("ROW_NUMBER", sql, System.StringComparison.OrdinalIgnoreCase);
         Assert.Contains("OVER", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Collate_RegistryCompiles()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Collate(u.Name, "NOCASE"))
+                .Expression);
+        Assert.Contains("COLLATE NOCASE", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("{0}", sql);
+    }
+
+    [Theory]
+    [InlineData(typeof(NpgsqlDialect), "COLLATE \"en_US\"")]
+    [InlineData(typeof(MSSQLDialect), "COLLATE Latin1_General_CI_AS")]
+    public void Matrix_Collate_ExpressFormat(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.collate("{0}", expectedFragment.Contains('"') ? "en_US" : "Latin1_General_CI_AS");
+        Assert.Contains("COLLATE", format!, System.StringComparison.OrdinalIgnoreCase);
+        if (dialectType == typeof(NpgsqlDialect))
+            Assert.Contains("\"en_US\"", format!);
+    }
+
+    [Fact]
+    public void Matrix_WindowOverClause_RenderBody()
+    {
+        var clause = new WindowOverClause
+        {
+            PartitionExpressions = new[] { "[u].[DeptId]" },
+            OrderItems = new[]
+            {
+                new WindowOrderItem { Expression = "[u].[Id]", Descending = false, NullsPosition = "FIRST" }
+            }
+        };
+        Assert.Equal("PARTITION BY [u].[DeptId] ORDER BY [u].[Id] NULLS FIRST", clause.RenderBody());
+
+        var dialect = new SQLiteDialect();
+        Assert.Contains(
+            "ROW_NUMBER() OVER (PARTITION BY [u].[DeptId] ORDER BY [u].[Id] NULLS FIRST)",
+            clause.RenderWithFunction("ROW_NUMBER()", dialect.expression),
+            System.StringComparison.OrdinalIgnoreCase);
     }
 }

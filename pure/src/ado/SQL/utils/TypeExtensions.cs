@@ -111,7 +111,7 @@ namespace mooSQL.utils
 	{
 
 
-		// don't change visibility, used by linq2db.EntityFramework
+		// don't change visibility, used by Entity Framework integration
 
 
         private static readonly CacheDict<MethodBase, ParameterInfo[]> s_paramInfoCache = new CacheDict<MethodBase, ParameterInfo[]>(75);

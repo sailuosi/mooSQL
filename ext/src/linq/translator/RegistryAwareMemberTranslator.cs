@@ -29,7 +29,7 @@ internal sealed class RegistryAwareMemberTranslator : IMemberTranslator
                                   || entry.PreferExtensionAttribute || entry.IsDateDiffPredicate
                                   || entry.IsDateAddPredicate
                                   || entry.IsDatePartPredicate
-                                  || entry.IsNullIfPredicate || entry.IsConcatPredicate))
+                                  || entry.IsNullIfPredicate || entry.IsConcatPredicate || entry.IsCollatePredicate))
             {
                 var translated = DbFuncRegistryExpressionTranslator.TryTranslate(translationContext, mc, _db);
                 if (translated != null)

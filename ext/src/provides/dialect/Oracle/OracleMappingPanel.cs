@@ -110,7 +110,7 @@ namespace mooSQL.data.Oracle
                 case DataFam.VarBinary:
                 case DataFam.Blob:
                 case DataFam.Image:
-                    // https://github.com/linq2db/linq2db/issues/3207
+                    // Guid → byte[] for Oracle BLOB mapping compatibility
                     if (value is Guid guid) value = guid.ToByteArray();
                     break;
 

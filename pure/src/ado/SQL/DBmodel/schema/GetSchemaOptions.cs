@@ -18,7 +18,7 @@ namespace mooSQL.data
 		public bool     GetTables               = true;
 		/// <summary>
 		/// Enable or disable read of foreign keys. Default - enabled (<c>true</c>).
-		/// Disabe could be useful at least for Access, as it could <a href="https://github.com/linq2db/linq2db.LINQPad/issues/23">crash</a> on some database files.
+		/// Disabling could be useful for Access, as some drivers crash on certain database files.
 		/// </summary>
 		public bool     GetForeignKeys          = true;
 		/// <summary>
@@ -26,7 +26,7 @@ namespace mooSQL.data
 		/// </summary>
 		public bool     GetProcedures           = true;
 		/// <summary>
-		/// Should linq2db use <see cref="string"/> for char(1) type or <see cref="char"/>. Default type: <see cref="char"/> (<c>false</c>).
+		/// Use <see cref="string"/> for char(1) columns instead of <see cref="char"/>. Default: <see cref="char"/> (<c>false</c>).
 		/// </summary>
 		public bool     GenerateChar1AsString;
 		/// <summary>

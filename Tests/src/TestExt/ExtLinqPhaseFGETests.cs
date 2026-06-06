@@ -31,7 +31,11 @@ public class ExtLinqPhaseFGETests : IClassFixture<LinqSqliteTestFixture>
     {
         var collate = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m => m.Name == nameof(DbFunc.Collate));
-        Assert.NotEmpty(collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+        Assert.Empty(collate.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(collate));
 
         var stringAgg = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m => m.Name == nameof(DbFunc.StringAggregate) && m.IsGenericMethodDefinition);

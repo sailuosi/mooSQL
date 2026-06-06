@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R28 完成）**  
+> 最后更新：**2026-06-06（R29 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -47,6 +47,7 @@
 | **R26** | DatePart registry + Npgsql/MySQL Pure 片段 + MemberTranslator | ✅ | **150/150** |
 | **R27** | MSSQL datePart* + SqlServer MemberTranslator Pure 模板 | ✅ | **155/155** |
 | **R28** | MSSQLClauseTranslator + MSSQL DatePart/DateAdd compile 矩阵 | ✅ | **158/158** |
+| **R29** | Phase G/F/E 收尾 + Collate registry + Over IR + StringAgg 延期 ADR | ✅ | **162/162**（矩阵 **88** + Phase F/G/E **4**） |
 
 ---
 
@@ -58,7 +59,7 @@
 |---|--------|------|------|
 | 1 | 矩阵 | `DbFuncTranslationMatrixTests` ≥ 30，覆盖 registry 已注册函数 | ✅ **79+** |
 | 2 | 常用 DbFunc 无属性 | Like/Between/字符串/NullIf/Coalesce/DateDiff/**DatePart**/DateAdd 无 `[Extension]`/`[Expression]`/`[Function]` | ✅ |
-| 3 | TestLinq | net6.0 全绿 | ✅ **158/158** |
+| 3 | TestLinq | net6.0 全绿 | ✅ **162/162** |
 | 4 | 三入口 | LINQ / SQLBuilder / SQLClip 同 SQL（**18 组**） | ✅ |
 | 5 | ADR CI | `run-ext-linq-ci.ps1` | ✅ |
 | 6 | `api/dbfunc/` | stub 已合并；目录保留方法体 + Extension 必需项（`EXTENSION-REQUIRED.md`） | ✅ |
@@ -133,8 +134,8 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.2 桥接测试 | Union / 结构 / 双路径一致性 | ✅ R8–R22 | 三入口 **18 组** |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
 | E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER / Registry 边界 | ✅ R11–R22 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
-| E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
-| E.6 真异步流式 | `IAsyncEnumerable` 逐条读库 | ❌ | — |
+| E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ✅ R29 | `LiveTransaction` + `ExecuteWriteBatchInTransaction` |
+| E.6 真异步流式 | `IAsyncEnumerable` 逐条读库 | ✅ R29 | `StreamQueryAsync` + `StreamingResultEnumerable` |
 
 ---
 
@@ -295,10 +296,20 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 2. ✅ **MSSQL compile 矩阵** — DatePart/DateAdd StaticCall + MemberYear 含 MSSQL
 3. ✅ **158/158** TestLinq + CI
 
+## R29 完成项（2026-06-06）— Phase G / F / E 收尾
+
+1. ✅ **Phase G** — Ext 零 linq2db 注释；`LoadWith` → `Includes`；`Configuration` → `ExtLinqOptions`
+2. ✅ **Phase F P1** — `WindowOverClause` IR + [`ADR-PhaseF-AnalyticOver-IR.md`](ADR-PhaseF-AnalyticOver-IR.md)；Over Token 链保留
+3. ✅ **Phase F P2 Collate** — `IsCollatePredicate` + Pure `collate()` / Npgsql 引号 / DB2 `collateDb2()`
+4. ✅ **Phase F P2 StringAgg** — 延期 [`ADR-PhaseF-StringAggregate-Deferral.md`](ADR-PhaseF-StringAggregate-Deferral.md)
+5. ✅ **E.5** — InsertOrUpdate 多语句 `LiveTransaction`；异步路径去除 `Task.Run`
+6. ✅ **E.6** — `DBInstance.StreamQueryAsync` + `QueryRowStream`
+7. ✅ **162/162** TestLinq（矩阵 88 + `ExtLinqPhaseFGETests` 4）
+
 ## Phase F 建议（DbFunc 后续）
 
-1. **Analytic Over registry 评估** — `.Over().OrderBy()` Token 链
-2. **Collate / StringAgg** — 见 `EXTENSION-REQUIRED.md`
+1. **Analytic Over registry** — Extension Token 链 → `WindowOverClause` 收集（P2/P3）
+2. **StringAgg / ConcatWs** — 见 [`ADR-PhaseF-StringAggregate-Deferral.md`](ADR-PhaseF-StringAggregate-Deferral.md)
 
 ---
 

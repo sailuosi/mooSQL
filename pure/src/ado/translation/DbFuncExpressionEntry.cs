@@ -29,5 +29,7 @@ namespace mooSQL.data.translation
         public bool IsDateAddPredicate { get; init; }
         /// <summary>DatePart(part, date) — 由 <see cref="SQLExpression"/> 方言 datePart* 片段翻译。</summary>
         public bool IsDatePartPredicate { get; init; }
+        /// <summary>Collate(expr, collation) — 由 <see cref="SQLExpression.collate"/> / collateDb2 方言片段翻译。</summary>
+        public bool IsCollatePredicate { get; init; }
     }
 }

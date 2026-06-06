@@ -28,6 +28,7 @@ internal static class DbFuncRegistryBootstrap
         RegisterNullIfCoalesce(registry, expr);
         RegisterAggregates(registry);
         RegisterAnalyticRow(registry, expr);
+        RegisterCollate(registry);
         RegisterDateDiff(registry);
     }
 
@@ -256,6 +257,20 @@ internal static class DbFuncRegistryBootstrap
                 PreferServerSide = true,
                 IsWindowFunction = true
             });
+    }
+
+    static void RegisterCollate(DbFuncRegistry registry)
+    {
+        var collate = typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(m => m.Name == nameof(DbFunc.Collate)
+                && m.GetParameters().Length == 2
+                && m.GetParameters()[0].ParameterType == typeof(string));
+        if (collate == null)
+            return;
+
+        registry.Register(
+            collate,
+            new DbFuncExpressionEntry { PreferServerSide = true, IsCollatePredicate = true });
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)

@@ -12,9 +12,9 @@ Phase D/E 已将 Like、Between、DateDiff、DatePart、DateAdd 等迁入 `Diale
 
 | API 族 | 保留 Extension 理由 | registry 迁移条件 |
 |--------|----------------------|-------------------|
-| **Analytic Over 链** | `RowNumber().Over().PartitionBy().OrderBy()` 依赖 `GetExtensionAttributes` Token 链与窗口帧 IR | 设计 `OverClause` IR 或 registry predicate 能表达 Partition/Order/Frame |
-| **Collate** | DB2 LUW / PostgreSQL 需独立 `BuilderType` | Pure `collate()` 片段 + 方言 override 覆盖三路径 |
-| **StringAgg / ConcatWs / Median** | `WITHIN GROUP (ORDER BY …)`、分隔符、排序子句 | 按方言逐个注册或文档化长期 Extension |
+| **Analytic Over 链** | `RowNumber().Over().PartitionBy().OrderBy()` 依赖 `GetExtensionAttributes` Token 链与窗口帧 IR | 设计 `OverClause` IR 或 registry predicate 能表达 Partition/Order/Frame — **P1 IR 已落地**（[`ADR-PhaseF-AnalyticOver-IR.md`](ADR-PhaseF-AnalyticOver-IR.md)） |
+| **Collate** | ~~DB2 LUW / PostgreSQL 需独立 `BuilderType`~~ | ✅ **R29** — Pure `collate()` / `collateDb2()` + `IsCollatePredicate` |
+| **StringAgg / ConcatWs / Median** | `WITHIN GROUP (ORDER BY …)`、分隔符、排序子句 | **延期** — [`ADR-PhaseF-StringAggregate-Deferral.md`](ADR-PhaseF-StringAggregate-Deferral.md) |
 | **Convert / Cast 链** | 类型转换 Builder 链，使用率低 | 低优先级；可长期 Extension |
 | **Row 生成列** | T4 `DbFunc.Row.generated.cs` | 维持代码生成，不阻塞发布 |
 

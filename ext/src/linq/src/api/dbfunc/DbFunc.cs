@@ -1432,59 +1432,10 @@ namespace mooSQL.linq
 
 		#region Collate
 
-		/// <summary>Apply collation — 仍须 <see cref="ExtensionAttribute"/> Builder（不可 registry-only）。</summary>
-		[Extension("", ServerSideOnly = true, BuilderType = typeof(DB2LUWCollationBuilder)    , Configuration = ProviderName.DB2LUW)]
-		[Extension("", ServerSideOnly = true, BuilderType = typeof(PostgreSQLCollationBuilder), Configuration = ProviderName.PostgreSQL)]
-		[Extension("", ServerSideOnly = true, BuilderType = typeof(NamedCollationBuilder))]
+		/// <summary>Apply collation — registry + Pure <see cref="SQLExpression.collate"/> 方言片段。</summary>
 		[return: NotNullIfNotNull(nameof(expr))]
 		public static string? Collate(this string? expr, [SqlQueryDependent] string collation)
 			=> throw new InvalidOperationException($"{nameof(DbFunc)}.{nameof(Collate)} is server-side only API.");
-
-		internal sealed class NamedCollationBuilder : IExtensionCallBuilder
-		{
-			static readonly Regex _collationValidator = new(@"^[a-zA-Z0-9_\.-@]+$", RegexOptions.Compiled);
-
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var expr = builder.GetExpression("expr")!;
-				var collation = builder.GetValue<string>("collation");
-
-				if (!ValidateCollation(collation))
-					throw new InvalidOperationException($"Invalid collation: {collation}");
-
-				builder.ResultExpression = new ExpressionWord(typeof(string), $"{{0}} COLLATE {collation}",
-                    PrecedenceLv.Primary, SqlFlags.IsPure, ParametersNullabilityType.IfAnyParameterNullable, null, expr);
-			}
-
-			static bool ValidateCollation(string collation)
-				=> !string.IsNullOrWhiteSpace(collation) && _collationValidator.IsMatch(collation);
-		}
-
-		internal sealed class PostgreSQLCollationBuilder : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var expr      = builder.GetExpression("expr")!;
-				var collation = builder.GetValue<string>("collation").Replace("\"", "\"\"");
-
-				builder.ResultExpression = new ExpressionWord(typeof(string), $"{{0}} COLLATE \"{collation}\"",
-                    PrecedenceLv.Primary, SqlFlags.IsPure, ParametersNullabilityType.IfAnyParameterNullable, null,
-					expr);
-			}
-		}
-
-		internal sealed class DB2LUWCollationBuilder : IExtensionCallBuilder
-		{
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var expr      = builder.GetExpression("expr")!;
-				var collation = builder.GetValue<string>("collation");
-
-				builder.ResultExpression = new ExpressionWord(typeof(string), $"COLLATION_KEY_BIT({{0}}, {{1}})",
-                    PrecedenceLv.Primary, SqlFlags.IsPure, ParametersNullabilityType.SameAsFirstParameter, null,
-					expr, new ValueWord(typeof(string), collation));
-			}
-		}
 
 		#endregion
 

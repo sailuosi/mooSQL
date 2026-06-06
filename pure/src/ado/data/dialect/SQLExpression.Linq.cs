@@ -149,5 +149,19 @@ namespace mooSQL.data
 
         /// <summary>DatePart 毫秒。</summary>
         public virtual string? datePartMillisecond(string date) => null;
+
+        /// <summary>COLLATE 片段（{0}=expr；collation 名由调用方校验后嵌入）。</summary>
+        public virtual string collate(string exprPlaceholder, string collationLiteral)
+            => $"{exprPlaceholder} COLLATE {collationLiteral}";
+
+        /// <summary>DB2 LUW：COLLATION_KEY_BIT({0}, 'collation')。</summary>
+        public virtual string collateDb2(string exprPlaceholder, string collationLiteral)
+            => $"COLLATION_KEY_BIT({exprPlaceholder}, '{collationLiteral.Replace("'", "''")}')";
+
+        /// <summary>窗口函数 OVER 子句包装（Phase F P1 IR）。</summary>
+        public virtual string windowOver(string functionSql, string overBody)
+            => string.IsNullOrEmpty(overBody)
+                ? $"{functionSql} OVER ()"
+                : $"{functionSql} OVER ({overBody})";
     }
 }
