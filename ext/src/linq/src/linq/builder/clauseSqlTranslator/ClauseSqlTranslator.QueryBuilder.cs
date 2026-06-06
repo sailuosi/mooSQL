@@ -699,6 +699,10 @@ namespace mooSQL.linq.Linq.Builder
 					if (l != null)
 						return GetVisitor(enforceServerSide).Find(l.Body.Unwrap()) != null;
 
+					var registryEntry = DBLive.dialect.dbFuncRegistry.Resolve(pi.Method);
+					if (registryEntry != null)
+						return registryEntry.PreferServerSide || enforceServerSide;
+
 					var attr = pi.Method.GetExpressionAttribute(DBLive);
 					return attr != null && (attr.PreferServerSide || enforceServerSide) && !CanBeCompiled(expr, false);
 				}

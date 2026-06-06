@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Globalization;
+using System.Linq;
 using System.Reflection;
-using System.Text;
+using mooSQL.data;
 
 namespace mooSQL.linq.Extensions
 {
@@ -65,8 +65,52 @@ namespace mooSQL.linq.Extensions
 
 		public static DbFunc.ExpressionAttribute? GetExpressionAttribute(this MemberInfo member, DBInstance mappingSchema)
 		{
-			//return mappingSchema.GetAttribute<DbFunc.ExpressionAttribute>(member.ReflectedType!, member);
-			return member.GetCustomAttribute<DbFunc.ExpressionAttribute>();
+			if (member is not MethodInfo and not PropertyInfo)
+				return null;
+
+			var attrs = member.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: false)
+				.Cast<DbFunc.ExpressionAttribute>()
+				.ToArray();
+
+			return PickExpressionAttribute(attrs, GetDialectConfiguration(mappingSchema));
+		}
+
+		internal static string? GetDialectConfiguration(DBInstance db)
+		{
+			var dialectName = db.dialect?.GetType().Name;
+			if (string.IsNullOrEmpty(dialectName))
+				return null;
+
+			if (dialectName.EndsWith("Dialect", StringComparison.Ordinal) && dialectName.Length > "Dialect".Length)
+				return dialectName[..^"Dialect".Length];
+
+			return dialectName;
+		}
+
+		internal static DbFunc.ExpressionAttribute? PickExpressionAttribute(
+			DbFunc.ExpressionAttribute[] attrs,
+			string? configuration)
+		{
+			if (attrs.Length == 0)
+				return null;
+			if (attrs.Length == 1)
+				return attrs[0];
+
+			DbFunc.ExpressionAttribute? fallback = null;
+			foreach (var attr in attrs)
+			{
+				if (string.IsNullOrEmpty(attr.Configuration))
+				{
+					fallback ??= attr;
+					continue;
+				}
+
+				if (configuration != null &&
+				    string.Equals(attr.Configuration, configuration, StringComparison.OrdinalIgnoreCase))
+					return attr;
+			}
+
+			return fallback ?? attrs[0];
 		}
 
 		public static DbFunc.TableFunctionAttribute? GetTableFunctionAttribute(this MemberInfo member, DBInstance mappingSchema)

@@ -151,6 +151,43 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_Lower_Select_EmitsLower()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Lower(u.Name))
+                .Expression);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("u.email", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Substring_Where_EmitsSubstring()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => u.Name != null && DbFunc.Substring(u.Name, 1, 3) != "")
+                .Expression);
+        Assert.Contains("SUBSTR", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Substring_Select_EmitsSubstring()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Substring(u.Name, 1, 3))
+                .Expression);
+        Assert.Contains("SUBSTR", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_DateAdd_RegisteredAndCompiles()
     {
         var db = _sqlite.Db;
@@ -164,5 +201,32 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
                 .Where(u => DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt) > u.CreatedAt)
                 .Expression);
         Assert.Contains("DATEADD", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_RowNumber_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var rowNumber = typeof(AnalyticFunctions).GetMethod(
+            nameof(AnalyticFunctions.RowNumber),
+            new[] { typeof(DbFunc.ISqlExtension) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(rowNumber);
+        Assert.NotNull(entry);
+        Assert.Contains("ROW_NUMBER", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        Assert.True(entry.IsWindowFunction);
+    }
+
+    [Fact]
+    public void Matrix_SelectAnonymous_ProjectsNameOnly()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => new { u.Name })
+                .Expression);
+        Assert.Contains("name", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", sql, System.StringComparison.OrdinalIgnoreCase);
     }
 }

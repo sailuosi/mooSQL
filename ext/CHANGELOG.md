@@ -15,6 +15,19 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R6）
+
+- **`api/DbFunc/` 物理收缩**：属性/基础设施统一在 `api/translation/`；函数 stub 迁至 `api/dbfunc/`；删除旧 `DbFunc/` 目录
+- **RowNumber 注册表**：`AnalyticFunctions.RowNumber` 注册 `ROW_NUMBER()` + `IsWindowFunction`；`DbFuncExpressionEntry.IsWindowFunction` 透传至注册表翻译
+- **匿名类型 Select**：`Matrix_SelectAnonymous_ProjectsNameOnly` 断言 `new { u.Name }` 仅投影 `name` 列
+
+### 新增（Phase D/E R5）
+
+- **多 `[Expression]`/`[Function]` 消歧**：`GetExpressionAttribute` 按方言 Configuration 选取，修复 `Substring` 等 `AmbiguousMatchException`
+- **`PreferServerSide` 注册表优先**：MethodCall 先查 `DbFuncRegistry`，再回退属性链
+- **Select 函数投影**：`NeedsExplicitSqlColumns` 仅根级 MethodCall 走 `BuildSqlExpression` + `ToColumns`；`new { u.Name }` 等匿名投影由 `SelectContext` 解析
+- **矩阵**：`Matrix_Lower_Select_EmitsLower`、`Matrix_Substring_Where/Select_EmitsSubstring`
+
 ### 新增（Phase D/E R4）
 
 - **Union Debug 栈溢出修复**：`ColumnWord.ToString` 避免嵌套 Column/Field 循环引用；Union compile 在 Debug 下不再崩溃
@@ -71,7 +84,7 @@ db.useQueryable<User>();
 - **Pure `DbFuncRegistry`**：`Dialect.dbFuncRegistry` + `DbFuncRegistryBootstrap`（Like/Between/Substring/Concat/DateAdd）
 - **`TranslationRegistration`** 已上移至 `mooSQL.data.translation`
 - **`SQLExpression.Linq`**：`between` / `isNull` / `like` / `substring` / `dateAdd` / `concat` / `rowNumber`
-- **`api/DbFunc/`**：属性翻译基础设施（`ExpressionAttribute` / `ExtensionAttribute`）仍保留；已迁移项标记 `[Obsolete]`，运行时仍走属性链，注册表供 inspect 与 Pure 对齐
+- **`api/dbfunc/`**：函数 stub（Between、Analytic 等）；属性翻译基础设施在 `api/translation/`
 - **最终推荐 API**：`db.dialect.expression.*` + `db.dialect.dbFuncRegistry`（编译仍兼容 `DbFunc.*`）
 - **Includes 编译**：`BusQueryable` 纳入 `IsQueryable`；`ResolveSourceContext` 修复 `useQueryable().Includes()` 路径
 - **Phase E**：`ADR-CompileExecute-Boundary.md`、`check-compile-execute-boundary.ps1`、`LinqClauseBridge`、`ToSQLBuilders`、`DBInstance.FromLinqExpression`

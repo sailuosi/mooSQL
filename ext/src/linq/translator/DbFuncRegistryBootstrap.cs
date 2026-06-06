@@ -133,8 +133,23 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterAnalyticRow(DbFuncRegistry registry, SQLExpression expr)
     {
-        // RowNumber 为 ISqlExtension 扩展链，保留 Ext DbFunc.Analytic 适配；Pure 片段供方言 override。
-        _ = expr.rowNumber("{0}");
+        var rowNumber = typeof(AnalyticFunctions).GetMethod(
+            nameof(AnalyticFunctions.RowNumber),
+            BindingFlags.Public | BindingFlags.Static,
+            null,
+            new[] { typeof(DbFunc.ISqlExtension) },
+            null);
+        if (rowNumber == null)
+            return;
+
+        registry.Register(
+            rowNumber,
+            new DbFuncExpressionEntry
+            {
+                SqlTemplate = "ROW_NUMBER()",
+                PreferServerSide = true,
+                IsWindowFunction = true
+            });
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)

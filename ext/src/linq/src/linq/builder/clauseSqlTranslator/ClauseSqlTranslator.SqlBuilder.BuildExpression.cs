@@ -459,13 +459,11 @@ namespace mooSQL.linq.Linq.Builder
 			//	return true;
 			//}
 
-			var converter = TypeConverterUtil.GetConvertType(DBLive,expression.Type, typeof(DataParameter));
-			if (converter != null)
-			{
-				return true;
-			}
+			if (DBLive.dialect.mapping.GetValueConverter(expression.Type, typeof(DataParameter)) == null)
+				return false;
 
-			return false;
+			var converter = TypeConverterUtil.GetConvertType(DBLive, expression.Type, typeof(DataParameter));
+			return converter != null;
 		}
 
 		static TranslationFlags GetTranslationFlags(ProjectFlags flags)

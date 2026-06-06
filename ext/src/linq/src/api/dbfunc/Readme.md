@@ -26,7 +26,7 @@ var q = db.useQueryable<Order>()
 
 ## 与 Pure 的关系
 
-- **当前**：函数定义在 `ext/src/linq/src/api/DbFunc/`，由 Ext 编译层解析
+- **当前**：函数 stub 在 `ext/src/linq/src/api/dbfunc/`，属性与翻译基础设施在 `api/translation/`
 - **目标**：常用函数逐步迁入 `pure/src/ado/data/dialect/SQLExpression.*`，Ext 仅查 Pure 注册表
 
 ## 自定义扩展

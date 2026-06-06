@@ -22,11 +22,12 @@ internal static class DbFuncRegistryExpressionTranslator
     {
         public RegistryBackedExpressionAttribute(DbFuncExpressionEntry entry) : base(entry.SqlTemplate!)
         {
-            IsPredicate      = entry.IsPredicate;
-            PreferServerSide = entry.PreferServerSide;
-            ServerSideOnly   = entry.ServerSideOnly;
-            Precedence       = entry.Precedence == 0 ? PrecedenceLv.Primary : entry.Precedence;
-            IsPure           = entry.IsPure;
+            IsPredicate       = entry.IsPredicate;
+            PreferServerSide  = entry.PreferServerSide;
+            ServerSideOnly    = entry.ServerSideOnly;
+            Precedence        = entry.Precedence == 0 ? PrecedenceLv.Primary : entry.Precedence;
+            IsPure            = entry.IsPure;
+            IsWindowFunction  = entry.IsWindowFunction;
         }
     }
 
