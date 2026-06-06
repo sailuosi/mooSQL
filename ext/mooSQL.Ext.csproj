@@ -110,4 +110,10 @@
   <ItemGroup>
     <Folder Include="src\linq\src\entity\mapping\attrs\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="**/artifacts/**" />
+    <None Remove="**/artifacts/**" />
+    <EmbeddedResource Remove="**/artifacts/**" />
+  </ItemGroup>
 </Project>

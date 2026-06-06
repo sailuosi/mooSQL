@@ -15,6 +15,14 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R8）
+
+- **`PickExtensionAttributes` 方言优先**：方言专用 `[Extension]` 不再与默认配置叠加，修复 `DateDiff` 等多属性函数 compile 时 `Multiple root sequences` 错误
+- **嵌套匿名投影测**：`Matrix_SelectAnonymousWithDbFunc_ProjectsLowerOnly`（`new { X = DbFunc.Lower(...) }`）
+- **矩阵扩展 +6**：DateDiff Extension 路径（`julianday`）、Upper/Trim/Length Select、NotBetween 注册 inspect
+- **SQLClip 快照测**：`SQLClip_FromLinqExpression_MatchesGetSqlText`（归一化 `@p`/`@vw_*` 后比对）
+- **构建卫生**：Pure/Ext csproj 排除 `**/artifacts/**`
+
 ### 新增（Phase D/E R7）
 
 - **`GetExtensionAttributes` 恢复**：`DbFunc.ExtensionAttribute.GetExtensionAttributes` 从成员读取 `[Extension]` 并按方言 Configuration 筛选；修复窗口函数链（`RowNumber().Over().OrderBy().ToValue()`）在 Select 投影内被当作客户端闭包执行的问题

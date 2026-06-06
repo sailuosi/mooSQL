@@ -13,6 +13,9 @@
     <Compile Remove="mooSQL.Pure.Generators\**" />
     <None Remove="mooSQL.Pure.Generators\**" />
     <EmbeddedResource Remove="mooSQL.Pure.Generators\**" />
+    <Compile Remove="**/artifacts/**" />
+    <None Remove="**/artifacts/**" />
+    <EmbeddedResource Remove="**/artifacts/**" />
   </ItemGroup>
 <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
 	<Reference Include="Microsoft.CSharp" />

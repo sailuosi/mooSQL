@@ -2,6 +2,7 @@ using mooSQL.data;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace TestMooSQL.src;
@@ -81,6 +82,27 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("moo_t_user", clip.toSelect().sql);
         Assert.Contains("moo_t_user", linqSql);
     }
+
+    [Fact]
+    public void SQLClip_FromLinqExpression_MatchesGetSqlText()
+    {
+        var db = _sqlite.Db;
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => u.Age > 18 && u.IsActive)
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        Assert.Equal(NormalizeSqlForCompare(linqSql), NormalizeSqlForCompare(clipSql));
+    }
+
+    static string NormalizeSql(string sql)
+        => Regex.Replace(sql.Trim(), @"\s+", " ", RegexOptions.None);
+
+    /// <summary>忽略参数占位符名差异（@p / @vw_*）。</summary>
+    static string NormalizeSqlForCompare(string sql)
+        => Regex.Replace(NormalizeSql(sql), @"@\w+", "@p", RegexOptions.None);
 
     [Fact]
     public void Union_LinqCompilesStructure()

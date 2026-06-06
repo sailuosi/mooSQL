@@ -565,12 +565,17 @@ namespace mooSQL.linq
 				if (attrs.Length <= 1)
 					return attrs;
 
-				var matched = attrs.Where(a =>
-					string.IsNullOrEmpty(a.Configuration) ||
-					(configuration != null && string.Equals(a.Configuration, configuration, StringComparison.OrdinalIgnoreCase)))
-					.ToArray();
+				if (configuration != null)
+				{
+					var dialectSpecific = attrs
+						.Where(a => string.Equals(a.Configuration, configuration, StringComparison.OrdinalIgnoreCase))
+						.ToArray();
+					if (dialectSpecific.Length > 0)
+						return dialectSpecific;
+				}
 
-				return matched.Length > 0 ? matched : attrs;
+				var defaults = attrs.Where(a => string.IsNullOrEmpty(a.Configuration)).ToArray();
+				return defaults.Length > 0 ? defaults : attrs;
 			}
 
 			public static Expression ExcludeExtensionChain(DBInstance mapping, Expression expr, out bool isQueryable)

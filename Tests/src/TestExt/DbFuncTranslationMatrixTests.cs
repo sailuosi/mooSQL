@@ -231,6 +231,19 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_SelectAnonymousWithDbFunc_ProjectsLowerOnly()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => new { X = DbFunc.Lower(u.Name) })
+                .Expression);
+        Assert.Contains("LOWER", sql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_NullIf_RegisteredAndEmits()
     {
         var db = _sqlite.Db;
@@ -307,6 +320,74 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.NotNull(entry);
         Assert.Contains("AVG", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
         Assert.True(entry.IsAggregate);
+    }
+
+    [Fact]
+    public void Matrix_DateDiff_ExtensionPathCompiles()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => DbFunc.DateDiff(DbFunc.DateParts.Day, u.CreatedAt, DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt)) > 0)
+                .Expression);
+        Assert.Contains("julianday", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Upper_Select_EmitsUpper()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Upper(u.Name))
+                .Expression);
+        Assert.Contains("UPPER", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Trim_Select_EmitsTrim()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Trim(u.Name))
+                .Expression);
+        Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_Length_Select_EmitsLength()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Select(u => DbFunc.Length(u.Name))
+                .Expression);
+        Assert.Contains("LENGTH", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_NotBetween_RegisteredInRegistry()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var notBetweens = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.NotBetween) && m.IsGenericMethodDefinition && m.GetParameters().Length == 3)
+            .ToList();
+        Assert.Equal(2, notBetweens.Count);
+        Assert.All(notBetweens, m =>
+        {
+            var entry = db.dialect.dbFuncRegistry.Resolve(m);
+            Assert.NotNull(entry);
+            Assert.Contains("NOT BETWEEN", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     [Fact]
