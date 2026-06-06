@@ -141,7 +141,7 @@ internal static class DbFuncRegistryBootstrap
         {
             registry.Register(
                 nullIf,
-                new DbFuncExpressionEntry { SqlTemplate = expr.nullIf("{0}", "{1}"), PreferServerSide = true });
+                new DbFuncExpressionEntry { PreferServerSide = true, IsNullIfPredicate = true });
         }
 
         foreach (var coalesce in typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)

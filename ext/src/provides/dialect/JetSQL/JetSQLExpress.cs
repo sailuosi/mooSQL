@@ -37,6 +37,9 @@ namespace mooSQL.data
         public override string dateDiffMinute(string start, string end) => accessDateDiff("n", start, end);
         public override string dateDiffSecond(string start, string end) => accessDateDiff("s", start, end);
 
+        public override string nullIf(string left, string right)
+            => $"IIF({left} = {right}, null, {left})";
+
         public override string buildSelect(FragSQL frag)
         {
             var sb = new StringBuilder();

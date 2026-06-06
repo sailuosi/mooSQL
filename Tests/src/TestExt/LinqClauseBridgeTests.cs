@@ -234,6 +234,43 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ThreeEntrySnapshot_Substring()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => u.Name != null && DbFunc.Substring(u.Name, 1, 3) != "")
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("SUBSTR", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ThreeEntrySnapshot_InList()
+    {
+        var db = _sqlite.Db;
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Where(u => new int?[] { 18, 25, 30 }.Contains(u.Age))
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains(" IN ", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Union_LinqCompilesStructure()
     {
         var db = _sqlite.Db;

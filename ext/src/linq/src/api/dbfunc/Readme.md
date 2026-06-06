@@ -31,9 +31,9 @@ var q = db.useQueryable<Order>()
 
 ### 已 registry-first（Bootstrap 注册 + 矩阵覆盖）
 
-Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、NullIf/Coalesce、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；**全方言 Builder 已删 R16**）。
+Like、Between/NotBetween、In/NotIn、Substring、Concat、DateAdd、Length、Lower/Upper/Trim、**NullIf**（`IsNullIfPredicate`，无 `[Expression]` R17）、**Coalesce**（无 `[Expression]` R16）、Count/Sum/Avg、RowNumber、**DateDiff**（`IsDateDiffPredicate` + 方言 `dateDiff*`；**全方言 Builder 已删 R16**）。
 
-`api/dbfunc/` 删除（D.9）进行中：**DateDiff 全方言 registry-only**；**Coalesce.cs 已物理删除**（R16）；Between/NotBetween/OrderItemBuilder 已删。
+`api/dbfunc/` 删除（D.9）进行中：**DateDiff 全方言 registry-only**；**Coalesce.cs 已物理删除**（R16）；**NullIf 无 Expression**（R17）；Between/NotBetween/OrderItemBuilder 已删。
 
 ## 自定义扩展
 

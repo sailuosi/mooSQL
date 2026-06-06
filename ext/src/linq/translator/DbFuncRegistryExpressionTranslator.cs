@@ -58,6 +58,13 @@ internal static class DbFuncRegistryExpressionTranslator
                 return dateDiffSql;
         }
 
+        if (entry.IsNullIfPredicate)
+        {
+            var nullIfSql = TranslateNullIf(builder, context, mc, db);
+            if (nullIfSql != null)
+                return nullIfSql;
+        }
+
         if (entry.PreferExtensionAttribute)
         {
             var extAttr = mc.Method.GetExpressionAttribute(db);
@@ -85,7 +92,8 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
-        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute && !entry.IsDateDiffPredicate))
+        if (entry == null || (entry.SqlTemplate == null && !entry.IsInListPredicate && !entry.PreferExtensionAttribute
+                              && !entry.IsDateDiffPredicate && !entry.IsNullIfPredicate))
             return null;
 
         return TryTranslate(ctx.Builder, ctx.CurrentContext, ProjectFlags.SQL, mc, db, checkAggregateRoot: false);
@@ -158,6 +166,25 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         var sql = new ExpressionWord(typeof(int), format, PrecedenceLv.Primary, startPh.Sql, endPh.Sql);
+        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+    }
+
+    static Expression? TranslateNullIf(
+        ClauseSqlTranslator builder,
+        IClauseContext context,
+        MethodCallExpression mc,
+        DBInstance db)
+    {
+        if (mc.Arguments.Count < 2)
+            return null;
+
+        var leftExpr = builder.ConvertToSqlExpr(context, mc.Arguments[0], ProjectFlags.SQL);
+        var rightExpr = builder.ConvertToSqlExpr(context, mc.Arguments[1], ProjectFlags.SQL);
+        if (leftExpr is not SqlPlaceholderExpression leftPh || rightExpr is not SqlPlaceholderExpression rightPh)
+            return null;
+
+        var format = db.dialect.expression.nullIf("{0}", "{1}");
+        var sql = new ExpressionWord(mc.Type, format, PrecedenceLv.Primary, leftPh.Sql, rightPh.Sql);
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
     }
 

@@ -21,5 +21,7 @@ namespace mooSQL.data.translation
         public bool PreferExtensionAttribute { get; init; }
         /// <summary>DateDiff(part, start, end) — 由 <see cref="SQLExpression"/> 方言片段翻译，失败时回退 Extension。</summary>
         public bool IsDateDiffPredicate { get; init; }
+        /// <summary>NullIf(value, compareTo) — 由 <see cref="SQLExpression.nullIf"/> 方言片段翻译。</summary>
+        public bool IsNullIfPredicate { get; init; }
     }
 }

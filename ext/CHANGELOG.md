@@ -15,6 +15,13 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R17）
+
+- **NullIf registry-only**：`IsNullIfPredicate` + `TranslateNullIf`；移除全部 `[Expression]`（含 Access/SqlCe 方言）
+- **方言 nullIf 收敛**：`JetSQLExpress`（`IIF({left}={right}, null, {left})`）、`SqlCeExpress`（`CASE WHEN …`）；默认方言仍 `NULLIF`
+- **三入口快照 +2**：`ThreeEntrySnapshot_Substring`、`ThreeEntrySnapshot_InList`
+- **矩阵 +3**：`Matrix_NullIf_NoExpressionAttribute`、`Matrix_NullIf_DialectExpressFormat`
+
 ### 新增（Phase D/E R16）
 
 - **DateDiff 全方言 Builder 删除（D.9 完成）**：DB2/ClickHouse/SapHana → `DateDiffLegacyExpress.cs`；**所有 DateDiff Extension 无 BuilderType**

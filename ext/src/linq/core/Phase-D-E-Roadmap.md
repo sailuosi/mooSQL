@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R16 完成）**  
+> 最后更新：**2026-06-06（R17 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -35,7 +35,8 @@
 | **R14** | DateDiff MSSQL/MySQL Builder 删除 + RowNumber 三入口 + Over 链评估 | ✅ | **102/102** |
 | **R15** | DateDiff Oracle/Access + OrderItemBuilder 删除 | ✅ | **107/107** |
 | **R16** | DateDiff 全方言 Builder 删除 + Coalesce registry-only | ✅ | **112/112** |
-| R17 | 更多 stub 物理删除 / NullIf 方言 Expression 收敛 | 📋 待排 | — |
+| **R17** | NullIf registry-only + 方言 Expression 收敛 + 三入口 Substring/In | ✅ | **117/117** |
+| R18 | 更多 stub 物理删除 / Trim/Upper registry 收敛 | 📋 待排 | — |
 
 ---
 
@@ -74,14 +75,14 @@ pure/src/ado/
 | D.3 多属性消歧 | 按方言 `Configuration` 选取 | ✅ R5 | `MappingExtensions.PickExpressionAttribute` |
 | D.4 注册表优先 | MethodCall 先 registry 再属性链 | ✅ R5 | `ClauseSqlTranslator.QueryBuilder` |
 | D.5 Select 投影 | 函数 / 匿名 / MemberInit 列精简 | ✅ R6–R8 | 含 `new { X = DbFunc.Lower(...) }` 矩阵测 |
-| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R10 | `nullIf`/`coalesce`/`dateDiff*`（SQLite）已接入 |
-| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R10 | DateDiff `IsDateDiffPredicate` + Extension 回退 |
+| D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R17 | `nullIf`/`coalesce`/`dateDiff*` 全方言；Access/SqlCe `nullIf` override |
+| D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R17 | DateDiff `IsDateDiffPredicate`；NullIf `IsNullIfPredicate` |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R16 | DateDiff 全方言 Builder 已删；Coalesce.cs 已删 |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R17 | DateDiff 全方言 Builder 已删；Coalesce.cs 已删；NullIf 无 Expression |
 
 ### 已注册函数（Bootstrap，R6）
 
-Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（全泛型）、**Coalesce**（全泛型）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（`IsDateDiffPredicate` + Extension 回退）。
+Like（含 ESCAPE）、Between / NotBetween（4 泛型）、In / NotIn、Substring、Concat、DateAdd、Length、Lower、Upper、Trim、**RowNumber()**、**NullIf**（`IsNullIfPredicate`，无 `[Expression]`）、**Coalesce**（无 `[Expression]`）、**Count/Sum/Average**（ISqlExtension 链）、**DateDiff**（`IsDateDiffPredicate`）。
 
 ### 矩阵测试（32 项，`DbFuncTranslationMatrixTests`）
 
@@ -98,7 +99,7 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 | E.1 正向桥接 | `LinqStatementCompiler.ToSQLBuilder(s)` | ✅ | Expression → SQLBuilder |
 | E.1 逆向桥接 | `LinqClauseBridge.ToSelectQueryClause` / `FromSQLBuilder` | ✅ | `ConditionalWeakTable` 附着 |
 | E.1 SQLClip | `DBInstance.FromLinqExpression` | ✅ | 单向嵌入子查询 |
-| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R12 | 三入口：Between/NotBetween/Lower/DateDiff |
+| E.2 桥接测试 | Union / 结构 / 双路径一致性 | 🟡 R8–R17 | 三入口 8 组：Between/NotBetween/Lower/DateDiff/Like/RowNumberOver/Substring/In |
 | E.3 SqlPlan | `StatementStructureTests` | ✅ | 不连库结构断言 |
 | E.4 方言能力矩阵 | Take/Skip / ROW_NUMBER 策略文档 | ✅ R11 | [`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md) |
 | E.5 多语句事务 | `SentenceBag.Sentences.Count > 1` 统一执行 | ❌ | — |
@@ -174,29 +175,36 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 2. ✅ **Coalesce registry-only** — 删除 `DbFunc.Coalesce.cs`（无 `[Expression]`）  
 3. ✅ **矩阵 +5** — 全方言无 Builder、Legacy Express 格式、Coalesce 无 Expression
 
-## R17 建议批次（下一迭代）
+## R17 完成项（2026-06-06）
 
-1. **NullIf 方言 Expression 收敛** — Access/SqlCe 迁入 Pure 或 registry  
-2. **更多 stub 物理删除** — 已 registry-first 的薄 stub 合并  
-3. **三入口快照扩展** — Substring / In 等
+1. ✅ **NullIf registry-only** — `IsNullIfPredicate` + `TranslateNullIf`；移除全部 `[Expression]`（含 Access/SqlCe 方言）
+2. ✅ **方言 nullIf 收敛** — `JetSQLExpress`（`IIF`）、`SqlCeExpress`（`CASE WHEN`）；默认/SQLite 仍 `NULLIF`
+3. ✅ **三入口快照 +2** — `ThreeEntrySnapshot_Substring`、`ThreeEntrySnapshot_InList`
+4. ✅ **矩阵 +3** — `Matrix_NullIf_NoExpressionAttribute`、`Matrix_NullIf_DialectExpressFormat`
+
+## R18 建议批次（下一迭代）
+
+1. **更多 stub 物理删除** — 已 registry-first 的薄 stub 合并进 `DbFunc.cs`
+2. **Trim/Upper/Lower registry 收敛** — 评估移除剩余 `[Expression]`
+3. **三入口快照扩展** — Concat / DateAdd 等
 
 ---
 
 ## 验收标准（Phase D/E 整体完成）
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
-- [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径；Coalesce ✅）  
-- [x] `TestLinq` net6.0 全绿（**112/112**）  
-- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between/NotBetween/Lower/DateDiff/Like/RowNumberOver ✅）  
+- [ ] 常用 `DbFunc.*` 无 `[Extension]`/`[Expression]` 亦可 compile（Coalesce ✅、NullIf ✅）  
+- [x] `TestLinq` net6.0 全绿（**117/117**）  
+- [x] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（8 组 ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Coalesce.cs 已删 ✅，物理删除留 R17）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Coalesce.cs 已删 ✅，物理删除留 R18）
 
-当前：**1/6 项未达成**（矩阵 52 ✅，DateDiff 全方言 registry-only ✅，Coalesce 无 Expression ✅，三入口 6 组 ✅）。
+当前：**1/6 项未达成**（矩阵 55 ✅，DateDiff/NullIf/Coalesce registry-only ✅，三入口 8 组 ✅）。
 
-### 矩阵测试（52 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（55 项，`DbFuncTranslationMatrixTests`）
 
-含 DateDiff 全方言无 Builder、Legacy Express 格式、Coalesce registry-only 等 R16 新增项。
+含 NullIf `IsNullIfPredicate`、JetSQL/SqlCe Express 格式、Coalesce/DateDiff R16 项等。
 
 ---
 

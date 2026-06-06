@@ -254,12 +254,34 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.NotEmpty(nullIfs);
         Assert.All(nullIfs, m => Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(m)));
 
+        var entry = db.dialect.dbFuncRegistry.Resolve(nullIfs[0])!;
+        Assert.True(entry.IsNullIfPredicate);
+
         var sql = LinqStatementCompiler.GetSqlText(
             db,
             db.useQueryable<SQLiteTestUser>()
                 .Select(u => DbFunc.NullIf(u.Name, ""))
                 .Expression);
         Assert.Contains("NULLIF", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_NullIf_NoExpressionAttribute()
+    {
+        var nullIfs = typeof(DbFunc).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name == nameof(DbFunc.NullIf) && m.IsGenericMethodDefinition);
+        foreach (var method in nullIfs)
+            Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+    }
+
+    [Theory]
+    [InlineData(typeof(JetSQLExpress), "IIF")]
+    [InlineData(typeof(SqlCeExpress), "CASE WHEN")]
+    public void Matrix_NullIf_DialectExpressFormat(System.Type expressType, string expectedFragment)
+    {
+        var express = (SQLExpression)System.Activator.CreateInstance(expressType, new SQLiteDialect())!;
+        var format = express.nullIf("{0}", "{1}");
+        Assert.Contains(expectedFragment, format, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -94,3 +94,12 @@ public sealed class DB2Express : DateDiffFragmentExpressBase
     public override string dateDiffMillisecond(string start, string end)
         => $"(({SecondsBetween(start, end)}) * 1000 + (MICROSECOND({end}) - MICROSECOND({start})) / 1000)";
 }
+
+/// <summary>SQL CE NullIf 片段（原 NullIf Expression 回退）。</summary>
+public sealed class SqlCeExpress : DateDiffFragmentExpressBase
+{
+    public SqlCeExpress(Dialect dia) : base(dia, "@") { }
+
+    public override string nullIf(string left, string right)
+        => $"CASE WHEN {left} = {right} THEN NULL ELSE {left} END";
+}
