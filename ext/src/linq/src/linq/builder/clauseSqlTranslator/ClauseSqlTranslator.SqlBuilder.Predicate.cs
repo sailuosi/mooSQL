@@ -396,7 +396,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			if (ReferenceEquals(result, ob) && throwOnError)
-				throw new LinqToDBException($"Type {result.Type.Name} does not have member {memberPath.Last().Name}.");
+				throw new SooQueryException($"Type {result.Type.Name} does not have member {memberPath.Last().Name}.");
 
 			return result;
 		}

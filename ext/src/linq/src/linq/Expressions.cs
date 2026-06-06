@@ -221,7 +221,7 @@ namespace mooSQL.linq.Linq
 			//
 			switch (root)
 			{
-				case "LinqToDB" :
+				case "mooSQL"   :
 				case "System"   :
 				case "Microsoft": return false;
 				default         : return true;

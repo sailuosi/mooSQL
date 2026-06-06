@@ -542,7 +542,7 @@ namespace mooSQL.linq.Data
 				//		var onType = firstMapping.Discriminator.MemberInfo.DeclaringType;
 				//		if (onType == null)
 				//		{
-				//			throw new LinqToDBException("Could not get discriminator's DeclaringType.");
+				//			throw new SooQueryException("Could not get discriminator's DeclaringType.");
 				//		}
 
 				//		var access   = GetMemberExpression(constructorExpression, firstMapping.Discriminator.MemberInfo);

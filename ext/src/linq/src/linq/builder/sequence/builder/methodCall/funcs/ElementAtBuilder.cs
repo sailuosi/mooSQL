@@ -57,7 +57,7 @@ namespace mooSQL.linq.Linq.Builder
 			else
 			{
 				if (elementAtArg.NodeType == ExpressionType.Quote)
-					skipCall = Expression.Call(Methods.LinqToDB.SkipLambda.MakeGenericMethod(genericArguments), sequqnceArg, elementAtArg);
+					skipCall = Expression.Call(Methods.SooQuery.SkipLambda.MakeGenericMethod(genericArguments), sequqnceArg, elementAtArg);
 				else
 					skipCall = Expression.Call(Methods.Enumerable.Skip.MakeGenericMethod(genericArguments), sequqnceArg, elementAtArg);
 

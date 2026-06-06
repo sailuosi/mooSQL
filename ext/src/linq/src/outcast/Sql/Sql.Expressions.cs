@@ -83,7 +83,7 @@ namespace mooSQL.linq
 
 				var field = QueryHelper.ExtractField(fieldExpr);
 				if (field == null)
-					throw new LinqToDBException($"Cannot convert expression {builder.Arguments[0]} to field.");
+					throw new SooQueryException($"Cannot convert expression {builder.Arguments[0]} to field.");
 
 				if (isExpression)
 				{
@@ -105,7 +105,7 @@ namespace mooSQL.linq
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
-		public static string FieldName<T>( ITable<T> table, Expression<Func<T, object>> fieldExpr)
+		public static string FieldName<T>( IDbQuery<T> table, Expression<Func<T, object>> fieldExpr)
 			where T : notnull
 		{
 			return FieldName(table, fieldExpr, true);
@@ -113,7 +113,7 @@ namespace mooSQL.linq
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
-		public static string FieldName<T>( ITable<T> table, Expression<Func<T, object>> fieldExpr, [SqlQueryDependent] bool qualified)
+		public static string FieldName<T>( IDbQuery<T> table, Expression<Func<T, object>> fieldExpr, [SqlQueryDependent] bool qualified)
 			where T : notnull
 		{
 			var column = GetColumnFromExpression(typeof(T), fieldExpr, table.DBLive);
@@ -141,14 +141,14 @@ namespace mooSQL.linq
 		}
 
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
-		public static IExpWord FieldExpr<T, TV>( ITable<T> table, Expression<Func<T, TV>> fieldExpr)
+		public static IExpWord FieldExpr<T, TV>( IDbQuery<T> table, Expression<Func<T, TV>> fieldExpr)
 			where T : notnull
 		{
 			return FieldExpr(table, fieldExpr, true);
 		}
 
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
-		public static IExpWord FieldExpr<T, TV>( ITable<T> table, Expression<Func<T, TV>> fieldExpr, bool qualified)
+		public static IExpWord FieldExpr<T, TV>( IDbQuery<T> table, Expression<Func<T, TV>> fieldExpr, bool qualified)
 			where T : notnull
 		{
 			var column = GetColumnFromExpression(typeof(T), fieldExpr, table.DBLive);
@@ -158,14 +158,14 @@ namespace mooSQL.linq
 		}
 
 		[Extension("", BuilderType = typeof(FieldsExprBuilderDirect), ServerSideOnly = false)]
-		internal static IExpWord FieldsExpr<T>( ITable<T> table, Expression<Func<T, object?>> fieldsExpr)
+		internal static IExpWord FieldsExpr<T>( IDbQuery<T> table, Expression<Func<T, object?>> fieldsExpr)
 			where T : notnull
 		{
 			return FieldsExpr(table, fieldsExpr, true);
 		}
 
 		[Extension("", BuilderType = typeof(FieldsExprBuilderDirect), ServerSideOnly = false)]
-		internal static IExpWord FieldsExpr<T>( ITable<T> table, Expression<Func<T, object?>> fieldsExpr, bool qualified)
+		internal static IExpWord FieldsExpr<T>( IDbQuery<T> table, Expression<Func<T, object?>> fieldsExpr, bool qualified)
 			where T : notnull
 		{
 			var columns = GetColumnsFromExpression(typeof(T), fieldsExpr, table.DBLive);
@@ -190,7 +190,7 @@ namespace mooSQL.linq
 				return new[] { GetColumnFromExpression(entityType, fieldExpr, DB) };
 
 			if (init.Arguments == null || init.Arguments.Count == 0)
-				throw new LinqToDBException($"Cannot extract columns info from expression {fieldExpr.Body}");
+				throw new SooQueryException($"Cannot extract columns info from expression {fieldExpr.Body}");
 
 			var ed = DB.client.EntityCash.getEntityInfo(entityType); 
 			var columns = new EntityColumn[init.Arguments.Count];
@@ -198,7 +198,7 @@ namespace mooSQL.linq
 			{
 				var memberInfo = MemberHelper.GetMemberInfo(init.Arguments[i]);
 				if (memberInfo == null)
-					throw new LinqToDBException($"Cannot extract member info from expression {init.Arguments[i]}");
+					throw new SooQueryException($"Cannot extract member info from expression {init.Arguments[i]}");
 
 				var column = ed.GetColumn(memberInfo);
 
@@ -212,13 +212,13 @@ namespace mooSQL.linq
 		{
 			var memberInfo = MemberHelper.GetMemberInfo(fieldExpr.Body);
 			if (memberInfo == null)
-				throw new LinqToDBException($"Cannot extract member info from expression {fieldExpr.Body}");
+				throw new SooQueryException($"Cannot extract member info from expression {fieldExpr.Body}");
 
 			var ed     = DB.client.EntityCash.getEntityInfo(entityType);
 			var column = ed.GetColumn(memberInfo);
 
 			if (column == null)
-				throw new LinqToDBException($"Cannot find column for member {entityType.Name}.{memberInfo.Name}");
+				throw new SooQueryException($"Cannot find column for member {entityType.Name}.{memberInfo.Name}");
 			return column;
 		}
 
@@ -226,28 +226,28 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
 		public static string FieldName(object fieldExpr)
 		{
-			throw new LinqToDBException("'Sql.FieldName' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.FieldName' is server side only method and used only for generating custom SQL parts");
 		}
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
 		public static string FieldName(object fieldExpr, bool qualified)
 		{
-			throw new LinqToDBException("'Sql.FieldName' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.FieldName' is server side only method and used only for generating custom SQL parts");
 		}
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
 		public static IExpWord FieldExpr(object fieldExpr)
 		{
-			throw new LinqToDBException("'Sql.FieldExpr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.FieldExpr' is server side only method and used only for generating custom SQL parts");
 		}
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
 		public static IExpWord FieldExpr(object fieldExpr, bool qualified)
 		{
-			throw new LinqToDBException("'Sql.FieldExpr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.FieldExpr' is server side only method and used only for generating custom SQL parts");
 		}
 
 		private abstract class TableHelper
@@ -262,9 +262,9 @@ namespace mooSQL.linq
 		private sealed class TableHelper<T> : TableHelper
 			where T : notnull
 		{
-			private readonly ITable<T> _table;
+			private readonly IDbQuery<T> _table;
 
-			public TableHelper(ITable<T> table)
+			public TableHelper(IDbQuery<T> table)
 			{
 				_table = table;
 			}
@@ -343,7 +343,7 @@ namespace mooSQL.linq
 
 				//TODO: review, maybe we need here TableSource
 				if (sqlTable == null)
-					throw new LinqToDBException("Cannot find Table associated with expression");
+					throw new SooQueryException("Cannot find Table associated with expression");
 
 				var qualified    = builder.Arguments.Length <= 1 ? TableQualification.Full : builder.GetValue<TableQualification>(1);
 				var isExpression = builder.Member.Name == "TableExpr";
@@ -408,7 +408,7 @@ namespace mooSQL.linq
 		[ExpressionMethod(nameof(TableFieldIml))]
 		public static TColumn TableField<TEntity, TColumn>( TEntity entity, string fieldName)
 		{
-			throw new LinqToDBException("'Sql.TableField' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableField' is server side only method and used only for generating custom SQL parts");
 		}
 
 		static Expression<Func<TEntity, string, TColumn>> TableFieldIml<TEntity, TColumn>()
@@ -419,24 +419,24 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(TableOrColumnAsFieldBuilder))]
 		internal static TColumn TableOrColumnAsField<TColumn>( object? entityOrColumn)
 		{
-			throw new LinqToDBException("'Sql.TableOrColumnAsField' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableOrColumnAsField' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(TableAsFieldBuilder))]
 		internal static TColumn TableAsField<TEntity, TColumn>( TEntity entity)
 		{
-			throw new LinqToDBException("'Sql.TableAsField' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableAsField' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
-		public static string TableName<T>( ITable<T> table)
+		public static string TableName<T>( IDbQuery<T> table)
 			where T : notnull
 		{
 			return TableName(table, TableQualification.Full);
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
-		public static string TableName<T>( ITable<T> table, [SqlQueryDependent] TableQualification qualification)
+		public static string TableName<T>( IDbQuery<T> table, [SqlQueryDependent] TableQualification qualification)
 			where T : notnull
 		{
 			var result = table.TableName;
@@ -464,24 +464,24 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static string TableName(object tableExpr)
 		{
-			throw new LinqToDBException("'Sql.TableName' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableName' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static string TableName(object tableExpr, [SqlQueryDependent] TableQualification qualification)
 		{
-			throw new LinqToDBException("'Sql.TableName' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableName' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
-		public static IExpWord TableExpr<T>( ITable<T> table)
+		public static IExpWord TableExpr<T>( IDbQuery<T> table)
 			where T : notnull
 		{
 			return TableExpr(table, TableQualification.Full);
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
-		public static IExpWord TableExpr<T>( ITable<T> table, [SqlQueryDependent] TableQualification qualification)
+		public static IExpWord TableExpr<T>( IDbQuery<T> table, [SqlQueryDependent] TableQualification qualification)
 			where T : notnull
 		{
 			var name = table.TableName;
@@ -510,13 +510,13 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static IExpWord TableExpr(object tableExpr)
 		{
-			throw new LinqToDBException("'Sql.TableExpr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableExpr' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static IExpWord TableExpr(object tableExpr, [SqlQueryDependent] TableQualification qualification)
 		{
-			throw new LinqToDBException("'Sql.TableExpr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.TableExpr' is server side only method and used only for generating custom SQL parts");
 		}
 
 		class AliasExprBuilder : IExtensionCallBuilder
@@ -577,7 +577,7 @@ namespace mooSQL.linq
 		
 		public static T Expr<T>(FormattableString sql)
 		{
-			throw new LinqToDBException("'Sql.Expr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.Expr' is server side only method and used only for generating custom SQL parts");
 		}
 
 		[Extension("", BuilderType = typeof(ExprBuilder), ServerSideOnly = true)]
@@ -587,7 +587,7 @@ namespace mooSQL.linq
 			[SqlQueryDependentParams] params object[]     parameters
 			)
 		{
-			throw new LinqToDBException("'Sql.Expr' is server side only method and used only for generating custom SQL parts");
+			throw new SooQueryException("'Sql.Expr' is server side only method and used only for generating custom SQL parts");
 		}
 
 	}

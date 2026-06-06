@@ -259,7 +259,7 @@ namespace mooSQL.linq.Extensions
 		public static bool IsSqlPropertyMethodEx(this MemberInfo memberInfo)
 		{
 			return memberInfo is MethodInfo methodCall && methodCall.IsGenericMethod &&
-			       methodCall.GetGenericMethodDefinition() == Methods.LinqToDB.SqlExt.Property;
+			       methodCall.GetGenericMethodDefinition() == Methods.SooQuery.SqlExt.Property;
 		}
 
 		/// <summary>

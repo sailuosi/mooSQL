@@ -147,7 +147,7 @@ namespace mooSQL.linq.Linq.Builder
 
 								if (placeholder.Sql is RowWord)
 								{
-									throw new LinqToDBException("Sql.Row(...) cannot be top level expression.");
+									throw new SooQueryException("Sql.Row(...) cannot be top level expression.");
 								}
 
 								if (ReferenceEquals(placeholder.SelectQuery, context.rootQuery))

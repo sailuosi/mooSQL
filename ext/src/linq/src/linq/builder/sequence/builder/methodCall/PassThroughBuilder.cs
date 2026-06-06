@@ -12,8 +12,8 @@ namespace mooSQL.linq.Linq.Builder
 	{
 		static readonly MethodInfo[] _supportedMethods = new MethodInfo[] {
 			Methods.Queryable.AsQueryable,
-			Methods.LinqToDB.AsQueryable,
-			Methods.LinqToDB.SqlExt.Alias
+			Methods.SooQuery.AsQueryable,
+			Methods.SooQuery.SqlExt.Alias
 		};
 
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)

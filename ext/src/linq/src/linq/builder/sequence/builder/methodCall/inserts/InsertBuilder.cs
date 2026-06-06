@@ -98,9 +98,9 @@ namespace mooSQL.linq.Linq.Builder
 				}
 				else if (methodCall.Arguments.Count > 1                  &&
 					typeof(IQueryable<>).IsSameOrParentOf(argument.Type) &&
-					typeof(ITable<>).IsSameOrParentOf(methodCall.Arguments[1].Type))
+					typeof(IDbQuery<>).IsSameOrParentOf(methodCall.Arguments[1].Type))
 				{
-					// static int Insert<TSource,TTarget>(this IQueryable<TSource> source, Table<TTarget> target, Expression<Func<TSource,TTarget>> setter)
+					// static int Insert<TSource,TTarget>(this IQueryable<TSource> source, DbQuery<TTarget> target, Expression<Func<TSource,TTarget>> setter)
 					//
 
 					var into = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQueryClause()));
@@ -114,11 +114,11 @@ namespace mooSQL.linq.Linq.Builder
 
 					UpdateBuilder.ParseSetter(builder, contextRef, setterExpr, insertContext.SetExpressions);
 				}
-				else if (typeof(ITable<>).IsSameOrParentOf(argument.Type))
+				else if (typeof(IDbQuery<>).IsSameOrParentOf(argument.Type))
 				{
-					// static int Insert<T>(this Table<T> target, Expression<Func<T>> setter)
-					// static TTarget InsertWithOutput<TTarget>(this ITable<TTarget> target, Expression<Func<TTarget>> setter)
-					// static TTarget InsertWithOutput<TTarget>(this ITable<TTarget> target, Expression<Func<TTarget>> setter, Expression<Func<TTarget,TOutput>> outputExpression)
+					// static int Insert<T>(this DbQuery<T> target, Expression<Func<T>> setter)
+					// static TTarget InsertWithOutput<TTarget>(this IDbQuery<TTarget> target, Expression<Func<TTarget>> setter)
+					// static TTarget InsertWithOutput<TTarget>(this IDbQuery<TTarget> target, Expression<Func<TTarget>> setter, Expression<Func<TTarget,TOutput>> outputExpression)
 					//
 
 					var argIndex   = 1;
@@ -223,7 +223,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			if (insertContext.RequiresSetters && insertContext.SetExpressions.Count == 0)
-				throw new LinqToDBException("Insert query has no setters defined.");
+				throw new SooQueryException("Insert query has no setters defined.");
 
 			insertContext.LastBuildInfo = buildInfo;
 			insertContext.FinalizeSetters();
@@ -315,7 +315,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				if (Into == null)
 				{
-					throw new LinqToDBException("Insert query has no defined target table.");
+					throw new SooQueryException("Insert query has no defined target table.");
 				}
 
 				var tableContext = SequenceHelper.GetTableContext(Into);
@@ -323,7 +323,7 @@ namespace mooSQL.linq.Linq.Builder
 				insert.Into = tableContext?.SqlTable;
 
 				if (tableContext == null || insert.Into == null)
-					throw new LinqToDBException("Insert query has no setters defined.");
+					throw new SooQueryException("Insert query has no setters defined.");
 
 				SetExpressions.RemoveDuplicatesFromTail((s1, s2) =>
 					ExpressionEqualityComparer.Instance.Equals(s1.FieldExpression, s2.FieldExpression));
@@ -381,14 +381,14 @@ namespace mooSQL.linq.Linq.Builder
 				InsertSentence insertStatement;
 				InsertContext      insertContext;
 
-				// static IValueInsertable<T> Into<T>(this IDataContext dataContext, Table<T> target)
+				// static IValueInsertable<T> Into<T>(this IDataContext dataContext, DbQuery<T> target)
 				//
 				if (source.IsNullValue() || typeof(DBInstance).IsSameOrParentOf(source.Type))
 				{
 					sequence = builder.BuildSequence(new BuildInfo((IBuildContext?)null, into, new SelectQueryClause()));
 					destinationSequence = sequence;
 				}
-				// static ISelectInsertable<TSource,TTarget> Into<TSource,TTarget>(this IQueryable<TSource> source, Table<TTarget> target)
+				// static ISelectInsertable<TSource,TTarget> Into<TSource,TTarget>(this IQueryable<TSource> source, DbQuery<TTarget> target)
 				//
 				else
 				{

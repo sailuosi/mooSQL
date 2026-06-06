@@ -88,7 +88,7 @@ namespace mooSQL.linq.Linq.Builder
 					{
 						var tableContext = SequenceHelper.GetTableOrCteContext(sequence);
 						if (tableContext == null)
-							throw new LinqToDBException("Cannot find target table for UPDATE statement");
+							throw new SooQueryException("Cannot find target table for UPDATE statement");
 
 						updateContext.TargetTable = tableContext;
 					}
@@ -106,7 +106,7 @@ namespace mooSQL.linq.Linq.Builder
 					{
 						var tableContext = SequenceHelper.GetTableOrCteContext(sequence);
 						if (tableContext == null)
-							throw new LinqToDBException("Cannot find target table for UPDATE statement");
+							throw new SooQueryException("Cannot find target table for UPDATE statement");
 
 						updateContext.TargetTable = tableContext;
 					}
@@ -147,7 +147,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				case OutputMethod.QueryableTarget:
 				{
-					// int Update<TSource,TTarget>(this IQueryable<TSource> source, ITable<TTarget> target, Expression<Func<TSource,TTarget>> setter)
+					// int Update<TSource,TTarget>(this IQueryable<TSource> source, IDbQuery<TTarget> target, Expression<Func<TSource,TTarget>> setter)
 					// int Update<TSource,TTarget>(this IQueryable<TSource> source, Expression<Func<TSource,TTarget>> target, Expression<Func<TSource,TTarget>> setter)
 					//
 
@@ -183,7 +183,7 @@ namespace mooSQL.linq.Linq.Builder
 						}
 
 						if (intoTableContext.SqlTable.SqlQueryExtensions?.Count > 0)
-							throw new LinqToDBException("Could not update table which has Query extensions.");
+							throw new SooQueryException("Could not update table which has Query extensions.");
 
 						if (sequenceTableContext == null)
 						{
@@ -220,10 +220,10 @@ namespace mooSQL.linq.Linq.Builder
 							}
 
 							if (collectedTables.Count == 0)
-								throw new LinqToDBException("Could not find join table for update query.");
+								throw new SooQueryException("Could not find join table for update query.");
 
 							if (collectedTables.Count > 1)
-								throw new LinqToDBException("Could not find join table for update query. Ambiguous tables.");
+								throw new SooQueryException("Could not find join table for update query. Ambiguous tables.");
 
 							sequenceTableContext = collectedTables.First();
 						}
@@ -260,7 +260,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			if (updateContext.SetExpressions.Count == 0)
-				throw new LinqToDBException("Update query has no setters defined.");
+				throw new SooQueryException("Update query has no setters defined.");
 
 			if (updateType == UpdateTypeEnum.Update)
 				return BuildSequenceResult.FromContext(updateContext);
@@ -650,7 +650,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				if (TargetTable == null)
 				{
-					throw new LinqToDBException("Update query has no defined target table.");
+					throw new SooQueryException("Update query has no defined target table.");
 				}
 
 				var tableContext = TargetTable;
@@ -698,9 +698,9 @@ namespace mooSQL.linq.Linq.Builder
 					.ToList();
 
 				if (found.Count == 0)
-					throw new LinqToDBException("Could not find appropriate table in expression");
+					throw new SooQueryException("Could not find appropriate table in expression");
 				if (found.Count > 1)
-					throw new LinqToDBException("Ambiguous tables in expression");
+					throw new SooQueryException("Ambiguous tables in expression");
 
 				var (foundPath, foundGeneric) = found.First();
 

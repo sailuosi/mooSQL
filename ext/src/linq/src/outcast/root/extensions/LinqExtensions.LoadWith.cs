@@ -46,14 +46,14 @@ namespace mooSQL.linq.ext
 		/// <returns>Table-like query source.</returns>
 
 
-		public static ITable<T> LoadWithAsTable<T>(
-			                this ITable<T> table,
+		public static IDbQuery<T> LoadWithAsTable<T>(
+			                this IDbQuery<T> table,
 			                         Expression<Func<T,object?>> selector)
 			where T : notnull
 		{
 			if (table == null) throw new ArgumentNullException(nameof(table));
 
-			var newTable = new Table<T>(table.DBLive,
+			var newTable = new DbQuery<T>(table.DBLive,
 				Expression.Call(
 					null,
 					MethodHelper.GetMethodInfo(LoadWithAsTable, table, selector),
@@ -575,7 +575,7 @@ namespace mooSQL.linq.ext
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
-		 // Methods.LinqToDB.ThenLoadFromSingleSingleFilter
+		 // Methods.SooQuery.ThenLoadFromSingleSingleFilter
 		public static ILoadWithQueryable<TEntity,TProperty> ThenLoad<TEntity,TPreviousProperty,TProperty>(
 			this            ILoadWithQueryable<TEntity,TPreviousProperty>                 source,
 			                         Expression<Func<TPreviousProperty,TProperty?>>                selector,
@@ -643,7 +643,7 @@ namespace mooSQL.linq.ext
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
-		 // // Methods.LinqToDB.ThenLoadFromManySingleFilter
+		 // // Methods.SooQuery.ThenLoadFromManySingleFilter
 		public static ILoadWithQueryable<TEntity,TProperty> ThenLoad<TEntity,TPreviousProperty,TProperty>(
 			this            ILoadWithQueryable<TEntity,IEnumerable<TPreviousProperty>>    source,
 			                         Expression<Func<TPreviousProperty,TProperty?>>                selector,
@@ -711,7 +711,7 @@ namespace mooSQL.linq.ext
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
-		 // Methods.LinqToDB.ThenLoadFromManyManyFilter
+		 // Methods.SooQuery.ThenLoadFromManyManyFilter
 		public static ILoadWithQueryable<TEntity, TProperty> ThenLoad<TEntity, TPreviousProperty, TProperty>(
 			this ILoadWithQueryable<TEntity, IEnumerable<TPreviousProperty>> source,
 			                         Expression<Func<TPreviousProperty, IEnumerable<TProperty>>>    selector,

@@ -186,7 +186,7 @@ namespace mooSQL.linq.Mapping
 					return methodInfo.DeclaringType!;
 				}
 
-				throw new LinqToDBException($"Cannot retrieve declaring type form member {methodInfo}");
+				throw new SooQueryException($"Cannot retrieve declaring type form member {methodInfo}");
 			}
 
 			return MemberInfo.DeclaringType!;
@@ -216,10 +216,10 @@ namespace mooSQL.linq.Mapping
 				var members = type.GetStaticMembersEx(ExpressionPredicate!);
 
 				if (members.Length == 0)
-					throw new LinqToDBException($"Static member '{ExpressionPredicate}' for type '{type.Name}' not found");
+					throw new SooQueryException($"Static member '{ExpressionPredicate}' for type '{type.Name}' not found");
 
 				if (members.Length > 1)
-					throw new LinqToDBException($"Ambiguous members '{ExpressionPredicate}' for type '{type.Name}' has been found");
+					throw new SooQueryException($"Ambiguous members '{ExpressionPredicate}' for type '{type.Name}' has been found");
 
 				var propInfo = members[0] as PropertyInfo;
 
@@ -231,7 +231,7 @@ namespace mooSQL.linq.Mapping
 
 					predicate = value as Expression;
 					if (predicate == null)
-						throw new LinqToDBException($"Property '{ExpressionPredicate}' for type '{type.Name}' should return expression");
+						throw new SooQueryException($"Property '{ExpressionPredicate}' for type '{type.Name}' should return expression");
 				}
 				else
 				{
@@ -239,18 +239,18 @@ namespace mooSQL.linq.Mapping
 					if (method != null)
 					{
 						if (method.GetParameters().Length > 0)
-							throw new LinqToDBException($"Method '{ExpressionPredicate}' for type '{type.Name}' should have no parameters");
+							throw new SooQueryException($"Method '{ExpressionPredicate}' for type '{type.Name}' should have no parameters");
 						var value = method.Invoke(null,new object[] { } );
 						if (value == null)
 							return null;
 
 						predicate = value as Expression;
 						if (predicate == null)
-							throw new LinqToDBException($"Method '{ExpressionPredicate}' for type '{type.Name}' should return expression");
+							throw new SooQueryException($"Method '{ExpressionPredicate}' for type '{type.Name}' should return expression");
 					}
 				}
 				if (predicate == null)
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Member '{ExpressionPredicate}' for type '{type.Name}' should be static property or method");
 			}
 			else
@@ -259,23 +259,23 @@ namespace mooSQL.linq.Mapping
 			var lambda = predicate as LambdaExpression;
 			if (lambda == null || lambda.Parameters.Count != 2)
 				if (!string.IsNullOrEmpty(ExpressionPredicate))
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Invalid predicate expression in {type.Name}.{ExpressionPredicate}. Expected: Expression<Func<{parentType.Name}, {objectType.Name}, bool>>");
 				else
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Invalid predicate expression in {type.Name}. Expected: Expression<Func<{parentType.Name}, {objectType.Name}, bool>>");
 
 			var firstParameter = lambda.Parameters[0];
 			if (!firstParameter.Type.IsSameOrParentOf(parentType) && !parentType.IsSameOrParentOf(firstParameter.Type))
 			{
-				throw new LinqToDBException($"First parameter of expression predicate should be '{parentType.Name}'");
+				throw new SooQueryException($"First parameter of expression predicate should be '{parentType.Name}'");
 			}
 
 			if (lambda.Parameters[1].Type != objectType)
-				throw new LinqToDBException($"Second parameter of expression predicate should be '{objectType.Name}'");
+				throw new SooQueryException($"Second parameter of expression predicate should be '{objectType.Name}'");
 
 			if (lambda.ReturnType != typeof(bool))
-				throw new LinqToDBException("Result type of expression predicate should be 'bool'");
+				throw new SooQueryException("Result type of expression predicate should be 'bool'");
 
 			return lambda;
 		}
@@ -312,18 +312,18 @@ namespace mooSQL.linq.Mapping
 			var lambda = queryExpression as LambdaExpression;
 			if (lambda == null || lambda.Parameters.Count < 1)
 				if (!string.IsNullOrEmpty(ExpressionQueryMethod))
-					throw new LinqToDBException(
-						$"Invalid predicate expression in {type.Name}.{ExpressionQueryMethod}. Expected: Expression<Func<{parentType.Name}, IDataContext, IQueryable<{objectType.Name}>>>");
+					throw new SooQueryException(
+						$"Invalid predicate expression in {type.Name}.{ExpressionQueryMethod}. Expected: Expression<Func<{parentType.Name}, DBInstance, IQueryable<{objectType.Name}>>>");
 				else
-					throw new LinqToDBException(
-						$"Invalid predicate expression in {type.Name}. Expected: Expression<Func<{parentType.Name}, IDataContext, IQueryable<{objectType.Name}>>>");
+					throw new SooQueryException(
+						$"Invalid predicate expression in {type.Name}. Expected: Expression<Func<{parentType.Name}, DBInstance, IQueryable<{objectType.Name}>>>");
 
 			if (!lambda.Parameters[0].Type.IsSameOrParentOf(parentType))
-				throw new LinqToDBException($"First parameter of expression predicate should be '{parentType.Name}'");
+				throw new SooQueryException($"First parameter of expression predicate should be '{parentType.Name}'");
 
 			if (!(typeof(IQueryable<>).IsSameOrParentOf(lambda.ReturnType) &&
 			      lambda.ReturnType.GetGenericArguments()[0].IsSameOrParentOf(objectType)))
-				throw new LinqToDBException($"Result type of expression predicate should be 'IQueryable<{objectType.Name}>'");
+				throw new SooQueryException($"Result type of expression predicate should be 'IQueryable<{objectType.Name}>'");
 
 			return lambda;
 		}
@@ -373,17 +373,17 @@ namespace mooSQL.linq.Mapping
 			var lambda = setExpression as LambdaExpression;
 			if (lambda == null || lambda.Parameters.Count != 2)
 				if (!string.IsNullOrEmpty(AssociationSetterExpressionMethod))
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Invalid setter expression in {type.Name}.{AssociationSetterExpressionMethod}. Expected: Expression<Action<{memberType.Name}, {objectType.Name}>>");
 				else
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Invalid setter expression in {type.Name}. Expected: Expression<Action<{memberType.Name}, {objectType.Name}>>");
 
 			if (!lambda.Parameters[0].Type.IsSameOrParentOf(memberType))
-				throw new LinqToDBException($"First parameter of setter expression should be '{memberType.Name}'");
+				throw new SooQueryException($"First parameter of setter expression should be '{memberType.Name}'");
 
 			if (lambda.ReturnType != typeof(void))
-				throw new LinqToDBException("Result type of setter expression should be 'void'");
+				throw new SooQueryException("Result type of setter expression should be 'void'");
 
 			return lambda;
 		}

@@ -624,7 +624,7 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					//TODO: Do we still need Alias?
 					var mc = (MethodCallExpression)createExpression;
-					if (mc.IsSameGenericMethod(Methods.LinqToDB.SqlExt.Alias))
+					if (mc.IsSameGenericMethod(Methods.SooQuery.SqlExt.Alias))
 						return ParseGenericConstructor(mc.Arguments[0], flags, columnDescriptor);
 
 					if (mc.IsQueryable())

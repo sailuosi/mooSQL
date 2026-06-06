@@ -12,7 +12,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data;
 
     [BuildsMethodCall("AsCte", "GetCte", "FromSql", "FromSqlScalar", CanBuildName = nameof(CanBuildKnownMethods))]
-	[BuildsMethodCall("GetTable", "TableFromExpression", CanBuildName = nameof(CanBuildTableMethods))]
+	[BuildsMethodCall("useQueryable", "TableFromExpression", CanBuildName = nameof(CanBuildTableMethods))]
 	[BuildsExpression(ExpressionType.Call, CanBuildName = nameof(CanBuildAttributedMethods))]
 	sealed partial class TableBuilder : ISequenceBuilder
 	{
@@ -20,7 +20,7 @@ namespace mooSQL.linq.Linq.Builder
 			=> true;
 
 		public static bool CanBuildTableMethods(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
-			=> typeof(ITable<>).IsSameOrParentOf(call.Type);
+			=> typeof(IDbQuery<>).IsSameOrParentOf(call.Type);
 
 		public static bool CanBuildAttributedMethods(Expression expr, BuildInfo info, ClauseSqlTranslator builder)
 			=> ((MethodCallExpression)expr).Method.GetTableFunctionAttribute(builder.DBLive) != null;
@@ -28,7 +28,7 @@ namespace mooSQL.linq.Linq.Builder
 		enum BuildContextType
 		{
 			None,
-			GetTableMethod,
+			UseQueryableMethod,
 			TableFunctionAttribute,
 			TableFromExpression,
 			AsCteMethod,
@@ -51,14 +51,14 @@ namespace mooSQL.linq.Linq.Builder
 
 					switch (mc.Method.Name)
 					{
-						case "GetTable" 
-							when typeof(ITable<>).IsSameOrParentOf(expression.Type):
+						case "useQueryable" 
+							when typeof(IDbQuery<>).IsSameOrParentOf(expression.Type):
 						{
-							return BuildContextType.GetTableMethod;
+							return BuildContextType.UseQueryableMethod;
 						}
 
 						case "TableFromExpression"
-							when typeof(ITable<>).IsSameOrParentOf(expression.Type):
+							when typeof(IDbQuery<>).IsSameOrParentOf(expression.Type):
 						{
 							return BuildContextType.TableFromExpression;
 						}
@@ -117,7 +117,7 @@ namespace mooSQL.linq.Linq.Builder
 			//	var filterLambda = Expression.Lambda(testEd.QueryFilterLambda.Body.Replace(dcParam, dcExpr), testEd.QueryFilterLambda.Parameters[0]);
 
 			//	// to avoid recursion
-			//	filteredExpression = Expression.Call(Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(entityType), tableExpression, ExpressionInstances.EmptyTypes);
+			//	filteredExpression = Expression.Call(Methods.SooQuery.IgnoreFilters.MakeGenericMethod(entityType), tableExpression, ExpressionInstances.EmptyTypes);
 
 			//	filteredExpression = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(entityType), filteredExpression, Expression.Quote(filterLambda));
 			//	filteredExpression = ClauseSqlTranslator.ExposeExpression(filteredExpression, builder.DataContext, builder.OptimizationContext, builder.ParameterValues, optimizeConditions: true, compactBinary: true);
@@ -133,7 +133,7 @@ namespace mooSQL.linq.Linq.Builder
 			//		var filterFunc       = ed.QueryFilterFunc;
 
 			//		// to avoid recursion
-			//		Expression sequenceExpr = Expression.Call(Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(entityType), tableExpression, ExpressionInstances.EmptyTypes);
+			//		Expression sequenceExpr = Expression.Call(Methods.SooQuery.IgnoreFilters.MakeGenericMethod(entityType), tableExpression, ExpressionInstances.EmptyTypes);
 
 			//		if (filterLambdaExpr != null)
 			//		{
@@ -190,7 +190,7 @@ namespace mooSQL.linq.Linq.Builder
 			{
 				case BuildContextType.None                   : return BuildSequenceResult.NotSupported();
 
-				case BuildContextType.GetTableMethod         :
+				case BuildContextType.UseQueryableMethod         :
 				{
 					var mc = (MethodCallExpression)buildInfo.Expression;
 

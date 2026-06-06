@@ -11,7 +11,7 @@ namespace mooSQL.linq.Linq.Builder
 	sealed class RemoveOrderByBuilder : MethodCallBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
-			=> call.IsSameGenericMethod(Methods.LinqToDB.RemoveOrderBy);
+			=> call.IsSameGenericMethod(Methods.SooQuery.RemoveOrderBy);
 
 		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{

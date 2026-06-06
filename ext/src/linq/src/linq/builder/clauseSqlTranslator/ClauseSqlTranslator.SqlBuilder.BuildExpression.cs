@@ -795,7 +795,7 @@ namespace mooSQL.linq.Linq.Builder
 						break;
 					}
 
-					if (mc.IsSameGenericMethod(Methods.LinqToDB.SqlExt.Alias))
+					if (mc.IsSameGenericMethod(Methods.SooQuery.SqlExt.Alias))
 					{
 						var sqlExpr = ConvertToSqlExpr(context, mc.Arguments[0], flags : flags,
 							unwrap : unwrap, columnDescriptor : columnDescriptor, isPureExpression : isPureExpression, alias : alias);
@@ -1192,7 +1192,7 @@ namespace mooSQL.linq.Linq.Builder
 		public IExpWord? ConvertToSqlConvertible(IBuildContext? context, Expression expression)
 		{
 			if (EvaluateExpression(Expression.Convert(expression, typeof(IToSqlConverter))) is not IToSqlConverter converter)
-				throw new LinqToDBException($"Expression '{expression}' cannot be converted to `IToSqlConverter`");
+				throw new SooQueryException($"Expression '{expression}' cannot be converted to `IToSqlConverter`");
 
 			var innerExpr = converter.ToSql(converter);
 

@@ -18,7 +18,7 @@ namespace mooSQL.linq.Linq.Builder
 		internal sealed class UpdateWhenMatchedThenDelete : MethodCallBuilder
 		{
 			public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
-				=> call.IsSameGenericMethod(Methods.LinqToDB.Merge.UpdateWhenMatchedAndThenDeleteMethodInfo);
+				=> call.IsSameGenericMethod(Methods.SooQuery.Merge.UpdateWhenMatchedAndThenDeleteMethodInfo);
 
 			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{

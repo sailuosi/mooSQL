@@ -327,9 +327,9 @@ namespace mooSQL.data.call
         }
 
         /// <summary>
-        /// 访问 GetTable 调用节点（默认返回原节点）。
+        /// 访问 useQueryable 调用节点（默认返回原节点）。
         /// </summary>
-        public virtual MethodCall VisitGetTable(GetTableCall method)
+        public virtual MethodCall VisitUseQueryable(UseQueryableCall method)
         {
             return method;
         }

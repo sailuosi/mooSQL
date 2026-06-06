@@ -41,7 +41,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int DeleteWithOutputInto<TSource,TOutput>(
 			this IQueryable<TSource> source,
-			ITable<TOutput>          outputTable)
+			IDbQuery<TOutput>          outputTable)
 			where TOutput : notnull
 		{
 			if (source      == null) throw new ArgumentNullException(nameof(source));
@@ -74,7 +74,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> DeleteWithOutputIntoAsync<TSource,TOutput>(
 			this IQueryable<TSource> source,
-			ITable<TOutput>          outputTable,
+			IDbQuery<TOutput>          outputTable,
 			CancellationToken        token = default)
 			where TOutput : notnull
 		{
@@ -114,7 +114,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int DeleteWithOutputInto<TSource,TOutput>(
 			this IQueryable<TSource>          source,
-			ITable<TOutput>                   outputTable,
+			IDbQuery<TOutput>                   outputTable,
 			Expression<Func<TSource,TOutput>> outputExpression)
 			where TOutput : notnull
 		{
@@ -152,7 +152,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> DeleteWithOutputIntoAsync<TSource,TOutput>(
 			this IQueryable<TSource>          source,
-			ITable<TOutput>                   outputTable,
+			IDbQuery<TOutput>                   outputTable,
 			Expression<Func<TSource,TOutput>> outputExpression,
 			CancellationToken                 token = default)
 			where TOutput : notnull

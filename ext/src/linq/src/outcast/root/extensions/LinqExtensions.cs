@@ -119,7 +119,7 @@ namespace mooSQL.linq.ext
 			var query = currentSource.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.AsUpdatable.MakeGenericMethod(typeof(T)),
+					Methods.SooQuery.Update.AsUpdatable.MakeGenericMethod(typeof(T)),
 					currentSource.Expression));
 
 			return new Updatable<T>(query);
@@ -150,7 +150,7 @@ namespace mooSQL.linq.ext
 			var query = currentSource.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetQueryablePrev.MakeGenericMethod(typeof(T), typeof(TV)),
+					Methods.SooQuery.Update.SetQueryablePrev.MakeGenericMethod(typeof(T), typeof(TV)),
 					currentSource.Expression, Expression.Quote(extract), Expression.Quote(update)));
 
 			return new Updatable<T>(query);
@@ -181,7 +181,7 @@ namespace mooSQL.linq.ext
 			query = query.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetUpdatablePrev.MakeGenericMethod(typeof(T), typeof(TV)),
+					Methods.SooQuery.Update.SetUpdatablePrev.MakeGenericMethod(typeof(T), typeof(TV)),
 					query.Expression, Expression.Quote(extract), Expression.Quote(update)));
 
 			return new Updatable<T>(query);
@@ -210,7 +210,7 @@ namespace mooSQL.linq.ext
 			var query = source.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetQueryableExpression.MakeGenericMethod(typeof(T), typeof(TV)),
+					Methods.SooQuery.Update.SetQueryableExpression.MakeGenericMethod(typeof(T), typeof(TV)),
 					source.Expression, Expression.Quote(extract), Expression.Quote(update)));
 
 			return new Updatable<T>(query);
@@ -241,7 +241,7 @@ namespace mooSQL.linq.ext
 			query = query.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetUpdatableExpression.MakeGenericMethod(typeof(T), typeof(TV)),
+					Methods.SooQuery.Update.SetUpdatableExpression.MakeGenericMethod(typeof(T), typeof(TV)),
 					query.Expression, Expression.Quote(extract), Expression.Quote(update)));
 
 			return new Updatable<T>(query);
@@ -271,7 +271,7 @@ namespace mooSQL.linq.ext
 		//	var query = currentSource.Provider.CreateQuery<T>(
 		//		Expression.Call(
 		//			null,
-		//			Methods.LinqToDB.Update.SetQueryableValue.MakeGenericMethod(typeof(T), typeof(TV)),
+		//			Methods.SooQuery.Update.SetQueryableValue.MakeGenericMethod(typeof(T), typeof(TV)),
 		//			currentSource.Expression, Expression.Quote(extract), Expression.Constant(value, typeof(TV))));
 
 		//	return new Updatable<T>(query);
@@ -301,7 +301,7 @@ namespace mooSQL.linq.ext
 			query = query.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetUpdatableValue.MakeGenericMethod(typeof(T), typeof(TV)),
+					Methods.SooQuery.Update.SetUpdatableValue.MakeGenericMethod(typeof(T), typeof(TV)),
 					query.Expression, Expression.Quote(extract), Expression.Constant(value, typeof(TV))));
 
 			return new Updatable<T>(query);
@@ -336,7 +336,7 @@ namespace mooSQL.linq.ext
 			var query = currentSource.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetQueryableSetCustom.MakeGenericMethod(typeof(T)),
+					Methods.SooQuery.Update.SetQueryableSetCustom.MakeGenericMethod(typeof(T)),
 					currentSource.Expression, Expression.Quote(setExpression)));
 
 			return new Updatable<T>(query);
@@ -372,7 +372,7 @@ namespace mooSQL.linq.ext
 			query = query.Provider.CreateQuery<T>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Update.SetUpdatableSetCustom.MakeGenericMethod(typeof(T)),
+					Methods.SooQuery.Update.SetUpdatableSetCustom.MakeGenericMethod(typeof(T)),
 					query.Expression, Expression.Quote(setExpression)));
 
 			return new Updatable<T>(query);
@@ -434,7 +434,7 @@ namespace mooSQL.linq.ext
 		
 		public static ISelectInsertable<TSource,TTarget> Into<TSource,TTarget>(
 			 this IQueryable<TSource> source,
-			 ITable<TTarget>          target)
+			 IDbQuery<TTarget>          target)
 			where TTarget : notnull
 		{
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -564,7 +564,7 @@ namespace mooSQL.linq.ext
 			return currentQuery.Provider.Execute<int>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Insert.SI.Insert.MakeGenericMethod(typeof(TSource), typeof(TTarget)),
+					Methods.SooQuery.Insert.SI.Insert.MakeGenericMethod(typeof(TSource), typeof(TTarget)),
 					currentQuery.Expression));
 		}
 
@@ -587,7 +587,7 @@ namespace mooSQL.linq.ext
 
 			var expr = Expression.Call(
 				null,
-				Methods.LinqToDB.Insert.SI.Insert.MakeGenericMethod(typeof(TSource), typeof(TTarget)),
+				Methods.SooQuery.Insert.SI.Insert.MakeGenericMethod(typeof(TSource), typeof(TTarget)),
 				currentQueryable.Expression);
 
 			if (currentQueryable is IQueryProviderAsync query)
@@ -644,7 +644,7 @@ namespace mooSQL.linq.ext
 		/// Accepts updated record as parameter.</param>
 		/// <returns>Number of affected records.</returns>
 		public static int InsertOrUpdate<T>(
-			                this ITable<T>          target,
+			                this IDbQuery<T>          target,
 			                         Expression<Func<T>>     insertSetter,
 			                         Expression<Func<T,T?>>? onDuplicateKeyUpdateSetter)
 			where T : notnull
@@ -678,7 +678,7 @@ namespace mooSQL.linq.ext
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Number of affected records.</returns>
 		public static async Task<int> InsertOrUpdateAsync<T>(
-			                this ITable<T>          target,
+			                this IDbQuery<T>          target,
 			                         Expression<Func<T>>     insertSetter,
 			                         Expression<Func<T,T?>>? onDuplicateKeyUpdateSetter,
 			CancellationToken                       token = default)
@@ -721,7 +721,7 @@ namespace mooSQL.linq.ext
 		/// Expression supports only target table record new expression with field initializers for each key field. Assigned key field value will be used as key value by operation type selector.</param>
 		/// <returns>Number of affected records.</returns>
 		public static int InsertOrUpdate<T>(
-			                this ITable<T>          target,
+			                this IDbQuery<T>          target,
 			                         Expression<Func<T>>     insertSetter,
 			                         Expression<Func<T,T?>>? onDuplicateKeyUpdateSetter,
 			                         Expression<Func<T>>     keySelector)
@@ -762,7 +762,7 @@ namespace mooSQL.linq.ext
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Number of affected records.</returns>
 		public static async Task<int> InsertOrUpdateAsync<T>(
-			                this ITable<T>          target,
+			                this IDbQuery<T>          target,
 			                         Expression<Func<T>>     insertSetter,
 			                         Expression<Func<T,T?>>? onDuplicateKeyUpdateSetter,
 			                         Expression<Func<T>>     keySelector,
@@ -807,7 +807,7 @@ namespace mooSQL.linq.ext
 		/// Tracked by <a href="https://github.com/linq2db/linq2db/issues/798">issue</a>.
 		/// Default value: <c>true</c>.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
-		public static int Drop<T>( this ITable<T> target, bool throwExceptionIfNotExists = true)
+		public static int Drop<T>( this IDbQuery<T> target, bool throwExceptionIfNotExists = true)
 			where T : notnull
 		{
 			if (target == null) throw new ArgumentNullException(nameof(target));
@@ -849,7 +849,7 @@ namespace mooSQL.linq.ext
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
 		public static async Task<int> DropAsync<T>(
-			this ITable<T>    target,
+			this IDbQuery<T>    target,
 			bool              throwExceptionIfNotExists = true,
 			CancellationToken token = default)
 			where T : notnull
@@ -902,7 +902,7 @@ namespace mooSQL.linq.ext
 		/// <param name="target">Truncated table.</param>
 		/// <param name="resetIdentity">Performs reset identity column.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
-		public static int Truncate<T>( this ITable<T> target, bool resetIdentity = true)
+		public static int Truncate<T>( this IDbQuery<T> target, bool resetIdentity = true)
 			where T : notnull
 		{
 			if (target == null) throw new ArgumentNullException(nameof(target));
@@ -928,7 +928,7 @@ namespace mooSQL.linq.ext
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Number of affected records. Usually <c>-1</c> as it is not data modification operation.</returns>
 		public static async Task<int> TruncateAsync<T>(
-			this ITable<T>    target,
+			this IDbQuery<T>    target,
 			bool              resetIdentity = true,
 			CancellationToken token         = default)
 			where T : notnull
@@ -1089,7 +1089,7 @@ namespace mooSQL.linq.ext
 			return currentSource.Provider.Execute<TSource>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.ElementAtLambda.MakeGenericMethod(typeof(TSource)),
+					Methods.SooQuery.ElementAtLambda.MakeGenericMethod(typeof(TSource)),
 					currentSource.Expression, Expression.Quote(index)));
 		}
 
@@ -1117,7 +1117,7 @@ namespace mooSQL.linq.ext
 			var expr =
 				Expression.Call(
 					null,
-					Methods.LinqToDB.ElementAtLambda.MakeGenericMethod(typeof(TSource)),
+					Methods.SooQuery.ElementAtLambda.MakeGenericMethod(typeof(TSource)),
 					currentSource.Expression, Expression.Quote(index));
 
 			if (currentSource is IQueryProviderAsync query)
@@ -1362,7 +1362,7 @@ namespace mooSQL.linq.ext
 			return currentOuter.Provider.CreateQuery<TResult>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.JoinTypePredicateSelector.MakeGenericMethod(typeof(TOuter), typeof(TInner), typeof(TResult)),
+					Methods.SooQuery.JoinTypePredicateSelector.MakeGenericMethod(typeof(TOuter), typeof(TInner), typeof(TResult)),
 					currentOuter.Expression,
 					inner.Expression,
 					Expression.Constant(joinType),

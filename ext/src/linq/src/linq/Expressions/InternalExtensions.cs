@@ -201,7 +201,7 @@ namespace mooSQL.linq.Expressions
 				enumerable && type == typeof(Enumerable) ||
 				type == typeof(LinqExtensions)  ||
 				//type == typeof(DataExtensions)  ||
-				type == typeof(TableExtensions) ;
+				type == typeof(DbQueryExtensions) ;
 		}
 
 		public static bool IsAsyncExtension(this MethodCallExpression method)

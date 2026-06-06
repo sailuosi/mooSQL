@@ -121,7 +121,7 @@ namespace mooSQL.linq.Linq.Builder
 					case QueryExtensionScope.IndexHint    :
 					case QueryExtensionScope.TableNameHint:
 					{
-						var table = SequenceHelper.GetTableOrCteContext(sequence) ?? throw new LinqToDBException($"Cannot get table context from {sequence.GetType()}");
+						var table = SequenceHelper.GetTableOrCteContext(sequence) ?? throw new SooQueryException($"Cannot get table context from {sequence.GetType()}");
 						attr.ExtendTable(table.SqlTable, list);
 						break;
 					}

@@ -80,7 +80,7 @@ namespace mooSQL.linq
 				}
 
 				if (string.IsNullOrEmpty(name))
-					throw new LinqToDBException($"Cannot retrieve property name for expression '{expression}'.");
+					throw new SooQueryException($"Cannot retrieve property name for expression '{expression}'.");
 
 				var sqlExpr = new ExpressionWord(expression.Type, name!, PrecedenceLv.Primary, SqlFlags.IsPure,
                     ToParametersNullabilityType(IsNullable), _canBeNull);

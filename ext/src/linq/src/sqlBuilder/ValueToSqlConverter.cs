@@ -248,7 +248,7 @@ namespace mooSQL.linq.SqlProvider
 		public StringBuilder Convert(StringBuilder stringBuilder, DBInstance mappingSchema, DbDataType? dataType,object? value)
 		{
 			if (!TryConvert(stringBuilder, mappingSchema, dataType,  value))
-				throw new LinqToDBException($"Cannot convert value of type {value?.GetType()} to SQL");
+				throw new SooQueryException($"Cannot convert value of type {value?.GetType()} to SQL");
 
 			return stringBuilder;
 		}

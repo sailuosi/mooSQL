@@ -98,7 +98,7 @@ namespace mooSQL.linq.SqlQuery
 		{
 			return expr is MethodCallExpression { Method.Name: "Row" } call
 				? call.Arguments
-				: throw new LinqToDBException("Calls to Sql.Row() are the only valid expressions of type SqlRow.");
+				: throw new SooQueryException("Calls to Sql.Row() are the only valid expressions of type SqlRow.");
 		}
 
 

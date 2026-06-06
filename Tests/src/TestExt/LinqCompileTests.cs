@@ -316,14 +316,4 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Equal(fromUse, fromAs);
     }
 
-    [Fact]
-    public void GetTable_Where_ExecutesSameAsUseQueryable()
-    {
-        var db = _sqlite.Db;
-
-        var fromUse = db.useQueryable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
-        var fromGet = db.GetTable<SQLiteTestUser>().Where(u => u.Age > 20).Select(u => u.Name).ToList();
-
-        Assert.Equal(fromUse, fromGet);
-    }
 }

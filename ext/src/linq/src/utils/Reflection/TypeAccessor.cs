@@ -25,7 +25,7 @@ namespace mooSQL.linq.Reflection
 		[DebuggerStepThrough]
 		public virtual object CreateInstance()
 		{
-			throw new LinqToDBException($"The '{Type.Name}' type must have public default or init constructor.");
+			throw new SooQueryException($"The '{Type.Name}' type must have public default or init constructor.");
 		}
 
 		[DebuggerStepThrough]

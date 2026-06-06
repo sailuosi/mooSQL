@@ -70,7 +70,7 @@ namespace mooSQL.linq.Linq
 		public IQueryable<T> Create(object[] parameters, object[] preambles)
 		{
 			var db = (DBInstance)parameters[0];
-			return new Table<T>(db, _expression) { Info = GetInfo(db, parameters), Parameters = parameters };
+			return new DbQuery<T>(db, _expression) { Info = GetInfo(db, parameters), Parameters = parameters };
 		}
 
 		public T Execute(object[] parameters, object[] preambles)

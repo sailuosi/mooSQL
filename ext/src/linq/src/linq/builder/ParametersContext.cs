@@ -350,7 +350,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			if (typeof(DataParameter).IsSameOrParentOf(valueGetter.Type))
 			{
-				newExpr.DbDataTypeExpression = Expression.Property(valueGetter, Methods.LinqToDB.DataParameter.DbDataType);
+				newExpr.DbDataTypeExpression = Expression.Property(valueGetter, Methods.SooQuery.DataParameter.DbDataType);
 
 				if (columnDescriptor != null)
 				{
@@ -359,7 +359,7 @@ namespace mooSQL.linq.Linq.Builder
 						LinqExtensions.WithSetValuesMethodInfo, newExpr.DbDataTypeExpression);
 				}
 
-				valueGetter = Expression.Property(valueGetter, Methods.LinqToDB.DataParameter.Value);
+				valueGetter = Expression.Property(valueGetter, Methods.SooQuery.DataParameter.Value);
 			}
 
 			if (!isParameterList)

@@ -58,7 +58,7 @@ namespace mooSQL.linq.Expressions
 		protected static Expression<Action<TI, TP>> PropertySetter<TI, TP>(Expression<Func<TI, TP>> getter)
 		{
 			if (getter.Body is not MemberExpression { Member: PropertyInfo pi })
-				throw new LinqToDBException($"Expected property accessor expression");
+				throw new SooQueryException($"Expected property accessor expression");
 
 			var pThis  = Expression.Parameter(typeof(TI));
 			var pValue = Expression.Parameter(typeof(TP));

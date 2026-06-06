@@ -117,7 +117,7 @@ namespace mooSQL.linq.Common
 			var newGenericArguments = genericArguments.Select((t, i) =>
 			{
 				if (!typesMapping.TryGetValue(t, out var replaced))
-					throw new LinqToDBException($"Not found type mapping for generic argument '{t.Name}'.");
+					throw new SooQueryException($"Not found type mapping for generic argument '{t.Name}'.");
 				return replaced;
 			}).ToArray();
 

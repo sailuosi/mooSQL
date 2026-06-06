@@ -17,10 +17,10 @@ namespace mooSQL.linq.Linq
 		/// This constructor initializes the <see cref="Exception.Message"/>
 		/// property of the new instance
 		/// to a system-supplied message that describes the error,
-		/// such as "LinqToDB Linq error has occurred."
+		/// such as "A mooSQL LINQ error has occurred."
 		/// </remarks>
 		public LinqException()
-			: base("A LinqToDB Linq error has occurred.")
+			: base("A mooSQL LINQ error has occurred.")
 		{
 		}
 

@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace mooSQL.linq.Linq
@@ -11,19 +11,19 @@ namespace mooSQL.linq.Linq
 	using mooSQL.data;
 	using mooSQL.data.model;
 
-	public sealed class Table<T> : ExpressionQuery<T>, ITable<T>, ITableMutable<T>, ITable
+	public sealed class DbQuery<T> : ExpressionQuery<T>, IDbQuery<T>, IDbQueryMutable<T>, IDbQuery
 		where T : notnull
 	{
-		public Table(DBInstance dataContext)
+		public DbQuery(DBInstance dataContext)
 		{
 			var expression = Expression.Call(
-				Methods.LinqToDB.GetTable.MakeGenericMethod(typeof(T)),
+				Methods.SooQuery.useQueryable.MakeGenericMethod(typeof(T)),
 				SqlQueryRootExpression.Create(dataContext, dataContext.GetType()));
 
 			InitTable(dataContext, expression, null);
 		}
 
-		internal Table(DBInstance dataContext, Table<T> basedOn)
+		internal DbQuery(DBInstance dataContext, DbQuery<T> basedOn)
 		{
 			Init(dataContext, basedOn.Expression);
 			_tableOptions = basedOn.TableOptions;
@@ -32,7 +32,7 @@ namespace mooSQL.linq.Linq
 		}
 
 
-		public Table(DBInstance dataContext, Expression expression)
+		public DbQuery(DBInstance dataContext, Expression expression)
 		{
 			InitTable(dataContext, expression, null);
 		}
@@ -65,7 +65,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_tableOptionsMethodInfo ??= Methods.LinqToDB.Table.TableOptions.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(tableOptions));
 			return expression;
 		}
@@ -74,7 +73,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_tableNameMethodInfo ??= Methods.LinqToDB.Table.TableName.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(tableName));
 			return expression;
 		}
@@ -83,7 +81,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_databaseNameMethodInfo ??= Methods.LinqToDB.Table.DatabaseName.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(databaseName));
 			return expression;
 		}
@@ -92,7 +89,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_schemaNameMethodInfo ??= Methods.LinqToDB.Table.SchemaName.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(schemaName));
 			return expression;
 		}
@@ -101,7 +97,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_serverNameMethodInfo ??= Methods.LinqToDB.Table.ServerName.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(serverName));
 			return expression;
 		}
@@ -110,7 +105,6 @@ namespace mooSQL.linq.Linq
 		{
 			expression = Expression.Call(
 				null,
-				//_tableIDMethodInfo ??= Methods.LinqToDB.Table.TableID.MakeGenericMethod(typeof(T)),
 				expression, Expression.Constant(id, typeof(string)));
 			return expression;
 		}
@@ -203,49 +197,49 @@ namespace mooSQL.linq.Linq
 			}
 		}
 
-		public ITable<T> ChangeServerName(string? serverName)
+		public IDbQuery<T> ChangeServerName(string? serverName)
 		{
-			return new Table<T>(DBLive, this)
+			return new DbQuery<T>(DBLive, this)
 			{
 				ServerName = serverName
 			};
 		}
 
-		public ITable<T> ChangeDatabaseName(string? databaseName)
+		public IDbQuery<T> ChangeDatabaseName(string? databaseName)
 		{
-			return new Table<T>(DBLive, this)
+			return new DbQuery<T>(DBLive, this)
 			{
 				DatabaseName = databaseName
 			};
 		}
 
-		public ITable<T> ChangeSchemaName(string? schemaName)
+		public IDbQuery<T> ChangeSchemaName(string? schemaName)
 		{
-			return new Table<T>(DBLive, this)
+			return new DbQuery<T>(DBLive, this)
 			{
 				SchemaName = schemaName
 			};
 		}
 
-		public ITable<T> ChangeTableName(string tableName)
+		public IDbQuery<T> ChangeTableName(string tableName)
 		{
-			return new Table<T>(DBLive, this)
+			return new DbQuery<T>(DBLive, this)
 			{
 				TableName = tableName
 			};
 		}
 
-		public ITable<T> ChangeTableOptions(TableOptions options)
+		public IDbQuery<T> ChangeTableOptions(TableOptions options)
 		{
-			return new Table<T>(DBLive, this)
+			return new DbQuery<T>(DBLive, this)
 			{
 				TableOptions = options
 			};
 		}
 
-		public ITable<T> ChangeTableID(string? tableID)
+		public IDbQuery<T> ChangeTableID(string? tableID)
 		{
-			return new Table<T>(DBLive)
+			return new DbQuery<T>(DBLive)
 			{
 				SchemaName   = SchemaName,
 				ServerName   = ServerName,

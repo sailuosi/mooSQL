@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace mooSQL.linq.ext
 {
 	using Async;
-	using Methods = Reflection.Methods.LinqToDB.MultiInsert;
+	using Methods = Reflection.Methods.SooQuery.MultiInsert;
 
 	public static class MultiInsertExtensions
 	{
@@ -45,7 +45,7 @@ namespace mooSQL.linq.ext
 		
 		public static IMultiInsertInto<TSource> Into<TSource, TTarget>(
 			this            IMultiInsertInto<TSource>          source,
-			                ITable<TTarget>                    target,
+			                IDbQuery<TTarget>                    target,
 			                         Expression<Func<TSource, TTarget>> setter)
 			where TTarget : notnull
 		{
@@ -79,7 +79,7 @@ namespace mooSQL.linq.ext
 		public static IMultiInsertWhen<TSource> When<TSource, TTarget>(
 			this            IMultiInsertWhen<TSource>          source,
 			                         Expression<Func<TSource, bool>>    condition,
-							ITable<TTarget>                    target,
+							IDbQuery<TTarget>                    target,
 			                         Expression<Func<TSource, TTarget>> setter)
 			where TTarget : notnull
 		{
@@ -113,7 +113,7 @@ namespace mooSQL.linq.ext
 		
 		public static IMultiInsertElse<TSource> Else<TSource, TTarget>(
 			this            IMultiInsertWhen<TSource>          source,
-							ITable<TTarget>                    target,
+							IDbQuery<TTarget>                    target,
 			                         Expression<Func<TSource, TTarget>> setter)
 			where TTarget : notnull
 		{

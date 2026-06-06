@@ -10,7 +10,7 @@ namespace mooSQL.linq.Linq.Builder
 	[BuildsMethodCall("Distinct", nameof(LinqExtensions.SelectDistinct))]
 	sealed class DistinctBuilder : MethodCallBuilder
 	{
-		static readonly MethodInfo[] _supportedMethods = { Methods.Queryable.Distinct, Methods.Enumerable.Distinct, Methods.LinqToDB.SelectDistinct };
+		static readonly MethodInfo[] _supportedMethods = { Methods.Queryable.Distinct, Methods.Enumerable.Distinct, Methods.SooQuery.SelectDistinct };
 
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
 			=> call.IsSameGenericMethod(_supportedMethods);
@@ -36,7 +36,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			// We do not need all fields for SelectDistinct
 			//
-			if (methodCall.IsSameGenericMethod(Methods.LinqToDB.SelectDistinct))
+			if (methodCall.IsSameGenericMethod(Methods.SooQuery.SelectDistinct))
 			{
 				subQueryContext.SelectQuery.Select.OptimizeDistinct = true;
 			}

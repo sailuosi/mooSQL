@@ -10,13 +10,13 @@ namespace mooSQL.data
         /// <summary>
         /// 获取实体表的标准 Queryable 源（Ext LINQ 推荐入口，项目 useXXX 约定）。
         /// </summary>
-        public static ITable<T> useQueryable<T>(this DBInstance db) where T : notnull
-            => ExtLinqEntry.CreateTable<T>(db);
+        public static IDbQuery<T> useQueryable<T>(this DBInstance db) where T : notnull
+            => ExtLinqEntry.CreateDbQuery<T>(db);
 
         /// <summary>
         /// <see cref="useQueryable{T}"/> 的别名，命名更贴近通用 Queryable 习惯。
         /// </summary>
-        public static ITable<T> AsQueryable<T>(this DBInstance db) where T : notnull
+        public static IDbQuery<T> AsQueryable<T>(this DBInstance db) where T : notnull
             => db.useQueryable<T>();
     }
 }

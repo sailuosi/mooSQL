@@ -288,7 +288,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				if (_setOperation != SetOperation.UnionAll)
 				{
-					throw new LinqToDBException(
+					throw new SooQueryException(
 						$"Could not decide which construction type to use `query.Select(x => new {projection1.Type.Name} {{ ... }})` to specify projection.");
 				}
 

@@ -591,7 +591,7 @@ namespace mooSQL.linq.SqlQuery
 		{
 			var etar = expr.TryEvaluateExpression(context);
 			if (!etar.success)
-				throw new LinqToDBException($"Cannot evaluate expression: {expr}");
+				throw new SooQueryException($"Cannot evaluate expression: {expr}");
 
 			return etar.value;
 		}

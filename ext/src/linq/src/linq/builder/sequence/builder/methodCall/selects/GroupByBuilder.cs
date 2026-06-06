@@ -25,7 +25,7 @@ namespace mooSQL.linq.Linq.Builder
     [BuildsMethodCall("GroupBy")]
 	sealed class GroupByBuilder : MethodCallBuilder
 	{
-		static readonly MethodInfo[] GroupingSetMethods = { Methods.LinqToDB.GroupBy.Rollup, Methods.LinqToDB.GroupBy.Cube, Methods.LinqToDB.GroupBy.GroupingSets };
+		static readonly MethodInfo[] GroupingSetMethods = { Methods.SooQuery.GroupBy.Rollup, Methods.SooQuery.GroupBy.Cube, Methods.SooQuery.GroupBy.GroupingSets };
 
 		#region Builder Methods
 
@@ -135,11 +135,11 @@ namespace mooSQL.linq.Linq.Builder
 				if (mc.IsSameGenericMethod(GroupingSetMethods))
 				{
 					var groupingKey = mc.Arguments[0].Unwrap();
-					if (mc.IsSameGenericMethod(Methods.LinqToDB.GroupBy.Rollup))
+					if (mc.IsSameGenericMethod(Methods.SooQuery.GroupBy.Rollup))
 						groupingKind = GroupingType.Rollup;
-					else if (mc.IsSameGenericMethod(Methods.LinqToDB.GroupBy.Cube))
+					else if (mc.IsSameGenericMethod(Methods.SooQuery.GroupBy.Cube))
 						groupingKind = GroupingType.Cube;
-					else if (mc.IsSameGenericMethod(Methods.LinqToDB.GroupBy.GroupingSets))
+					else if (mc.IsSameGenericMethod(Methods.SooQuery.GroupBy.GroupingSets))
 						groupingKind = GroupingType.GroupBySets;
 					else throw new InvalidOperationException();
 
@@ -491,7 +491,7 @@ namespace mooSQL.linq.Linq.Builder
 				{
 					if (!IsGroupingGuardDisabled)
 					{
-						var ex = new LinqToDBException(
+						var ex = new SooQueryException(
 							
 							"You should explicitly specify selected fields for server-side GroupBy() call or add AsEnumerable() call before GroupBy() to perform client-side grouping.Set Configuration.Linq.GuardGrouping = false to disable this check.Additionally this guard exception can be disabled by extension GroupBy(...).DisableGuard().NOTE! By disabling this guard you accept Eager Loading for grouping query."
 						)

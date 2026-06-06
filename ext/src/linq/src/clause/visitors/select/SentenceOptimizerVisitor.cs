@@ -961,7 +961,7 @@ namespace mooSQL.linq.SqlQuery
 				{
 					if (isApplySupported)
 						return optimized;
-					throw new LinqToDBException("SQL query requires TakeHints in CROSS/OUTER query, which are not supported by provider");
+					throw new SooQueryException("SQL query requires TakeHints in CROSS/OUTER query, which are not supported by provider");
 				}
 
 				IExpWord?       rnExpression = null;

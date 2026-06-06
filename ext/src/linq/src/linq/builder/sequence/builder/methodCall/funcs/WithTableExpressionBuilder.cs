@@ -18,7 +18,7 @@ namespace mooSQL.linq.Linq.Builder
 		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-			var table    = SequenceHelper.GetTableContext(sequence) ?? throw new LinqToDBException($"Cannot get table context from {sequence.GetType()}");
+			var table    = SequenceHelper.GetTableContext(sequence) ?? throw new SooQueryException($"Cannot get table context from {sequence.GetType()}");
 			var value    = builder.EvaluateExpression<string>(methodCall.Arguments[1]);
 
 			table.SqlTable.SqlTableType   = SqlTableType.Expression;

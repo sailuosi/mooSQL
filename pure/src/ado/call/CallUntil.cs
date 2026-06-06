@@ -73,8 +73,12 @@ namespace mooSQL.data.call
         {
             try
             {
-                var namefix = name + "Call";
-                var fullName = "mooSQL.data.call." + namefix;
+                var typeName = name switch
+                {
+                    "useQueryable" => "UseQueryableCall",
+                    _ => name + "Call"
+                };
+                var fullName = "mooSQL.data.call." + typeName;
 
                 var type = Type.GetType(fullName);
                 if (type != null)

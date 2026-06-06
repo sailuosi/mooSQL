@@ -9,7 +9,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.linq.ext;
     using SqlQuery;
 
-	using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+	using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
 
 	internal partial class MergeBuilder
 	{
@@ -23,7 +23,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{
-				// MergeInto<TTarget, TSource>(IQueryable<TSource> source, ITable<TTarget> target, string hint)
+				// MergeInto<TTarget, TSource>(IQueryable<TSource> source, IDbQuery<TTarget> target, string hint)
 				var sourceContext = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0], new SelectQueryClause()));
 				var target        = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1]) { AssociationsAsSubQueries = true });
 

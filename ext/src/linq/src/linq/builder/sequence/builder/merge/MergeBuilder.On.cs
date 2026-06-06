@@ -8,7 +8,7 @@ namespace mooSQL.linq.Linq.Builder
 	using mooSQL.linq.Expressions;
     using mooSQL.linq.ext;
     using mooSQL.linq.SqlQuery;
-    using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+    using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
 
 	internal partial class MergeBuilder
 	{
@@ -87,7 +87,7 @@ namespace mooSQL.linq.Linq.Builder
 					}
 
 					if (ex == null)
-						throw new LinqToDBException("Method OnTargetKey() needs at least one primary key column");
+						throw new SooQueryException("Method OnTargetKey() needs at least one primary key column");
 
 					var condition = Expression.Lambda(ex, pTarget, pSource);
 

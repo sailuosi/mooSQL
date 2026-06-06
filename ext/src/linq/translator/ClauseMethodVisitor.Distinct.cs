@@ -1,4 +1,4 @@
-using mooSQL.data.call;
+﻿using mooSQL.data.call;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
 using mooSQL.linq.Reflection;
@@ -32,7 +32,7 @@ internal partial class ClauseMethodVisitor
 
         var outerSubqueryContext = new SubQueryContext(subQueryContext);
 
-        if (methodCall.IsSameGenericMethod(Methods.LinqToDB.SelectDistinct))
+        if (methodCall.IsSameGenericMethod(Methods.SooQuery.SelectDistinct))
         {
             subQueryContext.SelectQuery.Select.OptimizeDistinct = true;
         }

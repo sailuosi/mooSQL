@@ -11,7 +11,7 @@ namespace mooSQL.linq.Linq.Builder
 	sealed class IgnoreFiltersBuilder : MethodCallBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
-			=> call.IsSameGenericMethod(Methods.LinqToDB.IgnoreFilters);
+			=> call.IsSameGenericMethod(Methods.SooQuery.IgnoreFilters);
 
 		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{

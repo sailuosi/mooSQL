@@ -100,7 +100,7 @@ namespace mooSQL.linq.Linq.Builder
 				var extractResult = ExtractAssociations(builder, table, path, null);
 
 				if (extractResult == null)
-					throw new LinqToDBException($"Unable to retrieve properties path for LoadWith/ThenLoad. Path: '{selector}'");
+					throw new SooQueryException($"Unable to retrieve properties path for LoadWith/ThenLoad. Path: '{selector}'");
 
 				var associations = extractResult.Value.info.Length <= 1
 					? extractResult.Value.info
@@ -109,9 +109,9 @@ namespace mooSQL.linq.Linq.Builder
 						.ToArray();
 
 				if (associations.Length == 0)
-					throw new LinqToDBException($"Unable to retrieve properties path for LoadWith/ThenLoad. Path: '{path}'");
+					throw new SooQueryException($"Unable to retrieve properties path for LoadWith/ThenLoad. Path: '{path}'");
 
-				table = extractResult.Value.context ?? throw new LinqToDBException("Unable to find table for LoadWith association.");
+				table = extractResult.Value.context ?? throw new SooQueryException("Unable to find table for LoadWith association.");
 
 				var tableLoadWith = table.LoadWithRoot;
 
@@ -124,7 +124,7 @@ namespace mooSQL.linq.Linq.Builder
 					// append to the last member chain
 					var lastPath = CorrectLastPath(prevSequence.LastLoadWithInfo, table.LoadWithPath);
 					if (lastPath == null)
-						throw new LinqToDBException($"ThenLoad function should be followed after LoadWith. Cannot find previous property for '{path}'.");
+						throw new SooQueryException($"ThenLoad function should be followed after LoadWith. Cannot find previous property for '{path}'.");
 
 					lastLoadWith = MergeLoadWith(lastPath, associations);
 
@@ -301,7 +301,7 @@ namespace mooSQL.linq.Linq.Builder
 						{
 							var projected = builder.MakeExpression(context, expression, ProjectFlags.Traverse);
 							if (ExpressionEqualityComparer.Instance.Equals(projected, expression))
-								throw new LinqToDBException($"Member '{expression}' is not an association.");
+								throw new SooQueryException($"Member '{expression}' is not an association.");
 							expression = projected;
 							break;
 						}
@@ -355,7 +355,7 @@ namespace mooSQL.linq.Linq.Builder
 
 					default :
 					{
-						throw new LinqToDBException($"Expression '{expression}' is not an association.");
+						throw new SooQueryException($"Expression '{expression}' is not an association.");
 					}
 				}
 			}

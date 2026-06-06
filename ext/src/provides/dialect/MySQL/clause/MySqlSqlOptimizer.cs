@@ -42,7 +42,7 @@
 		private UpdateSentence CorrectMySqlUpdate(UpdateSentence statement)
 		{
 			if (statement.SelectQuery.Select.SkipValue != null)
-				throw new LinqToDBException("MySql does not support Skip in update query");
+				throw new SooQueryException("MySql does not support Skip in update query");
 
 			statement = CorrectUpdateTable(statement, leaveUpdateTableInQuery: true);
 

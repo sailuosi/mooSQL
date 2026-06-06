@@ -393,9 +393,9 @@ namespace mooSQL.linq.Linq.Builder
 						result);
 				}
 
-				if (typeof(ITable<>).IsSameOrParentOf(desiredType))
+				if (typeof(IDbQuery<>).IsSameOrParentOf(desiredType))
 				{
-					var tableType = typeof(PersistentTable<>).MakeGenericType(elementType);
+					var tableType = typeof(PersistentDbQuery<>).MakeGenericType(elementType);
 					result = Expression.New(tableType.GetConstructor(new[] { result.Type })!,
 						result);
 				}

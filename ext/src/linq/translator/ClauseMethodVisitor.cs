@@ -15,8 +15,8 @@ internal partial class ClauseMethodVisitor : MethodVisitor
     private static readonly System.Reflection.MethodInfo[] PassThroughMethods =
     {
         Methods.Queryable.AsQueryable,
-        Methods.LinqToDB.AsQueryable,
-        Methods.LinqToDB.SqlExt.Alias
+        Methods.SooQuery.AsQueryable,
+        Methods.SooQuery.SqlExt.Alias
     };
 
     public ExpressionVisitor? Buddy { get; set; }

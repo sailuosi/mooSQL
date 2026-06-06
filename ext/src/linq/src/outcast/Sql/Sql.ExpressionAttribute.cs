@@ -391,13 +391,13 @@ namespace mooSQL.linq
 						if (ctx.StaticValue.argIndices != null)
 						{
 							if (idx < 0 || idx >= ctx.StaticValue.argIndices.Length)
-								throw new LinqToDBException($"Expression '{ctx.StaticValue.expressionStr}' has wrong ArgIndices mapping. Index '{idx}' do not fit in range.");
+								throw new SooQueryException($"Expression '{ctx.StaticValue.expressionStr}' has wrong ArgIndices mapping. Index '{idx}' do not fit in range.");
 
 							idx = ctx.StaticValue.argIndices[idx];
 						}
 
 						if (idx < 0)
-							throw new LinqToDBException($"Expression '{ctx.StaticValue.expressionStr}' has wrong param index mapping. Index '{idx}' do not fit in range.");
+							throw new SooQueryException($"Expression '{ctx.StaticValue.expressionStr}' has wrong param index mapping. Index '{idx}' do not fit in range.");
 
 						while (idx >= ctx.StaticValue.parms.Count)
 						{
@@ -412,7 +412,7 @@ namespace mooSQL.linq
 								var typeIndex = argIdx - ctx.StaticValue.knownExpressions.Count;
 								if (ctx.StaticValue.genericTypes == null || typeIndex >= ctx.StaticValue.genericTypes.Count || typeIndex < 0)
 								{
-									throw new LinqToDBException($"Expression '{ctx.StaticValue.expressionStr}' has wrong param index mapping. Index '{argIdx}' do not fit in parameters range.");
+									throw new SooQueryException($"Expression '{ctx.StaticValue.expressionStr}' has wrong param index mapping. Index '{argIdx}' do not fit in parameters range.");
 								}
 
 								paramExpr = ctx.StaticValue.genericTypes[typeIndex];
@@ -466,7 +466,7 @@ namespace mooSQL.linq
 									var typeIndex = argIdx - knownExpressions.Count;
 									if (genericTypes == null || typeIndex >= genericTypes.Count || typeIndex < 0)
 									{
-										throw new LinqToDBException($"Function '{expressionStr}' has wrong param index mapping. Index '{argIdx}' do not fit in parameters range.");
+										throw new SooQueryException($"Function '{expressionStr}' has wrong param index mapping. Index '{argIdx}' do not fit in parameters range.");
 									}
 
 									paramExpr = genericTypes[typeIndex];
@@ -544,7 +544,7 @@ namespace mooSQL.linq
 				PrepareParameterValues(context, dataContext, expression, ref expressionStr, true, out var knownExpressions, IgnoreGenericParameters, out var genericTypes, converter);
 
 				if (string.IsNullOrEmpty(expressionStr))
-					throw new LinqToDBException($"Cannot retrieve SQL Expression body from expression '{expression}'.");
+					throw new SooQueryException($"Cannot retrieve SQL Expression body from expression '{expression}'.");
 
 				var parameters = PrepareArguments(context, expressionStr!, ArgIndices, false, knownExpressions, genericTypes, converter, out var error);
 

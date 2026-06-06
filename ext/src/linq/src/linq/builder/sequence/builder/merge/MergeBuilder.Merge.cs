@@ -8,7 +8,7 @@ namespace mooSQL.linq.Linq.Builder
 	using SqlQuery;
 	using Common;
 
-	using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+	using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
     using mooSQL.data.model;
     using mooSQL.linq.ext;
 
@@ -24,7 +24,7 @@ namespace mooSQL.linq.Linq.Builder
 
 			protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 			{
-				// Merge(ITable<TTarget> target, string hint)
+				// Merge(IDbQuery<TTarget> target, string hint)
 
 				var disableFilters = methodCall.Arguments[0] is not MethodCallExpression mc || mc.Method.Name != nameof(LinqExtensions.AsCte);
 				if (disableFilters)

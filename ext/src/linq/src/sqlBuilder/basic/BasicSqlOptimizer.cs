@@ -238,7 +238,7 @@ namespace mooSQL.linq.SqlProvider
 			}
 
 			if (!found)
-				throw new LinqToDBException("Could not generate update statement.");
+				throw new SooQueryException("Could not generate update statement.");
 		}
 
 		protected void ApplyUpdateTableComparison(SelectQueryClause updateQuery, UpdateClause updateClause, TableWord inQueryTable)
@@ -278,7 +278,7 @@ namespace mooSQL.linq.SqlProvider
 
 						if (keys.Count == 0)
 						{
-							throw new LinqToDBException("Invalid update query.");
+							throw new SooQueryException("Invalid update query.");
 						}
 
 						var keysColumns = new List<IExpWord>(keys.Count);
@@ -287,7 +287,7 @@ namespace mooSQL.linq.SqlProvider
 							var newColumn = PopulateNesting(queries, key, 1);
 							if (newColumn == null)
 							{
-								throw new LinqToDBException("Invalid update query. Could not create comparision key. It can be GROUP BY or DISTINCT query modifier.");
+								throw new SooQueryException("Invalid update query. Could not create comparision key. It can be GROUP BY or DISTINCT query modifier.");
 							}
 
 							keysColumns.Add(newColumn);
@@ -672,7 +672,7 @@ namespace mooSQL.linq.SqlProvider
 				{
 					// TODO: Ideally if there is no recursive CTEs we can convert them to SubQueries
 					if (!SqlProviderFlags.IsCommonTableExpressionsSupported)
-						throw new LinqToDBException("DataProvider do not supports Common Table Expressions.");
+						throw new SooQueryException("DataProvider do not supports Common Table Expressions.");
 
 					// basic detection of non-recursive CTEs
 					// for more complex cases we will need dependency cycles detection
@@ -768,7 +768,7 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 				//TODO: probably we can improve this part
 				if (table == null)
-					throw new LinqToDBException("Could not deduce table for delete");
+					throw new SooQueryException("Could not deduce table for delete");
 
 				if (deleteStatement.Output != null)
 					throw new NotImplementedException("GetAlternativeDelete not implemented for delete with output");
@@ -785,7 +785,7 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 				if (copyKeys == null || tableKeys == null)
 				{
-					throw new LinqToDBException("Could not generate comparison between tables.");
+					throw new SooQueryException("Could not generate comparison between tables.");
 				}
 
 				for (var i = 0; i < tableKeys.Count; i++)
@@ -1265,7 +1265,7 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 						var field = QueryHelper.GetUnderlyingField(column);
 						if (field == null)
-							throw new LinqToDBException($"Expression {column} cannot be used for update field");
+							throw new SooQueryException($"Expression {column} cannot be used for update field");
 
 						setExpression.Column = field;
 					}

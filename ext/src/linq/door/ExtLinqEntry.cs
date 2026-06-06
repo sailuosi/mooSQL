@@ -9,10 +9,10 @@ namespace mooSQL.data
     /// </summary>
     internal static class ExtLinqEntry
     {
-        public static ITable<T> CreateTable<T>(DBInstance db) where T : notnull
+        public static IDbQuery<T> CreateDbQuery<T>(DBInstance db) where T : notnull
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
-            return new Table<T>(db);
+            return new DbQuery<T>(db);
         }
     }
 }

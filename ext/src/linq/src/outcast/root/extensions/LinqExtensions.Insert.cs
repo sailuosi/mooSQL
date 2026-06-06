@@ -32,7 +32,7 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static TTarget InsertWithOutput<TTarget>(
-			                this ITable<TTarget>      target,
+			                this IDbQuery<TTarget>      target,
 			                         Expression<Func<TTarget>> setter)
 			where TTarget : notnull
 		{
@@ -70,7 +70,7 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static TTarget InsertWithOutput<TTarget>(
-			                this ITable<TTarget> target,
+			                this IDbQuery<TTarget> target,
 			                         TTarget              obj)
 			where TTarget : notnull
 		{
@@ -111,7 +111,7 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static TOutput InsertWithOutput<TTarget,TOutput>(
-			                this ITable<TTarget>              target,
+			                this IDbQuery<TTarget>              target,
 			                         Expression<Func<TTarget>>         setter,
 			                Expression<Func<TTarget,TOutput>> outputExpression)
 			where TTarget : notnull
@@ -148,9 +148,9 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static int InsertWithOutputInto<TTarget>(
-			                this ITable<TTarget>      target,
+			                this IDbQuery<TTarget>      target,
 			                         Expression<Func<TTarget>> setter,
-			                ITable<TTarget>           outputTable)
+			                IDbQuery<TTarget>           outputTable)
 			where TTarget : notnull
 		{
 			if (target      == null) throw new ArgumentNullException(nameof(target));
@@ -182,9 +182,9 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static Task<int> InsertWithOutputIntoAsync<TTarget>(
-			                this ITable<TTarget>      target,
+			                this IDbQuery<TTarget>      target,
 			                         Expression<Func<TTarget>> setter,
-			                ITable<TTarget>           outputTable,
+			                IDbQuery<TTarget>           outputTable,
 							CancellationToken         token = default)
 			where TTarget : notnull
 		{
@@ -221,9 +221,9 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static int InsertWithOutputInto<TTarget,TOutput>(
-			                this ITable<TTarget>              target,
+			                this IDbQuery<TTarget>              target,
 			                         Expression<Func<TTarget>>         setter,
-			                ITable<TOutput>                   outputTable,
+			                IDbQuery<TOutput>                   outputTable,
 			                Expression<Func<TTarget,TOutput>> outputExpression)
 			where TOutput : notnull
 			where TTarget : notnull
@@ -262,9 +262,9 @@ namespace mooSQL.linq.ext
 		/// </list>
 		/// </remarks>
 		public static Task<int> InsertWithOutputIntoAsync<TTarget,TOutput>(
-			                this ITable<TTarget>              target,
+			                this IDbQuery<TTarget>              target,
 			                         Expression<Func<TTarget>>         setter,
-			                ITable<TOutput>                   outputTable,
+			                IDbQuery<TOutput>                   outputTable,
 			                Expression<Func<TTarget,TOutput>> outputExpression,
 							CancellationToken                 token = default)
 			where TOutput : notnull
@@ -311,7 +311,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static IEnumerable<TTarget> InsertWithOutput<TSource,TTarget>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter)
 			where TTarget : notnull
 		{
@@ -359,7 +359,7 @@ namespace mooSQL.linq.ext
 		
 		public static IEnumerable<TOutput> InsertWithOutput<TSource,TTarget,TOutput>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter,
 			                Expression<Func<TTarget,TOutput>> outputExpression)
 			where TTarget : notnull
@@ -403,9 +403,9 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int InsertWithOutputInto<TSource,TTarget>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter,
-			                ITable<TTarget>                   outputTable)
+			                IDbQuery<TTarget>                   outputTable)
 			where TTarget : notnull
 		{
 			if (source      == null) throw new ArgumentNullException(nameof(source));
@@ -442,9 +442,9 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> InsertWithOutputIntoAsync<TSource,TTarget>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter,
-			                ITable<TTarget>                   outputTable,
+			                IDbQuery<TTarget>                   outputTable,
 							CancellationToken                 token = default)
 			where TTarget : notnull
 		{
@@ -489,9 +489,9 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int InsertWithOutputInto<TSource,TTarget,TOutput>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter,
-			                ITable<TOutput>                   outputTable,
+			                IDbQuery<TOutput>                   outputTable,
 			                Expression<Func<TTarget,TOutput>> outputExpression)
 			where TOutput : notnull
 			where TTarget : notnull
@@ -535,9 +535,9 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> InsertWithOutputIntoAsync<TSource,TTarget,TOutput>(
 			                this IQueryable<TSource>          source,
-			                ITable<TTarget>                   target,
+			                IDbQuery<TTarget>                   target,
 			                         Expression<Func<TSource,TTarget>> setter,
-			                ITable<TOutput>                   outputTable,
+			                IDbQuery<TOutput>                   outputTable,
 			                Expression<Func<TTarget,TOutput>> outputExpression,
 							CancellationToken                 token = default)
 			where TOutput : notnull
@@ -614,7 +614,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int InsertWithOutputInto<TSource,TTarget>(
 			this ISelectInsertable<TSource,TTarget> source,
-			     ITable<TTarget>                    outputTable)
+			     IDbQuery<TTarget>                    outputTable)
 			where TTarget : notnull
 		{
 			if (source      == null) throw new ArgumentNullException(nameof(source));
@@ -646,7 +646,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> InsertWithOutputIntoAsync<TSource,TTarget>(
 			this ISelectInsertable<TSource,TTarget> source,
-			     ITable<TTarget>                    outputTable,
+			     IDbQuery<TTarget>                    outputTable,
 			     CancellationToken                  token = default)
 			where TTarget : notnull
 
@@ -868,7 +868,7 @@ namespace mooSQL.linq.ext
         /// </remarks>
         public static IAsyncEnumerable<TOutput> InsertWithOutputAsync<TSource, TTarget, TOutput>(
                             this IQueryable<TSource> source,
-                            ITable<TTarget> target,
+                            IDbQuery<TTarget> target,
                                      Expression<Func<TSource, TTarget>> setter,
                             Expression<Func<TTarget, TOutput>> outputExpression)
             where TTarget : notnull
@@ -911,7 +911,7 @@ namespace mooSQL.linq.ext
         /// </remarks>
         public static IAsyncEnumerable<TTarget> InsertWithOutputAsync<TSource, TTarget>(
                             this IQueryable<TSource> source,
-                            ITable<TTarget> target,
+                            IDbQuery<TTarget> target,
                                      Expression<Func<TSource, TTarget>> setter)
             where TTarget : notnull
         {
@@ -951,7 +951,7 @@ namespace mooSQL.linq.ext
         /// </list>
         /// </remarks>
         public static Task<TOutput> InsertWithOutputAsync<TTarget, TOutput>(
-                            this ITable<TTarget> target,
+                            this IDbQuery<TTarget> target,
                                      Expression<Func<TTarget>> setter,
                             Expression<Func<TTarget, TOutput>> outputExpression,
                             CancellationToken token = default)
@@ -992,7 +992,7 @@ namespace mooSQL.linq.ext
         /// </list>
         /// </remarks>
         public static Task<TTarget> InsertWithOutputAsync<TTarget>(
-                       this ITable<TTarget> target,
+                       this IDbQuery<TTarget> target,
                                      TTarget obj,
                             CancellationToken token = default)
             where TTarget : notnull
@@ -1030,7 +1030,7 @@ namespace mooSQL.linq.ext
         /// </list>
         /// </remarks>
         public static Task<TTarget> InsertWithOutputAsync<TTarget>(
-                            this ITable<TTarget> target,
+                            this IDbQuery<TTarget> target,
                                      Expression<Func<TTarget>> setter,
                             CancellationToken token = default)
             where TTarget : notnull

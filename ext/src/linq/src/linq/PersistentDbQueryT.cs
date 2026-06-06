@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +10,12 @@ using mooSQL.data;
 
 namespace mooSQL.linq.Linq
 {
-	sealed class PersistentTable<T> : ITable<T>
+	sealed class PersistentDbQuery<T> : IDbQuery<T>
 		where T : notnull
 	{
 		private readonly IQueryable<T> _query;
 
-		public PersistentTable(IQueryable<T> query)
+		public PersistentDbQuery(IQueryable<T> query)
 		{
 			_query = query ?? throw new ArgumentNullException(nameof(query));
 		}

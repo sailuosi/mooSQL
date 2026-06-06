@@ -13,7 +13,7 @@ namespace mooSQL.linq.ext
 	using Async;
 	using Reflection;
 
-	using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+	using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
 
 	public static partial class LinqExtensions
 	{
@@ -63,7 +63,7 @@ namespace mooSQL.linq.ext
 		/// <returns>Returns merge command builder, that contains only target.</returns>
 		
 		public static IMergeableUsing<TTarget> Merge<TTarget>(
-			 this ITable<TTarget> target)
+			 this IDbQuery<TTarget> target)
 			where TTarget : notnull
 		{
 			if (target == null) throw new ArgumentNullException(nameof(target));
@@ -86,7 +86,7 @@ namespace mooSQL.linq.ext
 		/// <returns>Returns merge command builder, that contains only target.</returns>
 		
 		public static IMergeableUsing<TTarget> Merge<TTarget>(
-			                    this ITable<TTarget> target,
+			                    this IDbQuery<TTarget> target,
 			[SqlQueryDependent]      string          hint)
 			where TTarget : notnull
 		{
@@ -138,7 +138,7 @@ namespace mooSQL.linq.ext
 		
 		public static IMergeableOn<TTarget, TSource> MergeInto<TTarget, TSource>(
 			 this IQueryable<TSource> source,
-			      ITable<TTarget>     target)
+			      IDbQuery<TTarget>     target)
 			where TTarget : notnull
 		{
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -165,7 +165,7 @@ namespace mooSQL.linq.ext
 		
 		public static IMergeableOn<TTarget, TSource> MergeInto<TTarget, TSource>(
 			                    this IQueryable<TSource> source,
-			                         ITable<TTarget>     target,
+			                         IDbQuery<TTarget>     target,
 			[SqlQueryDependent]      string              hint)
 			where TTarget : notnull
 		{
@@ -947,7 +947,7 @@ namespace mooSQL.linq.ext
 			return currentQuery.Provider.CreateQuery<TOutput>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Merge.MergeWithOutput.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
+					Methods.SooQuery.Merge.MergeWithOutput.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
 					currentQuery.Expression,
 					Expression.Quote(outputExpression)))
 				.AsEnumerable();
@@ -1010,7 +1010,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int MergeWithOutputInto<TTarget,TSource,TOutput>(
 			this IMergeable<TTarget,TSource>                 merge,
-			ITable<TOutput>                                  outputTable,
+			IDbQuery<TOutput>                                  outputTable,
 			Expression<Func<string,TTarget,TTarget,TOutput>> outputExpression
 			)
 			where TOutput: notnull
@@ -1025,7 +1025,7 @@ namespace mooSQL.linq.ext
 			return currentQuery.Provider.Execute<int>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Merge.MergeWithOutputInto.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
+					Methods.SooQuery.Merge.MergeWithOutputInto.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
 					currentQuery.Expression,
 					((IQueryable<TOutput>)outputTable).Expression,
 					Expression.Quote(outputExpression)
@@ -1052,7 +1052,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static int MergeWithOutputInto<TTarget,TSource,TOutput>(
 			this IMergeable<TTarget,TSource>                         merge,
-			ITable<TOutput>                                          outputTable,
+			IDbQuery<TOutput>                                          outputTable,
 			Expression<Func<string,TTarget,TTarget,TSource,TOutput>> outputExpression
 			)
 			where TOutput: notnull
@@ -1095,7 +1095,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> MergeWithOutputIntoAsync<TTarget, TSource, TOutput>(
 			this IMergeable<TTarget, TSource>                merge,
-			ITable<TOutput>                                  outputTable,
+			IDbQuery<TOutput>                                  outputTable,
 			Expression<Func<string,TTarget,TTarget,TOutput>> outputExpression,
 			CancellationToken                                token = default
 		)
@@ -1110,7 +1110,7 @@ namespace mooSQL.linq.ext
 
 			var expr = Expression.Call(
 				null,
-				Methods.LinqToDB.Merge.MergeWithOutputInto.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
+				Methods.SooQuery.Merge.MergeWithOutputInto.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
 				currentQuery.Expression,
 				((IQueryable<TOutput>)outputTable).Expression,
 				Expression.Quote(outputExpression)
@@ -1142,7 +1142,7 @@ namespace mooSQL.linq.ext
 		/// </remarks>
 		public static Task<int> MergeWithOutputIntoAsync<TTarget,TSource,TOutput>(
 			this IMergeable<TTarget,TSource>                         merge,
-			ITable<TOutput>                                          outputTable,
+			IDbQuery<TOutput>                                          outputTable,
 			Expression<Func<string,TTarget,TTarget,TSource,TOutput>> outputExpression,
 			CancellationToken                                        token = default
 		)
@@ -1233,7 +1233,7 @@ namespace mooSQL.linq.ext
 			return currentQuery.Provider.CreateQuery<TOutput>(
 				Expression.Call(
 					null,
-					Methods.LinqToDB.Merge.MergeWithOutput.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
+					Methods.SooQuery.Merge.MergeWithOutput.MakeGenericMethod(typeof(TTarget), typeof(TSource), typeof(TOutput)),
 					currentQuery.Expression,
 					Expression.Quote(outputExpression)))
 				.AsAsyncEnumerable();

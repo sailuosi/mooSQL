@@ -4,7 +4,7 @@ namespace mooSQL.linq.Linq.Builder
 {
 	using mooSQL.linq.Expressions;
     using mooSQL.linq.ext;
-    using static mooSQL.linq.Reflection.Methods.LinqToDB.Merge;
+    using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
 
 	internal partial class MergeBuilder
 	{

@@ -23,7 +23,7 @@ internal partial class ClauseMethodVisitor
     public override MethodCall VisitFromSql(FromSqlCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
     public override MethodCall VisitFromSqlScalar(FromSqlScalarCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
     public override MethodCall VisitGetCte(GetCteCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildKnownMethods);
-    public override MethodCall VisitGetTable(GetTableCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildTableMethods);
+    public override MethodCall VisitUseQueryable(UseQueryableCall method) => ApplyBuilder<TableBuilder>(method, TableBuilder.CanBuildTableMethods);
     public override MethodCall VisitHasUniqueKey(HasUniqueKeyCall method) => ApplyBuilder<HasUniqueKeyBuilder>(method, HasUniqueKeyBuilder.CanBuildMethod);
     public override MethodCall VisitIgnoreFilters(IgnoreFiltersCall method) => ApplyBuilder<IgnoreFiltersBuilder>(method, IgnoreFiltersBuilder.CanBuildMethod);
     public override MethodCall VisitInlineParameters(InlineParametersCall method) => ApplyBuilder<InlineParametersBuilder>(method, InlineParametersBuilder.CanBuildMethod);

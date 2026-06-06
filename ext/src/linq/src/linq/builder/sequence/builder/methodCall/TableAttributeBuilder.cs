@@ -8,8 +8,8 @@ namespace mooSQL.linq.Linq.Builder
 
     [BuildsMethodCall(
 
-		nameof(TableExtensions.IsTemporary),
-		nameof(TableExtensions.TableOptions)
+		nameof(DbQueryExtensions.IsTemporary),
+		nameof(DbQueryExtensions.TableOptions)
 
 	)]
 	sealed class TableAttributeBuilder : MethodCallBuilder
@@ -20,16 +20,16 @@ namespace mooSQL.linq.Linq.Builder
 		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-			var table    = SequenceHelper.GetTableContext(sequence) ?? throw new LinqToDBException($"Cannot get table context from {sequence.GetType()}");
-			var value = methodCall.Arguments.Count == 1 && methodCall.Method.Name == nameof(TableExtensions.IsTemporary)
+			var table    = SequenceHelper.GetTableContext(sequence) ?? throw new SooQueryException($"Cannot get table context from {sequence.GetType()}");
+			var value = methodCall.Arguments.Count == 1 && methodCall.Method.Name == nameof(DbQueryExtensions.IsTemporary)
 				? true
 				: builder.EvaluateExpression(methodCall.Arguments[1]);
 
 			switch (methodCall.Method.Name)
 			{
 
-				case nameof(TableExtensions.TableOptions) : table.SqlTable.TableOptions  = (TableOptions)value!; break;
-				case nameof(TableExtensions.IsTemporary)  : table.SqlTable.Set((bool)value!, TableOptions.IsTemporary); break;
+				case nameof(DbQueryExtensions.TableOptions) : table.SqlTable.TableOptions  = (TableOptions)value!; break;
+				case nameof(DbQueryExtensions.IsTemporary)  : table.SqlTable.Set((bool)value!, TableOptions.IsTemporary); break;
 			}
 
 			return BuildSequenceResult.FromContext(sequence);

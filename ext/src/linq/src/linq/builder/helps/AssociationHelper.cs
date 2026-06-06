@@ -18,8 +18,8 @@ namespace mooSQL.linq.Linq.Builder
 		static readonly MethodInfo[] DefaultIfEmptyMethods = new [] { Methods.Queryable.DefaultIfEmpty, Methods.Queryable.DefaultIfEmptyValue };
 
 		// Returns
-		// (ParentType p) => dc.GetTable<ObjectType>().Where(...)
-		// (ParentType p) => dc.GetTable<ObjectType>().Where(...).DefaultIfEmpty
+		// (ParentType p) => dc.useQueryable<ObjectType>().Where(...)
+		// (ParentType p) => dc.useQueryable<ObjectType>().Where(...).DefaultIfEmpty
 		public static LambdaExpression CreateAssociationQueryLambda(
 			ClauseSqlTranslator     builder,
 			DBInstance         DB,
@@ -154,7 +154,7 @@ namespace mooSQL.linq.Linq.Builder
 
 				}
 
-				var queryParam = Expression.Call(Methods.LinqToDB.GetTable.MakeGenericMethod(objectType), dataContextExpr);
+				var queryParam = Expression.Call(Methods.SooQuery.useQueryable.MakeGenericMethod(objectType), dataContextExpr);
 
 				if (additionalCondition != null)
 				{
@@ -224,7 +224,7 @@ namespace mooSQL.linq.Linq.Builder
 				var body = definedQueryMethod.Body;
 
 				body = Expression.Call(
-					Methods.LinqToDB.LoadWithInternal.MakeGenericMethod(body.Type),
+					Methods.SooQuery.LoadWithInternal.MakeGenericMethod(body.Type),
 					body,
 					Expression.Constant(loadWith),
 					Expression.Constant(path, typeof(MemberInfo[])));

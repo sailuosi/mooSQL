@@ -974,7 +974,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 			if (string.IsNullOrEmpty(alias))
 				return expression;
 
-			return Expression.Call(Methods.LinqToDB.SqlExt.Alias.MakeGenericMethod(expression.Type), expression,
+			return Expression.Call(Methods.SooQuery.SqlExt.Alias.MakeGenericMethod(expression.Type), expression,
 				Expression.Constant(alias));
 		}
 
@@ -1000,7 +1000,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 								return SqlQueryRootExpression.Create(context.DBLive, wpi.Type);
 							}
 
-							throw new LinqToDBException($"Can't convert {wpi} to expression.");
+							throw new SooQueryException($"Can't convert {wpi} to expression.");
 						}
 
 						var result = n < 0 ? context.node.Object! : context.node.Arguments[n];
@@ -1058,7 +1058,7 @@ namespace mooSQL.linq.Linq.Builder.Visitors
 							return SqlQueryRootExpression.Create(context.DB, wpi.Type);
 						}
 
-						throw new LinqToDBException($"Can't convert {wpi} to expression.");
+						throw new SooQueryException($"Can't convert {wpi} to expression.");
 					}
 
 					return wpi;

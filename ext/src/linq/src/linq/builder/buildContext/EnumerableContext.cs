@@ -189,9 +189,9 @@ namespace mooSQL.linq.Linq.Builder
 				//	generator.AddExpression(
 				//		Expression.New(
 				//			_parameterConstructor,
-				//			Expression.Property(variable, Methods.LinqToDB.DataParameter.DbDataType),
+				//			Expression.Property(variable, Methods.SooQuery.DataParameter.DbDataType),
 				//			Expression.Constant(memberName),
-				//			Expression.Property(variable, Methods.LinqToDB.DataParameter.Value)
+				//			Expression.Property(variable, Methods.SooQuery.DataParameter.Value)
 				//		));
 				//}
 				//else

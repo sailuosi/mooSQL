@@ -2,11 +2,11 @@
 
 ## 架构定位
 
-**Ext LINQ 对标 EF Core、Linq2DB、SqlSugar `Queryable` 等框架的通用 LINQ 能力**，入口采用与业界一致的 **标准 Queryable 习惯**：
+**Ext LINQ 对标 EF Core、SqlSugar `Queryable` 等框架的通用 LINQ 能力**，入口采用 mooSQL **useXXX 约定**：
 
-- `db.useQueryable<T>()` / `db.AsQueryable<T>()` → `ITable<T>`（`GetTable<T>()` 为 Linq2DB 兼容）
+- `db.useQueryable<T>()` / `db.AsQueryable<T>()` → `IDbQuery<T>`
 - 标准 `System.Linq.Queryable` 链式（Where / Select / OrderBy / GroupBy …）
-- Linq2DB 风格扩展（LoadWith、Merge、SetOp、InsertOrUpdate 等）
+- Queryable 扩展（LoadWith、Merge、SetOp、InsertOrUpdate 等）
 
 **与 Fast LINQ 的关系**：Fast（`pure/src/linq`）经 **`useBus`** 走 mooSQL 特色 `IDbBus` + `BusQueryable`，两条主线 **并行、不互相替代**。详见 [LINQ全景分析与项目对比.md](../LINQ全景分析与项目对比.md)。
 

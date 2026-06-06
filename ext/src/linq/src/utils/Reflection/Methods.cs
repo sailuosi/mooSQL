@@ -21,7 +21,7 @@ namespace mooSQL.linq.Reflection
     using SqlQuery;
 
 	/// <summary>
-	/// This API supports the LinqToDB infrastructure and is not intended to be used  directly from your code.
+	/// This API supports the mooSQL LINQ infrastructure and is not intended to be used directly from your code.
 	/// This API may change or be removed in future releases.
 	/// </summary>
 	public static class Methods
@@ -116,13 +116,13 @@ namespace mooSQL.linq.Reflection
 			public static readonly MethodInfo Distinct    = MemberHelper.MethodOfGeneric<IQueryable<int>>(q => q.Distinct());
 		}
 
-		public static class LinqToDB
+		public static class SooQuery
 		{
 			internal static readonly MethodInfo EvaluateExpression = MemberHelper.MethodOf(() => ExpressionEvaluator.EvaluateExpression(null));
 
-			public static readonly MethodInfo GetTable    = MemberHelper.MethodOfGeneric<DBInstance>(dc => dc.GetTable<object>());
+			public static readonly MethodInfo useQueryable = MemberHelper.MethodOfGeneric<DBInstance>(dc => dc.useQueryable<object>());
 
-			public static readonly MethodInfo LoadWithAsTable       = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.LoadWithAsTable(e => e.Single2));
+			public static readonly MethodInfo LoadWithAsTable       = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.LoadWithAsTable(e => e.Single2));
 
 			internal static readonly MethodInfo LoadWithInternal    = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.LoadWithInternal(null!, null));
 
@@ -157,15 +157,15 @@ namespace mooSQL.linq.Reflection
 
 			public static class Table
 			{
-				//public static readonly MethodInfo TableID      = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.TableID     (null!));
-				//public static readonly MethodInfo TableName    = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.TableName   (null!));
-				//public static readonly MethodInfo SchemaName   = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.SchemaName  (null!));
-				//public static readonly MethodInfo DatabaseName = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.DatabaseName(null!));
-				//public static readonly MethodInfo ServerName   = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.ServerName  (null!));
-				//public static readonly MethodInfo TableOptions = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.TableOptions(data.TableOptions.NotSet));
+				//public static readonly MethodInfo TableID      = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.TableID     (null!));
+				//public static readonly MethodInfo TableName    = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.TableName   (null!));
+				//public static readonly MethodInfo SchemaName   = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.SchemaName  (null!));
+				//public static readonly MethodInfo DatabaseName = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.DatabaseName(null!));
+				//public static readonly MethodInfo ServerName   = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.ServerName  (null!));
+				//public static readonly MethodInfo TableOptions = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.TableOptions(data.TableOptions.NotSet));
 
-				//public static readonly MethodInfo With                = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.With(""));
-				//public static readonly MethodInfo WithTableExpression = MemberHelper.MethodOfGeneric<ITable<int>>(t => t.WithTableExpression(""));
+				//public static readonly MethodInfo With                = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.With(""));
+				//public static readonly MethodInfo WithTableExpression = MemberHelper.MethodOfGeneric<IDbQuery<int>>(t => t.WithTableExpression(""));
 			}
 
 			public static class GroupBy
@@ -195,8 +195,8 @@ namespace mooSQL.linq.Reflection
 				//public static readonly MethodInfo UpdateSetterAsync           = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, Expression<Func<LW1, LW1>> s) => q.UpdateAsync(s, default));
 				//public static readonly MethodInfo UpdatePredicateSetter       = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, Expression<Func<LW1, bool>> p, Expression<Func<LW1, LW1>> s) => q.Update(p, s));
 				//public static readonly MethodInfo UpdatePredicateSetterAsync  = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, Expression<Func<LW1, bool>> p, Expression<Func<LW1, LW1>> s) => q.UpdateAsync(p, s, default));
-				//public static readonly MethodInfo UpdateTarget                = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, ITable<LW2> t, Expression<Func<LW1, LW2>> s) => q.Update(t, s));
-				//public static readonly MethodInfo UpdateTargetAsync           = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, ITable<LW2> t, Expression<Func<LW1, LW2>> s) => q.UpdateAsync(t, s, default));
+				//public static readonly MethodInfo UpdateTarget                = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, IDbQuery<LW2> t, Expression<Func<LW1, LW2>> s) => q.Update(t, s));
+				//public static readonly MethodInfo UpdateTargetAsync           = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, IDbQuery<LW2> t, Expression<Func<LW1, LW2>> s) => q.UpdateAsync(t, s, default));
 				//public static readonly MethodInfo UpdateTargetFuncSetter      = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, Expression<Func<LW1, LW2>> t, Expression<Func<LW1, LW2>> s) => q.Update(t, s));
 				//public static readonly MethodInfo UpdateTargetFuncSetterAsync = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, Expression<Func<LW1, LW2>> t, Expression<Func<LW1, LW2>> s) => q.UpdateAsync(t, s, default));
 
@@ -217,22 +217,22 @@ namespace mooSQL.linq.Reflection
 
 				public static class T
 				{
-					//public static readonly MethodInfo AsValueInsertable = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.AsValueInsertable());
+					//public static readonly MethodInfo AsValueInsertable = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.AsValueInsertable());
 
-					//public static readonly MethodInfo Value             = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.Value(e => e.Value1, 1));
-					//public static readonly MethodInfo ValueExpression   = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.Value(e => e.Value1, () => 1));
+					//public static readonly MethodInfo Value             = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.Value(e => e.Value1, 1));
+					//public static readonly MethodInfo ValueExpression   = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.Value(e => e.Value1, () => 1));
 
-					//public static readonly MethodInfo Insert      = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.Insert(s));
-					//public static readonly MethodInfo InsertAsync = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertAsync(s, default));
+					//public static readonly MethodInfo Insert      = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.Insert(s));
+					//public static readonly MethodInfo InsertAsync = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertAsync(s, default));
 
-					//public static readonly MethodInfo InsertWithIdentity             = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithIdentity(s));
-					//public static readonly MethodInfo InsertWithIdentityAsync        = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithIdentityAsync(s, default));
-					//public static readonly MethodInfo InsertWithInt32Identity        = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt32Identity(s));
-					//public static readonly MethodInfo InsertWithInt32IdentityAsync   = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt32IdentityAsync(s, default));
-					//public static readonly MethodInfo InsertWithInt64Identity        = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt64Identity(s));
-					//public static readonly MethodInfo InsertWithInt64IdentityAsync   = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt64IdentityAsync(s, default));
-					//public static readonly MethodInfo InsertWithDecimalIdentity      = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithDecimalIdentity(s));
-					//public static readonly MethodInfo InsertWithDecimalIdentityAsync = MemberHelper.MethodOfGeneric((ITable<LW1> t, Expression<Func<LW1>> s) => t.InsertWithDecimalIdentityAsync(s, default));
+					//public static readonly MethodInfo InsertWithIdentity             = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithIdentity(s));
+					//public static readonly MethodInfo InsertWithIdentityAsync        = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithIdentityAsync(s, default));
+					//public static readonly MethodInfo InsertWithInt32Identity        = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt32Identity(s));
+					//public static readonly MethodInfo InsertWithInt32IdentityAsync   = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt32IdentityAsync(s, default));
+					//public static readonly MethodInfo InsertWithInt64Identity        = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt64Identity(s));
+					//public static readonly MethodInfo InsertWithInt64IdentityAsync   = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithInt64IdentityAsync(s, default));
+					//public static readonly MethodInfo InsertWithDecimalIdentity      = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithDecimalIdentity(s));
+					//public static readonly MethodInfo InsertWithDecimalIdentityAsync = MemberHelper.MethodOfGeneric((IDbQuery<LW1> t, Expression<Func<LW1>> s) => t.InsertWithDecimalIdentityAsync(s, default));
 				}
 
 				public static class VI
@@ -283,9 +283,9 @@ namespace mooSQL.linq.Reflection
 
 			public static class Merge
 			{
-				public static readonly MethodInfo MergeMethodInfo1                          = MemberHelper.MethodOfGeneric<ITable<LW1>>(q => q.Merge(string.Empty));
+				public static readonly MethodInfo MergeMethodInfo1                          = MemberHelper.MethodOfGeneric<IDbQuery<LW1>>(q => q.Merge(string.Empty));
 				public static readonly MethodInfo MergeMethodInfo2                          = MemberHelper.MethodOfGeneric<IQueryable<LW1>>(q => q.Merge());
-				public static readonly MethodInfo MergeIntoMethodInfo1                      = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, ITable<LW2> t) => q.MergeInto(t, string.Empty));
+				public static readonly MethodInfo MergeIntoMethodInfo1                      = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, IDbQuery<LW2> t) => q.MergeInto(t, string.Empty));
 				public static readonly MethodInfo MergeIntoMethodInfo2                      = MemberHelper.MethodOfGeneric((IQueryable<LW1> q, IQueryable<LW2> t) => q.MergeInto(t));
 				public static readonly MethodInfo UsingMethodInfo1                          = MemberHelper.MethodOfGeneric((IMergeableUsing<LW1> q, IQueryable<LW2> t) => q.Using(t));
 				public static readonly MethodInfo UsingMethodInfo2                          = MemberHelper.MethodOfGeneric((IMergeableUsing<LW1> q, IEnumerable<LW2> t) => q.Using(t));

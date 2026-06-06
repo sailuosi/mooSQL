@@ -12,12 +12,12 @@ namespace mooSQL.linq.Reflection
 
 		static T ThrowException()
 		{
-			throw new LinqToDBException($"The '{typeof(T).FullName}' type must have default or init constructor.");
+			throw new SooQueryException($"The '{typeof(T).FullName}' type must have default or init constructor.");
 		}
 
 		static T ThrowAbstractException()
 		{
-			throw new LinqToDBException($"Cant create an instance of abstract class '{typeof(T).FullName}'.");
+			throw new SooQueryException($"Cant create an instance of abstract class '{typeof(T).FullName}'.");
 		}
 
 		static ObjectFactory()

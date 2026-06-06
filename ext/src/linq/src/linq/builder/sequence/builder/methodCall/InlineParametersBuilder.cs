@@ -10,7 +10,7 @@ namespace mooSQL.linq.Linq.Builder
 	sealed class InlineParametersBuilder : MethodCallBuilder
 	{
 		public static bool CanBuildMethod(MethodCallExpression call, BuildInfo info, ClauseSqlTranslator builder)
-			=> call.IsSameGenericMethod(Methods.LinqToDB.InlineParameters);
+			=> call.IsSameGenericMethod(Methods.SooQuery.InlineParameters);
 
 		protected override BuildSequenceResult BuildMethodCall(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{

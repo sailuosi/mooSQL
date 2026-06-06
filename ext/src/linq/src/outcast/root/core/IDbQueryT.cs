@@ -1,4 +1,4 @@
-﻿
+
 
 namespace mooSQL.linq
 {
@@ -11,8 +11,7 @@ namespace mooSQL.linq
 	/// </summary>
 	/// <typeparam name="T">Record mapping type.</typeparam>
 
-	public interface ITable<out T> : IExpressionQuery<T>
-		// TODO: IT: Review in v6, it should be 'class'.
+	public interface IDbQuery<out T> : IExpressionQuery<T>
 		where T : notnull
 	{
 		string?      ServerName   { get; }

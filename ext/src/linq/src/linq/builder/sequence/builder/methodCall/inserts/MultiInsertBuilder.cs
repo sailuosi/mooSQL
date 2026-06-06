@@ -9,7 +9,7 @@ namespace mooSQL.linq.Linq.Builder
 	using Mapping;
 	using SqlQuery;
 
-	using Methods = Reflection.Methods.LinqToDB.MultiInsert;
+	using Methods = Reflection.Methods.SooQuery.MultiInsert;
 	using mooSQL.data.model;
     using mooSQL.linq.ext;
 
@@ -89,7 +89,7 @@ namespace mooSQL.linq.Linq.Builder
 			var statement = multiInsertContext.MultiInsertStatement;
 			var into      = builder.BuildSequence(new BuildInfo(buildInfo, table, new SelectQueryClause()));
 
-			var intoTable = SequenceHelper.GetTableContext(into) ?? throw new LinqToDBException($"Cannot get table context from {SqlErrorExpression.PrepareExpressionString(query)}");
+			var intoTable = SequenceHelper.GetTableContext(into) ?? throw new SooQueryException($"Cannot get table context from {SqlErrorExpression.PrepareExpressionString(query)}");
 
 			var when          = condition != null ? new SearchConditionWord() : null;
 			var insert        = new InsertClause
@@ -118,7 +118,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		static IBuildContext BuildInto(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
-			// Into(IQueryable, ITable, Expression setter)
+			// Into(IQueryable, IDbQuery, Expression setter)
 			return BuildTargetTable(
 				builder,
 				buildInfo,
@@ -131,7 +131,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		static IBuildContext BuildWhen(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
-			// When(IQueryable, Expression condition, ITable, Expression setter)
+			// When(IQueryable, Expression condition, IDbQuery, Expression setter)
 			return BuildTargetTable(
 				builder,
 				buildInfo,
@@ -144,7 +144,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		static IBuildContext BuildElse(ClauseSqlTranslator builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
-			// Else(IQueryable, ITable, Expression setter)
+			// Else(IQueryable, IDbQuery, Expression setter)
 			return BuildTargetTable(
 				builder,
 				buildInfo,

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -306,7 +306,7 @@ namespace mooSQL.linq.Expressions
 			if (mi is DynamicColumnInfo)
 			{
 				return Expression.Call(
-					Methods.LinqToDB.SqlExt.Property.MakeGenericMethod(mi.GetMemberType()),
+					Methods.SooQuery.SqlExt.Property.MakeGenericMethod(mi.GetMemberType()),
 					obj,
 					Expression.Constant(mi.Name));
 			}
