@@ -363,6 +363,7 @@ flowchart TB
 | **双访问器对齐 FastLinq** | `ext/src/linq/双访问器对齐FastLinq-迁移清单.md` | Phase A～H 清单；MethodCallBuilder 清理验收 |
 | Ext LINQ 三层架构 | `ext/src/linq/src/README.md` | Compile → SentenceBag → Execute |
 | 编译过程解析 | `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` | `StatementCompileSession`、`ClauseCompiler` |
+| **编译层开发指南** | `ext/src/linq/core/ExtLinq编译层开发指南-双访问器与MakeExpression.md` | 双访问器 Buddy 机制、`MakeExpression`、Expression → `SelectQueryClause` 走读 |
 | 执行过程解析 | `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` | `SentenceExecutor` |
 | Fast LINQ 架构 | `doc/docs/moohelp/arch/linq-architecture.md` | 双轨定位 + FastMethodVisitor |
 | SQLBuilder API | `pure/src/ado/builder/API说明文档.md` | 链式 API 参考 |

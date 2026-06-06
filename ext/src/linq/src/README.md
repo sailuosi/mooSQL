@@ -555,5 +555,6 @@ Activity 追踪 ID 见 `ActivityID`：`BuildSequence`、`FinalizeQuery`、`Execu
 
 - [双访问器对齐 FastLinq 迁移清单](../双访问器对齐FastLinq-迁移清单.md) — 分发层对齐 FastLinq 的 Phase A～F
 - `ext/src/linq/core/ClauseCompiler-构建SentenceBag解析.md` — 编译过程（`ClauseCompiler` + `StatementExpression`，无 BuildQuery/Mapper）
+- `ext/src/linq/core/ExtLinq编译层开发指南-双访问器与MakeExpression.md` — **开发人员**：Buddy 双访问器、`MakeExpression`、Expression → `SelectQueryClause` 走读
 - `ext/src/linq/core/EntityVisitCompiler-执行过程解析.md` — 执行入口（Phase 2：`SentenceExecutor`）
 - `pure/src/ado/builder/API说明文档.md` — SQLBuilder 链式 API
