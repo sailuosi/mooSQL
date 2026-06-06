@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R13 完成）**  
+> 最后更新：**2026-06-06（R14 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -32,7 +32,8 @@
 | **R11** | 多方言 dateDiff + E.4 能力矩阵 + NotBetween 三入口 | ✅ | **90/90** |
 | **R12** | Between Builder 删除 + DateDiff Year/Month/Week + 三入口扩展 | ✅ | **95/95** |
 | **R13** | DateDiff SQLite/PG Builder 删除 + 重载注册 + CI 脚本 | ✅ | **99/99** |
-| R14 | Analytic Over 链 registry-only / 更多 stub 删除 | 📋 待排 | — |
+| **R14** | DateDiff MSSQL/MySQL Builder 删除 + RowNumber 三入口 + Over 链评估 | ✅ | **102/102** |
+| R15 | DateDiff 其余方言 Builder / OrderItemBuilder 收敛 | 📋 待排 | — |
 
 ---
 
@@ -74,7 +75,7 @@ pure/src/ado/
 | D.6 Pure 片段扩展 | `SQLExpression.Linq` 与 Bootstrap 对齐 | 🟡 R7–R10 | `nullIf`/`coalesce`/`dateDiff*`（SQLite）已接入 |
 | D.7 批量注册 | Aggregate / DateTime / Analytic 链其余函数 | 🟡 R7–R10 | DateDiff `IsDateDiffPredicate` + Extension 回退 |
 | D.8 MemberTranslator | 去掉 MSSQL/MySQL 独立副本，统一查 registry | 🟡 R9–R10 | 方言类继承 `DefaultMemberTranslator`；仍保留方言 Date/SqlTypes 子类 |
-| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R13 | Between + DateDiff SQLite/PG Builder 已删 |
+| D.9 删除 stub | 移除 `[Obsolete]` 的 Ext 属性链与 `api/dbfunc/` | 🟡 R11–R14 | Between + DateDiff 主流方言 Builder 已删 |
 
 ### 已注册函数（Bootstrap，R6）
 
@@ -152,10 +153,17 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 3. ✅ **CI 脚本** — `run-ext-linq-ci.ps1`（边界检查 + TestLinq）  
 4. ✅ **三入口 Like 快照** + 矩阵 DateDiff overload/Builder inspect
 
-## R14 建议批次（下一迭代）
+## R14 完成项（2026-06-06）
 
-1. **Analytic Over 链 registry-only** — OrderBy/PartitionBy Builder 评估  
-2. **DateDiff 其余方言 Builder** — Oracle/DB2/Access/ClickHouse 收敛  
+1. ✅ **DateDiff MSSQL/MySQL Builder 删除** — 删除 `DateDiffBuilder`；默认/SqlServer/MySQL `PreferServerSide`  
+2. ✅ **Analytic Over 链评估** — Over/OrderBy 仍须 `[Extension]` Token 链；`OrderItemBuilder` 保留（NULLS FIRST/LAST）  
+3. ✅ **三入口 RowNumber Over 快照** — `ThreeEntrySnapshot_RowNumberOver`  
+4. ✅ **矩阵 +2** — `Matrix_DateDiff_MssqlMysql_NoExtensionBuilder`、`Matrix_Analytic_OverChain_RequiresExtensionAttributes`
+
+## R15 建议批次（下一迭代）
+
+1. **DateDiff 其余方言 Builder** — Oracle/DB2/Access/ClickHouse/SapHana → Pure `dateDiff*`  
+2. **OrderItemBuilder 收敛** — NULLS 后缀模板化或拆分 overload  
 3. **物理删除 `api/dbfunc/`** 中已 registry-first 的 stub 文件
 
 ---
@@ -164,17 +172,17 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 
 - [x] `DbFuncTranslationMatrixTests` ≥ 30 项，覆盖 registry 已注册函数  
 - [ ] 常用 `DbFunc.*` 无 `[Extension]` 亦可 compile（registry-only 路径）  
-- [x] `TestLinq` net6.0 全绿（**99/99**）  
-- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between/NotBetween/Lower/DateDiff/Like ✅）  
+- [x] `TestLinq` net6.0 全绿（**102/102**）  
+- [ ] SQLClip / SQLBuilder / LINQ 三入口同表达式 SQL 一致（Between/NotBetween/Lower/DateDiff/Like/RowNumberOver ✅）  
 - [x] ADR 边界脚本 CI 通过（`run-ext-linq-ci.ps1` ✅）
 
-- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Readme 清单 ✅，物理删除留 R14）
+- [ ] `api/dbfunc/` 目录删除或仅保留用户扩展示例（Readme 清单 ✅，物理删除留 R15）
 
-当前：**2/6 项未达成**（矩阵 42 ✅，Between/DateDiff SQLite-PG registry-only ✅，stub 部分删除，三入口 5 组 ✅）。
+当前：**2/6 项未达成**（矩阵 44 ✅，DateDiff 主流方言 registry-only ✅，stub 部分删除，三入口 6 组 ✅）。
 
-### 矩阵测试（42 项，`DbFuncTranslationMatrixTests`）
+### 矩阵测试（44 项，`DbFuncTranslationMatrixTests`）
 
-含 DateDiff SQLite/PG Builder 删除 inspect、Quarter 方言格式、三类型 overload 注册等 R13 新增项。
+含 DateDiff MSSQL/MySQL Builder 删除 inspect、Analytic Over 链 Extension 依赖断言等 R14 新增项。
 
 ---
 

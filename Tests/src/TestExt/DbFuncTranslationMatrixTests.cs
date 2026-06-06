@@ -477,13 +477,47 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
 
     static void AssertDateDiffSqlitePgHasNoBuilder(System.Reflection.MethodInfo method)
     {
+        AssertDateDiffExtensionHasNoBuilder(method, ProviderName.SQLite, ProviderName.PostgreSQL);
+    }
+
+    static void AssertDateDiffExtensionHasNoBuilder(System.Reflection.MethodInfo method, params string?[] configurations)
+    {
+        var configSet = new System.Collections.Generic.HashSet<string?>(configurations);
         var attrs = method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
             .Cast<DbFunc.ExtensionAttribute>();
         foreach (var attr in attrs)
         {
-            if (attr.Configuration is ProviderName.SQLite or ProviderName.PostgreSQL)
+            if (configSet.Contains(attr.Configuration))
                 Assert.Null(attr.BuilderType);
         }
+    }
+
+    [Fact]
+    public void Matrix_DateDiff_MssqlMysql_NoExtensionBuilder()
+    {
+        var method = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.DateDiff),
+            new[] { typeof(DbFunc.DateParts), typeof(System.DateTime?), typeof(System.DateTime?) })!;
+        AssertDateDiffExtensionHasNoBuilder(method, null, ProviderName.SqlServer, ProviderName.MySql);
+    }
+
+    [Fact]
+    public void Matrix_Analytic_OverChain_RequiresExtensionAttributes()
+    {
+        var overMethod = typeof(AnalyticFunctions.IAnalyticFunctionWithoutWindow<long>)
+            .GetMethods()
+            .First(m => m.Name == nameof(AnalyticFunctions.IAnalyticFunctionWithoutWindow<long>.Over));
+        Assert.NotEmpty(overMethod.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+
+        var orderByMethod = typeof(AnalyticFunctions.INeedsOrderByOnly<long>)
+            .GetMethods()
+            .First(m => m.Name == "OrderBy" && m.GetParameters().Length == 1);
+        var orderItemAttrs = orderByMethod.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true)
+            .Cast<DbFunc.ExtensionAttribute>()
+            .Where(a => a.TokenName == "order_item")
+            .ToList();
+        Assert.NotEmpty(orderItemAttrs);
+        Assert.All(orderItemAttrs, a => Assert.Null(a.BuilderType));
     }
 
     [Fact]

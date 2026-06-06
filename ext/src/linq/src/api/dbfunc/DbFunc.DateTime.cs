@@ -119,45 +119,6 @@ namespace mooSQL.linq
 
 		#region DateDiff
 
-		sealed class DateDiffBuilder : IExtensionCallBuilder
-		{
-			public static string DatePartToStr(DateParts part)
-			{
-				return part switch
-				{
-					DateParts.Year => "year",
-					DateParts.Quarter => "quarter",
-					DateParts.Month => "month",
-					DateParts.DayOfYear => "dayofyear",
-					DateParts.Day => "day",
-					DateParts.Week => "week",
-					DateParts.WeekDay => "weekday",
-					DateParts.Hour => "hour",
-					DateParts.Minute => "minute",
-					DateParts.Second => "second",
-					DateParts.Millisecond => "millisecond",
-					_ => throw new InvalidOperationException($"Unexpected datepart: {part}")
-				};
-			}
-
-			public void Build(ISqExtensionBuilder builder)
-			{
-				var part      = builder.GetValue<DateParts>(0);
-				var startdate = builder.GetExpression(1);
-				var endDate   = builder.GetExpression(2);
-
-				if (startdate is null || endDate is null)
-				{
-					builder.IsConvertible = false;
-					return;
-				}
-
-				var partSql   = new ExpressionWord(DatePartToStr(part), PrecedenceLv.Primary);
-
-				builder.ResultExpression = new FunctionWord(typeof(int), builder.Expression, partSql, startdate, endDate);
-			}
-		}
-
 		sealed class DateDiffBuilderSapHana : IExtensionCallBuilder
 		{
 			public void Build(ISqExtensionBuilder builder)
@@ -364,8 +325,8 @@ namespace mooSQL.linq
 		}
 
 		[CLSCompliant(false)]
-		[Extension(               "DateDiff",      BuilderType = typeof(DateDiffBuilder))]
-		[Extension(PN.MySql,      "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
+		[Extension(               "",              PreferServerSide = true)]
+		[Extension(PN.MySql,      "",              PreferServerSide = true)]
 		[Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
 		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
 		[Extension(PN.SQLite,     "",              PreferServerSide = true)]

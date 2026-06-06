@@ -57,8 +57,8 @@ namespace mooSQL.linq
 
 		#region DateDiff
 		[CLSCompliant(false)]
-		[Extension(               "DateDiff",      BuilderType = typeof(DateDiffBuilder))]
-		[Extension(PN.MySql,      "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
+		[Extension(               "",              PreferServerSide = true)]
+		[Extension(PN.MySql,      "",              PreferServerSide = true)]
 		[Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
 		[Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
 		[Extension(PN.SQLite,     "",              PreferServerSide = true)]

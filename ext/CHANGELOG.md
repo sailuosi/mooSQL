@@ -15,6 +15,12 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R14）
+
+- **DateDiff MSSQL/MySQL Builder 删除（D.9）**：删除 `DateDiffBuilder`；SqlServer/MySQL/默认方言 `PreferServerSide`；矩阵 `Matrix_DateDiff_MssqlMysql_NoExtensionBuilder`
+- **Analytic Over 链评估**：Over/OrderBy 仍依赖 `[Extension]` Token 链（不可 registry-only）；`Matrix_Analytic_OverChain_RequiresExtensionAttributes`
+- **三入口 RowNumber Over 快照**：`ThreeEntrySnapshot_RowNumberOver`
+
 ### 新增（Phase D/E R13）
 
 - **DateDiff SQLite/PG Builder 删除（D.9）**：删除 `DateDiffBuilderSQLite` / `DateDiffBuilderPostgreSql`；三类型重载 registry 注册；矩阵 `Matrix_DateDiff_NoSqlitePgExtensionBuilder`

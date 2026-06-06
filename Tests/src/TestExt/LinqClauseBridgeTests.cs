@@ -195,6 +195,26 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void ThreeEntrySnapshot_RowNumberOver()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var expr = db.useQueryable<SQLiteTestUser>()
+            .Select(u => DbFunc.Ext!.RowNumber().Over().OrderBy(u.Id).ToValue())
+            .Expression;
+
+        var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
+        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+
+        var normalized = NormalizeSqlForCompare(linqSql);
+        Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
+        Assert.Equal(normalized, NormalizeSqlForCompare(clipSql));
+        Assert.Contains("ROW_NUMBER", linqSql, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("OVER", linqSql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void ThreeEntrySnapshot_DbFuncLike()
     {
         var db = _sqlite.Db;
