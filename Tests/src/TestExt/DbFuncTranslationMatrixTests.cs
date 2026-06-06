@@ -294,6 +294,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Day), "%d")]
     [InlineData(typeof(NpgsqlDialect), nameof(DbFunc.DateParts.Year), "DATE_PART")]
     [InlineData(typeof(MySQLDialect), nameof(DbFunc.DateParts.Year), "EXTRACT")]
+    [InlineData(typeof(MSSQLDialect), nameof(DbFunc.DateParts.Year), "DATEPART")]
     public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -380,12 +381,32 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Theory]
     [InlineData(typeof(SQLiteDialect), "Days")]
     [InlineData(typeof(MSSQLDialect), "DATEADD")]
+    [InlineData(typeof(MySQLDialect), "DATE_ADD")]
+    [InlineData(typeof(NpgsqlDialect), "interval")]
     public void Matrix_DateAdd_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
         var format = dialect.expression.dateAddDay("{0}", "{1}");
         Assert.NotNull(format);
         Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(typeof(MySQLDialect), "DATE_ADD")]
+    [InlineData(typeof(NpgsqlDialect), "interval")]
+    public void Matrix_DateAdd_StaticCall_DialectSql(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        WithDialect(_sqlite.Db, dialect, db =>
+        {
+            var sql = LinqStatementCompiler.GetSqlText(
+                db,
+                db.useQueryable<SQLiteTestUser>()
+                    .Where(u => DbFunc.DateAdd(DbFunc.DateParts.Day, 1, u.CreatedAt) > u.CreatedAt)
+                    .Expression);
+            Assert.Contains(expectedFragment, sql, System.StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("{0}", sql);
+        });
     }
 
     [Fact]

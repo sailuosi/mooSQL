@@ -1,6 +1,6 @@
 # Phase D / E 路线图 — DbFunc 合并与编译/执行边界
 
-> 最后更新：**2026-06-06（R26 完成，收紧验收）**  
+> 最后更新：**2026-06-06（R27 完成）**  
 > 关联文档：[`ADR-CompileExecute-Boundary.md`](ADR-CompileExecute-Boundary.md)、[`ClauseCompile-Glossary.md`](ClauseCompile-Glossary.md)、[`Dialect-Capability-Matrix.md`](Dialect-Capability-Matrix.md)、[`../CHANGELOG.md`](../../CHANGELOG.md)
 
 ## 目标
@@ -45,6 +45,7 @@
 | **R24** | SQLite DatePart MemberTranslator + 矩阵 `{0}` 断言 | ✅ | **139/139** |
 | **R25** | DateAdd 方言化（`IsDateAddPredicate`）+ SQLite Member + 文档收敛 | ✅ | **143/143** |
 | **R26** | DatePart registry + Npgsql/MySQL Pure 片段 + MemberTranslator | ✅ | **150/150** |
+| **R27** | MSSQL datePart* + SqlServer MemberTranslator Pure 模板 | ✅ | **155/155** |
 
 ---
 
@@ -56,14 +57,14 @@
 |---|--------|------|------|
 | 1 | 矩阵 | `DbFuncTranslationMatrixTests` ≥ 30，覆盖 registry 已注册函数 | ✅ **79+** |
 | 2 | 常用 DbFunc 无属性 | Like/Between/字符串/NullIf/Coalesce/DateDiff/**DatePart**/DateAdd 无 `[Extension]`/`[Expression]`/`[Function]` | ✅ |
-| 3 | TestLinq | net6.0 全绿 | ✅ **150/150** |
+| 3 | TestLinq | net6.0 全绿 | ✅ **155/155** |
 | 4 | 三入口 | LINQ / SQLBuilder / SQLClip 同 SQL（**18 组**） | ✅ |
 | 5 | ADR CI | `run-ext-linq-ci.ps1` | ✅ |
 | 6 | `api/dbfunc/` | stub 已合并；目录保留方法体 + Extension 必需项（`EXTENSION-REQUIRED.md`） | ✅ |
-| **7** | **DatePart Pure 片段** | `datePart*` override 于 **SQLite + Npgsql + MySQL** | ✅ R26 |
+| **7** | **DatePart Pure 片段** | `datePart*` override 于 **SQLite + Npgsql + MySQL + MSSQL** | ✅ R27 |
 | **8** | **DatePart registry** | `IsDatePartPredicate` + Bootstrap 注册 + 静态 `DbFunc.DatePart` compile | ✅ R26 |
 | **9** | **DateAdd Pure 片段** | `dateAdd*` override 于 **SQLite + Npgsql + MySQL** | ✅ R26 |
-| **10** | **MemberTranslator 挂接** | Npgsql/MySQL/SQLite DatePart/DateAdd 走 `DateSqlTemplateResolver` | ✅ R26 |
+| **10** | **MemberTranslator 挂接** | 四方言 DatePart/DateAdd 走 `DateSqlTemplateResolver`（MSSQL compile 待 `MSSQLClauseTranslator`） | ✅ R27 |
 
 **Phase D/E 收紧验收已达成**（Analytic Over / Collate / StringAgg / E.5/E.6 → Phase F）。
 
@@ -280,10 +281,17 @@ NullCompare、Like、Between/**NotBetween E2E**、In、Substring、Lower/Upper/T
 4. ✅ **收紧验收 #7–#10** — 多方言矩阵 + `WithDialect` 隔离 fixture
 5. ✅ **150/150** TestLinq + CI
 
-## R27 建议批次（Phase F 入口）
+## R27 完成项（2026-06-06）
 
-1. **MSSQL datePart\*** — `MSSQLExpress` + SqlServer MemberTranslator Pure 模板
-2. **Analytic Over registry 评估** — 单开 Phase F
+1. ✅ **MSSQLExpress `datePart*`** — `DATEPART(part, date)` 全套 override
+2. ✅ **SqlServer MemberTranslator** — DatePart/DateAdd 改走 `DateSqlTemplateResolver`
+3. ✅ **矩阵 +5** — MSSQL Express、DateAdd StaticCall（MySQL/Npgsql）、DateAdd Express 四方言
+4. 📋 **MSSQL compile 矩阵** — 待 `MSSQLClauseTranslator`（`clauseTranslator` 未挂接）
+
+## R28 建议批次（Phase F）
+
+1. **MSSQLClauseTranslator** — 补 MSSQL compile 链 + DatePart/DateAdd 端到端矩阵
+2. **Analytic Over registry 评估** — Phase F
 
 ---
 

@@ -23,67 +23,34 @@ namespace mooSQL.linq.DataProvider.SqlServer.Translation
 
 		public class SqlServerDateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
-			public static string? DatePartToStr(DbFunc.DateParts part)
-			{
-				return part switch
-				{
-					DbFunc.DateParts.Year => "year",
-					DbFunc.DateParts.Quarter => "quarter",
-					DbFunc.DateParts.Month => "month",
-					DbFunc.DateParts.DayOfYear => "dayofyear",
-					DbFunc.DateParts.Day => "day",
-					DbFunc.DateParts.Week => "week",
-					DbFunc.DateParts.WeekDay => "weekday",
-					DbFunc.DateParts.Hour => "hour",
-					DbFunc.DateParts.Minute => "minute",
-					DbFunc.DateParts.Second => "second",
-					DbFunc.DateParts.Millisecond => "millisecond",
-					_ => null
-				};
-			}
-
 			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
-				var partStr = DatePartToStr(datepart);
-
-				if (partStr == null)
+				var factory = translationContext.ExpressionFactory;
+				var intDbType = factory.GetDbDataType(typeof(int));
+				var template = DateSqlTemplateResolver.ResolveDatePartFormat(translationContext.DBLive.dialect.expression, datepart);
+				if (template == null)
 					return null;
 
-				var factory   = translationContext.ExpressionFactory;
-				var intDbType = factory.GetDbDataType(typeof(int));
-
-				var resultExpression = factory.Function(intDbType, "DatePart", factory.Fragment(intDbType, partStr), dateTimeExpression);
-
-				return resultExpression;
+				return factory.Fragment(intDbType, template, dateTimeExpression);
 			}
 
 			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
-			{
-				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
-			}
+				=> TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
-				DbFunc.DateParts                                                       datepart)
+				DbFunc.DateParts datepart)
 			{
-				// 静态 DbFunc.DateAdd 优先走 DbFuncRegistry；此处保留实例/扩展 DateAdd 的 SqlServer 方言。
 				var factory = translationContext.ExpressionFactory;
 				var dateType = factory.GetDbDataType(dateTimeExpression);
-
-				var partStr = DatePartToStr(datepart);
-
-				if (partStr == null)
-				{
+				var template = DateSqlTemplateResolver.ResolveDateAddFormat(translationContext.DBLive.dialect.expression, datepart);
+				if (template == null)
 					return null;
-				}
 
-				var resultExpression = factory.Function(dateType, "DateAdd", factory.Fragment(factory.GetDbDataType(typeof(string)), partStr), increment, dateTimeExpression);
-				return resultExpression;
+				return factory.Fragment(dateType, template, increment, dateTimeExpression);
 			}
 
 			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
-			{
-				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
-			}
+				=> TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 
 			protected override IExpWord? TranslateMakeDateTime(
 				ITranslationContext translationContext,

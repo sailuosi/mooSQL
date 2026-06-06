@@ -52,6 +52,31 @@ namespace mooSQL.data
 
         public override string dateDiffQuarter(string start, string end)
             => $"DATEDIFF(quarter, {start}, {end})";
+
+        static string SqlDatePart(string part, string date) => $"DATEPART({part}, {date})";
+
+        public override string? datePartYear(string date) => SqlDatePart("year", date);
+
+        public override string? datePartQuarter(string date) => SqlDatePart("quarter", date);
+
+        public override string? datePartMonth(string date) => SqlDatePart("month", date);
+
+        public override string? datePartDay(string date) => SqlDatePart("day", date);
+
+        public override string? datePartDayOfYear(string date) => SqlDatePart("dayofyear", date);
+
+        public override string? datePartWeek(string date) => SqlDatePart("week", date);
+
+        public override string? datePartWeekDay(string date) => SqlDatePart("weekday", date);
+
+        public override string? datePartHour(string date) => SqlDatePart("hour", date);
+
+        public override string? datePartMinute(string date) => SqlDatePart("minute", date);
+
+        public override string? datePartSecond(string date) => SqlDatePart("second", date);
+
+        public override string? datePartMillisecond(string date) => SqlDatePart("millisecond", date);
+
         /// <summary>
         /// 
         /// </summary>

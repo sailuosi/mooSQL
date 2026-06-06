@@ -15,6 +15,12 @@
 | `GetTable<T>()` / `useEntity<T>()` | 已删除，请用 `useQueryable<T>()` / `AsQueryable<T>()` |
 | `ITable<T>` | `IDbQuery<T>` |
 
+### 新增（Phase D/E R27）
+
+- **MSSQLExpress `datePart*`** — `DATEPART(part, date)` 全套 override
+- **SqlServer MemberTranslator** — DatePart/DateAdd 统一 `DateSqlTemplateResolver`
+- **矩阵 +5** — MSSQL Express；`Matrix_DateAdd_StaticCall`（MySQL/Npgsql）；DateAdd Express 四方言
+
 ### 新增（Phase D/E R26）
 
 - **收紧验收 #7–#10** — DatePart/DateAdd Pure 片段须覆盖 SQLite + Npgsql + MySQL

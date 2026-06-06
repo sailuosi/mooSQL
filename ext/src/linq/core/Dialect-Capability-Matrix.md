@@ -63,7 +63,7 @@
 | **`.Over().OrderBy()`** | `[Extension]` Token 链 | ❌ | 窗口帧语法；须 `GetExtensionAttributes` |
 | **Collate** | `[Extension]` + Builder | ❌ | 多方言 Builder（PG/DB2/默认） |
 | **Grouping** | `[Extension]` 聚合 | ❌ | `GROUPING(...)` |
-| **DatePart / DateAdd** | registry + MemberTranslator | ✅ 三方言 R26 | Pure `datePart*` / `dateAdd*`；`IsDatePartPredicate` |
+| **DatePart / DateAdd** | registry + MemberTranslator | ✅ 四方言 R27 | Pure 片段；MSSQL compile 待 ClauseTranslator |
 
 > **结论**：Analytic Over 链与 Collate 短期保留属性链；常用 DbFunc 谓词/函数已 registry-first（见矩阵 `Matrix_RegistryFirst_ExtensionRequired`）。
 

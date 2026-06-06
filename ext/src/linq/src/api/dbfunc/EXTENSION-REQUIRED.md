@@ -15,7 +15,7 @@ Phase D/E **registry-first** 目标：常用谓词与标量函数走 `Dialect.db
 | Coalesce | `SqlTemplate` | `expression.coalesce` |
 | DateDiff | `IsDateDiffPredicate` | `expression.dateDiff*` |
 | DateAdd | `IsDateAddPredicate` | `expression.dateAdd*` |
-| DatePart | `IsDatePartPredicate` | `expression.datePart*`（SQLite/Npgsql/MySQL R26） |
+| DatePart | `IsDatePartPredicate` | `expression.datePart*`（SQLite/Npgsql/MySQL/MSSQL R27） |
 | DatePart / `.Year` 等 Member | MemberTranslator | 同上 Pure 片段 |
 
 矩阵：`Matrix_RegistryFirst_CommonDbFuncs_NoAttributes`、`Matrix_RegistryFirst_ExtensionRequired`。
