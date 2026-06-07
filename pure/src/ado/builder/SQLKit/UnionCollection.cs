@@ -143,5 +143,13 @@ namespace mooSQL.data
 
         }
 
+        public string buildExist()
+        {
+            var sql = gengeUnionPartContent();
+
+            unitedWraper.from("( " + sql + " ) as " + _unionName);
+            return unitedWraper.buildExistSQL();
+        }
+
     }
 }

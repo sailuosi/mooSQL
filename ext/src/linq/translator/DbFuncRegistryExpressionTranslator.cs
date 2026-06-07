@@ -45,6 +45,7 @@ internal static class DbFuncRegistryExpressionTranslator
             return null;
 
         DbFuncRegistryBootstrap.EnsureRegistered(db);
+        mc = NormalizeRegistryMethodCall(mc);
         var entry = db.dialect.dbFuncRegistry.Resolve(mc.Method);
         if (entry == null)
             return null;
@@ -407,20 +408,21 @@ internal static class DbFuncRegistryExpressionTranslator
         if (mc.Arguments.Count < 1)
             return null;
 
-        var argExpr = builder.ConvertToSqlExpr(context, mc.Arguments[0], ProjectFlags.SQL);
-        if (argExpr is not SqlPlaceholderExpression argPh)
+        var argSql = builder.ConvertToSql(context, mc.Arguments[0], unwrap: false, flags: ProjectFlags.SQL);
+        if (argSql == null)
             return null;
 
         var format = db.dialect.expression.isNullOrWhiteSpace("{0}");
-        var sql = new ExpressionWord(
+        var exprWord = new ExpressionWord(
             typeof(bool),
             format,
             PrecedenceLv.Primary,
             SqlFlags.IsPredicate,
             ParametersNullabilityType.IfAnyParameterNullable,
             null,
-            argPh.Sql);
-        return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
+            argSql);
+        var predicate = new SearchConditionWord(false, new Expr(exprWord));
+        return ClauseSqlTranslator.CreatePlaceholder(context, predicate, mc);
     }
 
     static bool ValidateCollationName(string collation)
@@ -499,4 +501,23 @@ internal static class DbFuncRegistryExpressionTranslator
     internal static bool IsInListMethod(MethodInfo method)
         => method.DeclaringType == typeof(InListSqlExtensions)
            && (method.Name == nameof(InListSqlExtensions.In) || method.Name == nameof(InListSqlExtensions.NotIn));
+
+    static MethodCallExpression NormalizeRegistryMethodCall(MethodCallExpression mc)
+    {
+        if (mc.Method.DeclaringType == typeof(string)
+            && mc.Method.Name == nameof(string.IsNullOrWhiteSpace)
+            && mc.Arguments.Count == 1)
+        {
+            var dbFunc = typeof(DbFunc).GetMethod(
+                "IsNullOrWhiteSpace",
+                BindingFlags.Static | BindingFlags.NonPublic,
+                null,
+                new[] { typeof(string) },
+                null);
+            if (dbFunc != null)
+                return Expression.Call(dbFunc, mc.Arguments[0]);
+        }
+
+        return mc;
+    }
 }

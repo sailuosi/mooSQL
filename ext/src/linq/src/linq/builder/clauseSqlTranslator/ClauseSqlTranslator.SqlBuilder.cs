@@ -78,7 +78,7 @@ namespace mooSQL.linq.Linq.Builder
 			}
 
 			var body = SequenceHelper.PrepareBody(condition, sequence);
-			var expr = body.Unwrap();
+			var expr = ConvertExpression(body.Unwrap());
 
 			var sc = new SearchConditionWord();
 

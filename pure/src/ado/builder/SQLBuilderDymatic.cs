@@ -1350,6 +1350,57 @@ namespace mooSQL.data
             return tar;
         }
 
+        /// <summary>
+        /// 检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行
+        /// </summary>
+        /// <returns></returns>
+        public bool exist()
+        {
+            var cmd = toSelectExist();
+            if (string.IsNullOrEmpty(cmd.sql))
+            {
+                return false;
+            }
+            doPrintSQL(cmd);
+            var val = DBLive.ExeQueryScalar(cmd, Executor);
+            var tar = ToExistResult(val);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
+        }
+
+        /// <summary>
+        /// 异步检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> existAsync()
+        {
+            var cmd = toSelectExist();
+            if (string.IsNullOrEmpty(cmd.sql))
+            {
+                return false;
+            }
+            doPrintSQL(cmd);
+            var val = await DBLive.ExeQueryScalarAsync(cmd, default, Executor).ConfigureAwait(false);
+            var tar = ToExistResult(val);
+            if (this._AutoClearWay == CleanWay.Always)
+            {
+                clear();
+            }
+            return tar;
+        }
+
+        static bool ToExistResult(object val)
+        {
+            if (val == null || val == DBNull.Value)
+                return false;
+            if (val is bool b)
+                return b;
+            return Convert.ToInt32(val) != 0;
+        }
+
 
 
         /// <summary>
@@ -1385,11 +1436,11 @@ namespace mooSQL.data
         public bool checkExistKey(string key, Object value, string tableName)
         {
             var kitTmp = this.copy();
-            int cc = kitTmp.from(tableName)
+            var exists = kitTmp.from(tableName)
                 .where(key, value)
-                .count();
+                .exist();
             kitTmp = null;
-            return cc > 0;
+            return exists;
         }
     }
 }

@@ -42,6 +42,15 @@ namespace mooSQL.data
 
             return sb.ToString();
         }
+
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT CASE WHEN EXISTS ({existsSubquery}) THEN 1 ELSE 0 END FROM DUAL";
+
+        /// <inheritdoc/>
+        protected override string AppendExistSubqueryTail(string innerSql, FragSQL frag)
+            => innerSql + " FETCH FIRST 1 ROW ONLY";
+
         /// <inheritdoc/>
         public override string buildPagedSelect(FragSQL frag)
             => HasSkipTakePaging(frag) ? buildSelect(frag) : base.buildPagedSelect(frag);

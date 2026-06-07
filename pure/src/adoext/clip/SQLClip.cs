@@ -378,6 +378,14 @@ namespace mooSQL.data
             provider.PatchBeforeSelect();
             return Context.Builder.count();
         }
+        /// <summary>
+        /// 检查是否存在匹配记录
+        /// </summary>
+        /// <returns></returns>
+        public bool exist() {
+            provider.PatchBeforeSelect();
+            return Context.Builder.exist();
+        }
     }
 
 }

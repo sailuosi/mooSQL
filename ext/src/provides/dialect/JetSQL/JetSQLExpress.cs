@@ -57,6 +57,10 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT IIF(EXISTS ({existsSubquery}), True, False)";
+
         public override string buildInsert(FragSQL frag)
         {
             var sb = new StringBuilder();

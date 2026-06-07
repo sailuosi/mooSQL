@@ -690,6 +690,11 @@ namespace mooSQL.data
             string res = current.buildCountSQL();
             return res;
         }
+
+        private string buildExistSQL()
+        {
+            return current.buildExistSQL();
+        }
         /// <summary>
         /// 多行插入时的行索引
         /// </summary>
@@ -768,6 +773,35 @@ namespace mooSQL.data
                 return geneCmd(sql, ps, QueryType.Select);
             }
         }
+
+        /// <summary>
+        /// 创建存在性检查 select exists(...) / case when exists(...) 语句
+        /// </summary>
+        /// <returns></returns>
+        public SQLCmd toSelectExist()
+        {
+            string sql;
+            if (this.unionHolder.Count == 0)
+            {
+                sql = this.buildExistSQL();
+            }
+            else
+            {
+                sql = unionHolder.buildExist();
+            }
+
+            if (!CTECollection.Empty)
+            {
+                var cte = Dialect.expression.buildCET(CTECollection);
+                if (!string.IsNullOrWhiteSpace(cte))
+                {
+                    sql = cte + " " + sql;
+                }
+            }
+
+            return geneCmd(sql, ps, QueryType.Select);
+        }
+
         /// <summary>
         /// 创建包含参数信息的 插入语句。
         /// </summary>

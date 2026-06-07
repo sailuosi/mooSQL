@@ -129,6 +129,14 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT EXISTS({existsSubquery})";
+
+        /// <inheritdoc/>
+        protected override string AppendExistSubqueryTail(string innerSql, FragSQL frag)
+            => innerSql + " LIMIT 1";
+
         private bool isMySQL80More() {
 
             var ver = dialect.CurVersion;

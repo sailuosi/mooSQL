@@ -136,6 +136,11 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `queryPaged<T>()` | 分页 PageOutput<T> |
 | `count()` | select count(*) 计数 |
 | `countLong()` | 大数量 long |
+| `toSelectExist()` | 生成 EXISTS 存在性检查 SQL |
+| `exist()` | 执行 EXISTS 检查，返回 bool |
+| `existAsync()` | 异步 EXISTS 检查 |
+
+> **exist() vs count()**：仅需判断「是否存在」时用 `exist()`，方言层生成 `SELECT EXISTS(...)` 等短路 SQL，找到首行即返回；`count()` 走 `SELECT COUNT(*)` 全量计数，适合需要具体数量时。
 
 ---
 
@@ -347,6 +352,9 @@ var list = builder.select("id, name")
     .where("age", 18, ">=")
     .orderBy("id desc")
     .query<User>();
+
+// 存在性检查（优于 count() > 0）
+var exists = builder.from("users").where("email", "a@b.com").exist();
 ```
 
 ### 条件分组

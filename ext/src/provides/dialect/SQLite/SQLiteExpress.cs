@@ -128,6 +128,14 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT EXISTS({existsSubquery})";
+
+        /// <inheritdoc/>
+        protected override string AppendExistSubqueryTail(string innerSql, FragSQL frag)
+            => innerSql + " LIMIT 1";
+
         public override string buildPagedSelect(FragSQL frag) => buildSelect(frag);
         /// <summary>
         /// 创建普通的插值语句

@@ -122,6 +122,64 @@ namespace mooSQL.data
 
         }
 
+        /// <summary>
+        /// 构建存在性检查 SQL（默认 CASE WHEN EXISTS 兜底，方言可 override）。
+        /// </summary>
+        public virtual string buildSelectExist(FragSQL frag)
+            => WrapExistScalar(BuildExistInnerSelect(frag));
+
+        /// <summary>将 EXISTS 子查询包装为标量结果。</summary>
+        protected virtual string WrapExistScalar(string existsSubquery)
+            => $"SELECT CASE WHEN EXISTS ({existsSubquery}) THEN 1 ELSE 0 END";
+
+        /// <summary>构建 EXISTS 内层 SELECT 1 FROM ... 子查询。</summary>
+        protected virtual string BuildExistInnerSelect(FragSQL frag)
+        {
+            string inner;
+            if (frag.distincted)
+            {
+                var sb = new StringBuilder();
+                sb.Append("SELECT DISTINCT ");
+                sb.Append(frag.selectInner);
+                sb.Append(" FROM ");
+                sb.Append(frag.fromInner);
+                AppendExistWhereGroupHaving(frag, sb);
+                inner = "SELECT 1 FROM (" + sb + ") existwrap";
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.Append("SELECT 1 FROM ");
+                sb.Append(frag.fromInner);
+                AppendExistWhereGroupHaving(frag, sb);
+                inner = sb.ToString();
+            }
+            return AppendExistSubqueryTail(inner, frag);
+        }
+
+        /// <summary>追加 EXISTS 子查询尾部优化（如 LIMIT 1），默认无追加。</summary>
+        protected virtual string AppendExistSubqueryTail(string innerSql, FragSQL frag) => innerSql;
+
+        /// <summary>追加 WHERE / GROUP BY / HAVING（不含 ORDER BY）。</summary>
+        protected static void AppendExistWhereGroupHaving(FragSQL frag, StringBuilder sb)
+        {
+            if (!string.IsNullOrWhiteSpace(frag.whereInner))
+            {
+                sb.Append(" WHERE ");
+                sb.Append(frag.whereInner);
+            }
+            if (!string.IsNullOrWhiteSpace(frag.groupByInner))
+            {
+                sb.Append(" GROUP BY ");
+                sb.Append(frag.groupByInner);
+            }
+            if (!string.IsNullOrWhiteSpace(frag.havingInner))
+            {
+                sb.Append(" HAVING ");
+                sb.Append(frag.havingInner);
+            }
+        }
+
         /// <summary>是否含有 skip/take 分页修饰。</summary>
         public static bool HasSkipTakePaging(FragSQL frag)
             => frag.skipNum >= 0 || frag.pageSize >= 0;

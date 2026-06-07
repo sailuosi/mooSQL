@@ -1236,6 +1236,17 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 创建存在性检查 SQL
+        /// </summary>
+        /// <returns></returns>
+        public string buildExistSQL() {
+            var frag = this.buildSelectFragNoPage(false);
+            var res = root.expression.buildSelectExist(frag);
+            fireSQLEvent(res);
+            return res;
+        }
+
+        /// <summary>
         /// buildOrderBy 方法（返回 string）。
         /// </summary>
         public string buildOrderBy() {

@@ -391,6 +391,22 @@ namespace mooSQL.Pure.Tests
             name.Should().NotBeNullOrEmpty();
         }
 
+        [Fact]
+        public void SQLBuilder_Exist_ShouldReturnBoolWithoutFullCount()
+        {
+            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", 1).exist()
+                .Should().BeTrue();
+            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", -1).exist()
+                .Should().BeFalse();
+
+            var sql = _fx.Db.useSQL()
+                .from(SQLiteTestFixture.UserTable)
+                .where("is_active", 1)
+                .toSelectExist()
+                .toRawSQL();
+            sql.ToUpperInvariant().Should().Contain("EXISTS");
+        }
+
         #endregion
 
         #region Repository

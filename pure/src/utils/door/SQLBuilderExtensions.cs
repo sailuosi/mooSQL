@@ -939,8 +939,7 @@ namespace mooSQL.data
         {
             var kit = builder.useSQL();
             kit.Client.Translator.BuildPKFromWhere<T>(kit, PK, tryTableNameLoader(tbname));
-            var tow = kit.count();
-            return tow > 0;
+            return kit.exist();
         }
 
         /// <summary>
