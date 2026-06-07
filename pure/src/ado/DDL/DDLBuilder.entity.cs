@@ -1,3 +1,4 @@
+using mooSQL.data.model;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
@@ -822,7 +823,7 @@ namespace mooSQL.data
         {
             DbColumnInfo result = new DbColumnInfo
             {
-                Name = (string.IsNullOrWhiteSpace(item.DbColumnName) ? item.DbColumnName : item.PropertyName),
+                Name = string.IsNullOrWhiteSpace(item.DbColumnName) ? item.PropertyName : item.DbColumnName,
                 IsPrimary = item.IsPrimarykey,
                 IsIdentity = item.IsIdentity,
                 IsNullable = item.IsNullable,
@@ -841,12 +842,44 @@ namespace mooSQL.data
         /// </summary>
         protected virtual void SetDbType(EntityColumn item, DbColumnInfo result)
         {
-            if (!Enum.IsDefined(typeof(DataFam), item.DataType))
+            if (item.DataType == DataFam.Undefined && item.PropertyInfo != null)
+            {
+                var valType = item.PropertyInfo.PropertyType;
+                if (valType.IsGenericType && valType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    valType = Nullable.GetUnderlyingType(valType)!;
+
+                item.DataType = valType switch
+                {
+                    not null when valType == typeof(string) => DataFam.VarChar,
+                    not null when valType == typeof(Guid) => DataFam.Guid,
+                    not null when valType == typeof(DateTime) => DataFam.DateTime,
+                    not null when valType == typeof(bool) => DataFam.Boolean,
+                    not null when valType == typeof(int) => DataFam.Int32,
+                    not null when valType == typeof(long) => DataFam.Int64,
+                    _ => DataFam.VarChar
+                };
+            }
+            else if (!Enum.IsDefined(typeof(DataFam), item.DataType) || item.DataType == DataFam.Undefined)
             {
                 item.DataType = DataFam.VarChar;
             }
+
+            if (item.DbType == DbDataType.Undefined || item.DbType.DataType == DataFam.Undefined)
+            {
+                var systemType = item.PropertyInfo?.PropertyType ?? typeof(object);
+                if (systemType.IsGenericType && systemType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    systemType = Nullable.GetUnderlyingType(systemType)!;
+
+                item.DbType = item.DataType switch
+                {
+                    DataFam.VarChar or DataFam.NVarChar => new DbDataType(systemType, item.DataType, null, item.Length > 0 ? item.Length : 50),
+                    DataFam.Decimal => new DbDataType(systemType, item.DataType, null, item.Length, item.Precision, item.Scale),
+                    _ => new DbDataType(systemType, item.DataType)
+                };
+            }
+
             result.DbType = item.DbType;
-            result.DbTypeTextFull = result.DbType.ToDBString();
+            result.DbTypeTextFull = DBLive.dialect.mapping.DbDataTypeToSQL(result.DbType);
         }
 
         /// <summary>
@@ -935,6 +968,19 @@ namespace mooSQL.data
             return list;
         }
 
+        private bool StrSame(string str1, string str2)
+        {
+            if (string.IsNullOrWhiteSpace(str1) && string.IsNullOrWhiteSpace(str2))
+            {
+                return true;
+            }
+            if (string.IsNullOrWhiteSpace(str1) || string.IsNullOrWhiteSpace(str2))
+            {
+                return false;
+            }
+            return str1.Equals(str2, StringComparison.CurrentCultureIgnoreCase);
+        }
+
         /// <summary>
         /// doAlterTableLogic 方法。
         /// </summary>
@@ -944,10 +990,10 @@ namespace mooSQL.data
             {
                 List<DbColumnInfo> dbColumns = SQLVerse.GetDbColumnsByTableName(entityInfo.DbTableName);
                 List<EntityColumn> entityColumns = entityInfo.Columns.Where((EntityColumn it) => !it.IsIgnore).ToList();
-                List<DbColumnInfo> list = dbColumns.Where((DbColumnInfo dc) => !entityColumns.Any((EntityColumn ec) => dc.Name.Equals(ec.DbColumnName, StringComparison.CurrentCultureIgnoreCase))).ToList();
-                List<EntityColumn> list2 = entityColumns.Where((EntityColumn ec) => !dbColumns.Any((DbColumnInfo dc) => ec.DbColumnName.Equals(dc.Name, StringComparison.CurrentCultureIgnoreCase))).ToList();
-                List<EntityColumn> list3 = entityColumns.Where((EntityColumn ec) => dbColumns.Any((DbColumnInfo dc) => dc.Name.Equals(ec.DbColumnName, StringComparison.CurrentCultureIgnoreCase) && !isSamgeType(ec, dc))).ToList();
-                List<EntityColumn> list4 = entityColumns.Where((EntityColumn ec) => dbColumns.Any((DbColumnInfo dc) => dc.Name.Equals(ec.DbColumnName, StringComparison.CurrentCultureIgnoreCase) && !ec.ColumnDescription.Equals(ec.ColumnDescription, StringComparison.CurrentCultureIgnoreCase))).ToList();
+                List<DbColumnInfo> list = dbColumns.Where((DbColumnInfo dc) => !entityColumns.Any((EntityColumn ec) => StrSame(dc.Name, ec.DbColumnName))).ToList();
+                List<EntityColumn> list2 = entityColumns.Where((EntityColumn ec) => !dbColumns.Any((DbColumnInfo dc) => StrSame(ec.DbColumnName, dc.Name))).ToList();
+                List<EntityColumn> list3 = entityColumns.Where((EntityColumn ec) => dbColumns.Any((DbColumnInfo dc) => StrSame(dc.Name, ec.DbColumnName) && !isSamgeType(ec, dc))).ToList();
+                List<EntityColumn> list4 = entityColumns.Where((EntityColumn ec) => dbColumns.Any((DbColumnInfo dc) => StrSame(dc.Name, ec.DbColumnName) && !StrSame(ec.ColumnDescription, ec.ColumnDescription))).ToList();
                 foreach (EntityColumn item in list2)
                 {
                     doAddColumn(entityInfo.DbTableName, EntityColumnToDbColumn(item));
@@ -972,7 +1018,7 @@ namespace mooSQL.data
                 doAlterPrimarykeyAndIdentity(entityColumns, dbColumns, entityInfo.DbTableName);
             }
             string text = (from it in SQLVerse.GetDbTableList()
-                           where it.Name.Equals(entityInfo.DbTableName, StringComparison.CurrentCultureIgnoreCase)
+                           where StrSame(it.Name, entityInfo.DbTableName)
                            select it).FirstOrDefault()?.Comment;
             bool flag = false;
         }

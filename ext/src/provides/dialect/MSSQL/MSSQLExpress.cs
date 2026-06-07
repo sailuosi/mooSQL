@@ -238,8 +238,15 @@ namespace mooSQL.data
 
             var ver = dialect.CurVersion;
 
-            if (ver != null && ver.VersionNumber >= 11)
+            if (ver != null && ver.VersionNumber >= 11) {
+                //由于SQLServer 的翻页语句必须有order by 
+                if (!frag.orderbyInner.HasText()) {
+                    frag.orderbyInner = "1";
+                }
+
                 return buildPagedSelectTail(frag, sb => AppendOffsetFetch(sb, frag));
+            }
+                
 
             return buildPagedByRowNumber(frag);
         }
