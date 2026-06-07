@@ -210,7 +210,7 @@ namespace mooSQL.linq
 		#region IsNullOrWhiteSpace
 
 		/// <summary>registry-first（Bootstrap <c>IsNullOrWhiteSpacePredicate</c>）；<c>string.IsNullOrWhiteSpace</c> 映射目标。</summary>
-		internal static bool IsNullOrWhiteSpace(string? str)
+		public static bool IsNullOrWhiteSpace(string? str)
 			=> throw new LinqException($"'{nameof(IsNullOrWhiteSpace)}' is only server-side method.");
 
 		#endregion

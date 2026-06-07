@@ -373,24 +373,28 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterIsNullOrWhiteSpace(DbFuncRegistry registry, SQLExpression expr)
     {
-        var method = typeof(DbFunc).GetMethod(
-            "IsNullOrWhiteSpace",
-            BindingFlags.Static | BindingFlags.NonPublic,
+        var entry = new DbFuncExpressionEntry
+        {
+            SqlTemplate = expr.isNullOrWhiteSpace("{0}"),
+            IsPredicate = true,
+            PreferServerSide = true,
+            IsNullOrWhiteSpacePredicate = true
+        };
+
+        var dbFuncMethod = typeof(DbFunc).GetMethod(
+            nameof(DbFunc.IsNullOrWhiteSpace),
+            new[] { typeof(string) });
+        if (dbFuncMethod != null)
+            registry.Register(dbFuncMethod, entry);
+
+        var bclMethod = typeof(string).GetMethod(
+            nameof(string.IsNullOrWhiteSpace),
+            BindingFlags.Public | BindingFlags.Static,
             null,
             new[] { typeof(string) },
             null);
-        if (method == null)
-            return;
-
-        registry.Register(
-            method,
-            new DbFuncExpressionEntry
-            {
-                SqlTemplate = expr.isNullOrWhiteSpace("{0}"),
-                IsPredicate = true,
-                PreferServerSide = true,
-                IsNullOrWhiteSpacePredicate = true
-            });
+        if (bclMethod != null)
+            registry.Register(bclMethod, entry);
     }
 
     static MethodInfo GetMethod(string name, params Type[] parameterTypes)

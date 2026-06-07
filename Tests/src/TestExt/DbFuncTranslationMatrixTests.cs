@@ -837,13 +837,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(
             nameof(DbFunc.CharIndex),
             new[] { typeof(string), typeof(string) })!);
-        var isNullOrWhiteSpace = typeof(DbFunc).GetMethod(
-            "IsNullOrWhiteSpace",
-            BindingFlags.Static | BindingFlags.NonPublic,
-            null,
-            new[] { typeof(string) },
-            null)!;
-        AssertNoDbFuncAttributes(isNullOrWhiteSpace);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.IsNullOrWhiteSpace), new[] { typeof(string) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m => m.Name == nameof(DbFunc.DatePart) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?)));
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!);
@@ -1032,6 +1026,18 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         }
     }
 
+    [Fact]
+    public void Matrix_CharIndex_Compiles()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => DbFunc.CharIndex("a", u.Name) > 0)
+                .Expression);
+        Assert.Contains("INSTR", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory]
     [InlineData(typeof(SQLiteDialect), "INSTR")]
     [InlineData(typeof(MySQLDialect), "LOCATE")]
@@ -1077,6 +1083,29 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_IsNullOrWhiteSpace_BclMethodRegistered()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        var bcl = typeof(string).GetMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) })!;
+        var entry = db.dialect.dbFuncRegistry.Resolve(bcl);
+        Assert.NotNull(entry);
+        Assert.True(entry!.IsNullOrWhiteSpacePredicate);
+    }
+
+    [Fact]
+    public void Matrix_IsNullOrWhiteSpace_ExtensionMethod_Compiles()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => u.Name.IsNullOrWhiteSpace())
+                .Expression);
+        Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Matrix_IsNullOrWhiteSpace_Compiles()
     {
         var db = _sqlite.Db;
@@ -1103,12 +1132,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var method = typeof(DbFunc).GetMethod(
-            "IsNullOrWhiteSpace",
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic,
-            null,
-            new[] { typeof(string) },
-            null)!;
+        var method = typeof(DbFunc).GetMethod(nameof(DbFunc.IsNullOrWhiteSpace), new[] { typeof(string) })!;
         var entry = db.dialect.dbFuncRegistry.Resolve(method);
         Assert.NotNull(entry);
         Assert.True(entry!.IsNullOrWhiteSpacePredicate);

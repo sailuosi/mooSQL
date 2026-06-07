@@ -331,9 +331,9 @@ internal sealed class ClausePredicateVisitor
         var descriptor = builder.SuggestColumnDescriptor(context, fieldExpr, flags);
         var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags) ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
         var empty = builder.ConvertToSql(context, Expression.Constant(string.Empty), unwrap: false, columnDescriptor: descriptor);
-
+        var trimmed = new ExpressionWord(typeof(string), "TRIM({0})", PrecedenceLv.Primary, field);
         var isNull = new IsNull(field, false);
-        var isEmpty = new ExprExpr(field, AffirmWord.Operator.Equal, empty, null);
-        return new SearchConditionWord(true).Add(isNull).Add(isEmpty);
+        var isEmptyTrim = new ExprExpr(trimmed, AffirmWord.Operator.Equal, empty, null);
+        return new SearchConditionWord(true).Add(isNull).Add(isEmptyTrim);
     }
 }

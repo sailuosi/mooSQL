@@ -95,13 +95,6 @@ internal static class DbFuncRegistryExpressionTranslator
                 return collateSql;
         }
 
-        if (entry.IsNullOrWhiteSpacePredicate)
-        {
-            var iowSql = TranslateIsNullOrWhiteSpace(builder, context, mc, db);
-            if (iowSql != null)
-                return iowSql;
-        }
-
         if (entry.SqlTemplate == null)
             return null;
 
@@ -129,7 +122,6 @@ internal static class DbFuncRegistryExpressionTranslator
             || entry.IsNullIfPredicate
             || entry.IsConcatPredicate
             || entry.IsCollatePredicate
-            || entry.IsNullOrWhiteSpacePredicate
             || entry.IsInListPredicate)
             return null;
 
@@ -399,32 +391,6 @@ internal static class DbFuncRegistryExpressionTranslator
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, sql, mc);
     }
 
-    static Expression? TranslateIsNullOrWhiteSpace(
-        ClauseSqlTranslator builder,
-        IClauseContext context,
-        MethodCallExpression mc,
-        DBInstance db)
-    {
-        if (mc.Arguments.Count < 1)
-            return null;
-
-        var argSql = builder.ConvertToSql(context, mc.Arguments[0], unwrap: false, flags: ProjectFlags.SQL);
-        if (argSql == null)
-            return null;
-
-        var format = db.dialect.expression.isNullOrWhiteSpace("{0}");
-        var exprWord = new ExpressionWord(
-            typeof(bool),
-            format,
-            PrecedenceLv.Primary,
-            SqlFlags.IsPredicate,
-            ParametersNullabilityType.IfAnyParameterNullable,
-            null,
-            argSql);
-        var predicate = new SearchConditionWord(false, new Expr(exprWord));
-        return ClauseSqlTranslator.CreatePlaceholder(context, predicate, mc);
-    }
-
     static bool ValidateCollationName(string collation)
         => !string.IsNullOrWhiteSpace(collation) && CollateNameValidator.IsMatch(collation);
 
@@ -509,11 +475,8 @@ internal static class DbFuncRegistryExpressionTranslator
             && mc.Arguments.Count == 1)
         {
             var dbFunc = typeof(DbFunc).GetMethod(
-                "IsNullOrWhiteSpace",
-                BindingFlags.Static | BindingFlags.NonPublic,
-                null,
-                new[] { typeof(string) },
-                null);
+                nameof(DbFunc.IsNullOrWhiteSpace),
+                new[] { typeof(string) });
             if (dbFunc != null)
                 return Expression.Call(dbFunc, mc.Arguments[0]);
         }

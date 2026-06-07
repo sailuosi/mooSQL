@@ -143,10 +143,16 @@ namespace mooSQL.linq.Linq.Builder
 					{
 						switch (e.Method.Name)
 						{
+							case nameof(string.IsNullOrWhiteSpace):
+								return ConvertIsNullOrWhiteSpacePredicate(context, e.Arguments[0], flags);
 							case "Contains"   : predicate = CreateStringPredicate(context, e, mooSQL.data.model.affirms.SearchString.SearchKind.Contains,   IsCaseSensitive(e), flags); break;
 							case "StartsWith" : predicate = CreateStringPredicate(context, e, mooSQL.data.model.affirms.SearchString.SearchKind.StartsWith, IsCaseSensitive(e), flags); break;
 							case "EndsWith"   : predicate = CreateStringPredicate(context, e, mooSQL.data.model.affirms.SearchString.SearchKind.EndsWith,   IsCaseSensitive(e), flags); break;
 						}
+					}
+					else if (e.Method.DeclaringType == typeof(DbFunc) && e.Method.Name == nameof(DbFunc.IsNullOrWhiteSpace) && e.Object == null && e.Arguments.Count == 1)
+					{
+						return ConvertIsNullOrWhiteSpacePredicate(context, e.Arguments[0], flags);
 					}
 					else if (e.Method.Name == "Contains")
 					{
@@ -693,6 +699,16 @@ namespace mooSQL.linq.Linq.Builder
         #endregion
 
         #region LIKE predicate
+
+        IAffirmWord ConvertIsNullOrWhiteSpacePredicate(IClauseContext? context, Expression fieldExpr, ProjectFlags flags)
+		{
+			var field = ConvertToSql(context, fieldExpr, unwrap: false, flags: flags);
+			var empty = ConvertToSql(context, Expression.Constant(string.Empty), unwrap: false, flags: flags);
+			var trimmed = new ExpressionWord(typeof(string), "TRIM({0})", PrecedenceLv.Primary, field);
+			var isNull = new IsNull(field, false);
+			var isEmptyTrim = new ExprExpr(trimmed, AffirmWord.Operator.Equal, empty, null);
+			return new SearchConditionWord(true).Add(isNull).Add(isEmptyTrim);
+		}
 
         IAffirmWord? CreateStringPredicate(IClauseContext? context, MethodCallExpression expression, mooSQL.data.model.affirms.SearchString.SearchKind kind, IExpWord caseSensitive, ProjectFlags flags)
 		{

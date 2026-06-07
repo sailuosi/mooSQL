@@ -10,8 +10,8 @@
 - **Phase 2** — `DbFunc` 拆 partial（Common / Math / Strings.Legacy）
 - **Phase 3** — Math / CharIndex / **Replace** / **IsNullOrWhiteSpace** registry 化
 - **Phase F P2/P3** — `WindowOverClauseRenderer` + `IsWindowOverPredicate` 接线（RowNumber Over IR）
-- **Phase 4（续）** — CharIndex 全 overload registry 化（移除 Locate/Position）；IsNullOrWhiteSpace 删除 Extension Builder，方言逻辑迁入 `*Express.isNullOrWhiteSpace`
-- TestLinq **180** 绿
+- **Phase 4（续）** — CharIndex 全 overload registry 化（移除 `[Function(Locate/Position)]`）；IsNullOrWhiteSpace 删除 11 个 Extension Builder；`string`/`DbFunc.IsNullOrWhiteSpace` 谓词走 `ConvertIsNullOrWhiteSpacePredicate`（`IS NULL OR TRIM = ''`）；BCL `string.IsNullOrWhiteSpace` 同步注册 registry；方言 `*Express.isNullOrWhiteSpace`（MSSQL/Oracle 等）
+- TestLinq **195** 绿
 
 ### 新增（Phase G/F/E 收尾 — 2026-06-06）
 
