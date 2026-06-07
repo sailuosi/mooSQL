@@ -114,7 +114,13 @@ namespace mooSQL.linq
                 Context.CurrentLayer.Current.rise();
                 return node;
             }
-
+            if (node.NodeType == ExpressionType.Not && node.Type==typeof(Boolean)) {
+                var fie = VisitToGotField(node.Operand);
+                if (fie != null) {
+                    Context.CurrentLayer.Current.where(fie, false);
+                    return node;
+                }
+            }
             return base.VisitUnary(node);
         }
 
