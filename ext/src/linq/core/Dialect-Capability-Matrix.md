@@ -58,12 +58,14 @@
 | 函数 / 链 | 编译路径 | 可否 registry-only | 说明 |
 |-----------|----------|-------------------|------|
 | Like / Between / 字符串 / NullIf / Coalesce / Concat / DateDiff | `DbFuncRegistry` | ✅ | R17–R21 完成 |
-| **Replace / CharIndex / Math 单参** | `DbFuncRegistry` | ✅ | Phase 3 registry 增量 |
-| **IsNullOrWhiteSpace** | `IsNullOrWhiteSpacePredicate` | ✅ | `string.IsNullOrWhiteSpace` → `DbFunc.IsNullOrWhiteSpace` |
+| **Math 单参** / **Replace** | `DbFuncRegistry` | ✅ | Phase 3 registry 增量 |
+| **CharIndex**（4 overload） | `DbFuncRegistry` + 方言 `charIndex()` | ✅ | 无 `[Function]` |
+| **IsNullOrWhiteSpace** | `IsNullOrWhiteSpacePredicate` + 方言 `isNullOrWhiteSpace()` | ✅ | Extension Builder 已删 |
+| **NewGuid** | 客户端 `MemberTranslator` | N/A | 无 SQL 属性；编译为参数常量 |
 | In / NotIn | `IsInListPredicate` | ✅ | `SqlExtensions` + 列表展开 |
 | **RowNumber()** | Registry `ROW_NUMBER()` + `IsWindowOverPredicate` | 部分 | 函数头 registry-first；Over IR 见 `WindowOverClauseRenderer` |
 | **`.Over().OrderBy()`** | Extension Token 链 + **WindowOverClause IR** | 过渡 | P3 `IsWindowOverPredicate` 已接线；Token 链仍保留 |
-| **Collate** | `[Extension]` + Builder | ❌ | 多方言 Builder（PG/DB2/默认） |
+| **Collate** | `IsCollatePredicate` + 方言 `collate()` | ✅ | R29 registry；无方法级 `[Extension]` |
 | **Grouping** | `[Extension]` 聚合 | ❌ | `GROUPING(...)` |
 | **DatePart / DateAdd** | registry + MemberTranslator + compile | ✅ 四方言 R28 | Pure 片段 + `MSSQLClauseTranslator` |
 

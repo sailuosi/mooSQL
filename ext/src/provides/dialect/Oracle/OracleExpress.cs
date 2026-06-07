@@ -52,6 +52,14 @@ namespace mooSQL.data
             return 1000;
         }
 
+        public override string charIndex(string substring, string str) => $"INSTR({str}, {substring})";
+
+        public override string charIndex(string substring, string str, string start)
+            => $"INSTR({str}, {substring}, {start})";
+
+        public override string isNullOrWhiteSpace(string expr)
+            => $"({expr} IS NULL OR LTRIM({expr}, ' \t\n\r\f\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u205f\u3000') IS NULL)";
+
         public override string dateDiffWeek(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) / 7";
 
@@ -116,6 +124,21 @@ namespace mooSQL.data
             }
             return res;
         }
+
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT CASE WHEN EXISTS ({existsSubquery}) THEN 1 ELSE 0 END FROM DUAL";
+
+        /// <inheritdoc/>
+        protected override string AppendExistSubqueryTail(string innerSql, FragSQL frag)
+        {
+            if (_oracleDialect.Is12cOrHigher())
+                return innerSql + " FETCH FIRST 1 ROW ONLY";
+            if (innerSql.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase) >= 0)
+                return innerSql + " AND ROWNUM = 1";
+            return innerSql + " WHERE ROWNUM = 1";
+        }
+
         /// <summary>
         /// 构建分页Select语句，Oracle特有的分页方式。
         /// </summary>

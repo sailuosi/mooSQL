@@ -794,7 +794,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void Matrix_Analytic_OverChain_RequiresExtensionAttributes()
+    public void Matrix_SooFunctionExtension_OverChain_RequiresExtensionAttributes()
     {
         var overMethod = typeof(SooFunctionExtension.IAnalyticFunctionWithoutWindow<long>)
             .GetMethods()
@@ -831,6 +831,19 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Lower), new[] { typeof(string) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Upper), new[] { typeof(string) })!);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.Trim), new[] { typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(
+            nameof(DbFunc.Replace),
+            new[] { typeof(string), typeof(string), typeof(string) })!);
+        AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(
+            nameof(DbFunc.CharIndex),
+            new[] { typeof(string), typeof(string) })!);
+        var isNullOrWhiteSpace = typeof(DbFunc).GetMethod(
+            "IsNullOrWhiteSpace",
+            BindingFlags.Static | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(string) },
+            null)!;
+        AssertNoDbFuncAttributes(isNullOrWhiteSpace);
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m => m.Name == nameof(DbFunc.DatePart) && m.GetParameters()[1].ParameterType == typeof(System.DateTime?)));
         AssertNoDbFuncAttributes(typeof(DbFunc).GetMethod(nameof(DbFunc.DateAdd), new[] { typeof(DbFunc.DateParts), typeof(double?), typeof(System.DateTime?) })!);
@@ -885,7 +898,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
-    public void Matrix_Analytic_OrderItemBuilder_Removed()
+    public void Matrix_SooFunctionExtension_OrderItemBuilder_Removed()
     {
         Assert.Null(typeof(SooFunctionExtension).GetNestedType("OrderItemBuilder", System.Reflection.BindingFlags.NonPublic));
         var orderByWithNulls = typeof(SooFunctionExtension.INeedsOrderByOnly<long>)
@@ -999,11 +1012,32 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         Assert.Contains("ABS", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void Matrix_CharIndex_RegisteredAllOverloads()
+    {
+        var db = _sqlite.Db;
+        DbFuncRegistryBootstrap.EnsureRegistered(db);
+        foreach (var types in new[]
+        {
+            new[] { typeof(string), typeof(string) },
+            new[] { typeof(string), typeof(string), typeof(int?) },
+            new[] { typeof(char?), typeof(string) },
+            new[] { typeof(char?), typeof(string), typeof(int?) },
+        })
+        {
+            var method = typeof(DbFunc).GetMethod(nameof(DbFunc.CharIndex), types)!;
+            var entry = db.dialect.dbFuncRegistry.Resolve(method);
+            Assert.NotNull(entry);
+            Assert.Contains("INSTR", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     [Theory]
     [InlineData(typeof(SQLiteDialect), "INSTR")]
     [InlineData(typeof(MySQLDialect), "LOCATE")]
     [InlineData(typeof(NpgsqlDialect), "STRPOS")]
     [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
+    [InlineData(typeof(OracleDialect), "INSTR")]
     public void Matrix_CharIndex_RegistryTemplate(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -1021,6 +1055,15 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Fact]
+    public void Matrix_NewGuid_ClientSideOnly()
+    {
+        var method = typeof(DbFunc).GetMethod(nameof(DbFunc.NewGuid))!;
+        Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.FunctionAttribute), inherit: true));
+        Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExpressionAttribute), inherit: true));
+        Assert.Empty(method.GetCustomAttributes(typeof(DbFunc.ExtensionAttribute), inherit: true));
+    }
+
+    [Fact]
     public void Matrix_Replace_RegisteredInRegistry()
     {
         var db = _sqlite.Db;
@@ -1031,6 +1074,28 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
         var entry = db.dialect.dbFuncRegistry.Resolve(replace);
         Assert.NotNull(entry);
         Assert.Contains("REPLACE", entry!.SqlTemplate!, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Matrix_IsNullOrWhiteSpace_Compiles()
+    {
+        var db = _sqlite.Db;
+        var sql = LinqStatementCompiler.GetSqlText(
+            db,
+            db.useQueryable<SQLiteTestUser>()
+                .Where(u => string.IsNullOrWhiteSpace(u.Name))
+                .Expression);
+        Assert.Contains("TRIM", sql, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(typeof(MSSQLDialect), "TRIM")]
+    [InlineData(typeof(OracleDialect), "LTRIM")]
+    public void Matrix_IsNullOrWhiteSpace_ExpressFormat(System.Type dialectType, string expectedFragment)
+    {
+        var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
+        var format = dialect.expression.isNullOrWhiteSpace("{0}");
+        Assert.Contains(expectedFragment, format!, System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

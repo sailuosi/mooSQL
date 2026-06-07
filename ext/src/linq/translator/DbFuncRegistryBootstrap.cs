@@ -316,25 +316,36 @@ internal static class DbFuncRegistryBootstrap
 
     static void RegisterCharIndex(DbFuncRegistry registry, SQLExpression expr)
     {
-        var twoArg = typeof(DbFunc).GetMethod(
-            nameof(DbFunc.CharIndex),
-            new[] { typeof(string), typeof(string) });
-        if (twoArg != null)
-        {
-            registry.Register(
-                twoArg,
-                new DbFuncExpressionEntry { SqlTemplate = expr.charIndex("{0}", "{1}"), PreferServerSide = true });
-        }
+        RegisterCharIndexOverload(registry, expr,
+            new[] { typeof(string), typeof(string) },
+            e => e.charIndex("{0}", "{1}"));
 
-        var threeArg = typeof(DbFunc).GetMethod(
-            nameof(DbFunc.CharIndex),
-            new[] { typeof(string), typeof(string), typeof(int?) });
-        if (threeArg != null)
-        {
-            registry.Register(
-                threeArg,
-                new DbFuncExpressionEntry { SqlTemplate = expr.charIndex("{0}", "{1}", "{2}"), PreferServerSide = true });
-        }
+        RegisterCharIndexOverload(registry, expr,
+            new[] { typeof(string), typeof(string), typeof(int?) },
+            e => e.charIndex("{0}", "{1}", "{2}"));
+
+        RegisterCharIndexOverload(registry, expr,
+            new[] { typeof(char?), typeof(string) },
+            e => e.charIndex("{0}", "{1}"));
+
+        RegisterCharIndexOverload(registry, expr,
+            new[] { typeof(char?), typeof(string), typeof(int?) },
+            e => e.charIndex("{0}", "{1}", "{2}"));
+    }
+
+    static void RegisterCharIndexOverload(
+        DbFuncRegistry registry,
+        SQLExpression expr,
+        Type[] parameterTypes,
+        Func<SQLExpression, string> templateFactory)
+    {
+        var method = typeof(DbFunc).GetMethod(nameof(DbFunc.CharIndex), parameterTypes);
+        if (method == null)
+            return;
+
+        registry.Register(
+            method,
+            new DbFuncExpressionEntry { SqlTemplate = templateFactory(expr), PreferServerSide = true });
     }
 
     static void RegisterReplace(DbFuncRegistry registry, SQLExpression expr)

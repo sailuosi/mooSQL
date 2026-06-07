@@ -20,7 +20,7 @@ Phase D/E 已将 Like、Between、DateDiff、DatePart、DateAdd 等迁入 `Diale
 
 ## 验收
 
-- 矩阵：`Matrix_Analytic_OverChain_RequiresExtensionAttributes` 锁定 Over 链仍须 Extension
+- 矩阵：`Matrix_SooFunctionExtension_OverChain_RequiresExtensionAttributes` 锁定 Over 链仍须 Extension
 - 矩阵：`Matrix_RegistryFirst_ExtensionRequired` 文档化 registry vs Extension 边界
 - 新增：`Matrix_Collate_StringAgg_ExtensionRequired`（Phase F P2）
 

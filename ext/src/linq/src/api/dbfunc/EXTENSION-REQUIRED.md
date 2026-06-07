@@ -10,8 +10,18 @@
 | Substring / Length / Lower / Upper / Trim / Concat | `SqlTemplate` / `IsConcatPredicate` |
 | NullIf / Coalesce / Collate | 专用 predicate |
 | DateDiff / DateAdd / DatePart | `IsDate*Predicate` |
-| **Math 单参** / **CharIndex** / **Replace** | `SqlTemplate`（方言 `SQLExpression.Linq`） |
-| **IsNullOrWhiteSpace** | `IsNullOrWhiteSpacePredicate`（`string.IsNullOrWhiteSpace` 映射） |
+| **CharIndex**（4 overload） | `SqlTemplate` + 方言 `charIndex()` | ✅ | 已移除 Locate/Position `[Function]` |
+| **IsNullOrWhiteSpace** | `IsNullOrWhiteSpacePredicate` + 方言 `isNullOrWhiteSpace()` | ✅ | Extension Builder 已删除 |
+
+## 非 registry API
+
+| API | 路径 |
+|-----|------|
+| **NewGuid** | 客户端 `ProviderMemberTranslatorDefault`（无 SQL 属性） |
+
+## Legacy 方言裁剪
+
+ClickHouse / SapHana 等无 TestLinq 覆盖的方法级 overload 已移除 — 见 [`legacy/README.md`](legacy/README.md)。
 
 ## 目录
 

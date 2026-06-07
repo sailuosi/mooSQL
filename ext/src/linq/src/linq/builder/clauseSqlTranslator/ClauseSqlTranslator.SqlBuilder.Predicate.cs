@@ -80,6 +80,15 @@ namespace mooSQL.linq.Linq.Builder
 				return parameter.SqlParameter;
 			}
 
+			if (expression is MethodCallExpression registryCall
+			    && !DbFuncRegistryExpressionTranslator.IsInListMethod(registryCall.Method))
+			{
+				var registrySql = DbFuncRegistryExpressionTranslator.TryTranslate(
+					this, context!, flags, registryCall, DBLive, checkAggregateRoot: true);
+				if (registrySql is SqlPlaceholderExpression { Sql: IAffirmWord registryAffirm })
+					return registryAffirm;
+			}
+
 			if (CanBeCompiled(expression, false))
 			{
 				var param = _parametersContext.BuildParameter(context, expression, null, buildParameterType: ParametersContext.BuildParameterType.Bool);
@@ -203,15 +212,6 @@ namespace mooSQL.linq.Linq.Builder
 
 					if (attr != null && attr.GetIsPredicate(expression))
 					{
-						var entry = DBLive.dialect.dbFuncRegistry.Resolve(e.Method);
-						if (entry?.SqlTemplate != null
-						    && !DbFuncRegistryExpressionTranslator.IsInListMethod(e.Method))
-						{
-							var registrySql = DbFuncRegistryExpressionTranslator.TryTranslate(this, context!, flags, e, DBLive, checkAggregateRoot: true);
-							if (registrySql is SqlPlaceholderExpression { Sql: IAffirmWord registryAffirm })
-								return registryAffirm;
-						}
-
 						var extSql = ConvertExtensionToSql(context!, flags, attr, e, checkAggregateRoot: true);
 						if (extSql is SqlPlaceholderExpression { Sql: IAffirmWord extAffirm })
 							return extAffirm;

@@ -87,6 +87,7 @@ namespace mooSQL.linq
 
 		#region Guid Functions
 
+		/// <summary>客户端执行（<see cref="ProviderMemberTranslatorDefault"/> 翻译为常量）；非 server-side SQL 函数。</summary>
 		public static Guid NewGuid()
 		{
 			return Guid.NewGuid();
@@ -283,7 +284,6 @@ namespace mooSQL.linq
 
 		[Expression(ProviderName.Firebird, "TRIM(LEADING FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function("LTrim"                                , IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "trimLeft"              , IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? TrimLeft(string? str)
 		{
 			return str?.TrimStart();
@@ -291,7 +291,6 @@ namespace mooSQL.linq
 
 		[Expression(ProviderName.Firebird, "TRIM(TRAILING FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function("RTrim"                                 , IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "trimRight"              , IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? TrimRight(string? str)
 		{
 			return str?.TrimEnd();
@@ -299,13 +298,11 @@ namespace mooSQL.linq
 
 		[Function(                                            IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, B, {1})",      IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "trim(BOTH {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Trim(string? str, char? ch)
 		{
 			return str == null || ch == null ? null : str.Trim(ch.Value);
 		}
 
-		[Expression(ProviderName.ClickHouse, "trim(LEADING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.Firebird,   "TRIM(LEADING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, L, {1})",         IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function  (               "LTrim",                      IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -314,7 +311,6 @@ namespace mooSQL.linq
 			return str == null || ch == null ? null : str.TrimStart(ch.Value);
 		}
 
-		[Expression(ProviderName.ClickHouse, "trim(TRAILING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.Firebird,   "TRIM(TRAILING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, T, {1})",          IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function  (               "RTrim",                       IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -340,7 +336,6 @@ namespace mooSQL.linq
 		[Expression(ProviderName.Sybase, "right(replicate('0',{1}) + cast({0} as varchar(255)),{1})",                         IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.PostgreSQL, "Lpad({0}::text,{1},'0')",                                                       IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.SQLite, "printf('%0{1}d', {0})",                                                             IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Expression(ProviderName.ClickHouse, "leftPadUTF8(toString({0}), toUInt32({1}), '0')",                                IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.SqlCe, "REPLICATE('0', {1} - LEN(CAST({0} as NVARCHAR({1})))) + CAST({0} as NVARCHAR({1}))", IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.SqlServer, "format({0}, 'd{1}')",                                                            IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.SqlServer2005, "REPLICATE('0', CASE WHEN LEN(CAST({0} as NVARCHAR)) > {1} THEN 0 ELSE ({1} - LEN(CAST({0} as NVARCHAR))) END) + CAST({0} as NVARCHAR)", IsNullable = IsNullableType.SameAsFirstParameter)]
@@ -399,7 +394,6 @@ namespace mooSQL.linq
 		[Property(               "CURRENT_TIMESTAMP", CanBeNull = false)]
 		[Property(ProviderName.Informix,   "CURRENT",           CanBeNull = false)]
 		[Property(ProviderName.Access,     "Now",               CanBeNull = false)]
-		[Function(ProviderName.ClickHouse, "now",               CanBeNull = false)]
 		public static DateTime GetDate()
 		{
 			return DateTime.Now;
@@ -411,7 +405,6 @@ namespace mooSQL.linq
 		[Property(ProviderName.Access,     "Now",               ServerSideOnly = true, CanBeNull = false)]
 		[Function(ProviderName.SqlCe,      "GetDate",           ServerSideOnly = true, CanBeNull = false)]
 		[Function(ProviderName.Sybase,     "GetDate",           ServerSideOnly = true, CanBeNull = false)]
-		[Function(ProviderName.ClickHouse, "now",               ServerSideOnly = true, CanBeNull = false)]
 		public static DateTime CurrentTimestamp => throw new LinqException("'CurrentTimestamp' is server side only property.");
 
 		[Function  (ProviderName.SqlServer , "SYSUTCDATETIME"                      , ServerSideOnly = true, CanBeNull = false)]
@@ -421,9 +414,7 @@ namespace mooSQL.linq
 		[Expression(ProviderName.PostgreSQL, "timezone('UTC', now())"              , ServerSideOnly = true, CanBeNull = false)]
 		[Expression(ProviderName.DB2       , "CURRENT TIMESTAMP - CURRENT TIMEZONE", ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Subtraction)]
 		[Expression(ProviderName.Oracle    , "SYS_EXTRACT_UTC(SYSTIMESTAMP)"       , ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
-		[Property  (ProviderName.SapHana   , "CURRENT_UTCTIMESTAMP"                , ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
 		[Expression(ProviderName.Informix  , "datetime(1970-01-01 00:00:00) year to second + (dbinfo('utc_current')/86400)::int::char(9)::interval day(9) to day + (mod(dbinfo('utc_current'), 86400))::char(5)::interval second(5) to second", ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
-		[Expression(ProviderName.ClickHouse, "now('UTC')"                          , ServerSideOnly = true, CanBeNull = false)]
 		public static DateTime CurrentTimestampUtc => DateTime.UtcNow;
 
 		[Property(               "CURRENT_TIMESTAMP", CanBeNull = false)]
@@ -431,13 +422,11 @@ namespace mooSQL.linq
 		[Property(ProviderName.Access,     "Now",               CanBeNull = false)]
 		[Function(ProviderName.SqlCe,      "GetDate",           CanBeNull = false)]
 		[Function(ProviderName.Sybase,     "GetDate",           CanBeNull = false)]
-		[Function(ProviderName.ClickHouse, "now",               CanBeNull = false)]
 		public static DateTime CurrentTimestamp2 => DateTime.Now;
 
 		[Function(ProviderName.SqlServer , "SYSDATETIMEOFFSET", ServerSideOnly = true, CanBeNull = false)]
 		[Function(ProviderName.PostgreSQL, "now"              , ServerSideOnly = true, CanBeNull = false)]
 		[Property(ProviderName.Oracle    , "SYSTIMESTAMP"     , ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
-		[Function(ProviderName.ClickHouse, "now"              , ServerSideOnly = true, CanBeNull = false)]
 		public static DateTimeOffset CurrentTzTimestamp => DateTimeOffset.Now;
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -465,7 +454,6 @@ namespace mooSQL.linq
 		}
 
 		[Property("@@DATEFIRST", CanBeNull = false)]
-		[Property(ProviderName.ClickHouse, "1", CanBeNull = false)]
 		public static int DateFirst => 7;
 
 #if NET6_0_OR_GREATER

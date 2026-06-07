@@ -29,6 +29,9 @@ namespace mooSQL.data
         public override string dateDiffDay(string start, string end)
             => $"DATEDIFF(day, {start}, {end})";
 
+        public override string isNullOrWhiteSpace(string expr)
+            => $"({expr} IS NULL OR TRIM({expr}) = N'')";
+
         public override string dateDiffHour(string start, string end)
             => $"DATEDIFF(hour, {start}, {end})";
 
@@ -194,6 +197,35 @@ namespace mooSQL.data
 
 
             return sb.ToString();
+        }
+
+        /// <inheritdoc/>
+        protected override string WrapExistScalar(string existsSubquery)
+            => $"SELECT CASE WHEN EXISTS ({existsSubquery}) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
+
+        /// <inheritdoc/>
+        protected override string BuildExistInnerSelect(FragSQL frag)
+        {
+            string inner;
+            if (frag.distincted)
+            {
+                var sb = new StringBuilder();
+                sb.Append("SELECT DISTINCT ");
+                sb.Append(frag.selectInner);
+                sb.Append(" FROM ");
+                sb.Append(frag.fromInner);
+                AppendExistWhereGroupHaving(frag, sb);
+                inner = "SELECT TOP 1 1 FROM (" + sb + ") existwrap";
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.Append("SELECT TOP 1 1 FROM ");
+                sb.Append(frag.fromInner);
+                AppendExistWhereGroupHaving(frag, sb);
+                inner = sb.ToString();
+            }
+            return inner;
         }
 
         /*

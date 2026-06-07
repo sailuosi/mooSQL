@@ -13,7 +13,7 @@
 1. **Pure IR** — 新增 `WindowOverClause` + `WindowOrderItem`，渲染 `PARTITION BY` / `ORDER BY` / 帧子句。
 2. **方言包装** — `SQLExpression.windowOver(functionSql, overBody)` 生成 `{function} OVER ({body})`。
 3. **Extension 保留** — Over/PartitionBy/OrderBy Token 链 **短期不变**；IR 供 registry 迁移与三入口快照共用。
-4. **矩阵** — `Matrix_WindowOverClause_RenderBody` 锁定 IR 渲染；`Matrix_Analytic_OverChain_RequiresExtensionAttributes` 锁定 Token 链。
+4. **矩阵** — `Matrix_WindowOverClause_RenderBody` 锁定 IR 渲染；`Matrix_SooFunctionExtension_OverChain_RequiresExtensionAttributes` 锁定 Token 链。
 
 ## 迁移路径（后续）
 

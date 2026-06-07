@@ -51,20 +51,16 @@ namespace mooSQL.linq
 
 		[Function(ProviderName.Informix, "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Oracle,   "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.SapHana,  "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static decimal? Ceiling(decimal? value) => value == null ? null : decimal.Ceiling(value.Value);
 
 		[Function(ProviderName.Informix, "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Oracle,   "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.SapHana,  "Ceil", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Ceiling(double?  value) => value == null ? null : Math.Ceiling(value.Value);
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Cos    (double?  value) => value == null ? null : Math.Cos    (value.Value);
 
-		[Function(ProviderName.ClickHouse, "cosh", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Cosh   (double?  value) => value == null ? null : Math.Cosh   (value.Value);
 
-		[Expression(ProviderName.ClickHouse, "1/tan({0})", IsNullable = IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Multiplicative)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Cot    (double?  value) { return value == null ? null : (double?)Math.Cos(value.Value) / Math.Sin(value.Value); }
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static decimal? Degrees(decimal? value) => value == null ? null : (value.Value * 180m / (decimal)Math.PI);
@@ -88,29 +84,24 @@ namespace mooSQL.linq
 		[Function(ProviderName.Oracle,     "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Firebird,   "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.PostgreSQL, "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.SapHana,    "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(                       IsNullable = IsNullableType.IfAnyParameterNullable)] public static decimal? Log    (decimal? value) { return value == null ? null : (decimal?)Math.Log     ((double)value.Value); }
 
 		[Function(ProviderName.Informix,   "LogN", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Oracle,     "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.Firebird,   "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.PostgreSQL, "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.SapHana,    "Ln",   IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(                       IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Log    (double?  value) => value == null ? null : Math.Log(value.Value);
 
 		[Function(ProviderName.PostgreSQL, "Log", IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.SapHana,  "Log(10,{0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Log10  (double?  value) => value == null ? null : Math.Log10(value.Value);
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "Log({1}) / Log({0})", IsNullable = IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Multiplicative)]
 		public static double?  Log(double? newBase, double? value)
 		{
 			return value == null || newBase == null ? null : Math.Log(value.Value, newBase.Value);
 		}
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.ClickHouse, "Log({1}) / Log({0})", IsNullable = IsNullableType.IfAnyParameterNullable, Precedence = PrecedenceLv.Multiplicative)]
 		public static decimal? Log(decimal? newBase, decimal? value)
 		{
 			return value == null || newBase == null ? null : (decimal?)Math.Log((double)value.Value, (double)newBase.Value);
@@ -124,14 +115,12 @@ namespace mooSQL.linq
 		}
 
 		[Function(IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function(ProviderName.ClickHouse, "roundBankers", IsNullable = IsNullableType.SameAsFirstParameter)]
 		public static decimal? RoundToEven(decimal? value)
 		{
 			return value == null ? null : Math.Round(value.Value, MidpointRounding.ToEven);
 		}
 
 		[Function(IsNullable = IsNullableType.SameAsFirstParameter)]
-		[Function(ProviderName.ClickHouse, "roundBankers", IsNullable = IsNullableType.SameAsFirstParameter)]
 		public static double? RoundToEven(double? value)
 		{
 			return value == null ? null : Math.Round(value.Value, MidpointRounding.ToEven);
@@ -153,14 +142,12 @@ namespace mooSQL.linq
 		}
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "roundBankers", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static decimal? RoundToEven(decimal? value, int? precision)
 		{
 			return value == null || precision == null ? null : Math.Round(value.Value, precision.Value, MidpointRounding.ToEven);
 		}
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.ClickHouse, "roundBankers", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static double? RoundToEven(double?  value, int? precision)
 		{
 			return value == null || precision == null ? null : Math.Round(value.Value, precision.Value, MidpointRounding.ToEven);
@@ -183,7 +170,6 @@ namespace mooSQL.linq
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static int? Sign(float?   value) => value == null ? null : Math.Sign(value.Value);
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Sin     (double?  value) => value == null ? null : Math.Sin (value.Value);
-		[Function(ProviderName.ClickHouse, "sinh", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Sinh    (double?  value) => value == null ? null : Math.Sinh(value.Value);
 		[Function(ProviderName.Access, "Sqr", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)] public static double?  Sqrt    (double?  value) => value == null ? null : Math.Sqrt(value.Value);
@@ -198,7 +184,6 @@ namespace mooSQL.linq
 		[Expression(ProviderName.PostgreSQL, "Trunc({0}, 0)",             IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.MySql,      "Truncate({0}, 0)",          IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.SqlCe,      "Round({0}, 0, 1)",          IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.SapHana,    "Round({0}, 0, ROUND_DOWN)", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(                                              IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static decimal? Truncate(decimal? value)
 		{
@@ -213,7 +198,6 @@ namespace mooSQL.linq
 		[Expression(ProviderName.PostgreSQL, "Trunc({0}, 0)",             IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.MySql,      "Truncate({0}, 0)",          IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.SqlCe,      "Round({0}, 0, 1)",          IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Expression(ProviderName.SapHana,    "Round({0}, 0, ROUND_DOWN)", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(                                              IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static double? Truncate(double? value)
 		{

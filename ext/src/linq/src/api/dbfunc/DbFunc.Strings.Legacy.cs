@@ -28,10 +28,7 @@ namespace mooSQL.linq
 		#region String Functions (Legacy)
 
 		[CLSCompliant(false)]
-		[Function(                                     IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.DB2,        "Locate",             IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.MySql,      "Locate",             IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.Firebird,   "Position",           IsNullable = IsNullableType.IfAnyParameterNullable)]
+		/// <summary>registry-first（Bootstrap）；方言 <see cref="mooSQL.data.dialect.SQLExpression.charIndex"/> override。</summary>
 		public static int? CharIndex(string? substring, string? str)
 		{
 			if (str == null || substring == null) return null;
@@ -48,10 +45,6 @@ namespace mooSQL.linq
 			return substring.Length == 0 ? 0 : str.IndexOf(substring) + 1;
 		}
 
-		[Function(                                                             IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.DB2,        "Locate",                                   IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.MySql,      "Locate",                                   IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function  (ProviderName.Firebird,   "Position",                                 IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static int? CharIndex(string? substring, string? str, int? start)
 		{
 			if (str == null || substring == null || start == null) return null;
@@ -60,10 +53,6 @@ namespace mooSQL.linq
 			return substring.Length == 0 ? 0 : str.IndexOf(substring, index) + 1;
 		}
 
-		[Function(                                     IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.DB2,        "Locate",             IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.MySql,      "Locate",             IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.Firebird,   "Position",           IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static int? CharIndex(char? value, string? str)
 		{
 			if (value == null || str == null) return null;
@@ -71,10 +60,6 @@ namespace mooSQL.linq
 			return str.IndexOf(value.Value) + 1;
 		}
 
-		[Function(                                                          IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.DB2,        "Locate",                                  IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.MySql,      "Locate",                                  IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.Firebird,   "Position",                                IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static int? CharIndex(char? value, string? str, int? start)
 		{
 			if (str == null || value == null || start == null) return null;
@@ -205,7 +190,6 @@ namespace mooSQL.linq
 			return str.PadRight(length.Value, paddingChar.Value);
 		}
 
-		[Function(PseudoFunctions.REPLACE, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Replace(string? str, string? oldValue, string? newValue)
 		{
 			if (str == null || oldValue == null || newValue == null) return null;
@@ -215,8 +199,6 @@ namespace mooSQL.linq
 			return str.Replace(oldValue, newValue);
 		}
 
-		[Function(                              IsNullable = IsNullableType.IfAnyParameterNullable)]
-		[Function(ProviderName.Sybase,     "Str_Replace", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Replace(string? str, char? oldValue, char? newValue)
 		{
 			if (str == null || oldValue == null || newValue == null) return null;
@@ -226,278 +208,11 @@ namespace mooSQL.linq
 		}
 
 		#region IsNullOrWhiteSpace
-		// set of all White_Space characters per Unicode v13
-		const string WHITESPACES       = "\x09\x0A\x0B\x0C\x0D\x20\x85\xA0\x1680\x2000\x2001\x2002\x2003\x2004\x2005\x2006\x2007\x2008\x2009\x200A\x2028\x2029\x205F\x3000";
-		const string ASCII_WHITESPACES = "\x09\x0A\x0B\x0C\x0D\x20\x85\xA0";
-		const string WHITESPACES_REGEX = "\x09|\x0A|\x0B|\x0C|\x0D|\x20|\x85|\xA0|\x1680|\x2000|\x2001|\x2002|\x2003|\x2004|\x2005|\x2006|\x2007|\x2008|\x2009|\x200A|\x2028|\x2029|\x205F|\x3000";
 
-		/*
-		 * marked internal as we don't have plans now to expose it directly (used by string.IsNullOrWhiteSpace mapping)
-		 *
-		 * implementation tries to mimic .NET implementation of string.IsNullOrWhiteSpace (except null check part):
-		 * return true if string doesn't contain any symbols except White_Space codepoints from Unicode.
-		 *
-		 * Known limitations:
-		 * 1. [Access] we handle only following WS:
-		 * - 0x20 (SPACE)
-		 * - 0x1680 (OGHAM SPACE MARK)
-		 * - 0x205F (MEDIUM MATHEMATICAL SPACE)
-		 * - 0x3000 (IDEOGRAPHIC SPACE)
-		 * Proper implementation will be same as we use for SqlCe, but Replace function is not exposed to SQL by default
-		 * and requires sandbox mode: https://support.microsoft.com/en-us/office/turn-sandbox-mode-on-or-off-to-disable-macros-8cc7bad8-38c2-4a7a-a604-43e9a7bbc4fb
-		 * 2. [Informix} implementation use only ASCII whitespaces which probably will not work in some cases for WS outside of
-		 * ASCII range (currently works in our tests, but it could be that it depends on used encodings)
-		 */
-		[Extension(                  typeof(IsNullOrWhiteSpaceDefaultBuilder),                     IsPredicate = true)]
-		[Extension(ProviderName.Oracle,        typeof(IsNullOrWhiteSpaceOracleBuilder),                      IsPredicate = true)]
-		[Extension(ProviderName.Informix,      typeof(IsNullOrWhiteSpaceInformixBuilder),                    IsPredicate = true)]
-		[Extension(ProviderName.SqlServer,     typeof(IsNullOrWhiteSpaceSqlServerBuilder),                   IsPredicate = true)]
-		[Extension(ProviderName.SqlServer2017, typeof(IsNullOrWhiteSpaceSqlServer2017Builder),               IsPredicate = true)]
-		[Extension(ProviderName.SqlServer2019, typeof(IsNullOrWhiteSpaceSqlServer2017Builder),               IsPredicate = true)]
-		[Extension(ProviderName.SqlServer2022, typeof(IsNullOrWhiteSpaceSqlServer2017Builder),               IsPredicate = true)]
-		[Extension(ProviderName.Access,        typeof(IsNullOrWhiteSpaceAccessBuilder),                      IsPredicate = true)]
-		[Extension(ProviderName.Sybase,        typeof(IsNullOrWhiteSpaceSybaseBuilder),                      IsPredicate = true)]
-		[Extension(ProviderName.MySql,         typeof(IsNullOrWhiteSpaceMySqlBuilder),                       IsPredicate = true)]
-		[Extension(ProviderName.Firebird,      typeof(IsNullOrWhiteSpaceFirebirdBuilder),                    IsPredicate = true)]
-		[Extension(ProviderName.SqlCe,         typeof(IsNullOrWhiteSpaceSqlCeBuilder),                       IsPredicate = true)]
-		internal static bool IsNullOrWhiteSpace(string? str) => string.IsNullOrWhiteSpace(str);
+		/// <summary>registry-first（Bootstrap <c>IsNullOrWhiteSpacePredicate</c>）；<c>string.IsNullOrWhiteSpace</c> 映射目标。</summary>
+		internal static bool IsNullOrWhiteSpace(string? str)
+			=> throw new LinqException($"'{nameof(IsNullOrWhiteSpace)}' is only server-side method.");
 
-		// str IS NULL OR REPLACE...(str, WHITEPACES, '') == ''
-		internal sealed class IsNullOrWhiteSpaceSqlCeBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new mooSQL.data.model.affirms.ExprExpr(
-						new ExpressionWord(
-							typeof(string),
-							"REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE({0}, '\x09', ''), '\x0a', ''), '\x0b', ''), '\x0c', ''), '\x0d', ''), '\x20', ''), '\x85', ''), '\xa0', ''), '\x1680', ''), '\x2000', ''), '\x2001', ''), '\x2002', ''), '\x2003', ''), '\x2004', ''), '\x2005', ''), '\x2006', ''), '\x2007', ''), '\x2008', ''), '\x2009', ''), '\x200a', ''), '\x2028', ''), '\x2029', ''), '\x205f', ''), '\x3000', '')",
-							str),
-                        AffirmWord.Operator.Equal,
-						new ValueWord(typeof(string), string.Empty), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true, 
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR NOT(str SIMILAR TO _utf8 x'%[^WHITESPACES_UTF8]%')
-		internal sealed class IsNullOrWhiteSpaceFirebirdBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				const string whiteSpaces = $"%[^{WHITESPACES}]%";
-				var predicate = new mooSQL.data.model.affirms.Expr(
-					new ExpressionWord(
-						typeof(bool),
-						"{0} SIMILAR TO {1}",
-                        PrecedenceLv.Comparison,
-                        SqlFlags.IsPredicate,
-                        ParametersNullabilityType.NotNullable,
-						null,
-						str,
-						new ValueWord(typeof(string), whiteSpaces)))
-					.MakeNot();
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false), predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR NOT(str RLIKE '%[^WHITESPACES]%')
-		internal sealed class IsNullOrWhiteSpaceMySqlBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var whiteSpaces = $"[^{WHITESPACES}]";
-				var condition = new mooSQL.data.model.affirms.Expr(
-					new ExpressionWord(
-						typeof(bool),
-						"{0} RLIKE {1}",
-                        PrecedenceLv.Comparison,
-                        SqlFlags.IsPredicate,
-                        ParametersNullabilityType.NotNullable,
-						null,
-						str,
-						new ValueWord(typeof(string), whiteSpaces)))
-					.MakeNot();
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false), condition);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, condition);
-			}
-		}
-
-		// str IS NULL OR str NOT LIKE '%[^WHITESPACES]%'
-		internal sealed class IsNullOrWhiteSpaceSybaseBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var whiteSpaces = $"%[^{WHITESPACES}]%";
-				var predicate = new mooSQL.data.model.affirms.Like(
-					str,
-					true,
-					new ValueWord(typeof(string), whiteSpaces),
-					null);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false), predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR str NOT LIKE N'%[^WHITESPACES]%'
-		internal sealed class IsNullOrWhiteSpaceSqlServerBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var whiteSpaces = $"%[^{WHITESPACES}]%";
-				var predicate = new mooSQL.data.model.affirms.Like(
-					str,
-					true,
-					new ValueWord(new DbDataType(typeof(string), DataFam.NVarChar), whiteSpaces),
-					null);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR LTRIM(str, '') = ''
-		internal sealed class IsNullOrWhiteSpaceAccessBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new mooSQL.data.model.affirms.ExprExpr(
-						new FunctionWord(typeof(string), "LTRIM", str),
-                        AffirmWord.Operator.Equal,
-						new ValueWord(typeof(string), string.Empty), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR TRIM(N'WHITESPACES FROM str) = ''
-		internal sealed class IsNullOrWhiteSpaceSqlServer2017Builder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new mooSQL.data.model.affirms.ExprExpr(
-						new ExpressionWord(typeof(string), "TRIM({1} FROM {0})", str, new ValueWord(new DbDataType(typeof(string), DataFam.NVarChar), WHITESPACES)),
-                        AffirmWord.Operator.Equal,
-						new ValueWord(typeof(string), string.Empty), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR LTRIM(str, WHITESPACES) IS NULL
-		internal sealed class IsNullOrWhiteSpaceOracleBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new IsNull(new FunctionWord(typeof(string), "LTRIM", str, new ValueWord(typeof(string), WHITESPACES)), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR LTRIM(str, ASCII_WHITESPACES) = ''
-		internal sealed class IsNullOrWhiteSpaceInformixBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new mooSQL.data.model.affirms.ExprExpr(
-						new FunctionWord(typeof(string), "LTRIM", str, new ValueWord(typeof(string), ASCII_WHITESPACES)),
-                        AffirmWord.Operator.Equal,
-						new ValueWord(typeof(string), string.Empty), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
-
-		// str IS NULL OR LTRIM(str, WHITESPACES) = ''
-		internal sealed class IsNullOrWhiteSpaceDefaultBuilder : IExtensionCallBuilder
-		{
-			void IExtensionCallBuilder.Build(ISqExtensionBuilder builder)
-			{
-				var str = builder.GetExpression("str")!;
-
-				var predicate = new mooSQL.data.model.affirms.ExprExpr(
-						new FunctionWord(typeof(string), "LTRIM", str, new ValueWord(typeof(string), WHITESPACES)),
-                        AffirmWord.Operator.Equal,
-						new ValueWord(typeof(string), string.Empty), false);
-
-				var nullability = new NullabilityContext(builder.Query);
-				if (str.CanBeNullable(nullability))
-					builder.ResultExpression = new SearchConditionWord(true,
-						new IsNull(str, false),
-						predicate);
-				else
-					builder.ResultExpression = new SearchConditionWord(false, predicate);
-			}
-		}
 		#endregion
 
 		#endregion
