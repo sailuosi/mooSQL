@@ -58,10 +58,12 @@ namespace mooSQL.linq.Linq
 			return _query.Provider.Execute<TResult>(expression);
 		}
 
+#if NET5_0_OR_GREATER
 		public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken)
 		{
 			throw new NotImplementedException();
 		}
+#endif
 
 		public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
 		{

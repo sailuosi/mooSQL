@@ -1,5 +1,6 @@
 using mooSQL.data.cluster;
 using mooSQL.data.health;
+using mooSQL.utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,11 +62,7 @@ namespace mooSQL.data
             GetRouteResolver()?.ResolveWrite(position, ctx, currentHint);
 
         internal IList<DBInstance> resolveDualWriteTargets(int position, SQLRouteContext ctx = null) =>
-#if NET451
-            GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? new List<DBInstance>();
-#else
-            GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? Array.Empty<DBInstance>();
-#endif
+            GetRouteResolver()?.ResolveDualWriteTargets(position, ctx) ?? ArrayCache.Empty<DBInstance>();
 
 
         /// <summary>当前实例不可用则选举下一可用可写实例（不写回组级状态）。</summary>

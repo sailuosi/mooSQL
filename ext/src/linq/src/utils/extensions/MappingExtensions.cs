@@ -82,7 +82,7 @@ namespace mooSQL.linq.Extensions
 				return null;
 
 			if (dialectName.EndsWith("Dialect", StringComparison.Ordinal) && dialectName.Length > "Dialect".Length)
-				return dialectName[..^"Dialect".Length];
+				return dialectName.Substring(0, dialectName.Length - "Dialect".Length);
 
 			return dialectName;
 		}

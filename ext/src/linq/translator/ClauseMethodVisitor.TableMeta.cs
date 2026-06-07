@@ -7,6 +7,7 @@ using mooSQL.data.model;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
 using mooSQL.linq.ext;
+using mooSQL.utils;
 
 namespace mooSQL.linq.translator;
 
@@ -139,11 +140,7 @@ internal partial class ClauseMethodVisitor
 
         _ = builder.EvaluateExpression<string>(methodCall.Arguments[1]);
         table.SqlTable.SqlTableType = SqlTableType.Expression;
-#if NET6_0_OR_GREATER
-        table.SqlTable.TableArguments = Array.Empty<IExpWord>();
-#else
-        table.SqlTable.TableArguments = new IExpWord[0];
-#endif
+        table.SqlTable.TableArguments = ArrayCache.Empty<IExpWord>();
 
         return ToStatementCallOr(method, sequence);
     }

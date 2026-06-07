@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.ext
 {
-	using Async;
 	using Linq;
+#if NET6_0_OR_GREATER
+	using mooSQL.linq.Async;
+#endif
 
 	public static partial class LinqExtensions
 	{
@@ -769,12 +771,14 @@ namespace mooSQL.linq.ext
 			var query         = ((ValueInsertable<T>)source).Query;
 			var currentSource = ProcessSourceQueryable?.Invoke(query) ?? query;
 
-			return currentSource.Provider.CreateQuery<TOutput>(
+			return AsyncEnumerableExtensions.FirstAsync(
+				currentSource.Provider.CreateQuery<TOutput>(
 				Expression.Call(
 					null,
 					MethodHelper.GetMethodInfo(InsertWithOutput, source, outputExpression),
 					currentSource.Expression,
-					Expression.Quote(outputExpression))).AsAsyncEnumerable().FirstAsync(token);
+					Expression.Quote(outputExpression))).AsAsyncEnumerable(),
+				token);
 		}
 
         /// <summary>
@@ -801,11 +805,13 @@ namespace mooSQL.linq.ext
             var query = ((ValueInsertable<T>)source).Query;
             var currentSource = ProcessSourceQueryable?.Invoke(query) ?? query;
 
-            return currentSource.Provider.CreateQuery<T>(
+            return AsyncEnumerableExtensions.FirstAsync(
+                currentSource.Provider.CreateQuery<T>(
                 Expression.Call(
                     null,
                     MethodHelper.GetMethodInfo(InsertWithOutput, source),
-                    currentSource.Expression)).AsAsyncEnumerable().FirstAsync(token);
+                    currentSource.Expression)).AsAsyncEnumerable(),
+                token);
         }
 
         /// <summary>
@@ -840,7 +846,7 @@ namespace mooSQL.linq.ext
                     MethodHelper.GetMethodInfo(InsertWithOutput, source),
                     query.Expression));
 
-            return items.AsAsyncEnumerable().FirstAsync(token);
+            return AsyncEnumerableExtensions.FirstAsync(items.AsAsyncEnumerable(), token);
         }
 
         /// <summary>
@@ -970,7 +976,7 @@ namespace mooSQL.linq.ext
                     MethodHelper.GetMethodInfo(InsertWithOutput, target, setter, outputExpression),
                     query.Expression, Expression.Quote(setter), Expression.Quote(outputExpression)));
 
-            return items.AsAsyncEnumerable().FirstAsync(token);
+            return AsyncEnumerableExtensions.FirstAsync(items.AsAsyncEnumerable(), token);
         }
 
         /// <summary>
@@ -1008,7 +1014,7 @@ namespace mooSQL.linq.ext
                     MethodHelper.GetMethodInfo(InsertWithOutput, target, obj),
                     query.Expression, Expression.Constant(obj)));
 
-            return items.AsAsyncEnumerable().SingleAsync(token);
+            return AsyncEnumerableExtensions.SingleAsync(items.AsAsyncEnumerable(), token);
         }
 
         /// <summary>
@@ -1046,7 +1052,7 @@ namespace mooSQL.linq.ext
                     MethodHelper.GetMethodInfo(InsertWithOutput, target, setter),
                     query.Expression, Expression.Quote(setter)));
 
-            return items.AsAsyncEnumerable().FirstAsync(token);
+            return AsyncEnumerableExtensions.FirstAsync(items.AsAsyncEnumerable(), token);
 
         }
 #else

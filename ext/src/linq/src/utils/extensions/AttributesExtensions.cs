@@ -16,7 +16,7 @@ namespace mooSQL.linq.Extensions
 	 *
 	 * Behavior differences compared to runtime GetAttribute(s) methods:
 	 * - results are cached and reused (runtime always create new attribute instances), so we cannot modify them to avoid cache poisoning
-	 * - empty attribute lists explicitly replaced with Array.Empty<Attribute> instances. Runtime methods at least in .net framework don't use cached empty array instances
+	 * - empty attribute lists explicitly replaced with cached empty array instances. Runtime methods at least in .net framework don't use cached empty array instances
 	 */
 	
 	public static class AttributesExtensions

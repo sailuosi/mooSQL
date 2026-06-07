@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mooSQL.data.health;
+using mooSQL.utils;
 
 namespace mooSQL.data.cluster
 {
@@ -218,11 +219,7 @@ namespace mooSQL.data.cluster
         public IList<DBInstance> ResolveDualWriteTargets(int position, SQLRouteContext ctx = null)
         {
             var group = GetGroup(position);
-#if NET451
-            if (group == null) return new List<DBInstance>();
-#else
-            if (group == null) return Array.Empty<DBInstance>();
-#endif
+            if (group == null) return ArrayCache.Empty<DBInstance>();
 
 
             var master = ResolveWrite(position, ctx);

@@ -15,15 +15,20 @@ public static partial class LinqClauseBridge
     /// <summary>注册 LINQ 编译产生的 SQLBuilder ↔ SelectQueryClause 映射（供逆向桥接）。</summary>
     internal static void AttachSelectQuery(SQLBuilder builder, SelectQueryClause selectQuery)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(selectQuery);
+        if (builder == null) throw new ArgumentNullException(nameof(builder));
+        if (selectQuery == null) throw new ArgumentNullException(nameof(selectQuery));
+#if NET451 || NET462
+        BuilderToSelectQuery.Remove(builder);
+        BuilderToSelectQuery.Add(builder, selectQuery);
+#else
         BuilderToSelectQuery.AddOrUpdate(builder, selectQuery);
+#endif
     }
 
     /// <summary>从经 LINQ 桥接产生的 <see cref="SQLBuilder"/> 还原 <see cref="SelectQueryClause"/>。</summary>
     public static SelectQueryClause ToSelectQueryClause(SQLBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(builder);
+        if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (BuilderToSelectQuery.TryGetValue(builder, out var clause))
             return clause;
         throw new InvalidOperationException("SQLBuilder was not produced by Linq compile bridge; no SelectQueryClause attached.");
@@ -32,8 +37,8 @@ public static partial class LinqClauseBridge
     /// <summary>从 <see cref="SQLBuilder"/> 重建 SentenceBag（Clause IR 逆向桥接）。</summary>
     internal static SentenceBag FromSQLBuilder(DBInstance db, SQLBuilder builder, Expression? sourceExpression = null)
     {
-        ArgumentNullException.ThrowIfNull(db);
-        ArgumentNullException.ThrowIfNull(builder);
+        if (db == null) throw new ArgumentNullException(nameof(db));
+        if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         var selectQuery = ToSelectQueryClause(builder);
         var bag = new SentenceBag

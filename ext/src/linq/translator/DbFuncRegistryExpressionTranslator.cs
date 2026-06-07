@@ -223,7 +223,7 @@ internal static class DbFuncRegistryExpressionTranslator
     }
 
     static bool IsBetweenTemplate(string template)
-        => template.Contains("BETWEEN", StringComparison.OrdinalIgnoreCase);
+        => template.IndexOf("BETWEEN", StringComparison.OrdinalIgnoreCase) >= 0;
 
     static Expression? TranslateDateDiff(
         ClauseSqlTranslator builder,
@@ -413,7 +413,7 @@ internal static class DbFuncRegistryExpressionTranslator
         string template)
     {
         var args = CollectCallSqlArgs(builder, context, mc);
-        var negated = template.Contains("NOT BETWEEN", StringComparison.OrdinalIgnoreCase);
+        var negated = template.IndexOf("NOT BETWEEN", StringComparison.OrdinalIgnoreCase) >= 0;
         var between = new Between(args[0], negated, args[1], args[2]);
         return ClauseSqlTranslator.CreatePlaceholder(context.SelectQuery, new SearchConditionWord(false, between), mc);
     }

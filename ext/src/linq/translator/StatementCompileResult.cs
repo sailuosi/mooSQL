@@ -8,14 +8,14 @@ public sealed class StatementCompileResult
 {
     public bool Success => ErrorExpression == null && PrimarySelectQuery != null;
 
-    public Expression? ErrorExpression { get; init; }
+    public Expression? ErrorExpression { get; set; }
 
-    public Expression Expression { get; init; } = null!;
+    public Expression Expression { get; set; } = null!;
 
-    public SqlPlan Plan { get; init; } = new();
+    public SqlPlan Plan { get; set; } = new();
 
     /// <summary>首条 SELECT 语句树（结构断言 / 调试 UI）。</summary>
-    public SelectQueryClause? PrimarySelectQuery { get; init; }
+    public SelectQueryClause? PrimarySelectQuery { get; set; }
 
     public StatementStructure? PrimaryStructure =>
         Plan.Statements.Count > 0 ? Plan.Statements[0].Structure : null;

@@ -537,8 +537,15 @@ namespace mooSQL.linq.Linq.Builder
 				var mc = (MethodCallExpression)expr;
 				if (mc.IsQueryable(_singleElementMethods))
 				{
+#if NET451 || NET462
+					if (mc.Arguments.Count == 2)
+					{
+						var a0 = mc.Arguments[0];
+						var a1 = mc.Arguments[1];
+#else
 					if (mc.Arguments is [var a0, var a1])
 					{
+#endif
 						Expression whereMethod;
 						var typeArguments = mc.Method.GetGenericArguments();
 						if (mc.Method.DeclaringType == typeof(Queryable))

@@ -146,7 +146,7 @@ namespace mooSQL.linq.Linq.Builder
 
 		protected void Init(bool applyFilters)
 		{
-			InheritanceMapping = Array.Empty<EntiyInherit>();
+			InheritanceMapping = ArrayCache.Empty<EntiyInherit>();
 
 			if (applyFilters && ObjectType != OriginalType)
 			{

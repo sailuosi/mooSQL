@@ -12,8 +12,8 @@ public static partial class LinqClauseBridge
     /// <summary>从编译结果获取可执行的 <see cref="SQLBuilder"/>。</summary>
     public static SQLBuilder ToSQLBuilder(this StatementCompileResult result, DBInstance db, object?[]? parameters = null)
     {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(db);
+        if (result == null) throw new ArgumentNullException(nameof(result));
+        if (db == null) throw new ArgumentNullException(nameof(db));
         return LinqStatementCompiler.ToSQLBuilder(db, result.Expression, parameters);
     }
 
@@ -22,8 +22,8 @@ public static partial class LinqClauseBridge
     /// </summary>
     public static SQLBuilder FromPrimarySelectQuery(DBInstance db, SelectQueryClause selectQuery)
     {
-        ArgumentNullException.ThrowIfNull(db);
-        ArgumentNullException.ThrowIfNull(selectQuery);
+        if (db == null) throw new ArgumentNullException(nameof(db));
+        if (selectQuery == null) throw new ArgumentNullException(nameof(selectQuery));
 
         var kit = db.useSQL();
         var clause = new SelectSentence(selectQuery);

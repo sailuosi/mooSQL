@@ -6,6 +6,7 @@ using mooSQL.data.model.affirms;
 using mooSQL.linq;
 using mooSQL.linq.Expressions;
 using mooSQL.linq.Linq.Builder;
+using mooSQL.utils;
 namespace mooSQL.linq.translator;
 
 /// <summary>
@@ -77,14 +78,14 @@ internal sealed class ClausePredicateVisitor
             if (e.Arguments.Count < 1)
             {
                 fieldExpr = null;
-                valueArgs = Array.Empty<Expression>();
+                valueArgs = ArrayCache.Empty<Expression>();
                 return false;
             }
 
             fieldExpr = e.Arguments[0];
             valueArgs = e.Arguments.Count > 1
                 ? e.Arguments.Skip(1).ToArray()
-                : Array.Empty<Expression>();
+                : ArrayCache.Empty<Expression>();
             return true;
         }
 
@@ -96,7 +97,7 @@ internal sealed class ClausePredicateVisitor
         }
 
         fieldExpr = null;
-        valueArgs = Array.Empty<Expression>();
+        valueArgs = ArrayCache.Empty<Expression>();
         return false;
     }
 

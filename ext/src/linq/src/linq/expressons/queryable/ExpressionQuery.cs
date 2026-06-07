@@ -15,7 +15,10 @@ namespace mooSQL.linq.Linq
     using mooSQL.data;
     using mooSQL.linq.translator;
 
-    public abstract class ExpressionQuery<T> : IExpressionQuery<T>, IAsyncEnumerable<T>
+    public abstract class ExpressionQuery<T> : IExpressionQuery<T>
+#if NET5_0_OR_GREATER
+        , IAsyncEnumerable<T>
+#endif
 	{
 		#region Init
 
@@ -175,6 +178,7 @@ namespace mooSQL.linq.Linq
 
         }
 
+#if NET5_0_OR_GREATER
         public IAsyncEnumerable<T> GetAsyncEnumerable()
 		{
 			return this;
@@ -194,6 +198,7 @@ namespace mooSQL.linq.Linq
 					.GetAsyncEnumerator(cancellationToken);
 			}
 		}
+#endif
 
 		#endregion
 

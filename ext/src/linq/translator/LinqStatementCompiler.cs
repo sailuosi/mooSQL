@@ -22,8 +22,8 @@ public static partial class LinqStatementCompiler
         Expression expression,
         StatementCompileOptions? options = null)
     {
-        ArgumentNullException.ThrowIfNull(db);
-        ArgumentNullException.ThrowIfNull(expression);
+        if (db == null) throw new ArgumentNullException(nameof(db));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
 
         options ??= new StatementCompileOptions();
         var stages = new List<string> { "Expression.Optimize", "ClauseSqlTranslator.Build" };
@@ -33,7 +33,7 @@ public static partial class LinqStatementCompiler
             .GetMethod(nameof(CompileTyped), BindingFlags.NonPublic | BindingFlags.Static)!
             .MakeGenericMethod(elementType);
 
-        return (StatementCompileResult)compileMethod.Invoke(null, [db, expression, options, stages])!;
+        return (StatementCompileResult)compileMethod.Invoke(null, new object[] { db, expression, options, stages })!;
     }
 
     static StatementCompileResult CompileTyped<T>(
@@ -48,7 +48,7 @@ public static partial class LinqStatementCompiler
         bag.srcExp = expr;
 
         SelectQueryClause? primary = null;
-        if (bag.Sentences is { Count: > 0 })
+        if (bag.Sentences != null && bag.Sentences.Count > 0)
             primary = bag.Sentences[0].Statement.SelectQuery;
 
         var plan = SqlPlanBuilder.Build(bag, db, expr, options, stages);

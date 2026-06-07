@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.Linq.Builder
 {
+#if NET5_0_OR_GREATER
 	using Async;
+#endif
 	using Common;
 	using Extensions;
 	using mooSQL.linq.Expressions;

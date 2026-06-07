@@ -7,29 +7,29 @@ namespace mooSQL.linq.translator;
 /// </summary>
 public sealed class SqlPlan
 {
-    public string? EntityTypeName { get; init; }
+    public string? EntityTypeName { get; set; }
 
-    public bool HasError { get; init; }
+    public bool HasError { get; set; }
 
-    public IReadOnlyList<string> Stages { get; init; } = [];
+    public IReadOnlyList<string> Stages { get; set; } = [];
 
-    public IReadOnlyList<StatementPlanItem> Statements { get; init; } = [];
+    public IReadOnlyList<StatementPlanItem> Statements { get; set; } = [];
 
     /// <summary>Finalize 后的 SQL 预览（调试 UI / EXPLAIN 入口）。</summary>
-    public string? SqlPreview { get; init; }
+    public string? SqlPreview { get; set; }
 
-    public int NavColumnCount { get; init; }
+    public int NavColumnCount { get; set; }
 
-    public bool IsCacheable { get; init; }
+    public bool IsCacheable { get; set; }
 }
 
 /// <summary>计划中的单条 Statement。</summary>
 public sealed class StatementPlanItem
 {
-    public StatementStructure Structure { get; init; } = new();
+    public StatementStructure Structure { get; set; } = new();
 
     /// <summary><see cref="mooSQL.data.model.BaseSentence.SqlText"/> 调试树。</summary>
-    public string? DebugTree { get; init; }
+    public string? DebugTree { get; set; }
 
-    public int ParameterCount { get; init; }
+    public int ParameterCount { get; set; }
 }

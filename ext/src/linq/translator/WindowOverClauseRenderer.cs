@@ -17,7 +17,7 @@ internal static class WindowOverClauseRenderer
         if (!extension.IsWindowFunction)
             return false;
 
-        if (!extension.Expr.Contains("OVER", System.StringComparison.OrdinalIgnoreCase))
+        if (extension.Expr.IndexOf("OVER", System.StringComparison.OrdinalIgnoreCase) < 0)
             return false;
 
         var functionSql = ResolveFunctionSql(extension);
@@ -59,7 +59,7 @@ internal static class WindowOverClauseRenderer
 
         var overIdx = expr.IndexOf(" OVER", System.StringComparison.OrdinalIgnoreCase);
         if (overIdx > 0)
-            return expr[..overIdx].Trim();
+            return expr.Substring(0, overIdx).Trim();
 
         return null;
     }
@@ -82,11 +82,11 @@ internal static class WindowOverClauseRenderer
             if (string.IsNullOrEmpty(sql))
                 continue;
 
-            var descending = sql.Contains(" DESC", System.StringComparison.OrdinalIgnoreCase);
+            var descending = sql.IndexOf(" DESC", System.StringComparison.OrdinalIgnoreCase) >= 0;
             string? nulls = null;
-            if (sql.Contains(" NULLS FIRST", System.StringComparison.OrdinalIgnoreCase))
+            if (sql.IndexOf(" NULLS FIRST", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 nulls = "FIRST";
-            else if (sql.Contains(" NULLS LAST", System.StringComparison.OrdinalIgnoreCase))
+            else if (sql.IndexOf(" NULLS LAST", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 nulls = "LAST";
 
             var expr = sql;

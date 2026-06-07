@@ -147,7 +147,10 @@ namespace mooSQL.linq
 
 		public static Type? TryGetSequenceType(/*[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] */this Type type)
 			=> type.TryGetElementType(typeof(IEnumerable<>))
-				?? type.TryGetElementType(typeof(IAsyncEnumerable<>));
+#if NET5_0_OR_GREATER
+				?? type.TryGetElementType(typeof(IAsyncEnumerable<>))
+#endif
+				;
 
 		public static Type? TryGetElementType(
 			/*[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] */this Type type,

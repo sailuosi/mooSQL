@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.Linq;
+using mooSQL.utils;
 
 namespace mooSQL.linq.translator;
 
@@ -26,15 +27,15 @@ public static partial class LinqStatementCompiler
         Expression expression,
         object?[]? parameters = null)
     {
-        ArgumentNullException.ThrowIfNull(db);
-        ArgumentNullException.ThrowIfNull(expression);
+        if (db == null) throw new ArgumentNullException(nameof(db));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
 
         var elementType = ResolveElementType(expression) ?? typeof(object);
         var method = typeof(LinqStatementCompiler)
             .GetMethod(nameof(ToSQLBuildersTyped), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
             .MakeGenericMethod(elementType);
 
-        return (IReadOnlyList<SQLBuilder>)method.Invoke(null, [db, expression, parameters])!;
+        return (IReadOnlyList<SQLBuilder>)method.Invoke(null, new object[] { db, expression, parameters })!;
     }
 
     /// <summary>
@@ -42,15 +43,15 @@ public static partial class LinqStatementCompiler
     /// </summary>
     public static string GetSqlText(DBInstance db, Expression expression, object?[]? parameters = null)
     {
-        ArgumentNullException.ThrowIfNull(db);
-        ArgumentNullException.ThrowIfNull(expression);
+        if (db == null) throw new ArgumentNullException(nameof(db));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
 
         var elementType = ResolveElementType(expression) ?? typeof(object);
         var method = typeof(LinqStatementCompiler)
             .GetMethod(nameof(GetSqlTextTyped), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
             .MakeGenericMethod(elementType);
 
-        return (string)method.Invoke(null, [db, expression, parameters])!;
+        return (string)method.Invoke(null, new object[] { db, expression, parameters })!;
     }
 
     static IReadOnlyList<SQLBuilder> ToSQLBuildersTyped<T>(DBInstance db, Expression expression, object?[]? parameters)
@@ -62,7 +63,7 @@ public static partial class LinqStatementCompiler
         SentenceExecutor.FinalizeBag(bag, db);
 
         if (bag.Sentences == null || bag.Sentences.Count == 0)
-            return Array.Empty<SQLBuilder>();
+            return ArrayCache.Empty<SQLBuilder>();
 
         var kits = new List<SQLBuilder>(bag.Sentences.Count);
         foreach (var sentence in bag.Sentences)

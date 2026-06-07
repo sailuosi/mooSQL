@@ -59,7 +59,7 @@ namespace mooSQL.linq
 				};
 
 				if (memberInfo == null)
-					return Array.Empty<ExtensionAttribute>();
+					return ArrayCache.Empty<ExtensionAttribute>();
 
 				var all = memberInfo.GetAttributes<ExtensionAttribute>(inherit: true);
 				if (all.Length == 0)
