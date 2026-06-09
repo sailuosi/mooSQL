@@ -1373,6 +1373,17 @@ namespace mooSQL.data {
             return sinkOR().where(key, val).whereIsNull(key).rise();
         }
         /// <summary>
+        /// 形成 where (a.id is null or a.id>1 )类似条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="val"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public SQLBuilder whereIsNullOR(string key, Object val,string op)
+        {
+            return sinkOR().where(key, val,op).whereIsNull(key).rise();
+        }
+        /// <summary>
         /// 自定义操作符的比较，或者null
         /// </summary>
         /// <param name="key"></param>
