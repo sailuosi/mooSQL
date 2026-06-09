@@ -82,10 +82,10 @@ namespace mooSQL.data
             foreach (var from in group.fromPart)
                 script.Add(new ApartFromStep(from));
 
-            if (group.wherePart != null && group.wherePart.steps.Count > 0)
+            if (group.wherePart != null && group.wherePart.steps.steps.Count > 0)
             {
                 script.Add(new ApartWhereReplayStep(
-                    WhereStep.CloneList(group.wherePart.steps)));
+                    WhereStep.CloneList(group.wherePart.steps.steps)));
             }
 
             foreach (var g in group.groupbyPart)

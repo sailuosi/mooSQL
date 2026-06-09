@@ -20,6 +20,11 @@ namespace mooSQL.data
         /// 参数化前缀
         /// </summary>
         public string paramPrefix;
+
+        /// <summary>
+        /// 碎片利用：记录主干 API 调用顺序（sink / addFrag / rise 等）。
+        /// </summary>
+        internal Stepable<WhereStep> steps;
         /// <summary>
         /// 初始化时，自动建立顶级条件盒子。
         /// </summary>
@@ -35,18 +40,12 @@ namespace mooSQL.data
             topBox.isTop = true;
             topBox.parent = null;
             this.CurrentGroup = topBox;
+            this.steps = new Stepable<WhereStep>(false);
         }
-
-
-
-
 
         private int _addCount=0;
 
-        /// <summary>
-        /// 碎片利用：记录主干 API 调用顺序（sink / addFrag / rise 等）。
-        /// </summary>
-        internal List<WhereStep> steps = new List<WhereStep>();
+
 
         /// <summary>
         /// 顶级条件项盒子
@@ -93,7 +92,7 @@ namespace mooSQL.data
         /// </summary>
         public void and() {
             CurrentGroup.Connector = "AND";
-            steps.Add(WhereStep.OfAnd());
+            steps.add(()=>WhereStep.OfAnd());
         }
 
         /// <summary>
@@ -102,7 +101,7 @@ namespace mooSQL.data
         public void or()
         {
             CurrentGroup.Connector = "OR";
-            steps.Add(WhereStep.OfOr());
+            steps.add(() => WhereStep.OfOr());
         }
 
         /// <summary>
@@ -110,7 +109,7 @@ namespace mooSQL.data
         /// </summary>
         public void not() { 
             CurrentGroup.isNot = true;
-            steps.Add(WhereStep.OfNot());
+            steps.add(() => WhereStep.OfNot());
         }
 
         /// <summary>
@@ -119,7 +118,7 @@ namespace mooSQL.data
         /// <param name="frag"></param>
         public void addFrag(WhereFrag frag)
         {
-           
+            steps.add(() => WhereStep.OfAddFrag(frag));           
             //field.
             if (frag.paramed)
             {
@@ -137,14 +136,12 @@ namespace mooSQL.data
                 {
                     this.CurrentGroup.Add(frag);
                     _addCount++;
-                    steps.Add(WhereStep.OfAddFrag(frag));
                 }
             }
             else
             {
                 this.CurrentGroup.Add(frag);
                 _addCount++;
-                steps.Add(WhereStep.OfAddFrag(frag));
             }
         }
         /// <summary>
@@ -153,7 +150,7 @@ namespace mooSQL.data
         /// <param name="connector"></param>
         public void sink(string connector="AND") {
             sinkCore(connector);
-            steps.Add(WhereStep.OfSink(connector));
+            steps.add(() => WhereStep.OfSink(connector));
         }
         /// <summary>
         /// 开启一个否定盒子，并进入其中
@@ -163,7 +160,7 @@ namespace mooSQL.data
         {
             sinkCore(connector);
             CurrentGroup.isNot = true;
-            steps.Add(WhereStep.OfSinkNot(connector));
+            steps.add(() => WhereStep.OfSinkNot(connector));
         }
 
         private void sinkCore(string connector)
@@ -184,7 +181,7 @@ namespace mooSQL.data
             if (CurrentGroup.isTop) return;
 
             CurrentGroup = CurrentGroup.parent;
-            steps.Add(WhereStep.OfRise());
+            steps.add(() => WhereStep.OfRise());
         }
 
         /// <summary>
@@ -192,7 +189,7 @@ namespace mooSQL.data
         /// </summary>
         internal void ReplaySteps(SQLBuilder kit)
         {
-            WhereStep.Replay(steps, kit);
+            WhereStep.Replay(steps.steps, kit);
         }
 
 
@@ -204,7 +201,7 @@ namespace mooSQL.data
             this.topBox.Connector = "AND";
             this.CurrentGroup = topBox;
             this._addCount = 0;
-            this.steps.Clear();
+            this.steps.clear();
         }
         /// <summary>
         /// 复制

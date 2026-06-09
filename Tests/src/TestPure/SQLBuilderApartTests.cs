@@ -139,5 +139,70 @@ namespace mooSQL.Pure.Tests
 
             replayKeys.Should().Equal(manualKeys);
         }
+
+        [Fact]
+        public void record_stop_ShouldCaptureSegmentWithoutPollutingParent()
+        {
+            var kit = TestDatabaseHelper.CreateSQLBuilder();
+            const int tid = 42;
+
+            kit.select("u.*").from("users u");
+
+            var seg = kit.record()
+                .where("u.tenant_id", tid)
+                .where("u.status", 1)
+                .stop();
+
+            var manual = kit.clear()
+                .select("u.*")
+                .from("users u")
+                .where("u.tenant_id", tid)
+                .where("u.status", 1)
+                .toSelect();
+
+            var replay = kit.clear()
+                .select("u.*")
+                .from("users u")
+                .useApart(seg)
+                .toSelect();
+
+            AssertSqlCmdEqual(manual, replay);
+        }
+
+        [Fact]
+        public void record_stop_ShouldMatchToApart_OnShadowBuilder()
+        {
+            var kit = TestDatabaseHelper.CreateSQLBuilder();
+
+            var recorded = kit.record()
+                .from("users")
+                .where("age", 18)
+                .stop();
+
+            var shadow = kit.getBrotherBuilder()
+                .from("users")
+                .where("age", 18);
+
+            var apart = shadow.toApart();
+
+            kit.clear().useApart(recorded).toSelect();
+            var recordedCmd = kit.toSelect();
+
+            kit.clear().useApart(apart).toSelect();
+            var apartCmd = kit.toSelect();
+
+            AssertSqlCmdEqual(apartCmd, recordedCmd);
+        }
+
+        [Fact]
+        public void stop_WithoutRecord_ShouldThrow()
+        {
+            var kit = TestDatabaseHelper.CreateSQLBuilder();
+
+            var act = () => kit.stop();
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*record()*");
+        }
     }
 }
