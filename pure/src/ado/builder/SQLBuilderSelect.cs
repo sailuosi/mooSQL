@@ -178,6 +178,27 @@ namespace mooSQL.data
             current.skipTake(skip, take);
             return this;
         }
+        public SQLBuilder skip(int skip)
+        {
+            if (unionHolder.Count > 1)
+            {
+                unionHolder.unitedWraper.skip(skip);
+                return this;
+            }
+            current.skip(skip);
+            return this;
+        }
+        public SQLBuilder take(int skip)
+        {
+            if (unionHolder.Count > 1)
+            {
+                unionHolder.unitedWraper.take(skip);
+                return this;
+            }
+            current.take(skip);
+            return this;
+        }
+
         /// <summary>
         /// 设置查询语句的from部分，不设置时为 构造器的tableName。用于select语句、delete语句或insert from 语句。连续from时，中间会用逗号连接，否则需要使用join时，请用join 方法。
         /// </summary>

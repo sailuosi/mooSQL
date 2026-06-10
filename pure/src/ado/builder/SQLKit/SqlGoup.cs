@@ -365,6 +365,18 @@ namespace mooSQL.data
             return this;
         }
 
+        public SqlGoup skip(int skip)
+        {
+            skipNum = skip;
+            return this;
+        }
+
+        public SqlGoup take(int take)
+        {
+            pageSize = take;
+            return this;
+        }
+
         internal bool HasSkipTakePaging() => skipNum >= 0 || pageSize >= 0;
 
         /// <summary>

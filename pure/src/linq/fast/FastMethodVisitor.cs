@@ -434,10 +434,27 @@ namespace mooSQL.linq
                 var p2 = method.Arguments[1];
                 if (p2 is ConstantExpression val && p2.Type == typeof(int) && val.Value !=null) {
                     var v = (int)val.Value;
-                    Context.CurrentLayer.Current.top(v);
+                    Context.CurrentLayer.Current.take(v);
                 }
             }
             return base.VisitTake(method);
+        }
+
+        public override MethodCall VisitSkip(SkipCall method)
+        {
+            var argu = method.Arguments[0];
+            var next = Buddy.Visit(argu);
+
+            if (method.Arguments.Count == 2)
+            {
+                var p2 = method.Arguments[1];
+                if (p2 is ConstantExpression val && p2.Type == typeof(int) && val.Value != null)
+                {
+                    var v = (int)val.Value;
+                    Context.CurrentLayer.Current.skip(v);
+                }
+            }
+            return base.VisitSkip(method);
         }
 
         public override MethodCall VisitTop(TopCall method)
