@@ -377,7 +377,16 @@ namespace mooSQL.data
             return this;
         }
 
-        internal bool HasSkipTakePaging() => skipNum >= 0 || pageSize >= 0;
+        internal bool HasSkipTakePaging() {
+            // => skipNum >= 0 || pageSize >= 0;
+            if (pageSize > 0 && pageNum > 0) {
+                return true;
+            }
+            if (skipNum > 0 && pageSize>0) {
+                return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// getSetFrag 方法（返回 SetFrag）。
