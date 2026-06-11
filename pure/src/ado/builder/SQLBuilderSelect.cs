@@ -557,15 +557,25 @@ namespace mooSQL.data
         /// <param name="size"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        public SQLBuilder setPage(int size, int num)
+        public SQLBuilder setPage(int? size, int? num)
         {
-            if (unionHolder.Count > 1)
-            {
-                unionHolder.unitedWraper.setPage(size, num);
+            if (size == null && num == null) { 
                 return this;
             }
-            current.pageNum = num;
-            current.skipTake(size * (num - 1), size);
+            //有页码、没有页面大小，也忽略
+            if (size == null && num != null) {
+                return this;
+            }
+            if (num == null) {
+                return this.take(num.Value);
+            }
+            if (unionHolder.Count > 1)
+            {
+                unionHolder.unitedWraper.setPage(size.Value, num.Value);
+                return this;
+            }
+            current.pageNum = num.Value;
+            current.skipTake(size.Value * (num.Value - 1), size.Value);
             return this;
         }
     }
