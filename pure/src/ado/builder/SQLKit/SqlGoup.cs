@@ -165,10 +165,7 @@ namespace mooSQL.data
         {
             get { return setIndex;}
         }
-        /**
-         * 查询的数量
-         */
-        public int toped = -1;
+
         /// <summary>
         /// 
         /// </summary>
@@ -222,7 +219,6 @@ namespace mooSQL.data
             this.pageNum = -1;//如果页面小于0，查询全部
             this.numSeted = false;
             this.tableName = "";
-            this.toped = -1;
             return this;
         }
         /// <summary>
@@ -361,7 +357,6 @@ namespace mooSQL.data
         {
             skipNum = skip;
             pageSize = take;
-            toped = -1;
             return this;
         }
 
@@ -1027,7 +1022,6 @@ namespace mooSQL.data
             this.pageNum = -1;//如果页面小于0，查询全部
             this.numSeted = false;
             this.tableName = "";
-            this.toped = -1;
             return this;
         }
         /// <summary>
@@ -1331,7 +1325,7 @@ namespace mooSQL.data
             //            res += " distinct ";
             //        }
             sql.distincted = distincted;
-            sql.toped = this.toped;
+            sql.toped = this.pageSize;
             sql.pivots = this.pivotPart;
             sql.unpivots = this.unpivotPart;
 
@@ -1398,7 +1392,7 @@ namespace mooSQL.data
                 sql.orderbyInner =this.buildOrderByConent();
             }
             sql.skipNum = skipNum;
-            sql.pageSize = pageSize >= 0 ? pageSize : (toped >= 0 ? toped : -1);
+            sql.pageSize = pageSize >= 0 ? pageSize :  -1;
             sql.pageNum = pageNum;
             return sql;
         }

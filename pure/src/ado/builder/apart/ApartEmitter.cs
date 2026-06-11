@@ -97,8 +97,8 @@ namespace mooSQL.data
             foreach (var o in group.orderPart)
                 script.Add(new ApartOrderByStep(o));
 
-            if (group.toped > 0)
-                script.Add(new ApartTopStep(group.toped));
+            if (group.pageSize > 0)
+                script.Add(new ApartTopStep(group.pageSize));
 
             if (group.pageNum >= 0)
                 script.Add(new ApartSetPageStep(group.pageSize, group.pageNum));
