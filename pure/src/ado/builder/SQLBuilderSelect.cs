@@ -566,6 +566,11 @@ namespace mooSQL.data
             if (size == null && num != null) {
                 return this;
             }
+            //当外界参数为int时，会出现默认0的问题，为兼容之前行为，此时应该忽略
+            if (size == 0 && num == 0)
+            {
+                return this;
+            }
             if (num == null) {
                 return this.take(num.Value);
             }
