@@ -1,6 +1,6 @@
 ---
 name: moo-sql-sqlbuilder
-description: Builds and executes SQL using mooSQL SQLBuilder with chainable methods. Use when constructing SELECT, INSERT, UPDATE, DELETE, CTE, UNION, MERGE, or dynamic SQL in mooSQL.
+description: Builds and executes SQL using mooSQL SQLBuilder with chainable methods. Use when constructing SELECT, INSERT, UPDATE, DELETE, CTE, UNION, MERGE, pagination (setPage/skipTake), Apart fragments, or dynamic SQL in mooSQL.
 ---
 
 # mooSQL SQLBuilder
@@ -52,7 +52,7 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `select(string asName, Action<SQLBuilder> doColSelect)` | 子查询作为列 |
 | `selectUnioned(string columns)` | union 最外层 select 赋值 |
 | `distinct()` | 设为 distinct |
-| `top(int num)` | 前 N 条，自动适配 top/limit |
+| `top(int num)` | 前 N 条，内部 `skipTake(0, num)` |
 
 ---
 
@@ -111,7 +111,12 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `rowNumber(string orderPart)` | 行号开窗 |
 | `rowNumber(string orderPart, string asName)` | 行号开窗+别名 |
 | `rowNumberUse(string numFieldName)` | 使用已有序号字段 |
-| `setPage(int size, int num)` | 分页，size 每页条数，num 页码 |
+| `setPage(int? size, int? num)` | 分页：size 每页条数，num 页码；null 忽略；`(0,0)` 也忽略 |
+| `skipTake(int skip, int take)` | LINQ 风格分页；`take=-1` 仅跳过不限制 |
+| `skip(int skip)` / `take(int take)` | 单独 skip 或 take |
+| `top(int num)` | 前 N 条，内部 `skipTake(0, num)`，高版本库生成 OFFSET/LIMIT |
+
+> **setPage vs skipTake**：`setPage(size, num)` 等价于 `skipTake(size * (num - 1), size)`，择一使用，勿混用。配置连接位 `Version`/`VersionNumber` 可选更优分页 SQL。
 
 ---
 
@@ -241,6 +246,17 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `whereBetween<T>(string key, T minValue, T maxValue)` | between and |
 | `whereNotBetween<T>(string key, T minValue, T maxValue)` | not between |
 
+> **whereIn 自动分组**（v8.1.2+）：IN 列表超出方言参数上限（如 SQL Server ~2000）时，自动拆成多组 `(field IN (...)) OR (field IN (...))`。
+
+### 可空组合（OrNull）
+
+| 方法 | 说明 |
+|------|------|
+| `whereIsOrNull(string key, object val)` | `(field = val OR field IS NULL)` |
+| `whereIsNullOR(string key, object val, string op)` | `(field op val OR field IS NULL)`（v8.1.2.2+） |
+| `whereVsOrNull(string key, object val, string op)` | 自定义 op 的可空组合 |
+| `whereNotLikeOrNull` / `whereNotLikeLeftOrNull` / `whereNotInOrNull` | 否定 + 可空语法糖 |
+
 ### EXISTS
 
 | 方法 | 说明 |
@@ -281,6 +297,8 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `reset()` | 完全重置 |
 | `copy()` | 复制实例（相同连接位） |
 | `getBrotherBuilder()` | 共用参数体的兄弟构造器 |
+| `record()` | 开启 where 等步骤录播（**默认关闭**，显式调用才录制） |
+| `stop()` | 结束录播，返回 `SQLApart` |
 | `toApart()` | 捕获当前构建为 `SQLApart` 碎片 |
 | `useApart(SQLApart)` | 重放碎片（同类数据库；合并追加） |
 | `SQLApart.clear()` | 清空碎片步骤 |
@@ -289,6 +307,8 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `setCache(string key, int timeout)` | 设置查询缓存 |
 | `setDBInstance(DBInstance db)` | 设置数据库实例 |
 | `setPosition(int position)` | 设置连接位 |
+
+> **SQL 关键字大写**（v8.1.2.2+）：各方言 Express 统一输出大写保留字（SELECT/FROM/WHERE/JOIN 等），表名列名不变。
 
 ---
 
@@ -369,6 +389,32 @@ builder.select("*").from("users")
     .query<User>();
 ```
 
+### 分页
+
+```csharp
+// 页码式
+builder.select("*").from("users").where("status", 1)
+    .orderBy("id desc").setPage(10, 1).queryPaged<User>();
+
+// LINQ 风格（v8.1.2.2+）
+builder.select("*").from("users").orderBy("id desc")
+    .skipTake(20, 10).query<User>();
+
+// 可选筛选：未填视为全部
+builder.whereIsNullOR("score", 60, ">");
+```
+
+### 条件片段复用（Apart）
+
+```csharp
+var seg = builder.record()
+    .where("status", 1)
+    .where("is_deleted", 0)
+    .stop();
+
+builder.clear().select("*").from("users").useApart(seg).query<User>();
+```
+
 ### 扩展方法
 
 ```csharp
@@ -376,6 +422,6 @@ builder.insert(user);
 builder.update(user);
 builder.save(user);
 var user = builder.findRowById<User>(1);
-var users = builder.findList<User>(（c,u) => c.where(() => u.Age,18,">="));
+var users = builder.findList<User>((c,u) => c.where(() => u.Age,18,">="));
 var page = builder.findPageList<User>(10, 1, (c,u) => c.where(() => u.Status,1));
 ```

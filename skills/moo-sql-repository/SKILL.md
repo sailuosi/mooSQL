@@ -1,6 +1,6 @@
 ---
 name: moo-sql-repository
-description: Uses mooSQL Repository and UnitOfWork patterns for CRUD operations and transaction management. Use when implementing CRUD, batch operations, or transactional multi-table updates in mooSQL.
+description: Uses mooSQL Repository and UnitOfWork patterns for CRUD, pagination (GetPageList), tree queries, SaveRange, and transaction management in mooSQL.
 ---
 
 # mooSQL Repository & UnitOfWork
@@ -9,21 +9,46 @@ description: Uses mooSQL Repository and UnitOfWork patterns for CRUD operations 
 
 **位置**: `pure/src/adoext/repository/SooRepository.cs`
 
-通用仓储，提供 CRUD 统一接口，支持分页、树形结构、递归查询（最多 50 层）。
+通用仓储，提供 CRUD 统一接口，支持分页、树形结构、Clip 自定义过滤（v8.1.2+ 钩子与表名解析增强）。
 
-### 核心方法
+### 查询
 
 | 方法 | 说明 |
 |------|------|
 | `GetById<K>(K id)` | 按主键查询 |
-| `GetList()` | 查询所有 |
-| `GetList(Expression<Func<T, bool>> whereExpression)` | 条件查询 |
-| `GetFirst(Expression<Func<T, bool>> whereExpression)` | 查询第一条 |
-| `Count(Expression<Func<T, bool>> whereExpression)` | 计数 |
-| `Insert(T insertObj)` | 插入 |
-| `Update(T updateObj)` | 更新 |
-| `Delete(T deleteObj)` | 删除 |
-| `DeleteById(int id)` | 按主键删除 |
+| `GetByIds<K>(...)` / `GetByIds(IEnumerable ids)` | 按主键列表 |
+| `GetFieldValueById<R>(id, fieldSelector)` | 按主键取单字段 |
+| `GetList()` | 查询全部 |
+| `GetList(int top)` | 前 N 条 |
+| `GetList(Expression<Func<T, bool>> whereExpression)` | 表达式条件 |
+| `GetList(Action<SQLClip, T> filterClip)` | Clip 自定义条件/排序 |
+| `GetList(Action<SQLBuilder> onBuildSQL)` | SQLBuilder 钩子 |
+| `GetList(QueryPara para)` | 通用查询参数（多轮 OnBuildSQL） |
+| `GetFirst(...)` | 第一条（表达式或 Clip） |
+| `Count(Expression<Func<T, bool>>)` | 计数 |
+| `IsAny(Expression<Func<T, bool>>)` | 是否存在 |
+
+### 分页 / 树
+
+| 方法 | 说明 |
+|------|------|
+| `GetPageList(int pageSize, int pageNum, Action<SQLClip, T> filterClip)` | Clip 过滤 + 分页 |
+| `GetPageList(QueryPara para)` | 通用分页 |
+| `GetPageList(Action<SQLBuilder> onBuildSQL)` | SQLBuilder 分页 |
+| `GetTreeList(keySelector, parentVal, filterClip)` | 树形列表 |
+| `GetChildList(keySelector, parentVal, filterClip)` | 子节点列表 |
+
+### 写入
+
+| 方法 | 说明 |
+|------|------|
+| `Insert(T)` / `InsertRange(IEnumerable<T>)` | 插入 |
+| `Update(T)` | 更新 |
+| `Save(T)` / `SaveRange(IEnumerable<T>)` | 自动 insert/update |
+| `Delete(T)` / `Delete(IEnumerable<T>)` | 删除 |
+| `Delete(Expression<Func<T, bool>>)` | 条件删除 |
+| `DeleteById<K>(K id)` / `DeleteByIds<K>(ids)` | 按主键删 |
+| `ChangeTo<R>()` | 切换实体类型的仓储实例 |
 
 ### 使用示例
 
@@ -32,23 +57,23 @@ var repo = db.useRepo<User>();
 
 var user = repo.GetById(1);
 var users = repo.GetList(x => x.Age >= 18);
-var count = repo.Count(x => x.Status == 1);
+var page = repo.GetPageList(10, 1, (c, d) => {
+    c.where(() => d.Status, 1)
+     .orderByDesc(() => d.CreateTime);
+});
+var exists = repo.IsAny(u => u.Email == email);
 
-var newUser = new User { Name = "John", Age = 25 };
 repo.Insert(newUser);
-
-user.Age = 26;
-repo.Update(user);
-
-repo.Delete(user);
-repo.DeleteById(1);
+repo.Save(user);           // 有主键则 update，否则 insert
+repo.SaveRange(users);
+repo.DeleteByIds(ids);
 ```
 
 ## SooUnitOfWork
 
 **位置**: `pure/src/adoext/repository/SooUnitOfWork.cs`
 
-带事务的工作单元，可累积多个仓储操作后统一提交/回滚。
+带事务的工作单元，可累积多个仓储操作或 SQL 后统一提交/回滚。
 
 ### 使用示例
 
@@ -58,13 +83,13 @@ using (var uow = db.useWork())
     var userRepo = uow.useRepo<User>();
     var orderRepo = uow.useRepo<Order>();
 
-    var user = new User { Name = "John" };
     userRepo.Insert(user);
-
-    var order = new Order { UserId = user.Id, Amount = 100 };
     orderRepo.Insert(order);
 
-    uow.Commit();  // 提交，出错自动回滚
+    // 或直接 SQL
+    uow.UpdateBySQL(kit => kit.setTable("User").set("Status", 1).where("Id", user.Id));
+
+    uow.Commit();  // 出错自动回滚
 }
 ```
 
@@ -77,41 +102,45 @@ using (var uow1 = db.useWork())
 {
     using (var uow2 = db.useWork())
     {
-        // uow2 使用 uow1 的事务
-        uow2.Commit();
+        uow2.Commit();  // 使用 uow1 的事务
     }
     uow1.Commit();
 }
 ```
 
-## 批量更新示例
-
-```csharp
-public void BatchUpdateUserStatus(List<int> userIds, int status)
-{
-    using (var uow = db.useWork())
-    {
-        var repo = uow.useRepo<User>();
-        var users = repo.GetByIds(userIds);
-
-        foreach (var user in users)
-        {
-            user.Status = status;
-            repo.Update(user);
-        }
-
-        uow.Commit();
-    }
-}
-```
-
-## 扩展方法
+## 扩展方法（SQLBuilder 实体快捷）
 
 ```csharp
 var builder = db.useSQL();
 
-builder.insert(user);   // 实体插入
-builder.update(user);   // 实体更新
-builder.delete(user);   // 实体删除
-builder.save(user);     // 自动判断插入或更新
+builder.insert(user);
+builder.update(user);
+builder.delete(user);
+builder.save(user);     // 自动判断 insert/update
+builder.findRowById<User>(1);
+builder.findPageList<User>(10, 1, (c, u) => c.where(() => u.Status, 1));
 ```
+
+## 分表（Shard）
+
+仅对配置了 `ShardMode` 或 `useShard<T>` 的实体生效。
+
+```csharp
+[SooTable("Order_{year}{month}", ShardMode = TableShardMode.Month)]
+public class OrderLog
+{
+    [SooColumn(Shard = true)]
+    public DateTime CreateTime { get; set; }
+}
+
+client.useShard<OrderLog>(o => $"Order_{o.CreateTime:yyyyMM}");
+repo.Insert(new OrderLog { CreateTime = DateTime.Now });
+
+using (ShardScope.For<OrderLog>(DateTime.Today))
+    repo.GetById(id);
+
+var list = repo.QueryRange(start, end, q => q.where(x => x.Status == 1));
+repo.InsertRange(entities);  // 按表分组批量插入
+```
+
+SQLBuilder：`db.useSQL().splitTable<OrderLog>(from, to).select("*").query<OrderLog>();`

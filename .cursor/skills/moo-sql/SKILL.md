@@ -5,6 +5,8 @@ description: Understands mooSQL database access layer structure, design philosop
 
 # mooSQL 数据库访问层
 
+**当前版本**: 8.1.2.2（2026-7）
+
 ## 项目概述
 
 mooSQL 是自研的数据库访问层代码库，特点：
@@ -54,6 +56,8 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 - `toXxx`: 输出 SQLCmd
 - `doXxx`: 执行修改，返回影响行数
 - `queryXxx`: 执行查询，返回 DataTable/泛型/标量
+- **分页**（v8.1.2.2+）：`setPage(size, num)` 或 `skipTake(skip, take)`；`top(n)` 内部等价 `skipTake(0, n)`
+- **条件复用**（v8.1.2.2+）：`record()` → 链式条件 → `stop()` 得 `SQLApart`，再 `useApart(seg)` 合并
 
 ### 扩展方法
 
@@ -68,9 +72,12 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 | 复杂查询 | SQLBuilder 或 SQLClip |
 | 批量操作 | UnitOfWork + Repository |
 | 动态 SQL | SQLBuilder 链式构建 |
+| 复用 where 片段 | SQLBuilder `record()` / `useApart()` |
 | 类型安全 | SQLClip Lambda 表达式 |
 | mooSQL 特色 LINQ（Set/DoUpdate/ Bus Join） | **useBus**（Fast LINQ） |
-| EF 式标准 Queryable / LoadWith / Merge | **useQueryable**（Ext LINQ，`ext/src/linq`） |
+| EF 式标准 Queryable / Includes / Merge | **useQueryable**（Ext LINQ，`ext/src/linq`） |
+| 按月/按日分表、跨分片查询 | `useShard` / `configureShard` + 仓储 `QueryRange` |
+| 建表后独立补注释 | `DDLBuilder.doAddTableCaption` / `buildCreateTableCaption` |
 
 ## 核心组件位置
 
@@ -94,7 +101,25 @@ var clip = db.useClip();        // SQLClip
 var repo = db.useRepo<User>();  // Repository
 var uow = db.useWork();         // UnitOfWork
 var bus = db.useDbBus<User>();  // Fast LINQ（特色，useBus 同路径）
-// Ext 标准 Queryable: db.useQueryable<User>() 或 DBCash.useQueryable<User>(n)
+// Ext 标准 Queryable: db.useQueryable<User>() 或 db.AsQueryable<User>()
+```
+
+### Ext LINQ vs Fast LINQ（v8.1.2.2+）
+
+| 路径 | 入口 | 定位 |
+|------|------|------|
+| Fast LINQ | `useBus` / `useDbBus<T>` | mooSQL 特色：Set/DoUpdate/Bus Join 等 |
+| Ext LINQ | `useQueryable<T>` / `AsQueryable<T>` | 标准 IQueryable，对标 EF；编译层已与 Fast 双访问器对齐 |
+
+二者**并行**，Ext 不替代 Fast。
+
+### 分表（v8.1.2.2+）
+
+```csharp
+client.useShard<OrderLog>(o => $"Order_{o.CreateTime:yyyyMM}");
+client.configureShard<OrderLog>(c => c.Mode = TableShardMode.Month);
+repo.ForShard(DateTime.Now).Insert(entity);
+repo.QueryRange(from, to, q => q.where(x => x.Status == 1));
 ```
 
 ## 相关 Skills

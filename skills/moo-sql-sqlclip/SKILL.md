@@ -26,7 +26,7 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 - **SQLClip**：非泛型，from/join/where/select 及 setTable 后的 UPDATE/DELETE。
 - **SQLClip&lt;T&gt;**：`select&lt;R&gt;(...)` 或 `setTable&lt;T&gt;(out T table)` 之后得到；提供 `setPage`、`queryList`、`queryUnique`、`queryPage`。
 - **ClipJoin&lt;J&gt;**：join 返回此类型，需链式 `.on(Expression<Func<bool>>)` 后返回 SQLClip。
-- **无 skip/take**：分页用 `setPage(pageSize, pageNum)`；列表用 `queryList()` / `queryUnique()` / `queryPage()`，无 toList/toFirst。
+- **分页**：Clip 层用 `setPage(pageSize, pageNum)` / `queryPage()`；底层 SQLBuilder 另有 `skipTake`（v8.1.2.2+），一般经 Clip 的 `setPage` 即可。
 
 ---
 
@@ -77,8 +77,8 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 |------|------|
 | `whereIsNull<R>(Expression<Func<R>> fieldSelector)` | is null |
 | `whereIsNotNull<R>(Expression<Func<R>> fieldSelector)` | is not null |
-| `whereIsOrNull<R>(Expression<Func<R>> fieldSelector, R value)` | 等于某值或 null |
-| `whereIn<R>(..., IEnumerable<R> values)` / `params R[] values` | in |
+| `whereIsOrNull<R>(Expression<Func<R>> fieldSelector, R value)` | `(field = val OR field IS NULL)` |
+| `whereIn<R>(..., IEnumerable<R> values)` / `params R[] values` | in；超大列表由底层 whereIn 自动分组（v8.1.2+） |
 | `whereIn<R>(..., Action<SQLBuilder> doselect)` | in 子查询（SQLBuilder） |
 | `whereIn<R>(..., Func<SQLClip, SQLClip<R>> doSubSelect)` | in 子查询（SQLClip） |
 | `whereNotIn<R>(...)` | not in（同上三种重载） |
@@ -108,7 +108,7 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 | `useSQL(Action<SQLBuilder> doProtoSQLBuilder)` | 直接操作 SQLBuilder |
 | `orderBy<R>(Expression<Func<R>> orderCondition)` | order by |
 | `orderByDesc<R>(...)` | order by desc |
-| `top(int num)` | 前 N 条 |
+| `top(int num)` | 前 N 条（底层 `skipTake(0, n)`） |
 | `groupBy<R>(...)` | group by |
 | `having(Expression<Func<bool>> groupCondition)` | having |
 | `distinct()` | distinct |
@@ -119,7 +119,7 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 
 | 方法 | 说明 |
 |------|------|
-| `setPage(int pageSize, int pageNum)` | 分页（仅 SELECT） |
+| `setPage(int pageSize, int pageNum)` | 分页（仅 SELECT）；`pageSize`/`pageNum` 可来自可空请求参数，传 null 时底层忽略 |
 | `queryList()` | 返回 IEnumerable&lt;T&gt; |
 | `queryUnique()` | 返回 T，多行或无则 null |
 | `queryPage()` | 返回 PageOutput&lt;T&gt;（**Items**、Total、PageSize、PageNum） |
