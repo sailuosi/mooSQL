@@ -51,11 +51,22 @@ public class SQLiteSentence :SQLSentence
             .ToList();
     }
 
-    public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Comment from information_schema.tables" +
-        " where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
+    public override string GetTableInfoListSql =>
+        "select name as Name, '' as Comment from sqlite_master where type='table' and name not like 'sqlite_%'";
 
-    public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables " +
-        "where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'";
+    public override string GetViewInfoListSql =>
+        "select name as Name, '' as Description from sqlite_master where type='view'";
+
+    public override SQLCmd buildHasTable(string TableName)
+    {
+        var kit = DBLive.useSQL();
+        return kit
+            .select("count(1)")
+            .from("sqlite_master")
+            .where("type", "table")
+            .where("name", TableName)
+            .toSelect();
+    }
 
     public override string GetTablePKName(string table)
     {

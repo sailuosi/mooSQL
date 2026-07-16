@@ -19,7 +19,7 @@ namespace mooSQL.data
         public SQLiteExpress(Dialect dia) : base(dia) {
             // Microsoft.Data.Sqlite 使用 @name 命名参数；?paramName 会导致语法错误
             _paraPrefix = "@";
-            _selectAutoIncrement = "SELECT Last_Insert_Id()";
+            _selectAutoIncrement = "SELECT last_insert_rowid()";
             _provideType = "SQLite.Data.SQLiteClient.SQLiteClientFactory,SQLite.Data";
         }
 
@@ -244,40 +244,58 @@ namespace mooSQL.data
 
         public override string getTableAutoIdSQL()
         {
-            return "AUTO_INCREMENT";
+            // SQLite 自增必须写在 CREATE TABLE 列定义中：INTEGER PRIMARY KEY AUTOINCREMENT
+            return "AUTOINCREMENT";
         }
 
         public override string CreateDataBaseBy(string database)
         {
-            return string.Format("CREATE DATABASE {0} CHARACTER SET utf8 COLLATE utf8_general_ci ", database);
+            // SQLite 无独立 CREATE DATABASE；文件库在连接时创建
+            return string.Empty;
         }
-        public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName) { 
-            return string.Format("ALTER TABLE {0} ADD PRIMARY KEY({2}) /*{1}*/", tableName, indexName, columnName);
+        public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName)
+        {
+            // SQLite 不能在建表后可靠地 ALTER ADD PRIMARY KEY；
+            // 自增主键已在 CreateTableColumnBy 中内联声明，此处返回空操作。
+            return "SELECT 1";
         }
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
-            return string.Format("ALTER TABLE {0} ADD {1} {2}{3} {4} {5} {6}",
+            return string.Format("ALTER TABLE {0} ADD COLUMN {1} {2}{3} {4} {5} {6}",
                 tableName, columnName, dataType,
                 defval, nullable, p2, p3
                 );
         }
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
-        { 
-            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {1} {2}{3} {4} {5} {6}",
-                tableName, columnName, dataType,
-                defval, nullable, p2, p3
-                );
+        {
+            // SQLite 3.25+ 支持 RENAME COLUMN；完整类型变更能力有限，保留可执行占位
+            return string.Format("ALTER TABLE {0} RENAME COLUMN {1} TO {1}", tableName, columnName);
         }
         public override string CreateTableBy(string tableName, string detail)
-        { 
-            return string.Format("CREATE TABLE {0}(\r\n{1} $PrimaryKey)", tableName, detail);
+        {
+            // 不保留 $PrimaryKey 占位符（核心未替换）；主键由列定义或后续空操作处理
+            return string.Format("CREATE TABLE {0}(\r\n{1})", tableName, detail);
         }
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
-        { 
+        {
+            // 自增列：AUTOINCREMENT 要求 INTEGER PRIMARY KEY
+            if (!string.IsNullOrWhiteSpace(p3) &&
+                p3.IndexOf("AUTOINCREMENT", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                dataType = "INTEGER";
+                if (string.IsNullOrWhiteSpace(p2))
+                    p2 = "PRIMARY KEY";
+                // PRIMARY KEY 隐含 NOT NULL，避免重复写法冲突时可保留 nullable
+            }
+
             return string.Format("{0} {1}{2} {3} {4} {5}",
-                columnName, dataType,
-                defval, nullable, p2, p3
-                );
+                columnName,
+                dataType ?? string.Empty,
+                defval ?? string.Empty,
+                nullable ?? string.Empty,
+                p2 ?? string.Empty,
+                p3 ?? string.Empty
+                ).Trim();
         }
         //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
 

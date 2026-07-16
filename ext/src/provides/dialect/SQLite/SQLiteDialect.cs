@@ -26,7 +26,7 @@ namespace mooSQL.data
             expression = new SQLiteExpress(this);
             sentence = new SQLiteSentence(this);
             clauseTranslator = new SQLiteClauseTranslator(this);
-            mapping = new DefaultMappingPanel();
+            mapping = new SQLiteMappingPanel();
             function = new SQLLiteFunction();
 
             Option.ProviderFlags.IsTakeSupported = true;
