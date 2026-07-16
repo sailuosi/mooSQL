@@ -115,13 +115,26 @@ namespace mooSQL.linq
                 return node;
             }
             if (node.NodeType == ExpressionType.Not && node.Type==typeof(Boolean)) {
+                //如果是 !a.Field.HasValue 这种写法，实际上应该翻译为 where is null
+                var op = node.Operand;
+                if (op is MemberExpression mem && mem.Member.Name == "HasValue") {
+                    var fieldExp = mem.Expression;
+                    var fieM = VisitToGotField(fieldExp);
+                    if (fieM != null) { 
+                        Context.CurrentLayer.Current.whereIsNull(fieM);
+                        return node;                    
+                    }
+
+                }
                 var fie = VisitToGotField(node.Operand);
                 if (fie != null) {
                     Context.CurrentLayer.Current.where(fie, false);
                     return node;
                 }
             }
-            return base.VisitUnary(node);
+            return node;
+            //C此处会报错，当字段类型不是bool时，因此返回原节点，掠过解析
+            //return base.VisitUnary(node);
         }
 
         /// <summary>

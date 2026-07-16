@@ -46,6 +46,9 @@ namespace mooSQL.data.Mapping
                     if (entityColumn.IsPrimarykey){
                         entityColumn.IsNullable = false;
                     }
+                    if (attr.IsIdentity == true) {
+                        entityColumn.IsIdentity = true;
+                    }
                     entityColumn.Scale = attr.Scale;
                     entityColumn.Precision = attr.Precision;
                     entityColumn.DataType = attr.DataType;
