@@ -106,6 +106,7 @@ export default defineConfig({
           items: [
             { text: '类型处理', link: '/SQL/utils/typeutils' },
             { text: '自定义集合', link: '/SQL/utils/collection' },
+            { text: 'pure 扩展与工具类', link: '/SQL/utils/pure-extensions' },
           ]
         },
         {

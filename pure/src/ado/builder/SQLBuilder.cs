@@ -803,10 +803,38 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 构建 insert/update 前检查是否已 setTable。
+        /// 未设置时写 Client.Loggor 错误日志并返回 false，调用方应跳过后续 SQL 构建。
+        /// </summary>
+        private bool EnsureWriteTableName(string buildKind)
+        {
+            if (current != null && !string.IsNullOrWhiteSpace(current.tableName))
+                return true;
+            var log = Client?.Loggor;
+            if (log != null && log.IsEnabled(LogLv.Error))
+            {
+                log.LogError(
+                    $"SQLBuilder.{buildKind}: 未设置表名，请先调用 setTable(...)。已跳过 SQL 构建。");
+            }
+            return false;
+        }
+
+        private SQLCmd EmptyWriteCmd(QueryType statementType)
+        {
+            var empty = new SQLCmd();
+            empty.type = statementType;
+            empty.TargetTable = current != null ? (current.tableName ?? "") : "";
+            empty.signal = this.Signal;
+            return empty;
+        }
+
+        /// <summary>
         /// 创建包含参数信息的 插入语句。
         /// </summary>
         /// <returns></returns>
         public SQLCmd toInsert() {
+            if (!EnsureWriteTableName(nameof(toInsert)))
+                return EmptyWriteCmd(QueryType.Insert);
             string sql = current.buildInsert();
             return geneCmd(sql, ps, QueryType.Insert);
         }
@@ -816,6 +844,8 @@ namespace mooSQL.data
         /// </summary>
         public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
         {
+            if (!EnsureWriteTableName(nameof(toInsertWithDuplicateUpdate)))
+                return EmptyWriteCmd(QueryType.InsertOrUpdate);
             var sql = current.buildInsert();
             var setPart = current.buildSetPart();
             if (!string.IsNullOrWhiteSpace(setPart))
@@ -828,6 +858,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toInsertFrom()
         {
+            if (!EnsureWriteTableName(nameof(toInsertFrom)))
+                return EmptyWriteCmd(QueryType.Insert);
             var sql =  current.buildInsertFrom();
             return geneCmd(sql, ps, QueryType.Insert); 
         }
@@ -837,6 +869,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toUpdate()
         {
+            if (!EnsureWriteTableName(nameof(toUpdate)))
+                return EmptyWriteCmd(QueryType.Update);
             var sql=string.Empty;
 
             sql = current.buildUpdate();
@@ -851,13 +885,11 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toUpdateFrom()
         {
+            if (!EnsureWriteTableName(nameof(toUpdateFrom)))
+                return EmptyWriteCmd(QueryType.Update);
             if (current.wherePart.Count == 0)
             {
-                var empty = new SQLCmd();
-                empty.type = QueryType.Update;
-                empty.TargetTable = current != null ? (current.tableName ?? "") : "";
-                empty.signal = this.Signal;
-                return empty;
+                return EmptyWriteCmd(QueryType.Update);
             }
 
             string sql = current.buildUpdateFrom();

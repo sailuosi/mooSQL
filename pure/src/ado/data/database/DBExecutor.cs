@@ -113,7 +113,8 @@ namespace mooSQL.data
                 session = null;
             }
             if (Context != null) {
-                Context.session.Dispose();
+                Context.session?.Dispose();
+                Context = null!;
             }
         }
 
@@ -125,20 +126,25 @@ namespace mooSQL.data
         /// <returns></returns>
         public R PrepareSession<R>(Func<ExeContext, R> onrun)
         {
-            //创建请求上下文
-            ExeContext context = prepare(new SQLCmd());
+            EnterExecutionGate();
             try
             {
-                context.session.Open(context);
-                return onrun(context);
-            }
-            catch (Exception e)
-            {
-                throw e;
+                //创建请求上下文
+                ExeContext context = prepare(new SQLCmd());
+                try
+                {
+                    context.session.Open(context);
+                    return onrun(context);
+                }
+                finally
+                {
+                    context.session.Dispose();
+                    Context = null!;
+                }
             }
             finally
             {
-                context.session.Dispose();
+                ExitExecutionGate();
             }
         }
 
@@ -229,8 +235,22 @@ namespace mooSQL.data
         /// <returns></returns>
         public R ExecuteCmd<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext, R> executor)
         {
+            EnterExecutionGate();
+            try
+            {
+                return ExecuteCmdCore(sql, executor);
+            }
+            finally
+            {
+                ExitExecutionGate();
+            }
+        }
 
-
+        /// <summary>
+        /// 无门禁的执行核心；仅供已持有门禁的入口或同线程灾切重试调用。
+        /// </summary>
+        private R ExecuteCmdCore<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext, R> executor)
+        {
             //否则，进行一次性查询，并释放连接
             try
             {
@@ -299,8 +319,7 @@ namespace mooSQL.data
             finally
             {
                 EndExecutionRouting();
-                if (!KeepOpen && Context?.session != null)
-                    Context.session.Dispose();
+                ReleaseSessionAfterExecute();
             }
         }
         /// <summary>
@@ -313,8 +332,22 @@ namespace mooSQL.data
         /// <exception cref="Exception"></exception>
         public async Task<R> ExecuteCmdAsync<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext,Task<R>> executor)
         {
+            await EnterExecutionGateAsync().ConfigureAwait(false);
+            try
+            {
+                return await ExecuteCmdAsyncCore(sql, executor).ConfigureAwait(false);
+            }
+            finally
+            {
+                ExitExecutionGate();
+            }
+        }
 
-
+        /// <summary>
+        /// 无门禁的异步执行核心；仅供已持有门禁的入口或同调用栈灾切重试调用。
+        /// </summary>
+        private async Task<R> ExecuteCmdAsyncCore<R>(SQLCmd sql, Func<ICmdExecutor, ExeContext, Task<R>> executor)
+        {
             //否则，进行一次性查询，并释放连接
             try
             {
@@ -345,9 +378,9 @@ namespace mooSQL.data
                 }
                 if (Context.session.state != ExeSessionState.Open)
                 {
-                    await Context.session.OpenAsync(Context);
+                    await Context.session.OpenAsync(Context).ConfigureAwait(false);
                 }
-                var res = await executor(DBLive.cmd, Context);
+                var res = await executor(DBLive.cmd, Context).ConfigureAwait(false);
                 MarkHealthSuccess();
                 return res;
             }
@@ -388,8 +421,7 @@ namespace mooSQL.data
             finally
             {
                 EndExecutionRouting();
-                if (!KeepOpen && Context?.session != null)
-                    Context.session.Dispose();
+                ReleaseSessionAfterExecute();
             }
         }
         /// <summary>
@@ -401,6 +433,19 @@ namespace mooSQL.data
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public IEnumerable<R> ExecuteCmds<R>(IEnumerable<SQLCmd> cmds, Func<SQLCmd,ICmdExecutor, ExeContext, R> executor)
+        {
+            EnterExecutionGate();
+            try
+            {
+                return ExecuteCmdsCore(cmds, executor);
+            }
+            finally
+            {
+                ExitExecutionGate();
+            }
+        }
+
+        private IEnumerable<R> ExecuteCmdsCore<R>(IEnumerable<SQLCmd> cmds, Func<SQLCmd, ICmdExecutor, ExeContext, R> executor)
         {
             SQLCmd sql = null;
             var res = new List<R>();
@@ -458,10 +503,7 @@ namespace mooSQL.data
             }
             finally
             {
-                if (!KeepOpen)
-                {
-                    Context.session.Dispose();
-                }
+                ReleaseSessionAfterExecute();
             }
         }
 

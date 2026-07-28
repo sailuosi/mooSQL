@@ -295,9 +295,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder addInsert()
         {
-            string sql = current.buildInsert();
-            todoSQLs.Add(sql);
-            //清理掉创建配置池  
+            if (EnsureWriteTableName(nameof(addInsert)))
+            {
+                string sql = current.buildInsert();
+                todoSQLs.Add(sql);
+            }
+            //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
             return this;
@@ -308,9 +311,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder addUpdate()
         {
-            string sql = current.buildUpdate();
-            todoSQLs.Add(sql);
-            //清理掉创建配置池  
+            if (EnsureWriteTableName(nameof(addUpdate)))
+            {
+                string sql = current.buildUpdate();
+                todoSQLs.Add(sql);
+            }
+            //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
             return this;
@@ -321,9 +327,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder addUpdateFrom()
         {
-            string sql = current.buildUpdateFrom();
-            todoSQLs.Add(sql);
-            //清理掉创建配置池  
+            if (EnsureWriteTableName(nameof(addUpdateFrom)))
+            {
+                string sql = current.buildUpdateFrom();
+                todoSQLs.Add(sql);
+            }
+            //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
             return this;

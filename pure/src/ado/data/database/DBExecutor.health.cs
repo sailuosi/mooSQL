@@ -80,10 +80,11 @@ namespace mooSQL.data
             if (newMaster == null) return false;
 
             DBLive = newMaster;
-            Context = null;
+            Context = null!;
             try
             {
-                result = ExecuteCmd(sql, executor);
+                // 已在外层持有执行门禁，走 Core 避免重入抛错
+                result = ExecuteCmdCore(sql, executor);
                 return true;
             }
             catch
@@ -120,13 +121,14 @@ namespace mooSQL.data
             if (newMaster == null || ReferenceEquals(newMaster, DBLive)) return none;
 
             DBLive = newMaster;
-            Context = null;
+            Context = null!;
             try
             {
+                // 已在外层持有执行门禁，走 Core 避免重入抛错
                 return new FailoverRetryResult<R>
                 {
                     Retried = true,
-                    Value = await ExecuteCmdAsync(sql, executor).ConfigureAwait(false)
+                    Value = await ExecuteCmdAsyncCore(sql, executor).ConfigureAwait(false)
                 };
             }
             catch
