@@ -72,7 +72,7 @@ namespace mooSQL.data
 
         private ConcurrentDictionary<int, DBInstance> dbMap = new ConcurrentDictionary<int, DBInstance>();
 
-        private static ConcurrentDictionary<int, DataBase> configMap = null;
+        private ConcurrentDictionary<int, DataBase> configMap = null;
 
         /// <summary>
         /// 字段 client（MooClient）。
