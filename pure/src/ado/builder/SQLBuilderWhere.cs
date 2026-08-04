@@ -868,6 +868,68 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
+        /// Guid类型的where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="OIDs"></param>
+        /// <returns></returns>
+        public SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs)
+        {
+            var res = new StringBuilder();
+            int cc = 0;
+            res.Append("(");
+            foreach (var oid in OIDs)
+            {
+
+                if (cc > 0)
+                {
+                    res.Append(",");
+                }
+                res.Append("'");
+                res.Append(oid);
+                res.Append("'");
+                cc++;
+                
+            }
+            res.Append(")");
+            if (cc == 0)
+            {
+                return where("1=2");
+            }
+            return where(key + " IN " + res.ToString());
+        }
+        /// <summary>
+        /// Guid?类型的where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="OIDs"></param>
+        /// <returns></returns>
+        public SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs) {
+            var res = new StringBuilder();
+            int cc = 0;
+            res.Append("(");
+            foreach (var oid in OIDs)
+            {
+                if (oid !=null)
+                {
+                    if (cc > 0)
+                    {
+                        res.Append(",");
+                    }
+                    res.Append("'");
+                    res.Append(oid);
+                    res.Append("'");
+                    cc++;
+                }
+            }
+            res.Append(")");
+            if (cc == 0)
+            {
+                return where("1=2");
+            }
+            return where(key + " IN " + res.ToString());
+        }
+        /// <summary>
         /// 必须是有效的GUID,否则条件将转为 永远不成立的"1=2";
         /// </summary>
         /// <param name="key"></param>
@@ -891,7 +953,6 @@ namespace mooSQL.data {
                     res.Append("'");
                     cc++;
                 }
-
             }
             res.Append(")");
             if (cc == 0)
