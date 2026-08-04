@@ -868,7 +868,7 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
-        /// Guid类型的where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
+        /// Guid类型的where in 范围值，所有值均参数化。
         /// </summary>
         /// <param name="key"></param>
         /// <param name="OIDs"></param>
@@ -899,7 +899,7 @@ namespace mooSQL.data {
             return where(key + " IN " + res.ToString());
         }
         /// <summary>
-        /// Guid?类型的where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
+        /// Guid?类型的where in 范围值，所有值均参数化。
         /// </summary>
         /// <param name="key"></param>
         /// <param name="OIDs"></param>

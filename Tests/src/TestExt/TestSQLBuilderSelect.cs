@@ -23,7 +23,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("SELECT top 1 a from t ", DbFunc.sql);
+        Assert.Equal("SELECT top 1 a from t ", sql.sql);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t)  SELECT top 1 a from t1 ", DbFunc.sql);
+        Assert.Equal("with  t1 as (select a from t)  SELECT top 1 a from t1 ", sql.sql);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", DbFunc.sql);
+        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
     }
 
 
@@ -113,7 +113,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", DbFunc.sql);
+        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
     }
     [Fact]
     public void selectUnion2()
@@ -132,7 +132,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", DbFunc.sql);
+        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
     }
 
     [Fact]
