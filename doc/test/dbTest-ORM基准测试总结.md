@@ -1,6 +1,8 @@
 # dbTest ORM 基准测试总结（含 mooSQL 三路径）
 
-> 数据来源：[dbTest](https://gitee.com/hubro/dbTest)（BenchmarkDotNet）  
+> Queryable 低性能源码追溯与优化方案见：[Queryable低性能深度分析与优化方案.md](./Queryable低性能深度分析与优化方案.md)  
+> 数据来源：[dbTest](https://gitee.com/hubro/dbTest)（BenchmarkDotNet）；本仓库对照工程：`Tests/TestFast/dbTest`  
+
 > mooSQL 版本：`mooSQL.Ext` **8.1.2.3**  
 > 场景：SQLite，`Take(100)` 查询与映射  
 > mooSQL 适配器：`MooSqlBuilderTest`（`useSQL`）/ `MooSqlClipTest`（`useClip`）/ `MooSqlQueryableTest`（`useQueryable`）
