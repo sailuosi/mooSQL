@@ -99,21 +99,32 @@ internal static partial class SentenceExecutor
     internal static SQLBuilder BuildSqlBuilderPublic(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
         => BuildSqlBuilder(bag, db, expression, parameters);
 
+    /// <summary>
+    /// L2 优先：安全门下复用 SQL 文本（<see cref="SQLBuilder.usePrebuiltSelect"/>）；
+    /// 否则 Visit 渲染，并在安全门下捕获模板到 <see cref="SentenceItem.L2Template"/>。
+    /// </summary>
     static SQLBuilder BuildSqlBuilder(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         var sentence = bag.Sentences[0];
         var parameterValues = new SqlParameterValues();
         QueryMate.SetParameters(bag, expression, db, parameters, sentence, parameterValues);
 
+        if (ExtSqlCmdL2.TryBuild(sentence, parameterValues, out var cached) && cached != null)
+            return db.useSQL().usePrebuiltSelect(cached);
+
         var translator = db.dialect.clauseTranslator.Prepare(db);
         translator.ParameterValues = parameterValues;
         var clause = translator.Visit(sentence.Statement);
 
-        if (clause is SQLBuilderClause builderClause)
-            return builderClause.Builder;
+        if (clause is not SQLBuilderClause builderClause)
+            throw new InvalidOperationException(
+                $"Clause translation expected {nameof(SQLBuilderClause)} but got {clause?.GetType().Name ?? "null"}.");
 
-        throw new InvalidOperationException(
-            $"Clause translation expected {nameof(SQLBuilderClause)} but got {clause?.GetType().Name ?? "null"}.");
+        var kit = builderClause.Builder;
+        // 先物化一次以捕获 L2 模板；再挂回 prebuilt，避免调用方 toSelect 二次拼装且保证模板与执行一致
+        var cmd = kit.toSelect();
+        ExtSqlCmdL2.TryCapture(sentence, cmd, parameterValues);
+        return kit.usePrebuiltSelect(cmd);
     }
 
     public static string GetSqlText(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
@@ -199,6 +210,10 @@ internal static partial class SentenceExecutor
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }
+
+    /// <summary>测试/诊断：当前 bag 首句是否已捕获 L2 模板。</summary>
+    internal static bool HasL2Template(SentenceBag bag)
+        => bag.Sentences is { Count: > 0 } && bag.Sentences[0].L2Template != null;
 
     internal static void FinalizeBag(SentenceBag bag, DBInstance db)
     {

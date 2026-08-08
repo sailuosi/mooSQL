@@ -26,5 +26,10 @@ namespace mooSQL.linq.Linq
         /// 编译好的结果
         /// </summary>
         public SentenceCmds cmds { get; set; }
+
+        /// <summary>
+        /// L2：安全门下缓存的 SQLCmd 文本模板（sql 固定，执行时只改 para）。
+        /// </summary>
+        internal ExtSqlCmdTemplate? L2Template;
     }
 }

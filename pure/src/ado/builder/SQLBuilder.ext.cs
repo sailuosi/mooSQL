@@ -9,6 +9,20 @@ namespace mooSQL.data
     public partial class SQLBuilder
     {
         /// <summary>
+        /// Ext L2 等场景：挂接已生成的 SELECT <see cref="SQLCmd"/>，使 <see cref="toSelect"/> / <c>query</c> 跳过二次拼装。
+        /// </summary>
+        SQLCmd _prebuiltSelectCmd;
+
+        /// <summary>
+        /// 使用已构建的 SELECT 命令（sql 文本固定，参数已写入 <paramref name="cmd"/>.para）。
+        /// </summary>
+        public SQLBuilder usePrebuiltSelect(SQLCmd cmd)
+        {
+            _prebuiltSelectCmd = cmd;
+            return this;
+        }
+
+        /// <summary>
         /// 创建一个新的实例，默认会继承事务
         /// </summary>
         /// <returns></returns>

@@ -190,7 +190,8 @@ namespace mooSQL.linq.Linq
                 var statement = query.Statement;
                 //var options = query.DataOptions ?? dataContext.Options;
 
-                if (query.cmds != null)
+                // 无参数时可复用整份 cmds；有 ParameterAccessor 时旧缓存可能含陈旧 para，改走 L2 / 重渲染
+                if (query.cmds != null && (query.ParameterAccessors == null || query.ParameterAccessors.Count == 0))
                 {
                     return query.cmds;
                 }
@@ -286,7 +287,7 @@ namespace mooSQL.linq.Linq
                 cmds = translator.Translate(statement);
 
 
-                if (optimizeAndConvertAll)
+                if (optimizeAndConvertAll && (query.ParameterAccessors == null || query.ParameterAccessors.Count == 0))
                 {
                     query.cmds = cmds;
                     //query.Context = commands;
@@ -313,7 +314,14 @@ namespace mooSQL.linq.Linq
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var (expression, parameters) = RunnerContextFactory.ResolveExecutionArgs(context);
             SetParameters(bag, expression, context.dataContext, parameters, sentence, parameterValues);
+
+            // L2：全非 null 且无 List 时复用 SQL 文本，只换 para
+            var l2 = ExtSqlCmdL2.TryBuildCmds(sentence, parameterValues);
+            if (l2 != null)
+                return l2;
+
             var cmds = GetCommand(context.dataContext, sentence, parameterValues, forGetSqlText);
+            ExtSqlCmdL2.TryCaptureCmds(sentence, cmds, parameterValues);
             return cmds;
         }
 

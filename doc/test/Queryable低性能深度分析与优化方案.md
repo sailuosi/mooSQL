@@ -5,7 +5,7 @@
 > 源码范围：`ext/src/linq`（Ext LINQ）+ `pure/src/ado/SQL/visitors`（Clause → SQL 渲染）  
 > 分析日期：2026-08  
 > 结论级别：**源码追溯 + 方案 + 阶段 A/B/C 已落地（待基准复测验证）**  
-> 缓存策略：L1=`SentenceBag` 计划缓存（已落地）；L2=`SQLCmd` 模板缓存（见第 2 章，未落地）；身份键复用 Clip `ClipExpSameCheckor` + `FrequencyBasedCache`
+> 缓存策略：L1=`SentenceBag`；L2=`SQLCmd` 安全门首期（全非 null + 无 List）；身份键复用 Clip `ClipExpSameCheckor` + `FrequencyBasedCache`
 
 ---
 
@@ -108,35 +108,51 @@ foreach Accessor:
 
 > 形状编译一次得到 `SQLCmd` 模板；每次仅按变量更新 `SQLCmd.para` 后执行。
 
-**结论：可以实现，但是叠在 L1 之上的二级缓存，且有前提。**
+**结论：可以实现；首期已按「安全门」落地一版。**
 
 ```text
 L1（已落地）Expression 形状 → SentenceBag（Clause + Accessors）
-L2（终极，未落地）同一计划且 SQL 与参数值无关
-              → SQLCmd 模板（sql 固定 + para 槽）
-每次：Accessors(liveExpr) → 写 para → 执行（跳过 Visit）
+L2（首期已落地）安全门通过 → SQLCmd 模板挂在 SentenceItem.L2Template
+每次：Accessors(liveExpr) → 写 para → usePrebuiltSelect / 跳过 Visit
 ```
+
+#### 2.5.1 首期安全门（可控优先）
+
+仅当同时满足时进入 L2：
+
+1. **全部参数非 null**（挡住 Builder/渲染侧 IgnoreNull、省略 where 等变形）  
+2. **无 List / Enumerable 参数**（`string` / `byte[]` 除外；挡住 IN 占位个数 / `1=2` / MaxIn 拆段）
+
+不满足则停在 L1（仍复用 Clause，每次 Visit）。  
+后续可再放宽为 Present 掩码、同 Length 的参数化 IN 等；**SQLBuilder 原生可缓存**另开一轮，不阻塞 Ext L2。
+
+#### 2.5.2 落地位置
+
+| 组件 | 作用 |
+|------|------|
+| `ExtSqlCmdL2` / `ExtSqlCmdTemplate` | 安全门判定、捕获/重建 SQLCmd |
+| `SentenceItem.L2Template` | 随 L1 bag 复用的文本模板 |
+| `SentenceExecutor.BuildSqlBuilder` | 命中则 `usePrebuiltSelect`；未命中 Visit 后 `TryCapture` |
+| `QueryMate.TranslateCmds` | SqlText 路径同样走 L2 |
+| `SQLBuilder.usePrebuiltSelect` | pure 薄钩子：`toSelect` 直接返回预构建命令 |
 
 | 前提 | 说明 |
 |------|------|
-| SQL 与参数值无关 | `IsParameterDependent == false`；变长 IN、按值改写片段等只能退回 L1 或重渲染 |
-| 参数槽位稳定 | 名称 / 顺序 / 个数固定；Accessors 与 `SQLCmd.para` 一一对应 |
-| 并发安全 | 共享模板需 clone 或线程内写 para，禁止多线程改同一 `SQLCmd` |
-| 正确性边界 | 与 L1 的 `IsCacheable` 排除集一致 |
-
-**参数映射不再是 L2 的拦路虎**——L1 的 Accessor 就是填 para 的输入。  
-真正缺口是：暖路径仍每次 Visit；部分语句 SQL 随参数变；`SentenceItem.cmds` 有结果槽但主路径未做成全局「Expression→SQLCmd」模板缓存。
+| SQL 与参数值无关 | 首期用安全门近似；变长 IN 等不进 L2 |
+| 参数槽位稳定 | Accessors 与模板 `ParaKeys` 对齐 |
+| 并发安全 | 每次 `TryBuild` 新建 `SQLCmd`/`Paras`，不共享可变实例 |
+| 正确性边界 | 与 L1 `IsCacheable` 排除集一致；有 Accessor 时不再缓存陈旧 `sentence.cmds` |
 
 ### 2.6 效率阶梯与后续杠杆
 
 | 级别 | 复用什么 | 每次仍要做 | 状态 |
 |------|----------|------------|------|
 | 无缓存 | — | ①+② 全做 | 历史基准 Condition ~ms |
-| **L1** | Clause + Accessor | SetParameters + Visit→SQL | **阶段 A 已落地** |
-| **L2** | SQL 文本 + para 骨架 | 只 SetParameters + 填 para | **未做；下一档杠杆** |
-| `CompileQuery` | 显式钉死 L1 计划 | 同暖路径（可再叠 L2） | 阶段 C 已提供 API |
+| **L1** | Clause + Accessor | SetParameters + Visit→SQL | **已落地** |
+| **L2** | SQL 文本 + para 骨架 | 只 SetParameters + 填 para | **首期安全门已落地** |
+| `CompileQuery` | 显式钉死 L1 计划 | 同暖路径（可叠 L2） | 已提供 API |
 
-落地边界建议先裁定：**哪些语句保证参数无关可进 L2；哪些永远停在 L1。**
+后续：放宽 Enumerable Length / 空位掩码；SQLBuilder 层面原生可缓存。
 
 ---
 
@@ -501,4 +517,4 @@ for (var i = 0; i < 20; i++)
 **Ext Queryable 在 Condition/Loop 上的低性能，主因是「完整编译管线 + 曾关闭的计划缓存 + Where 无条件套子查询 + 重 Finalize」；不是 ADO 映射慢。**  
 L1（`SentenceBag` + `ParameterAccessor`）已按第 2 章模型落地；下一档杠杆是 L2（参数无关语句缓存到 `SQLCmd`、只改 para）。在暖路径达标前，高频短查询仍应走 **SQLBuilder / SQLClip**。
 
-> 文档状态：阶段 A/B/C 已落地（L1）；第 2 章定义 L1/L2 缓存模型；L2 与基准冷暖复测待验证。
+> 文档状态：阶段 A/B/C（L1）+ L2 安全门首期已落地；基准冷暖复测待验证。

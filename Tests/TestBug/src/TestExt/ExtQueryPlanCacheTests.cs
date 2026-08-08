@@ -1,7 +1,9 @@
 using FluentAssertions;
 using mooSQL.data;
 using mooSQL.linq.Linq;
+using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
@@ -99,5 +101,39 @@ public class ExtQueryPlanCacheTests : IClassFixture<LinqSqliteTestFixture>
         b.Should().NotBeNull();
         a.Should().ContainSingle(u => u.Id == 1);
         b.Should().ContainSingle(u => u.Id == 2);
+    }
+
+    [Fact]
+    public void L2_SafeGate_CapturesTemplate_AndReusesSqlText()
+    {
+        QueryRunner.ClearCaches();
+        var db = _fx.Db;
+
+        Expression e1 = db.useQueryable<SQLiteTestUser>().Where(u => u.Id == 1).Expression;
+        var bag = QueryMate.GetQuery<SQLiteTestUser>(db, ref e1, out _);
+        SentenceExecutor.FinalizeBag(bag, db);
+
+        var sql1 = SentenceExecutor.GetSqlText(bag, db, e1);
+        bag.Sentences[0].L2Template.Should().NotBeNull("全非 null 标量应捕获 L2 模板");
+
+        Expression e2 = db.useQueryable<SQLiteTestUser>().Where(u => u.Id == 2).Expression;
+        var bag2 = QueryMate.GetQuery<SQLiteTestUser>(db, ref e2, out _);
+        ReferenceEquals(bag, bag2).Should().BeTrue();
+
+        var sql2 = SentenceExecutor.GetSqlText(bag2, db, e2);
+        sql2.Should().Be(sql1, "L2 暖路径 SQL 文本应不变，仅 para 不同");
+
+        var rows = SentenceExecutor.ExecuteList<SQLiteTestUser>(bag2, db, e2);
+        rows.Should().ContainSingle(u => u.Id == 2);
+    }
+
+    [Fact]
+    public void L2_SafeGate_RejectsEnumerable()
+    {
+        ExtSqlCmdL2.IsScalarNonNull(null).Should().BeFalse();
+        ExtSqlCmdL2.IsScalarNonNull(1).Should().BeTrue();
+        ExtSqlCmdL2.IsScalarNonNull("x").Should().BeTrue();
+        ExtSqlCmdL2.IsScalarNonNull(new[] { 1, 2 }).Should().BeFalse();
+        ExtSqlCmdL2.IsScalarNonNull(new List<int> { 1 }).Should().BeFalse();
     }
 }

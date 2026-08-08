@@ -193,11 +193,74 @@
 - **EF（137 μs）** 好于 FreeSql（170 μs）与 SqlSugar（194 μs）；三者都明显重于 Chloe/Clip。
 - 本项无 Dapper：无表达式解析，空跑无意义（与 dbTest README 一致）。
 
-### 方法 3 结论
+### 方法 3 结论（优化前基线）
 
 - **动态/已知条件拼 SQL**：SQLBuilder 成本可忽略（微秒级），是动态查询、报表条件拼装的最优路径。
 - **要字段级类型安全、又不想上完整 Expression**：SQLClip 与 Chloe 同档，显著优于 EF/FreeSql/SqlSugar。
-- **完整 `Expression<Func<,bool>>`（useQueryable）**：本轮 Ext 编译成本过高，不适合高频「只为拿 SQL / 短条件」路径；若业务必须 IQueryable，需单独做编译缓存或优化后再比。
+- **完整 `Expression<Func<,bool>>`（useQueryable）**：上表基线 Ext 编译成本过高；**优化后见下方复测**。
+
+### 复测：L1/L2 计划缓存落地后（2026-08）
+
+背景：已落地 Ext **L1**（`SentenceBag` 结构计划缓存）+ **L2 安全门**（全非 null、无 List → 复用 SQLCmd 文本，只改 para）。详见 [Queryable低性能深度分析与优化方案.md](./Queryable低性能深度分析与优化方案.md) 第 2 章。  
+本表为同一场景 `TestCondition` 重跑；对照 ORM 与 Builder/Clip 环境量级与基线一致，重点看 **MooSqlQueryable** 变化。
+
+#### 原始结果（复测）
+
+| Method        | ProvideType         | Mean       | Error     | StdDev     | Rank | Gen0    | Gen1   | Allocated |
+|-------------- |-------------------- |-----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
+| TestCondition | ChloeTest           |  45.312 us | 0.8980 us |  1.8942 us |    4 |  1.9531 | 0.3662 |  16.66 KB |
+| TestCondition | EfSqlliteTest       | 135.471 us | 2.6953 us |  4.7205 us |    6 |  7.3242 | 0.4883 |  61.32 KB |
+| TestCondition | FastFrameworkTest   |  52.747 us | 1.0139 us |  1.4214 us |    5 |  2.6855 | 0.8545 |  22.01 KB |
+| TestCondition | FreeSqlTest         | 175.867 us | 3.3730 us |  3.7491 us |    7 |  4.8828 | 2.4414 |  40.93 KB |
+| TestCondition | MooSqlBuilderTest   |   4.371 us | 0.0788 us |  0.0658 us |    1 |  1.2436 | 0.0229 |  10.18 KB |
+| TestCondition | MooSqlClipTest      |  38.729 us | 0.7639 us |  0.9933 us |    3 |  3.1738 | 1.5869 |   26.5 KB |
+| TestCondition | MooSqlQueryableTest | 143.880 us | 8.2623 us | 23.7060 us |    6 |  3.7842 | 0.9766 |  31.72 KB |
+| TestCondition | MyTest              |  21.338 us | 0.4197 us |  0.6281 us |    2 |  1.8311 |      - |  15.22 KB |
+| TestCondition | SqlSugarTest        | 195.625 us | 3.3333 us |  2.6025 us |    8 | 12.6953 | 0.4883 | 104.08 KB |
+
+#### Queryable 前后对比
+
+| 指标 | 优化前（基线） | 复测（L1+L2） | 变化 |
+|------|----------------|---------------|------|
+| Mean | **~8.95 ms** | **~144 μs** | **约 62× 更快**（8947→144） |
+| Allocated | ~346 KB | **~32 KB** | **约 11× 更省** |
+| Gen0 | ~39 | **~3.8** | 数量级下降 |
+| Rank（全场） | 9（最慢） | **6（与 EF 同档）** | 脱离「毫秒级垫底」 |
+| StdDev | ~1.87 ms | ~23.7 μs | 绝对波动大降；相对 Mean 仍偏高（见下） |
+
+#### 复测梯队（按 Mean）
+
+| 档位 | ProvideType | Mean | Allocated |
+|------|-------------|------|-----------|
+| 1 | **MooSqlBuilder** | **~4.4 μs** | ~10 KB |
+| 2 | MyTest(CRL) | ~21 μs | ~15 KB |
+| 3–4 | **MooSqlClip**、Chloe | ~39–45 μs | ~17–27 KB |
+| 5 | FastFramework | ~53 μs | ~22 KB |
+| 6 | **EF ≈ MooSqlQueryable** | **~135–144 μs** | EF ~61 KB；Queryable **~32 KB（更省）** |
+| 7–8 | FreeSql、SqlSugar | ~176–196 μs | ~41–104 KB |
+
+#### 分析
+
+1. **缓存生效，主矛盾已从「冷编译固定税」转为「暖路径与 EF 同量级」**  
+   Condition 不访问 DB，优化前 ~9 ms 几乎全是 Expression→Clause→SQL。复测落到 **~144 μs**，与方案目标「暖缓存 &lt; 200 μs」一致，说明 L1（跳过 CreateQuery）+ L2 安全门（跳过/短路 Visit 拼串）在 ToSql 热路径上打到了点。
+
+2. **相对对照 ORM 的位置变化**  
+   - 相对 **EF（135 μs）**：时间基本持平（Queryable 约慢 6%），**分配更低**（32 vs 61 KB）——对标 EF 的「表达式 → SQL」已进入同一竞争带。  
+   - 相对 **Clip（39 μs） / Chloe（45 μs）**：约 **3–4×**（优化前约 180×）——仍贵，但已是「完整 IQueryable 编译器 vs 窄 Lambda/轻 ORM」的合理差距，而非架构级事故。  
+   - 相对 **Builder（4.4 μs）**：约 **33×**（优化前 ~1600×）——口径仍不同构；Builder 继续是动态拼 SQL 最优解。  
+   - 已明显快于 FreeSql / SqlSugar。
+
+3. **StdDev / Error 仍偏大（23.7 μs / 8.3 μs）**  
+   相对 Mean（144 μs）约 16% 离散，高于 EF/Clip。可能原因：BDN 迭代中偶发 L1/L2 未命中或首次捕获、Gen0 抖动、或适配器每次 `new` 查询链的固定噪声。建议后续：冷/暖分列基准，或对同一 `SentenceBag` 热循环再采一版「纯暖」Mean。
+
+4. **Builder / Clip 复测略快于基线**  
+   Builder 5.5→4.4 μs、Clip 49→39 μs，属同环境噪声或运行态差异，**不是**本轮 Ext 缓存的主收益；解读以 Queryable 前后对比为准。
+
+#### 复测结论
+
+- **P0 目标达成**：Condition 上 Queryable 从「不可用的毫秒级」进入「与 EF 同档的百微秒级」，分配同步下降一个数量级。  
+- **产品口径可更新**：高频短条件 ToSql 仍优先 Builder/Clip；若必须 `useQueryable`，暖路径已可接受，不再是基线文档中的「约 9 ms 灾难档」。  
+- **待补**：MethodCondition / QueryLoop 应用同环境复测，验证 L1 对闭包 `id`、L2 安全门在执行路径上的收益；并尽量拆冷/暖列。
 
 ---
 
@@ -388,9 +451,9 @@
 
 | 路径 | Result | Anonymous | Condition | MethodCondition | QueryLoop | QueryJoin | 变化要点 |
 |------|--------|-----------|-----------|-----------------|-----------|-----------|----------|
-| Builder | 310 μs / 61 KB | **232 μs / 46 KB** | **5.5 μs / 10 KB** | **6.3 μs / 11 KB** | **1.34 ms / 151 KB** | **未实现（空跑）** | 前五项强；Join 待补 |
-| Clip | 339 μs / 66 KB | 259 μs / 54 KB | 49 μs / 27 KB | 24 μs / 17 KB | 1.71 ms / 217 KB | **未实现（空跑）** | 同左 |
-| Queryable | 1341 μs / 777 KB | 1404 μs / 220 KB | **8.9 ms / 346 KB** | **10.0 ms / 304 KB** | **41.0 ms / 3.8 MB** | **未实现（空跑）** | 前五项偏慢；Join 待补 |
+| Builder | 310 μs / 61 KB | **232 μs / 46 KB** | **~4.4 μs / 10 KB**（复测） | **6.3 μs / 11 KB** | **1.34 ms / 151 KB** | **未实现（空跑）** | 前五项强；Join 待补 |
+| Clip | 339 μs / 66 KB | 259 μs / 54 KB | **~39 μs / 27 KB**（复测） | 24 μs / 17 KB | 1.71 ms / 217 KB | **未实现（空跑）** | 同左 |
+| Queryable | 1341 μs / 777 KB | 1404 μs / 220 KB | **~144 μs / 32 KB**（L1+L2 复测；基线曾 8.9 ms） | **10.0 ms / 304 KB**（待复测） | **41.0 ms / 3.8 MB**（待复测） | **未实现（空跑）** | Condition 已与 EF 同档；Loop/MethodCondition 待复测 |
 
 ### 总体建议
 
@@ -398,10 +461,10 @@
 |------|------|
 | 高吞吐列表 / 报表（已知列） | **SQLBuilder** |
 | 动态条件 / LIKE 拼 SQL（高频） | **SQLBuilder**；若坚持 Expression 可参考 CRL 级成本 |
-| 循环短查询 / 按 Id 拉取 | **SQLBuilder**（或 Dapper）；避免循环内 Queryable |
+| 循环短查询 / 按 Id 拉取 | **SQLBuilder**（或 Dapper）；Queryable Loop **待 L1/L2 复测后再定** |
 | 多段 Join SQL 构建 | **待 mooSQL 适配器补齐后再比**；现有有效标杆为 Chloe / CRL |
 | 要类型安全、别名/Join 糖 | **SQLClip**（映射约 +10%；Loop 约 Chloe 级；Join 用例尚未接入基准） |
-| 标准 IQueryable / 对标 EF 写法 | **useQueryable**（接受更高延迟与分配；短条件 ToSql 与循环内短查询目前过重） |
+| 标准 IQueryable / 对标 EF 写法 | **useQueryable**：Condition 暖路径已约 **144 μs / 与 EF 持平**；映射与 Loop 场景仍偏重或待复测 |
 
 ---
 
