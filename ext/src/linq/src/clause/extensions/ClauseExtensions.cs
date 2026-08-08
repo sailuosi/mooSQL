@@ -125,20 +125,29 @@ namespace mooSQL.linq.SqlQuery
             throw new NotImplementedException();
         }
 
-        public static string FindAlias(this ITableNode selectQuery)
+        public static string? FindAlias(this ITableNode selectQuery)
         {
-            if (selectQuery is DerivatedTableWord derivated) {
-                return derivated.Name;
-            }
-            throw new NotImplementedException();
+            return selectQuery switch
+            {
+                DerivatedTableWord derivated => derivated.Name,
+                TableWord table => table.Alias,
+                TableSourceWord source => source.Alias,
+                _ => null
+            };
         }
         public static string setAlias(this ITableNode selectQuery,string alias)
         {
-            if (selectQuery is DerivatedTableWord derivated)
+            switch (selectQuery)
             {
-                return derivated.Name= alias;
+                case DerivatedTableWord derivated:
+                    return derivated.Name = alias;
+                case TableWord table:
+                    return table.Alias = alias;
+                case TableSourceWord source:
+                    return source.Alias = alias;
+                default:
+                    throw new NotImplementedException($"setAlias not supported for {selectQuery?.GetType().Name}");
             }
-            throw new NotImplementedException();
         }
 
 

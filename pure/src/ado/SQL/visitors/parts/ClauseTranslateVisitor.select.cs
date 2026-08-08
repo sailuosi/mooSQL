@@ -47,7 +47,27 @@ namespace mooSQL.linq
                 
                 return new SQLFragClause(fname);
             }
+
+            // SELECT 列表：表达式已含表限定（如 b.Id），别名须用 " as " 分隔；
+            // 旧逻辑直接拼接会得到 b.IdId 一类非法列名。
             var res = "";
+            var val = clause.FieldValue;
+            if (val != null)
+            {
+                var valRes = VisitIExpWord(val);
+                if (valRes is SQLFragClause)
+                    res += valRes.ToString();
+
+                if (!string.IsNullOrEmpty(fname))
+                {
+                    if (!string.IsNullOrEmpty(res))
+                        res += " as ";
+                    res += fname;
+                }
+
+                return new SQLFragClause(res);
+            }
+
             var tb = clause.BelongTable;
             if (tb != null)
             {
@@ -56,19 +76,8 @@ namespace mooSQL.linq
                 res += tbname + ".";
             }
 
-            var val = clause.FieldValue;
-            if (val != null) { 
-                var valRes= VisitIExpWord(val);
-                if (valRes is SQLFragClause valFrag) {
-                    res += valRes.ToString();
-                }
-            }
-
             res += fname;
-
             return new SQLFragClause(res);
-
-
         }
 
         /// <summary>
@@ -441,6 +450,11 @@ namespace mooSQL.linq
         /// <returns></returns>
         public override Clause VisitDerivatedTable(DerivatedTableWord clause)
         {
+            // VisitSelectQuery 会把子查询展平为 FROM 片段并合并 WHERE；此时别名已在内层 TableWord.Alias 上，
+            // 若再拼 clause.Name 会得到 "TestEntity as b as b"。
+            if (clause.src is SelectQueryClause selectQuery)
+                return VisitSelectQuery(selectQuery);
+
             var res = "";
             var tb = clause.src;
             var tbRes = VisitTableNode(tb);
@@ -456,6 +470,14 @@ namespace mooSQL.linq
             }
 
             if (!string.IsNullOrWhiteSpace(clause.Name)) {
+                // TableWord 已通过 Alias 输出过 as 时不再重复
+                if (clause.src is TableWord tw &&
+                    !string.IsNullOrEmpty(tw.Alias) &&
+                    string.Equals(tw.Alias, clause.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new SQLFragClause(res);
+                }
+
                 if (gotTbSQL)
                 {
                     res += " as ";
@@ -470,9 +492,14 @@ namespace mooSQL.linq
         /// </summary>
         public override Clause VisitTableWord(TableWord clause)
         {
+            var name = clause.Name;
+            if (!string.IsNullOrWhiteSpace(clause.Alias))
+            {
+                var alias = TranslateValue(clause.Alias, ConvertType.NameToQueryTableAlias);
+                return new SQLFragClause($"{name} as {alias}");
+            }
 
-            var name=clause.Name;
-            return new SQLFragClause (name);
+            return new SQLFragClause(name);
         }
 
 

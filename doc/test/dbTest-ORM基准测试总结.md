@@ -122,7 +122,7 @@
 
 3. **Queryable（1404 μs / 220 KB）**  
    仍处慢档，与 FastFramework 同 Rank 6。  
-   **实现注记（重要）**：当前适配器因 Ext 8.1.2.3 对 `Select` 投影会生成 `b.IdId` 一类非法列名，采用「`Take(100).ToList()` 全实体取出 + LINQ to Objects 再投影」。因此本项 Queryable **未真正测 SQL 侧匿名投影**，时间/分配更接近「Queryable 全实体取数 + 额外本地投影」，与方法 1 同量级偏慢（1.34→1.40 ms）符合预期；Allocated 低于方法 1（777→220 KB）可能与结果物化路径差异有关，不宜过度解读为「投影更省」。StdDev 很大（254 μs），稳定性也差。
+   **实现注记**：上轮适配器曾因 Ext `Select` 投影把别名直接拼到字段后（`b.Id`+`Id`→`b.IdId`）而改用本地投影；该渲染 bug 已在 `ClauseTranslateVisitor.VisitColumnWord` 修复（改为 `expression as alias`），dbTest 已恢复服务端 `Where/Select`。上表 Queryable 数字仍是 workaround 时期测量，需重跑后再对比真实投影性能。
 
 ### 与对照 ORM
 
@@ -136,7 +136,7 @@
 
 - **列裁剪 + 轻量 DTO**：mooSQL **SQLBuilder 最优**（本表第一），**SQLClip** 紧随其后并与 Dapper 持平。
 - 与方法 1 一致：**Builder / Clip 是性能主路径**；Queryable 在短查询投影场景仍偏重。
-- Queryable 适配器的本地投影 workaround 修复 Ext `Select` 列名 bug 后，应改为真正的 `Where/Select` 服务端投影再复测，否则本项不能代表 Ext LINQ 投影性能。
+- Ext `Select` 列名 bug 已修复，适配器已改回服务端投影；上表 Queryable 行需用当前源码重跑后再纳入对比。
 
 ---
 
@@ -364,7 +364,7 @@
 2. **后续补测建议（对齐现有契约）**  
    - Builder：`from` + 子查询/`innerJoin` 链式拼装 → `toSelect().sql`  
    - Clip：`from` + `join(...).on(...)` + `select` → `toSelect().sql`  
-   - Queryable：标准 Join / 子查询投影（注意 Ext `Select` 列名 bug）  
+   - Queryable：标准 Join / 子查询投影
    补齐前，**本项不参与 mooSQL 横向排名**。
 
 ### 与对照 ORM（有效子集）
@@ -399,7 +399,7 @@
 | 循环短查询 / 按 Id 拉取 | **SQLBuilder**（或 Dapper）；避免循环内 Queryable |
 | 多段 Join SQL 构建 | **待 mooSQL 适配器补齐后再比**；现有有效标杆为 Chloe / CRL |
 | 要类型安全、别名/Join 糖 | **SQLClip**（映射约 +10%；Loop 约 Chloe 级；Join 用例尚未接入基准） |
-| 标准 IQueryable / 对标 EF 写法 | **useQueryable**（接受更高延迟与分配；投影 bug 修复前慎用服务端 Select；短条件 ToSql 与聊天式 Loop 目前过重） |
+| 标准 IQueryable / 对标 EF 写法 | **useQueryable**（接受更高延迟与分配；短条件 ToSql 与循环内短查询目前过重） |
 
 ---
 

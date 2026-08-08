@@ -187,9 +187,11 @@ namespace mooSQL.linq.Linq.Builder
 			if (!string.IsNullOrEmpty(alias) && !alias!.Contains("<") && SelectQuery.Select.From.Tables.Count == 1)
 			{
 				var table = SelectQuery.Select.From.Tables[0];
-				if (table.FindAlias() == null)
-					table.setAlias( alias);
+				if (string.IsNullOrEmpty(table.FindAlias()))
+					table.setAlias(alias);
 			}
+
+			InnerContext?.SetAlias(alias);
 		}
 
 		public override BaseSentence GetResultStatement()
