@@ -168,7 +168,7 @@ namespace mooSQL.linq.Linq
 		public ExtSqlCmdTemplate(string sql, string[] paraKeys, QueryType type, string? targetTable)
 		{
 			Sql = sql;
-			ParaKeys = paraKeys ?? Array.Empty<string>();
+			ParaKeys = paraKeys ?? new string[0];
 			Type = type;
 			TargetTable = targetTable;
 		}
