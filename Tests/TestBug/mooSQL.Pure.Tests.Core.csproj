@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ext\mooSQL.Ext.Core.csproj" />
+    <ProjectReference Include="..\ext\mooSQL.Ext.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -115,8 +115,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder selectFormat(string selectSQLPart, params object[] paras)
         {
-            var part = MoldOrFormatSql("select", selectSQLPart, paras);
-            select(part);
+            var fromPart = ps.formatSQL(selectSQLPart, paras);
+            select(fromPart);
             return this;
         }
         /// <summary>
@@ -218,7 +218,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder fromFormat(string fromSQLPart, params object[] paras)
         {
-            var fromPart = MoldOrFormatSql("from", fromSQLPart, paras);
+            var fromPart = ps.formatSQL(fromSQLPart, paras);
             from(fromPart);
             return this;
         }
@@ -253,7 +253,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder joinFormat(string JoinSQLPart,params object[] paras)
         {
-            var fromPart = MoldOrFormatSql("join", JoinSQLPart, paras);
+            var fromPart = ps.formatSQL(JoinSQLPart, paras);
             join(fromPart);
             return this;
         }

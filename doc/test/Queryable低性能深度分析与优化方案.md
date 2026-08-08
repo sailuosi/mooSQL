@@ -124,8 +124,7 @@ L2（首期已落地）安全门通过 → SQLCmd 模板挂在 SentenceItem.L2Te
 2. **无 List / Enumerable 参数**（`string` / `byte[]` 除外；挡住 IN 占位个数 / `1=2` / MaxIn 拆段）
 
 不满足则停在 L1（仍复用 Clause，每次 Visit）。  
-后续可再放宽为 Present 掩码、同 Length 的参数化 IN 等。  
-**SQLBuilder 原生可缓存**已开专项：见 [SQLBuilder-SQLMold两级编译方案.md](./SQLBuilder-SQLMold两级编译方案.md)（常驻 `MoldSession` → `SQLMold` L1 + L2→`SQLCmd`）。
+后续可再放宽为 Present 掩码、同 Length 的参数化 IN 等；**SQLBuilder 原生可缓存**另开一轮，不阻塞 Ext L2。
 
 #### 2.5.2 落地位置
 

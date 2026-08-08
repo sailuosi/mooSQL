@@ -60,7 +60,6 @@ namespace dbTest.items
 
         public override void testQueryLoop()
         {
-            // SQLMold：同形状循环走 L1 缓存 + L2 填参（会话随 Builder 常驻）
             for (var i = 0; i < 20; i++)
             {
                 var item = MooSqlDb.Db.useSQL()
