@@ -14,6 +14,6 @@ namespace mooSQL.data
             _bag = bag;
         }
 
-        public void Apply(StepBuilder builder) => builder.where(_bag);
+        public void Apply(SQLBuilder builder) => builder.Inner.where(_bag);
     }
 }

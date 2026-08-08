@@ -5,37 +5,65 @@ namespace mooSQL.data
 {
     /// <summary>
     /// SQL 编排门面。构造期步骤进入 <see cref="IStep"/> 队列；
-    /// 真正构造由基类 <see cref="StepBuilder"/> 完成（见 <c>SQLBuilder.defer.cs</c>）。
+    /// 真正构造由内部 <see cref="StepBuilder"/> 完成（见 <c>SQLBuilder.defer.cs</c>）。
     /// </summary>
-    public partial class SQLBuilder : StepBuilder
+    public partial class SQLBuilder : IDisposable
     {
+        private readonly StepBuilder _inner;
         private readonly List<IStep> _steps = new List<IStep>();
         private bool _dirty;
         private bool _materializing;
 
-        /// <summary>是否正在将队列回放到基类（Apply 路径）。</summary>
+        /// <summary>是否正在将队列回放到内核（Apply 路径）。</summary>
         internal bool IsMaterializing => _materializing;
 
         /// <summary>当前编排步骤队列（只读）。</summary>
         internal IReadOnlyList<IStep> Steps => _steps;
 
-        public SQLBuilder() : base() { }
+        /// <summary>内核构造器（物化目标）。</summary>
+        internal StepBuilder Inner => _inner;
 
-        public SQLBuilder(string name) : base(name) { }
+        public SQLBuilder()
+        {
+            _inner = new StepBuilder();
+        }
 
-        public SQLBuilder(bool lazyInit) : base(lazyInit) { }
+        public SQLBuilder(string name)
+        {
+            _inner = new StepBuilder(name);
+        }
 
-        public SQLBuilder(SQLExpression expression) : base(expression) { }
+        public SQLBuilder(bool lazyInit)
+        {
+            _inner = new StepBuilder(lazyInit);
+        }
 
-        /// <summary>将步骤队列回放到基类构造实现（脏时执行）。</summary>
-        internal void EnsureMaterialized()
+        public SQLBuilder(SQLExpression expression)
+        {
+            _inner = new StepBuilder(expression);
+        }
+
+        /// <summary>附着已有内核（子查询 / Action 回放）。</summary>
+        internal SQLBuilder(StepBuilder inner, bool materializing = false)
+        {
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _materializing = materializing;
+        }
+
+        /// <summary>将内核包装为门面；materializing 时入队即刻 Apply。</summary>
+        public static SQLBuilder Attach(StepBuilder inner, bool materializing = false)
+        {
+            return new SQLBuilder(inner, materializing);
+        }
+
+        /// <summary>将步骤队列回放到内核构造实现（脏时执行）。</summary>
+        public void EnsureMaterialized()
         {
             if (!_dirty) return;
             _materializing = true;
             try
             {
-                // 从干净状态按编排顺序重放，保证与队列一致
-                base.clear();
+                _inner.clear();
                 for (int i = 0; i < _steps.Count; i++)
                 {
                     _steps[i].Apply(this);
@@ -48,22 +76,28 @@ namespace mooSQL.data
             }
         }
 
-        /// <summary>清空编排队列并重置基类状态。</summary>
-        public new SQLBuilder clear()
+        /// <summary>清空编排队列并重置内核状态。</summary>
+        public SQLBuilder clear()
         {
             _steps.Clear();
             _dirty = false;
-            base.clear();
+            _inner.clear();
             return this;
         }
 
         /// <summary>完全重置。</summary>
-        public new SQLBuilder reset()
+        public SQLBuilder reset()
         {
             _steps.Clear();
             _dirty = false;
-            base.reset();
+            _inner.reset();
             return this;
+        }
+
+        public void Dispose()
+        {
+            _inner.Dispose();
         }
     }
 }
+

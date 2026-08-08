@@ -14,6 +14,6 @@ namespace mooSQL.data
             _tbName = tbName;
         }
 
-        public void Apply(StepBuilder builder) => builder.setTable(_tbName);
+        public void Apply(SQLBuilder builder) => builder.Inner.setTable(_tbName);
     }
 }

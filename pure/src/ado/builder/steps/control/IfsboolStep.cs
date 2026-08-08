@@ -14,6 +14,6 @@ namespace mooSQL.data
             _isPass = isPass;
         }
 
-        public void Apply(StepBuilder builder) => builder.ifs(_isPass);
+        public void Apply(SQLBuilder builder) => builder.Inner.ifs(_isPass);
     }
 }

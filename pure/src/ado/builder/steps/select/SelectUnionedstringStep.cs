@@ -14,6 +14,6 @@ namespace mooSQL.data
             _columns = columns;
         }
 
-        public void Apply(StepBuilder builder) => builder.selectUnioned(_columns);
+        public void Apply(SQLBuilder builder) => builder.Inner.selectUnioned(_columns);
     }
 }

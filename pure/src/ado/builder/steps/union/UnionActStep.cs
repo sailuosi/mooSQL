@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.union(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class UnionActStep : IStep
     {
         private readonly Action<SQLBuilder> _doUnion;
@@ -14,6 +12,6 @@ namespace mooSQL.data
             _doUnion = doUnion;
         }
 
-        public void Apply(StepBuilder builder) => builder.union(_doUnion);
+        public void Apply(SQLBuilder builder) => builder.Inner.union(_doUnion);
     }
 }

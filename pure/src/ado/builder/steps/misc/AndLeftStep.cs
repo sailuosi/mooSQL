@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly AndLeftStep Instance = new AndLeftStep();
         private AndLeftStep() { }
-        public void Apply(StepBuilder builder) => builder.andLeft();
+        public void Apply(SQLBuilder builder) => builder.Inner.andLeft();
     }
 }

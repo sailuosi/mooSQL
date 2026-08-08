@@ -15,7 +15,7 @@ namespace mooSQL.data
         /// <summary>
         /// 根编织器
         /// </summary>
-        public SQLBuilder root;
+        public StepBuilder root;
         /// <summary>
         /// 参数化前缀
         /// </summary>
@@ -30,7 +30,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="root"></param>
         /// <param name="paramPrefix"></param>
-        public WhereCollection(SQLBuilder root, string paramPrefix)
+        public WhereCollection(StepBuilder root, string paramPrefix)
         {
             this.root = root;
             this.paramPrefix = paramPrefix;
@@ -131,7 +131,7 @@ namespace mooSQL.data
 
             if (root.Client != null)
             {
-                var ok = root.Client.fireBuildWhereFrag(frag, root);
+                var ok = root.Client.fireBuildWhereFrag(frag, SQLBuilder.Attach(root, materializing: true));
                 if (ok)
                 {
                     this.CurrentGroup.Add(frag);

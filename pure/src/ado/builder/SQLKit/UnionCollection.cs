@@ -43,7 +43,7 @@ namespace mooSQL.data
         /// 开始一个新的 SQL 分组。
         /// </summary>
         /// <returns></returns>
-        private UnionCollection doUnion(SQLBuilder root)
+        private UnionCollection doUnion(StepBuilder root)
         {
             if (this.unitedWraper == null)
             {
@@ -67,7 +67,7 @@ namespace mooSQL.data
         /// <param name="isUnionAll"></param>
         /// <param name="wrapSelect"></param>
         /// <returns></returns>
-        internal UnionCollection union(SQLBuilder root, bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
+        internal UnionCollection union(StepBuilder root, bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
         {
             this._unionAll = isUnionAll;
             this._unionWrap = wrapSelect;

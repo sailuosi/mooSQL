@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.rightJoin(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class RightJoinstringActStep : IStep
     {
         private readonly string _joinSQLString;
@@ -16,6 +14,6 @@ namespace mooSQL.data
             _childFromPart = childFromPart;
         }
 
-        public void Apply(StepBuilder builder) => builder.rightJoin(_joinSQLString, _childFromPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.rightJoin(_joinSQLString, _childFromPart);
     }
 }

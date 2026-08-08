@@ -14,6 +14,6 @@ namespace mooSQL.data
             _selectSQL = selectSQL;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereNotExist(_selectSQL);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereNotExist(_selectSQL);
     }
 }

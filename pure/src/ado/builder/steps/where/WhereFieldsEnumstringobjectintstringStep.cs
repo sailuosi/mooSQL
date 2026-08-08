@@ -20,6 +20,6 @@ namespace mooSQL.data
             _op = op;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereFields(_fields, _value, _SinkMode, _op);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereFields(_fields, _value, _SinkMode, _op);
     }
 }

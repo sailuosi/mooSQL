@@ -16,6 +16,6 @@ namespace mooSQL.data
             _likeCodes = likeCodes;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereLikeLefts(_key, _likeCodes);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereLikeLefts(_key, _likeCodes);
     }
 }

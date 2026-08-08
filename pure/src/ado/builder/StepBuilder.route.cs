@@ -41,17 +41,17 @@ namespace mooSQL.data
         /// <summary>
         /// useReadReplica 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
+        public StepBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
 
         /// <summary>
         /// useMaster 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useMaster() => useRoute(r => r.ForceMaster = true);
+        public StepBuilder useMaster() => useRoute(r => r.ForceMaster = true);
 
         /// <summary>
         /// useDualWrite 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useDualWrite(params int[] slavePositions) =>
+        public StepBuilder useDualWrite(params int[] slavePositions) =>
             useRoute(r =>
             {
                 r.EnableDualWrite = true;
@@ -59,55 +59,55 @@ namespace mooSQL.data
             });
 
         /// <summary>临时 Failover；启用后立即探活并在需要时选举，绑定 DBLive / TargetInstance。</summary>
-        public SQLBuilder useFailover(FailoverMode mode)
+        public StepBuilder useFailover(FailoverMode mode)
         {
             useRoute(r => r.FailoverOverride = mode);
             ApplyProactiveFailoverForBuilder();
-            return Self;
+            return this;
         }
 
         /// <summary>
         /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useTarget(int position) =>
+        public StepBuilder useTarget(int position) =>
             useRoute(r => r.TargetPosition = position);
 
         /// <summary>
         /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useTarget(DBInstance instance) =>
+        public StepBuilder useTarget(DBInstance instance) =>
             useRoute(r => r.TargetInstance = instance);
 
         /// <summary>
         /// useReadPolicy 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useReadPolicy(ReadRoutePolicy policy) =>
+        public StepBuilder useReadPolicy(ReadRoutePolicy policy) =>
             useRoute(r => r.ReadPolicyOverride = policy);
 
         /// <summary>
         /// useRoute 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder useRoute(Action<SQLRouteContext> configure)
+        public StepBuilder useRoute(Action<SQLRouteContext> configure)
         {
-            if (configure == null) return Self;
+            if (configure == null) return this;
             SQLRouteContext ctx;
             if (Executor != null)
                 ctx = Executor.RouteContext ?? (Executor.RouteContext = new SQLRouteContext());
             else
                 ctx = _pendingRouteContext ?? (_pendingRouteContext = new SQLRouteContext());
             configure(ctx);
-            return Self;
+            return this;
         }
 
         /// <summary>
         /// resetRoute 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder resetRoute()
+        public StepBuilder resetRoute()
         {
             _pendingRouteContext = null;
             if (Executor != null)
                 Executor.RouteContext = null;
-            return Self;
+            return this;
         }
 
         internal void CloneRouteFrom(StepBuilder source)

@@ -14,6 +14,6 @@ namespace mooSQL.data
             _frag = frag;
         }
 
-        public void Apply(StepBuilder builder) => builder.where(_frag);
+        public void Apply(SQLBuilder builder) => builder.Inner.where(_frag);
     }
 }

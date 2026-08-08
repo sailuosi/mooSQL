@@ -18,6 +18,6 @@ namespace mooSQL.data
             _onRight = onRight;
         }
 
-        public void Apply(StepBuilder builder) => builder.join(_targetTable, _onLeft, _onRight);
+        public void Apply(SQLBuilder builder) => builder.Inner.join(_targetTable, _onLeft, _onRight);
     }
 }

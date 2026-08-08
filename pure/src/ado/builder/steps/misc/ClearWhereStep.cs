@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         public static readonly ClearWhereStep Instance = new ClearWhereStep();
         private ClearWhereStep() { }
-        public void Apply(StepBuilder builder) => builder.clearWhere();
+        public void Apply(SQLBuilder builder) => builder.Inner.clearWhere();
     }
 }

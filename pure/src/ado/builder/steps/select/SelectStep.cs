@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         private readonly string _columns;
         public SelectStep(string columns) => _columns = columns;
-        public void Apply(StepBuilder builder) => builder.select(_columns);
+        public void Apply(SQLBuilder builder) => builder.Inner.select(_columns);
     }
 }

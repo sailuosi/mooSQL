@@ -14,6 +14,6 @@ namespace mooSQL.data
             _queryOther = queryOther;
         }
 
-        public void Apply(StepBuilder builder) => builder.selectSummary(_queryOther);
+        public void Apply(SQLBuilder builder) => builder.Inner.selectSummary(_queryOther);
     }
 }

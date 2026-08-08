@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly ToggleToUnionOutorStep Instance = new ToggleToUnionOutorStep();
         private ToggleToUnionOutorStep() { }
-        public void Apply(StepBuilder builder) => builder.toggleToUnionOutor();
+        public void Apply(SQLBuilder builder) => builder.Inner.toggleToUnionOutor();
     }
 }

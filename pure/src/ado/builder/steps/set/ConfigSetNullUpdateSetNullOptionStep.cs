@@ -14,6 +14,6 @@ namespace mooSQL.data
             _option = option;
         }
 
-        public void Apply(StepBuilder builder) => builder.configSetNull(_option);
+        public void Apply(SQLBuilder builder) => builder.Inner.configSetNull(_option);
     }
 }

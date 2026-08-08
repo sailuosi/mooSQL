@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         public static readonly DistinctStep Instance = new DistinctStep();
         private DistinctStep() { }
-        public void Apply(StepBuilder builder) => builder.distinct();
+        public void Apply(SQLBuilder builder) => builder.Inner.distinct();
     }
 }

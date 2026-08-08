@@ -16,6 +16,6 @@ namespace mooSQL.data
             _take = take;
         }
 
-        public void Apply(StepBuilder builder) => builder.skipTake(_skip, _take);
+        public void Apply(SQLBuilder builder) => builder.Inner.skipTake(_skip, _take);
     }
 }

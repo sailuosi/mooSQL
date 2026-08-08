@@ -16,6 +16,6 @@ namespace mooSQL.data
             _val = val;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereNotLikeLeft(_key, _val);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereNotLikeLeft(_key, _val);
     }
 }

@@ -14,6 +14,6 @@ namespace mooSQL.data
             _SQLString = SQLString;
         }
 
-        public void Apply(StepBuilder builder) => builder.unpivot(_SQLString);
+        public void Apply(SQLBuilder builder) => builder.Inner.unpivot(_SQLString);
     }
 }

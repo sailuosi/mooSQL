@@ -14,6 +14,6 @@ namespace mooSQL.data
             _asName = asName;
         }
 
-        public void Apply(StepBuilder builder) => builder.mergeAs(_asName);
+        public void Apply(SQLBuilder builder) => builder.Inner.mergeAs(_asName);
     }
 }

@@ -4,7 +4,7 @@ namespace mooSQL.data
 {
     internal static class ApartEmitter
     {
-        public static ApartBuildScript Emit(SQLBuilder source)
+        public static ApartBuildScript Emit(StepBuilder source)
         {
             var script = new ApartBuildScript();
             EmitCte(source, script);

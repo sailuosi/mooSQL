@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         public static readonly ClearSelectStep Instance = new ClearSelectStep();
         private ClearSelectStep() { }
-        public void Apply(StepBuilder builder) => builder.clearSelect();
+        public void Apply(SQLBuilder builder) => builder.Inner.clearSelect();
     }
 }

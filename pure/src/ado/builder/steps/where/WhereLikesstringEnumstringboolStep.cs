@@ -18,6 +18,6 @@ namespace mooSQL.data
             _isOr = isOr;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereLikes(_key, _vals, _isOr);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereLikes(_key, _vals, _isOr);
     }
 }

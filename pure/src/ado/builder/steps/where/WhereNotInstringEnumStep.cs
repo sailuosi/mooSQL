@@ -16,6 +16,6 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereNotIn(_key, _values);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereNotIn(_key, _values);
     }
 }

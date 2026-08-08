@@ -21,6 +21,11 @@ SKIP_METHODS = {
     ("where", ("string", "object")),
     ("where", ("string", "object", "string")),
     ("where", ("string", "object", "string", "bool")),
+    # A 类同实例 Action：门面编排期展开（见 SQLBuilder.defer.cs），不生成 ActStep
+    ("selectWith", ("Action<SQLBuilder>",)),
+    ("mergeUsing", ("string", "Action<SQLBuilder>")),
+    ("or", ("Action<SQLBuilder>",)),
+    ("and", ("Action<SQLBuilder>",)),
 }
 
 # Names that are meta/config/exec — do not generate construction steps
@@ -238,7 +243,7 @@ def write_step(meta):
     {{
         public static readonly {cls} Instance = new {cls}();
         private {cls}() {{ }}
-        public void Apply(StepBuilder builder) => builder.{name}();
+        public void Apply(SQLBuilder builder) => builder.Inner.{name}();
     }}
 }}
 '''
@@ -256,7 +261,7 @@ def write_step(meta):
 {chr(10).join(ctor_assign)}
         }}
 
-        public void Apply(StepBuilder builder) => builder.{name}{gen_decl}({apply_args});
+        public void Apply(SQLBuilder builder) => builder.Inner.{name}{gen_decl}({apply_args});
     }}
 }}
 '''
@@ -436,7 +441,7 @@ def write_step_named(meta, cls):
     {{
         public static readonly {cls} Instance = new {cls}();
         private {cls}() {{ }}
-        public void Apply(StepBuilder builder) => builder.{name}();
+        public void Apply(SQLBuilder builder) => builder.Inner.{name}();
     }}
 }}
 '''
@@ -453,7 +458,7 @@ def write_step_named(meta, cls):
 {chr(10).join(ctor_assign)}
         }}
 
-        public void Apply(StepBuilder builder) => builder.{name}{gen_decl}({apply_args});
+        public void Apply(SQLBuilder builder) => builder.Inner.{name}{gen_decl}({apply_args});
     }}
 }}
 '''

@@ -18,6 +18,6 @@ namespace mooSQL.data
             _op = op;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereAllFieid(_fields, _value, _op);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereAllFieid(_fields, _value, _op);
     }
 }

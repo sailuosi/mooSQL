@@ -16,6 +16,6 @@ namespace mooSQL.data
             _tabname = tabname;
         }
 
-        public void Apply(StepBuilder builder) => builder.mergeUsing(_asName, _tabname);
+        public void Apply(SQLBuilder builder) => builder.Inner.mergeUsing(_asName, _tabname);
     }
 }

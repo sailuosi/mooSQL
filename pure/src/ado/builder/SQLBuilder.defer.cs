@@ -37,7 +37,7 @@ namespace mooSQL.data
             }
             else
             {
-                // Apply 参数为 StepBuilder → 走基类，不重入门面
+                // Apply(SQLBuilder) → 写 Inner，不重入入队
                 step.Apply(this);
                 _dirty = false;
             }
@@ -46,62 +46,115 @@ namespace mooSQL.data
 
         // ---- 手写核心构造 API（与生成器 SKIP 对齐）----
 
-        public new SQLBuilder select(string columns) => Enqueue(new SelectStep(columns));
+        public SQLBuilder select(string columns) => Enqueue(new SelectStep(columns));
 
-        public new SQLBuilder from(string fromPart) => Enqueue(new FromStep(fromPart));
+        public SQLBuilder from(string fromPart) => Enqueue(new FromStep(fromPart));
 
-        public new SQLBuilder distinct() => Enqueue(DistinctStep.Instance);
+        public SQLBuilder distinct() => Enqueue(DistinctStep.Instance);
 
-        public new SQLBuilder orderBy(string orderByPart) => Enqueue(new OrderByStep(orderByPart));
+        public SQLBuilder orderBy(string orderByPart) => Enqueue(new OrderByStep(orderByPart));
 
-        public new SQLBuilder setPage(int? size, int? num) => Enqueue(new SetPageStep(size, num));
+        public SQLBuilder setPage(int? size, int? num) => Enqueue(new SetPageStep(size, num));
 
-        public new SQLBuilder where(string key) => Enqueue(new WhereRawStep(key));
+        public SQLBuilder where(string key) => Enqueue(new WhereRawStep(key));
 
-        public new SQLBuilder where(string key, object val) => Enqueue(new WhereKeyValStep(key, val));
+        public SQLBuilder where(string key, object val) => Enqueue(new WhereKeyValStep(key, val));
 
-        public new SQLBuilder where(string key, object val, string op) =>
+        public SQLBuilder where(string key, object val, string op) =>
             Enqueue(new WhereKeyValOpParamedStep(key, val, op, true));
 
-        public new SQLBuilder where(string key, object val, string op, bool paramed) =>
+        public SQLBuilder where(string key, object val, string op, bool paramed) =>
             Enqueue(new WhereKeyValOpParamedStep(key, val, op, paramed));
 
-        public new SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
+        public SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
 
-        public new SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);
+        public SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);
 
-        public new SQLBuilder clearPage() => Enqueue(ClearPageStep.Instance);
+        public SQLBuilder clearPage() => Enqueue(ClearPageStep.Instance);
+
+        public SQLBuilder whereBetween<T>(string key, T minValue, T maxValue) =>
+            Enqueue(new WhereBetweenStep<T>(key, minValue, maxValue));
+
+        public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue) =>
+            Enqueue(new WhereNotBetweenStep<T>(key, minValue, maxValue));
+
+        // ---- A 类同实例 Action：编排期展开，委托内 API 继续入队到 this ----
+
+        /// <summary>
+        /// 清空 select 后，在当前门面上执行委托（非子查询）。
+        /// 例：<c>from(a).selectWith(s =&gt; s.from(b))</c> → from a,b。
+        /// </summary>
+        public SQLBuilder selectWith(Action<SQLBuilder> queryOther)
+        {
+            if (queryOther == null)
+                throw new ArgumentNullException(nameof(queryOther));
+            clearSelect();
+            queryOther(this);
+            return this;
+        }
+
+        /// <summary>mergeAs 后在当前门面上编织 using 源查询。</summary>
+        public SQLBuilder mergeUsing(string asName, Action<SQLBuilder> buildSelect)
+        {
+            if (buildSelect == null)
+                throw new ArgumentNullException(nameof(buildSelect));
+            mergeAs(asName);
+            buildSelect(this);
+            return this;
+        }
+
+        /// <summary>orLeft → 委托 → orRight，均入队到当前门面。</summary>
+        public SQLBuilder or(Action<SQLBuilder> doSomeWhere)
+        {
+            if (doSomeWhere == null)
+                throw new ArgumentNullException(nameof(doSomeWhere));
+            orLeft();
+            doSomeWhere(this);
+            orRight();
+            return this;
+        }
+
+        /// <summary>andLeft → 委托 → andRight，均入队到当前门面。</summary>
+        public SQLBuilder and(Action<SQLBuilder> doSomeWhere)
+        {
+            if (doSomeWhere == null)
+                throw new ArgumentNullException(nameof(doSomeWhere));
+            andLeft();
+            doSomeWhere(this);
+            andRight();
+            return this;
+        }
 
         // ---- 基础 toXxx（其余见 defer.exec）----
 
-        public new SQLCmd toSelect()
+        public SQLCmd toSelect()
         {
             EnsureMaterialized();
-            return base.toSelect();
+            return _inner.toSelect();
         }
 
-        public new SQLCmd toSelectCount()
+        public SQLCmd toSelectCount()
         {
             EnsureMaterialized();
-            return base.toSelectCount();
+            return _inner.toSelectCount();
         }
 
-        public new SQLCmd toInsert()
+        public SQLCmd toInsert()
         {
             EnsureMaterialized();
-            return base.toInsert();
+            return _inner.toInsert();
         }
 
-        public new SQLCmd toUpdate()
+        public SQLCmd toUpdate()
         {
             EnsureMaterialized();
-            return base.toUpdate();
+            return _inner.toUpdate();
         }
 
-        public new SQLCmd toDelete()
+        public SQLCmd toDelete()
         {
             EnsureMaterialized();
-            return base.toDelete();
+            return _inner.toDelete();
         }
     }
 }

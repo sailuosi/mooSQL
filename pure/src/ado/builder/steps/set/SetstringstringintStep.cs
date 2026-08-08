@@ -18,6 +18,6 @@ namespace mooSQL.data
             _maxLength = maxLength;
         }
 
-        public void Apply(StepBuilder builder) => builder.set(_key, _value, _maxLength);
+        public void Apply(SQLBuilder builder) => builder.Inner.set(_key, _value, _maxLength);
     }
 }

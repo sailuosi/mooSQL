@@ -16,6 +16,6 @@ namespace mooSQL.data
             _paras = paras;
         }
 
-        public void Apply(StepBuilder builder) => builder.selectFormat(_selectSQLPart, _paras);
+        public void Apply(SQLBuilder builder) => builder.Inner.selectFormat(_selectSQLPart, _paras);
     }
 }

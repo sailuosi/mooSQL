@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.join(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class JoinstringstringActStep : IStep
     {
         private readonly string _joinKey;
@@ -18,6 +16,6 @@ namespace mooSQL.data
             _childFromPart = childFromPart;
         }
 
-        public void Apply(StepBuilder builder) => builder.join(_joinKey, _joinSQLString, _childFromPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.join(_joinKey, _joinSQLString, _childFromPart);
     }
 }

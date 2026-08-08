@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.whereNotExist(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class WhereNotExistActStep : IStep
     {
         private readonly Action<SQLBuilder> _doselect;
@@ -14,6 +12,6 @@ namespace mooSQL.data
             _doselect = doselect;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereNotExist(_doselect);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereNotExist(_doselect);
     }
 }

@@ -16,6 +16,6 @@ namespace mooSQL.data
             _val = val;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereLikes(_keys, _val);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereLikes(_keys, _val);
     }
 }

@@ -14,6 +14,6 @@ namespace mooSQL.data
             _onPart = onPart;
         }
 
-        public void Apply(StepBuilder builder) => builder.mergeOn(_onPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.mergeOn(_onPart);
     }
 }

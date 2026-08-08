@@ -14,6 +14,6 @@ namespace mooSQL.data
             _numFieldName = numFieldName;
         }
 
-        public void Apply(StepBuilder builder) => builder.rowNumberUse(_numFieldName);
+        public void Apply(SQLBuilder builder) => builder.Inner.rowNumberUse(_numFieldName);
     }
 }

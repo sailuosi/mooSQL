@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.or(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class OrActStep : IStep
     {
         private readonly Action<SQLBuilder> _doSomeWhere;
@@ -14,6 +12,6 @@ namespace mooSQL.data
             _doSomeWhere = doSomeWhere;
         }
 
-        public void Apply(StepBuilder builder) => builder.or(_doSomeWhere);
+        public void Apply(SQLBuilder builder) => builder.Inner.or(_doSomeWhere);
     }
 }

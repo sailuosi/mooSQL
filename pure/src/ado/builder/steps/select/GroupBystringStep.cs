@@ -14,6 +14,6 @@ namespace mooSQL.data
             _groupField = groupField;
         }
 
-        public void Apply(StepBuilder builder) => builder.groupBy(_groupField);
+        public void Apply(SQLBuilder builder) => builder.Inner.groupBy(_groupField);
     }
 }

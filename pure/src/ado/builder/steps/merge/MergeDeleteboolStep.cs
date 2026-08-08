@@ -14,6 +14,6 @@ namespace mooSQL.data
             _thenDelete = thenDelete;
         }
 
-        public void Apply(StepBuilder builder) => builder.mergeDelete(_thenDelete);
+        public void Apply(SQLBuilder builder) => builder.Inner.mergeDelete(_thenDelete);
     }
 }

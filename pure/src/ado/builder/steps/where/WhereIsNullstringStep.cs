@@ -14,6 +14,6 @@ namespace mooSQL.data
             _key = key;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereIsNull(_key);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereIsNull(_key);
     }
 }

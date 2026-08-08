@@ -14,6 +14,6 @@ namespace mooSQL.data
             _havingStr = havingStr;
         }
 
-        public void Apply(StepBuilder builder) => builder.having(_havingStr);
+        public void Apply(SQLBuilder builder) => builder.Inner.having(_havingStr);
     }
 }

@@ -14,6 +14,6 @@ namespace mooSQL.data
             _orderPart = orderPart;
         }
 
-        public void Apply(StepBuilder builder) => builder.rowNumber(_orderPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.rowNumber(_orderPart);
     }
 }

@@ -26,7 +26,7 @@ namespace mooSQL.data
         /// <summary>
         /// 根
         /// </summary>
-        public SQLBuilder root;
+        public StepBuilder root;
         /// <summary>
         /// 父盒子
         /// </summary>

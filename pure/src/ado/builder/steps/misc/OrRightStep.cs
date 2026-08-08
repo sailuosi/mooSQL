@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly OrRightStep Instance = new OrRightStep();
         private OrRightStep() { }
-        public void Apply(StepBuilder builder) => builder.orRight();
+        public void Apply(SQLBuilder builder) => builder.Inner.orRight();
     }
 }

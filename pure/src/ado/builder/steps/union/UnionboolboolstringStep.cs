@@ -18,6 +18,6 @@ namespace mooSQL.data
             _wrapAsName = wrapAsName;
         }
 
-        public void Apply(StepBuilder builder) => builder.union(_isUnionAll, _wrapSelect, _wrapAsName);
+        public void Apply(SQLBuilder builder) => builder.Inner.union(_isUnionAll, _wrapSelect, _wrapAsName);
     }
 }

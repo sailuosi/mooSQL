@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         private readonly string _fromPart;
         public FromStep(string fromPart) => _fromPart = fromPart;
-        public void Apply(StepBuilder builder) => builder.from(_fromPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.from(_fromPart);
     }
 }

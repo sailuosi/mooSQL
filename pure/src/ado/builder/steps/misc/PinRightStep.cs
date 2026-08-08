@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly PinRightStep Instance = new PinRightStep();
         private PinRightStep() { }
-        public void Apply(StepBuilder builder) => builder.pinRight();
+        public void Apply(SQLBuilder builder) => builder.Inner.pinRight();
     }
 }

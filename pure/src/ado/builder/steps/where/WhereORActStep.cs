@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.whereOR(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class WhereORActStep : IStep
     {
         private readonly Action<SQLBuilder> _whereBuilder;
@@ -14,6 +12,6 @@ namespace mooSQL.data
             _whereBuilder = whereBuilder;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereOR(_whereBuilder);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereOR(_whereBuilder);
     }
 }

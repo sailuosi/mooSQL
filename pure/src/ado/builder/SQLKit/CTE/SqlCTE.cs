@@ -65,7 +65,7 @@ namespace mooSQL.data
         /// <summary>
         /// 字段 builder（StepBuilder）。
         /// </summary>
-        public SQLBuilder builder;
+        public StepBuilder builder;
 
         /// <summary>
         /// 字段 type（SqlCTEType）。

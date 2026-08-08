@@ -14,6 +14,6 @@ namespace mooSQL.data
             _orderByPart = orderByPart;
         }
 
-        public void Apply(StepBuilder builder) => builder.orderby(_orderByPart);
+        public void Apply(SQLBuilder builder) => builder.Inner.orderby(_orderByPart);
     }
 }

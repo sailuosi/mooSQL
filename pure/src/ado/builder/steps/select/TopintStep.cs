@@ -14,6 +14,6 @@ namespace mooSQL.data
             _num = num;
         }
 
-        public void Apply(StepBuilder builder) => builder.top(_num);
+        public void Apply(SQLBuilder builder) => builder.Inner.top(_num);
     }
 }

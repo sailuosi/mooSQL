@@ -14,6 +14,6 @@ namespace mooSQL.data
             _SQLString = SQLString;
         }
 
-        public void Apply(StepBuilder builder) => builder.prefix(_SQLString);
+        public void Apply(SQLBuilder builder) => builder.Inner.prefix(_SQLString);
     }
 }

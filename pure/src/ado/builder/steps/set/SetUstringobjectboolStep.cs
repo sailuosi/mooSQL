@@ -18,6 +18,6 @@ namespace mooSQL.data
             _paramed = paramed;
         }
 
-        public void Apply(StepBuilder builder) => builder.setU(_key, _val, _paramed);
+        public void Apply(SQLBuilder builder) => builder.Inner.setU(_key, _val, _paramed);
     }
 }

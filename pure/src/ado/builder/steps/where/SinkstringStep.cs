@@ -14,6 +14,6 @@ namespace mooSQL.data
             _connector = connector;
         }
 
-        public void Apply(StepBuilder builder) => builder.sink(_connector);
+        public void Apply(SQLBuilder builder) => builder.Inner.sink(_connector);
     }
 }

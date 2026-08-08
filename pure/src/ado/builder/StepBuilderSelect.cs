@@ -19,10 +19,14 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SQLBuilder withSelect(string name, Action<SQLBuilder> doselect) {
+        public StepBuilder withSelect(string name, Action<SQLBuilder> doselect) {
 
             var kit = this.getBrotherBuilder();
-            doselect(kit);
+            {
+                var __facade = SQLBuilder.Attach(kit);
+                doselect(__facade);
+                __facade.EnsureMaterialized();
+            }
 
             var item = new SqlCTEItem();
             item.builder = kit;
@@ -30,7 +34,7 @@ namespace mooSQL.data
             item.asName = name;
 
             CTECollection.add(item);
-            return Self;
+            return this;
         }
 
 
@@ -41,7 +45,7 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="selectBuilder"></param>
         /// <returns></returns>
-        public SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
+        public StepBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
         {
             this.withSelect(name, selectBuilder);
             //var kit = this.getBrotherBuilder();
@@ -50,7 +54,7 @@ namespace mooSQL.data
             //var sql = kit.toSelect();
             //var withSQL = string.Format("with {0} as ({1})", name, sql.sql);
             //current.prefix(withSQL);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -60,22 +64,22 @@ namespace mooSQL.data
         {
             var rec = new RecurCTEBuilder();
             rec.setWithAsName(name);
-            rec.useBuilder(Self);
+            rec.useBuilder(this);
             return rec;
         }
 
         /// <summary>
         /// withRecur 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
+        public StepBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
         {
 
             var rec = new RecurCTEBuilder();
             rec.setWithAsName(name);
-            rec.useBuilder(Self);
+            rec.useBuilder(this);
             buildRecur(rec);
             rec.apply();
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="selectSQL"></param>
         /// <returns></returns>
-        public SQLBuilder withSelect(string name, string selectSQL)
+        public StepBuilder withSelect(string name, string selectSQL)
         {
 
             var item = new SqlCTEItem();
@@ -93,7 +97,7 @@ namespace mooSQL.data
             item.asName = name;
 
             CTECollection.add(item);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -102,10 +106,10 @@ namespace mooSQL.data
         /// <param name="columns"></param>
         /// <returns></returns>
 
-        public SQLBuilder select(string columns)
+        public StepBuilder select(string columns)
         {
             current.select(columns);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 当select语句需要参数化时使用此方法，参数使用 string.Format的格式传入，即{0}...{1}...{2}...
@@ -113,11 +117,11 @@ namespace mooSQL.data
         /// <param name="selectSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public SQLBuilder selectFormat(string selectSQLPart, params object[] paras)
+        public StepBuilder selectFormat(string selectSQLPart, params object[] paras)
         {
             var fromPart = ps.formatSQL(selectSQLPart, paras);
             select(fromPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// SQL语句列定义
@@ -125,14 +129,18 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="doColSelect"></param>
         /// <returns></returns>
-        public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect)
+        public StepBuilder select(string asName, Action<SQLBuilder> doColSelect)
         {
             var ckit = this.getBrotherBuilder();
-            doColSelect(ckit);
+            {
+                var __facade = SQLBuilder.Attach(ckit);
+                doColSelect(__facade);
+                __facade.EnsureMaterialized();
+            }
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, asName);
             current.select(fromPart);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -140,27 +148,27 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="columns"></param>
         /// <returns></returns>
-        public SQLBuilder selectUnioned(string columns)
+        public StepBuilder selectUnioned(string columns)
         {
             unionHolder.unitedWraper.select(columns);
-            return Self;
+            return this;
         }
 
         /// <summary>
         /// 默认不唯一，调用则设置为distinct。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder distinct()
+        public StepBuilder distinct()
         {
             current.distinct();
-            return Self;
+            return this;
         }
         /// <summary>
         /// 选取前几条记录，自动根据数据库使用top或limit 
         /// </summary>
         /// <param name="num"></param>
         /// <returns></returns>
-        public SQLBuilder top(int num)
+        public StepBuilder top(int num)
         {
             return skipTake(0, num);
         }
@@ -168,35 +176,35 @@ namespace mooSQL.data
         /// <summary>
         /// 设置 skip/take 分页（与 LINQ Skip/Take 同构；take=-1 表示仅跳过不限制行数）
         /// </summary>
-        public SQLBuilder skipTake(int skip, int take)
+        public StepBuilder skipTake(int skip, int take)
         {
             if (unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.skipTake(skip, take);
-                return Self;
+                return this;
             }
             current.skipTake(skip, take);
-            return Self;
+            return this;
         }
-        public SQLBuilder skip(int skip)
+        public StepBuilder skip(int skip)
         {
             if (unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.skip(skip);
-                return Self;
+                return this;
             }
             current.skip(skip);
-            return Self;
+            return this;
         }
-        public SQLBuilder take(int skip)
+        public StepBuilder take(int skip)
         {
             if (unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.take(skip);
-                return Self;
+                return this;
             }
             current.take(skip);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -205,10 +213,10 @@ namespace mooSQL.data
         /// <param name="fromPart"></param>
         /// <returns></returns>
 
-        public SQLBuilder from(string fromPart)
+        public StepBuilder from(string fromPart)
         {
             current.from(fromPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 当需要在from部分中含有参数时使用此方法，参数使用 string.Format的格式传入，即{0}...{1}...{2}...
@@ -216,21 +224,21 @@ namespace mooSQL.data
         /// <param name="fromSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public SQLBuilder fromFormat(string fromSQLPart, params object[] paras)
+        public StepBuilder fromFormat(string fromSQLPart, params object[] paras)
         {
             var fromPart = ps.formatSQL(fromSQLPart, paras);
             from(fromPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 注意！不会自动添加left join这样的前缀字符，请写全 join语句，包含 on 部分。
         /// </summary>
         /// <param name="joinSQLString"></param>
         /// <returns></returns>
-        public SQLBuilder join(string joinSQLString)
+        public StepBuilder join(string joinSQLString)
         {
             current.fromAppend(joinSQLString);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 三段式join写法，更符合大多数人的习惯，自动帮你把 on xxx=xxx 的部分拼接好。注意：onLeft 和 onRight 需要写全表名或别名，如 t1.id, t2.id等。否则可能会出现歧义错误。
@@ -239,11 +247,11 @@ namespace mooSQL.data
         /// <param name="onLeft"></param>
         /// <param name="onRight"></param>
         /// <returns></returns>
-        public SQLBuilder join(string targetTable,string onLeft ,string onRight)
+        public StepBuilder join(string targetTable,string onLeft ,string onRight)
         {
             var joinSQLString = string.Format(" {0} on {1}={2} ", targetTable, onLeft, onRight);
             current.fromAppend(joinSQLString);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 当join语句需要参数化时使用此方法。
@@ -251,11 +259,11 @@ namespace mooSQL.data
         /// <param name="JoinSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public SQLBuilder joinFormat(string JoinSQLPart,params object[] paras)
+        public StepBuilder joinFormat(string JoinSQLPart,params object[] paras)
         {
             var fromPart = ps.formatSQL(JoinSQLPart, paras);
             join(fromPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 注意！不会自动添加left join这样的前缀字符，请写全 join语句，包含 on 部分。
@@ -263,14 +271,18 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart">(select的查询语句) as {childFromPart}</param>
         /// <returns></returns>
-        public SQLBuilder join(string joinKey,string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder join(string joinKey,string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
-            childFromPart(ckit);
+            {
+                var __facade = SQLBuilder.Attach(ckit);
+                childFromPart(__facade);
+                __facade.EnsureMaterialized();
+            }
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format(" {0} ({1}) as {2} ",joinKey ,selectSQL.sql, joinSQLString);
             current.fromAppend(fromPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 左连接
@@ -278,14 +290,14 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public SQLBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("LEFT JOIN", joinSQLString, childFromPart);
         }
         /// <summary>
         /// leftJoin 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder leftJoin(string joinSQLString)
+        public StepBuilder leftJoin(string joinSQLString)
         {
             return this.join("LEFT JOIN "+ joinSQLString);
         }
@@ -295,14 +307,14 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("INNER JOIN", joinSQLString, childFromPart);
         }
         /// <summary>
         /// innerJoin 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder innerJoin(string joinSQLString)
+        public StepBuilder innerJoin(string joinSQLString)
         {
             return this.join("INNER JOIN "+ joinSQLString);
         }
@@ -312,7 +324,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("RIGHT JOIN", joinSQLString, childFromPart);
         }
@@ -322,14 +334,18 @@ namespace mooSQL.data
         /// <param name="childFromPart"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public SQLBuilder from(string asName, Action<SQLBuilder> childFromPart)
+        public StepBuilder from(string asName, Action<SQLBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
-            childFromPart(ckit);
+            {
+                var __facade = SQLBuilder.Attach(ckit);
+                childFromPart(__facade);
+                __facade.EnsureMaterialized();
+            }
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, asName);
             current.from(fromPart);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -337,20 +353,20 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public SQLBuilder pivot(PivotItem SQLString)
+        public StepBuilder pivot(PivotItem SQLString)
         {
             current.pivot(SQLString);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 配置列转行的转置部分
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public SQLBuilder unpivot(UnpivotItem SQLString)
+        public StepBuilder unpivot(UnpivotItem SQLString)
         {
             current.unpivot(SQLString);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 配置行转列的 SQL部分 ，注意：Mysql下慎用
@@ -360,10 +376,10 @@ namespace mooSQL.data
         /// <param name="values"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public SQLBuilder pivot(string aggregation, string field, List<string> values, string asName)
+        public StepBuilder pivot(string aggregation, string field, List<string> values, string asName)
         {
             current.pivot(new PivotItem(aggregation, field, values, asName));
-            return Self;
+            return this;
         }
         /// <summary>
         /// 配置列转行的转置部分
@@ -373,10 +389,10 @@ namespace mooSQL.data
         /// <param name="fields"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public SQLBuilder unpivot(string valueName, string fieldName, List<string> fields, string asName)
+        public StepBuilder unpivot(string valueName, string fieldName, List<string> fields, string asName)
         {
             current.unpivot(new UnpivotItem(valueName, fieldName, fields, asName));
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -384,20 +400,20 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="groupField"></param>
         /// <returns></returns>
-        public SQLBuilder groupBy(string groupField)
+        public StepBuilder groupBy(string groupField)
         {
             current.groupBy(groupField);
-            return Self;
+            return this;
         }
         /// <summary>
         /// having 跟随的内容，当设置了groupby 才会生效
         /// </summary>
         /// <param name="havingStr"></param>
         /// <returns></returns>
-        public SQLBuilder having(string havingStr)
+        public StepBuilder having(string havingStr)
         {
             current.having(havingStr);
-            return Self;
+            return this;
         }
 
 
@@ -407,9 +423,9 @@ namespace mooSQL.data
         /// <param name="wrapSelect"></param>
         /// <param name="wrapAsName"></param>
         /// <returns></returns>
-        public SQLBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned") {
+        public StepBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned") {
             this.union(true, wrapSelect, wrapAsName);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -418,32 +434,32 @@ namespace mooSQL.data
         /// <param name="isUnionAll"></param>
         /// <param name="wrapSelect"></param>
         /// <returns></returns>
-        public SQLBuilder union( bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
+        public StepBuilder union( bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
         {
-            unionHolder.union(Self, isUnionAll, wrapSelect, wrapAsName);
-            return Self;
+            unionHolder.union(this, isUnionAll, wrapSelect, wrapAsName);
+            return this;
         }
         /// <summary>
         /// 对unsion的执行器进行配置
         /// </summary>
         /// <param name="dogroup"></param>
         /// <returns></returns>
-        public SQLBuilder unionAs(Action<SqlGoup> dogroup)
+        public StepBuilder unionAs(Action<SqlGoup> dogroup)
         {
             //this._unionAll = isUnionAll;
             //this._unionWrap = wrapSelect;
             dogroup(this.unionHolder.unitedWraper);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 将当前的语句配置焦点移动到 union 的包裹层SQL分组
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder toggleToUnionOutor()
+        public StepBuilder toggleToUnionOutor()
         {
             if (this.unionHolder.Count == 0)
             {
-                return Self;
+                return this;
             }
             //if (!this.unionHolder.Contains(current) && this.current != this.unitedExecutor)
             //{
@@ -451,7 +467,7 @@ namespace mooSQL.data
             //}
 
             this.current = this.unionHolder.unitedWraper;
-            return Self;
+            return this;
         }
 
 
@@ -460,15 +476,18 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="doUnion"></param>
         /// <returns></returns>
-        public SQLBuilder union(Action<SQLBuilder> doUnion)
+        public StepBuilder union(Action<SQLBuilder> doUnion)
         {
             //当开始时，把当前的放入到union列表。并创建一个新的
             var cur = current;
 
             union();
-            doUnion(Self);
+            {
+                var __facade = SQLBuilder.Attach(this, materializing: true);
+                doUnion(__facade);
+            }
             current = cur;
-            return Self;
+            return this;
         }
 
 
@@ -478,16 +497,16 @@ namespace mooSQL.data
         /// <param name="orderByPart"></param>
         /// <returns></returns>
 
-        public SQLBuilder orderBy(string orderByPart)
+        public StepBuilder orderBy(string orderByPart)
         {
             if (this.unionHolder.Count>0 )
             {
                 unionHolder.orderby(orderByPart);
                 //联合模式下，只有最后的SQL执行排序。
-                return Self;
+                return this;
             }
             current.orderby(orderByPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置排序部分，规范化后废弃，请使用 orderBy 方法代替
@@ -495,7 +514,7 @@ namespace mooSQL.data
         /// <param name="orderByPart"></param>
         /// <returns></returns>
         [Obsolete("规范化后废弃，请使用 orderBy 方法代替")]
-        public SQLBuilder orderby(string orderByPart) { 
+        public StepBuilder orderby(string orderByPart) { 
             return orderBy(orderByPart);
         }
 
@@ -504,35 +523,35 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLBuilder rowNumber()
+        public StepBuilder rowNumber()
         {
             current.rowNumber();
-            return Self;
+            return this;
         }
         /// <summary>
         /// 使用一个自行定义的好的序号字段作为翻页依据
         /// </summary>
         /// <param name="numFieldName"></param>
         /// <returns></returns>
-        public SQLBuilder rowNumberUse(string numFieldName)
+        public StepBuilder rowNumberUse(string numFieldName)
         {
             current.rowNumberUse(numFieldName);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 行号开窗函数
         /// </summary>
         /// <param name="orderPart"></param>
         /// <returns></returns>
-        public SQLBuilder rowNumber(string orderPart)
+        public StepBuilder rowNumber(string orderPart)
         {
             if (this.unionHolder.Count>1)
             {
                 unionHolder.unitedWraper.rowNumber(orderPart);
-                return Self;
+                return this;
             }
             current.rowNumber(orderPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 行号开窗函数
@@ -540,16 +559,16 @@ namespace mooSQL.data
         /// <param name="orderPart"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public SQLBuilder rowNumber(string orderPart, string asName)
+        public StepBuilder rowNumber(string orderPart, string asName)
         {
 
             if (this.unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.rowNumber(asName, orderPart);
-                return Self;
+                return this;
             }
             current.rowNumber(asName, orderPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置翻页的参数
@@ -557,19 +576,19 @@ namespace mooSQL.data
         /// <param name="size"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        public SQLBuilder setPage(int? size, int? num)
+        public StepBuilder setPage(int? size, int? num)
         {
             if (size == null && num == null) { 
-                return Self;
+                return this;
             }
             //有页码、没有页面大小，也忽略
             if (size == null && num != null) {
-                return Self;
+                return this;
             }
             //当外界参数为int时，会出现默认0的问题，为兼容之前行为，此时应该忽略
             if (size == 0 && num == 0)
             {
-                return Self;
+                return this;
             }
             if (num == null) {
                 return this.take(num.Value);
@@ -577,11 +596,11 @@ namespace mooSQL.data
             if (unionHolder.Count > 1)
             {
                 unionHolder.unitedWraper.setPage(size.Value, num.Value);
-                return Self;
+                return this;
             }
             current.pageNum = num.Value;
             current.skipTake(size.Value * (num.Value - 1), size.Value);
-            return Self;
+            return this;
         }
     }
 }

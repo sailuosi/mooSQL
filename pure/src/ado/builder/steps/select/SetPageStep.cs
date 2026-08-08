@@ -10,6 +10,6 @@ namespace mooSQL.data
             _size = size;
             _num = num;
         }
-        public void Apply(StepBuilder builder) => builder.setPage(_size, _num);
+        public void Apply(SQLBuilder builder) => builder.Inner.setPage(_size, _num);
     }
 }

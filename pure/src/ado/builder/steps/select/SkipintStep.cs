@@ -14,6 +14,6 @@ namespace mooSQL.data
             _skip = skip;
         }
 
-        public void Apply(StepBuilder builder) => builder.skip(_skip);
+        public void Apply(SQLBuilder builder) => builder.Inner.skip(_skip);
     }
 }

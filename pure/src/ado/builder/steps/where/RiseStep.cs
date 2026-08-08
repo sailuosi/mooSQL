@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly RiseStep Instance = new RiseStep();
         private RiseStep() { }
-        public void Apply(StepBuilder builder) => builder.rise();
+        public void Apply(SQLBuilder builder) => builder.Inner.rise();
     }
 }

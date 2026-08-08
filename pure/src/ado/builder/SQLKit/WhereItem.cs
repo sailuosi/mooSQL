@@ -16,7 +16,7 @@ namespace mooSQL.data
         /// 字段 ps（Paras）。
         /// </summary>
         public Paras ps;
-        private SQLBuilder root;
+        private StepBuilder root;
 
         private StringBuilder sqlbase = new StringBuilder();
         /// <summary>
@@ -27,7 +27,7 @@ namespace mooSQL.data
         /// <summary>
         /// 初始化 WhereItem（构造）。
         /// </summary>
-        public WhereItem(SQLBuilder roo)
+        public WhereItem(StepBuilder roo)
         {
             this.ps = roo.ps;
             this.root = roo;
@@ -167,7 +167,7 @@ namespace mooSQL.data
         /// <summary>
         /// end 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder end()
+        public StepBuilder end()
         {
             string tar = sqlbase.ToString();
             if (this.autoKuohao)

@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly NewRowStep Instance = new NewRowStep();
         private NewRowStep() { }
-        public void Apply(StepBuilder builder) => builder.newRow();
+        public void Apply(SQLBuilder builder) => builder.Inner.newRow();
     }
 }

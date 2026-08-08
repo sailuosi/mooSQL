@@ -16,6 +16,6 @@ namespace mooSQL.data
             _key = key;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereIf(_isTrue, _key);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereIf(_isTrue, _key);
     }
 }

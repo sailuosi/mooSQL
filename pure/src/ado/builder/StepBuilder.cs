@@ -18,10 +18,7 @@ namespace mooSQL.data
     /// </summary>
     public partial class StepBuilder:IDisposable
     {
-        /// <summary>门面视图；运行时应始终为 <see cref="SQLBuilder"/> 实例。</summary>
-        protected internal SQLBuilder Self => (SQLBuilder)this;
-
-        /*****注入成员**/
+/*****注入成员**/
         
        /// <summary>
        /// 释放资源，由于集成了事务功能，当使用事务时，需要释放资源。
@@ -112,27 +109,27 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="way"></param>
         /// <returns></returns>
-        public SQLBuilder configClear(CleanWay way) { 
+        public StepBuilder configClear(CleanWay way) { 
             this._AutoClearWay = way;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 注册信令
         /// </summary>
         /// <param name="signalName"></param>
         /// <returns></returns>
-        public SQLBuilder useSignal(string signalName) {
+        public StepBuilder useSignal(string signalName) {
             this.Signal = signalName;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 置空信令
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder resetSignal()
+        public StepBuilder resetSignal()
         {
             this.Signal = string.Empty;
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -140,10 +137,10 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        public SQLBuilder setPosition(int position)
+        public StepBuilder setPosition(int position)
         {
             this.position = position;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 当前的set配置下的字段数
@@ -182,21 +179,21 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="onPrint"></param>
         /// <returns></returns>
-        public SQLBuilder print(Action<string> onPrint)
+        public StepBuilder print(Action<string> onPrint)
         {
             this._printSQL = true;
             this.onSQLPrint = onPrint;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置缓存实例
         /// </summary>
         /// <param name="cacher"></param>
         /// <returns></returns>
-        public SQLBuilder setCacheHolder(ISooCache cacher)
+        public StepBuilder setCacheHolder(ISooCache cacher)
         {
             this.cache = cacher;
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -204,11 +201,11 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public SQLBuilder setDBInstance(DBInstance db)
+        public StepBuilder setDBInstance(DBInstance db)
         {
             this.DBLive = db;
             this.expression = db.expression;
-            return Self;
+            return this;
         }
 
         /** 功能成员 **/
@@ -328,21 +325,21 @@ namespace mooSQL.data
         /// 开启事务，此后的所有的操作在commit前都会在一个事务中
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder beginTransaction() { 
+        public StepBuilder beginTransaction() { 
             SyncPendingRouteContext();
             var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
             this.Executor= new  DBExecutor(this.DBLive);
             Executor.RouteContext = prevCtx;
             _pendingRouteContext = null;
             Executor.beginTransaction();
-            return Self;
+            return this;
         }
         /// <summary>
         /// 启动事务，同时指定隔离级别
         /// </summary>
         /// <param name="lv"></param>
         /// <returns></returns>
-        public SQLBuilder beginTransaction(IsolationLevel lv)
+        public StepBuilder beginTransaction(IsolationLevel lv)
         {
             SyncPendingRouteContext();
             var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
@@ -351,20 +348,20 @@ namespace mooSQL.data
             _pendingRouteContext = null;
             Executor.useIsolationLevel(lv);
             Executor.beginTransaction();
-            return Self;
+            return this;
         }
         /// <summary>
         /// 使用一个已开启的事务执行器，此后的所有操作都在同一个事务中。
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public SQLBuilder useTransaction(DBExecutor executor)
+        public StepBuilder useTransaction(DBExecutor executor)
         {
             if (_pendingRouteContext != null && executor != null && executor.RouteContext == null)
                 executor.RouteContext = _pendingRouteContext;
             _pendingRouteContext = null;
             this.Executor = executor;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 提交事务，如果autoRollBack为true则在执行出错时自动回滚
@@ -384,7 +381,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLBuilder reset()
+        public StepBuilder reset()
         {
             this.groups.Clear();
             this.unionHolder.Clear();
@@ -397,7 +394,7 @@ namespace mooSQL.data
             opened = true;
             this.name = "kitTb_0";
             this.newGroup();
-            return Self;
+            return this;
         }
 
         internal StepBuilder newGroup()
@@ -406,7 +403,7 @@ namespace mooSQL.data
             var gpkey = string.Format("gp_{0}_{1}_{2}", seed, tbname, (groups.Count + 1));
 
             this.newGroup(gpkey, this.groups.Count + "");
-            return Self;
+            return this;
         }
         /// <summary>
         /// 创建一个SQL信息组，并置为当前组
@@ -417,13 +414,13 @@ namespace mooSQL.data
    
         private StepBuilder newGroup(string name, string key)
         {
-            SqlGoup goup = new SqlGoup(name, key, Self);
+            SqlGoup goup = new SqlGoup(name, key, this);
             goup.position = this.position;
             goup.ps = this.ps;
             
             groups.Add(name, goup);
             this.current = goup;
-            return Self;
+            return this;
         }
 
         /** 一些工具方法  **/
@@ -492,11 +489,11 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public SQLBuilder setCache(string key,int timeout)
+        public StepBuilder setCache(string key,int timeout)
         {
             this.cacheKey = key;
             this.cacheTimeout=timeout;
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -504,9 +501,9 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="seed"></param>
         /// <returns></returns>
-        public SQLBuilder setSeed(string seed) { 
+        public StepBuilder setSeed(string seed) { 
             this.seed=seed;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 检查一次条件，使得后续的一次 set/where/whereLike/whereFormat方法得以执行
@@ -514,10 +511,10 @@ namespace mooSQL.data
         /// <param name="isPass"></param>
         /// <returns></returns>
 
-        public SQLBuilder ifs(bool isPass)
+        public StepBuilder ifs(bool isPass)
         {
             this.opened = isPass;
-            return Self;
+            return this;
         }
         /// <summary>
         /// 自定义条件
@@ -526,7 +523,7 @@ namespace mooSQL.data
         /// <param name="whenTrue"></param>
         /// <param name="whenFalse"></param>
         /// <returns></returns>
-        public SQLBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
+        public StepBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
         {
             if (isPass)
             {
@@ -535,19 +532,19 @@ namespace mooSQL.data
             else { 
                 whenFalse();
             }
-            return Self;
+            return this;
         }
 
         /// <summary>
         /// ifs 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder ifs(bool isPass, Action whenTrue)
+        public StepBuilder ifs(bool isPass, Action whenTrue)
         {
             if (isPass)
             {
                 whenTrue();
             }
-            return Self;
+            return this;
         }
         /// <summary>
         /// 清空当前SQL构造器 参数体、添加列集合、选择列、from部分、翻页设置、where条件等所有信息，相当于重新获取一个SQL分组实例。
@@ -555,7 +552,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLBuilder clear()
+        public StepBuilder clear()
         {
             this.unionHolder.Clear();
             this.CTECollection.Clear();
@@ -567,16 +564,16 @@ namespace mooSQL.data
                 this.groups.Clear();
                 this.groups.Add(current.key,current);
             }
-            return Self;
+            return this;
         }
         /// <summary>
         /// 清空列选择部分，保留其他信息。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder clearSelect()
+        public StepBuilder clearSelect()
         {
             this.current.selectPart.Clear();
-            return Self;
+            return this;
         }
 
 
@@ -585,10 +582,10 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLBuilder clearWhere()
+        public StepBuilder clearWhere()
         {
             this.current.clearWhere();
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -596,10 +593,10 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
   
-        public SQLBuilder clearPage()
+        public StepBuilder clearPage()
         {
             this.current.clearPage();
-            return Self;
+            return this;
         }
 
 
@@ -636,20 +633,20 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public SQLBuilder prefix(string SQLString)
+        public StepBuilder prefix(string SQLString)
         {
             current.prefix(SQLString);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 配置SQL的自定义尾随部分
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public SQLBuilder subfix(string SQLString)
+        public StepBuilder subfix(string SQLString)
         {
             current.subfix(SQLString);
-            return Self;
+            return this;
         }
 
 
@@ -662,28 +659,28 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLBuilder copyPreSelect()
+        public StepBuilder copyPreSelect()
         {
             current.copySelect(preSQL);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 复制上一组SQL配置的from
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder copyPreFrom()
+        public StepBuilder copyPreFrom()
         {
             current.copyFrom(preSQL);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 复制上一组SQL配置的where
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder copyPreWere()
+        public StepBuilder copyPreWere()
         {
             current.copyWhere(preSQL);
-            return Self;
+            return this;
         }
 
 

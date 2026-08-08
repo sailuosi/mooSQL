@@ -16,6 +16,6 @@ namespace mooSQL.data
             _OIDs = OIDs;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereInGuid(_key, _OIDs);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(_key, _OIDs);
     }
 }

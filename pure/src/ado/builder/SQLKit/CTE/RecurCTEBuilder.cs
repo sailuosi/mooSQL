@@ -38,11 +38,11 @@ namespace mooSQL.data
         private HashSet<string> fields = new HashSet<string>();
         private List<RecurFieldItem> xFeilds = new List<RecurFieldItem>();
 
-        private SQLBuilder builder;
+        private StepBuilder builder;
 
-        private Action<StepBuilder, RecurCTEBuilder> onBuildSrcWhere;
+        private Action<SQLBuilder, RecurCTEBuilder> onBuildSrcWhere;
 
-        private Action<StepBuilder, RecurCTEBuilder> onBuildDstWhere;
+        private Action<SQLBuilder, RecurCTEBuilder> onBuildDstWhere;
 
         /// <summary>
         /// 属性 RootAs（string）。
@@ -158,7 +158,7 @@ namespace mooSQL.data
         /// <summary>
         /// useBuilder 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder useBuilder(SQLBuilder builder) { 
+        public RecurCTEBuilder useBuilder(StepBuilder builder) { 
             this.builder = builder;
 
             return this;
@@ -177,7 +177,7 @@ namespace mooSQL.data
         /// <summary>
         /// whereRoot 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder whereRoot(Action<StepBuilder,RecurCTEBuilder> whereBuilder) { 
+        public RecurCTEBuilder whereRoot(Action<SQLBuilder,RecurCTEBuilder> whereBuilder) { 
             this.onBuildSrcWhere = whereBuilder;
             return this;
         }
@@ -185,7 +185,7 @@ namespace mooSQL.data
         /// <summary>
         /// whereNext 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder whereNext(Action<StepBuilder, RecurCTEBuilder> whereBuilder)
+        public RecurCTEBuilder whereNext(Action<SQLBuilder, RecurCTEBuilder> whereBuilder)
         {
             this.onBuildDstWhere = whereBuilder;
             return this;
@@ -220,7 +220,7 @@ namespace mooSQL.data
         /// <summary>
         /// apply 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder apply() {
+        public StepBuilder apply() {
             builder.withSelect(withAsName, (w) =>
             {
                 var fies= this.loadFeilds();

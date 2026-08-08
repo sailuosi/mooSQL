@@ -16,6 +16,6 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereFormat(_template, _values);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereFormat(_template, _values);
     }
 }

@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly CopyPreFromStep Instance = new CopyPreFromStep();
         private CopyPreFromStep() { }
-        public void Apply(StepBuilder builder) => builder.copyPreFrom();
+        public void Apply(SQLBuilder builder) => builder.Inner.copyPreFrom();
     }
 }

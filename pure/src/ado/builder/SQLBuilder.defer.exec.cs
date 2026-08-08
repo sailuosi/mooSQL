@@ -7,367 +7,367 @@ using mooSQL.data.context;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 执行 / 物化出口：先 <see cref="EnsureMaterialized"/>，再委托基类。
-    /// 基类内部若再调 toSelect 等非虚方法，此时队列已回放完成。
+    /// 执行 / 物化出口：先 <see cref="EnsureMaterialized"/>，再委托内核。
+    /// 内核内部若再调 toSelect 等非虚方法，此时队列已回放完成。
     /// </summary>
     public partial class SQLBuilder
     {
         // ---- toXxx ----
 
-        public new SQLCmd toSelectExist()
+        public SQLCmd toSelectExist()
         {
             EnsureMaterialized();
-            return base.toSelectExist();
+            return _inner.toSelectExist();
         }
 
-        public new SQLCmd toInsertFrom()
+        public SQLCmd toInsertFrom()
         {
             EnsureMaterialized();
-            return base.toInsertFrom();
+            return _inner.toInsertFrom();
         }
 
-        public new SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
+        public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
         {
             EnsureMaterialized();
-            return base.toInsertWithDuplicateUpdate(duplicateUpdateKeyword);
+            return _inner.toInsertWithDuplicateUpdate(duplicateUpdateKeyword);
         }
 
-        public new SQLCmd toUpdateFrom()
+        public SQLCmd toUpdateFrom()
         {
             EnsureMaterialized();
-            return base.toUpdateFrom();
+            return _inner.toUpdateFrom();
         }
 
-        public new SQLCmd toMergeInto()
+        public SQLCmd toMergeInto()
         {
             EnsureMaterialized();
-            return base.toMergeInto();
+            return _inner.toMergeInto();
         }
 
         // ---- doXxx ----
 
-        public new int doInsert()
+        public int doInsert()
         {
             EnsureMaterialized();
-            return base.doInsert();
+            return _inner.doInsert();
         }
 
-        public new Task<int> doInsertAsync()
+        public Task<int> doInsertAsync()
         {
             EnsureMaterialized();
-            return base.doInsertAsync();
+            return _inner.doInsertAsync();
         }
 
-        public new int doUpdate()
+        public int doUpdate()
         {
             EnsureMaterialized();
-            return base.doUpdate();
+            return _inner.doUpdate();
         }
 
-        public new Task<int> doUpdateAsync()
+        public Task<int> doUpdateAsync()
         {
             EnsureMaterialized();
-            return base.doUpdateAsync();
+            return _inner.doUpdateAsync();
         }
 
-        public new int doDelete()
+        public int doDelete()
         {
             EnsureMaterialized();
-            return base.doDelete();
+            return _inner.doDelete();
         }
 
-        public new Task<int> doDeleteAsync()
+        public Task<int> doDeleteAsync()
         {
             EnsureMaterialized();
-            return base.doDeleteAsync();
+            return _inner.doDeleteAsync();
         }
 
-        public new int doInsertFrom()
+        public int doInsertFrom()
         {
             EnsureMaterialized();
-            return base.doInsertFrom();
+            return _inner.doInsertFrom();
         }
 
-        public new int doUpdateFrom()
+        public int doUpdateFrom()
         {
             EnsureMaterialized();
-            return base.doUpdateFrom();
+            return _inner.doUpdateFrom();
         }
 
-        public new int doMergeInto()
+        public int doMergeInto()
         {
             EnsureMaterialized();
-            return base.doMergeInto();
+            return _inner.doMergeInto();
         }
 
-        public new Task<int> doMergeIntoAsync()
+        public Task<int> doMergeIntoAsync()
         {
             EnsureMaterialized();
-            return base.doMergeIntoAsync();
+            return _inner.doMergeIntoAsync();
         }
 
         // ---- query / count / exist ----
 
-        public new DataTable query()
+        public DataTable query()
         {
             EnsureMaterialized();
-            return base.query();
+            return _inner.query();
         }
 
-        public new Task<DataTable> queryAsync()
+        public Task<DataTable> queryAsync()
         {
             EnsureMaterialized();
-            return base.queryAsync();
+            return _inner.queryAsync();
         }
 
-        public new IEnumerable<T> query<T>()
+        public IEnumerable<T> query<T>()
         {
             EnsureMaterialized();
-            return base.query<T>();
+            return _inner.query<T>();
         }
 
-        public new Task<IEnumerable<T>> queryAsync<T>()
+        public Task<IEnumerable<T>> queryAsync<T>()
         {
             EnsureMaterialized();
-            return base.queryAsync<T>();
+            return _inner.queryAsync<T>();
         }
 
-        public new List<T> query<T>(Func<DataRow, T> createEntity)
+        public List<T> query<T>(Func<DataRow, T> createEntity)
         {
             EnsureMaterialized();
-            return base.query(createEntity);
+            return _inner.query(createEntity);
         }
 
-        public new TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
+        public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
             EnsureMaterialized();
-            return base.queryAs<T, TResult>(onRuning);
+            return _inner.queryAs<T, TResult>(onRuning);
         }
 
-        public new PagedDataTable queryPaged()
+        public PagedDataTable queryPaged()
         {
             EnsureMaterialized();
-            return base.queryPaged();
+            return _inner.queryPaged();
         }
 
-        public new PageOutput<T> queryPaged<T>()
+        public PageOutput<T> queryPaged<T>()
         {
             EnsureMaterialized();
-            return base.queryPaged<T>();
+            return _inner.queryPaged<T>();
         }
 
-        public new PageOutput<T> queryPaged<T>(string summSQL)
+        public PageOutput<T> queryPaged<T>(string summSQL)
         {
             EnsureMaterialized();
-            return base.queryPaged<T>(summSQL);
+            return _inner.queryPaged<T>(summSQL);
         }
 
-        public new PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
+        public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
             EnsureMaterialized();
-            return base.queryPaged(activeOther);
+            return _inner.queryPaged(activeOther);
         }
 
-        public new Task<PageOutput<T>> queryPagedAsync<T>()
+        public Task<PageOutput<T>> queryPagedAsync<T>()
         {
             EnsureMaterialized();
-            return base.queryPagedAsync<T>();
+            return _inner.queryPagedAsync<T>();
         }
 
-        public new PagedSumDataTable queryPageSum(string selectCols)
+        public PagedSumDataTable queryPageSum(string selectCols)
         {
             EnsureMaterialized();
-            return base.queryPageSum(selectCols);
+            return _inner.queryPageSum(selectCols);
         }
 
-        public new Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        public Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
         {
             EnsureMaterialized();
-            return base.queryPageSumAsync(selectCols);
+            return _inner.queryPageSumAsync(selectCols);
         }
 
-        public new PageSumOutput<T> queryPageSum<T>(string selectCols)
+        public PageSumOutput<T> queryPageSum<T>(string selectCols)
         {
             EnsureMaterialized();
-            return base.queryPageSum<T>(selectCols);
+            return _inner.queryPageSum<T>(selectCols);
         }
 
-        public new Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        public Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
         {
             EnsureMaterialized();
-            return base.queryPagedSumAsync<T>(selectCols);
+            return _inner.queryPagedSumAsync<T>(selectCols);
         }
 
-        public new Dictionary<string, object> querySummary(string sumSQL, bool containToal)
+        public Dictionary<string, object> querySummary(string sumSQL, bool containToal)
         {
             EnsureMaterialized();
-            return base.querySummary(sumSQL, containToal);
+            return _inner.querySummary(sumSQL, containToal);
         }
 
-        public new IEnumerable<T> queryFirstField<T>()
+        public IEnumerable<T> queryFirstField<T>()
         {
             EnsureMaterialized();
-            return base.queryFirstField<T>();
+            return _inner.queryFirstField<T>();
         }
 
-        public new T queryFirst<T>()
+        public T queryFirst<T>()
         {
             EnsureMaterialized();
-            return base.queryFirst<T>();
+            return _inner.queryFirst<T>();
         }
 
-        public new T queryUnique<T>()
+        public T queryUnique<T>()
         {
             EnsureMaterialized();
-            return base.queryUnique<T>();
+            return _inner.queryUnique<T>();
         }
 
-        public new Task<T> queryUniqueAsync<T>()
+        public Task<T> queryUniqueAsync<T>()
         {
             EnsureMaterialized();
-            return base.queryUniqueAsync<T>();
+            return _inner.queryUniqueAsync<T>();
         }
 
-        public new T queryScalar<T>()
+        public T queryScalar<T>()
         {
             EnsureMaterialized();
-            return base.queryScalar<T>();
+            return _inner.queryScalar<T>();
         }
 
-        public new Task<T> queryScalarAsync<T>()
+        public Task<T> queryScalarAsync<T>()
         {
             EnsureMaterialized();
-            return base.queryScalarAsync<T>();
+            return _inner.queryScalarAsync<T>();
         }
 
-        public new DataRow queryRow()
+        public DataRow queryRow()
         {
             EnsureMaterialized();
-            return base.queryRow();
+            return _inner.queryRow();
         }
 
-        public new Task<DataRow> queryRowAsync()
+        public Task<DataRow> queryRowAsync()
         {
             EnsureMaterialized();
-            return base.queryRowAsync();
+            return _inner.queryRowAsync();
         }
 
-        public new T queryRow<T>()
+        public T queryRow<T>()
         {
             EnsureMaterialized();
-            return base.queryRow<T>();
+            return _inner.queryRow<T>();
         }
 
-        public new T queryRow<T>(Func<DataRow, T> builder)
+        public T queryRow<T>(Func<DataRow, T> builder)
         {
             EnsureMaterialized();
-            return base.queryRow(builder);
+            return _inner.queryRow(builder);
         }
 
-        public new int queryRowInt(int defaultVal)
+        public int queryRowInt(int defaultVal)
         {
             EnsureMaterialized();
-            return base.queryRowInt(defaultVal);
+            return _inner.queryRowInt(defaultVal);
         }
 
-        public new long queryRowLong(long defaultVal)
+        public long queryRowLong(long defaultVal)
         {
             EnsureMaterialized();
-            return base.queryRowLong(defaultVal);
+            return _inner.queryRowLong(defaultVal);
         }
 
-        public new string queryRowString(string defaultVal)
+        public string queryRowString(string defaultVal)
         {
             EnsureMaterialized();
-            return base.queryRowString(defaultVal);
+            return _inner.queryRowString(defaultVal);
         }
 
-        public new double queryRowDouble(double defaultVal)
+        public double queryRowDouble(double defaultVal)
         {
             EnsureMaterialized();
-            return base.queryRowDouble(defaultVal);
+            return _inner.queryRowDouble(defaultVal);
         }
 
-        public new object queryRowValue()
+        public object queryRowValue()
         {
             EnsureMaterialized();
-            return base.queryRowValue();
+            return _inner.queryRowValue();
         }
 
-        public new int count()
+        public int count()
         {
             EnsureMaterialized();
-            return base.count();
+            return _inner.count();
         }
 
-        public new long countLong()
+        public long countLong()
         {
             EnsureMaterialized();
-            return base.countLong();
+            return _inner.countLong();
         }
 
-        public new bool exist()
+        public bool exist()
         {
             EnsureMaterialized();
-            return base.exist();
+            return _inner.exist();
         }
 
-        public new Task<bool> existAsync()
+        public Task<bool> existAsync()
         {
             EnsureMaterialized();
-            return base.existAsync();
+            return _inner.existAsync();
         }
 
-        public new bool checkExistKey(string key, object value)
+        public bool checkExistKey(string key, object value)
         {
             EnsureMaterialized();
-            return base.checkExistKey(key, value);
+            return _inner.checkExistKey(key, value);
         }
 
-        public new bool checkExistKey(string key, object value, string tableName)
+        public bool checkExistKey(string key, object value, string tableName)
         {
             EnsureMaterialized();
-            return base.checkExistKey(key, value, tableName);
+            return _inner.checkExistKey(key, value, tableName);
         }
 
         // ---- where 物化窥视 ----
 
-        public new string buildWhere()
+        public string buildWhere()
         {
             EnsureMaterialized();
-            return base.buildWhere();
+            return _inner.buildWhere();
         }
 
-        public new string buildWhereContent()
+        public string buildWhereContent()
         {
             EnsureMaterialized();
-            return base.buildWhereContent();
+            return _inner.buildWhereContent();
         }
 
         // ---- 中间态读取（先 Flush）----
 
-        public new int ColumnCount
+        public int ColumnCount
         {
             get
             {
                 EnsureMaterialized();
-                return base.ColumnCount;
+                return _inner.ColumnCount;
             }
         }
 
-        public new int FromCount
+        public int FromCount
         {
             get
             {
                 EnsureMaterialized();
-                return base.FromCount;
+                return _inner.FromCount;
             }
         }
 
-        public new bool containSetColumn(string name)
+        public bool containSetColumn(string name)
         {
             EnsureMaterialized();
-            return base.containSetColumn(name);
+            return _inner.containSetColumn(name);
         }
     }
 }

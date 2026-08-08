@@ -14,6 +14,6 @@ namespace mooSQL.data
             _joinSQLString = joinSQLString;
         }
 
-        public void Apply(StepBuilder builder) => builder.innerJoin(_joinSQLString);
+        public void Apply(SQLBuilder builder) => builder.Inner.innerJoin(_joinSQLString);
     }
 }

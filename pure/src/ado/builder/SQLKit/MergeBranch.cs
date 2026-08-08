@@ -19,11 +19,11 @@ namespace mooSQL.data
         /// <summary>
         /// 条件部分，放在这里。
         /// </summary>
-        public SQLBuilder Condtion { get; set; }
+        public StepBuilder Condtion { get; set; }
         /// <summary>
         /// 更新部分，放在这里。
         /// </summary>
-        public SQLBuilder SetPart { get; set; }
+        public StepBuilder SetPart { get; set; }
 
         /// <summary>
         /// 是否匹配，默认为null。
@@ -80,7 +80,23 @@ namespace mooSQL.data
             useSQL();
 
 
-            action(this.Condtion);
+            {
+
+
+
+                var facade = SQLBuilder.Attach(this.Condtion);
+
+
+
+                action(facade);
+
+
+
+                facade.EnsureMaterialized();
+
+
+
+            }
             this.IsMatched = true;
             return this;
         }
@@ -96,7 +112,19 @@ namespace mooSQL.data
                 this.Condtion = root.parent.getBrotherBuilder();
             }
 
-            action(this.Condtion);
+            {
+
+
+                var facade = SQLBuilder.Attach(this.Condtion);
+
+
+                action(facade);
+
+
+                facade.EnsureMaterialized();
+
+
+            }
             this.IsMatched = false;
             return this;
         }
@@ -109,7 +137,15 @@ namespace mooSQL.data
             if (this.SetPart == null) {
                 this.SetPart = root.parent.getBrotherBuilder();
             }
-            action(this.SetPart);
+            {
+
+                var facade = SQLBuilder.Attach(this.SetPart);
+
+                action(facade);
+
+                facade.EnsureMaterialized();
+
+            }
             this.ThenAction = MergeAction.insert;
             return root;
         }
@@ -124,7 +160,15 @@ namespace mooSQL.data
             {
                 this.SetPart = root.parent.getBrotherBuilder();
             }
-            action(this.SetPart);
+            {
+
+                var facade = SQLBuilder.Attach(this.SetPart);
+
+                action(facade);
+
+                facade.EnsureMaterialized();
+
+            }
             this.ThenAction = MergeAction.update;
             return root;
         }

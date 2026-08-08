@@ -33,7 +33,7 @@ namespace mooSQL.data
         /// 数据库连接位，已废弃
         /// </summary>
         public int position;
-        private SQLBuilder root;
+        private StepBuilder root;
         /// <summary>
         ///  set碎片的计数，每创建一个+1
         /// </summary>
@@ -172,7 +172,7 @@ namespace mooSQL.data
         /// <param name="Name"></param>
         /// <param name="key"></param>
         /// <param name="kit"></param>
-        public SqlGoup(string Name,string key,SQLBuilder kit) {
+        public SqlGoup(string Name,string key,StepBuilder kit) {
             //this.tableName = Name;
             this.key = key;
             this.root = kit;
@@ -566,7 +566,9 @@ namespace mooSQL.data
             field.setConnect(whereSeprator);
             field.key = key;
             var builder = root.getBrotherBuilder();
-            doselect(builder);
+            var facade = SQLBuilder.Attach(builder);
+            doselect(facade);
+            facade.EnsureMaterialized();
             field.value = " ("+ builder.toSelect().sql+") ";
             this.ps = builder.ps;
             field.paramed = false;
@@ -589,7 +591,9 @@ namespace mooSQL.data
             field.op = "";
 
             var builder = root.getBrotherBuilder();
-            doWhere(builder);
+            var facade = SQLBuilder.Attach(builder);
+            doWhere(facade);
+            facade.EnsureMaterialized();
             field.value = " (" + builder.buildWhereContent() + ") ";
             this.ps = builder.ps;
             field.paramed = false;
@@ -1235,7 +1239,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         private void fireSQLEvent(string SQL) {
             if (root.Client != null) {
-                root.Client.fireCreatedSQL(SQL, root);
+                root.Client.fireCreatedSQL(SQL, SQLBuilder.Attach(root, materializing: true));
             }
         }
 

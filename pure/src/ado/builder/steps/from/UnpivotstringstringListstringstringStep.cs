@@ -20,6 +20,6 @@ namespace mooSQL.data
             _asName = asName;
         }
 
-        public void Apply(StepBuilder builder) => builder.unpivot(_valueName, _fieldName, _fields, _asName);
+        public void Apply(SQLBuilder builder) => builder.Inner.unpivot(_valueName, _fieldName, _fields, _asName);
     }
 }

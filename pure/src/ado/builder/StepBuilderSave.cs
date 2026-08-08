@@ -18,10 +18,10 @@ namespace mooSQL.data
         /// <param name="tbName"></param>
         /// <returns></returns>
 
-        public SQLBuilder setTable(string tbName)
+        public StepBuilder setTable(string tbName)
         {
             current.setTable(tbName);
-            return Self;
+            return this;
         }
 
         #region 字段值赋值
@@ -50,9 +50,9 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="option"></param>
         /// <returns></returns>
-        public SQLBuilder configSetNull(UpdateSetNullOption option) { 
+        public StepBuilder configSetNull(UpdateSetNullOption option) { 
             this.setNullOption = option;
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace mooSQL.data
         /// <param name="value"></param>
         /// <param name="maxLength"></param>
         /// <returns></returns>
-        public SQLBuilder set(string key, string value, int maxLength) {
+        public StepBuilder set(string key, string value, int maxLength) {
             if (value != null && value.Length > maxLength) { 
                 value= value.Substring(0, maxLength);
             }
@@ -78,17 +78,17 @@ namespace mooSQL.data
         /// <param name="updatable"></param>
         /// <param name="insertable"></param>
         /// <returns></returns>
-        public SQLBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
+        public StepBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
             if (!opened)
             {
                 opened = true;
-                return Self;
+                return this;
             }
             if (paramed && val == null) {
                 if (UpdateSetNullOpt == UpdateSetNullOption.IgnoreNull)
                 {
-                    return Self;
+                    return this;
                 }
                 else if (UpdateSetNullOpt == UpdateSetNullOption.AsDBNull) { 
                     paramed = false;
@@ -109,14 +109,14 @@ namespace mooSQL.data
                 
             if (this.Client != null)
             {
-                var ok = Client.fireBuildSetFrag(field, Self);
+                var ok = Client.fireBuildSetFrag(field, SQLBuilder.Attach(this, materializing: true));
                 if (ok == false)
                 {
-                    return Self;
+                    return this;
                 }
             }
             this.current.set(field);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 获取当前行设置的字段值。 若不存在则返回null。 若设置了多个值，则会取最后一个设置的值。
@@ -135,7 +135,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public SQLBuilder setToNull(string fieldName)
+        public StepBuilder setToNull(string fieldName)
         {
             return set(fieldName, "NULL",false);
         }
@@ -147,10 +147,10 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <returns></returns>
 
-        public SQLBuilder setI(string key, Object val)
+        public StepBuilder setI(string key, Object val)
         {
             this.set(key, val, true, null, false, true);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置一个用于 insert的 字段的名--值映射。 
@@ -159,10 +159,10 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <param name="paramed"></param>
         /// <returns></returns>
-        public SQLBuilder setI(string key, Object val, bool paramed)
+        public StepBuilder setI(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, false, true);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置一个用于 update 的 字段的名--值映射。 
@@ -170,10 +170,10 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="val"></param>
         /// <returns></returns>
-        public SQLBuilder setU(string key, Object val)
+        public StepBuilder setU(string key, Object val)
         {
             this.set(key, val, true, null, true, false);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置一个用于 update 的 字段的名--值映射。 并指定是否参数化
@@ -182,10 +182,10 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <param name="paramed"></param>
         /// <returns></returns>
-        public SQLBuilder setU(string key, Object val, bool paramed)
+        public StepBuilder setU(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, true, false);
-            return Self;
+            return this;
         }
         #endregion
 
@@ -211,10 +211,10 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public SQLBuilder mergeAs(string asName)
+        public StepBuilder mergeAs(string asName)
         {
             current.mergeAs(asName);
-            return Self;
+            return this;
         }
         /// <summary>
         /// merge into语句的来源表。使用更符合SQL语句结构的写法，即using (select ...) as asName.
@@ -222,11 +222,14 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="buildSelect"></param>
         /// <returns></returns>
-        public SQLBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
+        public StepBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
         {
             current.mergeAs(asName);
-            buildSelect(Self);
-            return Self;
+            {
+                var __facade = SQLBuilder.Attach(this, materializing: true);
+                buildSelect(__facade);
+            }
+            return this;
         }
         /// <summary>
         /// merge into 语句的来源表。使用更符合SQL语句结构的写法，即using tabname as asName.
@@ -234,11 +237,11 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="tabname"></param>
         /// <returns></returns>
-        public SQLBuilder mergeUsing(string asName, string tabname)
+        public StepBuilder mergeUsing(string asName, string tabname)
         {
             current.mergeAs(asName);
             from(tabname);
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -246,20 +249,20 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="onPart"></param>
         /// <returns></returns>
-        public SQLBuilder mergeOn(string onPart)
+        public StepBuilder mergeOn(string onPart)
         {
             current.mergeOn(onPart);
-            return Self;
+            return this;
         }
         /// <summary>
         /// merge into 当不匹配时，是否删除
         /// </summary>
         /// <param name="thenDelete"></param>
         /// <returns></returns>
-        public SQLBuilder mergeDelete(bool thenDelete)
+        public StepBuilder mergeDelete(bool thenDelete)
         {
             current.mergeDelete(thenDelete);
-            return Self;
+            return this;
         }
         #endregion
 
@@ -274,25 +277,25 @@ namespace mooSQL.data
         /// 用于创建 insert into values 多行值的SQL移动到下一行。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder newRow()
+        public StepBuilder newRow()
         {
             current.newRow();
-            return Self;
+            return this;
         }
         /// <summary>
         /// insert into values 多行值的添加本行值。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder addRow()
+        public StepBuilder addRow()
         {
             current.addRow();
-            return Self;
+            return this;
         }
         /// <summary>
         /// 创建SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder addInsert()
+        public StepBuilder addInsert()
         {
             if (EnsureWriteTableName(nameof(addInsert)))
             {
@@ -302,13 +305,13 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return Self;
+            return this;
         }
         /// <summary>
         /// 创建 update SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder addUpdate()
+        public StepBuilder addUpdate()
         {
             if (EnsureWriteTableName(nameof(addUpdate)))
             {
@@ -318,13 +321,13 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return Self;
+            return this;
         }
         /// <summary>
         /// 创建 update from SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder addUpdateFrom()
+        public StepBuilder addUpdateFrom()
         {
             if (EnsureWriteTableName(nameof(addUpdateFrom)))
             {
@@ -334,7 +337,7 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return Self;
+            return this;
         }
         #endregion
     }

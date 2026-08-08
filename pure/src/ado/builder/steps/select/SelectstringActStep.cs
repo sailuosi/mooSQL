@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.select(...).</summary>
+    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class SelectstringActStep : IStep
     {
         private readonly string _asName;
@@ -16,6 +14,6 @@ namespace mooSQL.data
             _doColSelect = doColSelect;
         }
 
-        public void Apply(StepBuilder builder) => builder.select(_asName, _doColSelect);
+        public void Apply(SQLBuilder builder) => builder.Inner.select(_asName, _doColSelect);
     }
 }

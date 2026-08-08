@@ -18,6 +18,6 @@ namespace mooSQL.data
             _op = op;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereIsNullOR(_key, _val, _op);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereIsNullOR(_key, _val, _op);
     }
 }

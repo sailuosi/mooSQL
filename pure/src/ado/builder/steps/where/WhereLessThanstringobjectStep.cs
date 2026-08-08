@@ -16,6 +16,6 @@ namespace mooSQL.data
             _val = val;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereLessThan(_key, _val);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereLessThan(_key, _val);
     }
 }

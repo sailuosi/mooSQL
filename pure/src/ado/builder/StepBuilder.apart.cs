@@ -6,16 +6,12 @@ namespace mooSQL.data
     {
         /// <summary>
         /// 开启录播：返回独立影子 Builder，链式调用仅写入该影子，不污染当前实例；
-        /// 以 <see cref="stop"/> 结束并得到 <see cref="SQLApart"/>，再通过 <see cref="useApart"/> 复用。
+        /// 以 <see cref="stop"/> 结束并得到 <see cref="SQLApart"/>，再通过门面 <c>useApart</c> 复用。
         /// </summary>
-        /// <example>
-        /// var seg = kit.record().where("status", 1).stop();
-        /// kit.select("*").from("users").useApart(seg).toSelect();
-        /// </example>
-        public SQLBuilder record()
+        public StepBuilder record()
         {
             this.current.wherePart.steps.start();
-            return Self;
+            return this;
         }
 
         /// <summary>
@@ -32,22 +28,22 @@ namespace mooSQL.data
         /// </summary>
         public SQLApart toApart()
         {
-            var script = ApartEmitter.Emit(Self);
+            var script = ApartEmitter.Emit(this);
             var dbType = ResolveDbType();
             return new SQLApart(script, dbType);
         }
 
         /// <summary>
-        /// 合并复用碎片：按录制顺序在目标 Builder 上重放 select/from/where 等公开 API。
-        /// 一阶段仅允许与捕获时相同 <see cref="DataBaseType"/> 的数据库。
+        /// 内核侧重放：经 Attach 门面调用公开 API（供非门面路径）。
         /// </summary>
-        public SQLBuilder useApart(SQLApart apart)
+        public StepBuilder useApart(SQLApart apart)
         {
             if (apart == null)
                 throw new ArgumentNullException(nameof(apart));
             EnsureApartCompatible(apart);
-            apart.Script.ApplyTo(Self);
-            return Self;
+            var facade = SQLBuilder.Attach(this, materializing: true);
+            apart.Script.ApplyTo(facade);
+            return this;
         }
 
         internal SqlCTE ApartGetCte() => CTECollection;

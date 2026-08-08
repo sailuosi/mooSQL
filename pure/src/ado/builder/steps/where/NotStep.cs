@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly NotStep Instance = new NotStep();
         private NotStep() { }
-        public void Apply(StepBuilder builder) => builder.not();
+        public void Apply(SQLBuilder builder) => builder.Inner.not();
     }
 }

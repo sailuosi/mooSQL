@@ -14,6 +14,6 @@ namespace mooSQL.data
             _SQL = SQL;
         }
 
-        public void Apply(StepBuilder builder) => builder.pin(_SQL);
+        public void Apply(SQLBuilder builder) => builder.Inner.pin(_SQL);
     }
 }

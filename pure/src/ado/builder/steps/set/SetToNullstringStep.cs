@@ -14,6 +14,6 @@ namespace mooSQL.data
             _fieldName = fieldName;
         }
 
-        public void Apply(StepBuilder builder) => builder.setToNull(_fieldName);
+        public void Apply(SQLBuilder builder) => builder.Inner.setToNull(_fieldName);
     }
 }

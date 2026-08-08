@@ -18,6 +18,6 @@ namespace mooSQL.data
             _t = t;
         }
 
-        public void Apply(StepBuilder builder) => builder.where(_key, _val, _t);
+        public void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val, _t);
     }
 }

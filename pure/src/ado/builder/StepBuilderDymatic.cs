@@ -475,30 +475,34 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="queryOther"></param>
         /// <returns></returns>
-        public SQLBuilder selectWith(Action<SQLBuilder> queryOther) {
+        public StepBuilder selectWith(Action<SQLBuilder> queryOther) {
             this.clearSelect();
-            queryOther(Self);
-            return Self;
+            if (queryOther != null)
+            {
+                var __facade = SQLBuilder.Attach(this, materializing: true);
+                queryOther(__facade);
+            }
+            return this;
         }
 
         /// <summary>
         /// selectWith 方法（返回 StepBuilder）。
         /// </summary>
-        public SQLBuilder selectWith(string queryOther)
+        public StepBuilder selectWith(string queryOther)
         {
             this.clearSelect();
             select(queryOther);
-            return Self;
+            return this;
         }
         /// <summary>
         /// 设置汇总字段，配合分页查询使用，可以在分页查询的基础上进行汇总查询，避免重复的条件配置。
         /// </summary>
         /// <param name="queryOther"></param>
         /// <returns></returns>
-        public SQLBuilder selectSummary(string queryOther)
+        public StepBuilder selectSummary(string queryOther)
         {
             this._MakeUps.addSummaryField(queryOther);
-            return Self;
+            return this;
         }
 
         /// <summary>

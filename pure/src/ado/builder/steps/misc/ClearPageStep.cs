@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         public static readonly ClearPageStep Instance = new ClearPageStep();
         private ClearPageStep() { }
-        public void Apply(StepBuilder builder) => builder.clearPage();
+        public void Apply(SQLBuilder builder) => builder.Inner.clearPage();
     }
 }

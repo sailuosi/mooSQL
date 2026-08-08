@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly SinkNotORStep Instance = new SinkNotORStep();
         private SinkNotORStep() { }
-        public void Apply(StepBuilder builder) => builder.sinkNotOR();
+        public void Apply(SQLBuilder builder) => builder.Inner.sinkNotOR();
     }
 }

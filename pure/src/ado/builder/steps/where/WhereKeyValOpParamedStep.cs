@@ -16,6 +16,6 @@ namespace mooSQL.data
             _paramed = paramed;
         }
 
-        public void Apply(StepBuilder builder) => builder.where(_key, _val, _op, _paramed);
+        public void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val, _op, _paramed);
     }
 }

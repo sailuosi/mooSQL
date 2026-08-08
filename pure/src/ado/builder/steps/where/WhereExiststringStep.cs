@@ -14,6 +14,6 @@ namespace mooSQL.data
             _value = value;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereExist(_value);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereExist(_value);
     }
 }

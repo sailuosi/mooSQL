@@ -5,6 +5,6 @@ namespace mooSQL.data
     {
         private readonly string _key;
         public WhereRawStep(string key) => _key = key;
-        public void Apply(StepBuilder builder) => builder.where(_key);
+        public void Apply(SQLBuilder builder) => builder.Inner.where(_key);
     }
 }

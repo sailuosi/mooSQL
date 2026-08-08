@@ -16,6 +16,6 @@ namespace mooSQL.data
             _selectSQL = selectSQL;
         }
 
-        public void Apply(StepBuilder builder) => builder.withSelect(_name, _selectSQL);
+        public void Apply(SQLBuilder builder) => builder.Inner.withSelect(_name, _selectSQL);
     }
 }

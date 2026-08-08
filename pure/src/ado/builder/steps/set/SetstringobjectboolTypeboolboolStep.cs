@@ -24,6 +24,6 @@ namespace mooSQL.data
             _insertable = insertable;
         }
 
-        public void Apply(StepBuilder builder) => builder.set(_key, _val, _paramed, _type, _updatable, _insertable);
+        public void Apply(SQLBuilder builder) => builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
     }
 }

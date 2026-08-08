@@ -9,6 +9,6 @@ namespace mooSQL.data
     {
         public static readonly CopyPreWereStep Instance = new CopyPreWereStep();
         private CopyPreWereStep() { }
-        public void Apply(StepBuilder builder) => builder.copyPreWere();
+        public void Apply(SQLBuilder builder) => builder.Inner.copyPreWere();
     }
 }

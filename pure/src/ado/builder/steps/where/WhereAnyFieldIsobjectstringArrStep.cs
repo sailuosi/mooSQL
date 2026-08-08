@@ -16,6 +16,6 @@ namespace mooSQL.data
             _fields = fields;
         }
 
-        public void Apply(StepBuilder builder) => builder.whereAnyFieldIs(_value, _fields);
+        public void Apply(SQLBuilder builder) => builder.Inner.whereAnyFieldIs(_value, _fields);
     }
 }
