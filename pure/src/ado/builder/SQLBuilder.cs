@@ -317,6 +317,7 @@ namespace mooSQL.data
             this._AutoClearWay = CleanWay.AfterModify;
             this._MakeUps = new SQLMakeUps();
             this.newGroup();
+            _moldSession = new MoldSession();
         }
 
 
@@ -564,6 +565,8 @@ namespace mooSQL.data
                 this.groups.Clear();
                 this.groups.Add(current.key,current);
             }
+            _prebuiltSelectCmd = null;
+            _moldSession.Clear();
             return this;
         }
         /// <summary>
@@ -736,6 +739,11 @@ namespace mooSQL.data
             // Ext L2 / 预构建命令：跳过拼装，直接返回已缓存的 SQLCmd（仅改 para 场景）
             if (_prebuiltSelectCmd != null)
                 return _prebuiltSelectCmd;
+
+            // SQLMold 两级编译：PathKey 命中则 L2 填参；miss 捕获模版后 L2
+            var moldCmd = TryToSelectViaMold();
+            if (moldCmd != null)
+                return moldCmd;
 
             string sql = "";
             if (this.unionHolder.Count == 0)
