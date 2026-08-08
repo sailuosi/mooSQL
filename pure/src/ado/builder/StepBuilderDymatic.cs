@@ -15,7 +15,7 @@ namespace mooSQL.data
     /// <summary>
     /// SQL创建工具类，子类必须重载根据连接位获取数据库的方法
     /// </summary>
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
 
         /// <summary>
@@ -477,18 +477,18 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder selectWith(Action<SQLBuilder> queryOther) {
             this.clearSelect();
-            queryOther(this);
-            return this;
+            queryOther(Self);
+            return Self;
         }
 
         /// <summary>
-        /// selectWith 方法（返回 SQLBuilder）。
+        /// selectWith 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder selectWith(string queryOther)
         {
             this.clearSelect();
             select(queryOther);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 设置汇总字段，配合分页查询使用，可以在分页查询的基础上进行汇总查询，避免重复的条件配置。
@@ -498,7 +498,7 @@ namespace mooSQL.data
         public SQLBuilder selectSummary(string queryOther)
         {
             this._MakeUps.addSummaryField(queryOther);
-            return this;
+            return Self;
         }
 
         /// <summary>

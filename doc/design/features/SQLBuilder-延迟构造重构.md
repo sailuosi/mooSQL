@@ -32,11 +32,12 @@ public API（select/from/where/…）
 
 | 目标 | 说明 |
 |------|------|
-| **编排 / 构造分离** | public 构造方法只记录行为；真正写入 `SqlGoup` 等发生在物化阶段 |
-| **调用即入队** | 每个 public **非执行** 方法：记录方法标识 + 参数，推入行为队列 |
-| **执行前物化** | 在 `toXxx` / `queryXxx` / `doXxx`（及必要的内部物化点）前，按序回放队列完成构造 |
-| **对外兼容** | 链式 API 签名与语义不变；现有测试（含 Apart）在迁移后仍通过或等价替换 |
-| **可演进** | 队列模型可统一支撑 Apart 复用、调试 dump、未来跨方言重放（本期不做跨库） |
+| **编排 / 构造分离** | 新 `SQLBuilder` 只做编排入队；原实现整体更名为 `StepBuilder`，专司构造与执行 |
+| **现有实现零改逻辑** | 改造启动时 **不改动** 原 `SQLBuilder` 方法体；仅类型更名，行为原样保留 |
+| **调用即入队** | 新门面每个 public **非执行** 方法：`new XxxStep(args)` 推入 `IStep` 队列 |
+| **一方法一 Step** | 每个需编排的 public 方法对应一个实现 `IStep` 的类 |
+| **执行前物化** | 在 `toXxx` / `queryXxx` / `doXxx` 前，按序 `Apply` 到内建 `StepBuilder`，再委托其既有出口 |
+| **对外兼容** | 类型名仍为 `SQLBuilder`；链式 API 签名与语义不变 |
 
 ### 1.3 非目标（本期不做）
 
@@ -58,23 +59,25 @@ public API（select/from/where/…）
 
 | 术语 | 含义 |
 |------|------|
-| **编排（Orchestration）** | 对外 DSL：链式方法、条件门控（`ifs`）、嵌套闭包、队列追加、元操作（`clear`/`record`） |
-| **构造（Construction / Materialize）** | 将队列按序应用到内部状态（`SqlGoup`、CTE、Union、`Paras`），得到可交给 Dialect 的结构 |
-| **执行（Execution）** | `query*` / `do*` / `exe*`：在已有 `SQLCmd` 上走 Executor |
-| **行为步骤（BuildStep）** | 一次 public 构造调用的不可变描述：`op` + 参数载荷（含嵌套子脚本） |
-| **行为队列（BuildScript）** | 有序 `BuildStep` 列表；可切片成为 `SQLApart` |
-| **物化（Flush）** | `BuildScript` → 写入当前 Builder 内部状态；可标记「已物化」避免重复 |
-| **非执行 public 方法** | 返回 `SQLBuilder`（或嵌套 Builder DSL）且不产出/执行 SQL 的构造与配置方法；**排除** `toXxx` / `queryXxx` / `doXxx` / `count` / `exist` 等 |
+| **SQLBuilder（新）** | 对外编排门面：实现原全部 public API；构造类方法只入队；执行类方法先 Flush 再委托 |
+| **StepBuilder（原 SQLBuilder）** | 由现类型整体更名而来；**方法体初期完全不动**；承接 Flush 回放与全部构造/执行逻辑 |
+| **编排（Orchestration）** | 新 `SQLBuilder` 上的 DSL：入队、门控、嵌套闭包、元操作 |
+| **构造（Construction）** | `StepBuilder` 内对 `SqlGoup` / where / CTE / Union / `Paras` 的既有改写 |
+| **执行（Execution）** | `StepBuilder` 的 `query*` / `do*` / `exe*` |
+| **IStep** | 编排步骤抽象；一次 public 构造（或需入队的）调用对应一个实现类 |
+| **步骤队列** | `SQLBuilder` 内建 `List<IStep>`（或等价结构）；可切片为 `SQLApart` |
+| **物化（Flush）** | 按序 `step.Apply(stepBuilder)`，把队列回放到内建 `StepBuilder` |
+| **非执行 public 方法** | 返回 `SQLBuilder`（或嵌套 DSL）的构造/配置方法；**排除** `toXxx` / `queryXxx` / `doXxx` / `count` / `exist` 等 |
 
 ---
 
 ## 3. 现状架构摘要
 
-### 3.1 模块位置
+### 3.1 模块位置（改造前）
 
 | 路径 | 职责 |
 |------|------|
-| `pure/src/ado/builder/SQLBuilder*.cs` | 对外编排 + 当前 eager 构造 |
+| `pure/src/ado/builder/SQLBuilder*.cs` | 对外编排 + eager 构造（将更名为 `StepBuilder`） |
 | `pure/src/ado/builder/SQLKit/SqlGoup.cs` | 单语句片段袋 + `buildSelect` 等 |
 | `pure/src/ado/builder/SQLKit/WhereCollection.cs` | where 树；可选 `Stepable<WhereStep>` |
 | `pure/src/ado/builder/apart/*` | Apart 快照 / 重放 |
@@ -90,84 +93,277 @@ public API（select/from/where/…）
   toApart() → ApartEmitter 从「已构造状态」反推 IApartStep
   useApart() → 再调 public API（再次 eager）
 
-目标延迟构造:
-  任意构造 API → 只 Append(BuildStep)
-  toXxx/queryXxx/doXxx → Flush(queue) → 既有 build* → SQLCmd
-  Apart ≈ 队列切片的序列化/重放（一等公民，非事后快照）
+目标:
+  新 SQLBuilder 构造 API → enqueue(IStep)
+  toXxx/queryXxx/doXxx → Flush → StepBuilder 既有 to*/query*/do*
+  Apart ≈ IStep 队列切片（一等公民）
 ```
-
-Apart 是本重构的 **子集与先行试点**，不是对立方案。重构完成后：
-
-- `toApart()`：导出当前队列（或物化前快照队列）  
-- `useApart()`：将外部脚本步骤 **合并追加** 到当前队列  
-- `record()`/`stop()`：可收敛为「从某游标起切片」的语法糖；实现需与文档对齐（今日注释称「影子 Builder」但实现仅 `steps.start()`）
 
 ---
 
-## 4. 目标架构
+## 4. 改造实施方式（锁定）
 
-### 4.1 分层
+> 本节为实施主路径，优先于旧「原地改 SQLBuilder + DualWrite」方案。
+
+### 4.1 总原则
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  SQLBuilder（编排门面，public API 稳定）                  │
-│   - Append step / 元操作 / 事务·路由·缓存配置             │
-└───────────────────────────┬─────────────────────────────┘
-                            │ 仅队列
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│  BuildScript + BuildStep（行为队列，与方言无关）          │
-└───────────────────────────┬─────────────────────────────┘
-                            │ Flush（执行前 / 读中间态前）
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│  SQLConstructor / Materializer（构造实现）                │
-│   - 现有 SqlGoup / WhereCollection / CTE / Union 逻辑下沉 │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│  Dialect / SQLExpression → SQLCmd → Executor            │
-└─────────────────────────────────────────────────────────┘
+1. 现有 SQLBuilder 全员不动（方法体 / SqlGoup 协作逻辑保持原样）
+2. 类型更名：SQLBuilder → StepBuilder（partial 全套同步更名）
+3. 新建类型：SQLBuilder（编排门面），实现原全部 public 方法（先空实现/桩）
+4. 门面内建 IStep 队列，维护编排步骤
+5. 定义 IStep；为每一个需编排的 public 方法建立一个实现类
+6. 构造方法：入队后 return this；执行方法：Flush 后委托内建 StepBuilder
 ```
 
-### 4.2 建议类型（新增，命名可微调）
+**禁止**在 Phase-1/2 去「改一点点原方法体做双写」——原实现整体冻结为 `StepBuilder`，差异只发生在新门面与 Step 类中。
 
-| 类型 | 可见性 | 职责 |
-|------|--------|------|
-| `BuildOp` | internal | 枚举或稳定字符串：`Select` / `From` / `WhereEq` / `Sink` / … |
-| `IBuildStep` | internal | `void Apply(SQLConstructor ctx)` 或携带 payload 由分发器处理 |
-| `BuildScript` | internal | `List<IBuildStep>` + `Append` / `Clear` / `Clone` / `Slice` |
-| `SQLConstructor` | internal | 持有今日 `current`/`groups`/`unionHolder`/`CTE`/`ps` 的可变状态；承接 Apply |
-| `Materializer` | internal | `Flush(SQLBuilder)`：若脏则回放脚本到 Constructor |
-| `SQLApart` | public | 包装 `BuildScript` + `SourceDbType`（演进现有类型） |
+### 4.2 类型更名：`SQLBuilder` → `StepBuilder`
 
-> **原则**：`SQLBuilder` 对外仍是唯一用户入口；`SQLConstructor` 不对应用层暴露。
+| 项 | 做法 |
+|----|------|
+| 类型名 | `public partial class SQLBuilder` → `public partial class StepBuilder` |
+| 文件名 | 建议同步：`SQLBuilder.cs` → `StepBuilder.cs`，`SQLBuilderWhere.cs` → `StepBuilderWhere.cs`，…（或暂留文件名、只改类型，二选一；推荐文件名同步以免混淆） |
+| 方法体 | **零逻辑改动**；仅因类型改名产生的 `SQLBuilder` → `StepBuilder` 符号替换 |
+| 可见性 | 建议 `internal`（应用层只认新 `SQLBuilder`）；若测试需直连可暂 `public` + `[Obsolete]` |
+| 内部自引用 | `getBrotherBuilder` / `copy` / `new SQLBuilder()` 等改为 `new StepBuilder()` / 返回 `StepBuilder` |
+| 被引用处 | `SqlGoup.root`、Apart、SQLClip、扩展方法等：构造执行宿主指向 `StepBuilder`；**对外 API 宿主**指向新 `SQLBuilder` |
 
-### 4.3 调用时序
+更名检查清单（工具辅助全局替换后人工复核）：
+
+- [ ] `partial class` 全部分片  
+- [ ] 构造函数、返回类型、字段类型中的自引用  
+- [ ] `Apart*` / `WhereStep.Replay` 中对 Builder 的参数类型（Flush 路径应接受 `StepBuilder`）  
+- [ ] 测试若直接 `new SQLBuilder()`：改为 `useSQL()` 或新门面构造  
+
+### 4.3 新建门面：`SQLBuilder`
+
+新建独立类型（**不要**再做成 `StepBuilder` 的 partial）：
+
+```csharp
+namespace mooSQL.data
+{
+    /// <summary>
+    /// SQL 编排门面：构造 API 只记录 IStep；执行前 Flush 到内建 StepBuilder。
+    /// </summary>
+    public partial class SQLBuilder : IDisposable
+    {
+        private readonly List<IStep> _steps = new List<IStep>();
+        private readonly StepBuilder _inner;   // 构造/执行宿主，初期即完整旧实现
+        private bool _dirty = true;           // 队列变更后需重新 Flush
+
+        public SQLBuilder() { _inner = new StepBuilder(); /* 同步必要配置 */ }
+        public SQLBuilder(DBInstance db) { /* setDBInstance 等到 _inner */ }
+
+        internal IReadOnlyList<IStep> Steps => _steps;
+        internal StepBuilder Inner => _inner;
+
+        private SQLBuilder Enqueue(IStep step)
+        {
+            _steps.Add(step);
+            _dirty = true;
+            return this;
+        }
+
+        internal void EnsureMaterialized()
+        {
+            if (!_dirty) return;
+            _inner.clear(); // 或约定：从干净状态重放
+            foreach (var step in _steps)
+                step.Apply(_inner);
+            _dirty = false;
+        }
+    }
+}
+```
+
+**空方法阶段（骨架里程碑）**：
+
+1. 用反射或 API 清单，为原 `SQLBuilder` **每一个 public 实例方法/属性** 在新类上生成同签名成员。  
+2. 构造类方法体：`throw new NotImplementedException()` 或 `return Enqueue(new XxxStep(...));`（参数先收齐）。  
+3. 执行类方法体：暂 `EnsureMaterialized(); return _inner.Xxx(...);`（骨架期即可委托，便于早期冒烟）。  
+4. 公共属性（`DBLive` / `ps` / `Dialect`…）：默认 **透传到 `_inner`**，保证扩展与调试可读。
+
+> 「空方法」指门面尚无完整业务逻辑，不是永久 `throw`；骨架合并后应尽快改为标准入队/委托模板。
+
+### 4.4 `IStep` 与「一方法一类型」
+
+```csharp
+namespace mooSQL.data.builder.steps
+{
+    /// <summary>
+    /// 编排步骤：携带一次 public API 调用的参数，在 Flush 时作用于 StepBuilder。
+    /// </summary>
+    public interface IStep
+    {
+        /// <summary>将本步骤应用到构造宿主（原实现）。</summary>
+        void Apply(StepBuilder builder);
+    }
+}
+```
+
+规则：
+
+| 规则 | 说明 |
+|------|------|
+| **一方法一 Step 类** | 例如 `select(string)` → `SelectStep`；`where(string, object, string, bool)` → `WhereKeyValOpParamedStep`（命名见下） |
+| **重载 = 不同类型** | 不同参数列表各自一类，避免一个类塞多个工厂导致 Apply 分支失控 |
+| **载荷不可变** | 构造时捕获参数；`Action<SQLBuilder>` 在编排期执行并捕获**子门面的步骤列表**（或子 `SQLBuilder`），勿在 Apply 时再执行会改外部状态的不确定逻辑 |
+| **Apply 只打 StepBuilder** | `Apply` 内调用 `_inner.select(...)` 等 **StepBuilder public/internal API**；禁止 `Apply` 再调新 `SQLBuilder` 入队（防重入） |
+| **执行方法不建 Step** | `toSelect` / `query` / `doUpdate` 等不入队，只 Flush + 委托 |
+
+命名建议：
+
+```
+{ApiName}[OverloadHint]Step
+
+select(string)              → SelectStep
+select(string, Action<…>)   → SelectSubqueryStep
+where(string, object)       → WhereKeyValStep
+where(string, object, string, bool) → WhereKeyValOpParamedStep
+leftJoin(string)            → LeftJoinStep
+setPage(int?, int?)         → SetPageStep
+```
+
+目录建议：`pure/src/ado/builder/steps/`，可按家族分子目录 `select/` `where/` `set/` `union/` `cte/`…
+
+### 4.5 门面方法标准模板
+
+**构造（入队）**
+
+```csharp
+public SQLBuilder select(string columns)
+{
+    return Enqueue(new SelectStep(columns));
+}
+
+// steps/SelectStep.cs
+sealed class SelectStep : IStep
+{
+    private readonly string _columns;
+    public SelectStep(string columns) => _columns = columns;
+    public void Apply(StepBuilder builder) => builder.select(_columns);
+}
+```
+
+**执行（Flush + 委托）**
+
+```csharp
+public SQLCmd toSelect()
+{
+    EnsureMaterialized();
+    return _inner.toSelect();
+}
+
+public IEnumerable<T> query<T>()
+{
+    EnsureMaterialized();
+    return _inner.query<T>();
+}
+```
+
+**元操作（立即生效，通常不入队或特殊步骤）**
+
+```csharp
+public SQLBuilder clear()
+{
+    _steps.Clear();
+    _inner.clear();
+    _dirty = false;
+    return this;
+}
+```
+
+**配置透传（可不入队）**
+
+```csharp
+public SQLBuilder setDBInstance(DBInstance db)
+{
+    _inner.setDBInstance(db);
+    return this;
+}
+```
+
+### 4.6 目标分层（实施后）
+
+```
+应用 / 扩展方法 / SQLClip
+        │
+        ▼
+┌───────────────────────────────────────┐
+│  SQLBuilder（新门面）                  │
+│  - List<IStep> 编排队列                │
+│  - 构造 API → Enqueue                  │
+│  - to/query/do → Flush → 委托          │
+└───────────────────┬───────────────────┘
+                    │ Apply 回放
+                    ▼
+┌───────────────────────────────────────┐
+│  StepBuilder（原 SQLBuilder，逻辑冻结） │
+│  - SqlGoup / Where / CTE / Union / ps  │
+│  - 既有 toXxx / queryXxx / doXxx       │
+└───────────────────┬───────────────────┘
+                    ▼
+         Dialect / SQLExpression → SQLCmd
+```
+
+### 4.7 调用时序
 
 ```
 kit.select("id").from("t").where("id", 1).query<T>()
 
-1) select  → queue += Select("id")          // 不碰 SqlGoup.selectPart
-2) from    → queue += From("t")
-3) where   → queue += WhereEq("id", 1, …)   // 不立即 addFrag / 分配 paramKey
+1) select  → _steps += SelectStep("id")       // 不碰 StepBuilder 片段
+2) from    → _steps += FromStep("t")
+3) where   → _steps += WhereKeyValStep(...)
 4) query   → EnsureMaterialized()
-              → foreach step: Apply(constructor)
-              → constructor 内完成参数命名、where 树、select/from 列表
-           → toSelect() → expression.buildSelect → 执行
+              _inner.clear()
+              SelectStep.Apply(_inner) → _inner.select("id")
+              FromStep.Apply(_inner)   → _inner.from("t")
+              Where….Apply(_inner)     → _inner.where(...)
+           → return _inner.query<T>()
 ```
 
-### 4.4 物化触发点（必须 Flush）
+### 4.8 物化触发点
 
 | 类别 | 入口 |
 |------|------|
-| **主出口** | `toSelect` / `toSelectCount` / `toSelectExist` / `toInsert*` / `toUpdate*` / `toDelete` / `toMergeInto` |
-| **执行包装** | `query*` / `do*` / `count` / `exist` / `checkExistKey`（均先走 to*） |
-| **读中间态** | `ColumnCount` / `ConditionCount` / `containSetColumn` / `buildWhere` / `buildWhereContent` / `preWhere` 依赖路径 |
-| **嵌套边界** | 见 §5.3：闭包子 Builder 在父步骤入队时 **捕获子脚本**，父 Flush 时再物化子树 |
-| **Apart** | `toApart` 导出队列（默认不要求先 Flush；若需兼容「从状态 Emit」过渡期可双路径） |
-| **扩展** | `MooSQLBuilderExtensions` / SQLClip / Clause `ToCmd` —— 经 SQLBuilder 出口间接 Flush |
+| **主出口** | 新 `SQLBuilder` 的全部 `toXxx` |
+| **执行包装** | `query*` / `do*` / `count` / `exist` / `checkExistKey` / `exe*`（若依赖已编排状态） |
+| **读中间态** | `ColumnCount` / `ConditionCount` / `containSetColumn` / `buildWhere*` —— getter/方法内先 `EnsureMaterialized()` |
+| **嵌套** | 父步骤 `Apply` 时物化子脚本（子 `SQLBuilder` Flush 或直接把子 `IStep` 应用到兄弟 `StepBuilder`） |
+| **Apart** | `toApart` 导出 `_steps`；`useApart` 追加到 `_steps` |
+
+### 4.9 嵌套 `Action<SQLBuilder>`（门面语义）
+
+```csharp
+public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect)
+{
+    var child = CreateChildFacade(); // 共享 _inner.ps / seed 策略与 StepBuilder.getBrotherBuilder 对齐
+    doColSelect(child);
+    return Enqueue(new SelectSubqueryStep(asName, child.Steps)); // 或持有 child 引用
+}
+```
+
+`SelectSubqueryStep.Apply(StepBuilder parentInner)`：按旧实现等价方式创建 brother `StepBuilder`、回放子步骤、`toSelect()`、写入父 `selectPart`。  
+初期允许 Step 内 **直接复刻** 旧 `SQLBuilderSelect.select(string, Action)` 的控制流，只要参数来自已捕获的子步骤而非再次调用会入队的门面。
+
+### 4.10 分阶段实施节奏
+
+| 阶段 | 内容 | 完成标志 |
+|------|------|----------|
+| **P0** | API 清单（全部 public 方法/属性/事件）；回归测试基线 | 清单入库 |
+| **P1** | 全局更名 → `StepBuilder`；编译通过；测试临时改指向或仍测 StepBuilder | 旧行为绿 |
+| **P2** | 新建 `SQLBuilder` + `IStep`；全部 public **桩签名**；`useSQL()` 返回新门面 | 编译通过 |
+| **P3** | 逐家族实现 Step 类 + 入队；执行方法 Flush+委托；无嵌套 API 先绿 | 核心查询/更新测试绿 |
+| **P4** | 嵌套闭包 / UNION / CTE / Merge / Apart | 全量 SQLBuilder* 测试绿 |
+| **P5** | `StepBuilder` 收为 `internal`；Apart 与旧 Emitter 收敛；文档/Skills | 发布就绪 |
+
+对比旧 DualWrite 方案：本方式用「门面 vs 冻结内核」代替「同一类双写」，语义对比测试可写成：
+
+```text
+同一调用链 → 新 SQLBuilder.toSelect()  vs  纯 StepBuilder 手写链.toSelect()
+断言 SQL + 参数键一致
+```
 
 ---
 
@@ -185,24 +381,24 @@ kit.select("id").from("t").where("id", 1).query<T>()
 - WHERE：全部 `where*` / `sink*` / `rise` / `and` / `or` / `pin*` / `clearWhere`  
 - SET：`setTable` / `set*` / `newRow` / `addRow`…  
 - MERGE DSL 配置方法、`prefix` / `subfix`、条件片段相关构造  
-- `ifs`：作为 **控制步骤** 入队（见 §5.4）
+- `ifs`：推荐编排期门控，被跳过的调用 **不入队**（见 §5.4）
 
 ### 5.2 物化 + 产出 / 执行（不入「构造队列」为业务步骤）
 
-- `toXxx`：`EnsureMaterialized` → 既有 `build*`  
-- `queryXxx` / `doXxx` / `count` / `exist`：同上再执行  
+- `toXxx`：`EnsureMaterialized` → 委托 `_inner.toXxx`  
+- `queryXxx` / `doXxx` / `count` / `exist`：Flush 后委托 `_inner`  
 - 扩展实体 `insert` / `update` / `find*` 等：内部驱动构造 API 后走执行出口
 
 ### 5.3 特殊方法
 
 | 方法 | 约定 |
 |------|------|
-| `clear` / `reset` / `clearSelect` / `clearWhere` / `clearPage` | 清空队列 **并** 重置 Constructor；或入队 `Clear*` 且立即生效（推荐 **立即生效**，避免脏读） |
+| `clear` / `reset` / `clearSelect` / `clearWhere` / `clearPage` | 清空门面 `_steps` **并** `_inner.clear()`（推荐 **立即生效**，避免脏读） |
 | `copy()` | 复制 DB/路由配置 + **队列深拷贝**（今日不复制 SQL 状态；若兼容旧语义则文档标明「空 clone」vs「含脚本 clone」——建议新增 `copyScript()` 或明确 `copy` 含未物化队列） |
-| `getBrotherBuilder()` | 新编排器，共享 `Paras` 引用与 seed/level 规则；用于嵌套闭包宿主 |
-| `record` / `stop` / `toApart` / `useApart` | 元编排；建立在 `BuildScript` 切片上 |
-| `configClear` / `print` / `setCache` / `setSeed` / `setPosition` / `setDBInstance` / route | **配置态**：可立即写入 Builder 字段（非 SQL 片段），不必进构造队列 |
-| `beginTransaction` / `useTransaction` / `commit` | 执行域，与构造队列无关 |
+| `getBrotherBuilder()` | 返回新**门面**（或文档化返回内核）；嵌套闭包优先 `CreateChildFacade()`，共享 `ps`/seed 规则与 `StepBuilder.getBrotherBuilder` 对齐 |
+| `record` / `stop` / `toApart` / `useApart` | 元编排；建立在门面 `_steps`（`IStep` 队列）切片上 |
+| `configClear` / `print` / `setCache` / `setSeed` / `setPosition` / `setDBInstance` / route | **配置态**：可立即透传到 `_inner`（非 SQL 片段），不必进 `IStep` 队列 |
+| `beginTransaction` / `useTransaction` / `commit` | 执行域：透传/委托 `_inner`，与 `IStep` 队列无关 |
 | `addPara` | 建议立即写入 `ps`（副作用可见），或入队 `AddPara` 且 Flush 保序——须与参数命名策略统一 |
 
 ### 5.4 `ifs` / `opened` 门控
@@ -228,7 +424,7 @@ kit.select("id").from("t").where("id", 1).query<T>()
 
 要点：
 
-- 闭包执行时机：**编排期执行闭包**，但闭包内 API 只写入 **子 BuildScript**，子 Builder 默认不提前 Dialect 渲染。  
+- 闭包执行时机：**编排期执行闭包**，但闭包内 API 只写入 **子门面 `_steps`**，子 Builder 默认不提前 Dialect 渲染。  
 - 子 SQL 字符串生成推迟到 **父 Flush**（或父 `toSelect`），以保持参数分配顺序与今日一致。  
 - `getBrotherBuilder()` 仍共享 `ps`；paramKey 分配发生在 Flush，须用回归测试锁住键序（参考 `SQLBuilderApartTests` 参数键用例）。
 
@@ -236,85 +432,70 @@ kit.select("id").from("t").where("id", 1).query<T>()
 
 扁平「方法名字符串列表」不足以表达图结构，步骤载荷需支持：
 
-- `UnionBranchStep(BuildScript branch, bool all, …)`  
-- `CteSelectStep(name, BuildScript inner)` / `CteSolidStep`  
+- `UnionBranchStep(IReadOnlyList<IStep> branch, bool all, …)`  
+- `CteSelectStep(name, IReadOnlyList<IStep> inner)` / `CteSolidStep`  
 - `Merge*` 步骤或保留 `MergeIntoBuilder` 为子编排器（其 `toMergeInto` 触发父/子 Flush）  
 - `RecurCTEBuilder`：闭包录制为子脚本
 
 ---
 
-## 6. 与现有代码的映射策略
+## 6. 与现有代码的映射（承接 §4）
 
-### 6.1 推荐演进路径（绞杀者 / Strangler）
+### 6.1 符号对照
 
-避免一次性改写全部 where/select 实现：
+| 改造前 | 改造后 |
+|--------|--------|
+| `SQLBuilder`（唯一类型） | `StepBuilder`（内核，逻辑冻结）+ `SQLBuilder`（新门面） |
+| 调用即改 `SqlGoup` | 门面 `Enqueue(IStep)`；Flush 时 `step.Apply(_inner)` |
+| `ApartEmitter` 事后快照 | 门面 `_steps` 直接导出 |
+| `IApartStep.Apply(SQLBuilder)` | 演进为 `IStep.Apply(StepBuilder)` |
+| `useSQL()` | 仍返回对外 `SQLBuilder`（新门面），内建 `StepBuilder` |
 
-```
-Phase 0  基线：固化 SQLBuilder* 回归测试清单（Apart / Subquery / Exist / Route / Extension）
-Phase 1  引入 BuildScript / IBuildStep / Materializer 骨架；双写开关（见下）
-Phase 2  逐类 API 改为「只入队」；Apply 委托给从 SqlGoup 抽出的方法
-Phase 3  嵌套闭包改为子脚本；去掉编排路径上的提前 toSelect
-Phase 4  ApartEmitter 改为「导出入队脚本」；废弃事后 Emit 主路径
-Phase 5  清理双写与死代码；文档 / Skills 同步
-```
+### 6.2 扩展方法与 SQLClip
 
-### 6.2 双写开关（迁移期）
+- 扩展方法继续挂在 **新** `SQLBuilder` 上。  
+- 若扩展曾读取半成品 `current`，经门面透传属性或先 `EnsureMaterialized()`。  
+- SQLClip / Clause 持有门面引用；出口走门面 `to*` / `query*`。
 
-内部可设：
-
-```csharp
-// 概念示意
-enum BuildMode { EagerLegacy, DeferredQueue, DualWrite }
-```
-
-| 模式 | 行为 |
-|------|------|
-| `EagerLegacy` | 今日行为（默认，直至 Phase 2 完成） |
-| `DualWrite` | 入队 **且** eager；Flush 前断言「重放结果 vs eager 状态」供测试 |
-| `DeferredQueue` | 仅入队；出口 Flush |
-
-测试项目可强制 `DualWrite` / `DeferredQueue` 跑同一套用例。
-
-### 6.3 方法改造模板
-
-以 `select(string columns)` 为例：
-
-```csharp
-// 编排层（SQLBuilder）
-public SQLBuilder select(string columns)
-{
-    _script.Append(new SelectStep(columns));
-    return this;
-}
-
-// 构造层（SQLConstructor / 原 SqlGoup 逻辑）
-internal void ApplySelect(string columns) => current.select(columns);
-```
-
-重载多的 `where`：每个公开重载对应一个 Step（或一个 `WhereStep` 家族 + discriminant），避免反射调 public 造成递归入队。
-
-**防重入**：`Materializer` / `Apply` 路径必须走 `SQLConstructor` 或 `ApplyXxx` internal API，**禁止**再进会 `Append` 的 public 方法（Apart 今日 `Apply → kit.select` 在 Deferred 模式下会死循环，必须改为 `ApplyToConstructor`）。
-
-### 6.4 Apart 迁移
+### 6.3 Apart 迁移
 
 | 阶段 | 行为 |
 |------|------|
-| 过渡 | `toApart`：优先导出 `_script`；若脚本空则回退 `ApartEmitter.Emit` |
-| 完成 | `ApartEmitter` 仅保留兼容测试或删除；`IApartStep` 与 `IBuildStep` 合并 |
-| `useApart` | `target._script.AppendRange(apart.Script)`，不立即 Flush |
+| P3–P4 | `toApart` 深拷贝门面 `_steps`；`useApart` 追加到 `_steps`（不立刻 Apply） |
+| 过渡 | 未覆盖路径可 Flush 后 `ApartEmitter.Emit(_inner)` 兜底 |
+| 完成 | 合并 `IApartStep` → `IStep`；删除事后 Emit 主路径 |
+
+### 6.4 防重入（硬约束）
+
+```
+IStep.Apply        → 仅调用 StepBuilder.*
+SQLBuilder.Enqueue → 仅门面 public 编排方法
+useApart           → Enqueue 已有 IStep，不 Apply
+EnsureMaterialized → 只 Apply，不再 Enqueue
+```
+
+### 6.5 语义对比测试（替代 DualWrite）
+
+不在同一类型内双写。对比方式：
+
+```text
+链 A：new SQLBuilder()…toSelect()     // 门面 + 队列 + Flush
+链 B：new StepBuilder()…toSelect()    // 旧实现直调
+断言：sql 文本 + 参数键序一致
+```
 
 ---
 
 ## 7. 参数与副作用
 
-延迟构造后，下列副作用必须 **集中到 Flush**，并保证与调用顺序一致：
+副作用发生在 **`IStep.Apply` → `StepBuilder` 方法体** 内（与今日一致），门面入队阶段不分配 `paramKey`：
 
-1. **参数名生成**（`paraSeed` / `level` / 自增）  
-2. **`whereFormat` / `selectFormat` 占位替换**  
-3. **Auth / AOP 钩子**（若今日在 `addFrag` / `set` 时 `fireBuild*`）——决定是「编排期」还是「Flush 期」触发，并写进验收用例  
-4. **自动清理** `_AutoClearWay`：执行后清队列 + Constructor，与今日 clear 语义对齐  
+1. **参数名生成**（`paraSeed` / `level` / 自增）——Flush 回放时按步骤顺序发生  
+2. **`whereFormat` / `selectFormat` 占位替换**——同上  
+3. **Auth / AOP 钩子**——仍在 `StepBuilder` 原调用点触发（即 Flush 期）  
+4. **自动清理** `_AutoClearWay`：执行后清空门面 `_steps` + `_inner.clear()`，与今日对齐  
 
-共享 `Paras` 的兄弟 Builder：父 Flush 顺序必须先物化「在编排期已登记的子脚本」再继续父步骤，以复现今日「闭包内立刻 toSelect 导致参数先写入」的顺序。
+嵌套场景：父步骤 `Apply` 内按旧控制流创建 brother `StepBuilder` 并回放子 `IStep`，以保持参数写入顺序。
 
 ---
 
@@ -322,63 +503,66 @@ internal void ApplySelect(string columns) => current.select(columns);
 
 | 风险 | 影响 | 缓解 |
 |------|------|------|
-| 嵌套提前物化顺序变化 | SQL/参数键不一致 | 专项测试：子查询 select/from/join/where/CTE；锁参数键序 |
-| 中间态属性被外部读取 | 未 Flush 时 Count 为 0 | 属性 getter 调 `EnsureMaterialized`；或文档废弃中间态读取 |
-| Apart Apply 递归入队 | 死循环 / 双倍步骤 | Apply 只打 Constructor |
-| `ifs` / `opened` | 条件被错误录制 | 采用编排期门控（§5.4） |
-| 扩展方法绕过队列 | 行为分裂 | 扩展只调 public API；禁止直写 `current` |
-| 性能 | 多一次遍历 | 单次 Flush O(n)；相对 DB IO 可忽略；避免 DualWrite 长期开在生产 |
-| 文档/实现漂移 | `record` 影子 Builder 等 | Phase 5 同步 Skills 与 API 说明文档 |
+| 更名漏改 | 编译失败或类型错位 | P1 单独提交；全量编译 + 测试指到 StepBuilder/门面 |
+| 门面签名遗漏 | 二进制/源码不兼容 | P0 API 清单与 P2 桩生成对照 |
+| Step 类爆炸 | 文件多、难导航 | 按家族分目录；可脚本生成空 Step |
+| `Apply` 误调门面 | 死循环 / 双倍入队 | Code review；`Apply` 参数类型固定为 `StepBuilder` |
+| 嵌套参数序变化 | SQL/键不一致 | 门面 vs StepBuilder 对比测试 |
+| 中间态未 Flush | Count 为 0 | getter 内 `EnsureMaterialized` |
+| `ifs` 误录 | 多/少条件 | 编排期门控，跳过则不 `Enqueue`（§5.4） |
+| 重复 Flush 性能 | 多余 clear+重放 | `_dirty` 标志；无变更不重放 |
+| 文档漂移 | Skills/教程仍写旧结构 | P5 同步 |
 
 ---
 
 ## 9. 任务拆解（可立项）
 
-### T0 — 基线与清单（0.5–1d）
+### T0 — API 清单与基线（0.5–1d）
 
-- [ ] 汇总 public 构造 API 清单（按 Select/Where/Save/Union/CTE/Merge）  
-- [ ] 标注「今日是否中途 `toSelect`/`buildWhereContent`」  
-- [ ] 确认回归集：`SQLBuilderTests` / `Apart` / `Exist` / `SubqueryTop` / `Extension` / `Route`
+- [ ] 导出原 `SQLBuilder` 全部 public 方法/属性/索引器清单（含重载）  
+- [ ] 标注每项：`Enqueue` / `Flush+委托` / `透传配置` / `元操作立即生效`  
+- [ ] 固化回归：`SQLBuilderTests` / `Apart` / `Exist` / `SubqueryTop` / `Extension` / `Route`
 
-### T1 — 骨架（1–2d）
+### T1 — 更名为 StepBuilder（1d）
 
-- [ ] 新增 `BuildScript` / `IBuildStep` / `Materializer`  
-- [ ] `SQLBuilder` 持有脚本与 `BuildMode`  
-- [ ] `toSelect` 入口插入 `EnsureMaterialized()`（Legacy 下空操作）  
-- [ ] DualWrite 对比断言助手（测试专用）
+- [ ] `partial class SQLBuilder` → `StepBuilder`（全部分片 + 建议文件名同步）  
+- [ ] 内部 `new SQLBuilder` / 返回类型自引用全部改为 `StepBuilder`  
+- [ ] **方法体零逻辑改动**；编译通过  
+- [ ] 过渡期测试可直连 `StepBuilder` 验证旧行为仍绿
 
-### T2 — 无嵌套类 API 迁移（3–5d）
+### T2 — 新 SQLBuilder 门面骨架（1–2d）
 
-- [ ] `select(string)` / `from(string)` / `orderBy` / `groupBy` / `setPage` / `skipTake` / `distinct` / `top`  
-- [ ] 简单 `where(key,val,op)` / `set` / `setTable`  
-- [ ] DualWrite 绿后切换默认 Deferred（特性开关）
+- [ ] 新建 `SQLBuilder`：`List<IStep> _steps` + `StepBuilder _inner`  
+- [ ] 定义 `IStep`（`void Apply(StepBuilder builder)`）  
+- [ ] 按清单生成 **全部 public 空方法/属性**（同签名）  
+- [ ] 属性默认透传 `_inner`；执行类方法可先写 `EnsureMaterialized()+委托`  
+- [ ] `useSQL()` / 工厂返回新门面
 
-### T3 — Where 全家桶与 sink/rise（3–5d）
+### T3 — 一方法一 Step：无嵌套家族（3–5d）
 
-- [ ] 将 `WhereStep` 提升为全局 where 步骤源（默认录制，不再依赖 `recordNow`）  
-- [ ] `sink`/`rise`/`pin`/`whereIn` 自动分组等与 Flush 参数上限逻辑对齐  
-- [ ] 理清 `record`/`stop` 与全量队列关系
+- [ ] 为 `select(string)` / `from` / `orderBy` / `groupBy` / `setPage` / `skipTake` / `distinct` / `top` 等建立 Step 类  
+- [ ] 简单 `where*` / `set*` / `setTable` 入队  
+- [ ] 门面 vs `StepBuilder` 对比断言转绿
 
-### T4 — 嵌套闭包与 CTE/UNION（3–5d）
+### T4 — Where 全家桶与控制流（3–5d）
 
-- [ ] 子脚本捕获；父 Flush 渲染子 SQL  
-- [ ] UNION 分支脚本、CTE、`withRecur`  
-- [ ] 去掉编排路径上的提前 `toSelect`（保留 Flush 内调用）
+- [ ] 每个 where 重载一个 Step 类；`sink`/`rise`/`pin`/`whereIn`…  
+- [ ] `ifs` 编排期门控  
+- [ ] `clear`/`reset` 清队列 + `_inner`
 
-### T5 — Merge / 特殊 DSL / 扩展适配（2–3d）
+### T5 — 嵌套 / UNION / CTE / Merge（3–5d）
 
-- [ ] `MergeIntoBuilder` 与队列边界  
-- [ ] SQLClip / Clause / Extensions 冒烟  
-- [ ] `buildWhere` 等公开物化 API 行为锁定
+- [ ] `Action<SQLBuilder>`：子门面录制 → 父 Step 持有子步骤列表  
+- [ ] UNION / CTE / Recur / MergeInto 边界  
+- [ ] Apart：`toApart`/`useApart` 基于 `_steps`
 
-### T6 — Apart 统一与收尾（2–3d）
+### T6 — 收尾（1–2d）
 
-- [ ] `toApart`/`useApart` 基于 `BuildScript`  
-- [ ] 删除或降级 `ApartEmitter` 快照路径  
-- [ ] 更新 `API说明文档.md`、Skills、`doc/docs/SQL/basis/SQLBuilder.md` 中 Apart 描述  
-- [ ] 移除 DualWrite；性能测试抽检
+- [ ] `StepBuilder` 改为 `internal`（若可行）  
+- [ ] 移除 ApartEmitter 主路径；更新 API 说明与 Skills  
+- [ ] 全量回归 + 性能抽检
 
-**合计量级（粗估）**：约 2–3 人周，视 Where 重载与嵌套边界缺陷密度浮动。
+**合计量级（粗估）**：约 2–3 人周；Step 类可用清单脚本批量生成空壳以降低手工量。
 
 ---
 
@@ -386,60 +570,71 @@ internal void ApplySelect(string columns) => current.select(columns);
 
 | # | 场景 | 期望 |
 |---|------|------|
-| A1 | 仅链式 `select/from/where`，检查 `current.selectPart` 在 Deferred 下仍空，直至 `toSelect` | 队列有步骤；片段在 Flush 后出现 |
-| A2 | 与 Legacy 对比 `toSelect().sql` 与参数键 | 一致 |
-| A3 | `select(as, Action)` 子查询 | SQL 与参数序一致 |
-| A4 | `record`→`stop`→`useApart` | 与手动链等价（现有 Apart 测试） |
-| A5 | `ifs(false).where(...)` | where 不出现 |
-| A6 | `union` + 外层 `selectUnioned` | 结构正确 |
-| A7 | CTE `withSelect` + 主查询 | CTE SQL 正确 |
-| A8 | `doUpdate` where 为空保护 / `clear` 后无残留队列 | 与现网一致 |
-| A9 | `queryPaged` / `exist` / `count` | 走 Flush + 既有方言路径 |
-| A10 | DualWrite 全量回归 0 diff | 迁移门槛 |
+| A1 | 链式 `select/from/where` 后、`toSelect` 前 | `_steps` 非空；`_inner` 片段仍空（或仅初始态） |
+| A2 | 同链：门面 `toSelect` vs 纯 `StepBuilder` | SQL + 参数键一致 |
+| A3 | `select(as, Action)` 子查询 | 与 StepBuilder 直调一致 |
+| A4 | `record`→`stop`→`useApart` | 与手动链等价 |
+| A5 | `ifs(false).where(...)` | 不入队 / 无该条件 |
+| A6 | UNION / CTE / Merge | 结构正确 |
+| A7 | `doUpdate` 空 where 保护；`clear` 后队列空 | 与现网一致 |
+| A8 | `queryPaged` / `exist` / `count` | Flush 后委托 `_inner` |
+| A9 | 每个清单内 public 构造方法均有对应 `*Step` 类型 | 一方法一类型审计通过 |
 
 ---
 
 ## 11. 目录与文档约定
 
-建议落地代码目录：
-
 ```
 pure/src/ado/builder/
-  defer/                 # 新增：BuildScript, BuildOp, steps, Materializer
-  SQLConstructor.cs      # 可选：从 SQLBuilder 抽出的可变状态宿主
-  apart/                 # 演进为脚本导出/导入
-  SQLKit/                # 构造期片段实现（逐步只被 Constructor 使用）
+  SQLBuilder.cs              # 新门面（可 partial：SQLBuilder.queue.cs 等）
+  SQLBuilder.*.cs            # 门面 API 分片（select/where/save/dymatic…）
+  steps/
+    IStep.cs
+    select/SelectStep.cs
+    where/WhereKeyValStep.cs
+    ...                      # 一方法一文件（或一族一文件，类仍一对一）
+  StepBuilder.cs             # 原 SQLBuilder 更名
+  StepBuilderWhere.cs        # 原分片更名
+  StepBuilderSelect.cs
+  StepBuilderDymatic.cs
+  StepBuilderSave.cs
+  StepBuilder.apart.cs       # 内核侧 Apart 逻辑；对外 API 可挂在门面
+  apart/                     # 演进为 IStep 序列化
+  SQLKit/                    # 仍只被 StepBuilder 使用
 ```
 
 本文档路径：`doc/design/features/SQLBuilder-延迟构造重构.md`。  
-实现过程中若调整决策（尤其 `ifs`、`copy`、Auth 钩子时机），应回写 §5 / §7。
+实施决策变更回写 §4 / §5 / §12。
 
 ---
 
-## 12. 决策记录（待实现前确认）
+## 12. 决策记录
 
 | ID | 议题 | 建议默认 | 状态 |
 |----|------|----------|------|
-| D1 | `ifs` 编排期求值 vs 入队求值 | 编排期求值 | 待确认 |
-| D2 | `copy()` 是否复制未物化队列 | 复制队列；若破坏兼容则新 API | 待确认 |
-| D3 | Auth/`fireBuild*` 触发点 | Flush 期，与 frag 创建对齐 | 待确认 |
-| D4 | 默认 `BuildMode` 切换节奏 | DualWrite 全绿后改 Deferred | 待确认 |
-| D5 | Apart 与全量队列是否保留独立 `record` 开关 | `record/stop` 仅表意切片；全量始终入队 | 待确认 |
+| D0 | 实施方式 | **更名 StepBuilder + 新 SQLBuilder 门面 + IStep 队列**；原方法体不动 | **已锁定** |
+| D7 | 门面形态（过渡） | 门面 **继承** `StepBuilder`（非组合），用 `new` 隐藏已接入 API；`IStep.Apply(StepBuilder)` 走基类不重入 | **实施中** |
+| D8 | 默认入队策略 | 默认 **双写**（入队 + 立即 Apply）；`useDeferred(true)` 纯延迟 | **实施中** |
+| D1 | `ifs` 编排期求值 vs 入队求值 | 编排期求值；跳过则不 Enqueue | 待确认 |
+| D2 | `copy()` 是否复制未物化队列 | 复制 `_steps` + 配置；`_inner` 干净或随 Flush | 待确认 |
+| D3 | Auth/`fireBuild*` 触发点 | 保持在 StepBuilder 原路径（Flush 期） | 待确认 |
+| D4 | StepBuilder 可见性 | 最终 `internal`；迁移期可 `public` | 待确认 |
+| D5 | Apart `record`/`stop` | 门面队列切片语法糖；构造 API 始终入队 | 待确认 |
+| D6 | 空方法阶段是否允许执行方法先委托 | 允许（P2 即 Flush+委托） | 待确认 |
 
 ---
 
 ## 附录 A — 现状关键入口速查
 
-| 符号 | 路径 |
-|------|------|
-| `SQLBuilder.toSelect` | `pure/src/ado/builder/SQLBuilder.cs` |
-| 执行出口 | `pure/src/ado/builder/SQLBuilderDymatic.cs` |
-| 嵌套提前 `toSelect` 例 | `SQLBuilderSelect.select(string, Action)` |
-| Apart API | `SQLBuilder.apart.cs` |
-| 快照 Emit | `apart/ApartEmitter.cs` |
-| where 可选录制 | `step/Stepable.cs` + `WhereCollection` |
+| 符号 | 改造后位置（预期） |
+|------|-------------------|
+| 门面编排 | 新建 `SQLBuilder*.cs` + `steps/*` |
+| 内核构造/执行 | `StepBuilder*.cs`（原 `SQLBuilder*.cs`） |
+| `toSelect` 内核 | `StepBuilder.toSelect`；门面先 Flush 再委托 |
+| 嵌套提前 `toSelect` | 仍在 `StepBuilderSelect`；由对应 `*SubqueryStep.Apply` 触发 |
+| Apart | 门面导出 `_steps`；过渡期 `apart/ApartEmitter` |
 | Apart 测试 | `Tests/TestBug/src/TestPure/SQLBuilderApartTests.cs` |
 
 ## 附录 B — 一句话结论
 
-> 将 SQLBuilder 从「每步改 SqlGoup」改为「每步追加 BuildStep，出口统一 Flush」；Dialect 渲染时机不变；Apart 升格为队列的一等序列化形态。按 API 家族分阶段绞杀迁移，用 DualWrite 锁语义后再切换默认模式。
+> **原 SQLBuilder 整体更名为 StepBuilder 且方法体不动；新建同名 SQLBuilder 作编排门面，内建 `List<IStep>`，一 public 构造方法一 Step 类；执行前 Flush 回放到 StepBuilder，再走既有 to/query/do。**

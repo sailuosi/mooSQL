@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
         /// <summary>
         /// 创建一个新的实例，默认会继承事务

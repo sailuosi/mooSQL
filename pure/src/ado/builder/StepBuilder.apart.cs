@@ -2,7 +2,7 @@ using System;
 
 namespace mooSQL.data
 {
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
         /// <summary>
         /// 开启录播：返回独立影子 Builder，链式调用仅写入该影子，不污染当前实例；
@@ -15,7 +15,7 @@ namespace mooSQL.data
         public SQLBuilder record()
         {
             this.current.wherePart.steps.start();
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace mooSQL.data
         /// </summary>
         public SQLApart toApart()
         {
-            var script = ApartEmitter.Emit(this);
+            var script = ApartEmitter.Emit(Self);
             var dbType = ResolveDbType();
             return new SQLApart(script, dbType);
         }
@@ -46,8 +46,8 @@ namespace mooSQL.data
             if (apart == null)
                 throw new ArgumentNullException(nameof(apart));
             EnsureApartCompatible(apart);
-            apart.Script.ApplyTo(this);
-            return this;
+            apart.Script.ApplyTo(Self);
+            return Self;
         }
 
         internal SqlCTE ApartGetCte() => CTECollection;

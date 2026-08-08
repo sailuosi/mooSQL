@@ -13,7 +13,7 @@ namespace mooSQL.data
             return script;
         }
 
-        private static void EmitCte(SQLBuilder source, ApartBuildScript script)
+        private static void EmitCte(StepBuilder source, ApartBuildScript script)
         {
             var cte = source.ApartGetCte();
             if (cte == null || cte.Empty) return;
@@ -31,7 +31,7 @@ namespace mooSQL.data
             }
         }
 
-        private static void EmitMainQuery(SQLBuilder source, ApartBuildScript script)
+        private static void EmitMainQuery(StepBuilder source, ApartBuildScript script)
         {
             if (source.unionHolder != null && source.unionHolder.Count > 0)
             {
@@ -58,7 +58,7 @@ namespace mooSQL.data
             }
         }
 
-        private static void EmitMakeUps(SQLBuilder source, ApartBuildScript script)
+        private static void EmitMakeUps(StepBuilder source, ApartBuildScript script)
         {
             var makeUps = source._MakeUps;
             if (makeUps?.summaryField == null) return;

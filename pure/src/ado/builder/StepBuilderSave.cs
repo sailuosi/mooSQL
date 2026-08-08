@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace mooSQL.data
 {
     // 插入和修改的方面
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace mooSQL.data
         public SQLBuilder setTable(string tbName)
         {
             current.setTable(tbName);
-            return this;
+            return Self;
         }
 
         #region 字段值赋值
@@ -52,8 +52,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLBuilder configSetNull(UpdateSetNullOption option) { 
             this.setNullOption = option;
-            return this; 
-        
+            return Self;
         }
 
         /// <summary>
@@ -84,12 +83,12 @@ namespace mooSQL.data
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (paramed && val == null) {
                 if (UpdateSetNullOpt == UpdateSetNullOption.IgnoreNull)
                 {
-                    return this;
+                    return Self;
                 }
                 else if (UpdateSetNullOpt == UpdateSetNullOption.AsDBNull) { 
                     paramed = false;
@@ -110,14 +109,14 @@ namespace mooSQL.data
                 
             if (this.Client != null)
             {
-                var ok = Client.fireBuildSetFrag(field, this);
+                var ok = Client.fireBuildSetFrag(field, Self);
                 if (ok == false)
                 {
-                    return this;
+                    return Self;
                 }
             }
             this.current.set(field);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 获取当前行设置的字段值。 若不存在则返回null。 若设置了多个值，则会取最后一个设置的值。
@@ -151,7 +150,7 @@ namespace mooSQL.data
         public SQLBuilder setI(string key, Object val)
         {
             this.set(key, val, true, null, false, true);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 设置一个用于 insert的 字段的名--值映射。 
@@ -163,7 +162,7 @@ namespace mooSQL.data
         public SQLBuilder setI(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, false, true);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 设置一个用于 update 的 字段的名--值映射。 
@@ -174,7 +173,7 @@ namespace mooSQL.data
         public SQLBuilder setU(string key, Object val)
         {
             this.set(key, val, true, null, true, false);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 设置一个用于 update 的 字段的名--值映射。 并指定是否参数化
@@ -186,7 +185,7 @@ namespace mooSQL.data
         public SQLBuilder setU(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, true, false);
-            return this;
+            return Self;
         }
         #endregion
 
@@ -215,7 +214,7 @@ namespace mooSQL.data
         public SQLBuilder mergeAs(string asName)
         {
             current.mergeAs(asName);
-            return this;
+            return Self;
         }
         /// <summary>
         /// merge into语句的来源表。使用更符合SQL语句结构的写法，即using (select ...) as asName.
@@ -226,8 +225,8 @@ namespace mooSQL.data
         public SQLBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
         {
             current.mergeAs(asName);
-            buildSelect(this);
-            return this;
+            buildSelect(Self);
+            return Self;
         }
         /// <summary>
         /// merge into 语句的来源表。使用更符合SQL语句结构的写法，即using tabname as asName.
@@ -239,7 +238,7 @@ namespace mooSQL.data
         {
             current.mergeAs(asName);
             from(tabname);
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -250,7 +249,7 @@ namespace mooSQL.data
         public SQLBuilder mergeOn(string onPart)
         {
             current.mergeOn(onPart);
-            return this;
+            return Self;
         }
         /// <summary>
         /// merge into 当不匹配时，是否删除
@@ -260,7 +259,7 @@ namespace mooSQL.data
         public SQLBuilder mergeDelete(bool thenDelete)
         {
             current.mergeDelete(thenDelete);
-            return this;
+            return Self;
         }
         #endregion
 
@@ -278,7 +277,7 @@ namespace mooSQL.data
         public SQLBuilder newRow()
         {
             current.newRow();
-            return this;
+            return Self;
         }
         /// <summary>
         /// insert into values 多行值的添加本行值。
@@ -287,7 +286,7 @@ namespace mooSQL.data
         public SQLBuilder addRow()
         {
             current.addRow();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建SQL语句到语句池中，同时积累参数。
@@ -303,7 +302,7 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建 update SQL语句到语句池中，同时积累参数。
@@ -319,7 +318,7 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建 update from SQL语句到语句池中，同时积累参数。
@@ -335,7 +334,7 @@ namespace mooSQL.data
             //清理掉创建配置池（无论是否构建成功，避免污染后续轮次）
             current.clearToNext();
 
-            return this;
+            return Self;
         }
         #endregion
     }

@@ -105,7 +105,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按录制顺序在目标 SQLBuilder 上重放公开 API。
+        /// 按录制顺序在目标 StepBuilder 上重放公开 API。
         /// </summary>
         public static void Replay(List<WhereStep> steps, SQLBuilder kit)
         {

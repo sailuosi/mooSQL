@@ -165,7 +165,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// end 方法（返回 SQLBuilder）。
+        /// end 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder end()
         {

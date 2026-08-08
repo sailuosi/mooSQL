@@ -63,7 +63,7 @@ namespace mooSQL.data
     public class SqlCTEItem {
 
         /// <summary>
-        /// 字段 builder（SQLBuilder）。
+        /// 字段 builder（StepBuilder）。
         /// </summary>
         public SQLBuilder builder;
 

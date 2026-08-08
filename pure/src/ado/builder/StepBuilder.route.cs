@@ -4,7 +4,7 @@ using System;
 
 namespace mooSQL.data
 {
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
         private SQLRouteContext _pendingRouteContext;
 
@@ -39,17 +39,17 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// useReadReplica 方法（返回 SQLBuilder）。
+        /// useReadReplica 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
 
         /// <summary>
-        /// useMaster 方法（返回 SQLBuilder）。
+        /// useMaster 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useMaster() => useRoute(r => r.ForceMaster = true);
 
         /// <summary>
-        /// useDualWrite 方法（返回 SQLBuilder）。
+        /// useDualWrite 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useDualWrite(params int[] slavePositions) =>
             useRoute(r =>
@@ -63,54 +63,54 @@ namespace mooSQL.data
         {
             useRoute(r => r.FailoverOverride = mode);
             ApplyProactiveFailoverForBuilder();
-            return this;
+            return Self;
         }
 
         /// <summary>
-        /// useTarget 方法（返回 SQLBuilder）。
+        /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useTarget(int position) =>
             useRoute(r => r.TargetPosition = position);
 
         /// <summary>
-        /// useTarget 方法（返回 SQLBuilder）。
+        /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useTarget(DBInstance instance) =>
             useRoute(r => r.TargetInstance = instance);
 
         /// <summary>
-        /// useReadPolicy 方法（返回 SQLBuilder）。
+        /// useReadPolicy 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useReadPolicy(ReadRoutePolicy policy) =>
             useRoute(r => r.ReadPolicyOverride = policy);
 
         /// <summary>
-        /// useRoute 方法（返回 SQLBuilder）。
+        /// useRoute 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder useRoute(Action<SQLRouteContext> configure)
         {
-            if (configure == null) return this;
+            if (configure == null) return Self;
             SQLRouteContext ctx;
             if (Executor != null)
                 ctx = Executor.RouteContext ?? (Executor.RouteContext = new SQLRouteContext());
             else
                 ctx = _pendingRouteContext ?? (_pendingRouteContext = new SQLRouteContext());
             configure(ctx);
-            return this;
+            return Self;
         }
 
         /// <summary>
-        /// resetRoute 方法（返回 SQLBuilder）。
+        /// resetRoute 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder resetRoute()
         {
             _pendingRouteContext = null;
             if (Executor != null)
                 Executor.RouteContext = null;
-            return this;
+            return Self;
         }
 
-        internal void CloneRouteFrom(SQLBuilder source)
+        internal void CloneRouteFrom(StepBuilder source)
         {
             var src = source?.Executor?.RouteContext ?? source?._pendingRouteContext;
             if (src != null)

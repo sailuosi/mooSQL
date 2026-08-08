@@ -40,9 +40,9 @@ namespace mooSQL.data
 
         private SQLBuilder builder;
 
-        private Action<SQLBuilder, RecurCTEBuilder> onBuildSrcWhere;
+        private Action<StepBuilder, RecurCTEBuilder> onBuildSrcWhere;
 
-        private Action<SQLBuilder, RecurCTEBuilder> onBuildDstWhere;
+        private Action<StepBuilder, RecurCTEBuilder> onBuildDstWhere;
 
         /// <summary>
         /// 属性 RootAs（string）。
@@ -177,7 +177,7 @@ namespace mooSQL.data
         /// <summary>
         /// whereRoot 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder whereRoot(Action<SQLBuilder,RecurCTEBuilder> whereBuilder) { 
+        public RecurCTEBuilder whereRoot(Action<StepBuilder,RecurCTEBuilder> whereBuilder) { 
             this.onBuildSrcWhere = whereBuilder;
             return this;
         }
@@ -185,7 +185,7 @@ namespace mooSQL.data
         /// <summary>
         /// whereNext 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder whereNext(Action<SQLBuilder, RecurCTEBuilder> whereBuilder)
+        public RecurCTEBuilder whereNext(Action<StepBuilder, RecurCTEBuilder> whereBuilder)
         {
             this.onBuildDstWhere = whereBuilder;
             return this;
@@ -218,7 +218,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// apply 方法（返回 SQLBuilder）。
+        /// apply 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder apply() {
             builder.withSelect(withAsName, (w) =>

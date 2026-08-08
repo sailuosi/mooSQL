@@ -56,7 +56,7 @@ namespace mooSQL.data
         /// </summary>
         public QueryType type { get; set; }
         /// <summary>
-        /// 主写入/删除/合并目标表名（由 SQLBuilder 生成时填充；手写 SQL 需自行设置以参与按表过滤的监听）。
+        /// 主写入/删除/合并目标表名（由 StepBuilder 生成时填充；手写 SQL 需自行设置以参与按表过滤的监听）。
         /// </summary>
         public string TargetTable { get; set; }
         /// <summary>

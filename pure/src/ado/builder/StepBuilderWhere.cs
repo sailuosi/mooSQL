@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace mooSQL.data {
-    public partial class SQLBuilder
+    public partial class StepBuilder
     {
         /// <summary>
         /// 当前where条件的个数
@@ -65,7 +65,7 @@ namespace mooSQL.data {
             {
                 current.wherePart.pop();
             }
-            return this;
+            return Self;
         }
 
 
@@ -77,7 +77,7 @@ namespace mooSQL.data {
         public SQLBuilder orLeft()
         {
             current.wherePart.sink("OR");
-            return this;
+            return Self;
         }
         /// <summary>
         /// 结束一个括号，并返回到之前的模式
@@ -86,7 +86,7 @@ namespace mooSQL.data {
         public SQLBuilder orRight()
         {
             closeBraket();
-            return this;
+            return Self;
         }
 
 
@@ -102,7 +102,7 @@ namespace mooSQL.data {
 
             //_preWhereCount[_currentBracket] = current.conditions.Count;
             current.wherePart.sink("AND");
-            return this;
+            return Self;
         }
 
         private void closeBraket() {
@@ -143,7 +143,7 @@ namespace mooSQL.data {
         public SQLBuilder andRight()
         {
             closeBraket();
-            return this;
+            return Self;
         }
         #region where条件构造器
         /// <summary>
@@ -156,12 +156,12 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             //空值不拼接
-            if (string.IsNullOrWhiteSpace(key)) return this;
+            if (string.IsNullOrWhiteSpace(key)) return Self;
             current.where(key, null, "", false);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 添加一个 where is null
@@ -190,12 +190,12 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             //空值不拼接
-            if (frag==null) return this;
+            if (frag==null) return Self;
             current.where(frag);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 添加一个自由拼接的where字符串，一般是左右括号 ( )  ;
@@ -210,7 +210,7 @@ namespace mooSQL.data {
             tar.op = "";
             tar.value = null;
             current.where(tar);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 构建一组where ( ... or ... )的条件，为空时自动忽略本次构建。
@@ -228,9 +228,9 @@ namespace mooSQL.data {
                 this.orLeft()
                     .where(t)
                     .orRight();
-                return this;
+                return Self;
             }
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace mooSQL.data {
         public SQLBuilder pinLeft()
         {
             current.wherePart.sink(this.ConditionSeprator);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 拼接一个右括号) 到where条件中
@@ -256,7 +256,7 @@ namespace mooSQL.data {
             //tar.value = null;
             //current.where(tar);
             current.wherePart.rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 调用本方法后，where 条件构建状态为 and 模式，此后所有条件都使用and 进行连接
@@ -265,7 +265,7 @@ namespace mooSQL.data {
         public SQLBuilder and()
         {
             current.and();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 调用本方法后，where 条件构建状态为 or 模式，此后所有条件都使用 or 进行连接
@@ -274,7 +274,7 @@ namespace mooSQL.data {
         public SQLBuilder or()
         {
             current.or();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 执行一组 and/or ( ... or  ... ) 的where条件的构建，构造的条件不能为空，否则形成 and () 的空结构。。
@@ -284,9 +284,9 @@ namespace mooSQL.data {
         public SQLBuilder or(Action<SQLBuilder> doSomeWhere)
         {
             orLeft();
-            doSomeWhere(this);
+            doSomeWhere(Self);
             orRight();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 执行一组and条件。
@@ -296,9 +296,9 @@ namespace mooSQL.data {
         public SQLBuilder and(Action<SQLBuilder> doSomeWhere)
         {
             andLeft();
-            doSomeWhere(this);
+            doSomeWhere(Self);
             andRight();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 开启一个新的条件分组，默认是开启AND分组，注意：不调用rise将保持在分组中
@@ -308,7 +308,7 @@ namespace mooSQL.data {
         public SQLBuilder sink(string connector = "AND")
         {
             current.wherePart.sink(connector);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 开启一个否定的条件分组，形成not(... and  ...)格式
@@ -318,7 +318,7 @@ namespace mooSQL.data {
         public SQLBuilder sinkNot(string connector = "AND")
         {
             current.wherePart.sinkNot(connector);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 开启一个新的条件分组，默认是开启OR分组 注意：不调用rise将保持在分组中
@@ -327,7 +327,7 @@ namespace mooSQL.data {
         public SQLBuilder sinkOR()
         {
             current.wherePart.sink("OR");
-            return this;
+            return Self;
         }
         /// <summary>
         /// 开启一个否定的条件分组，形成not(... or  ...)格式
@@ -336,7 +336,7 @@ namespace mooSQL.data {
         public SQLBuilder sinkNotOR()
         {
             current.wherePart.sinkNot("OR");
-            return this;
+            return Self;
         }
         /// <summary>
         /// 脱离当前的一组条件分组，回退到上一组条件。
@@ -344,7 +344,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder rise() { 
             current.wherePart.rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 当前括号条件组为否定模式
@@ -353,7 +353,7 @@ namespace mooSQL.data {
         public SQLBuilder not()
         {
             current.wherePart.not();
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -380,20 +380,20 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (paraRule == ("notEmpty"))
             {
                 if (val == null || string.IsNullOrEmpty(val.ToString().Trim()))
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (paraRule == ("notNull"))
             {
                 if (val == null)
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (val !=null && RegxUntils.isPureSimpleStr(val.ToString())) {
@@ -401,7 +401,7 @@ namespace mooSQL.data {
             }
             //更改实现方式，将内容部分直接作为参数；
             if (val == null) {
-                return this;
+                return Self;
             }
             var Val = string.Format("%{0}%", val.ToString());
             return where(key, Val, "LIKE");
@@ -423,7 +423,7 @@ namespace mooSQL.data {
                 whereLike(key, val);
             }
             rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 模糊匹配一组字符串，默认使用 or 连接，形如 (key like '%abc%' or key like '%bcd%') 形式，
@@ -434,10 +434,10 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereLikes(string key, IEnumerable<string> vals, bool isOr = true) {
             //判定有效性
-            if (vals == null) return this;
+            if (vals == null) return Self;
             if (vals.Count() == 0)
             {
-                return this;
+                return Self;
             }
             if (isOr)
             {
@@ -452,7 +452,7 @@ namespace mooSQL.data {
                 whereLike(key, val);
             }
             rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 一个字段like多个值，中间or条件
@@ -468,7 +468,7 @@ namespace mooSQL.data {
                 whereLike(key, v);
             }
             rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 一个字段like多个值，中间and条件
@@ -484,7 +484,7 @@ namespace mooSQL.data {
                 whereLike(key, v);
             }
             rise();
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -498,20 +498,20 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (paraRule == ("notEmpty"))
             {
                 if (val == null || string.IsNullOrEmpty(val.ToString().Trim()))
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (paraRule == ("notNull"))
             {
                 if (val == null)
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (val != null && RegxUntils.isPureSimpleStr(val.ToString()))
@@ -521,7 +521,7 @@ namespace mooSQL.data {
             //更改实现方式，将内容部分直接作为参数；
             if (val == null)
             {
-                return this;
+                return Self;
             }
             var Val = string.Format("{0}%", val.ToString());
             return where(key, Val, "LIKE");
@@ -539,20 +539,20 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (paraRule == ("notEmpty"))
             {
                 if (val == null || string.IsNullOrEmpty(val))
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (paraRule == ("notNull"))
             {
                 if (val == null)
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (val != null && RegxUntils.isPureSimpleStr(val))
@@ -562,7 +562,7 @@ namespace mooSQL.data {
             //更改实现方式，将内容部分直接作为参数；
             if (val == null)
             {
-                return this;
+                return Self;
             }
             var Val = string.Format("{0}%", val);
             return where(key, Val, "NOT like");
@@ -579,9 +579,9 @@ namespace mooSQL.data {
         /// <returns></returns>
         public SQLBuilder whereLikeLefts(string key, IEnumerable<string> vals, bool isOr = true) { 
             //判定有效性
-            if(vals==null) return this;
+            if(vals==null) return Self;
             if(vals.Count()==0) { 
-                return this;
+                return Self;
             }
             if (isOr)
             {
@@ -594,7 +594,7 @@ namespace mooSQL.data {
                 whereLikeLeft(key, val);
             }
             rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 否定的
@@ -605,10 +605,10 @@ namespace mooSQL.data {
         public SQLBuilder whereNotLikeLefts(string key, IEnumerable<string> vals)
         {
             //判定有效性
-            if (vals == null) return this;
+            if (vals == null) return Self;
             if (vals.Count() == 0)
             {
-                return this;
+                return Self;
             }
 
             foreach (var val in vals)
@@ -616,7 +616,7 @@ namespace mooSQL.data {
                 whereNotLikeLeft(key, val);
             }
 
-            return this;
+            return Self;
         }
         /// <summary>
         /// 多个左模糊条件
@@ -639,26 +639,26 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (paraRule == ("notEmpty"))
             {
                 if (val == null || string.IsNullOrEmpty(val.ToString().Trim()))
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (paraRule == ("notNull"))
             {
                 if (val == null)
                 {
-                    return this;
+                    return Self;
                 }
             }
             //更改实现方式，将内容部分直接作为参数；
             if (val == null)
             {
-                return this;
+                return Self;
             }
             if (RegxUntils.isPureSimpleStr(val.ToString()))
             {
@@ -681,7 +681,7 @@ namespace mooSQL.data {
                 .whereNotLike(key, val)
                 .whereIsNull(key)
                 .rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 非左模糊或者空
@@ -695,7 +695,7 @@ namespace mooSQL.data {
                 .whereNotLikeLeft(key, val)
                 .whereIsNull(key)
                 .rise();
-            return this;
+            return Self;
         }
         
         /// <summary>
@@ -725,19 +725,19 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereIn<T>(string key, IEnumerable<T> values)
+        public StepBuilder whereIn<T>(string key, IEnumerable<T> values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (!checkWhereIn(values))
             {
-                return this;
+                return Self;
             }
             whereListInner(key, " IN ", values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 构建where in + (固定范围值) 条件。注意：数值型集合直接转为数值范围SQL，简单字符集合转为字符SQL，复杂字符串为参数化。 受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2
@@ -746,19 +746,19 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereIn<T>(string key,params T[] values)
+        public StepBuilder whereIn<T>(string key,params T[] values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (!checkWhereIn(values))
             {
-                return this;
+                return Self;
             }
             whereListInner(key, " IN ", values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 形成 ( key =val1 or key =val2 or ... 形式，等同于 whereIn(key,values.ToArray()
@@ -767,23 +767,23 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereOR<T>(string key, params T[] values)
+        public StepBuilder whereOR<T>(string key, params T[] values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (!checkWhereIn(values))
             {
-                return this;
+                return Self;
             }
             sinkOR();
             foreach (var val in values) {
                 where(key, val);
             }
             rise();
-            return this;
+            return Self;
         }
         /// <summary>
         /// 
@@ -796,7 +796,7 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
 
             int i = 0;
@@ -807,7 +807,7 @@ namespace mooSQL.data {
                 return where("1=2");
             }
             whereListInner(key, " IN ", values);
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -817,19 +817,19 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="val">参数量为空时，自动转为 1=2的不可能条件，为null时忽略。</param>
         /// <returns></returns>
-        public SQLBuilder whereIn<T>(string key, List<T> val)
+        public StepBuilder whereIn<T>(string key, List<T> val)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (!checkWhereIn(val))
             {
-                return this;
+                return Self;
             }
             whereListInner(key, " IN ", val);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 构建where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
@@ -842,14 +842,14 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (!checkWhereIn(val))
             {
-                return this;
+                return Self;
             }
             whereListInner(key, " IN ", val);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建一个 自定义嵌套 where in 的 select
@@ -862,10 +862,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.whereIn(key, doselect);
-            return this;
+            return Self;
         }
         /// <summary>
         /// Guid类型的where in 范围值，所有值均参数化。
@@ -968,15 +968,15 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values)
+        public StepBuilder whereNotIn<T>(string key, IEnumerable<T> values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             whereListInner(key, " NOT IN ", values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 不包含或者空
@@ -985,7 +985,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
+        public StepBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
             return this.sinkOR()
                 .whereNotIn(key, values)
                 .whereIsNull(key)
@@ -998,15 +998,15 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotIn<T>(string key,params T[] values)
+        public StepBuilder whereNotIn<T>(string key,params T[] values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             whereListInner(key, " NOT IN ", values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 构建where not in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。
@@ -1019,10 +1019,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             whereListInner(key, " NOT IN ", values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 构建多个字段为某个值的条件，默认无包裹，使用外界的范围
@@ -1037,7 +1037,7 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             if (SinkMode == 1)
             {
@@ -1052,7 +1052,7 @@ namespace mooSQL.data {
             if (SinkMode == 1 || SinkMode == 2) { 
                 rise();
             }
-            return this;
+            return Self;
         }
         /// <summary>
         /// 任意一个字段满足条件，即形成（field1 = val or field2 = val or ...）。等同于 whereAnyFieids 方法。
@@ -1094,16 +1094,16 @@ namespace mooSQL.data {
         /// <param name="op"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values)
+        public StepBuilder whereList<T>(string key, string op, IEnumerable<T> values)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
 
             whereListInner(key, op, values);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 增加条件包支持
@@ -1114,9 +1114,9 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
-            if(bag == null) { return this; }
+            if(bag == null) { return Self; }
             return whereListInner(bag);
         }
 
@@ -1135,7 +1135,7 @@ namespace mooSQL.data {
                 var parts = bag.toWhereIn(names,limit);
                 if (parts.Count == 0) {
                     where("1=2");
-                    return this;
+                    return Self;
                 }
                 if (parts.Count == 1)
                 {
@@ -1146,7 +1146,7 @@ namespace mooSQL.data {
                     field.paramed = false;
                     field.op = bag.op;
                     current.where(field);
-                    return this;
+                    return Self;
                 }
                 //分批构建多个 or 连接的 where in 条件
                 this.sinkOR();
@@ -1181,7 +1181,7 @@ namespace mooSQL.data {
             }
 
 
-            return this;
+            return Self;
         }
 
         private SQLBuilder whereListInner<T>(string key, string op, IEnumerable<T> val)
@@ -1211,10 +1211,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.where(key, " NOT IN ", doselect);
-            return this;
+            return Self;
         }
 
 
@@ -1228,10 +1228,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.whereExist(value);
-            return this;
+            return Self;
         }
 
 
@@ -1245,10 +1245,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.whereExist(doselect);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建固定的 where not exists ( YourSQL ) 条件
@@ -1258,7 +1258,7 @@ namespace mooSQL.data {
         public SQLBuilder whereNotExist(string selectSQL)
         {
             this.where(string.Format(" not exists ({0})", selectSQL));
-            return this;
+            return Self;
         }
 
         /// <summary>
@@ -1271,10 +1271,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.where("", " NOT EXISTS ", doselect);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 使用一个子查询来构建条件项
@@ -1288,10 +1288,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.where(key, op, doselect);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建 where 后面一个 key=#{val}形式的条件。
@@ -1304,10 +1304,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.where(key, "=", doselect);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建 where 后面一个 key=#{val}形式的条件。
@@ -1321,35 +1321,35 @@ namespace mooSQL.data {
             return where(key, val, "=", true);
         }
         /// <summary>
-        /// whereGreaterThan 方法（返回 SQLBuilder）。
+        /// whereGreaterThan 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder whereGreaterThan(string key, Object val)
         {
             return where(key, val, ">", true);
         }
         /// <summary>
-        /// whereLessThan 方法（返回 SQLBuilder）。
+        /// whereLessThan 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder whereLessThan(string key, Object val)
         {
             return where(key, val, "<", true);
         }
         /// <summary>
-        /// whereGreaterThanOrEqual 方法（返回 SQLBuilder）。
+        /// whereGreaterThanOrEqual 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder whereGreaterThanOrEqual(string key, Object val)
         {
             return where(key, val, ">=", true);
         }
         /// <summary>
-        /// whereLessThanOrEqual 方法（返回 SQLBuilder）。
+        /// whereLessThanOrEqual 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder whereLessThanOrEqual(string key, Object val)
         {
             return where(key, val, "<=", true);
         }
         /// <summary>
-        /// whereNotEqual 方法（返回 SQLBuilder）。
+        /// whereNotEqual 方法（返回 StepBuilder）。
         /// </summary>
         public SQLBuilder whereNotEqual(string key, Object val)
         {
@@ -1366,7 +1366,7 @@ namespace mooSQL.data {
         public SQLBuilder whereIf(bool? isTrue,string key, Object val,string op="=")
         {
             if (isTrue.HasValue==false|| isTrue.Value == false) { 
-                return this;
+                return Self;
             }
             return where(key, val, op, true);
         }
@@ -1380,7 +1380,7 @@ namespace mooSQL.data {
         {
             if (isTrue.HasValue == false || isTrue.Value == false)
             {
-                return this;
+                return Self;
             }
             return where(key);
         }
@@ -1409,7 +1409,7 @@ namespace mooSQL.data {
             {
                 return where("1=2");
             }
-            //return this;
+            //return Self;
         }
 
         /// <summary>
@@ -1503,31 +1503,31 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
 
 
-            if (val == null) return this;
+            if (val == null) return Self;
 
             if (paraRule == ("notEmpty"))
             {
                 if (val == null || string.IsNullOrEmpty(val.ToString().Trim()))
                 {
-                    return this;
+                    return Self;
                 }
             }
             if (paraRule == ("notNull"))
             {
                 if (val == null)
                 {
-                    return this;
+                    return Self;
                 }
             }
 
 
 
             this.current.where(key, val, op, paramed, t);
-            return this;
+            return Self;
         }
         /// <summary>
         /// 创建 between and 的条件，当任一参数为null时，自动衰减大于、小于 ，都为null,则不执行
@@ -1537,17 +1537,17 @@ namespace mooSQL.data {
         /// <param name="minValue"></param>
         /// <param name="maxValue"></param>
         /// <returns></returns>
-        public SQLBuilder whereBetween<T>(string key, T minValue, T maxValue)
+        public StepBuilder whereBetween<T>(string key, T minValue, T maxValue)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
 
             if (maxValue == null && maxValue == null)
             {
-                return this;
+                return Self;
             }
 
             if (minValue == null)
@@ -1562,7 +1562,7 @@ namespace mooSQL.data {
 
             current.whereFormat(key + " BETWEEN {0} AND {1}", minValue, maxValue);
 
-            return this;
+            return Self;
         }
         /// <summary>
         /// 
@@ -1572,17 +1572,17 @@ namespace mooSQL.data {
         /// <param name="minValue"></param>
         /// <param name="maxValue"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue)
+        public StepBuilder whereNotBetween<T>(string key, T minValue, T maxValue)
         {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
 
             if (maxValue == null && maxValue == null)
             {
-                return this;
+                return Self;
             }
 
             if (minValue == null)
@@ -1597,7 +1597,7 @@ namespace mooSQL.data {
 
             current.whereFormat(key + " NOT BETWEEN {0} and {1}", minValue, maxValue);
 
-            return this;
+            return Self;
         }
         /// <summary>
         /// 使用字符串模板进行格式化。参数放入到SQL参数中。格式为{0} {1} {2} 等标准化的c# String.format语法。
@@ -1611,10 +1611,10 @@ namespace mooSQL.data {
             if (!opened)
             {
                 opened = true;
-                return this;
+                return Self;
             }
             current.whereFormat(template, values);
-            return this;
+            return Self;
         }
 
 
@@ -1634,7 +1634,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public WhereItem start(bool addBracket)
         {
-            WhereItem wh = new WhereItem(this);
+            WhereItem wh = new WhereItem(Self);
             wh.autoKuohao = addBracket;
             return wh;
         }
@@ -1685,7 +1685,7 @@ namespace mooSQL.data {
         {
             current.where(whereBuilder);
             _whereCount++;
-            return this;
+            return Self;
         }
 
         #endregion
