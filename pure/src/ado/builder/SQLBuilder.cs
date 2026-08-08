@@ -27,13 +27,14 @@ namespace mooSQL.data
 
         public SQLBuilder(SQLExpression expression) : base(expression) { }
 
-        /// <summary>将步骤队列回放到基类构造实现（仅延迟模式且脏时执行）。</summary>
+        /// <summary>将步骤队列回放到基类构造实现（脏时执行）。</summary>
         internal void EnsureMaterialized()
         {
             if (!_dirty) return;
             _materializing = true;
             try
             {
+                // 从干净状态按编排顺序重放，保证与队列一致
                 base.clear();
                 for (int i = 0; i < _steps.Count; i++)
                 {

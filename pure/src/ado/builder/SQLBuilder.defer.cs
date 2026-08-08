@@ -1,16 +1,16 @@
 namespace mooSQL.data
 {
     /// <summary>
-    /// 门面延迟构造：对已接入的 public API 使用 <see cref="IStep"/> 入队。
-    /// 默认双写（入队 + 立即 Apply 到基类），保证未全量迁移前行为不变；
-    /// 开启 <see cref="useDeferred"/> 后仅入队，在 to/query/do 前 Flush。
+    /// 门面延迟构造：构造 API 只入队；执行 / 物化出口 Flush。
+    /// 默认纯延迟；<see cref="useDeferred"/>(false) 可临时恢复双写（入队 + 立即 Apply）便于对照排查。
     /// </summary>
     public partial class SQLBuilder
     {
-        private bool _deferredEnabled;
+        /// <summary>默认 true：仅入队，出口 Flush。</summary>
+        private bool _deferredEnabled = true;
 
         /// <summary>
-        /// 开启纯延迟模式：构造 API 只入队，执行前 Flush。默认关闭（双写兼容）。
+        /// 切换延迟模式。默认开启；传 false 时恢复双写（兼容对照）。
         /// </summary>
         public SQLBuilder useDeferred(bool enabled = true)
         {
@@ -18,7 +18,7 @@ namespace mooSQL.data
             return this;
         }
 
-        /// <summary>入队；非延迟模式下同时 Apply 到基类以保持即时状态。</summary>
+        /// <summary>入队。纯延迟只标记脏；双写模式下同时 Apply 到基类。</summary>
         private SQLBuilder Enqueue(IStep step)
         {
             if (step == null)
@@ -37,14 +37,14 @@ namespace mooSQL.data
             }
             else
             {
-                // Apply 参数类型为 StepBuilder → 走基类方法，不会再次入队
+                // Apply 参数为 StepBuilder → 走基类，不重入门面
                 step.Apply(this);
                 _dirty = false;
             }
             return this;
         }
 
-        // ---- 已接入的构造 API（一方法一 Step）----
+        // ---- 手写核心构造 API（与生成器 SKIP 对齐）----
 
         public new SQLBuilder select(string columns) => Enqueue(new SelectStep(columns));
 
@@ -66,7 +66,13 @@ namespace mooSQL.data
         public new SQLBuilder where(string key, object val, string op, bool paramed) =>
             Enqueue(new WhereKeyValOpParamedStep(key, val, op, paramed));
 
-        // ---- 执行出口：延迟模式下先 Flush ----
+        public new SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
+
+        public new SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);
+
+        public new SQLBuilder clearPage() => Enqueue(ClearPageStep.Instance);
+
+        // ---- 基础 toXxx（其余见 defer.exec）----
 
         public new SQLCmd toSelect()
         {

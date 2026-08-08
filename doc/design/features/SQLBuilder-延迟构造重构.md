@@ -614,7 +614,8 @@ pure/src/ado/builder/
 |----|------|----------|------|
 | D0 | 实施方式 | **更名 StepBuilder + 新 SQLBuilder 门面 + IStep 队列**；原方法体不动 | **已锁定** |
 | D7 | 门面形态（过渡） | 门面 **继承** `StepBuilder`（非组合），用 `new` 隐藏已接入 API；`IStep.Apply(StepBuilder)` 走基类不重入 | **实施中** |
-| D8 | 默认入队策略 | 默认 **双写**（入队 + 立即 Apply）；`useDeferred(true)` 纯延迟 | **实施中** |
+| D8 | 默认入队策略 | 默认 **纯延迟**（仅入队，出口 Flush）；`useDeferred(false)` 可临时双写对照 | **已切换** |
+| D9 | Step 生成 | `tools/gen_sqlbuilder_steps.py` 生成简单 + `Action<>` 构造 API；手写核心保留在 `SQLBuilder.defer.cs` | **实施中** |
 | D1 | `ifs` 编排期求值 vs 入队求值 | 编排期求值；跳过则不 Enqueue | 待确认 |
 | D2 | `copy()` 是否复制未物化队列 | 复制 `_steps` + 配置；`_inner` 干净或随 Flush | 待确认 |
 | D3 | Auth/`fireBuild*` 触发点 | 保持在 StepBuilder 原路径（Flush 期） | 待确认 |
