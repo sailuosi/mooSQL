@@ -29,13 +29,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ext\mooSQL.Ext.csproj" />
-    <ProjectReference Include="..\pure\mooSQL.Pure.csproj" />
+    <ProjectReference Include="..\..\ext\mooSQL.Ext.csproj" />
+    <ProjectReference Include="..\..\pure\mooSQL.Pure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="src\Basis\SugarEnitiyParser.cs" />
     <Compile Include="src\TestExt\LinqCompileTests.cs" />
+    <Compile Include="src\TestExt\ExtQueryPlanCacheTests.cs" />
     <Compile Include="src\TestExt\StatementStructureTests.cs" />
     <Compile Include="src\TestExt\DbFuncTranslationTests.cs" />
     <Compile Include="src\TestExt\DbFuncMatrixCollection.cs" />

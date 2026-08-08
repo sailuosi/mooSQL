@@ -43,6 +43,14 @@ namespace mooSQL.linq.SqlProvider
 		{
 			DBLive = mappingSchema;
 			FixEmptySelect(statement);
+
+			// 单表、无 Join/集合运算的简单 SELECT：跳过重型 OptimizeQueries / JoinsOptimizer
+			if (IsSimpleSelectStatement(statement))
+			{
+				FinalizeCte(statement);
+				return FinalizeSelect(statement);
+			}
+
 			FinalizeCte   (statement);
 
 			var evaluationContext = new EvaluateContext(null);
@@ -68,6 +76,42 @@ namespace mooSQL.linq.SqlProvider
 //statement.EnsureFindTables();
 
 			return statement;
+		}
+
+		/// <summary>
+		/// 单表、无显式 Join、无集合运算的 SELECT，可走 Finalize 快路径。
+		/// </summary>
+		protected static bool IsSimpleSelectStatement(BaseSentence statement)
+		{
+			if (statement is not SelectSentence { SelectQuery: { } sq })
+				return false;
+			if (sq.HasSetOperators)
+				return false;
+			if (sq.From?.Tables == null || sq.From.Tables.Count != 1)
+				return false;
+
+			var box = sq.From.focus?.Content;
+			if (box == null)
+				return true;
+
+			return !HasExplicitJoin(box);
+		}
+
+		static bool HasExplicitJoin(LinkBox<ITableNode, JoinKind, JoinOnWord> node)
+		{
+			if (!node.isBox)
+			{
+				var prefix = node.Prefix;
+				return !Equals(prefix, default(JoinKind)) && !Equals(prefix, JoinKind.Auto);
+			}
+
+			foreach (var child in node.children)
+			{
+				if (HasExplicitJoin(child))
+					return true;
+			}
+
+			return false;
 		}
 
 		#endregion

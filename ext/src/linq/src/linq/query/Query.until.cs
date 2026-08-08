@@ -27,16 +27,6 @@ namespace mooSQL.linq.Linq
     /// </summary>
     public class QueryMate
     {
-        //private static readonly QueryCache _queryCache = new();
-
-
-        static QueryMate()
-        {
-            //CacheCleaners.Enqueue(ClearCache);
-        }
-
-
-
         internal static SentenceBag<T> GetQuery<T>(DBInstance DB, ref Expression expr, out bool dependsOnParameters)
         {
             using var mt = ActivityService.Start(ActivityID.GetQueryTotal);
@@ -46,6 +36,8 @@ namespace mooSQL.linq.Linq
             var queryFlags = QueryFlags.None;
             SentenceBag<T>? query;
             bool useCache;
+            Expression? exprBeforeExpose = null;
+            var isExposed = false;
 
             using (ActivityService.Start(ActivityID.GetQueryFind))
             {
@@ -58,24 +50,22 @@ namespace mooSQL.linq.Linq
                     expr = optimizationContext.AggregateExpression(expr);
 
                     dependsOnParameters = false;
-
-                    //if (dataContext is IExpressionPreprocessor preprocessor)
-                    //    expr = preprocessor.ProcessExpression(expr);
                 }
 
                 var Opti = DB.dialect.Option;
 
-                //useCache = !Opti.DisableQueryCache;
+                useCache = !Opti.DisableQueryCache;
 
-                //if (useCache)
-                //{
-                //    queryFlags = dataContext.GetQueryFlags();
-                //    using (ActivityService.Start(ActivityID.GetQueryFindFind))
-                //        query = _queryCache.Find(dataContext, expr, queryFlags, false);
+                if (useCache)
+                {
+                    using (ActivityService.Start(ActivityID.GetQueryFindFind))
+                        query = ExtQueryPlanCache.Instance.Find(DB, expr, typeof(T), queryFlags) as SentenceBag<T>;
 
-                //    if (query != null)
-                //        return query;
-                //}
+                    if (query != null)
+                        return query;
+                }
+
+                exprBeforeExpose = expr;
 
                 // 公开表达式，调用所有需要的调用
                 // 在执行之后，应该没有包含IDataContext引用的常量，没有包含ExpressionQueryImpl的常量，带有SqlQueryDependentAttribute的参数将被转换为常量
@@ -86,38 +76,39 @@ namespace mooSQL.linq.Linq
 
 
                 // simple trees do not mutate
-                var isExposed = !ReferenceEquals(exposed, expr);
+                isExposed = !ReferenceEquals(exposed, expr);
 
                 expr = exposed;
-                //if (isExposed && useCache)
-                //{
-                //    dependsOnParameters = true;
 
-                //    queryFlags |= QueryFlags.ExpandedQuery;
+                if (isExposed && useCache)
+                {
+                    dependsOnParameters = true;
 
-                //    // search again
-                //    using (ActivityService.Start(ActivityID.GetQueryFindFind))
-                //        query = _queryCache.Find(dataContext, expr, queryFlags, true);
+                    queryFlags |= QueryFlags.ExpandedQuery;
 
-                //    if (query != null)
-                //        return query;
-                //}
+                    using (ActivityService.Start(ActivityID.GetQueryFindFind))
+                        query = ExtQueryPlanCache.Instance.Find(DB, expr, typeof(T), queryFlags) as SentenceBag<T>;
 
-
+                    if (query != null)
+                        return query;
+                }
             }
 
             using (var mc = ActivityService.Start(ActivityID.GetQueryCreate))
                 query = CreateQuery<T>(optimizationContext, new ParametersContext(expr, null, optimizationContext, DB),
                     DB, expr,null,null);
 
-            //if (useCache && !query.DoNotCache)
-            //{
-            //    // 所有非值类型表达式和参数化表达式都将转换为ConstantPlaceholderExpression。它可以防止在缓存中缓存大的引用类
-            //    //
-            //    query.PrepareForCaching();
-
-            //    _queryCache.TryAdd(dataContext, query, expr, queryFlags, dataOptions);
-            //}
+            if (useCache && query.IsCacheable)
+            {
+                query.PrepareForCaching();
+                // 同时索引 Expose 前形状，使暖路径可在 Expose 前 Find 命中，跳过展开与编译
+                if (exprBeforeExpose != null)
+                    ExtQueryPlanCache.Instance.TryAdd(DB, exprBeforeExpose, typeof(T), QueryFlags.None, query);
+                if (isExposed)
+                    ExtQueryPlanCache.Instance.TryAdd(DB, expr, typeof(T), queryFlags, query);
+                else if (exprBeforeExpose == null)
+                    ExtQueryPlanCache.Instance.TryAdd(DB, expr, typeof(T), queryFlags, query);
+            }
 
             return query;
         }

@@ -68,10 +68,10 @@ namespace mooSQL.linq.Linq.Builder
 
 			if (!enforceHaving)
 			{
-				if (buildSequnce is not SubQueryContext subQuery || subQuery.NeedsSubqueryForComparison)
-				{
+				// VisitWhere 已对 Distinct/Take/Skip 包过 SubQuery；此处仅在比较子查询语义需要时再包一层，
+				// 避免简单 TableContext.Where 无条件嵌套再被 Optimizer 展平。
+				if (checkForSubQuery && buildSequnce is SubQueryContext { NeedsSubqueryForComparison: true })
 					buildSequnce = new SubQueryContext(sequence);
-				}
 
 				sequence.SetAlias(condition.Parameters[0].Name);
 				sequence = buildSequnce;

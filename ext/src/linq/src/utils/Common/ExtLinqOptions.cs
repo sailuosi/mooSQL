@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -21,6 +22,11 @@ namespace mooSQL.linq.Common
 		private static Func<LambdaExpression,Delegate?>? _compiler;
 
 		/// <summary>
+		/// 按表达式结构缓存已编译委托，减少 ParameterAccessor 等路径重复 Compile。
+		/// </summary>
+		static readonly ConcurrentDictionary<LambdaCompileCacheKey, Lazy<Delegate>> LambdaCache = new();
+
+		/// <summary>
 		/// Sets LINQ expression compilation method.
 		/// </summary>
 		/// <param name="compiler">Method to use for expression compilation or <c>null</c> to reset compilation logic to defaults.</param>
@@ -35,7 +41,16 @@ namespace mooSQL.linq.Common
 		public static TDelegate CompileExpression<TDelegate>(this Expression<TDelegate> expression)
 			where TDelegate : Delegate
 		{
-			return ((TDelegate?)_compiler?.Invoke(expression)) ?? expression.Compile();
+			if (_compiler != null)
+				return ((TDelegate?)_compiler.Invoke(expression)) ?? expression.Compile();
+
+			var key = new LambdaCompileCacheKey(expression, typeof(TDelegate));
+			var lazy = LambdaCache.GetOrAdd(key, static k => new Lazy<Delegate>(() =>
+			{
+				var lambda = (LambdaExpression)k.Expression;
+				return lambda.Compile();
+			}, isThreadSafe: true));
+			return (TDelegate)lazy.Value;
 		}
 
 		/// <summary>
@@ -43,7 +58,48 @@ namespace mooSQL.linq.Common
 		/// </summary>
 		public static Delegate CompileExpression(this LambdaExpression expression)
 		{
-			return _compiler?.Invoke(expression) ?? expression.Compile();
+			if (_compiler != null)
+				return _compiler.Invoke(expression) ?? expression.Compile();
+
+			var key = new LambdaCompileCacheKey(expression, expression.Type);
+			var lazy = LambdaCache.GetOrAdd(key, static k => new Lazy<Delegate>(() =>
+			{
+				var lambda = (LambdaExpression)k.Expression;
+				return lambda.Compile();
+			}, isThreadSafe: true));
+			return lazy.Value;
+		}
+
+		/// <summary>清空 Lambda 编译缓存（随 QueryRunner.ClearCaches 一并清理时可手动调用）。</summary>
+		public static void ClearLambdaCache() => LambdaCache.Clear();
+
+		readonly struct LambdaCompileCacheKey : IEquatable<LambdaCompileCacheKey>
+		{
+			public readonly Expression Expression;
+			public readonly Type DelegateType;
+
+			public LambdaCompileCacheKey(Expression expression, Type delegateType)
+			{
+				Expression = expression;
+				DelegateType = delegateType;
+			}
+
+			public bool Equals(LambdaCompileCacheKey other)
+				=> DelegateType == other.DelegateType
+				   && ExtExpressionStructuralComparer.Instance.Equals(Expression, other.Expression);
+
+			public override bool Equals(object? obj)
+				=> obj is LambdaCompileCacheKey other && Equals(other);
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					var h = DelegateType.GetHashCode();
+					h = (h * 397) ^ ExtExpressionStructuralComparer.Instance.GetHashCode(Expression);
+					return h;
+				}
+			}
 		}
 	}
 

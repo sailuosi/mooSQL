@@ -92,6 +92,11 @@ namespace mooSQL.linq.Linq
         {
             
         }
+
+        internal void PrepareForCaching()
+        {
+            srcExp = null;
+        }
     }
 
     /// <summary>

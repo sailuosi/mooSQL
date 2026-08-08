@@ -4,8 +4,8 @@
 > 对照工程：`Tests/TestFast/dbTest`（`MooSqlQueryableTest` / `useQueryable`）  
 > 源码范围：`ext/src/linq`（Ext LINQ）+ `pure/src/ado/SQL/visitors`（Clause → SQL 渲染）  
 > 分析日期：2026-08  
-> 结论级别：**源码追溯 + 初步方案**（**本轮不实施**；未用 Profiler 精确定量拆分各阶段占比）  
-> 缓存策略修订：P0 以 **SQLClip 表达式身份识别 / 频率缓存** 适配 `QueryMate` 被注释链路，而非另起完整 Lin2DB `QueryCache`
+> 结论级别：**源码追溯 + 方案 + 阶段 A/B/C 已落地（待基准复测验证）**  
+> 缓存策略：L1=`SentenceBag` 计划缓存（已落地）；L2=`SQLCmd` 模板缓存（见第 2 章，未落地）；身份键复用 Clip `ClipExpSameCheckor` + `FrequencyBasedCache`
 
 ---
 
@@ -27,7 +27,120 @@
 
 ---
 
-## 2. 调用链（以 Condition → `SqlText` 为准）
+## 2. 缓存映射模型：两层编译与 L1 / L2
+
+> 研讨结论（不动代码约定下的架构澄清）。与 SQLClip「Expression 可一一映射」不同，Queryable 的 Expression **含可变 SQL 参数语义**；必须把「形状」与「值」拆开。
+
+### 2.1 两层编译管线
+
+```text
+Expression（含闭包 / 常量）
+    │  ① QueryMate.CreateQuery   （贵：Expression → Clause）
+    ▼
+SentenceBag
+  ├─ Statement / Clause 树       ← SQL 同构中间态
+  └─ ParameterAccessors[]        ← 「如何从 Expression 取参」
+    │  ② FinalizeBag（可早退）
+    │  ③ SetParameters(liveExpr)
+    │  ④ Visit(Statement) → SQLBuilder → SQLCmd
+    ▼
+执行 / SqlText
+```
+
+| 层 | 输入 → 输出 | 当前全局缓存 |
+|----|-------------|--------------|
+| **①** | Expression → Clause（`SentenceBag` + `ParameterAccessor`） | **是（L1）**：`ExtQueryPlanCache` |
+| **②** | Clause → SQL（`SQLBuilder` / `SQLCmd`） | **否**：暖路径仍每次 `Visit` 渲染 |
+
+### 2.2 当前缓存如何映射（L1）
+
+| 维度 | 约定 |
+|------|------|
+| **键** | Expression **结构**相同（`Constant` / 闭包字段 **只比类型、不比值**）+ 方言指纹 + `ResultType` + `QueryFlags` + 必要 Options |
+| **值** | `SentenceBag`：已编译的 Clause/Statement + `ParameterAccessor` 列表；**不是**最终 `SQLCmd` |
+| **命中后** | 绑定本次 `DBInstance` →（必要时）`FinalizeBag` → **必须** `SetParameters(本次 Expression)` → 再 Clause→SQL |
+| **不缓存** | Include / 多语句 / `ErrorExpression` / `DisableQueryCache` 等（`IsCacheable`） |
+
+暖路径示意：
+
+```text
+同形状 Expression（id=1 与 id=2）
+        │ 结构键命中
+        ▼
+复用 SentenceBag（Clause + Accessors）
+        │ Accessors(liveExpr) 抽参
+        ▼
+Visit → SQLBuilder / SQLCmd → 执行
+```
+
+要点：**缓存里不记住 `id=1`**，只记住「第 N 个 SQL 参数应从同形状树的哪个节点读取」。
+
+### 2.3 变量 → SQL 参数：已解在计划层
+
+编译期（入 L1 前）对每个参数化点：
+
+1. Clause 中写入 `ParameterWord`（名称 / 类型槽位，而非字面量）  
+2. 同时生成 `ParameterAccessor`：`ValueAccessor(liveTree, db, …) → object`
+
+执行期（`QueryMate.SetParameters` / `SentenceExecutor.BuildSqlBuilder`）：
+
+```text
+foreach Accessor:
+  value = ValueAccessor(本次 Expression, …)
+  → SqlParameterValues
+→ Visit(Statement) 灌参并渲染
+```
+
+因此：此前困扰的「Expression 变量如何映射为 SQL 参数」，**在 L1 已用 Accessor 机制解决**——解在计划层，而非 SQLCmd 层。SQLClip 侧「可一一映射」是因为缓存对象往往不携带「每次变化的 SQL 参数语义」；Ext 必须显式拆分形状与值。
+
+### 2.4 与 SQLClip 的差异
+
+| 点 | SQLClip | Ext Queryable（当前 L1） |
+|----|---------|---------------------------|
+| Expression 角色 | 字段 / 条件片段为主 | 整条 `IQueryable` 链，闭包值即 SQL 参数候选 |
+| 缓存粒 | 字段 / 片段解析结果 | 整查询 `SentenceBag` |
+| 命中后 | 重绑别名 / 上下文即可 | **必须**用 live Expression 跑 `ParameterAccessor` |
+| 键语义 | 结构身份（可复用 `ClipExpSameCheckor`） | 同左，但须完整 `Equals`（禁止仅 int 哈希当 key） |
+
+### 2.5 终极目标：L2（Expression → SQLCmd，只改 para）
+
+目标形态：
+
+> 形状编译一次得到 `SQLCmd` 模板；每次仅按变量更新 `SQLCmd.para` 后执行。
+
+**结论：可以实现，但是叠在 L1 之上的二级缓存，且有前提。**
+
+```text
+L1（已落地）Expression 形状 → SentenceBag（Clause + Accessors）
+L2（终极，未落地）同一计划且 SQL 与参数值无关
+              → SQLCmd 模板（sql 固定 + para 槽）
+每次：Accessors(liveExpr) → 写 para → 执行（跳过 Visit）
+```
+
+| 前提 | 说明 |
+|------|------|
+| SQL 与参数值无关 | `IsParameterDependent == false`；变长 IN、按值改写片段等只能退回 L1 或重渲染 |
+| 参数槽位稳定 | 名称 / 顺序 / 个数固定；Accessors 与 `SQLCmd.para` 一一对应 |
+| 并发安全 | 共享模板需 clone 或线程内写 para，禁止多线程改同一 `SQLCmd` |
+| 正确性边界 | 与 L1 的 `IsCacheable` 排除集一致 |
+
+**参数映射不再是 L2 的拦路虎**——L1 的 Accessor 就是填 para 的输入。  
+真正缺口是：暖路径仍每次 Visit；部分语句 SQL 随参数变；`SentenceItem.cmds` 有结果槽但主路径未做成全局「Expression→SQLCmd」模板缓存。
+
+### 2.6 效率阶梯与后续杠杆
+
+| 级别 | 复用什么 | 每次仍要做 | 状态 |
+|------|----------|------------|------|
+| 无缓存 | — | ①+② 全做 | 历史基准 Condition ~ms |
+| **L1** | Clause + Accessor | SetParameters + Visit→SQL | **阶段 A 已落地** |
+| **L2** | SQL 文本 + para 骨架 | 只 SetParameters + 填 para | **未做；下一档杠杆** |
+| `CompileQuery` | 显式钉死 L1 计划 | 同暖路径（可再叠 L2） | 阶段 C 已提供 API |
+
+落地边界建议先裁定：**哪些语句保证参数无关可进 L2；哪些永远停在 L1。**
+
+---
+
+## 3. 调用链（以 Condition → `SqlText` 为准）
 
 基准入口：
 
@@ -39,7 +152,7 @@ MooSqlQueryableTest.testQueryCondition()
   → IExpressionQuery.SqlText
 ```
 
-### 2.1 SqlText → SQL 字符串
+### 3.1 SqlText → SQL 字符串
 
 ```mermaid
 flowchart TD
@@ -63,7 +176,7 @@ flowchart TD
 | 步骤 | 关键位置 | 行为 |
 |------|----------|------|
 | 入口 | `ext/.../ExpressionQuery.cs` → `SqlText` / `GetQuery` | `Info` 仅在**同一查询对象复用**且 `IsCacheable` 时命中；基准每次新建链 → **必 miss** |
-| 全局计划缓存 | `ext/.../query/Query.until.cs` → `QueryMate.GetQuery` | `_queryCache` **整段注释**；`QueryCache` 类型当前不存在；`DisableQueryCache` 不再被读取 |
+| 全局计划缓存 | `QueryMate.GetQuery` + `ExtQueryPlanCache` | **L1 已接线**：结构键 → `SentenceBag`；见第 2 章 |
 | 预处理 | `ExpressionTreeOptimizationContext.AggregateExpression` | 再平衡 `AndAlso`/`OrElse` |
 | Expose | `ClauseSqlTranslator.ExposeExpression` | 全树遍历、可编译判定、展开/求值 |
 | 编译 | `QueryMate.CreateQuery` → `ClauseCompiler.Build` | 新建 `ClauseSqlTranslator` + `ParametersContext` + 双访问器会话 |
@@ -72,7 +185,7 @@ flowchart TD
 | Finalize | `SentenceExecutor.FinalizeBag` | `EntitySelectProjector` + `SqlOptimizerFactory` → `BasicSqlOptimizer.Finalize`（重） |
 | 渲染 | `QueryMate.TranslateCmds` / `ClauseTranslateVisitor` | Statement → `SQLBuilder` → 字符串 |
 
-源码证据（计划缓存已摘掉）：
+源码证据（**历史**：缓存曾整段注释；阶段 A 已恢复，见第 2 章 / 第 7.2 节）：
 
 ```30:30:ext/src/linq/src/linq/query/Query.until.cs
         //private static readonly QueryCache _queryCache = new();
@@ -106,9 +219,9 @@ flowchart TD
 
 ---
 
-## 3. 根因排序（按影响）
+## 4. 根因排序（按影响）
 
-### 3.1 Condition / MethodCondition（纯编译）
+### 4.1 Condition / MethodCondition（纯编译）
 
 | 优先级 | 根因 | 说明 |
 |--------|------|------|
@@ -120,7 +233,7 @@ flowchart TD
 | **P2** | **参数访问器每次 `CompileExpression`** | 闭包/`id` 等参数化路径的委托编译与分配 |
 | **P3** | **编译会话对象图不可复用** | 每调用新建 translator / visitors / SelectQuery / placeholders → ~300 KB+/次 |
 
-### 3.2 Loop（20× `Where(Id==i).ToList()`）
+### 4.2 Loop（20× `Where(Id==i).ToList()`）
 
 | 优先级 | 根因 | 说明 |
 |--------|------|------|
@@ -129,7 +242,7 @@ flowchart TD
 | **P1** | 每轮 Finalize + Translate + `query<T>` | 次于编译，但仍可观 |
 | — | ADO / 映射 | 不是主因（Builder 同场景仅 ~1.3 ms） |
 
-### 3.3 Result / AnonymousResult
+### 4.3 Result / AnonymousResult
 
 | 优先级 | 根因 | 说明 |
 |--------|------|------|
@@ -139,7 +252,7 @@ flowchart TD
 
 ---
 
-## 4. 与 Builder / Clip / Fast LINQ 的结构对比
+## 5. 与 Builder / Clip / Fast LINQ 的结构对比
 
 | 路径 | 编译模型 | Condition 量级 | 含义 |
 |------|----------|---------------|------|
@@ -152,26 +265,26 @@ flowchart TD
 
 ---
 
-## 5. 现有缓存盘点
+## 6. 现有缓存盘点
 
 | 机制 | 状态 | 对基准是否有效 |
 |------|------|----------------|
-| `QueryMate` / `QueryCache` | **注释禁用 / 类型缺失** | 否（**本方案主修复点**） |
-| SQLClip `ClipExpSameCheckor` + `FrequencyBasedCache` | **已在 Clip 字段解析路径服役** | Ext 未接线；作 P0 身份/容器基础 |
+| `QueryMate` / `ExtQueryPlanCache` | **阶段 A 已接线**（见第 2 章 L1） | 暖路径有效；基准需冷暖分列复测 |
+| SQLClip `ClipExpSameCheckor` + `FrequencyBasedCache` | Clip 服役；Ext 键算法已复用 | Ext 计划缓存已接线 |
 | `ExpressionQuery.Info` | 实例级，需复用同一 query 对象 | 基准模式否 |
 | `ClauseSqlTranslator._cachedSql` | 单次编译会话内 | 跨调用否 |
-| `SooOption.DisableQueryCache` | 选项仍在，逻辑未接线 | 无效（接线后生效） |
+| `SooOption.DisableQueryCache` | 已接线 | 关闭时不入 L1 |
 | Expose / visitor 对象池 | 存在 | 微小，不解决计划复用 |
 | Pure `MapperCache` | 存活 | 只助映射，不助 Ext 编译 |
 | `SentenceItem.cmds` | 同一 bag 内 | bag 不复用则无效 |
 
-**Loop 当前不会命中任何 Ext 查询计划缓存**；Clip 侧结构身份能力可迁移后改变此结论。
+**Loop 同形状不同 `id` 应命中 L1**（结构键忽略闭包值）；L2（SQLCmd）尚未落地。
 
 ---
 
-## 6. 初步优化方案
+## 7. 初步优化方案
 
-### 6.1 目标（建议验收指标）
+### 7.1 目标（建议验收指标）
 
 在 `Tests/TestFast/dbTest` 同环境、Queryable 路径上：
 
@@ -184,11 +297,11 @@ flowchart TD
 
 冷启动（首次编译）允许仍为毫秒级，但文档与基准应**分列冷/暖**，避免误读。
 
-### 6.2 P0 — 基于 SQLClip 表达式身份识别，恢复 `QueryMate` 被注释缓存链路
+### 7.2 P0 — 基于 SQLClip 表达式身份识别，恢复 `QueryMate` 被注释缓存链路
 
 **策略（本轮方案核心）**：不另起一套 Lin2DB 式完整 `QueryCache` 重写；**复用 SQLClip 已验证的「Expression 结构身份 → 唯一 ID → 频率缓存」能力**，接到 `QueryMate.GetQuery` 里被注释掉的 Find / TryAdd 区域，使 Ext 编译产物（`SentenceBag`）可跨调用复用。
 
-#### 6.2.1 SQLClip 侧已有基础（可直接对齐）
+#### 7.2.1 SQLClip 侧已有基础（可直接对齐）
 
 | 组件 | 路径 | 作用 |
 |------|------|------|
@@ -209,7 +322,7 @@ FrequencyBasedCache 取已解析结果，闭包表别名重绑
 
 **对 Ext 的关键启示**：身份键必须对「形状相同、常量/闭包值不同」的查询给出同一 ID（Loop 中 `Where(b => b.Id == id)` 的 `id` 变化不应打爆缓存）；真正取值仍走现有 `ParameterAccessor` / `SetParameters(expression, …)`。
 
-#### 6.2.2 接到被注释链路的落点
+#### 7.2.2 接到被注释链路的落点
 
 目标文件：`ext/src/linq/src/linq/query/Query.until.cs`（`QueryMate`）
 
@@ -234,7 +347,7 @@ ExtQueryCacheKey =
 
 值：`SentenceBag<T>`（或非泛型 `SentenceBag` + 结果类型校验）。命中后**不得**跳过 `SetParameters`；`FinalizeBag` 对已 `IsFinalized` 的 bag 早退，与现逻辑兼容。
 
-#### 6.2.3 与 Clip 的差异（必须写进实施约束）
+#### 7.2.3 与 Clip 的差异（必须写进实施约束）
 
 | 点 | Clip 现状 | Ext 适配要求 |
 |----|-----------|--------------|
@@ -243,7 +356,7 @@ ExtQueryCacheKey =
 | 命中后修正 | 闭包重绑表别名 | 执行/ToSql 仍用**当前** Expression 喂给 `ParameterAccessors` |
 | DB 实例 | 绑定在 Clip 上下文 | Key 含方言指纹；`SentenceBag.DBLive` 命中后应绑定到**本次** `DBInstance` 或保证方言一致才命中 |
 
-#### 6.2.4 排除与正确性边界
+#### 7.2.4 排除与正确性边界
 
 不可入缓存（与现有 `IsCacheable` 对齐并加强）：
 
@@ -255,11 +368,18 @@ ExtQueryCacheKey =
 **预期**：Condition/MethodCondition 暖路径 ms → 数十～百 μs；同形状 Loop ×20 编译 1 次。  
 **风险**：Equals/哈希语义不一致 → 该命中未命中或（更糟）误命中；须用「同形状不同闭包值」「不同形状同哈希压力」单测守住。
 
-#### 6.2.5 本轮范围声明
+#### 7.2.5 落地状态（阶段 A）
 
-> **本轮仅编制方案，不实施代码。** 实施时应优先改 `Query.until.cs` 注释区 + 新增/抽取与 Clip 共享的身份键组件，避免平行发明第二套表达式指纹算法。
+已实现（**未改 pure**，仅复用其 `FrequencyBasedCache` / Clip 身份能力）：
 
-### 6.3 P0′ — 对外 CompiledQuery / 复用 API（缓存之上的显式出口）
+- `ext/src/linq/src/linq/query/cache/ExtExpressionStructuralComparer.cs`（哈希委托 `ClipExpSameCheckor`，Equals 常量按类型）
+- `ExtQueryCacheKey` / `ExtQueryPlanCache`（`FrequencyBasedCache`）+ `QueryRunner.ClearCaches` 钩子
+- `QueryMate.GetQuery` Find×2 + TryAdd（同时索引 Expose 前/后形状）
+- `SentenceBag.PrepareForCaching`
+- 单测：`ExtQueryPlanCacheTests`（5/5 通过）— 结构相等 / 暖命中 / DisableQueryCache / CompileQuery
+- **待你验证**：dbTest Condition / Loop 冷暖分列（A5）
+
+### 7.3 P0′ — 对外 CompiledQuery / 复用 API（缓存之上的显式出口）
 
 自动结构缓存覆盖「同形状链式 API」后，仍建议提供显式编译 API（对标 EF `CompileQuery`），用于形状稳定、调用极热的路径：
 
@@ -272,10 +392,17 @@ for (var i = 0; i < 20; i++)
     _ = q(db, i).ToList();
 ```
 
-**预期**：不依赖启发式相等；与 6.2 共用同一套 `SentenceBag` 复用与 `SetParameters` 约定。  
-**顺序**：可在 6.2 暖缓存跑通后再做；若 6.2 键语义短期难稳，可把 CompiledQuery 提前为 Loop 的过渡方案。
+**预期**：不依赖启发式相等；与 7.2 共用同一套 `SentenceBag` 复用与 `SetParameters` 约定。  
+**顺序**：可在 7.2 暖缓存跑通后再做；若 7.2 键语义短期难稳，可把 CompiledQuery 提前为 Loop 的过渡方案。
 
-### 6.4 P1 — 收紧 `BuildWhere` 的 SubQuery 包装
+#### 7.3.1 落地状态（阶段 C）
+
+- `ext/src/linq/door/ExtCompiledQueryExtensions.cs`：`CompileQuery` / `CompileQueryExpression`
+- `Compilation.CompileExpression`：结构键 `LambdaCache` + `ClearLambdaCache` 挂入 `QueryRunner.ClearCaches`
+- 访问器池化（原 C3 后半）留 P2，本轮不做
+- **待你验证**：基准冷/暖/CompiledQuery 分列与总结表更新（C4 / 7.7）
+
+### 7.4 P1 — 收紧 `BuildWhere` 的 SubQuery 包装
 
 **现状**：几乎所有非 Having 的 Where 都 `new SubQueryContext`。  
 **建议**：仅在以下情况包装：
@@ -290,7 +417,12 @@ for (var i = 0; i < 20; i++)
 
 **风险**：Distinct/分页/集合运算语义回归——应用针对性用例守住。
 
-### 6.5 P1 — 简单查询 Finalize 快路径
+#### 7.4.1 落地状态（阶段 B1）
+
+- `BuildWhere`：仅当 `checkForSubQuery && SubQueryContext.NeedsSubqueryForComparison` 时再包一层
+- `VisitWhere`：Distinct / Take / Skip 仍先包 `SubQueryContext`（语义守住）
+
+### 7.5 P1 — 简单查询 Finalize 快路径
 
 当语句满足「单表、无 Join/Apply/CTE/集合运算、无复杂投影嵌套」时：
 
@@ -299,16 +431,22 @@ for (var i = 0; i < 20; i++)
 
 **预期**：ToSql 尾段明显缩短；与 P1 SubQuery 收紧叠加效果更好。
 
-### 6.6 P2 — 编译器内部减负
+#### 7.5.1 落地状态（阶段 B2）
+
+- `BasicSqlOptimizer.Finalize`：`IsSimpleSelectStatement` 快路径（跳过 OptimizeQueries / JoinsOptimizer）
+- `SqlOptimizerFactory`：按方言类型缓存 `ISqlOptimizer`
+- **待你验证**：Result / Anonymous / Distinct·分页语义（B3）
+
+### 7.6 P2 — 编译器内部减负
 
 | 项 | 说明 |
 |----|------|
-| 参数访问器缓存 | 按表达式形状缓存 `CompileExpression` 结果 |
+| 参数访问器缓存 | 按表达式形状缓存 `CompileExpression` 结果（阶段 C 已接结构键缓存） |
 | 减少双遍 Convert | 热路径避免 Test + Real 重复转换 |
 | 收紧 `CanBeCompiled` | 结果缓存，降低 Expose 成本 |
-| 会话/访问器池化 | 降低 Gen0（收益小于 P0） |
+| 会话/访问器池化 | 降低 Gen0（收益小于 P0；**本轮未做**） |
 
-### 6.7 P3 — 基准与文档治理
+### 7.7 P3 — 基准与文档治理
 
 1. 在 `MooSqlQueryableTest` / 文档中区分：**冷编译** vs **暖缓存** vs **CompiledQuery**  
 2. Anonymous / Condition 在 Select 列名修复后**重跑**并更新总结表  
@@ -316,32 +454,22 @@ for (var i = 0; i < 20; i++)
 
 ---
 
-## 7. 建议落地顺序
+## 8. 建议落地顺序
 
 ```text
-阶段 A（正确性优先 — 对齐 Clip 身份缓存）
-  A1. 固化 ExtQueryCacheKey 语义：以 ClipExpSameCheckor 为结构指纹；
-      Equals 与「常量按类型」一致（必要时抽 ClipStructuralComparer，避免 ExpressionComparer 按值比较）
-  A2. 实现 ExtQueryPlanCache（FrequencyBasedCache / 等价容器）+ Clear 钩子
-  A3. 打开 QueryMate.GetQuery 注释区：DisableQueryCache、Find×2、TryAdd、IsCacheable
-  A4. 单测：同形状不同闭包值命中；不同谓词不命中；多方言不串；DisableQueryCache 生效
-  A5. dbTest：Condition / Loop 冷暖分列复测
-
-阶段 B（管线减负，与 A 可部分并行）
-  B1. BuildWhere 条件化 SubQuery
-  B2. Finalize 简单查询快路径
-  B3. Result / Anonymous 复测
-
-阶段 C
-  C1. 公开 CompileQuery API（与 A 共用 SentenceBag 复用约定）
-  C2. PrepareForCaching / 占位改写（降低键持有表达式图）
-  C3. 参数访问器缓存、访问器池化
-  C4. 更新基准总结与对外说明（冷/暖分列）
+阶段 A — 已落地（A1–A4）；A5 待基准复测
+阶段 B — 已落地（B1–B2）；B3 待复测
+阶段 C — 已落地（C1–C3 访问器结构缓存）；池化与 C4 基准文档待你验证后决定
 ```
+
+验证入口建议：
+
+- 单测：`dotnet test Tests/TestBug/TestLinq.csproj --filter ExtQueryPlanCacheTests`
+- 性能：`Tests/TestFast/dbTest`（`moosmoke` / BenchmarkDotNet），关注 Condition / Loop 暖路径
 
 ---
 
-## 8. 明确不做 / 慎做
+## 9. 明确不做 / 慎做
 
 | 项 | 原因 |
 |----|------|
@@ -355,22 +483,22 @@ for (var i = 0; i < 20; i++)
 
 ---
 
-## 9. 与近期缺陷修复的关系
+## 10. 与近期缺陷修复的关系
 
 近期已修：
 
 1. **`VisitColumnWord`**：`expression as alias`（消除 `b.IdId`）  
 2. **FROM 别名**：`VisitTableWord` 输出 `Name as Alias`；子查询展平时避免 `as b as b`  
 
-这些修复让服务端 `Select` / 执行路径正确，**不降低编译税**。Queryable 性能问题是**架构级缓存与管线重量**问题，需按第 6 节推进。
+这些修复让服务端 `Select` / 执行路径正确，**不降低编译税**。Queryable 性能问题是**架构级缓存与管线重量**问题，需按第 7 节推进。
 
 `Tests/TestFast/dbTest` 已改为 `ProjectReference` 本仓库 `ext/mooSQL.Ext.csproj`，便于边改 Ext 边用 `moosmoke` / BenchmarkDotNet 验证。
 
 ---
 
-## 10. 一句话结论
+## 11. 一句话结论
 
-**Ext Queryable 在 Condition/Loop 上的低性能，主因是「完整编译管线 + `QueryMate` 计划缓存被注释关掉 + Where 无条件套子查询 + 重 Finalize」；不是 ADO 映射慢。**  
-最高杠杆是：**用 SQLClip 已有的 Expression 结构身份识别（`ClipExpSameCheckor` + 频率缓存模式）适配并恢复 `Query.until.cs` 被注释的缓存链路**，使同形状查询复用 `SentenceBag`、执行期再 `SetParameters`；其次才是收紧 SubQuery / Finalize，以及可选的 CompiledQuery API。在暖缓存落地前，高频短查询仍应走 **SQLBuilder / SQLClip**。
+**Ext Queryable 在 Condition/Loop 上的低性能，主因是「完整编译管线 + 曾关闭的计划缓存 + Where 无条件套子查询 + 重 Finalize」；不是 ADO 映射慢。**  
+L1（`SentenceBag` + `ParameterAccessor`）已按第 2 章模型落地；下一档杠杆是 L2（参数无关语句缓存到 `SQLCmd`、只改 para）。在暖路径达标前，高频短查询仍应走 **SQLBuilder / SQLClip**。
 
-> 文档状态：方案编制（含 Clip 适配路径）；**尚未实施代码。**
+> 文档状态：阶段 A/B/C 已落地（L1）；第 2 章定义 L1/L2 缓存模型；L2 与基准冷暖复测待验证。
