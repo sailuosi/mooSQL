@@ -18,7 +18,8 @@ namespace mooSQL.data.model
         /// <summary>关联的链式 SQL 构造器。</summary>
         public SQLBuilder Builder { get; set; }
         /// <summary>
-        /// 将当前构建状态物化为 <see cref="SQLCmd"/>。
+        /// 将当前构建状态物化为 <see cref="SQLCmd"/>（Select/Insert/Update 等差异由此委托承担，
+        /// 不在轻量的 <see cref="SQLBuilder"/> 上挂命令缓存）。
         /// </summary>
         public Func<BuildingSQL, SQLCmd> ToCmd { get; set; }
         /// <summary>

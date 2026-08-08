@@ -733,10 +733,6 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toSelect()
         {
-            // Ext L2 / 预构建命令：跳过拼装，直接返回已缓存的 SQLCmd（仅改 para 场景）
-            if (_prebuiltSelectCmd != null)
-                return _prebuiltSelectCmd;
-
             string sql = "";
             if (this.unionHolder.Count == 0)
             {

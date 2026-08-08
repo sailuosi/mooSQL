@@ -51,8 +51,14 @@ namespace mooSQL.data.model
             TargetSQL.ToCmd = toCmd;
         }
 
-        /// <summary>调用 <see cref="BuildingSQL.ToCmd"/> 生成命令。</summary>
+        /// <summary>
+        /// Clause → <see cref="SQLCmd"/> 的出口：由 <see cref="BuildingSQL.ToCmd"/> 决定
+        /// （Select/Insert/Update 等差异在此承担，不侵入轻量的 <see cref="SQLBuilder"/>）。
+        /// </summary>
         public SQLCmd ToCmd() {
+            if (TargetSQL?.ToCmd == null)
+                throw new InvalidOperationException(
+                    $"{nameof(SQLBuilderClause)}.{nameof(ToCmd)} requires {nameof(BuildingSQL.ToCmd)}.");
             return TargetSQL.ToCmd(TargetSQL);
         }
     }

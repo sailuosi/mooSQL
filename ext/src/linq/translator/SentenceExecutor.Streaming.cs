@@ -22,8 +22,7 @@ internal static partial class SentenceExecutor
         object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression, parameters);
-        var sql = kit.toSelect();
+        var (kit, sql) = BuildSelectCmd(bag, db, expression, parameters);
 
         if (string.IsNullOrEmpty(sql.sql))
             yield break;

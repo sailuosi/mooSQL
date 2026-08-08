@@ -16,7 +16,8 @@ using mooSQL.linq.Tools;
 namespace mooSQL.linq.translator;
 
 /// <summary>
-/// Statement → ClauseTranslateVisitor → SQLBuilder → 执行；实体映射使用 query&lt;T&gt;()。
+/// Statement → ClauseTranslateVisitor → <see cref="SQLBuilderClause.ToCmd"/> → 执行；
+/// 实体映射使用 <see cref="SQLBuilder.exeQuery{T}(SQLCmd)"/>。
 /// </summary>
 internal static partial class SentenceExecutor
 {
@@ -51,14 +52,14 @@ internal static partial class SentenceExecutor
     static object ExecuteEnumerable(Type elementType, SentenceBag bag, DBInstance db, Expression expression, QueryContext context, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression, parameters);
+        var (kit, cmd) = BuildSelectCmd(bag, db, expression, parameters);
         var method = typeof(SentenceExecutor).GetMethod(nameof(QueryAndLoadNav), BindingFlags.NonPublic | BindingFlags.Static)!;
-        return method.MakeGenericMethod(elementType).Invoke(null, new object[] { kit, bag })!;
+        return method.MakeGenericMethod(elementType).Invoke(null, new object[] { kit, cmd, bag })!;
     }
 
-    static List<T> QueryAndLoadNav<T>(SQLBuilder kit, SentenceBag bag)
+    static List<T> QueryAndLoadNav<T>(SQLBuilder kit, SQLCmd cmd, SentenceBag bag)
     {
-        var res = kit.query<T>().ToList();
+        var res = kit.exeQuery<T>(cmd).ToList();
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }
@@ -66,65 +67,91 @@ internal static partial class SentenceExecutor
     static TResult ExecuteScalar<TResult>(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression, parameters);
+        var (kit, cmd) = BuildSelectCmd(bag, db, expression, parameters);
         var t = typeof(TResult);
 
         if (t == typeof(int) || t == typeof(long) || t == typeof(bool))
-            return (TResult)Convert.ChangeType(kit.count(), t)!;
+            return (TResult)Convert.ChangeType(kit.exeQueryCount(cmd), t)!;
 
         if (t == typeof(decimal) || t == typeof(double) || t == typeof(float))
-            return (TResult)Convert.ChangeType(kit.queryScalar<object>(), t)!;
+            return (TResult)Convert.ChangeType(kit.DBLive.ExeQueryScalar<object>(cmd, kit.Executor), t)!;
 
-        return kit.queryUnique<TResult>();
+        return kit.DBLive.ExeQueryUniqueRow<TResult>(cmd, kit.Executor);
     }
 
     static async Task<TResult> ExecuteScalarAsync<TResult>(SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression);
+        var (kit, cmd) = BuildSelectCmd(bag, db, expression);
         var t = typeof(TResult);
 
         if (t == typeof(int) || t == typeof(long) || t == typeof(bool))
         {
-            var count = await kit.exeQueryCountAsync(kit.toSelect()).ConfigureAwait(false);
+            var count = await kit.exeQueryCountAsync(cmd).ConfigureAwait(false);
             return (TResult)Convert.ChangeType(count, t)!;
         }
 
         if (t == typeof(decimal) || t == typeof(double) || t == typeof(float))
-            return (TResult)Convert.ChangeType(await kit.queryScalarAsync<object>().ConfigureAwait(false), t)!;
+            return (TResult)Convert.ChangeType(
+                await kit.DBLive.ExeQueryScalarAsync<object>(cmd, kit.Executor).ConfigureAwait(false), t)!;
 
-        return await kit.queryUniqueAsync<TResult>().ConfigureAwait(false);
+        return await kit.DBLive.ExeQueryUniqueRowAsync<TResult>(cmd, kit.Executor).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// 翻译为已填充的 <see cref="SQLBuilder"/>（供 ToSQLBuilder / 桥接）；始终 Visit，顺带捕获 L2。
+    /// </summary>
     internal static SQLBuilder BuildSqlBuilderPublic(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
-        => BuildSqlBuilder(bag, db, expression, parameters);
+        => VisitToBuilder(bag, db, expression, parameters, captureL2: true);
 
     /// <summary>
-    /// L2 优先：安全门下复用 SQL 文本（<see cref="SQLBuilder.usePrebuiltSelect"/>）；
-    /// 否则 Visit 渲染，并在安全门下捕获模板到 <see cref="SentenceItem.L2Template"/>。
+    /// L2 优先得到 <see cref="SQLCmd"/>；未命中则 <see cref="SQLBuilderClause.ToCmd"/>。
+    /// SQLBuilder 只作拼装/执行载体，不承载命令缓存。
     /// </summary>
-    static SQLBuilder BuildSqlBuilder(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
+    static (SQLBuilder kit, SQLCmd cmd) BuildSelectCmd(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         var sentence = bag.Sentences[0];
         var parameterValues = new SqlParameterValues();
         QueryMate.SetParameters(bag, expression, db, parameters, sentence, parameterValues);
 
         if (ExtSqlCmdL2.TryBuild(sentence, parameterValues, out var cached) && cached != null)
-            return db.useSQL().usePrebuiltSelect(cached);
+            return (db.useSQL(), cached);
 
+        var builderClause = VisitToClause(db, sentence.Statement, parameterValues);
+        var cmd = builderClause.ToCmd();
+        ExtSqlCmdL2.TryCapture(sentence, cmd, parameterValues);
+        return (builderClause.Builder, cmd);
+    }
+
+    /// <summary>Visit 填充 Builder；可选捕获 L2 模板。</summary>
+    static SQLBuilder VisitToBuilder(
+        SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters, bool captureL2)
+    {
+        var sentence = bag.Sentences[0];
+        var parameterValues = new SqlParameterValues();
+        QueryMate.SetParameters(bag, expression, db, parameters, sentence, parameterValues);
+
+        var builderClause = VisitToClause(db, sentence.Statement, parameterValues);
+        if (captureL2)
+        {
+            var cmd = builderClause.ToCmd();
+            ExtSqlCmdL2.TryCapture(sentence, cmd, parameterValues);
+        }
+
+        return builderClause.Builder;
+    }
+
+    static SQLBuilderClause VisitToClause(DBInstance db, BaseSentence statement, SqlParameterValues parameterValues)
+    {
         var translator = db.dialect.clauseTranslator.Prepare(db);
         translator.ParameterValues = parameterValues;
-        var clause = translator.Visit(sentence.Statement);
+        var clause = translator.Visit(statement);
 
         if (clause is not SQLBuilderClause builderClause)
             throw new InvalidOperationException(
                 $"Clause translation expected {nameof(SQLBuilderClause)} but got {clause?.GetType().Name ?? "null"}.");
 
-        var kit = builderClause.Builder;
-        // 先物化一次以捕获 L2 模板；再挂回 prebuilt，避免调用方 toSelect 二次拼装且保证模板与执行一致
-        var cmd = kit.toSelect();
-        ExtSqlCmdL2.TryCapture(sentence, cmd, parameterValues);
-        return kit.usePrebuiltSelect(cmd);
+        return builderClause;
     }
 
     public static string GetSqlText(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
@@ -195,8 +222,8 @@ internal static partial class SentenceExecutor
     public static List<T> ExecuteList<T>(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression, parameters);
-        var res = kit.query<T>().ToList();
+        var (kit, cmd) = BuildSelectCmd(bag, db, expression, parameters);
+        var res = kit.exeQuery<T>(cmd).ToList();
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }
@@ -205,8 +232,8 @@ internal static partial class SentenceExecutor
         SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default, object?[]? parameters = null)
     {
         FinalizeBag(bag, db);
-        var kit = BuildSqlBuilder(bag, db, expression, parameters);
-        var res = (await kit.queryAsync<T>().ConfigureAwait(false)).ToList();
+        var (kit, cmd) = BuildSelectCmd(bag, db, expression, parameters);
+        var res = (await kit.exeQueryAsync<T>(cmd).ConfigureAwait(false)).ToList();
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }

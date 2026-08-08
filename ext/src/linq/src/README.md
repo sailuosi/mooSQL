@@ -228,14 +228,13 @@ FinalizeBag(bag)
   → SqlOptimizerFactory.Get(db).Finalize(statement)
   → SqlProviderHelper.IsValidQuery(...)
 
-BuildSqlBuilder(bag, expression, parameters)
-  → QueryMate.SetParameters(...)
-  → ClauseTranslateVisitor.Visit(statement)
-  → SQLBuilderClause.Builder
+BuildSelectCmd(bag, expression, parameters)
+  → L2 命中：ExtSqlCmdL2.TryBuild → SQLCmd
+  → 未命中：ClauseTranslateVisitor.Visit → SQLBuilderClause.ToCmd + TryCapture
 
 Execute
-  → IEnumerable<T>  : kit.query<T>().ToList() + NavColumnLoader
-  → Scalar (int/bool) : kit.count()
+  → IEnumerable<T>  : kit.exeQuery<T>(cmd).ToList() + NavColumnLoader
+  → Scalar (int/bool) : kit.exeQueryCount(cmd)
   → DML             : PrepareCommands → ExeNonQuery / 多语句策略
   → InsertOrUpdate  : MySQL 原生 ON DUPLICATE KEY UPDATE（IsInsertOrUpdateSupported）
 ```

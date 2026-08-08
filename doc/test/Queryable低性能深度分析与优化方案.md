@@ -82,7 +82,7 @@ Visit → SQLBuilder / SQLCmd → 执行
 1. Clause 中写入 `ParameterWord`（名称 / 类型槽位，而非字面量）  
 2. 同时生成 `ParameterAccessor`：`ValueAccessor(liveTree, db, …) → object`
 
-执行期（`QueryMate.SetParameters` / `SentenceExecutor.BuildSqlBuilder`）：
+执行期（`QueryMate.SetParameters` / `SentenceExecutor.BuildSelectCmd`）：
 
 ```text
 foreach Accessor:
@@ -113,7 +113,8 @@ foreach Accessor:
 ```text
 L1（已落地）Expression 形状 → SentenceBag（Clause + Accessors）
 L2（首期已落地）安全门通过 → SQLCmd 模板挂在 SentenceItem.L2Template
-每次：Accessors(liveExpr) → 写 para → usePrebuiltSelect / 跳过 Visit
+每次：Accessors(liveExpr) → 写 para → ExtSqlCmdL2.TryBuild / 跳过 Visit
+未命中：Visit → SQLBuilderClause.ToCmd（Clause 自担 Clause→SQLCmd）
 ```
 
 #### 2.5.1 首期安全门（可控优先）
@@ -132,9 +133,9 @@ L2（首期已落地）安全门通过 → SQLCmd 模板挂在 SentenceItem.L2Te
 |------|------|
 | `ExtSqlCmdL2` / `ExtSqlCmdTemplate` | 安全门判定、捕获/重建 SQLCmd |
 | `SentenceItem.L2Template` | 随 L1 bag 复用的文本模板 |
-| `SentenceExecutor.BuildSqlBuilder` | 命中则 `usePrebuiltSelect`；未命中 Visit 后 `TryCapture` |
+| `SentenceExecutor.BuildSelectCmd` | 命中则直接得 SQLCmd；未命中 `SQLBuilderClause.ToCmd` + `TryCapture` |
 | `QueryMate.TranslateCmds` | SqlText 路径同样走 L2 |
-| `SQLBuilder.usePrebuiltSelect` | pure 薄钩子：`toSelect` 直接返回预构建命令 |
+| `BuildingSQL.ToCmd` / `SQLBuilderClause` | Clause→SQLCmd 差异出口；SQLBuilder 仅拼装字符串 |
 
 | 前提 | 说明 |
 |------|------|
