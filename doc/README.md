@@ -500,6 +500,7 @@ mooSQL 提供**执行层、SQL 编织层、仓库层、表达式层**多级别�
 - [数据权限 · 生命周期](docs/SQL/auth/authlife.md)
 - [数据权限 · API 备忘](docs/SQL/auth/authbase.md)
 - [表达式查询](docs/SQL/high/expression.md)
+- [特性计划：业务层与查询体验](design/特性计划-业务层与查询体验.md)
 
 ## 🎨 设计原则
 
