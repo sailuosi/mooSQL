@@ -7,6 +7,8 @@ namespace mooSQL.data
     {
         private string _paraRule = "notEmpty";
         private bool _opened = true;
+        /// <summary>编排期静态槽递增（方案 C）；clear/reset 归零。</summary>
+        private int _nextStaticSlot;
 
         /// <summary>可选 notEmpty / all / notNull；默认 notEmpty。编排 Hash 种子与步骤判定共用。</summary>
         public string paraRule
@@ -80,8 +82,18 @@ namespace mooSQL.data
         {
             _opened = true;
             _paraRule = "notEmpty";
+            _nextStaticSlot = 0;
             if (_inner != null)
                 _inner.paraRule = _paraRule;
         }
+
+        /// <summary>为将入队的静态写参步分配下一 StaticSlotId（内部用）。</summary>
+        internal int AllocStaticSlotId()
+        {
+            return _nextStaticSlot++;
+        }
+
+        /// <summary>当前已分配槽位数（下一 Id）。</summary>
+        internal int NextStaticSlotId { get { return _nextStaticSlot; } }
     }
 }

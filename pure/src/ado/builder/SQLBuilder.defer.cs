@@ -58,7 +58,12 @@ namespace mooSQL.data
 
         public SQLBuilder where(string key) => Enqueue(new WhereRawStep(key));
 
-        public SQLBuilder where(string key, object val) => Enqueue(new WhereKeyValStep(key, val));
+        public SQLBuilder where(string key, object val)
+        {
+            var step = new WhereKeyValStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
         public SQLBuilder where(string key, object val, string op) =>
             Enqueue(new WhereKeyValOpParamedStep(key, val, op, true));
@@ -173,13 +178,7 @@ namespace mooSQL.data
             return this;
         }
 
-        // ---- 基础 toXxx（其余见 defer.exec）----
-
-        public SQLCmd toSelect()
-        {
-            runBuild();
-            return _inner.toSelect();
-        }
+        // ---- 基础 toXxx（其余见 defer.exec；toSelect 冷热分流见 SQLBuilder.cache.cs）----
 
         public SQLCmd toSelectCount()
         {

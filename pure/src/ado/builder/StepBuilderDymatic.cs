@@ -422,13 +422,17 @@ namespace mooSQL.data
         //        return res;
         //    }
 
-        private ISooCache cacheHolder
+        /// <summary>
+        /// 与 query 结果缓存同一解析：本实例 setCacheHolder → Client.Cache → 默认 HashCache。
+        /// ScriptTemplate 亦经此写入/读取，不另建缓存产品。
+        /// </summary>
+        internal ISooCache cacheHolder
         {
             get
             {
                 if (cache == null)
                 {
-                    if (Client.Cache != null)
+                    if (Client != null && Client.Cache != null)
                     {
                         cache = Client.Cache;
                     }

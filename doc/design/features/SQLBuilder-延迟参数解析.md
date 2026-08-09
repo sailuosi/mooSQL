@@ -35,7 +35,7 @@
 ### 1.3 非目标（本期）
 
 - 不一次性改造全部 where/set 动态 API（仅 2 样本 + 管道）。  
-- 不实现完整 ScriptCache 存储/命中（见 Hash 文档 H4；本文只提供 PlaceHolder + Run 挂点）。  
+- 不实现完整 ScriptCache 存储/命中（见 [执行模板缓存](./SQLBuilder-执行模板缓存.md)；本文只提供 PlaceHolder + Run 挂点）。  
 - 不改变对外链式 API 签名（`whereInGuid` / `whereFormat` 调用方式不变）。  
 - 不改 Dialect 拼装主干算法（仅插入「延迟片段解析」钩子）。
 
@@ -483,18 +483,14 @@ Flush(Apply → whereLive → AddDelayPara + where(PlaceHolder))
 | **PlaceHolder 磁带** | 各延迟体的 `@@{{moo.lp:i}}` 序列（按 DelayParas 序号） | 登记进 Paras 后即稳定 |
 | **Run() 文本 + KV** | 随参数变化 | `DBExecutor.prepare`（reset 前） |
 
-H4 缓存复合键可演进为：
+缓存对象与键的完整锁定见 [执行模板缓存](./SQLBuilder-执行模板缓存.md)：
 
 ```text
-ScriptCacheKey = Hash(
-  OrchestrationHash,
-  PlaceHolderTapeHash,   // 可选：显式 Combine 各步 PlaceHolder
-  (int)DataBaseType,
-  ...
-)
+ScriptTemplate = shellSql + StaticSlots(方案C) + LiveCount
+命中：重绑 staticValues + 新 IDelayPara[] → prepare.Resolve
 ```
 
-缓存命中后：**复用模板壳，仅重跑各 `IDelayPara.Run()` 填值/填 ps**（下期实现，本文只预留形状）。
+本文只保证 Live 半边：PlaceHolder + `Run()`。
 
 ---
 
@@ -532,7 +528,7 @@ pure/src/ado/data/database/
 | **L2b** | `DelayWhereIn` + `whereLiveInList`；`whereIn` / `whereNotIn` / `whereList` Step Apply；空 NOT IN→`1=1`（P5） | 单测绿 |
 | **L2c** | `DelayFormatSQL`（`Paras.formatSQL`）；`selectFormat` / `fromFormat` / `joinFormat` → select/from/joinLive（子查询 Format 不动） | 单测/快照绿 |
 | **L3** | Copy/Clear/幂等；可选未解析 sql 调试视图 | 联调 |
-| **L4**（下期） | 模板缓存命中 + 只重跑 `Run()` | 另立项（Hash 文档 H4） |
+| **L4** | 模板缓存：壳 + StaticSlot + Live；见 [执行模板缓存](./SQLBuilder-执行模板缓存.md) | 另文（C0 已锁定方案 C） |
 
 ---
 
@@ -585,7 +581,8 @@ pure/src/ado/data/database/
 ## 10. 与父文档衔接
 
 - [延迟构造重构](./SQLBuilder-延迟构造重构.md)：D13 指向本文（参数延迟解析）。  
-- [Step 标记与编排 Hash](./SQLBuilder-Step标记与编排Hash.md)：H4 模板缓存依赖本文 PlaceHolder + `Run()`。  
+- [Step 标记与编排 Hash](./SQLBuilder-Step标记与编排Hash.md)：编排指纹为缓存 Key 分量。  
+- [执行模板缓存](./SQLBuilder-执行模板缓存.md)：整模板 = 壳 + StaticSlot（方案 C）+ 本文 Live/`Run()`。  
 
 ---
 

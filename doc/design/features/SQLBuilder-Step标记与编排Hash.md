@@ -363,15 +363,15 @@ Clear 类步骤在 **懒扫 Count** 时归零对应计数；Hash 仍按磁带序
 
 参数优化仍由后续模型+缓存处理；**不得**用「优化后才知道的文本」代替编排期 0/1 判定。
 
-缓存复合键（H4 示意）：
+缓存复合键与对象：**见 [SQLBuilder-执行模板缓存](./SQLBuilder-执行模板缓存.md)**（H4 / C0：`ScriptTemplate` + 编排期 `StaticSlotId`）。
 
 ```text
 ScriptCacheKey = Hash(
   OrchestrationHash,    // 含 paraRule 种子 + 各步 0/1
   (int)DataBaseType,
   expression.VersionNumber,
-  (int)SqlBuildKind
-  /* + 后续参数优化指纹等 */
+  (int)SqlBuildKind,
+  StaticSlotNameSchemaVersion
 )
 ```
 
@@ -383,7 +383,7 @@ ScriptCacheKey = Hash(
 | **H1** | 全 Step：直接 `ContributeHash(paraRule, opened)` | Id 唯一；空/非空 In 单测 |
 | **H2** | 懒算 Count/Hash；ifs / paraRule 单测 | 用例绿 |
 | **H3** | 嵌套 / Apart | 用例绿 |
-| **H4**（下期） | 模板缓存：依赖 [延迟参数解析](./SQLBuilder-延迟参数解析.md) 的 PlaceHolder + `IDelayPara.Run()` | 另立项 |
+| **H4** | 模板缓存：见 [执行模板缓存](./SQLBuilder-执行模板缓存.md)（壳 + StaticSlot + Live） | 另文推进 |
 
 ---
 
@@ -450,7 +450,7 @@ pure/src/ado/builder/
         │
         ├─► C0–C4  StepKind + 门面 switch 计数
         └─► H0–H3  int StepId + ContributeHash
-                  └─► H4 模板缓存（另立项）
+                  └─► H4 模板缓存 → [执行模板缓存](./SQLBuilder-执行模板缓存.md)
 ```
 
 粗估：C0–C2 约 1d；C3–C4 约 1d；H0–H2 约 2–3d；H3 约 1–2d。
@@ -471,7 +471,7 @@ pure/src/ado/builder/
 | M6c | Hash 职责边界 | 保证编排步骤相同 + **有无 SQL 的结构一致**；参数优化文本细节交后续模型+缓存 | **已锁定** |
 | M6d | `HasSql` 0-1 | **每步必须**将「是否产出 SQL 文本」纳入 Hash；编排期可判定，与 Apply 跳过对齐 | **已锁定** |
 | M7 | `IStep` 变更方式 | 优先扩接口 | 待确认 |
-| M8 | 缓存复合 Key | 编排 Hash（含 HasSql）为第一分量；后续层叠加 | **建议锁定**（H4） |
+| M8 | 缓存复合 Key | 编排 Hash（含 HasSql）为第一分量；对象与 StaticSlot 见 [执行模板缓存](./SQLBuilder-执行模板缓存.md) | **已锁定**（H4/C0） |
 | M9 | StepDelta | **废弃；计数仅 `switch (Kind)`** | **已锁定** |
 
 ---

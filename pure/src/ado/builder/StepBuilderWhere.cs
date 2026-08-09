@@ -1358,6 +1358,28 @@ namespace mooSQL.data {
         {
             return where(key, val, "=", true);
         }
+
+        /// <summary>
+        /// 使用编排期 <see cref="StaticSlotMarks"/> 槽位名写入 where（paramKey 已定，addFrag 不再改名）。
+        /// </summary>
+        public StepBuilder whereWithSlot(string key, object val, int staticSlotId)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (val == null) return this;
+
+            var field = new WhereFrag();
+            field.key = key;
+            field.value = val;
+            field.paramed = true;
+            field.op = "=";
+            field.paramKey = StaticSlotMarks.FormatName(staticSlotId);
+            current.where(field);
+            return this;
+        }
         /// <summary>
         /// whereGreaterThan 方法（返回 StepBuilder）。
         /// </summary>
