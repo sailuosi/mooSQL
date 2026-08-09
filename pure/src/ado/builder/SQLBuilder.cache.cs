@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using mooSQL.data.model;
 
@@ -10,8 +9,14 @@ namespace mooSQL.data
     /// </summary>
     public partial class SQLBuilder
     {
-        // TEMP: 业务侧大测临时默认开启；测完请改回 false。
-        private bool _scriptTemplateCacheEnabled = true;
+        /// <summary>
+        /// 新 <see cref="SQLBuilder"/> 实例的模板缓存默认开关。
+        /// TEMP: 业务大测可保持 true；性能测试（如 dbTest）可在进程启动时设为 false。
+        /// </summary>
+        public static bool DefaultUseScriptTemplateCache { get; set; } = true;
+
+        // TEMP: 默认跟随 DefaultUseScriptTemplateCache；测完请把静态默认改回 false。
+        private bool _scriptTemplateCacheEnabled = DefaultUseScriptTemplateCache;
 
         /// <summary>本次门面实例的模板缓存命中次数（单测/诊断）。</summary>
         public int ScriptTemplateCacheHits { get; private set; }
@@ -21,7 +26,7 @@ namespace mooSQL.data
 
         /// <summary>
         /// 启用/关闭执行模板缓存。
-        /// TEMP: 当前默认开启便于业务测试；正式默认应为关闭。
+        /// TEMP: 当前静态默认开启便于业务测试；正式默认应为关闭。
         /// </summary>
         public SQLBuilder useScriptTemplateCache(bool enabled = true)
         {
@@ -80,7 +85,6 @@ namespace mooSQL.data
             {
                 ScriptTemplateCacheHits++;
                 _dirty = false;
-                LogScriptTemplateHit(key, cached, hot);
                 return hot;
             }
 
@@ -97,61 +101,6 @@ namespace mooSQL.data
             if (_inner.DBLive != null && _inner.DBLive.config != null)
                 dbType = _inner.DBLive.config.dbType;
             return ScriptCacheKey.Format(OrchestrationHash, dbType, buildKind, _inner.paraSeed);
-        }
-
-        /// <summary>TEMP: 控制台打印命中详情（壳 SQL + StaticSlot 桥接键值 + Live 占位）。</summary>
-        private void LogScriptTemplateHit(string key, ScriptTemplate template, SQLCmd hot)
-        {
-            var slotN = template.StaticSlots != null ? template.StaticSlots.Length : 0;
-            Console.WriteLine(
-                "[moo.st HIT] key={0} hits={1} slots={2} live={3} type={4} table={5}",
-                key,
-                ScriptTemplateCacheHits,
-                slotN,
-                template.LiveCount,
-                hot != null ? hot.type.ToString() : "",
-                hot != null ? (hot.TargetTable ?? "") : "");
-            Console.WriteLine("[moo.st HIT] sql={0}", hot != null ? (hot.sql ?? "") : "");
-
-            if (template.StaticSlots != null && hot != null && hot.para != null)
-            {
-                for (int i = 0; i < template.StaticSlots.Length; i++)
-                {
-                    var slot = template.StaticSlots[i];
-                    var name = slot.NameInTemplate ?? "";
-                    var p = hot.para.GetParameter(name);
-                    var val = p != null ? p.val : null;
-                    Console.WriteLine(
-                        "[moo.st HIT] slot[{0}] id={1} key={2} val={3}",
-                        i,
-                        slot.SlotId,
-                        name,
-                        FormatLogValue(val));
-                }
-            }
-
-            if (template.LiveCount > 0 && hot != null && hot.para != null && hot.para.DelayParas != null)
-            {
-                for (int i = 0; i < hot.para.DelayParas.Count; i++)
-                {
-                    var lp = hot.para.DelayParas[i];
-                    Console.WriteLine(
-                        "[moo.st HIT] live[{0}] ph={1} type={2}",
-                        i,
-                        lp != null ? lp.PlaceHolder : "",
-                        lp != null ? lp.GetType().Name : "");
-                }
-            }
-        }
-
-        private static string FormatLogValue(object val)
-        {
-            if (val == null) return "<null>";
-            if (val == DBNull.Value) return "<DBNull>";
-            var s = val.ToString() ?? "";
-            if (s.Length > 200)
-                return s.Substring(0, 200) + "...(len=" + s.Length + ")";
-            return s;
         }
 
         private bool TryBindHot(ScriptTemplate template, QueryType queryType, out SQLCmd cmd)

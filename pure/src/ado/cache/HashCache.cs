@@ -4,51 +4,19 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-using System.Threading.Tasks;
-
 namespace mooSQL.data
 {
     /// <summary>
     /// 类型 HashCache。
+    /// 过期项在 Get/ContainsKey 时惰性清理，不启动后台扫描线程。
     /// </summary>
     public class HashCache:ISooCache
     {
         /// <summary>
         /// 初始化 HashCache。
         /// </summary>
-        public HashCache() //CLR调用  整个进程执行且只执行一次
+        public HashCache()
         {
-            Task.Run(() => //
-            {
-                while (true) //死循环来判断
-                {
-                    try
-                    {
-                        List<string> delKeyList = new List<string>();
-
-                        lock (obj_Lock)
-                        {
-                            foreach (string key in cacheHolder.Keys)
-                            {
-                                DataModel model = cacheHolder[key] as DataModel;
-                                if (model == null) {
-                                    continue;
-                                }
-                                if (model.Deadline < DateTime.Now && model.ObsloteType != ObsloteType.Never)
-                                {
-                                    delKeyList.Add(key);
-                                }
-                            }
-                        }
-                        delKeyList.ForEach(key => Remove(key));
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        throw;
-                    }
-                }
-            });
         }
 
         /// <summary>
@@ -68,11 +36,11 @@ namespace mooSQL.data
         public void Add<V>(string key, V value)
         {
             lock (obj_Lock)
-                cacheHolder.Add(key, new DataModel()
+                cacheHolder[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Never
-                });
+                };
         }
 
         /// <summary>
@@ -84,12 +52,12 @@ namespace mooSQL.data
         public void Add<V>(string key, V value, int timeOutSecond) //3000
         {
             lock (obj_Lock)
-                cacheHolder.Add(key, new DataModel()
+                cacheHolder[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Absolutely,
                     Deadline = DateTime.Now.AddSeconds(timeOutSecond)
-                }); ;
+                };
         }
 
         /// <summary>
@@ -98,13 +66,13 @@ namespace mooSQL.data
         public void Add(string key, object value, TimeSpan durtion)
         {
             lock (obj_Lock)
-                cacheHolder.Add(key, new DataModel()
+                cacheHolder[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Relative,
                     Deadline = DateTime.Now.Add(durtion),
                     Duraton = durtion
-                }); ; ;
+                };
         }
 
 
@@ -145,15 +113,28 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按键获取缓存项。
+        /// 按键获取缓存项（惰性过期）。
         /// </summary>
         public T Get<T>(string key)
         {
-            var val = cacheHolder[key] as DataModel;
-            if (val == null) {
-                return default(T);
+            DataModel model;
+            lock (obj_Lock)
+            {
+                model = cacheHolder[key] as DataModel;
+                if (model == null)
+                    return default(T);
+
+                if (model.ObsloteType != ObsloteType.Never && model.Deadline < DateTime.Now)
+                {
+                    cacheHolder.Remove(key);
+                    return default(T);
+                }
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return (T)model.Value;
             }
-            return (T)val.Value ;
         }
 
         /// <summary>
@@ -161,36 +142,28 @@ namespace mooSQL.data
         /// </summary>
         public bool ContainsKey(string key)
         {
-            if (cacheHolder.ContainsKey(key))
+            lock (obj_Lock)
             {
+                if (!cacheHolder.ContainsKey(key))
+                    return false;
+
                 DataModel model = cacheHolder[key] as DataModel;
-                if(model==null) return false;
+                if (model == null)
+                    return false;
+
                 if (model.ObsloteType == ObsloteType.Never)
-                {
                     return true;
-                }
-                else if (model.Deadline < DateTime.Now) //
-                {
-                    lock (obj_Lock)
-                    {
 
-                        cacheHolder.Remove(key);
-                        return false;
-                    }
-
-                }
-                else
+                if (model.Deadline < DateTime.Now)
                 {
-                    if (model.ObsloteType == ObsloteType.Relative)
-                    {
-                        model.Deadline = DateTime.Now.Add(model.Duraton);
-                    }
-                    return true;
+                    cacheHolder.Remove(key);
+                    return false;
                 }
-            }
-            else
-            {
-                return false;
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return true;
             }
         }
 
@@ -217,13 +190,15 @@ namespace mooSQL.data
         /// </summary>
         public IEnumerable<string> GetKeys()
         {
-            var keys= cacheHolder.Keys;
-            var res =new List<string>();
-            foreach (var key in keys)
+            lock (obj_Lock)
             {
-                res.Add(key.ToString());
+                var res = new List<string>(cacheHolder.Count);
+                foreach (var key in cacheHolder.Keys)
+                {
+                    res.Add(key.ToString());
+                }
+                return res;
             }
-            return res;
         }
     }
     /// <summary>
@@ -240,36 +215,8 @@ namespace mooSQL.data
         /// <summary>
         /// 初始化 DictionaryCache。
         /// </summary>
-        public DictionaryCache() //CLR调用  整个进程执行且只执行一次
+        public DictionaryCache()
         {
-            Task.Run(() => //
-            {
-                while (true) //死循环来判断
-                {
-                    try
-                    {
-                        List<string> delKeyList = new List<string>();
-
-                        lock (obj_Lock)
-                        {
-                            foreach (var key in CustomCacheDictionary.Keys)
-                            {
-                                DataModel model = CustomCacheDictionary[key];
-                                if (model.Deadline < DateTime.Now && model.ObsloteType != ObsloteType.Never)
-                                {
-                                    delKeyList.Add(key);
-                                }
-                            }
-                        }
-                        delKeyList.ForEach(key => Remove(key));
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        throw;
-                    }
-                }
-            });
         }
 
         /// <summary>
@@ -289,11 +236,11 @@ namespace mooSQL.data
         public void Add<V>(string key, V value)
         {
             lock (obj_Lock)
-                CustomCacheDictionary.Add(key, new DataModel()
+                CustomCacheDictionary[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Never
-                });
+                };
         }
 
         /// <summary>
@@ -305,12 +252,12 @@ namespace mooSQL.data
         public void Add<V>(string key, V value, int timeOutSecond) //3000
         {
             lock (obj_Lock)
-                CustomCacheDictionary.Add(key, new DataModel()
+                CustomCacheDictionary[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Absolutely,
                     Deadline = DateTime.Now.AddSeconds(timeOutSecond)
-                }); ;
+                };
         }
 
         /// <summary>
@@ -319,13 +266,13 @@ namespace mooSQL.data
         public void Add(string key, object value, TimeSpan durtion)
         {
             lock (obj_Lock)
-                CustomCacheDictionary.Add(key, new DataModel()
+                CustomCacheDictionary[key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Relative,
                     Deadline = DateTime.Now.Add(durtion),
                     Duraton = durtion
-                }); ; ;
+                };
         }
 
 
@@ -366,11 +313,27 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按键获取缓存项。
+        /// 按键获取缓存项（惰性过期）。
         /// </summary>
         public T Get<T>(string key)
         {
-            return (T)(CustomCacheDictionary[key]).Value;
+            lock (obj_Lock)
+            {
+                DataModel model;
+                if (!CustomCacheDictionary.TryGetValue(key, out model) || model == null)
+                    return default(T);
+
+                if (model.ObsloteType != ObsloteType.Never && model.Deadline < DateTime.Now)
+                {
+                    CustomCacheDictionary.Remove(key);
+                    return default(T);
+                }
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return (T)model.Value;
+            }
         }
 
         /// <summary>
@@ -378,35 +341,25 @@ namespace mooSQL.data
         /// </summary>
         public bool ContainsKey(string key)
         {
-            if (CustomCacheDictionary.ContainsKey(key))
+            lock (obj_Lock)
             {
-                DataModel model = CustomCacheDictionary[key];
+                DataModel model;
+                if (!CustomCacheDictionary.TryGetValue(key, out model) || model == null)
+                    return false;
+
                 if (model.ObsloteType == ObsloteType.Never)
-                {
                     return true;
-                }
-                else if (model.Deadline < DateTime.Now) //
-                {
-                    lock (obj_Lock)
-                    {
 
-                        CustomCacheDictionary.Remove(key);
-                        return false;
-                    }
-
-                }
-                else
+                if (model.Deadline < DateTime.Now)
                 {
-                    if (model.ObsloteType == ObsloteType.Relative)
-                    {
-                        model.Deadline = DateTime.Now.Add(model.Duraton);
-                    }
-                    return true;
+                    CustomCacheDictionary.Remove(key);
+                    return false;
                 }
-            }
-            else
-            {
-                return false;
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return true;
             }
         }
 
@@ -433,7 +386,8 @@ namespace mooSQL.data
         /// </summary>
         public IEnumerable<string> GetKeys()
         {
-            return CustomCacheDictionary.Keys;
+            lock (obj_Lock)
+                return new List<string>(CustomCacheDictionary.Keys);
         }
     }
     /// <summary>
@@ -445,34 +399,8 @@ namespace mooSQL.data
         /// <summary>
         /// 初始化 DictionaryCacheSafe。
         /// </summary>
-        public DictionaryCacheSafe() //
+        public DictionaryCacheSafe()
         {
-            Task.Run(() => //
-            {
-                while (true) //死循环来判断
-                {
-                    try
-                    {
-                        //Thread.Sleep(60 * 1000 * 10); //十分钟后开始清理缓存
-                        List<string> delKeyList = new List<string>();
-                        foreach (var key in CustomCacheDictionary.Keys)
-                        {
-                            DataModel model = CustomCacheDictionary[key];
-                            if (model.Deadline < DateTime.Now && model.ObsloteType != ObsloteType.Never) //
-                            {
-                                delKeyList.Add(key);
-                            }
-                        }
-                        delKeyList.ForEach(key => Remove(key));
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        throw;
-                    }
-                }
-            });
-
         }
 
         /// <summary>
@@ -490,11 +418,11 @@ namespace mooSQL.data
         /// <param name="value"></param>
         public  void Add<V>(string key, V value)
         {
-            CustomCacheDictionary.TryAdd(key, new DataModel()
+            CustomCacheDictionary[key] = new DataModel()
             {
                 Value = value,
                 ObsloteType = ObsloteType.Never
-            });
+            };
         }
 
         /// <summary>
@@ -505,12 +433,12 @@ namespace mooSQL.data
         /// <param name="timeOutSecond"></param>
         public void Add<V>(string key, V value, int timeOutSecond) //3000
         {
-            CustomCacheDictionary.TryAdd(key, new DataModel()
+            CustomCacheDictionary[key] = new DataModel()
             {
                 Value = value,
                 ObsloteType = ObsloteType.Absolutely,
                 Deadline = DateTime.Now.AddSeconds(timeOutSecond)
-            }); ;
+            };
         }
 
         /// <summary>
@@ -518,13 +446,13 @@ namespace mooSQL.data
         /// </summary>
         public void Add<V>(string key, V value, TimeSpan durtion)
         {
-            CustomCacheDictionary.TryAdd(key, new DataModel()
+            CustomCacheDictionary[key] = new DataModel()
             {
                 Value = value,
                 ObsloteType = ObsloteType.Relative,
                 Deadline = DateTime.Now.Add(durtion),
                 Duraton = durtion
-            }); ; ;
+            };
         }
 
 
@@ -548,11 +476,25 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 按键获取缓存项。
+        /// 按键获取缓存项（惰性过期）。
         /// </summary>
         public T Get<T>(string key)
         {
-            return (T)(CustomCacheDictionary[key]).Value;
+            DataModel model;
+            if (!CustomCacheDictionary.TryGetValue(key, out model) || model == null)
+                return default(T);
+
+            if (model.ObsloteType != ObsloteType.Never && model.Deadline < DateTime.Now)
+            {
+                DataModel removed;
+                CustomCacheDictionary.TryRemove(key, out removed);
+                return default(T);
+            }
+
+            if (model.ObsloteType == ObsloteType.Relative)
+                model.Deadline = DateTime.Now.Add(model.Duraton);
+
+            return (T)model.Value;
         }
 
         /// <summary>
@@ -563,32 +505,24 @@ namespace mooSQL.data
         public bool ContainsKey(string key)
         {
 
-            if (CustomCacheDictionary.ContainsKey(key))
+            DataModel model;
+            if (!CustomCacheDictionary.TryGetValue(key, out model) || model == null)
+                return false;
+
+            if (model.ObsloteType == ObsloteType.Never)
+                return true;
+
+            if (model.Deadline < DateTime.Now)
             {
-                DataModel model = CustomCacheDictionary[key];
-                if (model.ObsloteType == ObsloteType.Never)
-                {
-                    return true;
-                }
-                else if (model.Deadline < DateTime.Now) //
-                {
-                    DataModel data = null;
-                    CustomCacheDictionary.TryRemove(key, out data);
-                    return false;
-                }
-                else
-                {
-                    if (model.ObsloteType == ObsloteType.Relative)
-                    {
-                        model.Deadline = DateTime.Now.Add(model.Duraton);
-                    }
-                    return true;
-                }
-            }
-            else
-            {
+                DataModel data = null;
+                CustomCacheDictionary.TryRemove(key, out data);
                 return false;
             }
+
+            if (model.ObsloteType == ObsloteType.Relative)
+                model.Deadline = DateTime.Now.Add(model.Duraton);
+
+            return true;
         }
 
         /// <summary>
@@ -670,42 +604,6 @@ namespace mooSQL.data
                 dicCacheList.Add(new Dictionary<string, DataModel>()); //CPU 有几片 就来几个字典
                 lockList.Add(new object());//没个字典对应一个锁
             }
-
-
-            Task.Run(() => //
-            {
-                while (true) //死循环来判断
-                {
-                    try
-                    {
-
-                        for (int i = 0; i < CupNum; i++)
-                        {
-                            lock (lockList[i])
-                            {
-                                //Thread.Sleep(60 * 1000 * 10); //十分钟后开始清理缓存
-                                List<string> delKeyList = new List<string>();
-                                foreach (var key in dicCacheList[i].Keys)
-                                {
-                                    DataModel model = dicCacheList[i][key];
-                                    if (model.Deadline < DateTime.Now && model.ObsloteType != ObsloteType.Never) //
-                                    {
-                                        delKeyList.Add(key);
-                                    }
-                                }
-                                delKeyList.ForEach(key => dicCacheList[i].Remove(key));
-                            }
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        throw;
-                    }
-                }
-            });
-
         }
 
         /// <summary>
@@ -718,11 +616,11 @@ namespace mooSQL.data
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
             lock (lockList[index])
-                dicCacheList[index].Add(key, new DataModel()
+                dicCacheList[index][key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Never
-                });
+                };
         }
 
         /// <summary>
@@ -736,12 +634,12 @@ namespace mooSQL.data
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
             lock (lockList[index])
-                dicCacheList[index].Add(key, new DataModel()
+                dicCacheList[index][key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Absolutely,
                     Deadline = DateTime.Now.AddSeconds(timeOutSecond)
-                }); ;
+                };
         }
 
         /// <summary>
@@ -752,13 +650,13 @@ namespace mooSQL.data
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
             lock (lockList[index])
-                dicCacheList[index].Add(key, new DataModel()
+                dicCacheList[index][key] = new DataModel()
                 {
                     Value = value,
                     ObsloteType = ObsloteType.Relative,
                     Deadline = DateTime.Now.Add(durtion),
                     Duraton = durtion
-                }); ; ;
+                };
         }
 
 
@@ -770,7 +668,8 @@ namespace mooSQL.data
         {
             for (int i = 0; i < CupNum; i++)
             {
-                dicCacheList[i].Clear();
+                lock (lockList[i])
+                    dicCacheList[i].Clear();
             }
         }
 
@@ -782,22 +681,41 @@ namespace mooSQL.data
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
 
-            if (dicCacheList[index].ContainsKey(key))
+            lock (lockList[index])
             {
-                dicCacheList[index].Remove(key);
+                if (dicCacheList[index].ContainsKey(key))
+                {
+                    dicCacheList[index].Remove(key);
+                }
             }
         }
 
 
         /// <summary>
-        /// 按键获取缓存项。
+        /// 按键获取缓存项（惰性过期）。
         /// </summary>
         public static T Get<T>(string key)
         {
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
 
-            return (T)(dicCacheList[index][key]).Value;
+            lock (lockList[index])
+            {
+                DataModel model;
+                if (!dicCacheList[index].TryGetValue(key, out model) || model == null)
+                    return default(T);
+
+                if (model.ObsloteType != ObsloteType.Never && model.Deadline < DateTime.Now)
+                {
+                    dicCacheList[index].Remove(key);
+                    return default(T);
+                }
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return (T)model.Value;
+            }
         }
 
         /// <summary>
@@ -809,30 +727,25 @@ namespace mooSQL.data
         {
             int hash = key.GetHashCode() * (-1); //只要字符串变，hash值不变！
             int index = hash % CupNum;
-            if (dicCacheList[index].ContainsKey(key))
+            lock (lockList[index])
             {
-                DataModel model = dicCacheList[index][key];
+                DataModel model;
+                if (!dicCacheList[index].TryGetValue(key, out model) || model == null)
+                    return false;
+
                 if (model.ObsloteType == ObsloteType.Never)
-                {
                     return true;
-                }
-                else if (model.Deadline < DateTime.Now) //
+
+                if (model.Deadline < DateTime.Now)
                 {
                     dicCacheList[index].Remove(key);
                     return false;
                 }
-                else
-                {
-                    if (model.ObsloteType == ObsloteType.Relative)
-                    {
-                        model.Deadline = DateTime.Now.Add(model.Duraton);
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
+
+                if (model.ObsloteType == ObsloteType.Relative)
+                    model.Deadline = DateTime.Now.Add(model.Duraton);
+
+                return true;
             }
         }
 

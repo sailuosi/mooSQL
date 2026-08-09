@@ -153,6 +153,71 @@
 - **产品口径可更新**：高吞吐列表仍优先 Dapper / Builder；若必须 `useQueryable` 做强类型 `ToList`，暖路径已可接受，不再是基线中的「不宜当性能卖点」。  
 - **待补**：Anonymous 投影场景是否同样受益需另跑确认。
 
+### 复测：执行模板缓存 × HashCache 忙等修复（2026-08-09）
+
+背景：SQLBuilder **执行模板缓存**（`useScriptTemplateCache` / `ScriptTemplate`，经 `cacheHolder` → 默认 `HashCache`）接入后，`TestResult` 在缓存开启时出现 Moo 三路径 **Allocated 暴涨至 MB 级**（约 **1476 / 583 / 1565 KB**），Mean 仍约 300 μs 量级——属分配/GC 问题，非 SQL 变慢。对照 ORM 与关缓存时的 Moo 成绩不变。
+
+根因：`HashCache`（及同文件 `DictionaryCache` / `DictionaryCacheSafe` / `CustomCacheNewproblem`）构造函数启动 `Task.Run(() => while(true) { … })` **无 Sleep 后台扫表**，持续分配 `List`、抢锁；模板多为 `ObsloteType.Never`，后台几乎无事可做，纯烧 CPU/GC。修复：去掉忙等线程，改为 `Get`/`ContainsKey` **惰性过期**，`Add` **覆盖写**。库侧模板缓存保持开启；`MooSqlDb.EnsureInit` 显式 `DefaultUseScriptTemplateCache = true` 便于本轮 A/B。
+
+设计说明见：[SQLBuilder-执行模板缓存.md](../design/features/SQLBuilder-执行模板缓存.md)。
+
+#### A：关闭模板缓存（对照）
+
+`SQLBuilder.DefaultUseScriptTemplateCache = false` 后重跑 `TestResult`：
+
+
+| Method     | ProvideType         | Mean     | Error   | StdDev  | Rank | Gen0   | Gen1   | Allocated |
+| ---------- | ------------------- | -------- | ------- | ------- | ---- | ------ | ------ | --------- |
+| TestResult | ChloeTest           | 321.0 us | 6.28 us | 8.39 us | 3    | 8.7891 | 0.9766 | 74.57 KB  |
+| TestResult | DapperTest          | 265.2 us | 2.86 us | 2.53 us | 1    | 6.8359 | 0.4883 | 56.52 KB  |
+| TestResult | EfSqlliteTest       | 574.7 us | 6.74 us | 6.31 us | 5    | 24.4141 | 4.8828 | 206.64 KB |
+| TestResult | FastFrameworkTest   | 1,816.0 us | 27.50 us | 25.73 us | 7  | 17.5781 | 3.9063 | 155.62 KB |
+| TestResult | FreeSqlTest         | 347.1 us | 3.60 us | 3.19 us | 4    | 9.2773 | 1.9531 | 78.26 KB  |
+| TestResult | MooSqlBuilderTest   | 267.1 us | 1.19 us | 0.99 us | 1    | 7.3242 | 0.4883 | 60.9 KB   |
+| TestResult | MooSqlClipTest      | 288.6 us | 2.02 us | 1.69 us | 2    | 7.8125 | 1.9531 | 66.02 KB  |
+| TestResult | MooSqlQueryableTest | 284.5 us | 2.40 us | 2.00 us | 2    | 7.8125 | 1.4648 | 66.9 KB   |
+| TestResult | MyTest              | 297.9 us | 3.11 us | 2.60 us | 2    | 4.3945 | 0.4883 | 39.58 KB  |
+| TestResult | SqlSugarTest        | 684.7 us | 8.60 us | 8.05 us | 6    | 17.5781 | 1.9531 | 151.5 KB  |
+
+
+结论：关缓存后 Moo Allocated 回到 **~61 / 66 / 67 KB**，与 L1/L2 复测健康区间一致 → 暴涨与模板缓存接入（`HashCache`）强相关。
+
+#### B：修好 HashCache 后重新开启模板缓存
+
+修完忙等后，`DefaultUseScriptTemplateCache = true` 再跑同一场景：
+
+
+| Method     | ProvideType         | Mean     | Error   | StdDev  | Rank | Gen0   | Gen1   | Allocated |
+| ---------- | ------------------- | -------- | ------- | ------- | ---- | ------ | ------ | --------- |
+| TestResult | ChloeTest           | 303.9 us | 1.93 us | 1.61 us | 2    | 8.7891 | -      | 74.56 KB  |
+| TestResult | DapperTest          | 261.5 us | 2.17 us | 1.81 us | 1    | 6.8359 | 0.4883 | 56.5 KB   |
+| TestResult | EfSqlliteTest       | 574.8 us | 3.05 us | 2.38 us | 4    | 24.4141 | 4.8828 | 206.62 KB |
+| TestResult | FastFrameworkTest   | 1,815.4 us | 21.29 us | 19.92 us | 6 | 17.5781 | 3.9063 | 155.6 KB  |
+| TestResult | FreeSqlTest         | 348.4 us | 3.86 us | 3.61 us | 3    | 9.2773 | 1.9531 | 78.25 KB  |
+| TestResult | MooSqlBuilderTest   | 267.3 us | 4.25 us | 3.97 us | 1    | 7.3242 | 0.4883 | 61.23 KB  |
+| TestResult | MooSqlClipTest      | 287.0 us | 5.09 us | 4.76 us | 2    | 7.8125 | 1.9531 | 64.9 KB   |
+| TestResult | MooSqlQueryableTest | 308.3 us | 1.64 us | 1.37 us | 2    | 7.8125 | 1.4648 | 66.88 KB  |
+| TestResult | MyTest              | 298.0 us | 4.40 us | 4.32 us | 2    | 4.3945 | 0.4883 | 39.57 KB  |
+| TestResult | SqlSugarTest        | 681.8 us | 7.83 us | 6.54 us | 5    | 17.5781 | 1.9531 | 151.48 KB |
+
+
+#### Moo 三路径 A/B 对照（Allocated）
+
+
+| 路径        | 开缓存（修前，约）   | 关缓存（A）     | 开缓存修好后（B）   | Mean（B）   |
+| --------- | ------------ | ---------- | ----------- | --------- |
+| Builder   | **~1476 KB** | 60.9 KB    | **61.23 KB** | 267.3 μs  |
+| Clip      | **~583 KB**  | 66.02 KB   | **64.9 KB**  | 287.0 μs  |
+| Queryable | **~1565 KB** | 66.9 KB    | **66.88 KB** | 308.3 μs  |
+
+
+#### 本轮结论
+
+- **HashCache 忙等是 Allocated 暴涨根因**：关缓存 / 修好后开缓存，Allocated 均落在 **~61–67 KB**，不再出现 MB 级。
+- **开缓存相对关缓存无明显分配惩罚**（Builder +0.3 KB 量级，属噪声）；Mean 与 Dapper 同档 Rank 1（Builder ~267 μs）。
+- Queryable 本轮 ~308 μs，略慢于关缓存时的 ~285 μs，仍远好于基线 1.34 ms，且 Allocated 健康。
+- 本轮只验证 `TestResult`；未改写上文 L1/L2 复测数字与横向总表。
+
 ---
 
 ## 方法 2：TestAnonymousResult（投影 / 自定义映射）
@@ -769,6 +834,12 @@
 | 要类型安全、别名/Join 糖          | **SQLClip**（映射复测波动偏大；Loop 约 Chloe 级；Join 已接入基准待测）                                                                                                            |
 | 标准 IQueryable / 对标 EF 写法 | **useQueryable**：Result ~382 μs（≈FreeSql）、Condition ~39 μs（快于 Clip/Chloe；复测 1 曾 ≈EF）、MethodCondition ~17 μs（≈Chloe）、QueryLoop ~1.67 ms（≈Chloe）；Anonymous/Join 仍待复测 |
 
+
+---
+
+## 附录：执行模板缓存 × HashCache（2026-08-09 补记）
+
+`TestResult` 上曾出现「开模板缓存 → Moo Allocated 至 MB 级」；关缓存对照与修好 `HashCache` 忙等后复测见上文 **方法 1 →「复测：执行模板缓存 × HashCache 忙等修复」**。结论：Allocated 回到 ~61–67 KB，开缓存可与关缓存同档；**未覆盖改写**本文其它基线 / L1/L2 复测表。
 
 ---
 
