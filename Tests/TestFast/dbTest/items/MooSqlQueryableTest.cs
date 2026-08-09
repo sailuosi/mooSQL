@@ -1,5 +1,6 @@
 using System.Linq;
 using mooSQL.data;
+using mooSQL.linq.ext;
 using mooSQL.linq.Linq;
 
 namespace dbTest.items
@@ -61,6 +62,23 @@ namespace dbTest.items
                     .Where(b => b.Id == id)
                     .ToList();
             }
+        }
+
+        /// <summary>
+        /// 对齐 Chloe：投影后两段关联（Ext 2-arg InnerJoin + SelectMany；当前翻译为 CROSS APPLY），只生成 SQL。
+        /// </summary>
+        public override void testQueryJoin()
+        {
+            var db = MooSqlDb.Db;
+            var step1 =
+                from a in db.useQueryable<TestEntity>().Take(listTake).Select(b => new { a1 = b.Id, a2 = b.F_String })
+                from b in db.useQueryable<TestEntityItem>().InnerJoin(x => a.a1 == x.TestEntityId)
+                select new { a3 = a.a1, a4 = b.Name };
+            var step2 =
+                from a in step1
+                from e in db.useQueryable<TestEntity>().InnerJoin(x => a.a3 == x.Id)
+                select new { a.a4, e.Id };
+            _ = GetSqlText(step2);
         }
 
         private static string GetSqlText<T>(IQueryable<T> query)

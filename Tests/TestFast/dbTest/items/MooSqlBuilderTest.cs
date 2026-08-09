@@ -69,5 +69,27 @@ namespace dbTest.items
                     .ToList();
             }
         }
+
+        /// <summary>
+        /// 对齐 Chloe：Take(100) 投影 → InnerJoin Item → 再投影 → InnerJoin Entity → 取 SQL。
+        /// </summary>
+        public override void testQueryJoin()
+        {
+            var sql = MooSqlDb.Db.useSQL()
+                .select("v2.a4, e2.Id")
+                .from("v2", v2 => v2
+                    .select("v1.a1 as a3, item.Name as a4")
+                    .from("v1", v1 => v1
+                        .select("Id as a1, F_String as a2")
+                        .from("TestEntity")
+                        .top(listTake)
+                    )
+                    .innerJoin("TestEntityItem item on item.TestEntityId = v1.a1")
+                )
+                .innerJoin("TestEntity e2 on e2.Id = v2.a3")
+                .toSelect()
+                .sql;
+            _ = sql;
+        }
     }
 }

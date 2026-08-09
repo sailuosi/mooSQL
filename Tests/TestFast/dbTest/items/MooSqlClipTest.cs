@@ -93,5 +93,20 @@ namespace dbTest.items
                 var item = clip.where(() => e.Id, i).select(e).queryList().ToList();
             }
         }
+
+        /// <summary>
+        /// 对齐场景意图：Take + 两段 InnerJoin + 投影 → 只生成 SQL。
+        /// （Clip 对匿名子查询 ON 字段解析不完善，故用实体表扁平 Join，仍覆盖 join/on/select/toSelect。）
+        /// </summary>
+        public override void testQueryJoin()
+        {
+            var clip = MooSqlDb.Db.useClip();
+            clip.from<TestEntity>(out var e);
+            clip.top(listTake);
+            clip.join<TestEntityItem>(out var item, "INNER JOIN").on(() => e.Id == item.TestEntityId);
+            clip.join<TestEntity>(out var e2, "INNER JOIN").on(() => e.Id == e2.Id);
+            var sql = clip.select(() => new { a4 = item.Name, e2.Id }).toSelect().sql;
+            _ = sql;
+        }
     }
 }

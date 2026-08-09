@@ -1,9 +1,12 @@
 ﻿
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
+using dbTest;
 using dbTest.items;
 using dbTest.tests;
 using CRL.Core;
+using mooSQL.data;
+using mooSQL.linq.ext;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -75,7 +78,46 @@ public class Program
             var cond = a.testQueryCondition();
             var method = a.testQueryMethodCondition();
             a.testQueryLoop();
-            Console.WriteLine($"[ok] {name} conditionLen={cond?.Length ?? 0} methodLen={method?.Length ?? 0}");
+            a.testQueryJoin();
+            Console.WriteLine($"[ok] {name} conditionLen={cond?.Length ?? 0} methodLen={method?.Length ?? 0} join=ok");
+        }
+
+        // 确认 Join SQL 非空跑（Queryable 当前为 CROSS APPLY 形态）
+        {
+            var bSql = MooSqlDb.Db.useSQL()
+                .select("v2.a4, e2.Id")
+                .from("v2", v2 => v2
+                    .select("v1.a1 as a3, item.Name as a4")
+                    .from("v1", v1 => v1.select("Id as a1, F_String as a2").from("TestEntity").top(100))
+                    .innerJoin("TestEntityItem item on item.TestEntityId = v1.a1"))
+                .innerJoin("TestEntity e2 on e2.Id = v2.a3")
+                .toSelect().sql;
+
+            var clip = MooSqlDb.Db.useClip();
+            clip.from<TestEntity>(out var e);
+            clip.top(100);
+            clip.join<TestEntityItem>(out var item, "INNER JOIN").on(() => e.Id == item.TestEntityId);
+            clip.join<TestEntity>(out var e2, "INNER JOIN").on(() => e.Id == e2.Id);
+            var cSql = clip.select(() => new { a4 = item.Name, e2.Id }).toSelect().sql;
+
+            var db = MooSqlDb.Db;
+            var step1 =
+                from a in db.useQueryable<TestEntity>().Take(100).Select(b => new { a1 = b.Id, a2 = b.F_String })
+                from b in db.useQueryable<TestEntityItem>().InnerJoin(x => a.a1 == x.TestEntityId)
+                select new { a3 = a.a1, a4 = b.Name };
+            var step2 =
+                from a in step1
+                from e3 in db.useQueryable<TestEntity>().InnerJoin(x => a.a3 == x.Id)
+                select new { a.a4, e3.Id };
+            var qSql = (step2 as mooSQL.linq.Linq.IExpressionQuery)?.SqlText ?? step2?.ToString() ?? "";
+            Console.WriteLine($"[join-sql] Builder={bSql?.Length} Clip={cSql?.Length} Queryable={qSql?.Length}");
+            if (string.IsNullOrWhiteSpace(bSql) || string.IsNullOrWhiteSpace(cSql) || string.IsNullOrWhiteSpace(qSql)
+                || bSql.IndexOf("JOIN", StringComparison.OrdinalIgnoreCase) < 0
+                || cSql.IndexOf("JOIN", StringComparison.OrdinalIgnoreCase) < 0
+                || qSql.IndexOf("APPLY", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                throw new Exception("Join SQL smoke failed: empty or missing JOIN/APPLY");
+            }
         }
 
         var discovered = typeof(ITest).Assembly.GetTypes()
