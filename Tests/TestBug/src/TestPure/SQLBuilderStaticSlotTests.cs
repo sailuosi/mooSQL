@@ -63,5 +63,52 @@ namespace mooSQL.Pure.Tests
             cmd.sql.Should().Contain("@ms_s0");
             cmd.para.GetParameter("ms_s0").val.Should().Be(2);
         }
+
+        [Fact]
+        public void WhereKeyValOp_UsesStableMsSlotName()
+        {
+            using var a = TestDatabaseHelper.CreateSQLBuilder();
+            using var b = TestDatabaseHelper.CreateSQLBuilder();
+            a.select("id").from("t").where("age", 18, ">=");
+            b.select("id").from("t").where("age", 99, ">=");
+
+            var cmdA = a.toSelect();
+            var cmdB = b.toSelect();
+
+            cmdA.sql.Should().Contain("@ms_s0");
+            cmdA.sql.Should().Contain(">=");
+            cmdA.sql.Should().Be(cmdB.sql);
+            cmdA.para.GetParameter("ms_s0").val.Should().Be(18);
+            cmdB.para.GetParameter("ms_s0").val.Should().Be(99);
+        }
+
+        [Fact]
+        public void WhereKeyValOp_Unparamed_DoesNotConsumeSlot()
+        {
+            using var b = TestDatabaseHelper.CreateSQLBuilder();
+            b.select("id").from("t").where("age", 1, "=", false).where("id", 2);
+            b.NextStaticSlotId.Should().Be(1);
+            var cmd = b.toSelect();
+            cmd.sql.Should().Contain("@ms_s0");
+            cmd.para.GetParameter("ms_s0").val.Should().Be(2);
+        }
+
+        [Fact]
+        public void WhereCompareApis_AssignIncrementalSlots()
+        {
+            using var b = TestDatabaseHelper.CreateSQLBuilder();
+            b.select("id").from("t")
+                .whereGreaterThan("a", 1)
+                .whereLessThan("b", 2)
+                .whereNotEqual("c", 3);
+            b.NextStaticSlotId.Should().Be(3);
+            var cmd = b.toSelect();
+            cmd.sql.Should().Contain("@ms_s0");
+            cmd.sql.Should().Contain("@ms_s1");
+            cmd.sql.Should().Contain("@ms_s2");
+            cmd.para.GetParameter("ms_s0").val.Should().Be(1);
+            cmd.para.GetParameter("ms_s1").val.Should().Be(2);
+            cmd.para.GetParameter("ms_s2").val.Should().Be(3);
+        }
     }
 }

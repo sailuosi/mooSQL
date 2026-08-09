@@ -110,26 +110,42 @@ namespace mooSQL.data
 
         public DataTable query()
         {
-            runBuild();
-            return _inner.query();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.query();
+            }
+            return _inner.queryPrepared(toSelect());
         }
 
         public Task<DataTable> queryAsync()
         {
-            runBuild();
-            return _inner.queryAsync();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.queryAsync();
+            }
+            return _inner.queryPreparedAsync(toSelect());
         }
 
         public IEnumerable<T> query<T>()
         {
-            runBuild();
-            return _inner.query<T>();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.query<T>();
+            }
+            return _inner.queryPrepared<T>(toSelect());
         }
 
         public Task<IEnumerable<T>> queryAsync<T>()
         {
-            runBuild();
-            return _inner.queryAsync<T>();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.queryAsync<T>();
+            }
+            return _inner.queryPreparedAsync<T>(toSelect());
         }
 
         public List<T> query<T>(Func<DataRow, T> createEntity)

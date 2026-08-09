@@ -223,15 +223,40 @@ namespace mooSQL.data
 
         public SQLBuilder whereNotExist(string selectSQL) => Enqueue(new WhereNotExiststringStep(selectSQL));
 
-        public SQLBuilder whereGreaterThan(string key, object val) => Enqueue(new WhereGreaterThanstringobjectStep(key, val));
+        public SQLBuilder whereGreaterThan(string key, object val)
+        {
+            var step = new WhereGreaterThanstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder whereLessThan(string key, object val) => Enqueue(new WhereLessThanstringobjectStep(key, val));
+        public SQLBuilder whereLessThan(string key, object val)
+        {
+            var step = new WhereLessThanstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder whereGreaterThanOrEqual(string key, object val) => Enqueue(new WhereGreaterThanOrEqualstringobjectStep(key, val));
+        public SQLBuilder whereGreaterThanOrEqual(string key, object val)
+        {
+            var step = new WhereGreaterThanOrEqualstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder whereLessThanOrEqual(string key, object val) => Enqueue(new WhereLessThanOrEqualstringobjectStep(key, val));
+        public SQLBuilder whereLessThanOrEqual(string key, object val)
+        {
+            var step = new WhereLessThanOrEqualstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder whereNotEqual(string key, object val) => Enqueue(new WhereNotEqualstringobjectStep(key, val));
+        public SQLBuilder whereNotEqual(string key, object val)
+        {
+            var step = new WhereNotEqualstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
         public SQLBuilder whereIf(bool? isTrue, string key, object val, string op = "=") => Enqueue(new WhereIfboolNstringobjectstringStep(isTrue, key, val, op));
 

@@ -474,6 +474,74 @@ namespace mooSQL.data
             }
             return res;
         }
+
+        /// <summary>
+        /// 使用已物化的 SQLCmd 执行 query（门面 ScriptTemplate 热路径，跳过内核 toSelect）。
+        /// </summary>
+        internal DataTable queryPrepared(SQLCmd sql)
+        {
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
+                if (dt != null)
+                    return dt;
+            }
+            if (sql == null || string.IsNullOrEmpty(sql.sql))
+                return null;
+            var res = exeQuery(sql);
+            if (this._AutoClearWay == CleanWay.Always)
+                clear();
+            return res;
+        }
+
+        /// <summary>异步：使用已物化 SQLCmd 执行 query。</summary>
+        internal Task<DataTable> queryPreparedAsync(SQLCmd sql)
+        {
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
+                if (dt != null)
+                    return Task.FromResult(dt);
+            }
+            if (sql == null || string.IsNullOrEmpty(sql.sql))
+                return null;
+            var res = exeQueryAsync(sql);
+            if (this._AutoClearWay == CleanWay.Always)
+                clear();
+            return res;
+        }
+
+        /// <summary>泛型：使用已物化 SQLCmd 执行 query。</summary>
+        internal IEnumerable<T> queryPrepared<T>(SQLCmd sql)
+        {
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
+                if (dt != null)
+                    return dt;
+            }
+            if (sql == null || string.IsNullOrEmpty(sql.sql))
+                return null;
+            if (this._AutoClearWay == CleanWay.Always)
+                clear();
+            return exeQuery<T>(sql);
+        }
+
+        /// <summary>异步泛型：使用已物化 SQLCmd 执行 query。</summary>
+        internal Task<IEnumerable<T>> queryPreparedAsync<T>(SQLCmd sql)
+        {
+            if (!string.IsNullOrWhiteSpace(cacheKey))
+            {
+                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
+                if (dt != null)
+                    return Task.FromResult(dt);
+            }
+            if (sql == null || string.IsNullOrEmpty(sql.sql))
+                return null;
+            if (this._AutoClearWay == CleanWay.Always)
+                clear();
+            return exeQueryAsync<T>(sql);
+        }
         /// <summary>
         /// 查询其它的
         /// </summary>

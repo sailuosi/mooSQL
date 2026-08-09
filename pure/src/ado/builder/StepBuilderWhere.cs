@@ -165,6 +165,31 @@ namespace mooSQL.data {
         }
 
         /// <summary>
+        /// 热路径 CollectBind 用：方言前缀与稳定 prefixKey（不依赖 where 组状态、不递增 _whfragIndex）。
+        /// </summary>
+        internal void GetLiveDialectContext(out string dbstr, out string prefixKey)
+        {
+            dbstr = expression != null ? expression.paraPrefix : "@";
+            if (string.IsNullOrEmpty(dbstr))
+                dbstr = "@";
+            prefixKey = (paraSeed ?? "") + "wh_ms_";
+        }
+
+        /// <summary>
+        /// 热路径 CollectBind：构造 <see cref="DelayWhereIn"/>（paraKey 不依赖 whereCount）。
+        /// </summary>
+        internal IDelayPara CreateDelayWhereIn(string key, string op, Func<WhereListBag> makeBag)
+        {
+            if (makeBag == null) return null;
+            GetLiveDialectContext(out var dbstr, out _);
+            var paraKey = (paraSeed ?? "") + "whin_ms_";
+            int? limit = null;
+            if (DBLive != null && DBLive.expression != null)
+                limit = DBLive.expression.getWhereInLimit();
+            return new DelayWhereIn(key, op, makeBag, dbstr, paraKey, limit);
+        }
+
+        /// <summary>
         /// 推入延迟参数占位：登记到 <see cref="Paras.DelayParas"/>，并以 PlaceHolder 作为 where 条件壳。
         /// </summary>
         public StepBuilder whereLive(IDelayPara live)
@@ -1364,6 +1389,14 @@ namespace mooSQL.data {
         /// </summary>
         public StepBuilder whereWithSlot(string key, object val, int staticSlotId)
         {
+            return whereWithSlot(key, val, staticSlotId, "=");
+        }
+
+        /// <summary>
+        /// 使用编排期槽位名写入 where（可指定比较符）。
+        /// </summary>
+        public StepBuilder whereWithSlot(string key, object val, int staticSlotId, string op)
+        {
             if (!opened)
             {
                 opened = true;
@@ -1375,7 +1408,7 @@ namespace mooSQL.data {
             field.key = key;
             field.value = val;
             field.paramed = true;
-            field.op = "=";
+            field.op = string.IsNullOrEmpty(op) ? "=" : op;
             field.paramKey = StaticSlotMarks.FormatName(staticSlotId);
             current.where(field);
             return this;

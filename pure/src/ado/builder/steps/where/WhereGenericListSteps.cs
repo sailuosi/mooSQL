@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereIn&lt;T&gt;(...)。</summary>
-    public sealed class WhereInGenericStep<T> : WhereListStep
+    public sealed class WhereInGenericStep<T> : WhereListStep, ILiveBindStep
     {
         public override int Id { get { return 196700; } }
 
@@ -15,6 +15,12 @@ namespace mooSQL.data
             _values = values;
         }
 
+        public IDelayPara CollectLive(SQLBuilder builder)
+        {
+            if (_values == null) return null;
+            return builder.Inner.CreateDelayWhereIn(Key, " IN ", () => WhereListBag.newBag(_values));
+        }
+
         public override void Apply(SQLBuilder builder)
         {
             if (_values == null) return;
@@ -23,7 +29,7 @@ namespace mooSQL.data
     }
 
     /// <summary>对应 SQLBuilder.whereNotIn&lt;T&gt;(...)。</summary>
-    public sealed class WhereNotInGenericStep<T> : WhereListStep
+    public sealed class WhereNotInGenericStep<T> : WhereListStep, ILiveBindStep
     {
         public override int Id { get { return 196701; } }
 
@@ -35,6 +41,12 @@ namespace mooSQL.data
             _values = values;
         }
 
+        public IDelayPara CollectLive(SQLBuilder builder)
+        {
+            if (_values == null) return null;
+            return builder.Inner.CreateDelayWhereIn(Key, " NOT IN ", () => WhereListBag.newBag(_values));
+        }
+
         public override void Apply(SQLBuilder builder)
         {
             if (_values == null) return;
@@ -43,7 +55,7 @@ namespace mooSQL.data
     }
 
     /// <summary>对应 SQLBuilder.whereNotInOrNull&lt;T&gt;(...)。</summary>
-    public sealed class WhereNotInOrNullStep<T> : WhereListStep
+    public sealed class WhereNotInOrNullStep<T> : WhereListStep, ILiveBindStep
     {
         public override int Id { get { return 196702; } }
 
@@ -53,6 +65,12 @@ namespace mooSQL.data
             : base(key, values)
         {
             _values = values;
+        }
+
+        public IDelayPara CollectLive(SQLBuilder builder)
+        {
+            if (_values == null) return null;
+            return builder.Inner.CreateDelayWhereIn(Key, " NOT IN ", () => WhereListBag.newBag(_values));
         }
 
         public override void Apply(SQLBuilder builder)
@@ -67,7 +85,7 @@ namespace mooSQL.data
     }
 
     /// <summary>对应 SQLBuilder.whereList&lt;T&gt;(...)。</summary>
-    public sealed class WhereListGenericStep<T> : WhereListStep
+    public sealed class WhereListGenericStep<T> : WhereListStep, ILiveBindStep
     {
         public override int Id { get { return 196703; } }
 
@@ -86,6 +104,12 @@ namespace mooSQL.data
             // 先走 WhereListStep 的 null/空集合规则，再附加 op
             base.ContributeHash(ref hc, paraRule, ref opened);
             hc.Add(_op);
+        }
+
+        public IDelayPara CollectLive(SQLBuilder builder)
+        {
+            if (_values == null) return null;
+            return builder.Inner.CreateDelayWhereIn(Key, _op, () => WhereListBag.newBag(_values));
         }
 
         public override void Apply(SQLBuilder builder)

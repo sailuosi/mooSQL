@@ -528,7 +528,7 @@ pure/src/ado/data/database/
 | **L2b** | `DelayWhereIn` + `whereLiveInList`；`whereIn` / `whereNotIn` / `whereList` Step Apply；空 NOT IN→`1=1`（P5） | 单测绿 |
 | **L2c** | `DelayFormatSQL`（`Paras.formatSQL`）；`selectFormat` / `fromFormat` / `joinFormat` → select/from/joinLive（子查询 Format 不动） | 单测/快照绿 |
 | **L3** | Copy/Clear/幂等；可选未解析 sql 调试视图 | 联调 |
-| **L4** | 模板缓存：壳 + StaticSlot + Live；见 [执行模板缓存](./SQLBuilder-执行模板缓存.md) | 另文（C0 已锁定方案 C） |
+| **L4** | 模板缓存：壳 + StaticSlot + Live；见 [执行模板缓存](./SQLBuilder-执行模板缓存.md) | C2–C3d 已落地 |
 
 ---
 

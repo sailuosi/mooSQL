@@ -1,7 +1,8 @@
 namespace mooSQL.data
 {
-    /// <summary>对应 <see cref="SQLBuilder.where(string, object, string, bool)"/>。</summary>
-    public sealed class WhereKeyValOpParamedStep : StepBase {
+    /// <summary>对应 <see cref="SQLBuilder.where(string, object, string, bool)"/>。paramed 时走 StaticSlot。</summary>
+    public sealed class WhereKeyValOpParamedStep : StepBase, IStaticSlotStep
+    {
         public override int Id { get { return 196719; } }
         public override StepKind Kind { get { return StepKind.Where; } }
 
@@ -17,6 +18,18 @@ namespace mooSQL.data
             _op = op;
             _paramed = paramed;
         }
+
+        /// <inheritdoc />
+        public int? StaticSlotId { get; private set; }
+
+        /// <inheritdoc />
+        public object StaticSlotValue { get { return _val; } }
+
+        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        {
+            StaticSlotId = TryAllocStaticSlotId(paraRule, _val, _paramed, ref opened, ref nextStaticSlot);
+        }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -35,6 +48,15 @@ namespace mooSQL.data
             hc.Add(_op);
             hc.Add(_paramed);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val, _op, _paramed);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            if (StaticSlotId != null)
+            {
+                builder.Inner.whereWithSlot(_key, _val, StaticSlotId.Value, _op);
+                return;
+            }
+            builder.Inner.where(_key, _val, _op, _paramed);
+        }
     }
 }

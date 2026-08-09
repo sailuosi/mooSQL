@@ -1,7 +1,7 @@
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereFormat(...)。</summary>
-    public sealed class WhereFormatstringobjectArrStep : StepBase
+    public sealed class WhereFormatstringobjectArrStep : StepBase, ILiveBindStep
     {
         public override int Id { get { return 196699; } }
         public override StepKind Kind { get { return StepKind.Where; } }
@@ -27,6 +27,12 @@ namespace mooSQL.data
             hc.Add(Id);
             hc.Add(1);
             hc.Add(_template);
+        }
+
+        public IDelayPara CollectLive(SQLBuilder builder)
+        {
+            builder.Inner.GetLiveDialectContext(out var dbstr, out var prefix);
+            return new DelayWhereFormat(_template, _values, dbstr, prefix);
         }
 
         public override void Apply(SQLBuilder builder)

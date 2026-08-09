@@ -77,5 +77,28 @@ namespace mooSQL.data
             }
             return true;
         }
+
+        /// <summary>
+        /// 与 ContributeHash / Apply 跳过条件对齐后分配 StaticSlotId。
+        /// Opened=false 时消费门控且不占槽；不写静态参或 paraRule 不落参时不占槽。
+        /// </summary>
+        protected static int? TryAllocStaticSlotId(
+            string paraRule,
+            object val,
+            bool writesStaticParam,
+            ref bool opened,
+            ref int nextStaticSlot)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return null;
+            }
+            if (!writesStaticParam) return null;
+            if (!PassesParaRule(paraRule, val)) return null;
+            var id = nextStaticSlot;
+            nextStaticSlot++;
+            return id;
+        }
     }
 }

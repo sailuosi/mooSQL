@@ -269,12 +269,16 @@ pure/src/ado/builder/
     ScriptTemplate.cs
     StaticSlot.cs
     StaticSlotMarks.cs           # ms_s{N}；NameSchemaVersion
+  steps/
+    IStaticSlotStep.cs           # 热路径静态收值契约
+    ILiveBindStep.cs             # 热路径 CollectBind Live
+    where/WhereKeyCompareStep.cs # >/</>=/<=/<> 公共槽位实现
   SQLBuilder.cache.cs            # useScriptTemplateCache；toSelect 冷热分流
 pure/src/ado/builder/StepBuilderDymatic.cs
   cacheHolder                    # 已有；模板与 query 共用
 ```
 
-门面：`useScriptTemplateCache(true)` 才启用（默认关）。`Enqueue` 对纳入槽位制的 Step 分配 `StaticSlotId`。
+门面：`useScriptTemplateCache(true)` 才启用（默认关）。纳入槽位制的 Step 在入队前 `TryAssignStaticSlot`（与 Hash/`paraRule` 对齐）。
 
 ---
 
@@ -283,9 +287,12 @@ pure/src/ado/builder/StepBuilderDymatic.cs
 | 阶段 | 内容 | 完成标志 |
 |------|------|----------|
 | **C0** | 本文入库；锁定对象 / 方案 C / Key / 冷热语义 | 评审通过 |
-| **C1** | `StaticSlotId` 分配 + **`where(key,val)` / `WhereKeyValStep`** 起名改用 `ms_s{N}`（`whereWithSlot`；`addFrag` 尊重已有 paramKey） | 单测：同结构两值壳相同（试点已落地） |
-| **C2** | `toSelect` 冷热分流；Template 写入 **cacheHolder / Client.Cache**；命中跳过 `runBuild`/`buildSelect` | 单测：共享 `setCacheHolder` 第二次命中、壳同值异（已落地；Live 混合属 C3） |
-| **C3** | 扩大静态 API 覆盖；与 Live 混合句 | 回归 / 快照策略明确 |
+| **C1** | `StaticSlotId` 分配 + **`where(key,val)` / `WhereKeyValStep`** 起名改用 `ms_s{N}`（`whereWithSlot`；`addFrag` 尊重已有 paramKey） | 单测：同结构两值壳相同（已落地） |
+| **C2** | `toSelect` 冷热分流；Template 写入 **cacheHolder / Client.Cache**；命中跳过 `runBuild`/`buildSelect` | 单测：共享 `setCacheHolder` 第二次命中、壳同值异（已落地） |
+| **C3a** | `IStaticSlotStep` + 收值/收录泛化（不再写死 `WhereKeyValStep`） | 已落地 |
+| **C3b** | 扩大静态 API：`where(key,val,op[,paramed])`、`whereGreaterThan` / `LessThan` / `OrEqual` / `NotEqual` → `ms_s{N}`；`whereWithSlot(..., op)` | 单测 + SqlSnapshot 基线已更新（已落地） |
+| **C3c** | Live 混合：`ILiveBindStep` + CollectBind；冷路径允许 `LiveCount>0`；热路径重绑 static + 新 `IDelayPara[]` | 单测：where+whereIn / whereFormat 命中、空非空 In 不互命中（已落地） |
+| **C3d** | `query` / `queryAsync` / `query<T>` 启用模板缓存时走门面 `toSelect` + `queryPrepared`（跳过内核再拼装）；`count`/`exist` 仍须结构物化，另议 | 单测：query 第二次命中（已落地） |
 | **C4** | 容量、失效（ExpressionVersion）、指标、碰撞加固 | 可运维 |
 
 ---
@@ -308,8 +315,8 @@ pure/src/ado/builder/StepBuilderDymatic.cs
 |----|------|----------|------|
 | T1 | 缓存对象 | `ScriptTemplate`（壳+StaticSlots+LiveCount） | **已锁定** |
 | T2 | 静态桥 | **方案 C**：编排期 `StaticSlotId` | **已锁定** |
-| T3 | 物理名格式 | `{paraPrefix}ms_s{SlotId}` | **建议锁定**（C1 可微调，进 SchemaVersion） |
-| T4 | 命中入口 | `toSelect` + `useScriptTemplateCache`；存储 = 既有 `cacheHolder` | **已锁定**（C2） |
+| T3 | 物理名格式 | `{paraPrefix}ms_s{SlotId}` | **已锁定**（NameSchemaVersion=1） |
+| T4 | 命中入口 | `toSelect` + `useScriptTemplateCache`；`query*` 复用同一入口；存储 = 既有 `cacheHolder` | **已锁定**（C2/C3d） |
 | T5 | 未改造 API | 不参与缓存（冷路径不收录） | **已锁定** |
 | T6 | 子查询 In | 不做 Live/父 StaticSlot | **已锁定** |
 | T7 | 热路径失败 | C2：收值对不齐则 **回退冷路径**（不抛） | **C2 默认**；可再收紧 |

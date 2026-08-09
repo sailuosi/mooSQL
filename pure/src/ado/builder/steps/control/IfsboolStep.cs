@@ -11,6 +11,9 @@ namespace mooSQL.data
         public override StepKind Kind { get { return StepKind.Control; } }
                 private readonly bool _isPass;
 
+        /// <summary>门控值；热路径 CollectBind 与 ContributeHash 同语义。</summary>
+        internal bool IsPass { get { return _isPass; } }
+
         public IfsboolStep(bool isPass)
         {
             _isPass = isPass;

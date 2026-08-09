@@ -66,14 +66,15 @@ namespace mooSQL.data
             cmd = null;
             if (template == null || string.IsNullOrEmpty(template.ShellSql))
                 return false;
-            // C2 试点：仅 LiveCount==0 的全静态槽句
-            if (template.LiveCount != 0)
-                return false;
             if (template.StaticSlots == null)
                 return false;
 
             var values = HarvestStaticValues(template.StaticSlots);
             if (values == null)
+                return false;
+
+            var lives = CollectLiveParas();
+            if (lives == null || lives.Count != template.LiveCount)
                 return false;
 
             var ps = new Paras();
@@ -83,6 +84,8 @@ namespace mooSQL.data
                 var slot = template.StaticSlots[i];
                 ps.AddByPrefix(slot.NameInTemplate, values[i], prefix);
             }
+            for (int i = 0; i < lives.Count; i++)
+                ps.AddDelayPara(lives[i]);
 
             cmd = new SQLCmd(template.ShellSql, ps);
             cmd.type = QueryType.Select;
@@ -91,16 +94,19 @@ namespace mooSQL.data
             return true;
         }
 
-        /// <summary>按模板槽序从 WhereKeyValStep 收值；对不齐则返回 null（回退冷路径）。</summary>
+        /// <summary>按模板槽序从 <see cref="IStaticSlotStep"/> 收值；对不齐则返回 null（回退冷路径）。</summary>
         private object[] HarvestStaticValues(StaticSlot[] slots)
         {
+            if (slots.Length == 0)
+                return new object[0];
+
             var byId = new Dictionary<int, object>();
             var steps = _steps;
             for (int i = 0; i < steps.Count; i++)
             {
-                var wk = steps[i] as WhereKeyValStep;
-                if (wk == null || wk.StaticSlotId == null) continue;
-                byId[wk.StaticSlotId.Value] = wk.Value;
+                var slotStep = steps[i] as IStaticSlotStep;
+                if (slotStep == null || slotStep.StaticSlotId == null) continue;
+                byId[slotStep.StaticSlotId.Value] = slotStep.StaticSlotValue;
             }
 
             var values = new object[slots.Length];
@@ -113,6 +119,43 @@ namespace mooSQL.data
             return values;
         }
 
+        /// <summary>
+        /// 按磁带序 CollectBind Live；复现 ifs 门控（Where 类步消费 opened）。
+        /// 未实现 <see cref="ILiveBindStep"/> 的 Live 源会导致个数对不齐并回退冷路径。
+        /// </summary>
+        private List<IDelayPara> CollectLiveParas()
+        {
+            var list = new List<IDelayPara>();
+            var opened = true;
+            var steps = _steps;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var step = steps[i];
+                if (step == null) continue;
+
+                var ifs = step as IfsboolStep;
+                if (ifs != null)
+                {
+                    opened = ifs.IsPass;
+                    continue;
+                }
+
+                if (!opened)
+                {
+                    if (step.Kind == StepKind.Where)
+                        opened = true;
+                    continue;
+                }
+
+                var liveStep = step as ILiveBindStep;
+                if (liveStep == null) continue;
+                var para = liveStep.CollectLive(this);
+                if (para != null)
+                    list.Add(para);
+            }
+            return list;
+        }
+
         private void TryStoreScriptTemplate(string key, ISooCache holder, SQLCmd cmd)
         {
             if (holder == null || cmd == null || string.IsNullOrEmpty(key)) return;
@@ -122,29 +165,30 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 冷路径收录：仅当全部静态参均为 ms_s* 槽且无 Live 时入缓存（未改造 API 不参与）。
+        /// 冷路径收录：静态参须全为 ms_s* 槽；可含 Live（壳未 Resolve）。
+        /// 未改造静态 API（旧 wp 名）或无法 Collect 的 Live 源不入缓存。
         /// </summary>
         private bool TryBuildScriptTemplate(SQLCmd cmd, out ScriptTemplate template)
         {
             template = null;
             if (cmd.para == null) return false;
-            if (cmd.para.DelayParas != null && cmd.para.DelayParas.Count > 0)
-                return false;
+
+            var liveCount = cmd.para.DelayParas != null ? cmd.para.DelayParas.Count : 0;
 
             var slots = new List<StaticSlot>();
             var steps = _steps;
             for (int i = 0; i < steps.Count; i++)
             {
-                var wk = steps[i] as WhereKeyValStep;
-                if (wk == null || wk.StaticSlotId == null) continue;
+                var slotStep = steps[i] as IStaticSlotStep;
+                if (slotStep == null || slotStep.StaticSlotId == null) continue;
                 slots.Add(new StaticSlot
                 {
-                    SlotId = wk.StaticSlotId.Value,
-                    NameInTemplate = StaticSlotMarks.FormatName(wk.StaticSlotId.Value)
+                    SlotId = slotStep.StaticSlotId.Value,
+                    NameInTemplate = StaticSlotMarks.FormatName(slotStep.StaticSlotId.Value)
                 });
             }
 
-            if (slots.Count == 0) return false;
+            if (slots.Count == 0 && liveCount == 0) return false;
             if (cmd.para.Count != slots.Count) return false;
 
             for (int i = 0; i < slots.Count; i++)
@@ -153,11 +197,26 @@ namespace mooSQL.data
                     return false;
             }
 
+            var shell = cmd.sql ?? "";
+            for (int i = 0; i < liveCount; i++)
+            {
+                if (shell.IndexOf(LiveParaMarks.Format(i)) < 0)
+                    return false;
+            }
+
+            // 热路径须能 Collect 出相同个数，否则不收录（避免必 miss）
+            if (liveCount > 0)
+            {
+                var collected = CollectLiveParas();
+                if (collected == null || collected.Count != liveCount)
+                    return false;
+            }
+
             template = new ScriptTemplate
             {
-                ShellSql = cmd.sql,
+                ShellSql = shell,
                 StaticSlots = slots.ToArray(),
-                LiveCount = 0,
+                LiveCount = liveCount,
                 ParaSeed = _inner.paraSeed,
                 OrchestrationHash = OrchestrationHash
             };

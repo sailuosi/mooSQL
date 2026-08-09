@@ -1,35 +1,31 @@
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.where(key, val)。支持编排期 StaticSlotId（方案 C）。</summary>
-    public sealed class WhereKeyValStep : StepBase, IStaticSlotStep
+    /// <summary>
+    /// 单值比较 where（&gt; / &lt; / &gt;= / &lt;= / &lt;&gt; 等）的 StaticSlot 公共实现。
+    /// </summary>
+    public abstract class WhereKeyCompareStep : StepBase, IStaticSlotStep
     {
-        public override int Id { get { return 196720; } }
-        public override StepKind Kind { get { return StepKind.Where; } }
+        public sealed override StepKind Kind { get { return StepKind.Where; } }
 
         private readonly string _key;
         private readonly object _val;
 
-        /// <summary>本步 where 列名（热路径收值/校验用）。</summary>
-        internal string Key { get { return _key; } }
-
-        /// <summary>本步逻辑值（热路径重绑用；不进缓存）。</summary>
-        internal object Value { get { return _val; } }
-
-        /// <inheritdoc />
-        public int? StaticSlotId { get; private set; }
-
-        /// <inheritdoc />
-        public object StaticSlotValue { get { return _val; } }
-
-        public WhereKeyValStep(string key, object val)
+        protected WhereKeyCompareStep(string key, object val)
         {
             _key = key;
             _val = val;
         }
 
-        /// <summary>
-        /// 与 ContributeHash 的 Opened 消费 + paraRule 对齐后占槽。
-        /// </summary>
+        protected string Key { get { return _key; } }
+        protected object Val { get { return _val; } }
+
+        /// <summary>比较符（如 &gt;、&lt;&gt;）。</summary>
+        protected abstract string Op { get; }
+
+        public int? StaticSlotId { get; private set; }
+
+        public object StaticSlotValue { get { return _val; } }
+
         internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
         {
             StaticSlotId = TryAllocStaticSlotId(paraRule, _val, true, ref opened, ref nextStaticSlot);
@@ -54,10 +50,10 @@ namespace mooSQL.data
         {
             if (StaticSlotId != null)
             {
-                builder.Inner.whereWithSlot(_key, _val, StaticSlotId.Value);
+                builder.Inner.whereWithSlot(_key, _val, StaticSlotId.Value, Op);
                 return;
             }
-            builder.Inner.where(_key, _val);
+            builder.Inner.where(_key, _val, Op, true);
         }
     }
 }

@@ -65,11 +65,19 @@ namespace mooSQL.data
             return Enqueue(step);
         }
 
-        public SQLBuilder where(string key, object val, string op) =>
-            Enqueue(new WhereKeyValOpParamedStep(key, val, op, true));
+        public SQLBuilder where(string key, object val, string op)
+        {
+            var step = new WhereKeyValOpParamedStep(key, val, op, true);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder where(string key, object val, string op, bool paramed) =>
-            Enqueue(new WhereKeyValOpParamedStep(key, val, op, paramed));
+        public SQLBuilder where(string key, object val, string op, bool paramed)
+        {
+            var step = new WhereKeyValOpParamedStep(key, val, op, paramed);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
         public SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
 
