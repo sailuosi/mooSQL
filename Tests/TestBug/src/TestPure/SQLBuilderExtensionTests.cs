@@ -1,6 +1,7 @@
 using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
+using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +126,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void FindListByIds_WithEmptyIds_ShouldReturnEmptyList()
         {
-            var list = _builder.findListByIds<TestUser>(Array.Empty<object>());
+            var list = _builder.findListByIds<TestUser>(ArrayCache.Empty<object>());
             list.Should().NotBeNull();
             list.Should().BeEmpty();
         }
@@ -182,7 +183,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void RemoveByIds_WithEmptyIds_ShouldReturnZero()
         {
-            var affected = _builder.removeByIds<TestUser>(Array.Empty<object>());
+            var affected = _builder.removeByIds<TestUser>(ArrayCache.Empty<object>());
             affected.Should().Be(0);
         }
 

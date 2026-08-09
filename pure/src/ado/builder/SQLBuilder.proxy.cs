@@ -79,6 +79,14 @@ namespace mooSQL.data
 
         public MergeIntoBuilder mergeInto(string tbName, string asName = null) => _inner.mergeInto(tbName, asName);
 
+        public WhereItem start() => start(true);
+
+        public WhereItem start(bool addBracket)
+        {
+            EnsureMaterialized();
+            return _inner.start(addBracket);
+        }
+
         public SQLBuilder useReadReplica() { _inner.useReadReplica(); return this; }
         public SQLBuilder useMaster() { _inner.useMaster(); return this; }
         public SQLBuilder useDualWrite(params int[] slavePositions) { _inner.useDualWrite(slavePositions); return this; }
@@ -128,6 +136,12 @@ namespace mooSQL.data
         {
             EnsureMaterialized();
             return _inner.exeQuery(SQL, para);
+        }
+
+        public DataTable exeQuery(string orderByPart, string readsql, int pageSize, int pageNum)
+        {
+            EnsureMaterialized();
+            return _inner.exeQuery(orderByPart, readsql, pageSize, pageNum);
         }
 
         public DataTable exeQuery(SQLCmd sql)

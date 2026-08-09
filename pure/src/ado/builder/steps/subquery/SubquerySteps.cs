@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using mooSQL.utils;
 
 namespace mooSQL.data
 {
@@ -12,7 +13,7 @@ namespace mooSQL.data
         public FromSubqueryStep(string asName, IReadOnlyList<IStep> childSteps)
         {
             _asName = asName;
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -35,7 +36,7 @@ namespace mooSQL.data
         {
             _joinKey = joinKey;
             _asName = asName;
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -57,7 +58,7 @@ namespace mooSQL.data
         public SelectSubqueryStep(string asName, IReadOnlyList<IStep> childSteps)
         {
             _asName = asName;
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -80,7 +81,7 @@ namespace mooSQL.data
         {
             _key = key;
             _op = op;
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -99,7 +100,7 @@ namespace mooSQL.data
 
         public WhereFragmentStep(IReadOnlyList<IStep> childSteps)
         {
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -118,7 +119,7 @@ namespace mooSQL.data
 
         public WhereORSubqueryStep(IReadOnlyList<IStep> childSteps)
         {
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)
@@ -143,7 +144,7 @@ namespace mooSQL.data
         public WithSelectSubqueryStep(string name, IReadOnlyList<IStep> childSteps)
         {
             _name = name;
-            _childSteps = childSteps ?? Array.Empty<IStep>();
+            _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
         public void Apply(SQLBuilder builder)

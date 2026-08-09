@@ -78,6 +78,48 @@ namespace mooSQL.data
         public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue) =>
             Enqueue(new WhereNotBetweenStep<T>(key, minValue, maxValue));
 
+        public SQLBuilder whereIn<T>(string key, IEnumerable<T> values) =>
+            Enqueue(new WhereInGenericStep<T>(key, values));
+
+        public SQLBuilder whereIn<T>(string key, params T[] values) =>
+            whereIn(key, (IEnumerable<T>)values);
+
+        public SQLBuilder whereIn<T>(string key, List<T> val) =>
+            whereIn(key, (IEnumerable<T>)val);
+
+        public SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values) =>
+            Enqueue(new WhereNotInGenericStep<T>(key, values));
+
+        public SQLBuilder whereNotIn<T>(string key, params T[] values) =>
+            whereNotIn(key, (IEnumerable<T>)values);
+
+        public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) =>
+            Enqueue(new WhereNotInOrNullStep<T>(key, values));
+
+        public SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values) =>
+            Enqueue(new WhereListGenericStep<T>(key, op, values));
+
+        public SQLBuilder whereOR<T>(string key, params T[] values) =>
+            Enqueue(new WhereORValuesStep<T>(key, values));
+
+        /// <summary>编排期条件分支：通过时执行 whenTrue（闭包内链式调用继续入队）。</summary>
+        public SQLBuilder ifs(bool isPass, Action whenTrue)
+        {
+            if (isPass)
+                whenTrue?.Invoke();
+            return this;
+        }
+
+        /// <summary>编排期条件分支：按 isPass 执行 whenTrue / whenFalse。</summary>
+        public SQLBuilder ifs(bool isPass, Action whenTrue, Action whenFalse)
+        {
+            if (isPass)
+                whenTrue?.Invoke();
+            else
+                whenFalse?.Invoke();
+            return this;
+        }
+
         // ---- A 类同实例 Action：编排期展开，委托内 API 继续入队到 this ----
 
         /// <summary>

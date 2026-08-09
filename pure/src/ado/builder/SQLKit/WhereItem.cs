@@ -165,9 +165,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// end 方法（返回 StepBuilder）。
+        /// end 方法：将片段并入 where，并回到 SQLBuilder 门面。
         /// </summary>
-        public StepBuilder end()
+        public SQLBuilder end()
         {
             string tar = sqlbase.ToString();
             if (this.autoKuohao)
@@ -175,7 +175,7 @@ namespace mooSQL.data
                 tar = "(" + tar + ")";
             }
             root.where(tar);
-            return root;
+            return SQLBuilder.Attach(root);
         }
     }
 }
