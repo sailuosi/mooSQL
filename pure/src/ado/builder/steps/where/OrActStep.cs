@@ -2,16 +2,17 @@ using System;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder 编排步骤。</summary>
     public sealed class OrActStep : IStep
     {
         private readonly Action<SQLBuilder> _doSomeWhere;
-
-        public OrActStep(Action<SQLBuilder> doSomeWhere)
+        public OrActStep(Action<SQLBuilder> doSomeWhere) { _doSomeWhere = doSomeWhere; }
+        public void Apply(SQLBuilder builder)
         {
-            _doSomeWhere = doSomeWhere;
+            builder.Inner.or(inner =>
+            {
+                var facade = SQLBuilder.Attach(inner, materializing: true);
+                _doSomeWhere(facade);
+            });
         }
-
-        public void Apply(SQLBuilder builder) => builder.Inner.or(_doSomeWhere);
     }
 }

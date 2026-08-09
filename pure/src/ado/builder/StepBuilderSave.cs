@@ -222,13 +222,10 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="buildSelect"></param>
         /// <returns></returns>
-        public StepBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
+        public StepBuilder mergeUsing(string asName,Action<StepBuilder> buildSelect)
         {
             current.mergeAs(asName);
-            {
-                var __facade = SQLBuilder.Attach(this, materializing: true);
-                buildSelect(__facade);
-            }
+            buildSelect(this);
             return this;
         }
         /// <summary>

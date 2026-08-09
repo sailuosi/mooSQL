@@ -525,7 +525,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup whereIn(string key, Action<SQLBuilder> doselect)
+        public SqlGoup whereIn(string key, Action<StepBuilder> doselect)
         {
             return where(key, " in ", doselect);
         }
@@ -543,7 +543,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup whereExist( Action<SQLBuilder> doselect)
+        public SqlGoup whereExist( Action<StepBuilder> doselect)
         {
             return where("", " exists ", doselect);
         }
@@ -559,16 +559,14 @@ namespace mooSQL.data
         /// <param name="op"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup where(string key,string op, Action<SQLBuilder> doselect)
+        public SqlGoup where(string key,string op, Action<StepBuilder> doselect)
         {
 
             WhereFrag field = new WhereFrag();
             field.setConnect(whereSeprator);
             field.key = key;
             var builder = root.getBrotherBuilder();
-            var facade = SQLBuilder.Attach(builder);
-            doselect(facade);
-            facade.EnsureMaterialized();
+            doselect(builder);
             field.value = " ("+ builder.toSelect().sql+") ";
             this.ps = builder.ps;
             field.paramed = false;
@@ -582,7 +580,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="doWhere"></param>
         /// <returns></returns>
-        public SqlGoup where( Action<SQLBuilder> doWhere)
+        public SqlGoup where( Action<StepBuilder> doWhere)
         {
 
             WhereFrag field = new WhereFrag();
@@ -591,9 +589,7 @@ namespace mooSQL.data
             field.op = "";
 
             var builder = root.getBrotherBuilder();
-            var facade = SQLBuilder.Attach(builder);
-            doWhere(facade);
-            facade.EnsureMaterialized();
+            doWhere(builder);
             field.value = " (" + builder.buildWhereContent() + ") ";
             this.ps = builder.ps;
             field.paramed = false;

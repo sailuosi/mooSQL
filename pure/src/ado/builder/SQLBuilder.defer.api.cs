@@ -30,8 +30,6 @@ namespace mooSQL.data
 
         public SQLBuilder selectFormat(string selectSQLPart, params object[] paras) => Enqueue(new SelectFormatstringobjectArrStep(selectSQLPart, paras));
 
-        public SQLBuilder select(string asName, Action<SQLBuilder> doColSelect) => Enqueue(new SelectstringActStep(asName, doColSelect));
-
         public SQLBuilder selectUnioned(string columns) => Enqueue(new SelectUnionedstringStep(columns));
 
         public SQLBuilder top(int num) => Enqueue(new TopintStep(num));
@@ -92,9 +90,6 @@ namespace mooSQL.data
 
 
         // ---- union ----
-        public SQLBuilder withSelect(string name, Action<SQLBuilder> doselect) => Enqueue(new WithSelectstringActStep(name, doselect));
-
-        public SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder) => Enqueue(new WithAsstringActStep(name, selectBuilder));
 
         public SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur) => Enqueue(new WithRecurstringAction_RecurCTEBuilderStep(name, buildRecur));
 
@@ -120,19 +115,9 @@ namespace mooSQL.data
 
         public SQLBuilder joinFormat(string JoinSQLPart, params object[] paras) => Enqueue(new JoinFormatstringobjectArrStep(JoinSQLPart, paras));
 
-        public SQLBuilder join(string joinKey, string joinSQLString, Action<SQLBuilder> childFromPart) => Enqueue(new JoinstringstringActStep(joinKey, joinSQLString, childFromPart));
-
-        public SQLBuilder leftJoin(string joinSQLString, Action<SQLBuilder> childFromPart) => Enqueue(new LeftJoinstringActStep(joinSQLString, childFromPart));
-
         public SQLBuilder leftJoin(string joinSQLString) => Enqueue(new LeftJoinstringStep(joinSQLString));
 
-        public SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart) => Enqueue(new InnerJoinstringActStep(joinSQLString, childFromPart));
-
         public SQLBuilder innerJoin(string joinSQLString) => Enqueue(new InnerJoinstringStep(joinSQLString));
-
-        public SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart) => Enqueue(new RightJoinstringActStep(joinSQLString, childFromPart));
-
-        public SQLBuilder from(string asName, Action<SQLBuilder> childFromPart) => Enqueue(new FromstringActStep(asName, childFromPart));
 
         public SQLBuilder pivot(PivotItem SQLString) => Enqueue(new PivotPivotItemStep(SQLString));
 
@@ -165,8 +150,6 @@ namespace mooSQL.data
         public SQLBuilder where(WhereFrag frag) => Enqueue(new WhereWhereFragStep(frag));
 
         public SQLBuilder pin(string SQL) => Enqueue(new PinstringStep(SQL));
-
-        public SQLBuilder whereOR(Action<SQLBuilder> whereBuilder) => Enqueue(new WhereORActStep(whereBuilder));
 
         public SQLBuilder and() => Enqueue(AndStep.Instance);
 
@@ -214,8 +197,6 @@ namespace mooSQL.data
 
         public SQLBuilder whereIn(string key, List<object> val) => Enqueue(new WhereInstringListobjectStep(key, val));
 
-        public SQLBuilder whereIn(string key, Action<SQLBuilder> doselect) => Enqueue(new WhereInstringActStep(key, doselect));
-
         public SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs) => Enqueue(new WhereInGuidstringEnumGuidStep(key, OIDs));
 
         public SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs) => Enqueue(new WhereInGuidstringEnumGuidNStep(key, OIDs));
@@ -234,19 +215,9 @@ namespace mooSQL.data
 
         public SQLBuilder where(WhereListBag bag) => Enqueue(new WhereWhereListBagStep(bag));
 
-        public SQLBuilder whereNotIn(string key, Action<SQLBuilder> doselect) => Enqueue(new WhereNotInstringActStep(key, doselect));
-
         public SQLBuilder whereExist(string value) => Enqueue(new WhereExiststringStep(value));
 
-        public SQLBuilder whereExist(Action<SQLBuilder> doselect) => Enqueue(new WhereExistActStep(doselect));
-
         public SQLBuilder whereNotExist(string selectSQL) => Enqueue(new WhereNotExiststringStep(selectSQL));
-
-        public SQLBuilder whereNotExist(Action<SQLBuilder> doselect) => Enqueue(new WhereNotExistActStep(doselect));
-
-        public SQLBuilder where(string key, string op, Action<SQLBuilder> doselect) => Enqueue(new WherestringstringActStep(key, op, doselect));
-
-        public SQLBuilder where(string key, Action<SQLBuilder> doselect) => Enqueue(new WherestringActStep(key, doselect));
 
         public SQLBuilder whereGreaterThan(string key, object val) => Enqueue(new WhereGreaterThanstringobjectStep(key, val));
 
@@ -277,8 +248,6 @@ namespace mooSQL.data
         public SQLBuilder where(string key, object val, string op, bool paramed, Type t) => Enqueue(new WherestringobjectstringboolTypeStep(key, val, op, paramed, t));
 
         public SQLBuilder whereFormat(string template, params object[] values) => Enqueue(new WhereFormatstringobjectArrStep(template, values));
-
-        public SQLBuilder where(Action<SQLBuilder> whereBuilder) => Enqueue(new WhereActStep(whereBuilder));
 
 
     }

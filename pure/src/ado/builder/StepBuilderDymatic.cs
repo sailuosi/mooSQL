@@ -475,13 +475,10 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="queryOther"></param>
         /// <returns></returns>
-        public StepBuilder selectWith(Action<SQLBuilder> queryOther) {
+        public StepBuilder selectWith(Action<StepBuilder> queryOther) {
             this.clearSelect();
             if (queryOther != null)
-            {
-                var __facade = SQLBuilder.Attach(this, materializing: true);
-                queryOther(__facade);
-            }
+                queryOther(this);
             return this;
         }
 

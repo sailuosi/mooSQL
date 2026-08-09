@@ -217,15 +217,11 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="whereBuilder"></param>
         /// <returns></returns>
-        public StepBuilder whereOR(Action<SQLBuilder> whereBuilder)
+        public StepBuilder whereOR(Action<StepBuilder> whereBuilder)
         {
             var bro = this.getBrotherBuilder();
             bro.or();
-            {
-                var __facade = SQLBuilder.Attach(bro);
-                whereBuilder(__facade);
-                __facade.EnsureMaterialized();
-            }
+            whereBuilder(bro);
             var t = bro.buildWhereContent();
             if (!string.IsNullOrWhiteSpace(t))
             {
@@ -285,10 +281,10 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="doSomeWhere"></param>
         /// <returns></returns>
-        public StepBuilder or(Action<SQLBuilder> doSomeWhere)
+        public StepBuilder or(Action<StepBuilder> doSomeWhere)
         {
             orLeft();
-            { var __facade = SQLBuilder.Attach(this, materializing: true); doSomeWhere(__facade); }
+            doSomeWhere(this);
             orRight();
             return this;
         }
@@ -297,10 +293,10 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="doSomeWhere"></param>
         /// <returns></returns>
-        public StepBuilder and(Action<SQLBuilder> doSomeWhere)
+        public StepBuilder and(Action<StepBuilder> doSomeWhere)
         {
             andLeft();
-            { var __facade = SQLBuilder.Attach(this, materializing: true); doSomeWhere(__facade); }
+            doSomeWhere(this);
             andRight();
             return this;
         }
@@ -861,7 +857,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder whereIn(string key, Action<SQLBuilder> doselect)
+        public StepBuilder whereIn(string key, Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1210,7 +1206,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder whereNotIn(string key, Action<SQLBuilder> doselect)
+        public StepBuilder whereNotIn(string key, Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1244,7 +1240,7 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder whereExist(Action<SQLBuilder> doselect)
+        public StepBuilder whereExist(Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1270,7 +1266,7 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder whereNotExist(Action<SQLBuilder> doselect)
+        public StepBuilder whereNotExist(Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1287,7 +1283,7 @@ namespace mooSQL.data {
         /// <param name="op"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder where(string key, string op, Action<SQLBuilder> doselect)
+        public StepBuilder where(string key, string op, Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1303,7 +1299,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder where(string key, Action<SQLBuilder> doselect)
+        public StepBuilder where(string key, Action<StepBuilder> doselect)
         {
             if (!opened)
             {
@@ -1685,7 +1681,7 @@ namespace mooSQL.data {
         /// </summary>
         /// <param name="whereBuilder"></param>
         /// <returns></returns>
-        public StepBuilder where(Action<SQLBuilder> whereBuilder)
+        public StepBuilder where(Action<StepBuilder> whereBuilder)
         {
             current.where(whereBuilder);
             _whereCount++;

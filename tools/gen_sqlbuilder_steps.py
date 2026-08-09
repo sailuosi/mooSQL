@@ -26,6 +26,23 @@ SKIP_METHODS = {
     ("mergeUsing", ("string", "Action<SQLBuilder>")),
     ("or", ("Action<SQLBuilder>",)),
     ("and", ("Action<SQLBuilder>",)),
+    # B 类子查询：编排期 CaptureChildSteps（见 SQLBuilder.defer.b.cs）
+    ("from", ("string", "Action<SQLBuilder>")),
+    ("join", ("string", "string", "Action<SQLBuilder>")),
+    ("leftJoin", ("string", "Action<SQLBuilder>")),
+    ("innerJoin", ("string", "Action<SQLBuilder>")),
+    ("rightJoin", ("string", "Action<SQLBuilder>")),
+    ("select", ("string", "Action<SQLBuilder>")),
+    ("withSelect", ("string", "Action<SQLBuilder>")),
+    ("withAs", ("string", "Action<SQLBuilder>")),
+    ("where", ("string", "string", "Action<SQLBuilder>")),
+    ("where", ("string", "Action<SQLBuilder>")),
+    ("where", ("Action<SQLBuilder>",)),
+    ("whereIn", ("string", "Action<SQLBuilder>")),
+    ("whereNotIn", ("string", "Action<SQLBuilder>")),
+    ("whereExist", ("Action<SQLBuilder>",)),
+    ("whereNotExist", ("Action<SQLBuilder>",)),
+    ("whereOR", ("Action<SQLBuilder>",)),
 }
 
 # Names that are meta/config/exec — do not generate construction steps

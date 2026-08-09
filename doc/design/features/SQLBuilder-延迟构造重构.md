@@ -617,6 +617,7 @@ pure/src/ado/builder/
 | D8 | 默认入队策略 | 默认 **纯延迟**（仅入队，出口 Flush）；`useDeferred(false)` 可临时双写对照 | **已切换** |
 | D9 | Step 生成 | `tools/gen_sqlbuilder_steps.py` 生成简单 + `Action<>` 构造 API；手写核心保留在 `SQLBuilder.defer.cs` | **实施中** |
 | D10 | 同实例 Action（A 类） | `selectWith` / `mergeUsing(Action)` / `and|or(Action)` **编排期直接调委托**，展开入队；`union(Action)` 因切换 `current` 仍存 Step | **已落地** |
+| D11 | 子查询 Action（B 类） | 编排期 `CaptureChildSteps`；IStep 存元数据+子步骤队列；Apply 用 `getBrotherBuilder`+重放+toSelect，**不调**内核委托重载；内核 `Action<StepBuilder>` 恢复即时能力 | **已落地** |
 | D1 | `ifs` 编排期求值 vs 入队求值 | 编排期求值；跳过则不 Enqueue | 待确认 |
 | D2 | `copy()` 是否复制未物化队列 | 复制 `_steps` + 配置；`_inner` 干净或随 Flush | 待确认 |
 | D3 | Auth/`fireBuild*` 触发点 | 保持在 StepBuilder 原路径（Flush 期） | 待确认 |

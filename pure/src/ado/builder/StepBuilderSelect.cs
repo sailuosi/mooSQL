@@ -19,14 +19,10 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder withSelect(string name, Action<SQLBuilder> doselect) {
+        public StepBuilder withSelect(string name, Action<StepBuilder> doselect) {
 
             var kit = this.getBrotherBuilder();
-            {
-                var __facade = SQLBuilder.Attach(kit);
-                doselect(__facade);
-                __facade.EnsureMaterialized();
-            }
+            doselect(kit);
 
             var item = new SqlCTEItem();
             item.builder = kit;
@@ -45,7 +41,7 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="selectBuilder"></param>
         /// <returns></returns>
-        public StepBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
+        public StepBuilder withAs(string name, Action<StepBuilder> selectBuilder)
         {
             this.withSelect(name, selectBuilder);
             //var kit = this.getBrotherBuilder();
@@ -129,14 +125,10 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="doColSelect"></param>
         /// <returns></returns>
-        public StepBuilder select(string asName, Action<SQLBuilder> doColSelect)
+        public StepBuilder select(string asName, Action<StepBuilder> doColSelect)
         {
             var ckit = this.getBrotherBuilder();
-            {
-                var __facade = SQLBuilder.Attach(ckit);
-                doColSelect(__facade);
-                __facade.EnsureMaterialized();
-            }
+            doColSelect(ckit);
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, asName);
             current.select(fromPart);
@@ -271,14 +263,10 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart">(select的查询语句) as {childFromPart}</param>
         /// <returns></returns>
-        public StepBuilder join(string joinKey,string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder join(string joinKey,string joinSQLString, Action<StepBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
-            {
-                var __facade = SQLBuilder.Attach(ckit);
-                childFromPart(__facade);
-                __facade.EnsureMaterialized();
-            }
+            childFromPart(ckit);
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format(" {0} ({1}) as {2} ",joinKey ,selectSQL.sql, joinSQLString);
             current.fromAppend(fromPart);
@@ -290,7 +278,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder leftJoin( string joinSQLString, Action<StepBuilder> childFromPart)
         {
             return this.join("LEFT JOIN", joinSQLString, childFromPart);
         }
@@ -307,7 +295,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder innerJoin(string joinSQLString, Action<StepBuilder> childFromPart)
         {
             return this.join("INNER JOIN", joinSQLString, childFromPart);
         }
@@ -324,7 +312,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
+        public StepBuilder rightJoin(string joinSQLString, Action<StepBuilder> childFromPart)
         {
             return this.join("RIGHT JOIN", joinSQLString, childFromPart);
         }
@@ -334,14 +322,10 @@ namespace mooSQL.data
         /// <param name="childFromPart"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder from(string asName, Action<SQLBuilder> childFromPart)
+        public StepBuilder from(string asName, Action<StepBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
-            {
-                var __facade = SQLBuilder.Attach(ckit);
-                childFromPart(__facade);
-                __facade.EnsureMaterialized();
-            }
+            childFromPart(ckit);
             var selectSQL = ckit.toSelect();
             var fromPart = string.Format("({0}) as {1} ", selectSQL.sql, asName);
             current.from(fromPart);
@@ -476,16 +460,13 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="doUnion"></param>
         /// <returns></returns>
-        public StepBuilder union(Action<SQLBuilder> doUnion)
+        public StepBuilder union(Action<StepBuilder> doUnion)
         {
             //当开始时，把当前的放入到union列表。并创建一个新的
             var cur = current;
 
             union();
-            {
-                var __facade = SQLBuilder.Attach(this, materializing: true);
-                doUnion(__facade);
-            }
+            doUnion(this);
             current = cur;
             return this;
         }
