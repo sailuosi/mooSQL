@@ -588,20 +588,8 @@ namespace mooSQL.data
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.PatchSQLByQueryPara(para, kit, en);
 
-            //如果无排序条件，则默认按主键降序
-            if (kit.current.orderPart.Count == 0) { 
-                var pks = en.GetPK();
-                if (pks !=null) { 
-                    foreach (var pk in pks) {
-                        var name = pk.DbColumnName;
-                        if(!string.IsNullOrWhiteSpace(en.Alias))
-                            name = string.Format("{0}.{1}", en.Alias, name);
-                        
-                        kit.orderBy(name+" desc");
-                    }
-                    
-                }
-            }
+            // 延迟门面：orderBy 先入队，须物化后再读 orderPart，否则会误判「无排序」再追加主键
+            EnsureDefaultOrderByPk(kit, en);
 
             var t = kit.queryPaged<T>();
             return t;
@@ -619,26 +607,34 @@ namespace mooSQL.data
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             Translator.PatchSQLByQueryPara(para, kit, en);
 
-            //如果无排序条件，则默认按主键降序
-            if (kit.current.orderPart.Count == 0)
-            {
-                var pks = en.GetPK();
-                if (pks != null)
-                {
-                    foreach (var pk in pks)
-                    {
-                        var name = pk.DbColumnName;
-                        if (!string.IsNullOrWhiteSpace(en.Alias))
-                            name = string.Format("{0}.{1}", en.Alias, name);
-
-                        kit.orderBy(name + " desc");
-                    }
-
-                }
-            }
+            EnsureDefaultOrderByPk(kit, en);
 
             var t = kit.query();
             return t;
+        }
+
+        /// <summary>
+        /// 若尚无排序则按主键降序。先 <see cref="SQLBuilder.runBuild"/> 再读
+        /// <c>current.orderPart</c>，避免延迟入队未物化时重复追加同一列。
+        /// </summary>
+        static void EnsureDefaultOrderByPk(SQLBuilder kit, EntityInfo en)
+        {
+            kit.runBuild();
+            if (kit.current.orderPart.Count != 0)
+                return;
+
+            var pks = en.GetPK();
+            if (pks == null)
+                return;
+
+            foreach (var pk in pks)
+            {
+                var name = pk.DbColumnName;
+                if (!string.IsNullOrWhiteSpace(en.Alias))
+                    name = string.Format("{0}.{1}", en.Alias, name);
+
+                kit.orderBy(name + " desc");
+            }
         }
 
         /// <summary>
