@@ -31,6 +31,7 @@ namespace mooSQL.data
             }
 
             _steps.Add(step);
+            RecordStepMeta(step);
             if (_deferredEnabled)
             {
                 _dirty = true;

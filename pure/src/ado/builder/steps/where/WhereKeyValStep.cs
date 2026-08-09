@@ -1,8 +1,10 @@
 namespace mooSQL.data
 {
     /// <summary>对应 <see cref="SQLBuilder.where(string, object)"/>。</summary>
-    public sealed class WhereKeyValStep : IStep
-    {
+    public sealed class WhereKeyValStep : StepBase {
+        public override int Id { get { return 196720; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly string _key;
         private readonly object _val;
         public WhereKeyValStep(string key, object val)
@@ -10,6 +12,11 @@ namespace mooSQL.data
             _key = key;
             _val = val;
         }
-        public void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val);
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_key);
+        }
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val);
     }
 }

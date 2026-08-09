@@ -5,8 +5,10 @@ using mooSQL.utils;
 namespace mooSQL.data
 {
     /// <summary>from (select…) as alias —— 存子步骤，不存 Action。</summary>
-    public sealed class FromSubqueryStep : IStep
-    {
+    public sealed class FromSubqueryStep : StepBase {
+        public override int Id { get { return 524349; } }
+        public override StepKind Kind { get { return StepKind.From; } }
+
         private readonly string _asName;
         private readonly IReadOnlyList<IStep> _childSteps;
 
@@ -15,8 +17,15 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_asName);
+            ContributeChildSteps(ref hc, _childSteps);
 
-        public void Apply(SQLBuilder builder)
+        }
+
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -26,8 +35,10 @@ namespace mooSQL.data
     }
 
     /// <summary>JOIN (select…) as alias</summary>
-    public sealed class JoinSubqueryStep : IStep
-    {
+    public sealed class JoinSubqueryStep : StepBase {
+        public override int Id { get { return 524350; } }
+        public override StepKind Kind { get { return StepKind.Join; } }
+
         private readonly string _joinKey;
         private readonly string _asName;
         private readonly IReadOnlyList<IStep> _childSteps;
@@ -38,8 +49,16 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_joinKey);
+            hc.Add(_asName);
+            ContributeChildSteps(ref hc, _childSteps);
 
-        public void Apply(SQLBuilder builder)
+        }
+
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -50,8 +69,10 @@ namespace mooSQL.data
     }
 
     /// <summary>select (select…) as alias</summary>
-    public sealed class SelectSubqueryStep : IStep
-    {
+    public sealed class SelectSubqueryStep : StepBase {
+        public override int Id { get { return 524351; } }
+        public override StepKind Kind { get { return StepKind.Select; } }
+
         private readonly string _asName;
         private readonly IReadOnlyList<IStep> _childSteps;
 
@@ -60,8 +81,15 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_asName);
+            ContributeChildSteps(ref hc, _childSteps);
 
-        public void Apply(SQLBuilder builder)
+        }
+
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -71,8 +99,10 @@ namespace mooSQL.data
     }
 
     /// <summary>where key op (select…)</summary>
-    public sealed class WhereSubqueryStep : IStep
-    {
+    public sealed class WhereSubqueryStep : StepBase {
+        public override int Id { get { return 524352; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly string _key;
         private readonly string _op;
         private readonly IReadOnlyList<IStep> _childSteps;
@@ -83,8 +113,16 @@ namespace mooSQL.data
             _op = op;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_key);
+            hc.Add(_op);
+            ContributeChildSteps(ref hc, _childSteps);
 
-        public void Apply(SQLBuilder builder)
+        }
+
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -94,8 +132,10 @@ namespace mooSQL.data
     }
 
     /// <summary>where ( where-fragment )</summary>
-    public sealed class WhereFragmentStep : IStep
-    {
+    public sealed class WhereFragmentStep : StepBase {
+        public override int Id { get { return 524353; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly IReadOnlyList<IStep> _childSteps;
 
         public WhereFragmentStep(IReadOnlyList<IStep> childSteps)
@@ -103,7 +143,12 @@ namespace mooSQL.data
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
-        public void Apply(SQLBuilder builder)
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            ContributeChildSteps(ref hc, _childSteps);
+        }
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -113,8 +158,10 @@ namespace mooSQL.data
     }
 
     /// <summary>whereOR：兄弟 or 模式搓条件再并入</summary>
-    public sealed class WhereORSubqueryStep : IStep
-    {
+    public sealed class WhereORSubqueryStep : StepBase {
+        public override int Id { get { return 524354; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly IReadOnlyList<IStep> _childSteps;
 
         public WhereORSubqueryStep(IReadOnlyList<IStep> childSteps)
@@ -122,7 +169,12 @@ namespace mooSQL.data
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
 
-        public void Apply(SQLBuilder builder)
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            ContributeChildSteps(ref hc, _childSteps);
+        }
+
+        public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             bro.or();
@@ -136,8 +188,10 @@ namespace mooSQL.data
     }
 
     /// <summary>withSelect / withAs：兄弟上重放后挂入 CTE</summary>
-    public sealed class WithSelectSubqueryStep : IStep
-    {
+    public sealed class WithSelectSubqueryStep : StepBase {
+        public override int Id { get { return 524355; } }
+        public override StepKind Kind { get { return StepKind.Cte; } }
+
         private readonly string _name;
         private readonly IReadOnlyList<IStep> _childSteps;
 
@@ -146,8 +200,15 @@ namespace mooSQL.data
             _name = name;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_name);
+            ContributeChildSteps(ref hc, _childSteps);
 
-        public void Apply(SQLBuilder builder)
+        }
+
+
+        public override void Apply(SQLBuilder builder)
         {
             var kit = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(kit, _childSteps);

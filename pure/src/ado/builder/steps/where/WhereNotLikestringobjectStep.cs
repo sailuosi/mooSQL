@@ -5,8 +5,10 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereNotLike(...).</summary>
-    public sealed class WhereNotLikestringobjectStep : IStep
-    {
+    public sealed class WhereNotLikestringobjectStep : StepBase {
+        public override int Id { get { return 196738; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly string _key;
         private readonly object _val;
 
@@ -15,7 +17,12 @@ namespace mooSQL.data
             _key = key;
             _val = val;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_key);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.whereNotLike(_key, _val);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.whereNotLike(_key, _val);
     }
 }

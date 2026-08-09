@@ -34,11 +34,7 @@ namespace mooSQL.data
         public int InsertRowIndex { get => _inner.InsertRowIndex; }
         public int ConditionCount
         {
-            get
-            {
-                runBuild();
-                return _inner.ConditionCount;
-            }
+            get { return WhereConditionCount; }
         }
         public ShardSplitContext ShardSplit
         {

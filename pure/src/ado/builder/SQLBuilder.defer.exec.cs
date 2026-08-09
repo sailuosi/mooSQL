@@ -344,24 +344,16 @@ namespace mooSQL.data
             return _inner.buildWhereContent();
         }
 
-        // ---- 中间态读取（先 Flush）----
+        // ---- 中间态读取：编排期计数（无需 Flush）；物化真值见 Inner ----
 
         public int ColumnCount
         {
-            get
-            {
-                runBuild();
-                return _inner.ColumnCount;
-            }
+            get { return SetColumnCount; }
         }
 
         public int FromCount
         {
-            get
-            {
-                runBuild();
-                return _inner.FromCount;
-            }
+            get { return FromFragmentCount; }
         }
 
         public bool containSetColumn(string name)

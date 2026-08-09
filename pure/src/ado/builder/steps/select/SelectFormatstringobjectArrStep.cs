@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.selectFormat(...).</summary>
-    public sealed class SelectFormatstringobjectArrStep : IStep
+    public sealed class SelectFormatstringobjectArrStep : StepBase
     {
+        public override int Id { get { return 65575; } }
+        public override StepKind Kind { get { return StepKind.Select; } }
+
         private readonly string _selectSQLPart;
         private readonly object[] _paras;
 
@@ -15,7 +18,12 @@ namespace mooSQL.data
             _selectSQLPart = selectSQLPart;
             _paras = paras;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_selectSQLPart);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.selectFormat(_selectSQLPart, _paras);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.selectFormat(_selectSQLPart, _paras);
     }
 }

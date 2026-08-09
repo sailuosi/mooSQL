@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereAnyFieid(...).</summary>
-    public sealed class WhereAnyFieidEnumstringobjectstringStep : IStep
+    public sealed class WhereAnyFieidEnumstringobjectstringStep : StepBase
     {
+        public override int Id { get { return 196693; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly IEnumerable<string> _fields;
         private readonly object _value;
         private readonly string _op;
@@ -17,7 +20,12 @@ namespace mooSQL.data
             _value = value;
             _op = op;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_op);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.whereAnyFieid(_fields, _value, _op);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.whereAnyFieid(_fields, _value, _op);
     }
 }

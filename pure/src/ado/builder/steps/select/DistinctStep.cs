@@ -1,10 +1,13 @@
 namespace mooSQL.data
 {
     /// <summary>对应 <see cref="SQLBuilder.distinct()"/>。</summary>
-    public sealed class DistinctStep : IStep
+    public sealed class DistinctStep : StepBase
     {
+        public override int Id { get { return 65564; } }
+        public override StepKind Kind { get { return StepKind.Distinct; } }
+
         public static readonly DistinctStep Instance = new DistinctStep();
         private DistinctStep() { }
-        public void Apply(SQLBuilder builder) => builder.Inner.distinct();
+        public override void Apply(SQLBuilder builder) => builder.Inner.distinct();
     }
 }

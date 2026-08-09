@@ -5,8 +5,10 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.where(...).</summary>
-    public sealed class WhereWhereListBagStep : IStep
-    {
+    public sealed class WhereWhereListBagStep : StepBase {
+        public override int Id { get { return 196745; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly WhereListBag _bag;
 
         public WhereWhereListBagStep(WhereListBag bag)
@@ -14,6 +16,6 @@ namespace mooSQL.data
             _bag = bag;
         }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.where(_bag);
+        public override void Apply(SQLBuilder builder) => builder.Inner.where(_bag);
     }
 }

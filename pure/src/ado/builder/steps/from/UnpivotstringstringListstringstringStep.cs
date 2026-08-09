@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.unpivot(...).</summary>
-    public sealed class UnpivotstringstringListstringstringStep : IStep
+    public sealed class UnpivotstringstringListstringstringStep : StepBase
     {
+        public override int Id { get { return 131082; } }
+        public override StepKind Kind { get { return StepKind.PivotUnpivot; } }
+
         private readonly string _valueName;
         private readonly string _fieldName;
         private readonly List<string> _fields;
@@ -19,7 +22,14 @@ namespace mooSQL.data
             _fields = fields;
             _asName = asName;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_valueName);
+            hc.Add(_fieldName);
+            hc.Add(_asName);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.unpivot(_valueName, _fieldName, _fields, _asName);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.unpivot(_valueName, _fieldName, _fields, _asName);
     }
 }

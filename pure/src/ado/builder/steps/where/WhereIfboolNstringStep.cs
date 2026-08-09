@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereIf(...).</summary>
-    public sealed class WhereIfboolNstringStep : IStep
+    public sealed class WhereIfboolNstringStep : StepBase
     {
+        public override int Id { get { return 196709; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly bool? _isTrue;
         private readonly string _key;
 
@@ -15,7 +18,12 @@ namespace mooSQL.data
             _isTrue = isTrue;
             _key = key;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_key);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.whereIf(_isTrue, _key);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.whereIf(_isTrue, _key);
     }
 }

@@ -80,6 +80,7 @@ namespace mooSQL.data
         public SQLBuilder clear()
         {
             _steps.Clear();
+            ResetOrchestrationMeta();
             _dirty = false;
             _inner.clear();
             return this;
@@ -89,6 +90,7 @@ namespace mooSQL.data
         public SQLBuilder reset()
         {
             _steps.Clear();
+            ResetOrchestrationMeta();
             _dirty = false;
             _inner.reset();
             return this;

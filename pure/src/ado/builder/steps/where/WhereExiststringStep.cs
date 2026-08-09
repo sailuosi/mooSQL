@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereExist(...).</summary>
-    public sealed class WhereExiststringStep : IStep
+    public sealed class WhereExiststringStep : StepBase
     {
+        public override int Id { get { return 196697; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly string _value;
 
         public WhereExiststringStep(string value)
@@ -14,6 +17,6 @@ namespace mooSQL.data
             _value = value;
         }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.whereExist(_value);
+        public override void Apply(SQLBuilder builder) => builder.Inner.whereExist(_value);
     }
 }

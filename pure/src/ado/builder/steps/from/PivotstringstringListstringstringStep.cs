@@ -5,8 +5,11 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.pivot(...).</summary>
-    public sealed class PivotstringstringListstringstringStep : IStep
+    public sealed class PivotstringstringListstringstringStep : StepBase
     {
+        public override int Id { get { return 131081; } }
+        public override StepKind Kind { get { return StepKind.PivotUnpivot; } }
+
         private readonly string _aggregation;
         private readonly string _field;
         private readonly List<string> _values;
@@ -19,7 +22,14 @@ namespace mooSQL.data
             _values = values;
             _asName = asName;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_aggregation);
+            hc.Add(_field);
+            hc.Add(_asName);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.pivot(_aggregation, _field, _values, _asName);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.pivot(_aggregation, _field, _values, _asName);
     }
 }

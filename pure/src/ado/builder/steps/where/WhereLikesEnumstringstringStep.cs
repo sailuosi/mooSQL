@@ -5,8 +5,10 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.whereLikes(...).</summary>
-    public sealed class WhereLikesEnumstringstringStep : IStep
-    {
+    public sealed class WhereLikesEnumstringstringStep : StepBase {
+        public override int Id { get { return 196727; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
         private readonly IEnumerable<string> _keys;
         private readonly string _val;
 
@@ -16,6 +18,6 @@ namespace mooSQL.data
             _val = val;
         }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.whereLikes(_keys, _val);
+        public override void Apply(SQLBuilder builder) => builder.Inner.whereLikes(_keys, _val);
     }
 }

@@ -3,8 +3,11 @@ using System;
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder 编排步骤。</summary>
-    public sealed class WithRecurstringAction_RecurCTEBuilderStep : IStep
+    public sealed class WithRecurstringAction_RecurCTEBuilderStep : StepBase
     {
+        public override int Id { get { return 327753; } }
+        public override StepKind Kind { get { return StepKind.Cte; } }
+
         private readonly string _name;
         private readonly Action<RecurCTEBuilder> _buildRecur;
 
@@ -13,7 +16,12 @@ namespace mooSQL.data
             _name = name;
             _buildRecur = buildRecur;
         }
+        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        {
+            hc.Add(_name);
+        }
 
-        public void Apply(SQLBuilder builder) => builder.Inner.withRecur(_name, _buildRecur);
+
+        public override void Apply(SQLBuilder builder) => builder.Inner.withRecur(_name, _buildRecur);
     }
 }
