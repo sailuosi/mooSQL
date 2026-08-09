@@ -47,7 +47,11 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
             foreach (var c in SQLBuilderSqlSnapshotCatalog.Merges())
             {
                 using var kit = SqlSnap.Kit(c.DbType);
-                rows.Add((c.Name, c.Build(kit)?.sql ?? ""));
+                var cmd = c.Build(kit);
+                var sql = cmd == null
+                    ? ""
+                    : (cmd.para != null ? cmd.para.ResolveDelayParas(cmd.sql) : (cmd.sql ?? ""));
+                rows.Add((c.Name, sql));
             }
             SqlSnap.WriteAll(rows);
             Assert.True(System.IO.File.Exists(SqlSnap.BaselinePath), SqlSnap.BaselinePath);

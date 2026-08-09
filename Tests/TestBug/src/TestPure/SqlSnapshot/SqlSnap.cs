@@ -53,7 +53,11 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
                 "toMergeInto" => kit.toMergeInto(),
                 _ => throw new ArgumentOutOfRangeException(nameof(toXxx), toXxx, "未知出口")
             };
-            return cmd?.sql ?? "";
+            if (cmd == null) return "";
+            // 快照比对可执行形态：与 prepare 一致先 Resolve 延迟参数
+            if (cmd.para != null)
+                return cmd.para.ResolveDelayParas(cmd.sql);
+            return cmd.sql ?? "";
         }
 
         public static void AssertSql(string caseName, Action<SQLBuilder> build, string toXxx = "toSelect",
@@ -69,7 +73,13 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
         {
             using var kit = Kit(dbType);
             var cmd = build(kit);
-            AssertOrRecord(caseName, cmd?.sql ?? "");
+            if (cmd == null)
+            {
+                AssertOrRecord(caseName, "");
+                return;
+            }
+            var sql = cmd.para != null ? cmd.para.ResolveDelayParas(cmd.sql) : (cmd.sql ?? "");
+            AssertOrRecord(caseName, sql);
         }
 
         public static void AssertOrRecord(string caseName, string actualSql)

@@ -119,6 +119,17 @@ namespace mooSQL.data
             select(fromPart);
             return this;
         }
+
+        /// <summary>
+        /// 登记延迟 format 片段到 select：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
+        /// </summary>
+        public StepBuilder selectLive(IDelayPara live)
+        {
+            if (live == null) return this;
+            if (ps == null) ps = new Paras();
+            ps.AddDelayPara(live);
+            return select(live.PlaceHolder);
+        }
         /// <summary>
         /// SQL语句列定义
         /// </summary>
@@ -222,6 +233,17 @@ namespace mooSQL.data
             from(fromPart);
             return this;
         }
+
+        /// <summary>
+        /// 登记延迟 format 片段到 from：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
+        /// </summary>
+        public StepBuilder fromLive(IDelayPara live)
+        {
+            if (live == null) return this;
+            if (ps == null) ps = new Paras();
+            ps.AddDelayPara(live);
+            return from(live.PlaceHolder);
+        }
         /// <summary>
         /// 注意！不会自动添加left join这样的前缀字符，请写全 join语句，包含 on 部分。
         /// </summary>
@@ -256,6 +278,17 @@ namespace mooSQL.data
             var fromPart = ps.formatSQL(JoinSQLPart, paras);
             join(fromPart);
             return this;
+        }
+
+        /// <summary>
+        /// 登记延迟 format 片段到 join：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
+        /// </summary>
+        public StepBuilder joinLive(IDelayPara live)
+        {
+            if (live == null) return this;
+            if (ps == null) ps = new Paras();
+            ps.AddDelayPara(live);
+            return join(live.PlaceHolder);
         }
         /// <summary>
         /// 注意！不会自动添加left join这样的前缀字符，请写全 join语句，包含 on 部分。

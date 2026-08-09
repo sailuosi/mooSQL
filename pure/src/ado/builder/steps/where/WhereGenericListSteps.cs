@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.whereIn&lt;T&gt;(...).</summary>
+    /// <summary>对应 SQLBuilder.whereIn&lt;T&gt;(...)。</summary>
     public sealed class WhereInGenericStep<T> : WhereListStep
     {
         public override int Id { get { return 196700; } }
@@ -15,10 +15,14 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereIn(Key, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            builder.Inner.whereLiveInList(Key, " IN ", () => WhereListBag.newBag(_values));
+        }
     }
 
-    /// <summary>对应 SQLBuilder.whereNotIn&lt;T&gt;(...).</summary>
+    /// <summary>对应 SQLBuilder.whereNotIn&lt;T&gt;(...)。</summary>
     public sealed class WhereNotInGenericStep<T> : WhereListStep
     {
         public override int Id { get { return 196701; } }
@@ -31,10 +35,14 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereNotIn(Key, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            builder.Inner.whereLiveInList(Key, " NOT IN ", () => WhereListBag.newBag(_values));
+        }
     }
 
-    /// <summary>对应 SQLBuilder.whereNotInOrNull&lt;T&gt;(...).</summary>
+    /// <summary>对应 SQLBuilder.whereNotInOrNull&lt;T&gt;(...)。</summary>
     public sealed class WhereNotInOrNullStep<T> : WhereListStep
     {
         public override int Id { get { return 196702; } }
@@ -47,47 +55,47 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereNotInOrNull(Key, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            var inner = builder.Inner;
+            inner.sinkOR();
+            inner.whereLiveInList(Key, " NOT IN ", () => WhereListBag.newBag(_values));
+            inner.whereIsNull(Key);
+            inner.rise();
+        }
     }
 
-    /// <summary>对应 SQLBuilder.whereList&lt;T&gt;(...).</summary>
-    public sealed class WhereListGenericStep<T> : StepBase
+    /// <summary>对应 SQLBuilder.whereList&lt;T&gt;(...)。</summary>
+    public sealed class WhereListGenericStep<T> : WhereListStep
     {
         public override int Id { get { return 196703; } }
-        public override StepKind Kind { get { return StepKind.Where; } }
 
-        private readonly string _key;
         private readonly string _op;
         private readonly IEnumerable<T> _values;
 
         public WhereListGenericStep(string key, string op, IEnumerable<T> values)
+            : base(key, values)
         {
-            _key = key;
             _op = op;
             _values = values;
         }
 
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
-            if (!ConsumeOpened(ref opened))
-            {
-                hc.Add(Id);
-                hc.Add(0);
-                hc.Add(_key);
-                hc.Add(_op);
-                return;
-            }
-            var emit = true;
-            hc.Add(Id);
-            hc.Add(emit ? 1 : 0);
-            hc.Add(_key);
+            // 先走 WhereListStep 的 null/空集合规则，再附加 op
+            base.ContributeHash(ref hc, paraRule, ref opened);
             hc.Add(_op);
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereList(_key, _op, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            builder.Inner.whereLiveInList(Key, _op, () => WhereListBag.newBag(_values));
+        }
     }
 
-    /// <summary>对应 SQLBuilder.whereOR&lt;T&gt;(key, params values).</summary>
+    /// <summary>对应 SQLBuilder.whereOR&lt;T&gt;(key, params values)。</summary>
     public sealed class WhereORValuesStep<T> : StepBase
     {
         public override int Id { get { return 196704; } }
@@ -111,10 +119,17 @@ namespace mooSQL.data
                 hc.Add(_key);
                 return;
             }
-            var emit = true;
+            if (_values == null && paraRule != "all")
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                return;
+            }
             hc.Add(Id);
-            hc.Add(emit ? 1 : 0);
+            hc.Add(1);
             hc.Add(_key);
+            hc.Add(_values != null && _values.Length > 0 ? 1 : 0);
         }
 
         public override void Apply(SQLBuilder builder) => builder.Inner.whereOR(_key, _values);

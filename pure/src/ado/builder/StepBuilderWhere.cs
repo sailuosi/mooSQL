@@ -179,6 +179,28 @@ namespace mooSQL.data {
             ps.AddDelayPara(live);
             return where(live.PlaceHolder);
         }
+
+        /// <summary>
+        /// whereIn / whereNotIn / whereList：登记 <see cref="DelayWhereIn"/>（Apply 捕获方言前缀与分批上限）。
+        /// </summary>
+        public StepBuilder whereLiveInList(string key, string op, Func<WhereListBag> makeBag)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (makeBag == null) return this;
+            var g = current;
+            var dbstr = g != null ? g.dbstr : "";
+            var groupKey = g != null ? g.key : "";
+            var whereCount = g != null ? g.wherePart.Count : 0;
+            var paraKey = paraSeed + "whin_" + groupKey + "_" + whereCount + "_";
+            int? limit = null;
+            if (DBLive != null && DBLive.expression != null)
+                limit = DBLive.expression.getWhereInLimit();
+            return whereLive(new DelayWhereIn(key, op, makeBag, dbstr, paraKey, limit));
+        }
         /// <summary>
         /// 添加一个 where is null
         /// </summary>

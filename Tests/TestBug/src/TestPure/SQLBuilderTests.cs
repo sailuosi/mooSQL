@@ -133,9 +133,11 @@ namespace mooSQL.Pure.Tests
                 .whereIn("id", new[] { 1, 2, 3 })
                 .toSelect();
 
-            // Assert
+            // Assert：列表 whereIn 走 DelayPara，toSelect 壳含 PlaceHolder；Resolve 后才出现 IN
             cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("IN");
+            cmd.para.DelayParas.Count.Should().Be(1);
+            var resolved = cmd.para.ResolveDelayParas(cmd.sql);
+            resolved.Should().Contain("IN");
         }
 
         [Fact]

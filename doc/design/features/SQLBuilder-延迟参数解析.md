@@ -506,12 +506,16 @@ pure/src/ado/data/context/
 pure/src/ado/builder/
   steps/
     where/WhereInGuid*.cs      # Apply → whereLive(new Delay...)
+    where/WhereIn* / WhereNotIn* / WhereGenericListSteps.cs
     where/WhereFormat*.cs
   delay/
     IDelayPara.cs              # PlaceHolder + BindPlaceHolder + Run
     DelayWhereInGuid.cs
-    DelayWhereFormat.cs
-  StepBuilderWhere.cs          # whereLive → AddDelayPara + where(PlaceHolder)
+    DelayWhereIn.cs            # whereIn / whereNotIn / whereList
+    DelayWhereFormat.cs        # whereFormat（@ 前缀）
+    DelayFormatSQL.cs          # select/from/joinFormat（#{psfmt_}）
+  StepBuilderWhere.cs          # whereLive / whereLiveInList
+  StepBuilderSelect.cs         # selectLive / fromLive / joinLive
 pure/src/ado/data/database/
   DBExecutor.cs                # prepare：cmd.sql = cmd.para.ResolveDelayParas(...)
 ```
@@ -525,6 +529,8 @@ pure/src/ado/data/database/
 | **L0** | 本文入库；锁定 PlaceHolder、`Paras.DelayParas`、`prepare` 挂点 | 评审通过 |
 | **L1** | `Paras.AddDelayPara` + `Paras.ResolveDelayParas`（prepare 调用）；`DelayWhereInGuid` + Apply/`whereLive` | 等价 SQL 单测绿 |
 | **L2** | `DelayWhereFormat` + Format Step + `ps` 键序回归 | 单测绿 |
+| **L2b** | `DelayWhereIn` + `whereLiveInList`；`whereIn` / `whereNotIn` / `whereList` Step Apply；空 NOT IN→`1=1`（P5） | 单测绿 |
+| **L2c** | `DelayFormatSQL`（`Paras.formatSQL`）；`selectFormat` / `fromFormat` / `joinFormat` → select/from/joinLive（子查询 Format 不动） | 单测/快照绿 |
 | **L3** | Copy/Clear/幂等；可选未解析 sql 调试视图 | 联调 |
 | **L4**（下期） | 模板缓存命中 + 只重跑 `Run()` | 另立项（Hash 文档 H4） |
 
@@ -600,4 +606,4 @@ public override void Apply(SQLBuilder builder)
 
 ## 附录 B — 一句话结论
 
-> **动态片段抽成 `IDelayPara`；Apply/`whereLive` 时按 `DelayParas.Count` 固化 `@@{{moo.lp:n}}` 并登记；入队不赋索引；`Paras.ResolveDelayParas` 在 `DBExecutor.prepare`（`reset` 前）唤起，再转写 DbCommand。一期先打通 `DelayWhereInGuid` 与 `DelayWhereFormat`。**
+> **动态片段抽成 `IDelayPara`；Apply/`*Live` 时按 `DelayParas.Count` 固化 `@@{{moo.lp:n}}` 并登记；入队不赋索引；`Paras.ResolveDelayParas` 在 `DBExecutor.prepare`（`reset` 前）唤起，再转写 DbCommand。已打通 Guid/In/whereFormat，以及 select/from/joinFormat（`DelayFormatSQL`）。**

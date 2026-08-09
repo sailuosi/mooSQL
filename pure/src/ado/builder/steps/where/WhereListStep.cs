@@ -22,7 +22,7 @@ namespace mooSQL.data
         /// <summary>集合引用（供子类 Apply 判定 null）。</summary>
         protected IEnumerable Values { get { return _values; } }
 
-        public sealed override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
             {

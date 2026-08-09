@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.fromFormat(...).</summary>
+    /// <summary>对应 SQLBuilder.fromFormat(...)。</summary>
     public sealed class FromFormatstringobjectArrStep : StepBase
     {
         public override int Id { get { return 131074; } }
@@ -18,12 +14,17 @@ namespace mooSQL.data
             _fromSQLPart = fromSQLPart;
             _paras = paras;
         }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             hc.Add(Id);
             hc.Add(1);
             hc.Add(_fromSQLPart);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.fromFormat(_fromSQLPart, _paras);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            builder.Inner.fromLive(new DelayFormatSQL(_fromSQLPart, _paras));
+        }
     }
 }

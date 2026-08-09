@@ -90,11 +90,17 @@ namespace mooSQL.data
         public SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereNotInGenericStep<T>(key, values));
 
+        public SQLBuilder whereNotIn<T>(string key, List<T> values) =>
+            whereNotIn(key, (IEnumerable<T>)values);
+
         public SQLBuilder whereNotIn<T>(string key, params T[] values) =>
             whereNotIn(key, (IEnumerable<T>)values);
 
         public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereNotInOrNullStep<T>(key, values));
+
+        public SQLBuilder whereNotInOrNull<T>(string key, List<T> values) =>
+            whereNotInOrNull(key, (IEnumerable<T>)values);
 
         public SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values) =>
             Enqueue(new WhereListGenericStep<T>(key, op, values));

@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.joinFormat(...).</summary>
+    /// <summary>对应 SQLBuilder.joinFormat(...)。</summary>
     public sealed class JoinFormatstringobjectArrStep : StepBase
     {
         public override int Id { get { return 131076; } }
@@ -18,12 +14,17 @@ namespace mooSQL.data
             _JoinSQLPart = JoinSQLPart;
             _paras = paras;
         }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             hc.Add(Id);
             hc.Add(1);
             hc.Add(_JoinSQLPart);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.joinFormat(_JoinSQLPart, _paras);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            builder.Inner.joinLive(new DelayFormatSQL(_JoinSQLPart, _paras));
+        }
     }
 }

@@ -15,6 +15,10 @@ namespace mooSQL.data
             _values = values;
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereIn(Key, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            builder.Inner.whereLiveInList(Key, " IN ", () => WhereListBag.newBag(_values));
+        }
     }
 }

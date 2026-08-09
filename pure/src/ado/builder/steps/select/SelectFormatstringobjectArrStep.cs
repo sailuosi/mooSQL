@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.selectFormat(...).</summary>
+    /// <summary>对应 SQLBuilder.selectFormat(...)。</summary>
     public sealed class SelectFormatstringobjectArrStep : StepBase
     {
         public override int Id { get { return 65575; } }
@@ -18,12 +14,17 @@ namespace mooSQL.data
             _selectSQLPart = selectSQLPart;
             _paras = paras;
         }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             hc.Add(Id);
             hc.Add(1);
             hc.Add(_selectSQLPart);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.selectFormat(_selectSQLPart, _paras);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            builder.Inner.selectLive(new DelayFormatSQL(_selectSQLPart, _paras));
+        }
     }
 }
