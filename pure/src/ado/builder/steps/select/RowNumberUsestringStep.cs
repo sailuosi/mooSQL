@@ -1,27 +1,13 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
     /// <summary>对应 SQLBuilder.rowNumberUse(...).</summary>
-    public sealed class RowNumberUsestringStep : StepBase
+    public sealed class RowNumberUsestringStep : StringSQLStep
     {
         public override int Id { get { return 65574; } }
         public override StepKind Kind { get { return StepKind.RowNumber; } }
 
-        private readonly string _numFieldName;
+        public RowNumberUsestringStep(string numFieldName) : base(numFieldName) { }
 
-        public RowNumberUsestringStep(string numFieldName)
-        {
-            _numFieldName = numFieldName;
-        }
-        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
-        {
-            hc.Add(Id);
-            hc.Add(1);
-            hc.Add(_numFieldName);
-        }
-                public override void Apply(SQLBuilder builder) => builder.Inner.rowNumberUse(_numFieldName);
+        public override void Apply(SQLBuilder builder) => builder.Inner.rowNumberUse(Sql);
     }
 }
