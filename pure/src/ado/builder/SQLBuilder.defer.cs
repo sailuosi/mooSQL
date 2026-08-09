@@ -171,31 +171,31 @@ namespace mooSQL.data
 
         public SQLCmd toSelect()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toSelect();
         }
 
         public SQLCmd toSelectCount()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toSelectCount();
         }
 
         public SQLCmd toInsert()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toInsert();
         }
 
         public SQLCmd toUpdate()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toUpdate();
         }
 
         public SQLCmd toDelete()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toDelete();
         }
     }

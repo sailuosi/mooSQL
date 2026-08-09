@@ -92,7 +92,7 @@ namespace mooSQL.data
 
 
 
-                facade.EnsureMaterialized();
+                facade.runBuild();
 
 
 
@@ -121,7 +121,7 @@ namespace mooSQL.data
                 action(facade);
 
 
-                facade.EnsureMaterialized();
+                facade.runBuild();
 
 
             }
@@ -143,7 +143,7 @@ namespace mooSQL.data
 
                 action(facade);
 
-                facade.EnsureMaterialized();
+                facade.runBuild();
 
             }
             this.ThenAction = MergeAction.insert;
@@ -166,7 +166,7 @@ namespace mooSQL.data
 
                 action(facade);
 
-                facade.EnsureMaterialized();
+                facade.runBuild();
 
             }
             this.ThenAction = MergeAction.update;

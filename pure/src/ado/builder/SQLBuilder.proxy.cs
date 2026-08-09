@@ -36,7 +36,7 @@ namespace mooSQL.data
         {
             get
             {
-                EnsureMaterialized();
+                runBuild();
                 return _inner.ConditionCount;
             }
         }
@@ -83,7 +83,7 @@ namespace mooSQL.data
 
         public WhereItem start(bool addBracket)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.start(addBracket);
         }
 
@@ -104,85 +104,85 @@ namespace mooSQL.data
         public string paraReplaceInto(string sql, Paras para) => _inner.paraReplaceInto(sql, para);
 
         public SQLBuilder popPreWhere() { _inner.popPreWhere(); return this; }
-        public SQLBuilder addInsert() { EnsureMaterialized(); _inner.addInsert(); return this; }
-        public SQLBuilder addUpdate() { EnsureMaterialized(); _inner.addUpdate(); return this; }
-        public SQLBuilder addUpdateFrom() { EnsureMaterialized(); _inner.addUpdateFrom(); return this; }
+        public SQLBuilder addInsert() { runBuild(); _inner.addInsert(); return this; }
+        public SQLBuilder addUpdate() { runBuild(); _inner.addUpdate(); return this; }
+        public SQLBuilder addUpdateFrom() { runBuild(); _inner.addUpdateFrom(); return this; }
 
         public int exeNonQuery(string SQL, Paras para = null)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeNonQuery(SQL, para);
         }
 
         public int exeNonQuery(SQLCmd sql)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeNonQuery(sql);
         }
 
         public Task<int> exeNonQueryAsync(SQLCmd sql)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeNonQueryAsync(sql);
         }
 
         public int exeNonQuery(IEnumerable<SQLCmd> cmds)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeNonQuery(cmds);
         }
 
         public DataTable exeQuery(string SQL, Paras para = null)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQuery(SQL, para);
         }
 
         public DataTable exeQuery(string orderByPart, string readsql, int pageSize, int pageNum)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQuery(orderByPart, readsql, pageSize, pageNum);
         }
 
         public DataTable exeQuery(SQLCmd sql)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQuery(sql);
         }
 
         public Task<DataTable> exeQueryAsync(SQLCmd sql)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQueryAsync(sql);
         }
 
         public IEnumerable<T> exeQuery<T>(string SQL, Paras para = null)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQuery<T>(SQL, para);
         }
 
         public IEnumerable<T> exeQuery<T>(SQLCmd SQL)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQuery<T>(SQL);
         }
 
         public Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQueryAsync<T>(SQL);
         }
 
         public int exeQueryCount(SQLCmd sqlCmd)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQueryCount(sqlCmd);
         }
 
         public Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exeQueryCountAsync(sqlCmd);
         }
 
@@ -191,20 +191,20 @@ namespace mooSQL.data
         // ---- Apart：物化后读写内核；useApart 重放到门面以入队 ----
         public SQLBuilder record()
         {
-            EnsureMaterialized();
+            runBuild();
             _inner.record();
             return this;
         }
 
         public SQLApart stop()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.stop();
         }
 
         public SQLApart toApart()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toApart();
         }
 

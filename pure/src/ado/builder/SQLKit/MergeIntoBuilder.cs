@@ -141,7 +141,7 @@ namespace mooSQL.data
                 doSelect(facade);
 
             
-                facade.EnsureMaterialized();
+                facade.runBuild();
 
             
             }

@@ -57,9 +57,9 @@ namespace mooSQL.data
         }
 
         /// <summary>将步骤队列回放到内核构造实现（脏时执行）。</summary>
-        public void EnsureMaterialized()
+        public void runBuild(bool? forceRun=null)
         {
-            if (!_dirty) return;
+            if (forceRun==null && !_dirty) return;
             _materializing = true;
             try
             {

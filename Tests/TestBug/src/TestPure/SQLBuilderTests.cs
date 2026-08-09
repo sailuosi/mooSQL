@@ -54,6 +54,7 @@ namespace mooSQL.Pure.Tests
             // Act
             _builder.from("users")
                 .select("id");
+            _builder.runBuild();
 
             // Assert
             _builder.current.selectPart.Count.Should().Be(1);
@@ -67,6 +68,7 @@ namespace mooSQL.Pure.Tests
                 .select("id")
                 .select("name")
                 .select("email");
+            _builder.runBuild();
 
             // Assert
             _builder.current.selectPart.Count.Should().Be(3);
@@ -500,6 +502,7 @@ namespace mooSQL.Pure.Tests
             _builder.ifs(true)
                 .from("users")
                 .select("id");
+            _builder.runBuild();
 
             // Assert
             _builder.current.selectPart.Count.Should().Be(1);

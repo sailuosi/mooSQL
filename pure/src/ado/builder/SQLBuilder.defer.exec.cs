@@ -7,7 +7,7 @@ using mooSQL.data.context;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 执行 / 物化出口：先 <see cref="EnsureMaterialized"/>，再委托内核。
+    /// 执行 / 物化出口：先 <see cref="runBuild"/>，再委托内核。
     /// 内核内部若再调 toSelect 等非虚方法，此时队列已回放完成。
     /// </summary>
     public partial class SQLBuilder
@@ -16,31 +16,31 @@ namespace mooSQL.data
 
         public SQLCmd toSelectExist()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toSelectExist();
         }
 
         public SQLCmd toInsertFrom()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toInsertFrom();
         }
 
         public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toInsertWithDuplicateUpdate(duplicateUpdateKeyword);
         }
 
         public SQLCmd toUpdateFrom()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toUpdateFrom();
         }
 
         public SQLCmd toMergeInto()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.toMergeInto();
         }
 
@@ -48,61 +48,61 @@ namespace mooSQL.data
 
         public int doInsert()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doInsert();
         }
 
         public Task<int> doInsertAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doInsertAsync();
         }
 
         public int doUpdate()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doUpdate();
         }
 
         public Task<int> doUpdateAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doUpdateAsync();
         }
 
         public int doDelete()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doDelete();
         }
 
         public Task<int> doDeleteAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doDeleteAsync();
         }
 
         public int doInsertFrom()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doInsertFrom();
         }
 
         public int doUpdateFrom()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doUpdateFrom();
         }
 
         public int doMergeInto()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doMergeInto();
         }
 
         public Task<int> doMergeIntoAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.doMergeIntoAsync();
         }
 
@@ -110,223 +110,223 @@ namespace mooSQL.data
 
         public DataTable query()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.query();
         }
 
         public Task<DataTable> queryAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryAsync();
         }
 
         public IEnumerable<T> query<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.query<T>();
         }
 
         public Task<IEnumerable<T>> queryAsync<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryAsync<T>();
         }
 
         public List<T> query<T>(Func<DataRow, T> createEntity)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.query(createEntity);
         }
 
         public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryAs<T, TResult>(onRuning);
         }
 
         public PagedDataTable queryPaged()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPaged();
         }
 
         public PageOutput<T> queryPaged<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPaged<T>();
         }
 
         public PageOutput<T> queryPaged<T>(string summSQL)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPaged<T>(summSQL);
         }
 
         public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPaged(activeOther);
         }
 
         public Task<PageOutput<T>> queryPagedAsync<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPagedAsync<T>();
         }
 
         public PagedSumDataTable queryPageSum(string selectCols)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPageSum(selectCols);
         }
 
         public Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPageSumAsync(selectCols);
         }
 
         public PageSumOutput<T> queryPageSum<T>(string selectCols)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPageSum<T>(selectCols);
         }
 
         public Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryPagedSumAsync<T>(selectCols);
         }
 
         public Dictionary<string, object> querySummary(string sumSQL, bool containToal)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.querySummary(sumSQL, containToal);
         }
 
         public IEnumerable<T> queryFirstField<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryFirstField<T>();
         }
 
         public T queryFirst<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryFirst<T>();
         }
 
         public T queryUnique<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryUnique<T>();
         }
 
         public Task<T> queryUniqueAsync<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryUniqueAsync<T>();
         }
 
         public T queryScalar<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryScalar<T>();
         }
 
         public Task<T> queryScalarAsync<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryScalarAsync<T>();
         }
 
         public DataRow queryRow()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRow();
         }
 
         public Task<DataRow> queryRowAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowAsync();
         }
 
         public T queryRow<T>()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRow<T>();
         }
 
         public T queryRow<T>(Func<DataRow, T> builder)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRow(builder);
         }
 
         public int queryRowInt(int defaultVal)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowInt(defaultVal);
         }
 
         public long queryRowLong(long defaultVal)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowLong(defaultVal);
         }
 
         public string queryRowString(string defaultVal)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowString(defaultVal);
         }
 
         public double queryRowDouble(double defaultVal)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowDouble(defaultVal);
         }
 
         public object queryRowValue()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.queryRowValue();
         }
 
         public int count()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.count();
         }
 
         public long countLong()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.countLong();
         }
 
         public bool exist()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.exist();
         }
 
         public Task<bool> existAsync()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.existAsync();
         }
 
         public bool checkExistKey(string key, object value)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.checkExistKey(key, value);
         }
 
         public bool checkExistKey(string key, object value, string tableName)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.checkExistKey(key, value, tableName);
         }
 
@@ -334,13 +334,13 @@ namespace mooSQL.data
 
         public string buildWhere()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.buildWhere();
         }
 
         public string buildWhereContent()
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.buildWhereContent();
         }
 
@@ -350,7 +350,7 @@ namespace mooSQL.data
         {
             get
             {
-                EnsureMaterialized();
+                runBuild();
                 return _inner.ColumnCount;
             }
         }
@@ -359,14 +359,14 @@ namespace mooSQL.data
         {
             get
             {
-                EnsureMaterialized();
+                runBuild();
                 return _inner.FromCount;
             }
         }
 
         public bool containSetColumn(string name)
         {
-            EnsureMaterialized();
+            runBuild();
             return _inner.containSetColumn(name);
         }
     }

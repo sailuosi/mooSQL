@@ -354,6 +354,7 @@ namespace mooSQL.Pure.Tests
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             kit.select("id").from("users").top(7);
+            kit.runBuild();
 
             kit.current.skipNum.Should().Be(0);
             kit.current.pageSize.Should().Be(7);
@@ -366,6 +367,7 @@ namespace mooSQL.Pure.Tests
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             kit.select("id").from("users").skipTake(1, 7);
+            kit.runBuild();
 
             kit.current.HasSkipTakePaging().Should().BeTrue();
         }
