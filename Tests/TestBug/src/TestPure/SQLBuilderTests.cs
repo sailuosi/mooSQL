@@ -326,9 +326,9 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Insert_WithSetMethod_ShouldBuildInsertSQL()
         {
-            // Arrange - 使用 set 方法设置字段值
+            // Arrange - toInsert 依赖 setTable；from 仅用于 select/delete
             // Act
-            var cmd = _builder.from("test_users")
+            var cmd = _builder.setTable("test_users")
                 .set("name", "Test User")
                 .set("email", "test@example.com")
                 .set("age", 25)
@@ -367,9 +367,9 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Update_WithSetMethod_ShouldBuildUpdateSQL()
         {
-            // Arrange - 使用 set 方法设置字段值
+            // Arrange - toUpdate 依赖 setTable
             // Act
-            var cmd = _builder.from("test_users")
+            var cmd = _builder.setTable("test_users")
                 .set("name", "Updated User")
                 .set("email", "updated@example.com")
                 .where("id", 1)
