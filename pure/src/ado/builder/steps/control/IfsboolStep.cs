@@ -9,13 +9,17 @@ namespace mooSQL.data
     {
         public override int Id { get { return 458753; } }
         public override StepKind Kind { get { return StepKind.Control; } }
-        protected override bool HasSql { get { return false; } }
-
-        private readonly bool _isPass;
+                private readonly bool _isPass;
 
         public IfsboolStep(bool isPass)
         {
             _isPass = isPass;
+        }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            opened = _isPass;
+            hc.Add(Id);
+            hc.Add(0);
         }
 
         public override void Apply(SQLBuilder builder) => builder.Inner.ifs(_isPass);

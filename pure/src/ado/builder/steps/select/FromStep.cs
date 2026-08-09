@@ -8,11 +8,12 @@ namespace mooSQL.data
 
         private readonly string _fromPart;
         public FromStep(string fromPart) => _fromPart = fromPart;
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_fromPart);
         }
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.from(_fromPart);
+                public override void Apply(SQLBuilder builder) => builder.Inner.from(_fromPart);
     }
 }

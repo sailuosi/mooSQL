@@ -17,14 +17,24 @@ namespace mooSQL.data
             _op = op;
             _paramed = paramed;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                hc.Add(_op);
+                hc.Add(_paramed);
+                return;
+            }
+            var emit = PassesParaRule(paraRule, _val);
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
             hc.Add(_op);
             hc.Add(_paramed);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val, _op, _paramed);
+                public override void Apply(SQLBuilder builder) => builder.Inner.where(_key, _val, _op, _paramed);
     }
 }

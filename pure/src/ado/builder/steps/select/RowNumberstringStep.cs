@@ -16,12 +16,12 @@ namespace mooSQL.data
         {
             _orderPart = orderPart;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_orderPart);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.rowNumber(_orderPart);
+                public override void Apply(SQLBuilder builder) => builder.Inner.rowNumber(_orderPart);
     }
 }

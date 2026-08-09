@@ -16,12 +16,12 @@ namespace mooSQL.data
         {
             _tbName = tbName;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_tbName);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.setTable(_tbName);
+                public override void Apply(SQLBuilder builder) => builder.Inner.setTable(_tbName);
     }
 }

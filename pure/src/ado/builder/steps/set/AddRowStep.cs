@@ -9,10 +9,13 @@ namespace mooSQL.data
     {
         public override int Id { get { return 262194; } }
         public override StepKind Kind { get { return StepKind.SetRow; } }
-        protected override bool HasSql { get { return false; } }
-
-        public static readonly AddRowStep Instance = new AddRowStep();
+                public static readonly AddRowStep Instance = new AddRowStep();
         private AddRowStep() { }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(0);
+        }
         public override void Apply(SQLBuilder builder) => builder.Inner.addRow();
     }
 }

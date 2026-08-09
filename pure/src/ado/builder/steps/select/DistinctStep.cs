@@ -8,6 +8,11 @@ namespace mooSQL.data
 
         public static readonly DistinctStep Instance = new DistinctStep();
         private DistinctStep() { }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(1);
+        }
         public override void Apply(SQLBuilder builder) => builder.Inner.distinct();
     }
 }

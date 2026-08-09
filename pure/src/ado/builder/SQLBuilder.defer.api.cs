@@ -10,7 +10,11 @@ namespace mooSQL.data
     public partial class SQLBuilder
     {
         // ---- control ----
-        public SQLBuilder ifs(bool isPass) => Enqueue(new IfsboolStep(isPass));
+        public SQLBuilder ifs(bool isPass)
+        {
+            Opened = isPass;
+            return Enqueue(new IfsboolStep(isPass));
+        }
 
 
         // ---- select ----

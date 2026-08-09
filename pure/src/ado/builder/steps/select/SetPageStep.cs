@@ -13,6 +13,11 @@ namespace mooSQL.data
             _size = size;
             _num = num;
         }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(1);
+        }
         public override void Apply(SQLBuilder builder) => builder.Inner.setPage(_size, _num);
     }
 }

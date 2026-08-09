@@ -20,14 +20,14 @@ namespace mooSQL.data
             _wrapSelect = wrapSelect;
             _wrapAsName = wrapAsName;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_isUnionAll);
             hc.Add(_wrapSelect);
             hc.Add(_wrapAsName);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.union(_isUnionAll, _wrapSelect, _wrapAsName);
+                public override void Apply(SQLBuilder builder) => builder.Inner.union(_isUnionAll, _wrapSelect, _wrapAsName);
     }
 }

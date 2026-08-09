@@ -6,12 +6,12 @@ using Xunit;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// 编排期 StepKind 计数与 OrchestrationHash（无需 runBuild）。
+    /// 编排期懒计算 Count / OrchestrationHash；Opened + paraRule 门控。
     /// </summary>
     public class SQLBuilderOrchestrationMetaTests
     {
         [Fact]
-        public void Counts_WithoutFlush_ReflectEnqueueKinds()
+        public void Counts_LazyScan_ReflectStepKinds()
         {
             var b = new SQLBuilder();
             b.select("id, name")
@@ -32,16 +32,16 @@ namespace mooSQL.Pure.Tests
 
             b.SelectFragmentCount.Should().Be(1);
             b.FromFragmentCount.Should().Be(1);
-            b.WhereConditionCount.Should().Be(2); // and 不计
+            b.WhereConditionCount.Should().Be(2);
             b.OrderByCount.Should().Be(1);
             b.GroupByCount.Should().Be(1);
             b.HavingCount.Should().Be(1);
             b.ConditionCount.Should().Be(2);
-            b.ColumnCount.Should().Be(0); // set 列，非 select
+            b.ColumnCount.Should().Be(0);
         }
 
         [Fact]
-        public void ClearWhere_ResetsWhereCount_AndChangesHash()
+        public void ClearWhere_LazyCount_ResetsWhere()
         {
             var b = new SQLBuilder();
             b.select("id").from("t").where("a", 1);
@@ -51,6 +51,15 @@ namespace mooSQL.Pure.Tests
             b.clearWhere();
             b.WhereConditionCount.Should().Be(0);
             b.OrchestrationHash.Should().NotBe(h1);
+        }
+
+        [Fact]
+        public void Hash_SeedsWithParaRule_ThenSteps()
+        {
+            var a = new SQLBuilder().select("id").from("t").where("age", 18, ">=");
+            var h1 = a.OrchestrationHash;
+            a.paraRule = "all";
+            a.OrchestrationHash.Should().NotBe(h1);
         }
 
         [Fact]
@@ -86,14 +95,46 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void Clear_ResetsCountsAndHash()
+        public void IfsFalse_Where_HasSqlZero_NextWhereUnaffected()
+        {
+            var gated = new SQLBuilder()
+                .select("id").from("t")
+                .ifs(false).where("a", 1)
+                .where("b", 2);
+
+            var open = new SQLBuilder()
+                .select("id").from("t")
+                .where("b", 2);
+
+            // gated has extra ifs+where(a) steps; hash differs from open-only chain
+            gated.OrchestrationHash.Should().NotBe(open.OrchestrationHash);
+
+            // empty val under notEmpty → same HasSql 0 as ifs-gated empty would; focus: ifs consumes
+            var onlyIfsSkip = new SQLBuilder().select("id").from("t").ifs(false).where("a", 1);
+            var onlySelectFrom = new SQLBuilder().select("id").from("t");
+            // both where skipped for SQL emit, but tape still has Ifs+Where steps → different hash
+            onlyIfsSkip.OrchestrationHash.Should().NotBe(onlySelectFrom.OrchestrationHash);
+        }
+
+        [Fact]
+        public void ParaRule_NotEmpty_EmptyString_Where_DifferentFromNonEmpty()
+        {
+            var empty = new SQLBuilder().select("id").from("t").where("name", "");
+            var filled = new SQLBuilder().select("id").from("t").where("name", "x");
+            empty.OrchestrationHash.Should().NotBe(filled.OrchestrationHash);
+        }
+
+        [Fact]
+        public void Clear_ResetsCountsAndGates()
         {
             var b = new SQLBuilder().select("a").from("t").where("x", 1);
-            b.OrchestrationHash.Should().NotBe(0);
+            b.ifs(false);
+            b.paraRule = "all";
             b.clear();
             b.SelectFragmentCount.Should().Be(0);
             b.WhereConditionCount.Should().Be(0);
-            b.OrchestrationHash.Should().Be(0);
+            b.paraRule.Should().Be("notEmpty");
+            b.OrchestrationHash.Should().Be(new SQLBuilder().OrchestrationHash);
         }
     }
 }

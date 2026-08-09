@@ -9,20 +9,18 @@ namespace mooSQL.data
     {
         public override int Id { get { return 196686; } }
         public override StepKind Kind { get { return StepKind.WhereControl; } }
-        protected override bool HasSql { get { return false; } }
-
-        private readonly string _SQL;
+                private readonly string _SQL;
 
         public PinstringStep(string SQL)
         {
             _SQL = SQL;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(0);
             hc.Add(_SQL);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.pin(_SQL);
+                public override void Apply(SQLBuilder builder) => builder.Inner.pin(_SQL);
     }
 }

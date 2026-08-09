@@ -16,12 +16,12 @@ namespace mooSQL.data
         {
             _SQLString = SQLString;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_SQLString);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.subfix(_SQLString);
+                public override void Apply(SQLBuilder builder) => builder.Inner.subfix(_SQLString);
     }
 }

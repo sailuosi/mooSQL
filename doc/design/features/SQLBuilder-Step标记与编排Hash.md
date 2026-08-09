@@ -72,40 +72,21 @@
 
 ```
 今日:  getter Count → runBuild → 扫 SqlGoup
-目标:  Enqueue(step) → switch (step.Kind) 更新若干 int 计数
-       getter Count → 直接读计数（O(1)，无 Flush）
+目标:  Enqueue 只入队；getter Count/Hash → 懒扫 _steps（无 Flush、无实时累计字段）
 ```
 
-### 3.2 `IStep` 扩展（建议形态）
+### 3.2 `IStep` 与直接 `ContributeHash`（已落地）
 
-只增加 **Kind + Id + ContributeHash**（内含 **HasSql 0-1**），不在 Step 上挂增量结构：
+每步 **直接 override** `ContributeHash`（无 `HasSql` 属性、无 `ContributeStructuralHash`）：
 
 ```csharp
-namespace mooSQL.data
-{
-    public interface IStep
-    {
-        void Apply(SQLBuilder builder);
-
-        /// <summary>类型级唯一身份（int，见 §4）。</summary>
-        int Id { get; }
-
-        /// <summary>子句家族；门面按此更新计数。</summary>
-        StepKind Kind { get; }
-
-        /// <summary>
-        /// 并入编排 Hash：须包含 Id、HasSql(0|1)、编排结构量；不含参数值内容。
-        /// </summary>
-        void ContributeHash(ref ScriptHash hc);
-    }
-}
+void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened);
 ```
 
-实现约定（性能）：
-
-- `Id` / `Kind` 用 **静态常量 + 属性直接返回**，例如 `public int Id => 0x03015;`，避免每实例字段。  
-- `StepBase.ContributeHash` 默认：`hc.Add(Id); hc.Add(HasSql ? 1 : 0);`，子类再追加结构量。  
-- 过渡期可用并行接口 `IStepMeta`；长期合并进 `IStep`。
+- 门面自持 `paraRule` / `Opened`（与 StepBuilder 同语义；`ifs(bool)` 编排期改 `Opened`）。  
+- HasSql 0/1：受控步先 `ConsumeOpened`，再按 `paraRule`（及集合非空）判定。  
+- `OrchestrationHash`：**先** `hc.Add(paraRule)`，再按序对各步 `ContributeHash`（磁带内重放 `opened`，起算 `true`）。  
+- Count：`getter` 扫 `Kind`（遇 Clear* 归零）；不存储、无 `ResetOrchestrationMeta`。  
 
 ### 3.3 `StepKind` 枚举（草案）
 
@@ -158,87 +139,30 @@ public enum StepKind : byte
 - `WhereControl` 与 `Where` 分开，避免 `and()`/`sink()` 虚增条件数。  
 - 现有 `WhereStepKind`（Apart 内部）**保留**，职责不同。
 
-### 3.4 计数：门面 `switch (Kind)`（取代 StepDelta）
+### 3.4 / 3.5 计数与 Hash：懒扫描（已落地）
 
-门面集中维护，Step 侧零负担：
+不在 `Enqueue` 维护计数字段或累计 Hash；`clear`/`reset` 只清 `_steps` 并复位 `Opened`/`paraRule`。
+
+| Kind（扫描） | 计数效果 |
+|--------------|----------|
+| `Select` / `From` / `Join` / `Where` / `OrderBy` / `GroupBy` / `Having` / `Set` | 各自 +1 |
+| `ClearWhere` / `ClearSelect` | 对应计数归零 |
+| `WhereControl` 等 | 不计 |
 
 ```csharp
-private void ApplyKindToStats(StepKind kind)
+public int OrchestrationHash
 {
-    switch (kind)
+    get
     {
-        case StepKind.Select:      _select++; break;
-        case StepKind.From:        _from++; break;
-        case StepKind.Join:        _join++; break;
-        case StepKind.Where:       _where++; break;
-        case StepKind.OrderBy:     _orderBy++; break;
-        case StepKind.GroupBy:     _groupBy++; break;
-        case StepKind.Having:      _having++; break;
-        case StepKind.Set:         _set++; break;
-        case StepKind.ClearWhere:  _where = 0; break;
-        case StepKind.ClearSelect: _select = 0; break;
-        case StepKind.ClearPage:   /* 若有 _page 则归零 */ break;
-        // Distinct / WhereControl / SetTable / Cte / Union / Merge / Other → 默认不动计数
-        default: break;
+        var hc = default(ScriptHash);
+        hc.Add(paraRule);           // 先计入门面 paraRule
+        var opened = true;          // 磁带重放 ifs，勿用当前 Opened 终态
+        foreach (var step in _steps)
+            step.ContributeHash(ref hc, paraRule, ref opened);
+        return hc.ToHashCode();
     }
 }
 ```
-
-**Kind → 效果一览**
-
-| Kind | 计数效果 |
-|------|----------|
-| `Select` | `_select++` |
-| `From` | `_from++` |
-| `Join` | `_join++` |
-| `Where` | `_where++` |
-| `WhereControl` | 无 |
-| `OrderBy` / `GroupBy` / `Having` / `Set` | 各自 `++` |
-| `ClearWhere` / `ClearSelect` / `ClearPage` | 对应计数 `= 0` |
-| 其余 | 无（需要时再加 case，不必上 Delta 结构） |
-
-### 3.5 编排统计落点（`SQLBuilder`）
-
-```csharp
-private int _select, _from, _join, _where, _orderBy, _groupBy, _having, _set;
-private ScriptHash _scriptHash;
-private int _orchestrationHash;
-
-public int SelectFragmentCount => _select;
-public int FromFragmentCount => _from;
-public int JoinCount => _join;
-public int FromTotalCount => _from + _join;
-public int WhereConditionCount => _where;
-public int OrderByCount => _orderBy;
-public int GroupByCount => _groupBy;
-public int HavingCount => _having;
-public int SetColumnCount => _set;
-public int OrchestrationHash => _orchestrationHash;
-
-public bool HasSelect => _select > 0;
-public bool HasFrom => (_from + _join) > 0;
-public bool HasWhere => _where > 0;
-public bool HasOrderBy => _orderBy > 0;
-public bool HasGroupBy => _groupBy > 0;
-public bool HasHaving => _having > 0;
-```
-
-`Enqueue` 伪代码：
-
-```csharp
-private SQLBuilder Enqueue(IStep step)
-{
-    // …现有 materializing / deferred 分支…
-    _steps.Add(step);
-    ApplyKindToStats(step.Kind);
-    step.ContributeHash(ref _scriptHash);
-    _orchestrationHash = _scriptHash.ToHashCode();
-    _dirty = true;
-    return this;
-}
-```
-
-`clear` / `reset`：清空 `_steps`，全部计数与 `_scriptHash` 归零。
 
 ### 3.6 与现有 Count API 的关系
 
@@ -260,8 +184,8 @@ private SQLBuilder Enqueue(IStep step)
 |------|----------|
 | 子查询 `CaptureChildSteps` | 父 Step 只触发父层 Kind 一次（+1）；子队列计数 **不并入** 父；**Hash 并入**（§4.5） |
 | `union(Action)` | 父 `Union` 默认不改上述计数；子 Hash 并入 |
-| `ifs(false)` 跳过 | 不 `Enqueue` → 计数/Hash 不变 |
-| `clearWhere` | Kind=`ClearWhere` → `_where=0`；Hash 仍 Combine 本步 Id（TapeHash） |
+| `ifs(false)` | 仍 `Enqueue(IfsboolStep)`；门面 `Opened=false`；后续步 Hash 中 0/1 为 0；Count 仍按 Kind 计 |
+| `clearWhere` | 懒扫遇 `ClearWhere` → Where 计数归零；Hash 仍 Combine 本步 Id（TapeHash） |
 | `useApart` | 追加步骤走同一 `Enqueue` |
 
 ### 3.8 任务 1 实施步骤
@@ -270,7 +194,7 @@ private SQLBuilder Enqueue(IStep step)
 |------|------|----------|
 | **C0** | 定稿 `StepKind`；写清与旧 Count 映射 | 枚举入库 |
 | **C1** | `IStep`/`StepBase`：`Kind` + `int Id`；脚本批量填 | 编译通过 |
-| **C2** | `Enqueue` → `ApplyKindToStats`；暴露 Count/Has*；`clear` 归零 | 未 Flush 可读 Count |
+| **C2** | Count/Has* getter 懒扫 `_steps`；`clear` 只清队列+门控 | 未 Flush 可读 Count |
 | **C3** | 门面旧 Count getter 改读编排计数（或开关） | 测试对照 |
 | **C4** | 嵌套/Apart/clear* 边界 | 用例绿 |
 
@@ -383,10 +307,10 @@ hc.Add("IN");
 ```
 
 ```csharp
-hc.Add(StepHashMarks.ChildBegin);
-foreach (var s in _children) s.ContributeHash(ref hc);
-hc.Add(StepHashMarks.ChildEnd);
+// 子磁带：局部 opened 从 true 起算，透传同一 paraRule
+ContributeChildSteps(ref hc, _children, paraRule);
 ```
+
 ### 4.4 框架兼容：`ScriptHash`
 
 | 运行时 | 实现 |
@@ -394,45 +318,52 @@ hc.Add(StepHashMarks.ChildEnd);
 | .NET 6/8/10 | `ScriptHash.Add` 内部直接 `HashCode.Combine(_hash, value)` |
 | .NET Framework 4.x | 同 API；内部自研确定性混洗（无 `HashCode`） |
 
-统一 API：`ContributeHash(ref ScriptHash hc)`。
+统一 API：`ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)`。
 
-### 4.5 门面增量维护
+### 4.5 门面懒计算（已落地）
 
 ```
 Enqueue(step):
-  ApplyKindToStats(step.Kind)
-  step.ContributeHash(ref _scriptHash)
-  _orchestrationHash = _scriptHash.ToHashCode()
+  _steps.Add(step)
+  // 不维护计数 / Hash
+
+OrchestrationHash getter:
+  hc.Add(paraRule)
+  opened = true
+  foreach step: ContributeHash(ref hc, paraRule, ref opened)
+
+Count getters:
+  扫 _steps 的 Kind；遇 Clear* 归零
 
 clear/reset:
-  计数归零；_scriptHash = default；_orchestrationHash = 0
+  清空 _steps；Opened=true；paraRule="notEmpty"
 ```
 
-Clear 类步骤 **不回滚** 历史 Hash（TapeHash）；本步 `Id` 照常 Combine。
+Clear 类步骤在 **懒扫 Count** 时归零对应计数；Hash 仍按磁带序 Combine（含 Clear 步自身 Id）。
 
 ### 4.6 两种 Hash 视图（可选）
 
 | 名称 | 定义 | 本期 |
 |------|------|------|
-| **TapeHash** | 完整入队序 Combine | **锁定采用** |
+| **TapeHash** | 完整入队序 Combine（先 paraRule） | **锁定采用** |
 | **EffectiveHash** | 模拟 clear 后有效形状 | 二期可选 |
 
 ### 4.7 与「目标 SQL」的关系（边界）
 
 ```
 同 OrchestrationHash
-    ⇒  编排步骤磁带相同，且各步 HasSql 0-1 一致
+    ⇒  编排步骤磁带相同，且各步「是否产出 SQL」0-1 一致
     ⇒  「有哪些步骤贡献了 SQL 片段」这一层结构一致
     ⇏  最终 SQL 文本 / 参数槽布局因优化而逐字相同
 ```
 
-参数优化（内联写法、In 展开分组细节等）仍由后续模型+缓存处理；**不得**用「优化后才知道的文本」代替编排期 `HasSql` 0-1。
+参数优化仍由后续模型+缓存处理；**不得**用「优化后才知道的文本」代替编排期 0/1 判定。
 
 缓存复合键（H4 示意）：
 
 ```text
 ScriptCacheKey = Hash(
-  OrchestrationHash,    // 含各步 HasSql 0-1
+  OrchestrationHash,    // 含 paraRule 种子 + 各步 0/1
   (int)DataBaseType,
   expression.VersionNumber,
   (int)SqlBuildKind
@@ -444,9 +375,9 @@ ScriptCacheKey = Hash(
 
 | 阶段 | 内容 | 完成标志 |
 |------|------|----------|
-| **H0** | 锁定编排 + HasSql 0-1 边界；`int` StepId；`ScriptHash` | 约定入库 |
-| **H1** | 全 Step：`Id` + `HasSql` + `ContributeHash` | Id 唯一；空/非空 In 单测 |
-| **H2** | Enqueue 增量；同步骤/异 HasSql Hash 单测 | 用例绿 |
+| **H0** | 锁定编排 + 0/1 边界；`int` StepId；`ScriptHash` | 约定入库 |
+| **H1** | 全 Step：直接 `ContributeHash(paraRule, opened)` | Id 唯一；空/非空 In 单测 |
+| **H2** | 懒算 Count/Hash；ifs / paraRule 单测 | 用例绿 |
 | **H3** | 嵌套 / Apart | 用例绿 |
 | **H4**（下期） | 后续模型+缓存：优化文本细节 | 另立项 |
 
@@ -456,19 +387,19 @@ ScriptCacheKey = Hash(
 
 ```
 pure/src/ado/builder/
-  SQLBuilder.cs                 # 计数字段 / _scriptHash / Enqueue
-  SQLBuilder.stats.cs           # Count / Has* / OrchestrationHash
+  SQLBuilder.cs                 # clear/reset → ResetFacadeGates
+  SQLBuilder.defer.cs           # Enqueue（只入队）
+  SQLBuilder.stats.cs           # Opened/paraRule；懒算 Count/Hash
   steps/
     IStep.cs
     StepKind.cs                 # 仅此枚举驱动计数（无 StepDelta）
     ScriptHash.cs
-    StepBase.cs
+    StepBase.cs                 # PassesParaRule / ContributeChildSteps
     StepHashMarks.cs
     select|where|from|…/        # Kind + int Id + ContributeHash
 ```
 
 不建 `StepDelta.cs` / `StepId` 包装类型。
-
 ---
 
 ## 6. 风险与缓解
@@ -543,13 +474,13 @@ pure/src/ado/builder/
 
 ## 10. 与延迟构造文档的衔接
 
-计数主路径：本文 **StepKind + 门面计数**，不再以「getter 内 EnsureMaterialized」为最终方案。
+计数主路径：本文 **StepKind + getter 懒扫 `_steps`**，不再以「getter 内 EnsureMaterialized」或 Enqueue 实时累计为方案。
 
 父文档 D12 继续指向本文。
 
 ---
 
-## 附录 A — Enqueue 完整挂钩示意
+## 附录 A — Enqueue 最终形态
 
 ```csharp
 private SQLBuilder Enqueue(IStep step)
@@ -563,9 +494,7 @@ private SQLBuilder Enqueue(IStep step)
     }
 
     _steps.Add(step);
-    ApplyKindToStats(step.Kind);
-    step.ContributeHash(ref _scriptHash);
-    _orchestrationHash = _scriptHash.ToHashCode();
+    // 不维护计数 / Hash
 
     if (_deferredEnabled)
         _dirty = true;
@@ -577,7 +506,6 @@ private SQLBuilder Enqueue(IStep step)
     return this;
 }
 ```
-
 ## 附录 B — 一句话结论
 
-> **每个 IStep 携带 `StepKind` + `int Id`；Enqueue 按 Kind 计数，并 Combine 编排 Hash（含每步 `HasSql` 0/1）。Hash 保证步骤磁带相同且「有无 SQL」结构一致；参数值内容与优化文本细节交后续模型与缓存。无 StepDelta。**
+> **每步直接 `ContributeHash(ref hc, paraRule, ref opened)`；门面自持 Opened/paraRule。Hash 先 Combine paraRule 再扫步骤磁带；Count/Hash 均为 getter 懒算。无 StepDelta、无实时元数据累计。**

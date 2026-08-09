@@ -508,7 +508,7 @@ EnsureMaterialized → 只 Apply，不再 Enqueue
 | Step 类爆炸 | 文件多、难导航 | 按家族分目录；可脚本生成空 Step |
 | `Apply` 误调门面 | 死循环 / 双倍入队 | Code review；`Apply` 参数类型固定为 `StepBuilder` |
 | 嵌套参数序变化 | SQL/键不一致 | 门面 vs StepBuilder 对比测试 |
-| 中间态未 Flush | Count 为 0 / 被迫全量回放 | 短期 getter 内 `EnsureMaterialized`；最终方案见 [Step 标记与编排 Hash](./SQLBuilder-Step标记与编排Hash.md)（Enqueue 维护 Stats，免 Flush） |
+| 中间态未 Flush | Count 为 0 / 被迫全量回放 | 见 [Step 标记与编排 Hash](./SQLBuilder-Step标记与编排Hash.md)：Count/Hash getter 懒扫 `_steps`，免 Flush、无 Enqueue 实时累计 |
 | `ifs` 误录 | 多/少条件 | 编排期门控，跳过则不 `Enqueue`（§5.4） |
 | 重复 Flush 性能 | 多余 clear+重放 | `_dirty` 标志；无变更不重放 |
 | 文档漂移 | Skills/教程仍写旧结构 | P5 同步 |

@@ -18,12 +18,20 @@ namespace mooSQL.data
             _template = template;
             _values = values;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_template);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_template);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereFormat(_template, _values);
+                public override void Apply(SQLBuilder builder) => builder.Inner.whereFormat(_template, _values);
     }
 }

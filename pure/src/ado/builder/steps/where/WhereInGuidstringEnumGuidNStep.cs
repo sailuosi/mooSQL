@@ -17,12 +17,23 @@ namespace mooSQL.data
             _key = key;
             _OIDs = OIDs;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                return;
+            }
+            bool emit;
+            if (paraRule == "all") emit = true;
+            else if (paraRule == "notNull") emit = _OIDs != null;
+            else emit = CollectionHasAny(_OIDs);
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(_key, _OIDs);
+                public override void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(_key, _OIDs);
     }
 }

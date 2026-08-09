@@ -19,13 +19,22 @@ namespace mooSQL.data
             _vals = vals;
             _isOr = isOr;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                hc.Add(_isOr);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
             hc.Add(_isOr);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereLikeLefts(_key, _vals, _isOr);
+                public override void Apply(SQLBuilder builder) => builder.Inner.whereLikeLefts(_key, _vals, _isOr);
     }
 }

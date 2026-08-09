@@ -26,15 +26,26 @@ namespace mooSQL.data
             _updatable = updatable;
             _insertable = insertable;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                hc.Add(_paramed);
+                hc.Add(_updatable);
+                hc.Add(_insertable);
+                return;
+            }
+            var emit = PassesParaRule(paraRule, _val);
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
             hc.Add(_paramed);
             hc.Add(_updatable);
             hc.Add(_insertable);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
+                public override void Apply(SQLBuilder builder) => builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
     }
 }

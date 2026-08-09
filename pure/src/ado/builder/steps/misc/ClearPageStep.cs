@@ -5,10 +5,13 @@ namespace mooSQL.data
     {
         public override int Id { get { return 458770; } }
         public override StepKind Kind { get { return StepKind.ClearPage; } }
-        protected override bool HasSql { get { return false; } }
-
-        public static readonly ClearPageStep Instance = new ClearPageStep();
+                public static readonly ClearPageStep Instance = new ClearPageStep();
         private ClearPageStep() { }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(0);
+        }
         public override void Apply(SQLBuilder builder) => builder.Inner.clearPage();
     }
 }

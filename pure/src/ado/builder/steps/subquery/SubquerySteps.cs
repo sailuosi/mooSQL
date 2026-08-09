@@ -17,15 +17,14 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_asName);
-            ContributeChildSteps(ref hc, _childSteps);
-
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
-
-
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -49,16 +48,15 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_joinKey);
             hc.Add(_asName);
-            ContributeChildSteps(ref hc, _childSteps);
-
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
-
-
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -81,15 +79,14 @@ namespace mooSQL.data
             _asName = asName;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_asName);
-            ContributeChildSteps(ref hc, _childSteps);
-
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
-
-
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -113,16 +110,25 @@ namespace mooSQL.data
             _op = op;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                hc.Add(_op);
+                ContributeChildSteps(ref hc, _childSteps, paraRule);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
             hc.Add(_op);
-            ContributeChildSteps(ref hc, _childSteps);
-
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
-
-
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -142,13 +148,22 @@ namespace mooSQL.data
         {
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
-            ContributeChildSteps(ref hc, _childSteps);
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                ContributeChildSteps(ref hc, _childSteps, paraRule);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
 
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(bro, _childSteps);
@@ -168,13 +183,22 @@ namespace mooSQL.data
         {
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
-            ContributeChildSteps(ref hc, _childSteps);
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                ContributeChildSteps(ref hc, _childSteps, paraRule);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
 
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
             bro.or();
@@ -200,15 +224,14 @@ namespace mooSQL.data
             _name = name;
             _childSteps = childSteps ?? ArrayCache.Empty<IStep>();
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_name);
-            ContributeChildSteps(ref hc, _childSteps);
-
+            ContributeChildSteps(ref hc, _childSteps, paraRule);
         }
-
-
-        public override void Apply(SQLBuilder builder)
+                public override void Apply(SQLBuilder builder)
         {
             var kit = builder.Inner.getBrotherBuilder();
             SQLBuilder.ReplaySteps(kit, _childSteps);

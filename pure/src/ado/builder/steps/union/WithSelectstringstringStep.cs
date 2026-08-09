@@ -18,13 +18,13 @@ namespace mooSQL.data
             _name = name;
             _selectSQL = selectSQL;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_name);
             hc.Add(_selectSQL);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.withSelect(_name, _selectSQL);
+                public override void Apply(SQLBuilder builder) => builder.Inner.withSelect(_name, _selectSQL);
     }
 }

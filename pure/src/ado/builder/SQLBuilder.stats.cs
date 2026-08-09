@@ -1,77 +1,87 @@
 namespace mooSQL.data
 {
     /// <summary>
-    /// 编排期统计与 OrchestrationHash（Enqueue 维护，无需 runBuild）。
+    /// 编排门控与懒计算元数据（Count / OrchestrationHash 扫 _steps，无实时累计）。
     /// </summary>
     public partial class SQLBuilder
     {
-        private int _select;
-        private int _from;
-        private int _join;
-        private int _where;
-        private int _orderBy;
-        private int _groupBy;
-        private int _having;
-        private int _set;
-        private ScriptHash _scriptHash;
-        private int _orchestrationHash;
+        private string _paraRule = "notEmpty";
+        private bool _opened = true;
 
-        public int SelectFragmentCount { get { return _select; } }
-        public int FromFragmentCount { get { return _from; } }
-        public int JoinCount { get { return _join; } }
-        public int FromTotalCount { get { return _from + _join; } }
-        public int WhereConditionCount { get { return _where; } }
-        public int OrderByCount { get { return _orderBy; } }
-        public int GroupByCount { get { return _groupBy; } }
-        public int HavingCount { get { return _having; } }
-        public int SetColumnCount { get { return _set; } }
-        public int OrchestrationHash { get { return _orchestrationHash; } }
-
-        public bool HasSelect { get { return _select > 0; } }
-        public bool HasFrom { get { return (_from + _join) > 0; } }
-        public bool HasWhere { get { return _where > 0; } }
-        public bool HasOrderBy { get { return _orderBy > 0; } }
-        public bool HasGroupBy { get { return _groupBy > 0; } }
-        public bool HasHaving { get { return _having > 0; } }
-
-        private void ApplyKindToStats(StepKind kind)
+        /// <summary>可选 notEmpty / all / notNull；默认 notEmpty。编排 Hash 种子与步骤判定共用。</summary>
+        public string paraRule
         {
-            switch (kind)
+            get { return _paraRule; }
+            set
             {
-                case StepKind.Select: _select++; break;
-                case StepKind.From: _from++; break;
-                case StepKind.Join: _join++; break;
-                case StepKind.Where: _where++; break;
-                case StepKind.OrderBy: _orderBy++; break;
-                case StepKind.GroupBy: _groupBy++; break;
-                case StepKind.Having: _having++; break;
-                case StepKind.Set: _set++; break;
-                case StepKind.ClearWhere: _where = 0; break;
-                case StepKind.ClearSelect: _select = 0; break;
-                case StepKind.ClearPage: break;
-                default: break;
+                _paraRule = string.IsNullOrEmpty(value) ? "notEmpty" : value;
+                if (_inner != null)
+                    _inner.paraRule = _paraRule;
             }
         }
 
-        private void ResetOrchestrationMeta()
+        /// <summary>ifs 一次性门控（编排期）；懒算 Hash 时由磁带内 IfsboolStep 重放。</summary>
+        internal bool Opened
         {
-            _select = 0;
-            _from = 0;
-            _join = 0;
-            _where = 0;
-            _orderBy = 0;
-            _groupBy = 0;
-            _having = 0;
-            _set = 0;
-            _scriptHash = default(ScriptHash);
-            _orchestrationHash = 0;
+            get { return _opened; }
+            set { _opened = value; }
         }
 
-        private void RecordStepMeta(IStep step)
+        public int SelectFragmentCount { get { return CountKind(StepKind.Select, StepKind.ClearSelect); } }
+        public int FromFragmentCount { get { return CountKind(StepKind.From, null); } }
+        public int JoinCount { get { return CountKind(StepKind.Join, null); } }
+        public int FromTotalCount { get { return FromFragmentCount + JoinCount; } }
+        public int WhereConditionCount { get { return CountKind(StepKind.Where, StepKind.ClearWhere); } }
+        public int OrderByCount { get { return CountKind(StepKind.OrderBy, null); } }
+        public int GroupByCount { get { return CountKind(StepKind.GroupBy, null); } }
+        public int HavingCount { get { return CountKind(StepKind.Having, null); } }
+        public int SetColumnCount { get { return CountKind(StepKind.Set, null); } }
+
+        public bool HasSelect { get { return SelectFragmentCount > 0; } }
+        public bool HasFrom { get { return FromTotalCount > 0; } }
+        public bool HasWhere { get { return WhereConditionCount > 0; } }
+        public bool HasOrderBy { get { return OrderByCount > 0; } }
+        public bool HasGroupBy { get { return GroupByCount > 0; } }
+        public bool HasHaving { get { return HavingCount > 0; } }
+
+        /// <summary>先 Combine 门面 paraRule，再按步骤磁带 ContributeHash。</summary>
+        public int OrchestrationHash
         {
-            ApplyKindToStats(step.Kind);
-            step.ContributeHash(ref _scriptHash);
-            _orchestrationHash = _scriptHash.ToHashCode();
+            get
+            {
+                var hc = default(ScriptHash);
+                hc.Add(_paraRule);
+                var opened = true;
+                var steps = _steps;
+                for (int i = 0; i < steps.Count; i++)
+                {
+                    steps[i].ContributeHash(ref hc, _paraRule, ref opened);
+                }
+                return hc.ToHashCode();
+            }
+        }
+
+        private int CountKind(StepKind increment, StepKind? clear)
+        {
+            int n = 0;
+            var steps = _steps;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var k = steps[i].Kind;
+                if (k == increment)
+                    n++;
+                else if (clear != null && k == clear.Value)
+                    n = 0;
+            }
+            return n;
+        }
+
+        private void ResetFacadeGates()
+        {
+            _opened = true;
+            _paraRule = "notEmpty";
+            if (_inner != null)
+                _inner.paraRule = _paraRule;
         }
     }
 }

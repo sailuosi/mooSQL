@@ -16,12 +16,20 @@ namespace mooSQL.data
         {
             _fieldName = fieldName;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_fieldName);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_fieldName);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.setToNull(_fieldName);
+                public override void Apply(SQLBuilder builder) => builder.Inner.setToNull(_fieldName);
     }
 }

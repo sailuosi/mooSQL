@@ -18,12 +18,12 @@ namespace mooSQL.data
             _JoinSQLPart = JoinSQLPart;
             _paras = paras;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_JoinSQLPart);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.joinFormat(_JoinSQLPart, _paras);
+                public override void Apply(SQLBuilder builder) => builder.Inner.joinFormat(_JoinSQLPart, _paras);
     }
 }

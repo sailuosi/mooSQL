@@ -30,7 +30,7 @@ namespace mooSQL.data
         public string name { get => _inner.name; set => _inner.name = value; }
         public Paras ps { get => _inner.ps; set => _inner.ps = value; }
         public string preWhere { get => _inner.preWhere; set => _inner.preWhere = value; }
-        public string paraRule { get => _inner.paraRule; set => _inner.paraRule = value; }
+        // paraRule：见 SQLBuilder.stats.cs（门面自主字段）
         public int InsertRowIndex { get => _inner.InsertRowIndex; }
         public int ConditionCount
         {

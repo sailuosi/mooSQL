@@ -9,6 +9,11 @@ namespace mooSQL.data
 
         private readonly Action<SQLBuilder> _doUnion;
         public UnionActStep(Action<SQLBuilder> doUnion) { _doUnion = doUnion; }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(1);
+        }
         public override void Apply(SQLBuilder builder)
         {
             builder.Inner.union(inner =>

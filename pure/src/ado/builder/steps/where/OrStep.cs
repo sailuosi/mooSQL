@@ -9,10 +9,13 @@ namespace mooSQL.data
     {
         public override int Id { get { return 196685; } }
         public override StepKind Kind { get { return StepKind.WhereControl; } }
-        protected override bool HasSql { get { return false; } }
-
-        public static readonly OrStep Instance = new OrStep();
+                public static readonly OrStep Instance = new OrStep();
         private OrStep() { }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            hc.Add(Id);
+            hc.Add(0);
+        }
         public override void Apply(SQLBuilder builder) => builder.Inner.or();
     }
 }

@@ -1,9 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// IStep 默认基类：Id / Kind / HasSql(0|1) 进入编排 Hash。
+    /// IStep 基类：Id / Kind / Apply；各步直接 override ContributeHash。
     /// </summary>
     public abstract class StepBase : IStep
     {
@@ -13,41 +14,68 @@ namespace mooSQL.data
         /// <inheritdoc />
         public abstract StepKind Kind { get; }
 
-        /// <summary>本步是否产出 SQL 文本（编排期可判定）。默认 true。</summary>
-        protected virtual bool HasSql
-        {
-            get { return true; }
-        }
-
         /// <inheritdoc />
         public abstract void Apply(SQLBuilder builder);
 
         /// <inheritdoc />
-        public virtual void ContributeHash(ref ScriptHash hc)
-        {
-            hc.Add(Id);
-            hc.Add(HasSql ? 1 : 0);
-            ContributeStructuralHash(ref hc);
-        }
-
-        /// <summary>追加编排结构量（列名/op/paramed 等）；不含参数值内容。</summary>
-        protected virtual void ContributeStructuralHash(ref ScriptHash hc)
-        {
-        }
+        public abstract void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened);
 
         /// <summary>子步骤磁带：ChildBegin / 各步 ContributeHash / ChildEnd。</summary>
-        protected static void ContributeChildSteps(ref ScriptHash hc, IReadOnlyList<IStep> children)
+        protected static void ContributeChildSteps(ref ScriptHash hc, IReadOnlyList<IStep> children, string paraRule)
         {
             hc.Add(StepHashMarks.ChildBegin);
             if (children != null)
             {
+                var childOpened = true;
                 for (int i = 0; i < children.Count; i++)
                 {
                     if (children[i] != null)
-                        children[i].ContributeHash(ref hc);
+                        children[i].ContributeHash(ref hc, paraRule, ref childOpened);
                 }
             }
             hc.Add(StepHashMarks.ChildEnd);
+        }
+
+        /// <summary>与 StepBuilder.paraRule 同语义：notEmpty / notNull / all。</summary>
+        protected static bool PassesParaRule(string paraRule, object val)
+        {
+            if (paraRule == "all")
+                return true;
+            if (paraRule == "notNull")
+                return val != null;
+            if (val == null)
+                return false;
+            var s = val.ToString();
+            return s != null && !string.IsNullOrEmpty(s.Trim());
+        }
+
+        /// <summary>集合是否至少有一个元素（whereIn 等）。</summary>
+        protected static bool CollectionHasAny(IEnumerable items)
+        {
+            if (items == null)
+                return false;
+            var it = items.GetEnumerator();
+            try
+            {
+                return it.MoveNext();
+            }
+            finally
+            {
+                var d = it as System.IDisposable;
+                if (d != null)
+                    d.Dispose();
+            }
+        }
+
+        /// <summary>ifs 门控：若关闭则消费并返回 false（本步不落 SQL）。</summary>
+        protected static bool ConsumeOpened(ref bool opened)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return false;
+            }
+            return true;
         }
     }
 }

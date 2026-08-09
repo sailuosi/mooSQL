@@ -15,6 +15,18 @@ namespace mooSQL.data
         {
             _frag = frag;
         }
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
+        }
 
         public override void Apply(SQLBuilder builder) => builder.Inner.where(_frag);
     }

@@ -15,12 +15,20 @@ namespace mooSQL.data
         {
             _selectSQL = selectSQL;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_selectSQL);
+                return;
+            }
+            var emit = true;
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_selectSQL);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereNotExist(_selectSQL);
+                public override void Apply(SQLBuilder builder) => builder.Inner.whereNotExist(_selectSQL);
     }
 }

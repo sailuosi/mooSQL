@@ -8,24 +8,7 @@ namespace mooSQL.data
     public sealed class WhereInGuidstringEnumstringStep : StepBase {
         public override int Id { get { return 196712; } }
         public override StepKind Kind { get { return StepKind.Where; } }
-        protected override bool HasSql
-        {
-            get
-            {
-                if (_OIDs == null) return false;
-                var e = _OIDs as System.Collections.IEnumerable;
-                if (e == null) return true;
-                var it = e.GetEnumerator();
-                try { return it.MoveNext(); }
-                finally
-                {
-                    var d = it as System.IDisposable;
-                    if (d != null) d.Dispose();
-                }
-            }
-        }
-
-        private readonly string _key;
+                private readonly string _key;
         private readonly IEnumerable<string> _OIDs;
 
         public WhereInGuidstringEnumstringStep(string key, IEnumerable<string> OIDs)
@@ -33,12 +16,23 @@ namespace mooSQL.data
             _key = key;
             _OIDs = OIDs;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                return;
+            }
+            bool emit;
+            if (paraRule == "all") emit = true;
+            else if (paraRule == "notNull") emit = _OIDs != null;
+            else emit = CollectionHasAny(_OIDs);
+            hc.Add(Id);
+            hc.Add(emit ? 1 : 0);
             hc.Add(_key);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(_key, _OIDs);
+                public override void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(_key, _OIDs);
     }
 }

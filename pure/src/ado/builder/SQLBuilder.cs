@@ -26,21 +26,25 @@ namespace mooSQL.data
         public SQLBuilder()
         {
             _inner = new StepBuilder();
+            SyncGatesFromInner();
         }
 
         public SQLBuilder(string name)
         {
             _inner = new StepBuilder(name);
+            SyncGatesFromInner();
         }
 
         public SQLBuilder(bool lazyInit)
         {
             _inner = new StepBuilder(lazyInit);
+            SyncGatesFromInner();
         }
 
         public SQLBuilder(SQLExpression expression)
         {
             _inner = new StepBuilder(expression);
+            SyncGatesFromInner();
         }
 
         /// <summary>附着已有内核（子查询 / Action 回放）。</summary>
@@ -48,6 +52,14 @@ namespace mooSQL.data
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _materializing = materializing;
+            SyncGatesFromInner();
+        }
+
+        private void SyncGatesFromInner()
+        {
+            if (_inner == null) return;
+            _paraRule = string.IsNullOrEmpty(_inner.paraRule) ? "notEmpty" : _inner.paraRule;
+            _opened = true;
         }
 
         /// <summary>将内核包装为门面；materializing 时入队即刻 Apply。</summary>
@@ -80,7 +92,7 @@ namespace mooSQL.data
         public SQLBuilder clear()
         {
             _steps.Clear();
-            ResetOrchestrationMeta();
+            ResetFacadeGates();
             _dirty = false;
             _inner.clear();
             return this;
@@ -90,7 +102,7 @@ namespace mooSQL.data
         public SQLBuilder reset()
         {
             _steps.Clear();
-            ResetOrchestrationMeta();
+            ResetFacadeGates();
             _dirty = false;
             _inner.reset();
             return this;

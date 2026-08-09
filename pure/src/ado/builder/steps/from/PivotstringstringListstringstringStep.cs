@@ -22,14 +22,14 @@ namespace mooSQL.data
             _values = values;
             _asName = asName;
         }
-        protected override void ContributeStructuralHash(ref ScriptHash hc)
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
+            hc.Add(Id);
+            hc.Add(1);
             hc.Add(_aggregation);
             hc.Add(_field);
             hc.Add(_asName);
         }
-
-
-        public override void Apply(SQLBuilder builder) => builder.Inner.pivot(_aggregation, _field, _values, _asName);
+                public override void Apply(SQLBuilder builder) => builder.Inner.pivot(_aggregation, _field, _values, _asName);
     }
 }

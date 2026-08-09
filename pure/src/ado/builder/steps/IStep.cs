@@ -12,12 +12,13 @@ namespace mooSQL.data
         /// <summary>类型级唯一身份（int，性能优先）。</summary>
         int Id { get; }
 
-        /// <summary>子句家族；门面按此更新计数。</summary>
+        /// <summary>子句家族；Count getter 懒扫时按 Kind 累加/清零。</summary>
         StepKind Kind { get; }
 
         /// <summary>
-        /// 并入编排 Hash：须包含 Id、HasSql(0|1)、编排结构量；不含参数值内容。
+        /// 并入编排 Hash：Id、是否产出 SQL(0|1)、结构量；不含参数值内容。
+        /// 按 paraRule / opened 判定本步是否产出；Ifsbool 等可改写 opened。
         /// </summary>
-        void ContributeHash(ref ScriptHash hc);
+        void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened);
     }
 }
