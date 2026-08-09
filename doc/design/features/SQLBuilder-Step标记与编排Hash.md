@@ -379,7 +379,7 @@ ScriptCacheKey = Hash(
 | **H1** | 全 Step：直接 `ContributeHash(paraRule, opened)` | Id 唯一；空/非空 In 单测 |
 | **H2** | 懒算 Count/Hash；ifs / paraRule 单测 | 用例绿 |
 | **H3** | 嵌套 / Apart | 用例绿 |
-| **H4**（下期） | 后续模型+缓存：优化文本细节 | 另立项 |
+| **H4**（下期） | 模板缓存：依赖 [延迟参数解析](./SQLBuilder-延迟参数解析.md) 的 PlaceHolder + `IDelayPara.Run()` | 另立项 |
 
 ---
 
