@@ -8,13 +8,17 @@ namespace mooSQL.data
     /// </summary>
     public partial class SQLBuilder
     {
-        /// <summary>编排期执行委托，收集其入队的步骤快照。</summary>
-        internal static List<IStep> CaptureChildSteps(Action<SQLBuilder> action)
+        /// <summary>
+        /// 编排期执行委托，收集其入队的步骤快照。
+        /// 子门面对标 <see cref="StepBuilder.getBrotherBuilder"/> 补齐 ps/DBLive/seed，但用
+        /// <see cref="StepBuilder.createCaptureBrother"/> 避免永久推进兄弟序号（Apply 时再分配）。
+        /// </summary>
+        internal List<IStep> CaptureChildSteps(Action<SQLBuilder> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            var child = new SQLBuilder();
+            var child = Attach(_inner.createCaptureBrother());
             action(child);
             return child.CopySteps();
         }

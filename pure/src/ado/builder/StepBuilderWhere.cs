@@ -1649,14 +1649,28 @@ namespace mooSQL.data {
         public StepBuilder getBrotherBuilder()
         {
             _brotherIndex++;
+            return CreateBrotherCore(_brotherIndex);
+        }
+
+        /// <summary>
+        /// 编排期捕获用兄弟：成员同 <see cref="getBrotherBuilder"/>，但不推进 <c>_brotherIndex</c>。
+        /// Apply 时再真正分配兄弟序号，避免捕获+重放双重推进导致参数 seed 漂移。
+        /// </summary>
+        internal StepBuilder createCaptureBrother()
+        {
+            return CreateBrotherCore(_brotherIndex + 1);
+        }
+
+        StepBuilder CreateBrotherCore(int brotherOffset)
+        {
             var builder = new StepBuilder();
             builder.ps = this.ps;
             builder.current.ps = this.ps;
             builder.current.position = this.position;
             builder.setDBInstance(DBLive);
-            builder.level = level + _brotherIndex;
+            builder.level = level + brotherOffset;
             var oldseed = seed.Replace("lv" + level + "_", "");
-            builder.setSeed( oldseed + "lv" + builder.level + "_");
+            builder.setSeed(oldseed + "lv" + builder.level + "_");
             builder.init();
             return builder;
         }
