@@ -1,11 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.set(...).</summary>
-    public sealed class SetstringstringintStep : StepBase
+    /// <summary>对应 SQLBuilder.set(key, value, maxLength)。</summary>
+    public sealed class SetstringstringintStep : StepBase, IStaticSlotStep
     {
         public override int Id { get { return 262200; } }
         public override StepKind Kind { get { return StepKind.Set; } }
@@ -20,6 +16,29 @@ namespace mooSQL.data
             _value = value;
             _maxLength = maxLength;
         }
+
+        private string EffectiveValue
+        {
+            get
+            {
+                var v = _value;
+                if (v != null && v.Length > _maxLength)
+                    v = v.Substring(0, _maxLength);
+                return v;
+            }
+        }
+
+        public int? StaticSlotId { get; private set; }
+
+        public object StaticSlotValue { get { return EffectiveValue; } }
+
+        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        {
+            var v = EffectiveValue;
+            var writes = v != null;
+            StaticSlotId = TryAllocStaticSlotId(paraRule, v, writes, ref opened, ref nextStaticSlot);
+        }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -36,6 +55,16 @@ namespace mooSQL.data
             hc.Add(_key);
             hc.Add(_maxLength);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.set(_key, _value, _maxLength);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            var v = EffectiveValue;
+            if (StaticSlotId != null)
+            {
+                builder.Inner.setWithSlot(_key, v, StaticSlotId.Value);
+                return;
+            }
+            builder.Inner.set(_key, v, _maxLength);
+        }
     }
 }

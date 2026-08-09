@@ -64,19 +64,49 @@ namespace mooSQL.data
 
         public SQLBuilder configSetNull(UpdateSetNullOption option) => Enqueue(new ConfigSetNullUpdateSetNullOptionStep(option));
 
-        public SQLBuilder set(string key, string value, int maxLength) => Enqueue(new SetstringstringintStep(key, value, maxLength));
+        public SQLBuilder set(string key, string value, int maxLength)
+        {
+            var step = new SetstringstringintStep(key, value, maxLength);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true) => Enqueue(new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable));
+        public SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
+        {
+            var step = new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
         public SQLBuilder setToNull(string fieldName) => Enqueue(new SetToNullstringStep(fieldName));
 
-        public SQLBuilder setI(string key, object val) => Enqueue(new SetIstringobjectStep(key, val));
+        public SQLBuilder setI(string key, object val)
+        {
+            var step = new SetIstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder setI(string key, object val, bool paramed) => Enqueue(new SetIstringobjectboolStep(key, val, paramed));
+        public SQLBuilder setI(string key, object val, bool paramed)
+        {
+            var step = new SetIstringobjectboolStep(key, val, paramed);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder setU(string key, object val) => Enqueue(new SetUstringobjectStep(key, val));
+        public SQLBuilder setU(string key, object val)
+        {
+            var step = new SetUstringobjectStep(key, val);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
-        public SQLBuilder setU(string key, object val, bool paramed) => Enqueue(new SetUstringobjectboolStep(key, val, paramed));
+        public SQLBuilder setU(string key, object val, bool paramed)
+        {
+            var step = new SetUstringobjectboolStep(key, val, paramed);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            return Enqueue(step);
+        }
 
         public SQLBuilder newRow() => Enqueue(NewRowStep.Instance);
 

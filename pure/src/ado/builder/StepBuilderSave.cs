@@ -80,6 +80,33 @@ namespace mooSQL.data
         /// <returns></returns>
         public StepBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
+            return setCore(key, val, paramed, type, updatable, insertable, null);
+        }
+
+        /// <summary>
+        /// 使用编排期 <see cref="StaticSlotMarks"/> 槽位名写入 set（paramKey 已定，不再用 cl_ 计数起名）。
+        /// </summary>
+        public StepBuilder setWithSlot(
+            string key,
+            object val,
+            int staticSlotId,
+            bool paramed = true,
+            Type type = null,
+            bool updatable = true,
+            bool insertable = true)
+        {
+            return setCore(key, val, paramed, type, updatable, insertable, staticSlotId);
+        }
+
+        private StepBuilder setCore(
+            string key,
+            object val,
+            bool paramed,
+            Type type,
+            bool updatable,
+            bool insertable,
+            int? staticSlotId)
+        {
             if (!opened)
             {
                 opened = true;
@@ -105,6 +132,13 @@ namespace mooSQL.data
             }
             else {
                 field.setValue(current.RowIndex, val, type, paramed, updatable, insertable);
+            }
+
+            if (staticSlotId != null && paramed && val != null && val != DBNull.Value)
+            {
+                var pair = field.values[current.RowIndex];
+                if (pair != null)
+                    pair.paramKey = StaticSlotMarks.FormatName(staticSlotId.Value);
             }
                 
             if (this.Client != null)

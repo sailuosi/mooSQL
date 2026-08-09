@@ -48,38 +48,66 @@ namespace mooSQL.data
 
         public int doInsert()
         {
-            runBuild();
-            return _inner.doInsert();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doInsert();
+            }
+            return _inner.exeNonQueryPrepared(toInsert());
         }
 
         public Task<int> doInsertAsync()
         {
-            runBuild();
-            return _inner.doInsertAsync();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doInsertAsync();
+            }
+            return _inner.exeNonQueryPreparedAsync(toInsert());
         }
 
         public int doUpdate()
         {
-            runBuild();
-            return _inner.doUpdate();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doUpdate();
+            }
+            return _inner.exeNonQueryPrepared(toUpdate());
         }
 
         public Task<int> doUpdateAsync()
         {
-            runBuild();
-            return _inner.doUpdateAsync();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doUpdateAsync();
+            }
+            return _inner.exeNonQueryPreparedAsync(toUpdate());
         }
 
         public int doDelete()
         {
-            runBuild();
-            return _inner.doDelete();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doDelete();
+            }
+            if (!HasWhereStepForDelete())
+                return -1;
+            return _inner.exeNonQueryPrepared(toDelete());
         }
 
         public Task<int> doDeleteAsync()
         {
-            runBuild();
-            return _inner.doDeleteAsync();
+            if (!_scriptTemplateCacheEnabled)
+            {
+                runBuild();
+                return _inner.doDeleteAsync();
+            }
+            if (!HasWhereStepForDelete())
+                return Task.FromResult(-1);
+            return _inner.exeNonQueryPreparedAsync(toDelete());
         }
 
         public int doInsertFrom()

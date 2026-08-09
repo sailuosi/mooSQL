@@ -626,7 +626,7 @@ pure/src/ado/builder/
 | D6 | 空方法阶段是否允许执行方法先委托 | 允许（P2 即 Flush+委托） | 待确认 |
 | D12 | 编排期 Count / Script Hash | `StepKind` + 门面计数；`int` StepId；编排 Hash **仅保证步骤相同**，参数优化交后续缓存；见 [SQLBuilder-Step标记与编排Hash](./SQLBuilder-Step标记与编排Hash.md) | 规划中 |
 | D13 | 延迟参数解析（IDelayPara） | 动态片段 PlaceHolder + `prepare` 期 `Run()`；见 [SQLBuilder-延迟参数解析](./SQLBuilder-延迟参数解析.md) | 实施中 |
-| D14 | 执行模板缓存 | `ScriptTemplate` + 编排期 `StaticSlotId`（方案 C）；见 [SQLBuilder-执行模板缓存](./SQLBuilder-执行模板缓存.md) | C2–C3d 已落地（query 族）；C4 运维项待做 |
+| D14 | 执行模板缓存 | `ScriptTemplate` + 编排期 `StaticSlotId`（方案 C）；见 [SQLBuilder-执行模板缓存](./SQLBuilder-执行模板缓存.md) | C2–C3e 已落地（select/query + 常规 insert/update/delete）；C4 运维项待做 |
 
 ---
 

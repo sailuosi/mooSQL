@@ -285,6 +285,24 @@ namespace mooSQL.data
             if (_AutoClearWay== CleanWay.AfterModify||_AutoClearWay== CleanWay.Always) clear();
             return res;
         }
+
+        /// <summary>使用已物化 SQLCmd 执行非查询（门面模板缓存热路径）。</summary>
+        internal int exeNonQueryPrepared(SQLCmd sql)
+        {
+            var res = exeNonQuery(sql);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
+                clear();
+            return res;
+        }
+
+        /// <summary>异步：使用已物化 SQLCmd 执行非查询。</summary>
+        internal Task<int> exeNonQueryPreparedAsync(SQLCmd sql)
+        {
+            var res = exeNonQueryAsync(sql);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
+                clear();
+            return res;
+        }
         /// <summary>
         /// 异步执行插入
         /// </summary>

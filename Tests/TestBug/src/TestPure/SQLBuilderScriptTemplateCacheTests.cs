@@ -36,13 +36,14 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToSelect_DisabledByDefault_DoesNotTouchCache()
+        public void ToSelect_ExplicitlyDisabled_DoesNotTouchCache()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
             using var a = db.useSQL();
-            a.setCacheHolder(shared);
+            // TEMP: 生产默认曾为关；现临时默认开，本用例显式关闭
+            a.setCacheHolder(shared).useScriptTemplateCache(false);
             a.select("id").from("t").where("age", 1);
             a.toSelect();
 
@@ -187,6 +188,78 @@ namespace mooSQL.Pure.Tests
             try { b.query(); } catch { /* ignore DB */ }
             b.ScriptTemplateCacheHits.Should().Be(1);
             b.ScriptTemplateCacheMisses.Should().Be(0);
+        }
+
+        [Fact]
+        public void ToUpdate_HitsAndRebinds_SetAndWhere()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var shared = new HashCache();
+
+            using var a = db.useSQL();
+            a.setCacheHolder(shared).useScriptTemplateCache();
+            a.setTable("users").set("name", "a").where("id", 1);
+            var cmdA = a.toUpdate();
+            a.ScriptTemplateCacheMisses.Should().Be(1);
+            cmdA.sql.Should().Contain("@ms_s0");
+            cmdA.sql.Should().Contain("@ms_s1");
+            cmdA.para.GetParameter("ms_s0").val.Should().Be("a");
+            cmdA.para.GetParameter("ms_s1").val.Should().Be(1);
+
+            using var b = db.useSQL();
+            b.setCacheHolder(shared).useScriptTemplateCache();
+            b.setTable("users").set("name", "b").where("id", 9);
+            var cmdB = b.toUpdate();
+            b.ScriptTemplateCacheHits.Should().Be(1);
+            cmdB.sql.Should().Be(cmdA.sql);
+            cmdB.para.GetParameter("ms_s0").val.Should().Be("b");
+            cmdB.para.GetParameter("ms_s1").val.Should().Be(9);
+        }
+
+        [Fact]
+        public void ToInsert_HitsAndRebinds_SetColumns()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var shared = new HashCache();
+
+            using var a = db.useSQL();
+            a.setCacheHolder(shared).useScriptTemplateCache();
+            a.setTable("users").set("name", "a").set("age", 18);
+            var cmdA = a.toInsert();
+            a.ScriptTemplateCacheMisses.Should().Be(1);
+            cmdA.sql.Should().Contain("@ms_s0");
+            cmdA.sql.Should().Contain("@ms_s1");
+
+            using var b = db.useSQL();
+            b.setCacheHolder(shared).useScriptTemplateCache();
+            b.setTable("users").set("name", "z").set("age", 40);
+            var cmdB = b.toInsert();
+            b.ScriptTemplateCacheHits.Should().Be(1);
+            cmdB.sql.Should().Be(cmdA.sql);
+            cmdB.para.GetParameter("ms_s0").val.Should().Be("z");
+            cmdB.para.GetParameter("ms_s1").val.Should().Be(40);
+        }
+
+        [Fact]
+        public void ToDelete_HitsAndRebinds_Where()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var shared = new HashCache();
+
+            using var a = db.useSQL();
+            a.setCacheHolder(shared).useScriptTemplateCache();
+            a.setTable("users").where("id", 1);
+            var cmdA = a.toDelete();
+            a.ScriptTemplateCacheMisses.Should().Be(1);
+            cmdA.sql.Should().Contain("@ms_s0");
+
+            using var b = db.useSQL();
+            b.setCacheHolder(shared).useScriptTemplateCache();
+            b.setTable("users").where("id", 99);
+            var cmdB = b.toDelete();
+            b.ScriptTemplateCacheHits.Should().Be(1);
+            cmdB.sql.Should().Be(cmdA.sql);
+            cmdB.para.GetParameter("ms_s0").val.Should().Be(99);
         }
     }
 }

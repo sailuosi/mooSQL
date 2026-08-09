@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.set(...).</summary>
-    public sealed class SetstringobjectboolTypeboolboolStep : StepBase
+    /// <summary>对应 SQLBuilder.set(...)。paramed 时支持编排期 StaticSlotId。</summary>
+    public sealed class SetstringobjectboolTypeboolboolStep : StepBase, IStaticSlotStep
     {
         public override int Id { get { return 262199; } }
         public override StepKind Kind { get { return StepKind.Set; } }
@@ -26,6 +24,17 @@ namespace mooSQL.data
             _updatable = updatable;
             _insertable = insertable;
         }
+
+        public int? StaticSlotId { get; private set; }
+
+        public object StaticSlotValue { get { return _val; } }
+
+        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        {
+            var writes = _paramed && _val != null && _val != DBNull.Value;
+            StaticSlotId = TryAllocStaticSlotId(paraRule, _val, writes, ref opened, ref nextStaticSlot);
+        }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -46,6 +55,15 @@ namespace mooSQL.data
             hc.Add(_updatable);
             hc.Add(_insertable);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            if (StaticSlotId != null)
+            {
+                builder.Inner.setWithSlot(_key, _val, StaticSlotId.Value, _paramed, _type, _updatable, _insertable);
+                return;
+            }
+            builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
+        }
     }
 }

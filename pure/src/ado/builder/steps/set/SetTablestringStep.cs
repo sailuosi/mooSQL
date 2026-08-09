@@ -8,6 +8,9 @@ namespace mooSQL.data
 
         public SetTablestringStep(string tbName) : base(tbName) { }
 
+        /// <summary>热路径 TargetTable 收值。</summary>
+        internal string TableName { get { return Sql; } }
+
         public override void Apply(SQLBuilder builder) => builder.Inner.setTable(Sql);
     }
 }

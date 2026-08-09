@@ -15,6 +15,9 @@ namespace mooSQL.data
         public const string ExpressionVersionPlaceholder = "0";
 
         public const string BuildKindToSelect = "ToSelect";
+        public const string BuildKindToInsert = "ToInsert";
+        public const string BuildKindToUpdate = "ToUpdate";
+        public const string BuildKindToDelete = "ToDelete";
 
         /// <summary>
         /// 复合键：编排 Hash + 库类型 + 出口 + 命名/占位版本 + seed。

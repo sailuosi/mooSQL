@@ -194,22 +194,6 @@ namespace mooSQL.data
             return _inner.toSelectCount();
         }
 
-        public SQLCmd toInsert()
-        {
-            runBuild();
-            return _inner.toInsert();
-        }
-
-        public SQLCmd toUpdate()
-        {
-            runBuild();
-            return _inner.toUpdate();
-        }
-
-        public SQLCmd toDelete()
-        {
-            runBuild();
-            return _inner.toDelete();
-        }
+        // toInsert / toUpdate / toDelete：冷热分流见 SQLBuilder.cache.cs
     }
 }

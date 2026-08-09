@@ -1,11 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.setI(...).</summary>
-    public sealed class SetIstringobjectboolStep : StepBase
+    /// <summary>对应 SQLBuilder.setI(..., paramed)。</summary>
+    public sealed class SetIstringobjectboolStep : StepBase, IStaticSlotStep
     {
         public override int Id { get { return 262197; } }
         public override StepKind Kind { get { return StepKind.Set; } }
@@ -20,6 +16,17 @@ namespace mooSQL.data
             _val = val;
             _paramed = paramed;
         }
+
+        public int? StaticSlotId { get; private set; }
+
+        public object StaticSlotValue { get { return _val; } }
+
+        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        {
+            var writes = _paramed && _val != null && _val != System.DBNull.Value;
+            StaticSlotId = TryAllocStaticSlotId(paraRule, _val, writes, ref opened, ref nextStaticSlot);
+        }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -36,6 +43,15 @@ namespace mooSQL.data
             hc.Add(_key);
             hc.Add(_paramed);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.setI(_key, _val, _paramed);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            if (StaticSlotId != null)
+            {
+                builder.Inner.setWithSlot(_key, _val, StaticSlotId.Value, _paramed, null, false, true);
+                return;
+            }
+            builder.Inner.setI(_key, _val, _paramed);
+        }
     }
 }

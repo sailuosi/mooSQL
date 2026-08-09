@@ -278,7 +278,7 @@ pure/src/ado/builder/StepBuilderDymatic.cs
   cacheHolder                    # 已有；模板与 query 共用
 ```
 
-门面：`useScriptTemplateCache(true)` 才启用（默认关）。纳入槽位制的 Step 在入队前 `TryAssignStaticSlot`（与 Hash/`paraRule` 对齐）。
+门面：`useScriptTemplateCache` 控制开关。**TEMP（业务大测）当前默认开启**，命中时 `Console.WriteLine("[moo.st HIT] …")`；测完应改回默认关并去掉控制台日志。纳入槽位制的 Step 在入队前 `TryAssignStaticSlot`（与 Hash/`paraRule` 对齐）。
 
 ---
 
@@ -293,6 +293,7 @@ pure/src/ado/builder/StepBuilderDymatic.cs
 | **C3b** | 扩大静态 API：`where(key,val,op[,paramed])`、`whereGreaterThan` / `LessThan` / `OrEqual` / `NotEqual` → `ms_s{N}`；`whereWithSlot(..., op)` | 单测 + SqlSnapshot 基线已更新（已落地） |
 | **C3c** | Live 混合：`ILiveBindStep` + CollectBind；冷路径允许 `LiveCount>0`；热路径重绑 static + 新 `IDelayPara[]` | 单测：where+whereIn / whereFormat 命中、空非空 In 不互命中（已落地） |
 | **C3d** | `query` / `queryAsync` / `query<T>` 启用模板缓存时走门面 `toSelect` + `queryPrepared`（跳过内核再拼装）；`count`/`exist` 仍须结构物化，另议 | 单测：query 第二次命中（已落地） |
+| **C3e** | 常规增删改：`set`/`setI`/`setU` → `ms_s{N}`；`toInsert`/`toUpdate`/`toDelete` 冷热分流；`doInsert`/`doUpdate`/`doDelete` 走 prepared | 单测：update/insert/delete 命中重绑（已落地；insertFrom/multirow/merge 另议） |
 | **C4** | 容量、失效（ExpressionVersion）、指标、碰撞加固 | 可运维 |
 
 ---
@@ -316,7 +317,7 @@ pure/src/ado/builder/StepBuilderDymatic.cs
 | T1 | 缓存对象 | `ScriptTemplate`（壳+StaticSlots+LiveCount） | **已锁定** |
 | T2 | 静态桥 | **方案 C**：编排期 `StaticSlotId` | **已锁定** |
 | T3 | 物理名格式 | `{paraPrefix}ms_s{SlotId}` | **已锁定**（NameSchemaVersion=1） |
-| T4 | 命中入口 | `toSelect` + `useScriptTemplateCache`；`query*` 复用同一入口；存储 = 既有 `cacheHolder` | **已锁定**（C2/C3d） |
+| T4 | 命中入口 | `toSelect`/`toInsert`/`toUpdate`/`toDelete` + `useScriptTemplateCache`；`query*`/`doInsert|Update|Delete` 复用；存储 = 既有 `cacheHolder` | **已锁定**（C2/C3d/C3e） |
 | T5 | 未改造 API | 不参与缓存（冷路径不收录） | **已锁定** |
 | T6 | 子查询 In | 不做 Live/父 StaticSlot | **已锁定** |
 | T7 | 热路径失败 | C2：收值对不齐则 **回退冷路径**（不抛） | **C2 默认**；可再收紧 |

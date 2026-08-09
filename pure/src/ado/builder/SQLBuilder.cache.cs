@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using mooSQL.data.model;
 
@@ -9,7 +10,8 @@ namespace mooSQL.data
     /// </summary>
     public partial class SQLBuilder
     {
-        private bool _scriptTemplateCacheEnabled;
+        // TEMP: 业务侧大测临时默认开启；测完请改回 false。
+        private bool _scriptTemplateCacheEnabled = true;
 
         /// <summary>本次门面实例的模板缓存命中次数（单测/诊断）。</summary>
         public int ScriptTemplateCacheHits { get; private set; }
@@ -18,8 +20,8 @@ namespace mooSQL.data
         public int ScriptTemplateCacheMisses { get; private set; }
 
         /// <summary>
-        /// 启用/关闭 toSelect 执行模板缓存（默认关闭，不影响既有行为）。
-        /// 存储走与 setCache / query 相同的 cacheHolder。
+        /// 启用/关闭执行模板缓存。
+        /// TEMP: 当前默认开启便于业务测试；正式默认应为关闭。
         /// </summary>
         public SQLBuilder useScriptTemplateCache(bool enabled = true)
         {
@@ -27,28 +29,64 @@ namespace mooSQL.data
             return this;
         }
 
-        /// <summary>toSelect：可选冷热分流；未启用时等价于 runBuild + Inner.toSelect。</summary>
+        /// <summary>toSelect：可选冷热分流。</summary>
         public SQLCmd toSelect()
+        {
+            return ToCached(
+                ScriptCacheKey.BuildKindToSelect,
+                QueryType.Select,
+                () => _inner.toSelect());
+        }
+
+        /// <summary>toInsert：可选冷热分流。</summary>
+        public SQLCmd toInsert()
+        {
+            return ToCached(
+                ScriptCacheKey.BuildKindToInsert,
+                QueryType.Insert,
+                () => _inner.toInsert());
+        }
+
+        /// <summary>toUpdate：可选冷热分流。</summary>
+        public SQLCmd toUpdate()
+        {
+            return ToCached(
+                ScriptCacheKey.BuildKindToUpdate,
+                QueryType.Update,
+                () => _inner.toUpdate());
+        }
+
+        /// <summary>toDelete：可选冷热分流。</summary>
+        public SQLCmd toDelete()
+        {
+            return ToCached(
+                ScriptCacheKey.BuildKindToDelete,
+                QueryType.Delete,
+                () => _inner.toDelete());
+        }
+
+        private SQLCmd ToCached(string buildKind, QueryType queryType, System.Func<SQLCmd> coldBuild)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.toSelect();
+                return coldBuild();
             }
 
-            var key = BuildScriptCacheKey(ScriptCacheKey.BuildKindToSelect);
+            var key = BuildScriptCacheKey(buildKind);
             var holder = _inner.cacheHolder;
             var cached = holder.Get<ScriptTemplate>(key);
-            if (cached != null && TryBindHotSelect(cached, out var hot))
+            if (cached != null && TryBindHot(cached, queryType, out var hot))
             {
                 ScriptTemplateCacheHits++;
                 _dirty = false;
+                LogScriptTemplateHit(key, cached, hot);
                 return hot;
             }
 
             ScriptTemplateCacheMisses++;
             runBuild();
-            var cmd = _inner.toSelect();
+            var cmd = coldBuild();
             TryStoreScriptTemplate(key, holder, cmd);
             return cmd;
         }
@@ -61,7 +99,62 @@ namespace mooSQL.data
             return ScriptCacheKey.Format(OrchestrationHash, dbType, buildKind, _inner.paraSeed);
         }
 
-        private bool TryBindHotSelect(ScriptTemplate template, out SQLCmd cmd)
+        /// <summary>TEMP: 控制台打印命中详情（壳 SQL + StaticSlot 桥接键值 + Live 占位）。</summary>
+        private void LogScriptTemplateHit(string key, ScriptTemplate template, SQLCmd hot)
+        {
+            var slotN = template.StaticSlots != null ? template.StaticSlots.Length : 0;
+            Console.WriteLine(
+                "[moo.st HIT] key={0} hits={1} slots={2} live={3} type={4} table={5}",
+                key,
+                ScriptTemplateCacheHits,
+                slotN,
+                template.LiveCount,
+                hot != null ? hot.type.ToString() : "",
+                hot != null ? (hot.TargetTable ?? "") : "");
+            Console.WriteLine("[moo.st HIT] sql={0}", hot != null ? (hot.sql ?? "") : "");
+
+            if (template.StaticSlots != null && hot != null && hot.para != null)
+            {
+                for (int i = 0; i < template.StaticSlots.Length; i++)
+                {
+                    var slot = template.StaticSlots[i];
+                    var name = slot.NameInTemplate ?? "";
+                    var p = hot.para.GetParameter(name);
+                    var val = p != null ? p.val : null;
+                    Console.WriteLine(
+                        "[moo.st HIT] slot[{0}] id={1} key={2} val={3}",
+                        i,
+                        slot.SlotId,
+                        name,
+                        FormatLogValue(val));
+                }
+            }
+
+            if (template.LiveCount > 0 && hot != null && hot.para != null && hot.para.DelayParas != null)
+            {
+                for (int i = 0; i < hot.para.DelayParas.Count; i++)
+                {
+                    var lp = hot.para.DelayParas[i];
+                    Console.WriteLine(
+                        "[moo.st HIT] live[{0}] ph={1} type={2}",
+                        i,
+                        lp != null ? lp.PlaceHolder : "",
+                        lp != null ? lp.GetType().Name : "");
+                }
+            }
+        }
+
+        private static string FormatLogValue(object val)
+        {
+            if (val == null) return "<null>";
+            if (val == DBNull.Value) return "<DBNull>";
+            var s = val.ToString() ?? "";
+            if (s.Length > 200)
+                return s.Substring(0, 200) + "...(len=" + s.Length + ")";
+            return s;
+        }
+
+        private bool TryBindHot(ScriptTemplate template, QueryType queryType, out SQLCmd cmd)
         {
             cmd = null;
             if (template == null || string.IsNullOrEmpty(template.ShellSql))
@@ -88,10 +181,27 @@ namespace mooSQL.data
                 ps.AddDelayPara(lives[i]);
 
             cmd = new SQLCmd(template.ShellSql, ps);
-            cmd.type = QueryType.Select;
-            cmd.TargetTable = _inner.current != null ? (_inner.current.tableName ?? "") : "";
+            cmd.type = queryType;
+            cmd.TargetTable = HarvestTargetTable();
             cmd.signal = _inner.Signal;
             return true;
+        }
+
+        private string HarvestTargetTable()
+        {
+            string table = null;
+            var steps = _steps;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var st = steps[i] as SetTablestringStep;
+                if (st != null && !string.IsNullOrEmpty(st.TableName))
+                    table = st.TableName;
+            }
+            if (!string.IsNullOrEmpty(table))
+                return table;
+            if (_inner.current != null)
+                return _inner.current.tableName ?? "";
+            return "";
         }
 
         /// <summary>按模板槽序从 <see cref="IStaticSlotStep"/> 收值；对不齐则返回 null（回退冷路径）。</summary>
@@ -120,8 +230,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按磁带序 CollectBind Live；复现 ifs 门控（Where 类步消费 opened）。
-        /// 未实现 <see cref="ILiveBindStep"/> 的 Live 源会导致个数对不齐并回退冷路径。
+        /// 按磁带序 CollectBind Live；复现 ifs 门控（Where/Set 类步消费 opened）。
         /// </summary>
         private List<IDelayPara> CollectLiveParas()
         {
@@ -142,7 +251,7 @@ namespace mooSQL.data
 
                 if (!opened)
                 {
-                    if (step.Kind == StepKind.Where)
+                    if (step.Kind == StepKind.Where || step.Kind == StepKind.Set)
                         opened = true;
                     continue;
                 }
@@ -166,7 +275,6 @@ namespace mooSQL.data
 
         /// <summary>
         /// 冷路径收录：静态参须全为 ms_s* 槽；可含 Live（壳未 Resolve）。
-        /// 未改造静态 API（旧 wp 名）或无法 Collect 的 Live 源不入缓存。
         /// </summary>
         private bool TryBuildScriptTemplate(SQLCmd cmd, out ScriptTemplate template)
         {
@@ -204,7 +312,6 @@ namespace mooSQL.data
                     return false;
             }
 
-            // 热路径须能 Collect 出相同个数，否则不收录（避免必 miss）
             if (liveCount > 0)
             {
                 var collected = CollectLiveParas();
@@ -221,6 +328,18 @@ namespace mooSQL.data
                 OrchestrationHash = OrchestrationHash
             };
             return true;
+        }
+
+        /// <summary>删除前守卫：磁带上是否存在 Where 步（近似内核 wherePart.Count）。</summary>
+        internal bool HasWhereStepForDelete()
+        {
+            var steps = _steps;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                if (steps[i] != null && steps[i].Kind == StepKind.Where)
+                    return true;
+            }
+            return false;
         }
     }
 }
