@@ -8,7 +8,7 @@ namespace dbTest.items
         public ITable<TestEntity> Items => this.GetTable<TestEntity>();
         public AppDataConnection() : base(new DataOptions().UseConnectionString(ProviderName.SQLite, ITest.sqlLiteDb)) { }
     }
-    internal class LinqToDbTest : ITest
+    public class LinqToDbTest : ITest
     {
         AppDataConnection getDb()
         {

@@ -7,7 +7,7 @@ using Microsoft.Data.Sqlite;
 using RepoDb;
 namespace dbTest.items
 {
-    class RepoDbTest : ITest
+    public class RepoDbTest : ITest
     {
         public RepoDbTest()
         {

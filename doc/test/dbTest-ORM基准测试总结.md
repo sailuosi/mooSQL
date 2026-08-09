@@ -7,6 +7,52 @@
 > 场景：SQLite，`Take(100)` 查询与映射  
 > mooSQL 适配器：`MooSqlBuilderTest`（`useSQL`）/ `MooSqlClipTest`（`useClip`）/ `MooSqlQueryableTest`（`useQueryable`）
 
+## 参与对照的 ORM / 访问层简介
+
+本报告成绩表中的 `ProvideType` 对应 `Tests/TestFast/dbTest/items` 下适配器。统一库为 **SQLite**（`Microsoft.Data.Sqlite`），场景覆盖：强类型映射、匿名投影、条件→SQL、方法条件→SQL、循环主键查询、多段 Join→SQL。包版本以工程 [`dbTest2.csproj`](../../Tests/TestFast/dbTest/dbTest2.csproj) 为准（随 NuGet 升级可能变化）。
+
+### 一览
+
+
+| ProvideType           | 产品 / 库                         | 类型定位              | 本工程引用（约）                                      | 本基准中的角色                                                                 |
+| --------------------- | ------------------------------ | ----------------- | ---------------------------------------------- | ----------------------------------------------------------------------- |
+| **MooSqlBuilderTest** | **mooSQL** `useSQL` / SQLBuilder | 链式 SQL 构建 + 映射    | 本仓库 `mooSQL.Ext` **8.1.2.3**                   | 字符串列名/条件，动态拼 SQL 标杆；Condition/Join 常最快                                   |
+| **MooSqlClipTest**    | **mooSQL** `useClip` / SQLClip   | 实体别名 + Lambda 糖   | 同上                                             | 类型安全窄 API；落到 SQLBuilder，成本介于 Builder 与完整 IQueryable 之间                  |
+| **MooSqlQueryableTest** | **mooSQL** Ext `useQueryable`  | 标准 `IQueryable` LINQ | 同上                                          | 对标 EF/Chloe 写法；L1/L2 优化后多数场景可竞争；Loop 开模板缓存轮曾 NA                         |
+| **DapperTest**        | **Dapper**                     | 微 ORM（手写 SQL + 映射） | NuGet `Dapper` **2.1.66**                      | 执行/映射薄封装标杆；Condition/Join/Method 多为空实现，不参与 ToSql 对比                     |
+| **ChloeTest**         | **Chloe**                      | 轻量 LINQ ORM       | `Chloe.SQLite` **5.55.0**                      | 表达式→SQL 与 Join 构建的常见对照标杆                                                |
+| **MyTest**            | **CRL**（`CRL.Data`）            | 国内轻量 ORM / 仓储风格   | `CRL.Data` **6.5.12**                          | 表中常标 MyTest(CRL)；分配常偏低，Condition/Join 与 Chloe 同档对照                      |
+| **FreeSqlTest**       | **FreeSql**                    | 功能型 ORM（CodeFirst 等） | `FreeSql.Provider.Sqlite` **3.5.x**          | 完整 LINQ/链式查询；多数场景中档偏慢                                                   |
+| **SqlSugarTest**      | **SqlSugar**                   | 功能型 ORM           | `SqlSugarCore` **5.1.4.x-preview**             | 国内常用；本基准多项偏慢、分配偏高                                                       |
+| **EfSqlliteTest**     | **EF Core**                    | 完整 ORM / 变更跟踪     | `Microsoft.EntityFrameworkCore.Sqlite` **8.0 preview** | 重量级对照；Join 适配器长期空实现（~20 ns），解读时需排除                                      |
+| **FastFrameworkTest** | **Fast.Framework**             | 第三方 ORM（本地 dll）   | `ref/Fast.Framework.dll`                       | 本基准多项最慢档之一；Join/Loop 成本高                                                 |
+| **LinqToDbTest**      | **LINQ to DB**（linq2db）      | LINQ ORM              | `linq2db` **6.2.0**                            | 已改为 `public` 参与发现；历史主成绩表未收录，重跑后可见                                 |
+| **RepoDbTest**        | **RepoDB**                     | 微 ORM / 动态查询       | `RepoDb.Sqlite.Microsoft` **1.13.2-alpha1**    | 已改为 `public` 参与发现；Result 映射曾有 `F_Bool` 类型问题，重跑时留意 NA/失败           |
+
+
+### 按形态分组（读表时用）
+
+1. **手写 / 薄映射**：Dapper；RepoDB；mooSQL **Builder**（显式 SQL 形状）。  
+2. **窄 Lambda / 轻 ORM**：mooSQL **Clip**；Chloe；CRL（MyTest）。  
+3. **完整 IQueryable / 重 ORM**：mooSQL **Queryable**；LINQ to DB；EF Core；FreeSql；SqlSugar；Fast.Framework。  
+
+同表横向对比时注意：**ToSql 场景**（Condition / MethodCondition / Join）与 **执行+映射**（Result / Loop）口径不同；Dapper、EF（Join）等空实现行 **无业务意义**，文中各方法已单独标注。
+
+### 各库一句话
+
+- **mooSQL**：本仓库产品。三路径共用同一连接与方言栈——Builder 拼串、Clip 实体糖、Queryable 走 Ext LINQ（Statement/Clause）。近年重点优化 Queryable 计划缓存（L1/L2）与 SQLBuilder 执行模板缓存。  
+- **Dapper**：微软生态最常用微 ORM；SQL 自管、映射极轻，适合当「执行下限」参照。  
+- **Chloe**：国产轻量 LINQ ORM，API 接近 `IQueryable`，Join/条件构建成本低，常作 Expression 组标杆。  
+- **CRL**：国产 ORM（本适配器类名 `MyTest`），仓储/关系配置风格；本基准分配往往最省之一。  
+- **FreeSql**：国产全功能 ORM，Provider 多、API 面大；基准中稳定中后段。  
+- **SqlSugar**：国产全功能 ORM，生态与文档丰富；本基准多项时间与分配偏高。  
+- **EF Core**：微软官方 ORM，能力最全、抽象最重；本项用 Sqlite Provider，作重量级对照。  
+- **Fast.Framework**：基准工程本地引用的第三方框架；多项场景垫底，用于拉长对比轴。  
+- **LINQ to DB**：.NET LINQ ORM（`linq2db`）；适配器原为 `internal`，已改为 public 纳入 BDN。  
+- **RepoDB**：微 ORM，手写 SQL / 表达式查询；适配器原为 internal，已改为 public；部分场景实现较简（Join 空），重跑时注意映射兼容性。
+
+---
+
 ## 结果表格列说明
 
 时间单位常见为 ns（纳秒）、us/μs（微秒）、ms（毫秒）。内存：`1 KB = 1024 B`（BenchmarkDotNet 托管分配统计）。
