@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.whereInGuid(...).</summary>
+    /// <summary>对应 SQLBuilder.whereInGuid(...)。</summary>
     public sealed class WhereInGuidstringEnumstringStep : WhereListStep
     {
         public override int Id { get { return 196712; } }
@@ -15,6 +15,10 @@ namespace mooSQL.data
             _OIDs = OIDs;
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereInGuid(Key, _OIDs);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_OIDs == null) return;
+            builder.Inner.whereLive(new DelayWhereInGuid(Key, _OIDs));
+        }
     }
 }

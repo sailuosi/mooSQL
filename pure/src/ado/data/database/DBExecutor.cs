@@ -169,6 +169,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public ExeContext prepare(SQLCmd cmd)
         {
+            if (cmd?.para != null)
+                cmd.sql = cmd.para.ResolveDelayParas(cmd.sql);
+
             if (this.Context == null) { 
                 this.Context = NewContext();
             }
@@ -177,6 +180,7 @@ namespace mooSQL.data
             Context.cmd.repairParas(DBLive.expression.paraPrefix);
             return Context;
         }
+
         /// <summary>
         /// 开启事务，此时默认将保持打开状态，必须调用commit或rollback来提交事务。
         /// </summary>

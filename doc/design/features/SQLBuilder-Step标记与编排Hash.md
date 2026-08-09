@@ -43,7 +43,7 @@
 
 1. 链式调用后、`toSelect` 前：`SelectFragmentCount` / `FromFragmentCount` / `WhereConditionCount` / `OrderByCount` / `GroupByCount` / `HavingCount` / `SetColumnCount` 等可读且 **不触发** `runBuild`。  
 2. 两次编排步骤种类、顺序、编排结构量相同，且各步 **HasSql 0-1** 一致，仅参数值内容不同：`OrchestrationHash` **相同**。  
-3. 编排步骤差异，或 **HasSql 从 0↔1**（如空 In vs 非空 In）：Hash **不同**。  
+3. 编排步骤差异，或 **HasSql 从 0↔1**（如 null In 跳过 vs 有集合），或同为 HasSql=1 但空/非空形状位不同（P5：空 IN→`1=2`）：Hash **不同**。  
 4. 嵌套子查询 / UNION：子队列参与父 Hash（含子步 HasSql）。  
 5. 不要求同 Hash ⇒ 最终 SQL 逐字相同（优化细节交后续层）；**要求**同 Hash ⇒ 「哪些步贡献了 SQL」一致。  
 6. 与 [延迟构造文档](./SQLBuilder-延迟构造重构.md) 的 `Enqueue` / `clear` / `ifs` 门控约定兼容。
@@ -236,7 +236,9 @@ public int OrchestrationHash
 |------|--------|------|
 | 正常 `where` / `from` / `select` 等会写出片段 | **1** | |
 | 控制步（`and`/`or`/`sink`/`rise`…）本身无独立 SQL 文本 | **0** | 仍靠 `StepId` 区分控制流；结构靠 0-1 + Id |
-| 空集合 `whereIn`、空/空白原始片段等导致 Apply 时不落 SQL | **0** | **与非空（1）必须 Hash 不同**；只判有无，不 Combine 元素 |
+| `whereIn` **null** 集合（跳过，无 SQL） | **0** | 与「有集合」必须 Hash 不同 |
+| `whereIn` **空集合**（仍落 SQL，如 IN→`1=2`，见延迟参数 P5） | **1** | 另加空/非空形状位 `0\|1`，与非空区分；不 Combine 元素 |
+| 空/空白原始片段等导致 Apply 时不落 SQL | **0** | 只判有无，不 Combine 正文 |
 | `clear*` | 按约定：清除动作本身可记 **0**（无新增 SQL）或单独依赖 `StepId`；推荐 **0** + 独特 `Id` | |
 | 子查询父步 | 父步自身占位为 **1**（会嵌入子 SQL）；子磁带另算各子步 HasSql | |
 
@@ -290,20 +292,22 @@ bool HasSql { get; }  // 或在 ContributeHash 内联计算，不必强制接口
 | **`op`、`connector`、`paramed`** | **是** | 步骤调用上的结构定义 |
 | 原始 SQL 片段字符串本身 | **是**（若 HasSql=1） | 编排结构；HasSql=0 时可跳过正文 Combine |
 | **运行时 `val` 内容** | **否** | 不考虑参数内容 |
-| **`whereIn` 元素** | **否** | 仅用「空/非空」→ HasSql |
-| `whereIn` 非空时的具体长度 | **否** | 长度细节交后续层；**空 vs 非空**已由 HasSql 覆盖 |
+| **`whereIn` 元素** | **否** | null→HasSql=0；非 null→HasSql=1 + 空/非空形状位 |
+| `whereIn` 非空时的具体长度 | **否** | 长度细节交后续层；**空 vs 非空**由形状位覆盖（非靠 HasSql  alone） |
 | `skip`/`take`/`setPage` | **是** | 编排结构量 |
 | 子步骤列表 | **是** | 每子步各自含 HasSql 0-1 |
 
-**whereIn 示例**
+**whereIn 示例**（与 [延迟参数解析 P5](./SQLBuilder-延迟参数解析.md) / `WhereListStep` 对齐）
 
 ```csharp
-bool hasSql = _values != null && /* 存在至少一个元素 */ ;
+if (_values == null && paraRule != "all") {
+    hc.Add(Id); hc.Add(0); hc.Add(_key); // 跳过：无 SQL
+    return;
+}
 hc.Add(Id);
-hc.Add(hasSql ? 1 : 0);
+hc.Add(1);              // 空集合仍有 SQL（IN→1=2）
 hc.Add(_key);
-hc.Add("IN");
-// 不 Combine 元素或 Count
+hc.Add(CollectionHasAny(_values) ? 1 : 0); // 形状位，不 Combine 元素
 ```
 
 ```csharp
@@ -428,7 +432,7 @@ pure/src/ado/builder/
 | S4 | `clearWhere` | `_where==0`；TapeHash 变 |
 | S5 | 仅改 where / set 的 val（仍有 SQL） | Hash **相同**（HasSql 仍为 1） |
 | S5b | `whereIn` 非空集合之间改内容/长度 | Hash **相同**（HasSql 均为 1） |
-| S5c | `whereIn` **空集合 vs 非空** | Hash **不同**（HasSql 0 vs 1） |
+| S5c | `whereIn` **空集合 vs 非空** | Hash **不同**（同为 HasSql=1，形状位 0 vs 1；null 跳过则为 HasSql=0） |
 | S5d | `paramed:false` 仅改 val（仍产出 SQL） | Hash **相同** |
 | S6 | 改 op / 列名 / `paramed` 开关 | Hash **不同** |
 | S6b | 控制步 `and`（HasSql=0）vs 条件 `where`（HasSql=1） | Hash **不同** |
@@ -463,7 +467,7 @@ pure/src/ado/builder/
 | M4 | StepId 形态 | **`int` 常量，性能优先** | **已锁定** |
 | M5 | Hash 视图 | TapeHash only | **建议锁定** |
 | M6 | 编排结构量 | **`op` / `paramed` 等进 Hash**；参数**值内容**不进 | **已锁定** |
-| M6b | `whereIn` 值 | 元素与具体长度不进 Hash；**空/非空 → HasSql 0/1** | **已锁定** |
+| M6b | `whereIn` 值 | 元素与具体长度不进 Hash；**null→HasSql=0；非 null→HasSql=1 + 空/非空形状位**（P5） | **已锁定** |
 | M6c | Hash 职责边界 | 保证编排步骤相同 + **有无 SQL 的结构一致**；参数优化文本细节交后续模型+缓存 | **已锁定** |
 | M6d | `HasSql` 0-1 | **每步必须**将「是否产出 SQL 文本」纳入 Hash；编排期可判定，与 Apply 跳过对齐 | **已锁定** |
 | M7 | `IStep` 变更方式 | 优先扩接口 | 待确认 |

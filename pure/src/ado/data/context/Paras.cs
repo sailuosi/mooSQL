@@ -41,14 +41,61 @@ namespace mooSQL.data
             }
         }
         /// <summary>
-        /// 清空参数，重置格式化计数器
+        /// 延迟参数转换体；由 <see cref="ResolveDelayParas"/> 在执行准备期解析。
+        /// </summary>
+        public List<IDelayPara> DelayParas { get; private set; } = new List<IDelayPara>();
+
+        private bool _delayResolved;
+
+        /// <summary>
+        /// 登记延迟体：按当前集合大小固化 PlaceHolder，并绑定 Owner。
+        /// </summary>
+        public void AddDelayPara(IDelayPara live)
+        {
+            if (live == null) return;
+            live.BindPlaceHolder(DelayParas.Count);
+            live.BindOwner(this);
+            DelayParas.Add(live);
+            _delayResolved = false;
+        }
+
+        /// <summary>
+        /// 遍历 <see cref="DelayParas"/>：<see cref="IDelayPara.Run"/> 写本实例 value，并替换 sql 中的 PlaceHolder。
+        /// 由 <c>DBExecutor.prepare</c> 在 reset 前调用。
+        /// </summary>
+        public string ResolveDelayParas(string sql)
+        {
+            if (DelayParas == null || DelayParas.Count == 0)
+                return sql ?? "";
+            if (_delayResolved)
+                return sql ?? "";
+
+            var text = sql ?? "";
+            for (int i = 0; i < DelayParas.Count; i++)
+            {
+                var lp = DelayParas[i];
+                if (lp == null) continue;
+                lp.BindOwner(this);
+                var frag = lp.Run();
+                if (!string.IsNullOrEmpty(lp.PlaceHolder))
+                    text = text.Replace(lp.PlaceHolder, frag ?? "");
+            }
+            _delayResolved = true;
+            return text;
+        }
+
+        /// <summary>
+        /// 清空参数，重置格式化计数器与延迟体集合
         /// </summary>
         public void Clear()
         {
-
             this.value.Clear();
             this.fmtIndex = 0;
+            if (DelayParas != null)
+                DelayParas.Clear();
+            _delayResolved = false;
         }
+
         /// <summary>
         /// 添加一个SQL参数,这个参数的变量名，必须是增加了数据库变量方言的合法变量名。
         /// </summary>
@@ -141,7 +188,20 @@ namespace mooSQL.data
                     value.Add(kv.Key, kv.Value); 
                 }
             }
+            DelayParas.Clear();
+            if (src.DelayParas != null && src.DelayParas.Count > 0)
+            {
+                for (int i = 0; i < src.DelayParas.Count; i++)
+                {
+                    var lp = src.DelayParas[i];
+                    if (lp == null) continue;
+                    lp.BindOwner(this);
+                    DelayParas.Add(lp);
+                }
+            }
+            _delayResolved = false;
         }
+
 
         private int fmtIndex = 0;
         private string paraPrefix = "psfmt_";

@@ -163,6 +163,22 @@ namespace mooSQL.data {
             current.where(key, null, "", false);
             return this;
         }
+
+        /// <summary>
+        /// 推入延迟参数占位：登记到 <see cref="Paras.DelayParas"/>，并以 PlaceHolder 作为 where 条件壳。
+        /// </summary>
+        public StepBuilder whereLive(IDelayPara live)
+        {
+            if (!opened)
+            {
+                opened = true;
+                return this;
+            }
+            if (live == null) return this;
+            if (ps == null) ps = new Paras();
+            ps.AddDelayPara(live);
+            return where(live.PlaceHolder);
+        }
         /// <summary>
         /// 添加一个 where is null
         /// </summary>

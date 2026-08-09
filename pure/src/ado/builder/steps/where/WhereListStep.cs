@@ -4,7 +4,7 @@ namespace mooSQL.data
 {
     /// <summary>
     /// whereIn / whereNotIn / whereInGuid 等「key + 集合」步骤基类：
-    /// Kind=Where；ContributeHash 按 paraRule 判空写入 0|1，不含元素内容。
+    /// Kind=Where；null 集合 HasSql=0；非 null（含空集合）HasSql=1，并以空/非空形状位区分（P5）。
     /// </summary>
     public abstract class WhereListStep : StepBase
     {
@@ -19,6 +19,9 @@ namespace mooSQL.data
             _values = values;
         }
 
+        /// <summary>集合引用（供子类 Apply 判定 null）。</summary>
+        protected IEnumerable Values { get { return _values; } }
+
         public sealed override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -29,17 +32,20 @@ namespace mooSQL.data
                 return;
             }
 
-            bool emit;
-            if (paraRule == "all")
-                emit = true;
-            else if (paraRule == "notNull")
-                emit = _values != null;
-            else
-                emit = CollectionHasAny(_values);
+            // null：忽略（无 SQL）；空集合仍有 SQL（IN→1=2 等），HasSql=1
+            if (_values == null && paraRule != "all")
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(Key);
+                return;
+            }
 
             hc.Add(Id);
-            hc.Add(emit ? 1 : 0);
+            hc.Add(1);
             hc.Add(Key);
+            // 结构形状：空 vs 非空（不 Combine 元素内容）
+            hc.Add(CollectionHasAny(_values) ? 1 : 0);
         }
     }
 }

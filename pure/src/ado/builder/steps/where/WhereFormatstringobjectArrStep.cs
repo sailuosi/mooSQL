@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.whereFormat(...).</summary>
+    /// <summary>对应 SQLBuilder.whereFormat(...)。</summary>
     public sealed class WhereFormatstringobjectArrStep : StepBase
     {
         public override int Id { get { return 196699; } }
@@ -18,6 +14,7 @@ namespace mooSQL.data
             _template = template;
             _values = values;
         }
+
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
         {
             if (!ConsumeOpened(ref opened))
@@ -27,11 +24,18 @@ namespace mooSQL.data
                 hc.Add(_template);
                 return;
             }
-            var emit = true;
             hc.Add(Id);
-            hc.Add(emit ? 1 : 0);
+            hc.Add(1);
             hc.Add(_template);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.whereFormat(_template, _values);
+
+        public override void Apply(SQLBuilder builder)
+        {
+            var inner = builder.Inner;
+            var g = inner.current;
+            var dbstr = g != null ? g.dbstr : "";
+            var prefix = g != null ? g.getMyPrefixKey() : "";
+            inner.whereLive(new DelayWhereFormat(_template, _values, dbstr, prefix));
+        }
     }
 }
