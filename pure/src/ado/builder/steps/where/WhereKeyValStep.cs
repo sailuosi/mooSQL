@@ -19,6 +19,9 @@ namespace mooSQL.data
         public int? StaticSlotId { get; private set; }
 
         /// <inheritdoc />
+        public string StaticSlotName { get; private set; }
+
+        /// <inheritdoc />
         public object StaticSlotValue { get { return _val; } }
 
         public WhereKeyValStep(string key, object val)
@@ -28,11 +31,20 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 与 ContributeHash 的 Opened 消费 + paraRule 对齐后占槽。
+        /// 与 ContributeHash 的 Opened 消费 + paraRule 对齐后占槽，并烘焙含 seed 的物理名。
         /// </summary>
-        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        internal void TryAssignStaticSlot(
+            string paraRule,
+            ref bool opened,
+            ref int nextStaticSlot,
+            string paraSeed,
+            string groupParamPrefix)
         {
             StaticSlotId = TryAllocStaticSlotId(paraRule, _val, true, ref opened, ref nextStaticSlot);
+            if (StaticSlotId != null)
+                StaticSlotName = StaticSlotMarks.FormatWhereName(paraSeed, groupParamPrefix, StaticSlotId.Value);
+            else
+                StaticSlotName = null;
         }
 
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
@@ -52,9 +64,9 @@ namespace mooSQL.data
 
         public override void Apply(SQLBuilder builder)
         {
-            if (StaticSlotId != null)
+            if (StaticSlotId != null && !string.IsNullOrEmpty(StaticSlotName))
             {
-                builder.Inner.whereWithSlot(_key, _val, StaticSlotId.Value);
+                builder.Inner.whereWithSlot(_key, _val, StaticSlotName);
                 return;
             }
             builder.Inner.where(_key, _val);

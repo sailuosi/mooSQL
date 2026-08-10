@@ -11,13 +11,22 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="BenchmarkDotNet.Annotations" Version="0.15.8" />
     <PackageReference Include="Chloe.SQLite" Version="5.56.0" />
+    <PackageReference Include="Core.ORM" Version="2.0.58" />
+    <PackageReference Include="Core.ORM.Sqlite" Version="2.0.58" />
     <PackageReference Include="CRL.Data" Version="6.5.12" />
     <PackageReference Include="Dapper" Version="2.1.79" />
     <PackageReference Include="FreeSql.Provider.Sqlite" Version="3.5.311" />
     <PackageReference Include="linq2db" Version="6.4.0" />
+    <PackageReference Include="NHibernate" Version="5.7.0" />
+    <PackageReference Include="NPoco" Version="6.2.0" />
     <PackageReference Include="RepoDb.Sqlite.Microsoft" Version="1.15.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+    <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="10.0.8" />
+    <PackageReference Include="SmartSql" Version="4.2.0" />
+    <PackageReference Include="SqlKata" Version="4.0.1" />
+    <PackageReference Include="SqlKata.Execution" Version="4.0.1" />
     <PackageReference Include="SqlSugarCore" Version="5.1.4.216" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\ext\mooSQL.Ext.csproj" />
@@ -26,6 +35,13 @@
     <Reference Include="Fast.Framework">
       <HintPath>ref\Fast.Framework.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- ref/ 下可能有本地探测工程，勿编入本基准程序集 -->
+    <Compile Remove="ref\**\*" />
+    <None Remove="ref\**\*" />
+    <Content Remove="ref\**\*" />
+    <EmbeddedResource Remove="ref\**\*" />
   </ItemGroup>
   <ItemGroup>
     <None Update="sqlliteTest.db">

@@ -30,13 +30,24 @@ namespace mooSQL.data
 
         public int? StaticSlotId { get; private set; }
 
+        public string StaticSlotName { get; private set; }
+
         public object StaticSlotValue { get { return EffectiveValue; } }
 
-        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        internal void TryAssignStaticSlot(
+            string paraRule,
+            ref bool opened,
+            ref int nextStaticSlot,
+            string paraSeed,
+            string groupKey)
         {
             var v = EffectiveValue;
             var writes = v != null;
             StaticSlotId = TryAllocStaticSlotId(paraRule, v, writes, ref opened, ref nextStaticSlot);
+            if (StaticSlotId != null)
+                StaticSlotName = StaticSlotMarks.FormatSetName(paraSeed, groupKey, StaticSlotId.Value);
+            else
+                StaticSlotName = null;
         }
 
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
@@ -59,9 +70,9 @@ namespace mooSQL.data
         public override void Apply(SQLBuilder builder)
         {
             var v = EffectiveValue;
-            if (StaticSlotId != null)
+            if (StaticSlotId != null && !string.IsNullOrEmpty(StaticSlotName))
             {
-                builder.Inner.setWithSlot(_key, v, StaticSlotId.Value);
+                builder.Inner.setWithSlot(_key, v, StaticSlotName);
                 return;
             }
             builder.Inner.set(_key, v, _maxLength);

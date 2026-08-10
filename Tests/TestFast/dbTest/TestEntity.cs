@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using mooSQL.data;
+using NPoco;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ using System.Threading.Tasks;
 namespace dbTest
 {
     [SooTable("TestEntity")]
+    [TableName("TestEntity")]
+    [PrimaryKey("Id")]
     public class TestEntity
     {
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]

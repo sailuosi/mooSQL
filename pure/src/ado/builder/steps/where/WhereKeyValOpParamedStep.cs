@@ -23,11 +23,23 @@ namespace mooSQL.data
         public int? StaticSlotId { get; private set; }
 
         /// <inheritdoc />
+        public string StaticSlotName { get; private set; }
+
+        /// <inheritdoc />
         public object StaticSlotValue { get { return _val; } }
 
-        internal void TryAssignStaticSlot(string paraRule, ref bool opened, ref int nextStaticSlot)
+        internal void TryAssignStaticSlot(
+            string paraRule,
+            ref bool opened,
+            ref int nextStaticSlot,
+            string paraSeed,
+            string groupParamPrefix)
         {
             StaticSlotId = TryAllocStaticSlotId(paraRule, _val, _paramed, ref opened, ref nextStaticSlot);
+            if (StaticSlotId != null)
+                StaticSlotName = StaticSlotMarks.FormatWhereName(paraSeed, groupParamPrefix, StaticSlotId.Value);
+            else
+                StaticSlotName = null;
         }
 
         public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
@@ -51,9 +63,9 @@ namespace mooSQL.data
 
         public override void Apply(SQLBuilder builder)
         {
-            if (StaticSlotId != null)
+            if (StaticSlotId != null && !string.IsNullOrEmpty(StaticSlotName))
             {
-                builder.Inner.whereWithSlot(_key, _val, StaticSlotId.Value, _op);
+                builder.Inner.whereWithSlot(_key, _val, StaticSlotName, _op);
                 return;
             }
             builder.Inner.where(_key, _val, _op, _paramed);

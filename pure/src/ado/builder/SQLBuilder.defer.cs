@@ -61,21 +61,21 @@ namespace mooSQL.data
         public SQLBuilder where(string key, object val)
         {
             var step = new WhereKeyValStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder where(string key, object val, string op)
         {
             var step = new WhereKeyValOpParamedStep(key, val, op, true);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder where(string key, object val, string op, bool paramed)
         {
             var step = new WhereKeyValOpParamedStep(key, val, op, paramed);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 

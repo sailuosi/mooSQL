@@ -101,16 +101,22 @@ LivePara     → PlaceHolder 进 shellSql；Run 产片段+可选 KV
    - `paraRule` 导致 Apply 不落参 → 编排期若判定 HasSql=0 / 不写参，则 **不分配**（与 Hash/Apply 对齐；见 §6）。  
 
 2. **谁持有**  
-   对应 `IStep` 持有 `StaticSlotId`（或 `IStaticSlotStep`）；子 builder 磁带 **独立** 编号（父/子不相混）。  
+   对应 `IStep` 持有 `StaticSlotId` / `StaticSlotName`（`IStaticSlotStep`）；子 builder 磁带 **独立** 编号（父/子不相混）。  
+   编排期在 `TryAssignStaticSlot` 时按当前 builder 的 seed/group **烘焙** `StaticSlotName`，Apply 只写该全名，避免二次计算漂移。  
 
-3. **物理名派生（建议格式，可微调用版号进 Key）**  
+3. **物理名派生（NameSchemaVersion = 2）**  
+
+对齐经典 StepBuilder 起名，纳入 **基础 seed、兄弟 seed（`paraSeed` 内的 `lvN_`）、group seed**：
 
 ```text
-{paraPrefix}ms_s{StaticSlotId}
+where：k{paraSeed}g{wherePart.paramPrefix}ms_s{StaticSlotId}
+set  ：{paraSeed}cl_{SqlGoup.key}_ms_s{StaticSlotId}
 ```
 
-示例：`@ms_s0`、`@ms_s1`（`paraPrefix` 来自方言）。  
-**禁止**热路径/冷路径再使用「`wp` + `_addCount`」为**已纳入槽位制**的步起名。
+示例（空 seed）：`@kgwh_0_ms_s0`；兄弟子查询：`@klv1_glv1_wh_1_ms_s0`。  
+方言 `@`/`#` 仍由 `WhereFrag.ToSQL` / 表达式层追加。  
+**禁止**热路径/冷路径再使用「`wp` + `_addCount`」为**已纳入槽位制**的步起名。  
+**禁止**再使用裸名 `ms_s{N}`（v1）；旧模板靠 `NameSchemaVersion` 进 Key 自然失效。
 
 4. **多值一步**  
    一步多个静态值（少见）→ 分配连续多个 Id，或一步内 `slotId + subIndex`；须在 Step 内写清，并进入 Template.staticSlots。  
@@ -242,8 +248,10 @@ Enqueue…（同样分配 StaticSlotId；用于收值与校验）
 | PlaceHolder / Live | 物化登记 | 动态片段；prepare Run |
 | ScriptTemplate | 首次冷路径后 | 可复用壳 |
 
-**子查询 `whereIn(key, Action)`：**  
-不做 LivePara、不占父级 StaticSlot（子磁带自有槽位制，若子路径启用缓存）。嵌入子 SQL 属于结构/嵌套问题，**不在本文强制范围**。
+**子查询 `whereIn(key, Action)` / B 类嵌入：**  
+不做 LivePara、不占父级 StaticSlot 序号（子磁带自有 `0,1,2…`）。  
+嵌入父 SQL 且共享 `ps` 时，物理名必须带 `paraSeed`（含兄弟 `lvN_`）与 group seed（NameSchemaVersion=2），否则父子会撞 `@ms_s0`。  
+嵌套子步暂不纳入父 `ScriptTemplate.StaticSlots` 递归收值：父槽数与 `cmd.para.Count` 对不齐时拒绝入缓存、回退冷路径（结果正确）。
 
 **HasSql=0 与槽位：**  
 不落参的步不得占用 SlotId，否则热路径收值序与壳不一致。分配规则必须与 `ContributeHash` / Apply 跳过条件一致。
@@ -268,9 +276,9 @@ pure/src/ado/builder/
     ScriptCacheKey.cs            # moo.st: 复合键
     ScriptTemplate.cs
     StaticSlot.cs
-    StaticSlotMarks.cs           # ms_s{N}；NameSchemaVersion
+    StaticSlotMarks.cs           # FormatWhereName/FormatSetName；NameSchemaVersion=2
   steps/
-    IStaticSlotStep.cs           # 热路径静态收值契约
+    IStaticSlotStep.cs           # StaticSlotId + StaticSlotName；热路径静态收值契约
     ILiveBindStep.cs             # 热路径 CollectBind Live
     where/WhereKeyCompareStep.cs # >/</>=/<=/<> 公共槽位实现
   SQLBuilder.cache.cs            # useScriptTemplateCache；toSelect 冷热分流
@@ -316,10 +324,10 @@ pure/src/ado/builder/StepBuilderDymatic.cs
 |----|------|----------|------|
 | T1 | 缓存对象 | `ScriptTemplate`（壳+StaticSlots+LiveCount） | **已锁定** |
 | T2 | 静态桥 | **方案 C**：编排期 `StaticSlotId` | **已锁定** |
-| T3 | 物理名格式 | `{paraPrefix}ms_s{SlotId}` | **已锁定**（NameSchemaVersion=1） |
+| T3 | 物理名格式 | where：`k{paraSeed}g{group}ms_s{N}`；set：`{paraSeed}cl_{key}_ms_s{N}` | **已锁定**（NameSchemaVersion=2） |
 | T4 | 命中入口 | `toSelect`/`toInsert`/`toUpdate`/`toDelete` + `useScriptTemplateCache`；`query*`/`doInsert|Update|Delete` 复用；存储 = 既有 `cacheHolder` | **已锁定**（C2/C3d/C3e） |
 | T5 | 未改造 API | 不参与缓存（冷路径不收录） | **已锁定** |
-| T6 | 子查询 In | 不做 Live/父 StaticSlot | **已锁定** |
+| T6 | 子查询 In / B 类嵌入 | 子磁带独立编号；物理名带兄弟 `lv`+group；不递归 Harvest 入父模板 | **已锁定**（v2） |
 | T7 | 热路径失败 | C2：收值对不齐则 **回退冷路径**（不抛） | **C2 默认**；可再收紧 |
 | T8 | 缓存载体 | **复用** `ISooCache` / `Client.useCache` / `setCacheHolder`，不另建 MemoryScriptCache | **已锁定** |
 

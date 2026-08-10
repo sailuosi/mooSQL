@@ -238,10 +238,12 @@ namespace mooSQL.data
             {
                 var slotStep = steps[i] as IStaticSlotStep;
                 if (slotStep == null || slotStep.StaticSlotId == null) continue;
+                if (string.IsNullOrEmpty(slotStep.StaticSlotName))
+                    return false;
                 slots.Add(new StaticSlot
                 {
                     SlotId = slotStep.StaticSlotId.Value,
-                    NameInTemplate = StaticSlotMarks.FormatName(slotStep.StaticSlotId.Value)
+                    NameInTemplate = slotStep.StaticSlotName
                 });
             }
 

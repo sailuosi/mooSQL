@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentAssertions;
 using mooSQL.data;
 using mooSQL.Pure.Tests.TestHelpers;
@@ -8,6 +9,12 @@ namespace mooSQL.Pure.Tests
     /// <summary>C2：ScriptTemplate 经 cacheHolder（同 StepBuilder UseCache）命中。</summary>
     public class SQLBuilderScriptTemplateCacheTests
     {
+        // NameSchemaVersion=2：where = k{seed}g{group}ms_s{N}；空 seed 时 group≈wh_0_
+        private static readonly string W0 = StaticSlotMarks.FormatWhereName("", "wh_0_", 0);
+        private static readonly string W1 = StaticSlotMarks.FormatWhereName("", "wh_0_", 1);
+        private static readonly string S0 = StaticSlotMarks.FormatSetName("", "0", 0);
+        private static readonly string S1 = StaticSlotMarks.FormatSetName("", "0", 1);
+
         [Fact]
         public void ToSelect_SecondBuilder_HitsSharedCacheHolder_RebindsStaticValues()
         {
@@ -21,8 +28,8 @@ namespace mooSQL.Pure.Tests
 
             a.ScriptTemplateCacheMisses.Should().Be(1);
             a.ScriptTemplateCacheHits.Should().Be(0);
-            cmdA.sql.Should().Contain("@ms_s0");
-            cmdA.para.GetParameter("ms_s0").val.Should().Be(18);
+            cmdA.sql.Should().Contain("@" + W0);
+            cmdA.para.GetParameter(W0).val.Should().Be(18);
 
             using var b = db.useSQL();
             b.setCacheHolder(shared).useScriptTemplateCache();
@@ -32,7 +39,7 @@ namespace mooSQL.Pure.Tests
             b.ScriptTemplateCacheHits.Should().Be(1);
             b.ScriptTemplateCacheMisses.Should().Be(0);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be(99);
+            cmdB.para.GetParameter(W0).val.Should().Be(99);
         }
 
         [Fact]
@@ -66,7 +73,7 @@ namespace mooSQL.Pure.Tests
             // 同编排再 toSelect：脏位已清，但仍可按编排 Key 命中
             var cmd2 = kit.toSelect();
             kit.ScriptTemplateCacheHits.Should().Be(1);
-            cmd2.para.GetParameter("ms_s0").val.Should().Be(1);
+            cmd2.para.GetParameter(W0).val.Should().Be(1);
         }
 
         [Fact]
@@ -80,8 +87,8 @@ namespace mooSQL.Pure.Tests
             a.select("id").from("t").whereGreaterThan("age", 18).whereNotEqual("flag", 0);
             var cmdA = a.toSelect();
             a.ScriptTemplateCacheMisses.Should().Be(1);
-            cmdA.sql.Should().Contain("@ms_s0");
-            cmdA.sql.Should().Contain("@ms_s1");
+            cmdA.sql.Should().Contain("@" + W0);
+            cmdA.sql.Should().Contain("@" + W1);
 
             using var b = db.useSQL();
             b.setCacheHolder(shared).useScriptTemplateCache();
@@ -89,8 +96,8 @@ namespace mooSQL.Pure.Tests
             var cmdB = b.toSelect();
             b.ScriptTemplateCacheHits.Should().Be(1);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be(30);
-            cmdB.para.GetParameter("ms_s1").val.Should().Be(1);
+            cmdB.para.GetParameter(W0).val.Should().Be(30);
+            cmdB.para.GetParameter(W1).val.Should().Be(1);
         }
 
         [Fact]
@@ -104,7 +111,7 @@ namespace mooSQL.Pure.Tests
             a.select("id").from("t").where("age", 18).whereIn("id", new[] { 1, 2 });
             var cmdA = a.toSelect();
             a.ScriptTemplateCacheMisses.Should().Be(1);
-            cmdA.sql.Should().Contain("@ms_s0");
+            cmdA.sql.Should().Contain("@" + W0);
             cmdA.sql.Should().Contain("@@{{moo.lp:0}}");
             cmdA.para.DelayParas.Count.Should().Be(1);
             var resolvedA = cmdA.para.ResolveDelayParas(cmdA.sql);
@@ -117,7 +124,7 @@ namespace mooSQL.Pure.Tests
             var cmdB = b.toSelect();
             b.ScriptTemplateCacheHits.Should().Be(1);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be(99);
+            cmdB.para.GetParameter(W0).val.Should().Be(99);
             cmdB.para.DelayParas.Count.Should().Be(1);
             var resolvedB = cmdB.para.ResolveDelayParas(cmdB.sql);
             resolvedB.Should().Contain("9");
@@ -201,10 +208,10 @@ namespace mooSQL.Pure.Tests
             a.setTable("users").set("name", "a").where("id", 1);
             var cmdA = a.toUpdate();
             a.ScriptTemplateCacheMisses.Should().Be(1);
-            cmdA.sql.Should().Contain("@ms_s0");
-            cmdA.sql.Should().Contain("@ms_s1");
-            cmdA.para.GetParameter("ms_s0").val.Should().Be("a");
-            cmdA.para.GetParameter("ms_s1").val.Should().Be(1);
+            cmdA.sql.Should().Contain("@" + S0);
+            cmdA.sql.Should().Contain("@" + W1);
+            cmdA.para.GetParameter(S0).val.Should().Be("a");
+            cmdA.para.GetParameter(W1).val.Should().Be(1);
 
             using var b = db.useSQL();
             b.setCacheHolder(shared).useScriptTemplateCache();
@@ -212,8 +219,8 @@ namespace mooSQL.Pure.Tests
             var cmdB = b.toUpdate();
             b.ScriptTemplateCacheHits.Should().Be(1);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be("b");
-            cmdB.para.GetParameter("ms_s1").val.Should().Be(9);
+            cmdB.para.GetParameter(S0).val.Should().Be("b");
+            cmdB.para.GetParameter(W1).val.Should().Be(9);
         }
 
         [Fact]
@@ -227,8 +234,8 @@ namespace mooSQL.Pure.Tests
             a.setTable("users").set("name", "a").set("age", 18);
             var cmdA = a.toInsert();
             a.ScriptTemplateCacheMisses.Should().Be(1);
-            cmdA.sql.Should().Contain("@ms_s0");
-            cmdA.sql.Should().Contain("@ms_s1");
+            cmdA.sql.Should().Contain("@" + S0);
+            cmdA.sql.Should().Contain("@" + S1);
 
             using var b = db.useSQL();
             b.setCacheHolder(shared).useScriptTemplateCache();
@@ -236,8 +243,8 @@ namespace mooSQL.Pure.Tests
             var cmdB = b.toInsert();
             b.ScriptTemplateCacheHits.Should().Be(1);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be("z");
-            cmdB.para.GetParameter("ms_s1").val.Should().Be(40);
+            cmdB.para.GetParameter(S0).val.Should().Be("z");
+            cmdB.para.GetParameter(S1).val.Should().Be(40);
         }
 
         [Fact]
@@ -251,7 +258,7 @@ namespace mooSQL.Pure.Tests
             a.setTable("users").where("id", 1);
             var cmdA = a.toDelete();
             a.ScriptTemplateCacheMisses.Should().Be(1);
-            cmdA.sql.Should().Contain("@ms_s0");
+            cmdA.sql.Should().Contain("@" + W0);
 
             using var b = db.useSQL();
             b.setCacheHolder(shared).useScriptTemplateCache();
@@ -259,7 +266,46 @@ namespace mooSQL.Pure.Tests
             var cmdB = b.toDelete();
             b.ScriptTemplateCacheHits.Should().Be(1);
             cmdB.sql.Should().Be(cmdA.sql);
-            cmdB.para.GetParameter("ms_s0").val.Should().Be(99);
+            cmdB.para.GetParameter(W0).val.Should().Be(99);
+        }
+
+        /// <summary>
+        /// 回归：父 where + whereIn(Action) 子 where 不得共用裸 ms_s0；子名须带兄弟 lv seed。
+        /// </summary>
+        [Fact]
+        public void ToSelect_ParentWhere_Plus_WhereInSubqueryWhere_DistinctSeededParams()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            using var kit = db.useSQL();
+            kit.useScriptTemplateCache(false);
+
+            kit.select("id").from("t")
+                .where("a", 1)
+                .whereIn("id", c => c
+                    .select("x")
+                    .from("sub")
+                    .where("b", 2));
+
+            var cmd = kit.toSelect();
+            cmd.sql.Should().Contain("@" + W0);
+            cmd.sql.Should().Contain("lv");
+            cmd.sql.Should().Contain("ms_s0");
+
+            // 父槽与子槽物理名不同
+            var parentKey = W0;
+            var childKeys = cmd.para.value.Keys
+                .Where(k => k != null && k.Contains("lv") && k.Contains("ms_s0"))
+                .ToList();
+            childKeys.Should().NotBeEmpty();
+            childKeys.Should().NotContain(parentKey);
+
+            cmd.para.GetParameter(parentKey).val.Should().Be(1);
+            cmd.para.GetParameter(childKeys[0]).val.Should().Be(2);
+
+            // SQL 中两处占位符不同
+            cmd.sql.Should().Contain("a = @" + parentKey);
+            cmd.sql.Should().Contain("b = @" + childKeys[0]);
+            cmd.sql.Should().NotContain("a = @" + childKeys[0]);
         }
     }
 }

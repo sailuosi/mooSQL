@@ -95,5 +95,33 @@ namespace mooSQL.data
 
         /// <summary>当前已分配槽位数（下一 Id）。</summary>
         internal int NextStaticSlotId { get { return _nextStaticSlot; } }
+
+        /// <summary>当前 where 分组 seed（WhereCollection.paramPrefix）。</summary>
+        internal string CurrentWhereGroupSeed
+        {
+            get
+            {
+                if (_inner == null || _inner.current == null || _inner.current.wherePart == null)
+                    return "";
+                return _inner.current.wherePart.paramPrefix ?? "";
+            }
+        }
+
+        /// <summary>当前 set 分组 key（SqlGoup.key）。</summary>
+        internal string CurrentSetGroupKey
+        {
+            get
+            {
+                if (_inner == null || _inner.current == null)
+                    return "";
+                return _inner.current.key ?? "";
+            }
+        }
+
+        /// <summary>当前内核 paraSeed（含兄弟 lvN_）。</summary>
+        internal string CurrentParaSeed
+        {
+            get { return _inner != null ? (_inner.paraSeed ?? "") : ""; }
+        }
     }
 }

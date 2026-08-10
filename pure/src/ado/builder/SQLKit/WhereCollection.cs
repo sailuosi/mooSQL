@@ -120,7 +120,7 @@ namespace mooSQL.data
         {
             steps.add(() => WhereStep.OfAddFrag(frag));           
             //field.
-            // 已预设 paramKey（如编排期 StaticSlotId → ms_sN）则不覆盖
+              // 已预设 paramKey（如编排期 StaticSlotName → k{seed}g{group}ms_sN）则不覆盖
             if (frag.paramed && string.IsNullOrEmpty(frag.paramKey))
             {
                 frag.paramKey = string.Format("k{0}g{1}wp{2}", root.paraSeed, paramPrefix, this._addCount);

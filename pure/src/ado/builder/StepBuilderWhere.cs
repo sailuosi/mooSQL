@@ -1385,17 +1385,17 @@ namespace mooSQL.data {
         }
 
         /// <summary>
-        /// 使用编排期 <see cref="StaticSlotMarks"/> 槽位名写入 where（paramKey 已定，addFrag 不再改名）。
+        /// 使用编排期烘焙的槽位全名写入 where（paramKey 已定，addFrag 不再改名）。
         /// </summary>
-        public StepBuilder whereWithSlot(string key, object val, int staticSlotId)
+        public StepBuilder whereWithSlot(string key, object val, string staticSlotName)
         {
-            return whereWithSlot(key, val, staticSlotId, "=");
+            return whereWithSlot(key, val, staticSlotName, "=");
         }
 
         /// <summary>
-        /// 使用编排期槽位名写入 where（可指定比较符）。
+        /// 使用编排期槽位全名写入 where（可指定比较符）。
         /// </summary>
-        public StepBuilder whereWithSlot(string key, object val, int staticSlotId, string op)
+        public StepBuilder whereWithSlot(string key, object val, string staticSlotName, string op)
         {
             if (!opened)
             {
@@ -1409,9 +1409,31 @@ namespace mooSQL.data {
             field.value = val;
             field.paramed = true;
             field.op = string.IsNullOrEmpty(op) ? "=" : op;
-            field.paramKey = StaticSlotMarks.FormatName(staticSlotId);
+            field.paramKey = staticSlotName;
             current.where(field);
             return this;
+        }
+
+        /// <summary>
+        /// 兼容：按当前 paraSeed / group 派生 where 槽位名后写入。
+        /// </summary>
+        public StepBuilder whereWithSlot(string key, object val, int staticSlotId)
+        {
+            var group = current != null && current.wherePart != null
+                ? current.wherePart.paramPrefix
+                : "";
+            return whereWithSlot(key, val, StaticSlotMarks.FormatWhereName(paraSeed, group, staticSlotId), "=");
+        }
+
+        /// <summary>
+        /// 兼容：按当前 paraSeed / group 派生 where 槽位名后写入（可指定比较符）。
+        /// </summary>
+        public StepBuilder whereWithSlot(string key, object val, int staticSlotId, string op)
+        {
+            var group = current != null && current.wherePart != null
+                ? current.wherePart.paramPrefix
+                : "";
+            return whereWithSlot(key, val, StaticSlotMarks.FormatWhereName(paraSeed, group, staticSlotId), op);
         }
         /// <summary>
         /// whereGreaterThan 方法（返回 StepBuilder）。

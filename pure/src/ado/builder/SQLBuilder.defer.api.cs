@@ -67,14 +67,14 @@ namespace mooSQL.data
         public SQLBuilder set(string key, string value, int maxLength)
         {
             var step = new SetstringstringintStep(key, value, maxLength);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
         public SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
             var step = new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
@@ -83,28 +83,28 @@ namespace mooSQL.data
         public SQLBuilder setI(string key, object val)
         {
             var step = new SetIstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
         public SQLBuilder setI(string key, object val, bool paramed)
         {
             var step = new SetIstringobjectboolStep(key, val, paramed);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
         public SQLBuilder setU(string key, object val)
         {
             var step = new SetUstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
         public SQLBuilder setU(string key, object val, bool paramed)
         {
             var step = new SetUstringobjectboolStep(key, val, paramed);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
 
@@ -256,35 +256,35 @@ namespace mooSQL.data
         public SQLBuilder whereGreaterThan(string key, object val)
         {
             var step = new WhereGreaterThanstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder whereLessThan(string key, object val)
         {
             var step = new WhereLessThanstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder whereGreaterThanOrEqual(string key, object val)
         {
             var step = new WhereGreaterThanOrEqualstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder whereLessThanOrEqual(string key, object val)
         {
             var step = new WhereLessThanOrEqualstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
         public SQLBuilder whereNotEqual(string key, object val)
         {
             var step = new WhereNotEqualstringobjectStep(key, val);
-            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 

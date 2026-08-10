@@ -84,7 +84,22 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 使用编排期 <see cref="StaticSlotMarks"/> 槽位名写入 set（paramKey 已定，不再用 cl_ 计数起名）。
+        /// 使用编排期烘焙的槽位全名写入 set（paramKey 已定，不再用 cl_ 计数起名）。
+        /// </summary>
+        public StepBuilder setWithSlot(
+            string key,
+            object val,
+            string staticSlotName,
+            bool paramed = true,
+            Type type = null,
+            bool updatable = true,
+            bool insertable = true)
+        {
+            return setCore(key, val, paramed, type, updatable, insertable, staticSlotName);
+        }
+
+        /// <summary>
+        /// 兼容：按当前 paraSeed / groupKey 派生 set 槽位名后写入。
         /// </summary>
         public StepBuilder setWithSlot(
             string key,
@@ -95,7 +110,9 @@ namespace mooSQL.data
             bool updatable = true,
             bool insertable = true)
         {
-            return setCore(key, val, paramed, type, updatable, insertable, staticSlotId);
+            var groupKey = current != null ? current.key : "";
+            var name = StaticSlotMarks.FormatSetName(paraSeed, groupKey, staticSlotId);
+            return setCore(key, val, paramed, type, updatable, insertable, name);
         }
 
         private StepBuilder setCore(
@@ -105,7 +122,7 @@ namespace mooSQL.data
             Type type,
             bool updatable,
             bool insertable,
-            int? staticSlotId)
+            string staticSlotName)
         {
             if (!opened)
             {
@@ -134,11 +151,11 @@ namespace mooSQL.data
                 field.setValue(current.RowIndex, val, type, paramed, updatable, insertable);
             }
 
-            if (staticSlotId != null && paramed && val != null && val != DBNull.Value)
+            if (!string.IsNullOrEmpty(staticSlotName) && paramed && val != null && val != DBNull.Value)
             {
                 var pair = field.values[current.RowIndex];
                 if (pair != null)
-                    pair.paramKey = StaticSlotMarks.FormatName(staticSlotId.Value);
+                    pair.paramKey = staticSlotName;
             }
                 
             if (this.Client != null)

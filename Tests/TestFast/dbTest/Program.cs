@@ -128,10 +128,52 @@ public class Program
         Console.WriteLine("discovered: " + string.Join(", ", discovered));
         if (!discovered.Contains("MooSqlBuilderTest")
             || !discovered.Contains("MooSqlClipTest")
-            || !discovered.Contains("MooSqlQueryableTest"))
+            || !discovered.Contains("MooSqlQueryableTest")
+            || !discovered.Contains("CoreOrmTest")
+            || !discovered.Contains("NPocoTest")
+            || !discovered.Contains("OrmLiteTest")
+            || !discovered.Contains("NHibernateTest")
+            || !discovered.Contains("SmartSqlTest")
+            || !discovered.Contains("SqlKataTest"))
         {
-            throw new Exception("MooSql*Test not discovered as public ITest providers");
+            throw new Exception("Expected ITest providers missing from discovery");
         }
+
+        {
+            var core = new CoreOrmTest();
+            core.testQueryResult();
+            core.testQueryAnonymousResult();
+            var cond = core.testQueryCondition();
+            var method = core.testQueryMethodCondition();
+            core.testQueryLoop();
+            Console.WriteLine($"[coreorm] condLen={cond?.Length} methodLen={method?.Length}");
+            if (string.IsNullOrWhiteSpace(cond) || string.IsNullOrWhiteSpace(method)
+                || cond.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase) < 0
+                || method.IndexOf("LIKE", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                throw new Exception("CoreOrmTest smoke failed: empty or unexpected SQL");
+            }
+        }
+
+        void smokeOrm(string name, ITest t, bool expectCondSql)
+        {
+            t.testQueryResult();
+            t.testQueryAnonymousResult();
+            var cond = t.testQueryCondition();
+            var method = t.testQueryMethodCondition();
+            t.testQueryJoin();
+            t.testQueryLoop();
+            Console.WriteLine($"[{name}] condLen={cond?.Length} methodLen={method?.Length}");
+            if (expectCondSql && string.IsNullOrWhiteSpace(cond))
+                throw new Exception(name + " smoke failed: empty condition SQL");
+        }
+
+        smokeOrm("NPoco", new NPocoTest(), expectCondSql: true);
+        smokeOrm("OrmLite", new OrmLiteTest(), expectCondSql: true);
+        smokeOrm("NHibernate", new NHibernateTest(), expectCondSql: true);
+        smokeOrm("SmartSql", new SmartSqlTest(), expectCondSql: false);
+        smokeOrm("SqlKata", new SqlKataTest(), expectCondSql: true);
+
         Console.WriteLine("moosmoke passed");
     }
 
