@@ -1,11 +1,11 @@
-﻿using CRL.Data;
+using CRL.Data;
 using CRL.Data.DBAccess;
 using System;
 using System.Collections.Generic;
 
 namespace dbTest.items
 {
-    public class MyTest : ITest
+    public class CrlTest : ITest
     {
         public static void Init()
         {
@@ -33,7 +33,7 @@ namespace dbTest.items
         }
         public static void InitData()
         {
-            MyTest.Init();
+            CrlTest.Init();
             var rep = RepositoryFactory.Get<TestEntity>();
             rep.CreateTable();
             rep.Delete(b => b.Id > 0);

@@ -1,4 +1,4 @@
-﻿
+
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using dbTest;
@@ -16,7 +16,7 @@ public class Program
 {
     static void Main(string[] args)
     {
-        MyTest.InitData();
+        CrlTest.InitData();
         if (args != null && args.Length > 0 && string.Equals(args[0], "moosmoke", StringComparison.OrdinalIgnoreCase))
         {
             testMooSqlSmoke();
@@ -179,7 +179,7 @@ public class Program
 
     public static void testMethod()
     {
-        new MyTest().testQueryResult();
+        new CrlTest().testQueryResult();
         return;
         var result = new List<testResult>();
         var sw = new Stopwatch();
@@ -193,9 +193,9 @@ public class Program
             result.Add(new testResult { name = name, el = el });
             sw.Reset();
         }
-        watch("MyTest", () =>
+        watch("CrlTest", () =>
         {
-            new MyTest().testInclude();
+            new CrlTest().testInclude();
         });
         watch("SqlSugarTest", () =>
         {

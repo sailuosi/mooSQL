@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using Chloe.Reflection;
 using dbTest.items;
 using System;
@@ -15,7 +15,7 @@ namespace dbTest
         protected List<ITest> tests = new List<ITest>();
         public TestBase(Func<Type, bool> check = null)
         {
-            MyTest.Init();
+            CrlTest.Init();
             var types = typeof(ITest).GetAssembly().GetTypes().Where(b => typeof(ITest).IsAssignableFrom(b) && !b.IsAbstract && b.IsPublic);
             foreach (var t in types)
             {

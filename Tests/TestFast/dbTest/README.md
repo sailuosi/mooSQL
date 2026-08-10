@@ -123,7 +123,7 @@ Dapper由于没有表达式解析，空跑，最低和最高不管是效率和�
 | TestCondition | FastFrameworkTest |  92.47 us | 1.783 us |  2.723 us |    2 |  6.7139 |  20.71 KB |
 | TestCondition | FreeSqlTest       | 405.34 us | 5.108 us |  4.778 us |    4 | 12.6953 |  40.84 KB |
 | TestCondition | LinqToDbTest      |  92.26 us | 0.563 us |  0.499 us |    2 |  5.8594 |  18.29 KB |
-| TestCondition | MyTest            |  43.16 us | 0.689 us |  0.575 us |    1 |  4.6997 |  14.41 KB |
+| TestCondition | CrlTest            |  43.16 us | 0.689 us |  0.575 us |    1 |  4.6997 |  14.41 KB |
 | TestCondition | SqlSugarTest      | 390.76 us | 8.115 us | 23.800 us |    4 | 33.6914 | 103.94 KB |
 
 
@@ -141,7 +141,7 @@ Dapper由于没有表达式解析，空跑，最低和最高不管是效率和�
 | TestResult | FastFrameworkTest | 11,685.6 us | 114.75 us | 95.82 us |    7 | 46.8750 | 153.21 KB |
 | TestResult | FreeSqlTest       |    719.6 us |  15.48 us | 45.40 us |    3 | 23.4375 |  74.36 KB |
 | TestResult | LinqToDbTest      |  1,267.2 us |  24.38 us | 21.61 us |    5 | 17.5781 |   54.6 KB |
-| TestResult | MyTest            |    563.9 us |   3.62 us |  3.39 us |    2 | 10.7422 |  35.42 KB |
+| TestResult | CrlTest            |    563.9 us |   3.62 us |  3.39 us |    2 | 10.7422 |  35.42 KB |
 | TestResult | SqlSugarTest      |  1,481.1 us |  29.39 us | 65.12 us |    6 | 46.8750 | 147.58 KB |
 
 
@@ -159,7 +159,7 @@ Dapper由于没有结果筛选，同TestResult(SqlSugar内存溢出？)
 | TestAnonymousResult | FastFrameworkTest | 8,186.3 us | 199.25 us | 584.38 us | 7,999.0 us |    6 |   31.2500 |  122.24 KB |
 | TestAnonymousResult | FreeSqlTest       | 1,252.1 us |  11.99 us |  10.63 us | 1,251.6 us |    5 |   66.4063 |  203.89 KB |
 | TestAnonymousResult | LinqToDbTest      | 1,203.3 us |   8.91 us |   8.75 us | 1,202.3 us |    4 |   15.6250 |   52.67 KB |
-| TestAnonymousResult | MyTest            |   463.2 us |   9.25 us |  21.81 us |   455.0 us |    1 |   10.7422 |   33.73 KB |
+| TestAnonymousResult | CrlTest            |   463.2 us |   9.25 us |  21.81 us |   455.0 us |    1 |   10.7422 |   33.73 KB |
 | TestAnonymousResult | SqlSugarTest      | 9,063.9 us | 181.09 us | 522.50 us | 8,839.5 us |    7 | 1046.8750 | 3210.79 KB |
 
 ### TestQueryLoop
@@ -176,7 +176,7 @@ Dapper由于没有结果筛选，同TestResult(SqlSugar内存溢出？)
 | TestQueryLoop | FastFrameworkTest | 234.891 ms | 2.8211 ms | 2.3557 ms |    8 | 666.6667 |       - | 2332.27 KB |
 | TestQueryLoop | FreeSqlTest       |   3.600 ms | 0.0743 ms | 0.2178 ms |    4 |  74.2188 | 35.1563 |  228.63 KB |
 | TestQueryLoop | LinqToDbTest      |  16.907 ms | 0.1417 ms | 0.1257 ms |    7 | 125.0000 |       - |  409.78 KB |
-| TestQueryLoop | MyTest            |   2.274 ms | 0.0536 ms | 0.1556 ms |    2 |  42.9688 |       - |   134.7 KB |
+| TestQueryLoop | CrlTest            |   2.274 ms | 0.0536 ms | 0.1556 ms |    2 |  42.9688 |       - |   134.7 KB |
 | TestQueryLoop | SqlSugarTest      |   4.737 ms | 0.0800 ms | 0.0786 ms |    5 | 210.9375 |       - |  651.24 KB |
 
 
@@ -203,7 +203,7 @@ Dapper由于没有结果筛选，同TestResult(SqlSugar内存溢出？)
 | EfSqlliteTest     | 扩展包       | 
 | FastFrameworkTest | 手动配置     | 
 | FreeSqlTest       | 扩展包  |
-| MyTest            | 手动或自动配置| 
+| CrlTest            | 手动或自动配置| 
 | SqlSugarTest      | 全包含 | 
 | LinqToDbTest      | 自动配置 |
 
