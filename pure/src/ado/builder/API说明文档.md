@@ -1112,6 +1112,8 @@ kit.clear().useApart(apart).where("u.status", 1).query<User>();
 
 ### 3.9 导航扩展方法
 
+> 专项说明（链式 `thenInclude` / `collect`、前置条件、与 LINQ `Includes` 边界）：`doc/docs/SQL/high/navigation.md`
+
 **`includeHis<T, Child, K>(this SQLBuilder kit, IEnumerable<T> list, Func<T, ICollection<Child>> childSelector, Func<T, K> findListPKValue, Expression<Func<Child, K>> childFKSelector, Action<SQLBuilder> childFilter = null)`**
 - 加载子表集合的原始方法，自定义主表主键获取，主表子表集合选择，子表外键选择，子表过滤条件
 

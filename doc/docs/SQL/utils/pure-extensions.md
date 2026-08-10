@@ -279,8 +279,10 @@ SQLBuilder 的核心业务扩展，按功能分类：
 
 | 方法 | 说明 |
 |------|------|
-| `includeHis` / `includeNav` | 加载子集合 |
-| `useNavSave` | 导航保存 |
+| `includeHis` / `includeNav` | 加载子集合（返回 `NavQueryGuide`，可 `thenInclude`） |
+| `useNavSave` | 导航保存（返回 `NavGuideSave`，需自设 `UOW`） |
+
+专项说明（机制、链式 API、与 LINQ `Includes` 边界）：[导航加载与保存](/SQL/high/navigation)。
 
 > 所有带 `tbname` 参数的方法均支持动态分表场景。
 
@@ -488,4 +490,5 @@ db.useDbBus<Order>()
 - [自定义集合（Sect / Section）](/SQL/utils/collection)
 - [SQLBuilder 基础](/SQL/basis/SQLBuilder)
 - [SQLClip](/SQL/high/sqlclip)
+- [导航加载与保存](/SQL/high/navigation)
 - [分表功能使用指南](/shard/分表功能使用指南)（仓库 `doc/shard/`）

@@ -96,6 +96,7 @@ export default defineConfig({
             { text: 'SooReposity ---仓储', link: '/SQL/high/repository' },
             { text: 'SooWorkOfUnit', link: '/SQL/high/unitofwork' },
             { text: 'SQLClip', link: '/SQL/high/sqlclip' },
+            { text: '导航加载与保存', link: '/SQL/high/navigation' },
             { text: '主从与多库', link: '/SQL/high/masterslave' },
             { text: 'LLMCash --大模型', link: '/AI/llmcash' },
           ]

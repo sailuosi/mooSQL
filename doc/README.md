@@ -496,6 +496,7 @@ mooSQL 提供**执行层、SQL 编织层、仓库层、表达式层**多级别�
 - [SQLClip 使用指南](docs/SQL/high/sqlclip.md)
 - [仓储模式](docs/SQL/high/repository.md)
 - [工作单元](docs/SQL/high/unitofwork.md)
+- [导航加载与保存](docs/SQL/high/navigation.md)
 - [数据权限体系](docs/SQL/auth/README.md)（含 AuthBag 业务模型）
 - [数据权限 · 生命周期](docs/SQL/auth/authlife.md)
 - [数据权限 · API 备忘](docs/SQL/auth/authbase.md)
