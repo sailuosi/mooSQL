@@ -70,6 +70,37 @@ namespace mooSQL.linq
             res.Append(" END");
             return new SQLFragClause(res.ToString());
         }
+
+        /// <summary>
+        /// 转译简单 CASE：CASE expr WHEN … THEN …
+        /// </summary>
+        public override Clause VisitSimpleCaseExpression(SimpleCaseWord clause)
+        {
+            if (clause == null)
+                return null;
+
+            var res = new StringBuilder();
+            res.Append("CASE ");
+            res.Append(VisitIExpWord(clause.PrimaryExpression));
+
+            foreach (var caseItem in clause.Cases)
+            {
+                res.Append(" WHEN ");
+                res.Append(VisitIExpWord(caseItem.MatchValue));
+                res.Append(" THEN ");
+                res.Append(VisitIExpWord(caseItem.ResultExpression));
+            }
+
+            if (clause.ElseExpression != null)
+            {
+                res.Append(" ELSE ");
+                res.Append(VisitIExpWord(clause.ElseExpression));
+            }
+
+            res.Append(" END");
+            return new SQLFragClause(res.ToString());
+        }
+
         /// <summary>
         /// 一个值
         /// </summary>

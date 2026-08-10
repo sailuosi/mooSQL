@@ -75,6 +75,30 @@ namespace mooSQL.data
 
         public MergeIntoBuilder mergeInto(string tbName, string asName = null) => _inner.mergeInto(tbName, asName);
 
+        /// <summary>搜索式 CASE 构建器（参数写入本构建器）。</summary>
+        public CaseBuilder caseWhen() => _inner.caseWhen();
+
+        /// <summary>简单 CASE 构建器：CASE expr WHEN …。</summary>
+        public CaseBuilder caseOf(string expression) => _inner.caseOf(expression);
+
+        /// <summary>构建搜索 CASE 并 select AS alias。</summary>
+        public SQLBuilder selectCase(Action<CaseBuilder> build, string alias)
+        {
+            if (build == null) throw new ArgumentNullException(nameof(build));
+            var c = caseWhen();
+            build(c);
+            return select(c.end(alias));
+        }
+
+        /// <summary>构建简单 CASE 并 select AS alias。</summary>
+        public SQLBuilder selectCaseOf(string expression, Action<CaseBuilder> build, string alias)
+        {
+            if (build == null) throw new ArgumentNullException(nameof(build));
+            var c = caseOf(expression);
+            build(c);
+            return select(c.end(alias));
+        }
+
         public WhereItem start() => start(true);
 
         public WhereItem start(bool addBracket)

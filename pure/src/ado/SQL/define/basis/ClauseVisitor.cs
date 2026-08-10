@@ -1041,6 +1041,13 @@ namespace mooSQL.data.model
             return clause;
         }
         /// <summary>
+        /// 简单 CASE：CASE expr WHEN … THEN …
+        /// </summary>
+        public virtual Clause VisitSimpleCaseExpression(SimpleCaseWord clause)
+        {
+            return clause;
+        }
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="clause"></param>

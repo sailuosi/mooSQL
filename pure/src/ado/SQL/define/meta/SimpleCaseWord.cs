@@ -9,6 +9,12 @@ namespace mooSQL.data.model
 	/// <summary>简单 CASE：<c>CASE expr WHEN … THEN …</c>。</summary>
 	public class SimpleCaseWord : ExpWordBase
 	{
+        /// <inheritdoc />
+        public override Clause Accept(ClauseVisitor visitor)
+        {
+            return visitor.VisitSimpleCaseExpression(this);
+        }
+
 		/// <summary>单个 WHEN 分支：匹配值与结果。</summary>
 		public class CaseExpression
 		{
