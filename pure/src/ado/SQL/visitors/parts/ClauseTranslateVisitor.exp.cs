@@ -81,7 +81,8 @@ namespace mooSQL.linq
             var key = "vw_" + builder.paraSeed + builder.ps.Count+random.Next(100,999);
             var para = new Parameter(key,clause.Value);
             para.dbType = clause.ValueType;
-            builder.ps.Add(para);
+            // 入队而非直接 ps.Add：toSelect→runBuild 会 clear 内核 ps
+            builder.addResolvedPara(para);
             var keySQL = builder.DBLive.dialect.expression.paraPrefix + key;
 
             return new SQLFragClause(keySQL);

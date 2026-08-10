@@ -79,6 +79,12 @@ namespace mooSQL.data
             return Enqueue(step);
         }
 
+        /// <summary>
+        /// 登记已解析参数（Clause VisitParameter / VisitValueWord）。
+        /// 必须走编排入队：直接 <c>ps.Add</c> 会在 <see cref="runBuild"/> clear 后丢失。
+        /// </summary>
+        public SQLBuilder addResolvedPara(Parameter para) => Enqueue(new AddParaStep(para));
+
         public SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
 
         public SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);

@@ -43,10 +43,56 @@ namespace mooSQL.linq
         public override Clause VisitAffirmExprExpr(ExprExpr clause)
         {
             var field = VisitIExpWord(clause.Expr1).ToString();
+            var op = TranslateCompareOperator(clause);
+
+            // 参数/字面量走 where(..., paramed:true)，经 StaticSlot/ps 入参；
+            // 旧路径 Visit→嵌入 "@id" + 直接 ps.Add 会在 runBuild clear 后丢值。
+            if (TryWhereParameterized(clause.Expr2, field, op))
+                return clause;
 
             var val = VisitIExpWord(clause.Expr2);
-            builder.where(field,val.ToString(),TranslateCompareOperator(clause),false);
+            builder.where(field, val.ToString(), op, false);
             return clause;
+        }
+
+        /// <summary>ParameterWord / ValueWord 右侧比较：参数化 where。</summary>
+        bool TryWhereParameterized(IExpWord? expr, string field, string op)
+        {
+            if (expr is ParameterWord pw)
+            {
+                object? value = pw.Value;
+                Type? sysType = pw.Type.SystemType;
+                if (ParameterValues != null && ParameterValues.TryGetValue(pw, out var pv) && pv != null)
+                {
+                    value ??= pv.ProviderValue;
+                    if (pv.DbDataType.SystemType != null)
+                        sysType = pv.DbDataType.SystemType;
+                }
+
+                if (value == null)
+                    return false;
+
+                if (sysType != null)
+                    builder.where(field, value, op, true, sysType);
+                else
+                    builder.where(field, value, op, true);
+                return true;
+            }
+
+            if (expr is ValueWord vw)
+            {
+                if (vw.Value == null)
+                    return false;
+
+                var sysType = vw.ValueType.SystemType;
+                if (sysType != null)
+                    builder.where(field, vw.Value, op, true, sysType);
+                else
+                    builder.where(field, vw.Value, op, true);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
