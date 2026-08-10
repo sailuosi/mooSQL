@@ -1749,3 +1749,41 @@ SQL: ... WHERE b.Id = @id
 - 冒烟：`dbTest2.exe moosmoke`
 - 菜单项：`testQueryResult`、`testQueryAnonymousResult`、`testQueryCondition`、`testQueryMethodCondition`、`testQueryLoop`、`testQueryJoin` 等
 
+---
+
+## 终极排名（综合六方法）
+
+> **口径**（截至 2026-08-10 扩容轮）：综合 **Result / Anonymous / Condition / MethodCondition / Loop / Join** 的相对梯队，执行+映射与 ToSql 构建并重；**空实现 / 伪 ToSql / NA 不参与加分**（如 Dapper 的 Condition/Join、EF/Core.ORM/NHibernate Join 空、NPoco/SmartSql Condition 空测、RepoDb Result/Loop NA）。  
+> **典型参数**取各方法最近有效轮的代表 Mean / Allocated（扩容版优先；未扩容的场景用最近复测）。墙钟随环境抖动，**以相对档位为准**。
+
+### 综合排名表
+
+
+| 综合名次 | ORM / 路径 | 典型参数（代表值） | 描述 | 推荐场景 | ORM 说明 |
+| --- | --- | --- | --- | --- | --- |
+| **1** | **mooSQL SQLBuilder**（`useSQL`） | Result **~329 μs / 61 KB**；Condition **~1.5 μs / 4 KB**；MethodCond **~5.6 μs**；Loop **~0.88–1.24 ms**；Join **~6 μs / 25 KB**；Anon **~232 μs** | 全场综合最强：拼 SQL / Join 断层第一，列表与循环查询贴齐 Dapper 带 | 高吞吐列表/报表、动态条件、多段 Join、循环短查询；列名与 SQL 形状已知时优先 | 本仓库链式 SQL 构建 + 映射；无表达式树固定税；模板缓存热路径极轻 |
+| **2** | **Dapper** | Result **~280 μs / 56 KB**（常 Rank 1）；Loop **~883 μs**；Anon 同档前列 | 执行+映射下限标杆；ToSql 类场景多空实现，不参与条件/Join 构建对比 | 手写 SQL 已定稿、极致映射吞吐、微服务读路径 | 微软生态微 ORM；SQL 自管、映射极薄；本基准 Condition/Join/Method 多为空 |
+| **3** | **mooSQL SQLClip**（`useClip`） | Result **~325 μs / 64 KB**；Condition **~22 μs**；MethodCond **~19 μs**；Loop **~1.12–1.55 ms**；Join **~17 μs**；Anon **~259 μs** | 类型安全窄 API，落到 Builder；Join/Loop 常快于 Chloe，综合稳定第二集团前列 | 要实体别名/Lambda 糖、又不想上完整 IQueryable；Join 构建 + 中等吞吐列表 | 实体绑定 + Lambda 糖 → SQLBuilder；成本介于 Builder 与 Queryable 之间 |
+| **4** | **mooSQL Queryable**（`useQueryable`） | Result **~331 μs / 65 KB**（基线曾 1.34 ms）；Condition **~19 μs**；MethodCond **~17 μs**；Loop **~1.26–1.74 ms**；Join **~34 μs≈Chloe**；Anon 基线 **~1.4 ms**（待复测） | L1/L2 后多数场景进入 Chloe/FreeSql 竞争带；Condition 暖路径可快于 Clip/Chloe；Anonymous 仍偏重 | 标准 LINQ / 对标 EF 写法、暖路径列表与条件查询；不宜拿冷启动/匿名投影当卖点 | Ext `IQueryable`；计划缓存 + 模板缓存后短查询固定税大幅下降；Loop NA 已修 |
+| **5** | **Chloe** | Result **~317 μs / 74 KB**；Condition **~23–24 μs**；MethodCond **~15 μs**；Loop ≈Clip 档；Join **~33 μs** | 轻量 LINQ 表达式组标杆；Result/Join/条件构建全面均衡 | 轻 ORM + LINQ API、多表 Join 构建、不想背 EF 重量 | 国产轻量 LINQ ORM；本基准 Expression→SQL / Join 对照中轴 |
+| **6** | **CRL**（`CrlTest`） | Result **~355 μs / 38 KB**（**Allocated 常最低**）；Condition **~10–12 μs**；Join **~33 μs≈Chloe** | 时间中上、内存最省之一；Condition/Join 与 Chloe 同档 | 内存敏感读路径、仓储风格 CRUD、分配预算紧 | 国产轻量 ORM；适配器 `CrlTest`；关系/仓储配置风格 |
+| **7** | **SqlKata** | Result **~341 μs / 72 KB**；Condition **~16 μs**；Loop **~1.29 ms**（Rank 2） | 构建器+执行双栖；Result/Loop 进第一/二集团，Condition 有效中档 | 跨库 SQL 构建、Compile→执行、对标 Builder 的第三方方案 | `SqliteCompiler.Compile` + Execution；Join 已实现 |
+| **8** | **SmartSql** | Result **~339 μs / 48 KB**；Loop **~1.34 ms**（Rank 2）；Condition/Join **空（排除）** | RealSql 执行映射干净（时间贴 mooSQL、分配仅次 CRL）；ToSql 未挂 Xml 不计分 | 已有/愿写 SqlMap 的 MyBatis 风项目；已知 SQL 的读吞吐 | 国产 SQL-Map；本项用 RealSql；Condition/Join 空实现勿误读 Rank |
+| **9** | **RepoDB** | Condition **~2.85 μs / 4.6 KB**（有效第二）；Result/Loop **NA** | ToSql 极轻，执行映射本基准未出成绩；综合位次受 NA 拖累 | 动态查询 / 条件→SQL 原型；待修映射后再评吞吐 | 微 ORM；Join 适配空；Result 曾因列映射 NA |
+| **10** | **FreeSql** | Result **~362 μs / 77 KB**；Condition/Loop/Join 中后段 | 功能面大、基准稳定中档；少进第一集团 | CodeFirst/多 Provider、功能优先于极致延迟 | 国产全功能 ORM；API 面宽，本基准偏中后 |
+| **11** | **OrmLite**（ServiceStack） | Result **~421 μs / 78 KB**；Condition **~13 μs**；Loop **~1.43 ms**（Rank 2） | Expression→SQL 有效；Loop 进 Rank 2；Result 略慢于 FreeSql | 类型化轻 ORM、Where/Join→语句、ServiceStack 生态 | `ToSelectStatement`；Join 已实现 |
+| **12** | **NPoco** | Result **~398 μs / 131 KB**；Loop **~2.13 ms / ~1 MB**；Condition **伪 ToSql（排除）** | 单次 Take 尚可；循环查询分配暴涨；Condition 恒定串不计 | 手写 SQL + Fetch 的微 ORM 读场景；慎用高频短循环 | PetaPoco 系；Condition 无稳定 ToSql；Join 空 |
+| **13** | **EF Core** | Result **~550 μs / 179 KB**；Condition 偏重；Join **空（~20 ns，排除）** | 能力最全、抽象最重；本项作重量级对照，Join 适配未实现 | 变更跟踪、复杂模型、官方栈、功能完整优先于基准延迟 | `Microsoft.EntityFrameworkCore.Sqlite`；Join 行解读须排除 |
+| **14** | **SqlSugar** | Result **~782 μs / 99 KB**；Condition/Loop 多项偏慢、分配偏高 | 生态与文档强，本基准时间/分配常处后段 | 国内全功能 ORM 选型、功能与社区优先 | `SqlSugarCore`；本基准不宜当性能标杆 |
+| **15** | **Core.ORM**（TORM） | Result **~1.20 ms**；Condition **~9.4 μs**（有效前列）；Loop **~13.8 ms**；Join **空** | 条件→SQL 轻；执行路径偏重（Async 同步等待）；无 Join API | 链式 Queryable 风格、弱 Join 需求；Condition 构建可参考 | 仅 Async 查询 API；独立实体；Anonymous 用命名 DTO |
+| **16** | **NHibernate** | Result **~1.00 ms / 201 KB**；Condition **~9.8 μs**；Loop **~21 ms**；Join **空** | 经典重 ORM；单次 Take 尚可，20× 循环很重 | 遗留 NH 项目、复杂会话/映射；新项目慎用本基准热路径 | ByCode + LINQ；独立 `NhTestEntity`；SQLite 走 System.Data.SQLite |
+| **17** | **LINQ to DB** | Result **~1.10 ms / 118 KB**；Condition **~97 μs**；Loop **~14–22 ms / ~1.5 MB** | 完整 LINQ ORM 中偏慢一档；Loop 分配高 | 需要 linq2db 方言/Provider 能力时；非本基准性能优选 | `linq2db`；已纳入 BDN；Loop Rank 靠后 |
+| **18** | **Fast.Framework** | Result **~2.29 ms**；多项垫底 | 拉长对比轴的慢档参照 | 不推荐作为性能向选型 | 本地 dll 引用；Join/Loop 成本高 |
+
+### 读表要点
+
+1. **名次是「综合能力」不是单场景冠军**：单看 Result 执行，Dapper 常略快于 Builder；单看 Condition/Join 构建，Builder 断层第一；综合六方法 + 有效实现完整度后，**SQLBuilder 居首**。
+2. **mooSQL 三路径不要互相替代理解**：Builder = 性能/动态 SQL；Clip = 类型安全糖；Queryable = 标准 LINQ（暖路径已可竞争，Anonymous 仍待复测）。
+3. **空测/NA 降权**：RepoDb 仅 Condition 强但 Result/Loop NA → 综合第 9；SmartSql/NPoco 的 Condition「冠军」已排除。
+4. **选型捷径**：极致吞吐 → Dapper / Builder；类型安全轻量 → Clip / Chloe / CRL；标准 LINQ → Queryable（暖）/ Chloe；全功能 → FreeSql / EF（接受更重）；SqlMap → SmartSql（RealSql）。
+
