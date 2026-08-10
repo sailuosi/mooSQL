@@ -1,5 +1,6 @@
 ﻿
 using mooSQL.linq;
+using mooSQL.data.richRepo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,12 @@ namespace mooSQL.data
         {
             return DB.client.ClientFactory.useDBRunner(DB);
         }
+        /// <summary>获取一个富仓储实例（脏更新 / 字典缓存 / Schema / Upsert）。</summary>
+        public static SooRichRepo<T> useRichRepo<T>(this DBInstance DB) where T : class, new()
+        {
+            return DB.client.ClientFactory.useRichRepo<T>(DB);
+        }
+
         /// <summary>
         /// 获取一个仓储实例
         /// </summary>

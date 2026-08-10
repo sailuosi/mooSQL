@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.data.richRepo;
 
 namespace mooSQL.data
 {
@@ -52,6 +53,15 @@ namespace mooSQL.data
             var t = new SooRepository<T>(DB);
             return t;
         }
+
+        /// <summary>
+        /// 创建富仓储（脏更新 / 字典缓存 / Schema / Upsert）。
+        /// </summary>
+        public virtual SooRichRepo<T> useRichRepo<T>(DBInstance DB) where T : class, new()
+        {
+            return new SooRichRepo<T>(DB);
+        }
+
         /// <summary>
         /// 泛型方法 useRepo（返回 SooRepository<T,K>）。
         /// </summary>

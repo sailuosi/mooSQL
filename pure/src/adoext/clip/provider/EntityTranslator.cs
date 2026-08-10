@@ -282,21 +282,12 @@ namespace mooSQL.data
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind== FieldKind.Base || col.Kind== FieldKind.None)==false) continue;
-                //配置为忽略时，则忽略执行
-                if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
-                {
-                    continue;
-                }
-                //配置了包含时，则只操作包含的字段
-                if (this.includeUpdateFields.Count > 0 && this.includeUpdateFields.Contains(col.PropertyName) == false)
-                {
-                    continue;
-                }
                 if (CheckEdition(builder.DBLive, col) == false)
                 {
                     continue;
                 }
                 var val = col.PropertyInfo.GetValue(entity);
+                // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤
                 if (col.IsPrimarykey)
                 {
                     if (val == null)
@@ -305,6 +296,16 @@ namespace mooSQL.data
                     }
                     builder.where(col.DbColumnName, val);
                     gotWhere = true;
+                    continue;
+                }
+                //配置为忽略时，则忽略执行
+                if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
+                {
+                    continue;
+                }
+                //配置了包含时，则只操作包含的字段
+                if (this.includeUpdateFields.Count > 0 && this.includeUpdateFields.Contains(col.PropertyName) == false)
+                {
                     continue;
                 }
 
@@ -320,6 +321,129 @@ namespace mooSQL.data
 
             return new StatusResult(true, "");
         }
+
+        /// <summary>
+        /// 按成员字典准备 UPDATE（脏字段 / 累加）。键以 '$' 前缀表示 col = col + @delta。
+        /// 主键始终从实体读取写入 WHERE；includeUpdate 临时覆盖后恢复。
+        /// </summary>
+        public StatusResult prepareUpdateMembers(
+            SQLBuilder builder,
+            object entity,
+            Type entityType,
+            IReadOnlyDictionary<string, object> members,
+            EntityInfo en = null,
+            Func<string> loadName = null)
+        {
+            if (entity == null)
+                return new StatusResult(false, "实体为空！");
+            if (members == null || members.Count == 0)
+                return new StatusResult(false, "无更新字段！");
+            if (en == null)
+                en = builder.DBLive.client.EntityCash.getEntityInfo(entityType);
+            if (en.Updatable == false)
+                return new StatusResult(false, "实体类未标记为可更新！");
+
+            this.fireBeforeUpdate(builder, entity, entityType, en);
+
+            if (setSaveTable(builder, entity, en, loadName) == false)
+                return new StatusResult(false, "实体类无法确定目标写入表！");
+
+            bool gotWhere = false;
+            foreach (var col in en.Columns)
+            {
+                if (!col.IsPrimarykey) continue;
+                if (col.IsIgnore) continue;
+                var pkVal = col.PropertyInfo.GetValue(entity);
+                if (pkVal == null)
+                    return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
+                builder.where(col.DbColumnName, pkVal);
+                gotWhere = true;
+            }
+            if (!gotWhere && builder.ConditionCount == 0)
+                return new StatusResult(false, "无法更新！未找到主键或者where条件未定义！");
+
+            int setCount = 0;
+            foreach (var kv in members)
+            {
+                if (!TryResolveDirtyMember(en, kv.Key, out var col, out var isCumulation))
+                    continue;
+                if (col.IsPrimarykey || col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
+                if (CheckEdition(builder.DBLive, col) == false) continue;
+
+                if (isCumulation)
+                {
+                    setCumulationFieldValue(builder, col, kv.Value);
+                }
+                else
+                {
+                    setUpdateFieldValue(builder, col, kv.Value, en);
+                }
+                setCount++;
+            }
+
+            this.fireReadyUpdate(builder, entity, entityType, en);
+            if (setCount == 0)
+                return new StatusResult(false, "无有效更新字段！");
+            return new StatusResult(true, "");
+        }
+
+        static bool TryResolveDirtyMember(EntityInfo en, string key, out EntityColumn col, out bool isCumulation)
+        {
+            col = null;
+            isCumulation = false;
+            if (string.IsNullOrEmpty(key)) return false;
+            string name = key;
+            if (key[0] == '$')
+            {
+                isCumulation = true;
+                name = key.Substring(1);
+            }
+            foreach (var c in en.Columns)
+            {
+                if (string.Equals(c.PropertyName, name, StringComparison.Ordinal))
+                {
+                    col = c;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>数值累加：SET col = col + @delta（paramed 表达式）。</summary>
+        protected virtual void setCumulationFieldValue(SQLBuilder kit, EntityColumn col, object delta)
+        {
+            // 非参数化片段：列名 + 运算符；delta 走参数
+            // 形如：Score = Score + @p  —— 用 set(key, rawExpr, paramed:false) 无法自动加参，
+            // 故采用：set(col, 拼接后由方言处理较难)；简化为两次——先参数化 delta 到表达式。
+            var colName = col.DbColumnName;
+            // 使用参数化 set 的变体：值侧写成 "col+{value}" 不成立。
+            // 实践：set(colName, delta) 会变成 col=@p；累加需 raw。
+            // 将 delta 作为独立参数名嵌入 raw 字符串风险高；此处用 builder.set(col, col + "+" + literal) 仅数值。
+            if (delta == null)
+            {
+                kit.set(colName, colName, false);
+                return;
+            }
+            if (delta is string s)
+            {
+                // 字符串累加：方言差异大，首期按字面拼接并参数化整体较难，退化为直接 set 新值由调用方 Cumulate 已改 CLR。
+                kit.set(colName, s);
+                return;
+            }
+            // 数值：col = col + @p —— 通过 paramed:false 注入 "col+@?" 不可靠；
+            // 使用：set(colName, 表达式字符串, false)，并把数字内联（仅限数值类型，防注入）。
+            if (delta is byte || delta is sbyte || delta is short || delta is ushort
+                || delta is int || delta is uint || delta is long || delta is ulong
+                || delta is float || delta is double || delta is decimal)
+            {
+                var lit = Convert.ToString(delta, System.Globalization.CultureInfo.InvariantCulture);
+                kit.set(colName, colName + "+" + lit, false);
+                return;
+            }
+            kit.set(colName, delta);
+        }
+
         /// <summary>
         /// 设置update语句的字段解析逻辑
         /// </summary>
