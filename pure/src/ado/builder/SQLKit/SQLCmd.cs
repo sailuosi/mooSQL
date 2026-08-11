@@ -1,6 +1,7 @@
 ﻿
 using mooSQL.data.model;
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace mooSQL.data
@@ -10,6 +11,9 @@ namespace mooSQL.data
     /// </summary>
     public class SQLCmd
     {
+        /// <summary>结果缓存自动键前缀（与 ScriptTemplate <c>moo.st:</c> 隔离）。</summary>
+        public const string ResultCacheKeyPrefix = "RC:";
+
         /// <summary>
         /// 预执行的命令
         /// </summary>
@@ -48,7 +52,7 @@ namespace mooSQL.data
         /// </summary>
         public Paras para { get; set; }
         /// <summary>
-        /// 命令类型,默认 Text
+        /// 命令类型,默认text
         /// </summary>
         public CommandType? cmdType {  get; set; }
         /// <summary>
@@ -84,6 +88,83 @@ namespace mooSQL.data
                 return string.IsNullOrWhiteSpace(sql); 
             }
         }
+
+        /// <summary>
+        /// 解析 Live/Delay 参数（<see cref="Paras.ResolveDelayParas"/>），写回 <see cref="sql"/>。
+        /// 执行前与计算缓存指纹前均应调用；已解析则幂等。
+        /// </summary>
+        public SQLCmd EnsureLiveParasResolved()
+        {
+            if (para != null)
+                sql = para.ResolveDelayParas(sql ?? "");
+            return this;
+        }
+
+        /// <summary>
+        /// 与 SQLBuilder 模版编排指纹一致：使用 <see cref="ScriptHash"/>（内部 <c>HashCode.Combine</c>），
+        /// 对解析后的 sql 文本及每个参数名、参数值累加哈希。
+        /// 调用时会先 <see cref="EnsureLiveParasResolved"/>。
+        /// </summary>
+        public override int GetHashCode()
+        {
+            EnsureLiveParasResolved();
+            var h = new ScriptHash();
+            h.Add(sql);
+            if (para != null && para.value != null && para.value.Count > 0)
+            {
+                foreach (var key in SortedParaKeys(para.value))
+                {
+                    h.Add(key);
+                    var p = para.value[key];
+                    h.Add(p != null ? p.val : null);
+                }
+            }
+            return h.ToHashCode();
+        }
+
+        /// <summary>
+        /// 结果缓存字符串键：<c>RC:</c> + <see cref="GetHashCode"/> 的 8 位大写十六进制
+        /// （与 <see cref="ScriptCacheKey"/> 编排哈希 <c>X8</c> 展示风格一致）。
+        /// 调用时会先加载 LivePara。
+        /// </summary>
+        public string GetCacheKey()
+        {
+            return GetCacheKey(ResultCacheKeyPrefix);
+        }
+
+        /// <summary>
+        /// 指定前缀的缓存键：<paramref name="prefix"/> + HashCode 十六进制。
+        /// 前缀通常由 <c>SQLBuilder.useCachePrefix</c> 经 <c>StepBuilder.ComposeAutoCacheKeyPrefix</c> 规范化
+        /// （如 <c>RC:Shop:</c>），再拼 <c>X8</c>。
+        /// </summary>
+        public string GetCacheKey(string prefix)
+        {
+            EnsureLiveParasResolved();
+            var code = unchecked((uint)GetHashCode());
+            var p = string.IsNullOrEmpty(prefix) ? ResultCacheKeyPrefix : prefix;
+            return p + code.ToString("X8");
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj)) return true;
+            if (!(obj is SQLCmd other)) return false;
+            // 先比哈希；再比解析后 sql，降低碰撞误判
+            if (GetHashCode() != other.GetHashCode()) return false;
+            return string.Equals(sql, other.sql, StringComparison.Ordinal);
+        }
+
+        static IEnumerable<string> SortedParaKeys(IDictionary<string, Parameter> map)
+        {
+            if (map.Count <= 1)
+                return map.Keys;
+            var keys = new string[map.Count];
+            map.Keys.CopyTo(keys, 0);
+            Array.Sort(keys, StringComparer.Ordinal);
+            return keys;
+        }
+
         /// <summary>
         /// 传递
         /// </summary>

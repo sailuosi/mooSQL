@@ -223,6 +223,9 @@ namespace mooSQL.data
 
         internal int cacheTimeout = 300;
 
+        /// <summary>自动结果缓存键前缀（<see cref="useCachePrefix"/>）；显式 <see cref="setCache"/> 用户键不受影响。</summary>
+        internal string cacheKeyPrefix = "";
+
         /**
          * 分组模式下的最终执行器。
          */
@@ -493,7 +496,49 @@ namespace mooSQL.data
         {
             this.cacheKey = key;
             this.cacheTimeout=timeout;
+            this.resultCacheEnabled = true;
             return this;
+        }
+
+        /// <summary>
+        /// 设置自动结果缓存键前缀，降低跨业务/跨模块指纹碰撞概率。
+        /// 与 <see cref="SQLCmd.GetCacheKey"/> 组合为：<c>RC:{prefix}:{hashX8}</c>（prefix 已含 <c>RC:</c> 则不重复）。
+        /// 不影响显式 <see cref="setCache(string, int)"/> 的用户键；用户 <see cref="clear"/> 会一并清除本前缀。
+        /// </summary>
+        /// <param name="prefix">如 <c>Shop</c>、<c>report:daily</c>；空或 null 表示仅用默认 <c>RC:</c>。</param>
+        public StepBuilder useCachePrefix(string prefix)
+        {
+            this.cacheKeyPrefix = prefix ?? "";
+            return this;
+        }
+
+        /// <summary>
+        /// 由当前前缀 + <see cref="SQLCmd.GetCacheKey"/> 生成自动结果缓存键（供查询钩子使用）。
+        /// </summary>
+        internal string BuildAutoResultCacheKey(SQLCmd cmd)
+        {
+            if (cmd == null) return null;
+            return cmd.GetCacheKey(ComposeAutoCacheKeyPrefix(cacheKeyPrefix));
+        }
+
+        /// <summary>规范化自动键前缀：保证以 <c>RC:</c> 开头、以 <c>:</c> 结尾（便于拼接 X8）。</summary>
+        internal static string ComposeAutoCacheKeyPrefix(string userPrefix)
+        {
+            if (string.IsNullOrWhiteSpace(userPrefix))
+                return SQLCmd.ResultCacheKeyPrefix;
+
+            var p = userPrefix.Trim();
+            if (p.StartsWith(SQLCmd.ResultCacheKeyPrefix, StringComparison.Ordinal))
+            {
+                // already RC:...
+            }
+            else
+            {
+                p = SQLCmd.ResultCacheKeyPrefix + p;
+            }
+            if (!p.EndsWith(":", StringComparison.Ordinal))
+                p = p + ":";
+            return p;
         }
 
         /// <summary>
@@ -548,7 +593,8 @@ namespace mooSQL.data
         }
         /// <summary>
         /// 清空当前SQL构造器 参数体、添加列集合、选择列、from部分、翻页设置、where条件等所有信息，相当于重新获取一个SQL分组实例。
-        /// 未清空的：seed,level,
+        /// 未清空的：seed,level。
+        /// 同时清除结果缓存配置（setCache / useCachePrefix）。
         /// </summary>
         /// <returns></returns>
 
@@ -558,6 +604,8 @@ namespace mooSQL.data
             this.CTECollection.Clear();
             this.cacheKey = string.Empty;
             this.cacheTimeout = this.defaultCacheTimeout;
+            this.resultCacheEnabled = false;
+            this.cacheKeyPrefix = "";
             this.Signal = string.Empty;
             current.clear();
             if (this.groups.Count > 1) {
@@ -565,6 +613,23 @@ namespace mooSQL.data
                 this.groups.Add(current.key,current);
             }
             return this;
+        }
+
+        /// <summary>
+        /// 仅重置 SQL 构造现场（供门面 <c>runBuild</c> 回放步骤前使用）。
+        /// 不得调用 <see cref="clear"/>，否则会清掉业务已设置的 setCache。
+        /// </summary>
+        internal void resetForOrchestrationReplay()
+        {
+            this.unionHolder.Clear();
+            this.CTECollection.Clear();
+            this.Signal = string.Empty;
+            current.clear();
+            if (this.groups.Count > 1)
+            {
+                this.groups.Clear();
+                this.groups.Add(current.key, current);
+            }
         }
         /// <summary>
         /// 清空列选择部分，保留其他信息。

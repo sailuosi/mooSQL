@@ -75,7 +75,7 @@ namespace mooSQL.data
             _materializing = true;
             try
             {
-                _inner.clear();
+                _inner.resetForOrchestrationReplay();
                 for (int i = 0; i < _steps.Count; i++)
                 {
                     _steps[i].Apply(this);
