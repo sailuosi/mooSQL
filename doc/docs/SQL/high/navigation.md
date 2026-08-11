@@ -24,6 +24,7 @@ outline: deep
 | `pure/src/adoext/nav/NavQueryGuide.cs` | 导航查询：`include` / `includeNav` / `thenInclude` |
 | `pure/src/adoext/nav/IncludeSave.cs` | 导航保存：`NavGuideSave` 一至三层 |
 | `pure/src/utils/door/SQLBuilderExtensions.cs` | 入口扩展方法 |
+| `pure/src/ado/SQL/DBmodel/relation/` | Fluent `configureEntity` / `Relation` → `EntityNavi` |
 
 ---
 
@@ -44,12 +45,46 @@ outline: deep
 | `BossKey` | 主表关联键属性名；为空则用主表 **唯一主键** |
 | `SlaveKey` | 子表外键属性名（必填，用于 `WHERE … IN`） |
 
-元数据需由实体解析器写入（自定义 `IEntityAnalyser` / 兼容 SqlSugar 等特性的解析器）。若 `Navigat` 未定义或 `SlaveKey` 缺失，请改用 `includeHis` 手写键选择器。
+元数据可由以下方式写入：
+
+1. **推荐**：`client.configureEntity<T>(p => p.Relation<TJoin>((a,b) => a.Key == b.Fk))` Fluent 配置（见 **§1.4**）
+2. 自定义 `IEntityAnalyser` / 兼容 SqlSugar 等特性的解析器
+
+若 `Navigat` 未定义或 `SlaveKey` 缺失，请改用 `includeHis` 手写键选择器。
 
 ### 1.3 导航保存
 
 - `useNavSave` 只创建 `NavGuideSave`，**不会**自动挂工作单元。
 - 调用 `insert` / `update` / `save` / `commit` 前必须设置 `UOW`（`SooUnitOfWork`）。
+
+### 1.4 Fluent 关系配置（`configureEntity` / `Relation`）
+
+对标 CRL `ConfigEntity` + `Relation`：用等值 Lambda 声明类型对关联，自动回填导航属性上的 `EntityNavi`，之后即可 `includeNav`。
+
+```csharp
+client.configureEntity<Blog>(p =>
+{
+    p.Relation<Post>((a, b) => a.Id == b.BlogId);
+    p.Relation<BlogUser>((a, b) => a.UserId == b.Id);
+    p.Relation<BlogTag>((a, b) => a.Id == b.BlogId);
+});
+
+// 已有主列表后
+kit.includeNav(blogs, b => b.Posts);
+```
+
+| 规则 | 说明 |
+|------|------|
+| Lambda | 仅支持单一 `a.Prop == b.Prop`（允许 Convert 解包） |
+| 双向 | 一次 `Relation` 注册双向；`Post→Blog` 无需再配 |
+| 导航属性 | POCO 上须有 `List<Post> Posts` / `BlogUser BlogUser` 等；无导航属性时只进注册表，须用 `includeHis` |
+| 歧义 | 同类型多个导航属性时用 `Relation(x => x.Posts, (a,b) => …)` 消歧 |
+| 作用域 | 注册表挂在 `MooClient.EntityCash`（客户端级），多 Client 互不污染 |
+| 入口 | `MooClient.configureEntity` / `BaseClientBuilder.configureEntity` |
+
+映射：`Find(父,子)` 的父侧字段 → `BossKey`，子侧字段 → `SlaveKey`。
+
+源码：`pure/src/ado/SQL/DBmodel/relation/`。
 
 ---
 

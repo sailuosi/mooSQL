@@ -134,7 +134,8 @@ public class Program
             || !discovered.Contains("OrmLiteTest")
             || !discovered.Contains("NHibernateTest")
             || !discovered.Contains("SmartSqlTest")
-            || !discovered.Contains("SqlKataTest"))
+            || !discovered.Contains("SqlKataTest")
+            || !discovered.Contains("AdoNetTest"))
         {
             throw new Exception("Expected ITest providers missing from discovery");
         }
@@ -168,6 +169,7 @@ public class Program
                 throw new Exception(name + " smoke failed: empty condition SQL");
         }
 
+        smokeOrm("AdoNet", new AdoNetTest(), expectCondSql: false);
         smokeOrm("NPoco", new NPocoTest(), expectCondSql: true);
         smokeOrm("OrmLite", new OrmLiteTest(), expectCondSql: true);
         smokeOrm("NHibernate", new NHibernateTest(), expectCondSql: true);

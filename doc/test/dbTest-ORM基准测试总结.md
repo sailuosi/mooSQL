@@ -19,6 +19,7 @@
 | **MooSqlBuilderTest** | **mooSQL** `useSQL` / SQLBuilder | 链式 SQL 构建 + 映射    | 本仓库 `mooSQL.Ext` **8.1.2.3**                   | 字符串列名/条件，动态拼 SQL 标杆；Condition/Join 常最快                                   |
 | **MooSqlClipTest**    | **mooSQL** `useClip` / SQLClip   | 实体别名 + Lambda 糖   | 同上                                             | 类型安全窄 API；落到 SQLBuilder，成本介于 Builder 与完整 IQueryable 之间                  |
 | **MooSqlQueryableTest** | **mooSQL** Ext `useQueryable`  | 标准 `IQueryable` LINQ | 同上                                          | 对标 EF/Chloe 写法；L1/L2 优化后多数场景可竞争；Loop 开模板缓存轮曾 NA                         |
+| **AdoNetTest**        | **原生 ADO.NET**               | 手写 SQL + DataReader   | `Microsoft.Data.Sqlite`（传递依赖）              | **无 ORM 下限**：ExecuteReader 手工映射；Condition/Join 空（同 Dapper）                  |
 | **DapperTest**        | **Dapper**                     | 微 ORM（手写 SQL + 映射） | NuGet `Dapper` **2.1.66**                      | 执行/映射薄封装标杆；Condition/Join/Method 多为空实现，不参与 ToSql 对比                     |
 | **ChloeTest**         | **Chloe**                      | 轻量 LINQ ORM       | `Chloe.SQLite` **5.55.0**                      | 表达式→SQL 与 Join 构建的常见对照标杆                                                |
 | **CrlTest**           | **CRL**（`CRL.Data`）            | 国内轻量 ORM / 仓储风格   | `CRL.Data` **6.5.12**                          | ProvideType 为 `CrlTest`；分配常偏低，Condition/Join 与 Chloe 同档对照                      |
@@ -38,16 +39,17 @@
 
 ### 按形态分组（读表时用）
 
-1. **手写 / 薄映射**：Dapper；RepoDB；NPoco；SmartSql（RealSql）；mooSQL **Builder**；**SqlKata**。  
+1. **手写 / 薄映射**：**AdoNet**（原生 DataReader）；Dapper；RepoDB；NPoco；SmartSql（RealSql）；mooSQL **Builder**；**SqlKata**。  
 2. **窄 Lambda / 轻 ORM**：mooSQL **Clip**；Chloe；CRL（CrlTest）；**Core.ORM**；**OrmLite**。  
 3. **完整 IQueryable / 重 ORM**：mooSQL **Queryable**；LINQ to DB；EF Core；FreeSql；SqlSugar；Fast.Framework；**NHibernate**。  
 
-同表横向对比时注意：**ToSql 场景**（Condition / MethodCondition / Join）与 **执行+映射**（Result / Loop）口径不同；Dapper、EF（Join）、**Core.ORM（Join）**、**SmartSql（Condition/Join）**、**NPoco（Join）** 等空实现或伪 ToSql 行 **解读时需标注**，文中各方法已单独说明。
+同表横向对比时注意：**ToSql 场景**（Condition / MethodCondition / Join）与 **执行+映射**（Result / Loop）口径不同；**AdoNet**、Dapper、EF（Join）、**Core.ORM（Join）**、**SmartSql（Condition/Join）**、**NPoco（Join）** 等空实现或伪 ToSql 行 **解读时需标注**，文中各方法已单独说明。
 
 ### 各库一句话
 
 - **mooSQL**：本仓库产品。三路径共用同一连接与方言栈——Builder 拼串、Clip 实体糖、Queryable 走 Ext LINQ（Statement/Clause）。近年重点优化 Queryable 计划缓存（L1/L2）与 SQLBuilder 执行模板缓存。  
-- **Dapper**：微软生态最常用微 ORM；SQL 自管、映射极轻，适合当「执行下限」参照。  
+- **原生 ADO.NET（AdoNetTest）**：无任何 ORM/微 ORM；`SqliteConnection` + 手写 SQL + `DataReader` 列序缓存后手工填实体。用作 Result/Anonymous/Loop 的**绝对下限**；Condition/Join 空实现。Anonymous 投影复用 `CoreOrmAnonymousDto`。  
+- **Dapper**：微软生态最常用微 ORM；SQL 自管、映射极轻，适合当「微 ORM 执行下限」参照（相对 AdoNet 仍多一层映射）。  
 - **Chloe**：国产轻量 LINQ ORM，API 接近 `IQueryable`，Join/条件构建成本低，常作 Expression 组标杆。  
 - **CRL**：国产 ORM（本适配器类名 `CrlTest`），仓储/关系配置风格；本基准分配往往最省之一。  
 - **FreeSql**：国产全功能 ORM，Provider 多、API 面大；基准中稳定中后段。  
