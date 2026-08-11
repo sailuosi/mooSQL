@@ -52,6 +52,24 @@ namespace mooSQL.data
     }
 
     /// <summary>
+    /// <see cref="DBQueryableExtension.useTrans{R}"/> 的返回包装（避免 net451 依赖 ValueTuple）。
+    /// </summary>
+    public sealed class TransResult<T>
+    {
+        /// <summary>true 提交，false 回滚。</summary>
+        public bool Commit { get; set; }
+
+        /// <summary>事务块返回值。</summary>
+        public T Result { get; set; }
+
+        /// <summary>提交并携带结果。</summary>
+        public static TransResult<T> Ok(T result) => new TransResult<T> { Commit = true, Result = result };
+
+        /// <summary>回滚并携带结果（可选）。</summary>
+        public static TransResult<T> Abort(T result = default(T)) => new TransResult<T> { Commit = false, Result = result };
+    }
+
+    /// <summary>
     /// Schema 同步客户端级默认（由 <see cref="MooClient.configureSchema"/> 写入）。
     /// </summary>
     public sealed class SchemaClientOptions

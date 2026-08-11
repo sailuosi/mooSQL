@@ -181,17 +181,17 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 同库事务糖（带返回值）：元组 Item1=是否提交。
+        /// 同库事务糖（带返回值）：通过 <see cref="TransResult{T}"/> 携带是否提交与结果。
         /// </summary>
-        public static R useTrans<R>(this DBInstance db, Func<TransWork, (bool ok, R result)> work,
+        public static R useTrans<R>(this DBInstance db, Func<TransWork, TransResult<R>> work,
             IsolationLevel? level = null, Action<Exception> onError = null)
         {
-            R result = default;
+            R result = default(R);
             useTrans(db, w =>
             {
                 var t = work(w);
-                result = t.result;
-                return t.ok;
+                result = t.Result;
+                return t.Commit;
             }, level, onError);
             return result;
         }
