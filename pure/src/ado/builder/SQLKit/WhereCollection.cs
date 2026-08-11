@@ -40,6 +40,7 @@ namespace mooSQL.data
             topBox.isTop = true;
             topBox.parent = null;
             this.CurrentGroup = topBox;
+            // Where 步骤录制默认关闭（性能）；Apart 改由 SQLBuilder 编排磁带承担
             this.steps = new Stepable<WhereStep>(false);
         }
 

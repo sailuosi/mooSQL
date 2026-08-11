@@ -266,31 +266,6 @@ namespace mooSQL.data
 
         public RecurCTEBuilder withRecurTo(string name) => _inner.withRecurTo(name);
 
-        // ---- Apart：物化后读写内核；useApart 重放到门面以入队 ----
-        public SQLBuilder record()
-        {
-            runBuild();
-            _inner.record();
-            return this;
-        }
-
-        public SQLApart stop()
-        {
-            runBuild();
-            return _inner.stop();
-        }
-
-        public SQLApart toApart()
-        {
-            runBuild();
-            return _inner.toApart();
-        }
-
-        public SQLBuilder useApart(SQLApart apart)
-        {
-            if (apart == null) throw new ArgumentNullException(nameof(apart));
-            apart.Script.ApplyTo(this);
-            return this;
-        }
+        // Apart：record / stop / toApart / useApart 见 SQLBuilder.apart.cs（编排磁带）
     }
 }

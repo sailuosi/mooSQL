@@ -25,9 +25,8 @@ namespace mooSQL.data
         /// </summary>
         public Stepable(bool recordEvery)
         {
-
             this.steps = new List<T>();
-            this.recordNow = false;
+            this.recordNow = recordEvery;
         }
         /// <summary>
         /// 开始

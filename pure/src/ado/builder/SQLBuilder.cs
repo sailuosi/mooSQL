@@ -92,6 +92,7 @@ namespace mooSQL.data
         public SQLBuilder clear()
         {
             _steps.Clear();
+            ClearApartRecording();
             ResetFacadeGates();
             _dirty = false;
             _inner.clear();
@@ -102,6 +103,7 @@ namespace mooSQL.data
         public SQLBuilder reset()
         {
             _steps.Clear();
+            ClearApartRecording();
             ResetFacadeGates();
             _dirty = false;
             _inner.reset();

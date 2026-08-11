@@ -131,11 +131,11 @@ namespace mooSQL.Pure.Tests
             var kit = TestDatabaseHelper.CreateSQLBuilder();
             var apart = kit.from("users").where("age", 18).toApart();
 
-            kit.clear().useApart(apart).where("status", 1).toSelect();
-            var replayKeys = kit.ps.value.Keys.OrderBy(k => k).ToList();
+            var replay = kit.clear().useApart(apart).where("status", 1).toSelect();
+            var replayKeys = replay.para.value.Keys.OrderBy(k => k).ToList();
 
-            kit.clear().from("users").where("age", 18).where("status", 1).toSelect();
-            var manualKeys = kit.ps.value.Keys.OrderBy(k => k).ToList();
+            var manual = kit.clear().from("users").where("age", 18).where("status", 1).toSelect();
+            var manualKeys = manual.para.value.Keys.OrderBy(k => k).ToList();
 
             replayKeys.Should().Equal(manualKeys);
         }

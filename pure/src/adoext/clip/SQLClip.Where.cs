@@ -276,8 +276,14 @@ namespace mooSQL.data
         /// <param name="fieldSelector"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector,params R[] values) { 
-            return this.whereNotIn(fieldSelector,values);
+        public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, params R[] values)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotIn(field, values);
+            }
+            return this;
         }
         /// <summary>
         /// 构造like语句，用于模糊查询字段。例如：whereLike(x=>x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。

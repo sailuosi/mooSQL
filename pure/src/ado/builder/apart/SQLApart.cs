@@ -1,18 +1,20 @@
+using System.Collections.Generic;
+
 namespace mooSQL.data
 {
     /// <summary>
-    /// SQL 构建碎片，保存可重放的 API 步骤脚本，供 <see cref="StepBuilder.useApart"/> 复用。
-    /// 可通过 <see cref="StepBuilder.toApart"/> 快照当前 Builder，或通过 <see cref="StepBuilder.record"/>/<see cref="StepBuilder.stop"/> 录播独立片段。
-    /// 一阶段仅支持同类 <see cref="DataBaseType"/> 复用；二阶段预留跨库 <c>convertApart</c>（未实现）。
+    /// SQL 构建碎片：保存编排步骤磁带（<see cref="IStep"/>），供 <see cref="SQLBuilder.useApart"/> 重放入队。
+    /// 可通过 <see cref="SQLBuilder.toApart"/> 快照当前编排，或通过 <see cref="SQLBuilder.record"/>/<see cref="SQLBuilder.stop"/> 截取片段。
+    /// 一阶段仅支持同类 <see cref="DataBaseType"/> 复用。
     /// </summary>
     public sealed class SQLApart
     {
-        internal ApartBuildScript Script { get; }
+        internal List<IStep> Steps { get; }
         internal DataBaseType SourceDbType { get; }
 
-        internal SQLApart(ApartBuildScript script, DataBaseType sourceDbType)
+        internal SQLApart(List<IStep> steps, DataBaseType sourceDbType)
         {
-            Script = script;
+            Steps = steps ?? new List<IStep>();
             SourceDbType = sourceDbType;
         }
 
@@ -21,7 +23,7 @@ namespace mooSQL.data
         /// </summary>
         public void clear()
         {
-            Script.Clear();
+            Steps.Clear();
         }
     }
 }
