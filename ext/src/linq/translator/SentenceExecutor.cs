@@ -161,7 +161,11 @@ internal static partial class SentenceExecutor
 
         var context = CreateContext(bag, db, expression, parameters);
         var cmds = PrepareCommands(context);
-        return string.Join(Environment.NewLine, cmds.Select(c => c.sql));
+        return string.Join(Environment.NewLine, cmds.Select(c =>
+        {
+            c.EnsureLiveParasResolved();
+            return c.sql;
+        }));
     }
 
     public static object? ExecuteObject(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)

@@ -108,7 +108,7 @@ namespace mooSQL.auth
 
             //执行添加
             bindValues.Add(val);
-            return res;
+            return true;
         }
         /// <summary>
         /// 添加一个值，包含下级

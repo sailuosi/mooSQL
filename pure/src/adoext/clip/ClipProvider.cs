@@ -172,7 +172,7 @@ namespace mooSQL.data.clip
                 clip.Context.Builder.select(sb.ToString());
             }
 
-            this.clip.Context.FieldCount = fieldCount;
+            this.clip.Context.FieldCount += fieldCount;
             return null;
         }
 

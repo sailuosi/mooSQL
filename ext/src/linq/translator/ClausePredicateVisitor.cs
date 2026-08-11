@@ -330,11 +330,18 @@ internal sealed class ClausePredicateVisitor
             return null;
 
         var descriptor = builder.SuggestColumnDescriptor(context, fieldExpr, flags);
-        var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags) ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
-        var empty = builder.ConvertToSql(context, Expression.Constant(string.Empty), unwrap: false, columnDescriptor: descriptor);
-        var trimmed = new ExpressionWord(typeof(string), "TRIM({0})", PrecedenceLv.Primary, field);
-        var isNull = new IsNull(field, false);
-        var isEmptyTrim = new ExprExpr(trimmed, AffirmWord.Operator.Equal, empty, null);
-        return new SearchConditionWord(true).Add(isNull).Add(isEmptyTrim);
+        var field = ClauseFieldVisitor.ConvertField(builder, context, fieldExpr, flags)
+            ?? builder.ConvertToSql(context, fieldExpr, unwrap: false, columnDescriptor: descriptor);
+        // 方言模板一次性展开；避免 TRIM(...) = '' 被 notEmpty 参数规则丢掉。
+        var format = builder.DBLive.dialect.expression.isNullOrWhiteSpace("{0}");
+        var expr = new ExpressionWord(
+            typeof(bool),
+            format,
+            PrecedenceLv.Primary,
+            SqlFlags.IsPredicate | SqlFlags.IsPure,
+            ParametersNullabilityType.NotNullable,
+            false,
+            field);
+        return new Expr(expr);
     }
 }

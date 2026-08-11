@@ -62,25 +62,29 @@ namespace mooSQL.utils
         }
 
         /// <summary>
-        /// 对序列做类 fold 归约（跳过首元素作为种子，再逐元素累积）。
+        /// 对序列做类 fold 归约（首元素作为种子，再逐元素累积）。
         /// </summary>
-        public static R reduece<T,R>(this IEnumerable<T> list, Func<R,T, R> doreduce)
+        public static R reduece<T, R>(this IEnumerable<T> list, Func<R, T, R> doreduce)
         {
-            T pre ;
-            bool isFirst = true;
-            R res=default(R);
-            foreach (T item in list)
+            if (list == null)
+                return default(R);
+
+            using (var e = list.GetEnumerator())
             {
-                if (isFirst) { 
-                    pre = item;
-                    isFirst = false;
-                    continue;
-                }
+                if (!e.MoveNext())
+                    return default(R);
 
-                 res=doreduce(res, item);
+                R res;
+                if (typeof(R).IsAssignableFrom(typeof(T)))
+                    res = (R)(object)e.Current;
+                else
+                    res = (R)Convert.ChangeType(e.Current, typeof(R));
 
+                while (e.MoveNext())
+                    res = doreduce(res, e.Current);
+
+                return res;
             }
-            return res;
         }
 
         /// <summary>

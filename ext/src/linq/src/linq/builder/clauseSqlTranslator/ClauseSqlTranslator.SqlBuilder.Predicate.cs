@@ -702,12 +702,18 @@ namespace mooSQL.linq.Linq.Builder
 
         IAffirmWord ConvertIsNullOrWhiteSpacePredicate(IClauseContext? context, Expression fieldExpr, ProjectFlags flags)
 		{
+			// 方言模板一次性展开；勿走 TRIM(...) = '' 参数化路径（默认 paraRule=notEmpty 会丢掉空串条件，只剩 IS NULL）。
 			var field = ConvertToSql(context, fieldExpr, unwrap: false, flags: flags);
-			var empty = ConvertToSql(context, Expression.Constant(string.Empty), unwrap: false, flags: flags);
-			var trimmed = new ExpressionWord(typeof(string), "TRIM({0})", PrecedenceLv.Primary, field);
-			var isNull = new IsNull(field, false);
-			var isEmptyTrim = new ExprExpr(trimmed, AffirmWord.Operator.Equal, empty, null);
-			return new SearchConditionWord(true).Add(isNull).Add(isEmptyTrim);
+			var format = DBLive.dialect.expression.isNullOrWhiteSpace("{0}");
+			var expr = new ExpressionWord(
+				typeof(bool),
+				format,
+				PrecedenceLv.Primary,
+				SqlFlags.IsPredicate | SqlFlags.IsPure,
+				ParametersNullabilityType.NotNullable,
+				false,
+				field);
+			return new Expr(expr);
 		}
 
         IAffirmWord? CreateStringPredicate(IClauseContext? context, MethodCallExpression expression, mooSQL.data.model.affirms.SearchString.SearchKind kind, IExpWord caseSensitive, ProjectFlags flags)

@@ -21,7 +21,7 @@ public class TestEnurableUntils
 
         var res = list1.reduece<int,int>((x1,x2) => x1+x2);
 
-        Assert.Equal(1,res);
+        Assert.Equal(4751,res);
     }
 
     [Fact]
@@ -31,6 +31,7 @@ public class TestEnurableUntils
         var list1 = new List<propoRow>() {
             new propoRow{ 
                 id=0,
+                idx=1,
                 name="11"
             }
         };

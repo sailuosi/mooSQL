@@ -36,6 +36,17 @@ namespace mooSQL.linq
             throw new NotSupportedException("未知的操作符："+expr.Operator);
         }
         /// <summary>
+        /// 布尔表达式谓词（如方言 IsNullOrWhiteSpace 模板）。
+        /// </summary>
+        public override Clause VisitAffirmExpr(Expr clause)
+        {
+            var sql = VisitIExpWord(clause.Expr1)?.ToString();
+            if (!string.IsNullOrWhiteSpace(sql))
+                builder.where(sql);
+            return clause;
+        }
+
+        /// <summary>
         /// 二元条件
         /// </summary>
         /// <param name="clause"></param>

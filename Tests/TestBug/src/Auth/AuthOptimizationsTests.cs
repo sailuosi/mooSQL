@@ -107,6 +107,7 @@ public class AuthOptimizationsTests
         });
 
         var wh = kit.buildWhereContent();
+        wh = kit.ps.ResolveDelayParas(wh ?? "");
         Assert.Contains("NOT IN", wh, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("between", wh, StringComparison.OrdinalIgnoreCase);
     }
