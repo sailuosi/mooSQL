@@ -56,6 +56,20 @@ namespace mooSQL.linq.Linq
 			if (template == null)
 				return false;
 
+			// 历史错误缓存：含 Live 壳的模板不可复用（会永久丢 DelayParas）
+			if (template.Sql != null && template.Sql.IndexOf("moo.lp:", StringComparison.Ordinal) >= 0)
+			{
+				sentence.L2Template = null;
+				return false;
+			}
+
+			// Skip/Take 烘焙进 OFFSET/LIMIT 的查询不可复用旧文本
+			if (HasParameterizedPaging(sentence))
+			{
+				sentence.L2Template = null;
+				return false;
+			}
+
 			if (!IsSafeGate(sentence.ParameterAccessors, values))
 				return false;
 
@@ -93,6 +107,14 @@ namespace mooSQL.linq.Linq
 			if (cmd == null || string.IsNullOrEmpty(cmd.sql))
 				return;
 
+			// Live/Delay 占位未解析时不可缓存：复用只会带 Static para，DelayParas 会丢失，SQL 永久留 @@{{moo.lp:N}}。
+			if (cmd.sql.IndexOf("moo.lp:", StringComparison.Ordinal) >= 0)
+				return;
+
+			// Skip/Take 常被 Visit 烘焙进 OFFSET/LIMIT 字面量；同 L1 不同分页值不能共用文本。
+			if (HasParameterizedPaging(sentence))
+				return;
+
 			if (!IsSafeGate(sentence.ParameterAccessors, values))
 				return;
 
@@ -110,6 +132,17 @@ namespace mooSQL.linq.Linq
 				cmd.type,
 				cmd.TargetTable);
 		}
+
+		static bool HasParameterizedPaging(SentenceItem sentence)
+		{
+			var select = sentence.Statement?.SelectQuery?.Select;
+			if (select == null)
+				return false;
+			return IsPagingParameter(select.SkipValue) || IsPagingParameter(select.TakeValue);
+		}
+
+		static bool IsPagingParameter(IExpWord? word)
+			=> word is ParameterWord;
 
 		public static SentenceCmds? TryBuildCmds(SentenceItem sentence, SqlParameterValues values)
 		{

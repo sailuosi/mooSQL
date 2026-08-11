@@ -106,6 +106,29 @@ namespace mooSQL.linq.Linq.Builder
 			return result;
 		}
 
+		bool _columnsCompleted;
+
+		public override void CompleteColumns()
+		{
+			if (_columnsCompleted || Placeholder == null)
+				return;
+			_columnsCompleted = true;
+
+			// 顶层聚合：SELECT 列表应为 COUNT/SUM/...，不能沿用子序列的实体列投影。
+			SelectQuery.Select.Columns.Clear();
+			var projected = BuildProjection(new ContextRefExpression(_returnType, this), ProjectFlags.SQL);
+			if (projected is SqlPlaceholderExpression placeholder)
+				Builder.ToColumns(SelectQuery, placeholder);
+
+			Sequence.CompleteColumns();
+		}
+
+		public override BaseSentence GetResultStatement()
+		{
+			CompleteColumns();
+			return new SelectSentence(SelectQuery);
+		}
+
 		public override IClauseContext Clone(CloningContext context)
 		{
 			return new AggregationContext(null, context.CloneContext(Sequence), _aggregationType, _methodName, _returnType)

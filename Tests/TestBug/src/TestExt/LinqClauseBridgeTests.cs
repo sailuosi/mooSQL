@@ -93,7 +93,7 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
 
         Assert.Equal(NormalizeSqlForCompare(linqSql), NormalizeSqlForCompare(builderSql));
     }
@@ -107,7 +107,7 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         Assert.Equal(NormalizeSqlForCompare(linqSql), NormalizeSqlForCompare(clipSql));
     }
@@ -119,6 +119,13 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     static string NormalizeSqlForCompare(string sql)
         => Regex.Replace(NormalizeSql(sql), @"@\w+", "@p", RegexOptions.None);
 
+    /// <summary>toSelect 预览可能保留 Live 壳；与 GetSqlText 对齐时先解析。</summary>
+    static string ResolveLiveSql(mooSQL.data.SQLCmd cmd)
+    {
+        cmd.EnsureLiveParasResolved();
+        return cmd.sql ?? "";
+    }
+
     [Fact]
     public void ThreeEntrySnapshot_DbFuncLower()
     {
@@ -128,8 +135,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -147,8 +154,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -166,8 +173,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -185,8 +192,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -204,8 +211,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -224,8 +231,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -243,8 +250,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -261,8 +268,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -280,8 +287,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -299,8 +306,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -319,8 +326,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -338,8 +345,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -357,8 +364,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -376,8 +383,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -395,8 +402,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -414,8 +421,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -434,8 +441,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));
@@ -454,8 +461,8 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
             .Expression;
 
         var linqSql = LinqStatementCompiler.GetSqlText(db, expr);
-        var builderSql = LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect().sql;
-        var clipSql = db.FromLinqExpression(expr).toSelect().sql;
+        var builderSql = ResolveLiveSql(LinqStatementCompiler.ToSQLBuilder(db, expr).toSelect());
+        var clipSql = ResolveLiveSql(db.FromLinqExpression(expr).toSelect());
 
         var normalized = NormalizeSqlForCompare(linqSql);
         Assert.Equal(normalized, NormalizeSqlForCompare(builderSql));

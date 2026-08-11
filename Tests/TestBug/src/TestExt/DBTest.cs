@@ -124,6 +124,21 @@ public partial class DBTest
         return db.useSQL();
     }
 
+    /// <summary>本地 MSSQL 不可用时，依赖真实库的集成测试应直接 return。</summary>
+    public static bool IsAvailable(int position = 0)
+    {
+        try
+        {
+            var db = GetDBInstance(position);
+            db.ExeQueryScalar<object>("SELECT 1", null);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 
     public static DbBus<T> useBus<T>(int position)
     {

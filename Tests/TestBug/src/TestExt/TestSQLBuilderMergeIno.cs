@@ -13,6 +13,7 @@ public class TestSQLBuilderMergeIno
     [Fact]
     public void selectTop1()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var cmd= kit.mergeInto("HH_SysRole")

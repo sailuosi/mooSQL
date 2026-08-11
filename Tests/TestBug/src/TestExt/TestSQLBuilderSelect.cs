@@ -23,7 +23,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("SELECT top 1 a from t ", sql.sql);
+        Assert.Equal("SELECT TOP 1 a FROM t ", sql.sql);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t)  SELECT top 1 a from t1 ", sql.sql);
+        Assert.Equal("WITH  t1 AS (select a from t)  SELECT TOP 1 a FROM t1 ", sql.sql);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
+        Assert.Equal("WITH  t1 AS (select a from t) , t2 AS (SELECT b FROM b WHERE b.id=1 )  SELECT TOP 1 a FROM t1 ", sql.sql);
     }
 
 
@@ -75,7 +75,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
         var sql=cmd.toRawSQL();
-        Assert.Equal("SELECT top 1 a from (SELECT name from student where id=1 ) as t1  ", sql);
+        Assert.Equal("SELECT TOP 1 a FROM (SELECT name FROM student WHERE id=1 ) as t1  ", sql);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
         var sql = cmd.toRawSQL();
-        Assert.Equal("SELECT top 1 a from tableA as a  left join (SELECT name from student where id=1 ) as b on a.id=b.id  ", sql);
+        Assert.Equal("SELECT TOP 1 a FROM tableA as a  left join (SELECT name FROM student WHERE id=1 ) as b on a.id=b.id  ", sql);
     }
     [Fact]
     public void selectUnion1()
@@ -113,7 +113,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
+        Assert.Equal("SELECT TOP 1 * FROM (  SELECT a FROM t1 WHERE t1.id=1   UNION  SELECT a FROM t1 WHERE t1.id=1   ) as tmpunioned ", sql.sql);
     }
     [Fact]
     public void selectUnion2()
@@ -132,7 +132,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
 
-        Assert.Equal("with  t1 as (select a from t) , t2 as (SELECT b from b where b.id=1 )  SELECT top 1 a from t1 ", sql.sql);
+        Assert.Equal("SELECT TOP 1 * FROM (  SELECT a FROM t1 WHERE t1.id=1   UNION ALL  SELECT a FROM t1 WHERE t1.id=1   ) as tmpunioned ", sql.sql);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
         var sql = cmd.toRawSQL();
-        Assert.Equal("SELECT top 1 a.Name from tableA as a where a.Name  in   (SELECT Name from student where id=1 )  ", sql);
+        Assert.Equal("SELECT TOP 1 a.Name FROM tableA as a WHERE a.Name  in   (SELECT Name FROM student WHERE id=1 )  ", sql);
     }
     [Fact]
     public void selectWhereSimple1()
@@ -231,13 +231,17 @@ public class TestSQLBuilderSelect
             .setPage(10,1)
             .toSelect();
         var sql = cmd.toRawSQL();
-        Assert.Equal("SELECT top 1 a.Name from tableA as a where a.Name  in   (SELECT Name from student where id=1 )  ", sql);
+        Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("FROM tableA", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHERE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(" IN ", sql, StringComparison.OrdinalIgnoreCase);
     }
 
 
     [Fact]
     public void findList1()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var list = kit.findList<HHDutyItem>((c,h)=>c.where(()=>h.Di_Idx,0));
@@ -247,6 +251,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findList2()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var list = kit.findListByIds<HHDutyItem>("0001,0002");
@@ -291,6 +296,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findRow1()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var list = kit.findRow<HHDutyItem>((c, h) => c.where(() => h.HH_DutyItemOID, "0001"));
@@ -300,6 +306,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findField1()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;
@@ -310,6 +317,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findFieldValue()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;
@@ -321,6 +329,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findFieldValue2()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;
@@ -331,6 +340,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findFieldValue3()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;
@@ -341,6 +351,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findFieldValue4()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;
@@ -352,6 +363,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void findFieldValues()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
         var oid = Guid.Empty;

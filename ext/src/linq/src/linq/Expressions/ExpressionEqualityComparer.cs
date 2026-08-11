@@ -539,6 +539,10 @@ namespace mooSQL.linq.Expressions
 					return false; // EnumerableQueries are opaque
 				}
 
+				// IQueryable / 查询总线不可按结果枚举比较（会触发编译执行，且 BaseDbBus 等常量常出现在表达式树中）。
+				if (a.Value is IQueryable || b.Value is IQueryable)
+					return ReferenceEquals(a.Value, b.Value);
+
 				if (a.Value is IEnumerable ae && b.Value is IEnumerable be)
 				{
 					var enum1 = ae.GetEnumerator();

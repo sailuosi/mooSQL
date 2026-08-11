@@ -350,15 +350,11 @@ internal partial class ClauseMethodVisitor
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, sequenceArgument, new SelectQueryClause()));
 
-            var projected = builder.BuildSqlExpression(sequence,
-                new ContextRefExpression(sequence.ElementType, sequence), buildInfo.GetFlags(ProjectFlags.Keys),
-                buildFlags : BuildFlags.ForceAssignments);
-
-            sequence  = new SubQueryContext(sequence);
-            projected = builder.UpdateNesting(sequence, projected);
-
             if (aggregationType == AggregationType.Count)
             {
+                // Count 不需要实体列投影；避免 UpdateNesting 把整表列写进外层 SELECT。
+                sequence = new SubQueryContext(sequence);
+
                 if (argumentsCount == 2)
                 {
                     var lambda = methodCall.Arguments[1].UnwrapLambda();
@@ -376,6 +372,13 @@ internal partial class ClauseMethodVisitor
             }
             else
             {
+                var projected = builder.BuildSqlExpression(sequence,
+                    new ContextRefExpression(sequence.ElementType, sequence), buildInfo.GetFlags(ProjectFlags.Keys),
+                    buildFlags : BuildFlags.ForceAssignments);
+
+                sequence  = new SubQueryContext(sequence);
+                projected = builder.UpdateNesting(sequence, projected);
+
                 Expression valueExpression;
                 if (argumentsCount == 2)
                 {

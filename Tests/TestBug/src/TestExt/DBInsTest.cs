@@ -17,6 +17,7 @@ public class DBInsTest
     [Fact]
     public void selectTop1()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var db = DBTest.GetDBInstance(0);
         //查询一个表

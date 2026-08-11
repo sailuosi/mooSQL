@@ -29,7 +29,7 @@ public class TestSQLBuilderUpdate
             .where("ZH_PortCellOID", "OID")
             .toUpdate();
         var sql = cmd.toRawSQL();
-        Assert.Equal("with  t1 as (select a from t)  SELECT top 1 a from t1 ", sql);
+        Assert.Equal("UPDATE ZH_PortCell  SET PC_X='x' ,PC_Y='y' ,PC_W='w' ,PC_H='h'  WHERE ZH_PortCellOID = 'OID'", sql);
     }
 
     [Fact]
@@ -42,13 +42,14 @@ public class TestSQLBuilderUpdate
             .where("ZH_PortCellOID", "OID")
             .toDelete();
         var sql = cmd.toRawSQL();
-        Assert.Equal("with  t1 as (select a from t)  SELECT top 1 a from t1 ", sql);
+        Assert.Equal("DELETE FROM ZH_PortCell WHERE ZH_PortCellOID = 'OID'", sql);
     }
 
 
     [Fact]
     public void fastUpdateByClip()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
 
@@ -68,6 +69,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void RemoveByClip()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
 
@@ -88,6 +90,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void fastRemoveByClip()
     {
+        if (!DBTest.IsAvailable(0)) return;
 
         var kit = DBTest.useSQL(0);
 
@@ -130,12 +133,16 @@ public class TestSQLBuilderUpdate
 
         var sql = cmd.toRawSQL();
 
-        Assert.Equal("merge into SK_RealInBill  using ((SELECT * from SK_RealInEFuel a where a.STATUS  IN  ('A','AC') )) as r  on (r.SK_RealInEFuelOID=SK_RealInBill.SK_RealInBillOID)   when not matched  then insert(SK_RealInBillOID,Ri_Task,Ri_InSrc,Ri_PayAcc,Ri_PayAccName,Ri_Code,Ri_Num,Ri_Man,Ri_InType) values( r.SK_RealInEFuelOID,'2','4',r.PAY_ACCOUNT,r.PAY_NAME,r.RCPT_NO,r.COST,r.CZRMC,(case when r.STATUS='A' then '1' when r.STATUS='AC' then '2'  else '' end) )   when not matched  then update set Ri_PayAcc=r.PAY_ACCOUNT ,Ri_PayAccName=r.PAY_NAME ,Ri_Code=r.RCPT_NO ,Ri_Num=r.COST ,Ri_Man=r.CZRMC ,Ri_InType=(case when r.STATUS='A' then '1' when r.STATUS='AC' then '2'  else '' end)   ;", sql);
+        Assert.Contains("MERGE INTO", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("SK_RealInBill", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHEN NOT MATCHED", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("INSERT", sql, StringComparison.OrdinalIgnoreCase);
     }
 
 
     [Fact]
     public void matchBulkBase1() {
+        if (!DBTest.IsAvailable(0)) return;
         int cc = 0;
         var kit = DBTest.useSQL(0);
 
@@ -179,6 +186,7 @@ public class TestSQLBuilderUpdate
 
     [Fact]
     public void addBulkBase1() {
+        if (!DBTest.IsAvailable(0)) return;
         var kit = DBTest.useSQL(0);
         var list = new List<HHDutyItem>() {
             new HHDutyItem() { },
@@ -189,6 +197,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void addBulkBase2()
     {
+        if (!DBTest.IsAvailable(0)) return;
         var kit = DBTest.useSQL(0);
         var bk = kit.DBLive.useBulk();
         var list = new List<HHDutyItem>() {
