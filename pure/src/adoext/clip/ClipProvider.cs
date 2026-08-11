@@ -286,7 +286,7 @@ namespace mooSQL.data.clip
                     this.Translator.BuildSelectFrom(tool, tb.TableInfo);
                     var select = tool.toSelect();
                     sb.Append(" ( ");
-                    sb.Append(select);
+                    sb.Append(select.sql);
                     sb.Append(" ) AS ");
                     sb.Append(tb.Alias);
                 }

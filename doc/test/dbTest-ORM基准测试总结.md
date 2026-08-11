@@ -19,7 +19,7 @@
 | **MooSqlBuilderTest** | **mooSQL** `useSQL` / SQLBuilder | 链式 SQL 构建 + 映射    | 本仓库 `mooSQL.Ext` **8.1.2.3**                   | 字符串列名/条件，动态拼 SQL 标杆；Condition/Join 常最快                                   |
 | **MooSqlClipTest**    | **mooSQL** `useClip` / SQLClip   | 实体别名 + Lambda 糖   | 同上                                             | 类型安全窄 API；落到 SQLBuilder，成本介于 Builder 与完整 IQueryable 之间                  |
 | **MooSqlQueryableTest** | **mooSQL** Ext `useQueryable`  | 标准 `IQueryable` LINQ | 同上                                          | 对标 EF/Chloe 写法；L1/L2 优化后多数场景可竞争；Loop 开模板缓存轮曾 NA                         |
-| **AdoNetTest**        | **原生 ADO.NET**               | 手写 SQL + DataReader   | `Microsoft.Data.Sqlite`（传递依赖）              | **无 ORM 下限**：ExecuteReader 手工映射；Condition/Join 空（同 Dapper）                  |
+| **AdoNetTest**        | **原生 ADO.NET**               | 手写 SQL + DataReader   | `Microsoft.Data.Sqlite`（传递依赖）              | 无 ORM 对照：Result **分配常最低**、时间未必快过 Dapper；Condition/Join 空                  |
 | **DapperTest**        | **Dapper**                     | 微 ORM（手写 SQL + 映射） | NuGet `Dapper` **2.1.66**                      | 执行/映射薄封装标杆；Condition/Join/Method 多为空实现，不参与 ToSql 对比                     |
 | **ChloeTest**         | **Chloe**                      | 轻量 LINQ ORM       | `Chloe.SQLite` **5.55.0**                      | 表达式→SQL 与 Join 构建的常见对照标杆                                                |
 | **CrlTest**           | **CRL**（`CRL.Data`）            | 国内轻量 ORM / 仓储风格   | `CRL.Data` **6.5.12**                          | ProvideType 为 `CrlTest`；分配常偏低，Condition/Join 与 Chloe 同档对照                      |
@@ -48,8 +48,8 @@
 ### 各库一句话
 
 - **mooSQL**：本仓库产品。三路径共用同一连接与方言栈——Builder 拼串、Clip 实体糖、Queryable 走 Ext LINQ（Statement/Clause）。近年重点优化 Queryable 计划缓存（L1/L2）与 SQLBuilder 执行模板缓存。  
-- **原生 ADO.NET（AdoNetTest）**：无任何 ORM/微 ORM；`SqliteConnection` + 手写 SQL + `DataReader` 列序缓存后手工填实体。用作 Result/Anonymous/Loop 的**绝对下限**；Condition/Join 空实现。Anonymous 投影复用 `CoreOrmAnonymousDto`。  
-- **Dapper**：微软生态最常用微 ORM；SQL 自管、映射极轻，适合当「微 ORM 执行下限」参照（相对 AdoNet 仍多一层映射）。  
+- **原生 ADO.NET（AdoNetTest）**：无任何 ORM/微 ORM；`SqliteConnection` + 手写 SQL + `DataReader` 列序缓存后手工填实体。Result「+AdoNet」：**分配常最低**、时间慢于 Dapper；Loop 复测 7：与 Dapper **同入 Rank 1**（~1.38 ms / 61 KB），分配反被 Dapper 略胜。Condition/Join 空实现。Anonymous 投影复用 `CoreOrmAnonymousDto`。  
+- **Dapper**：微软生态最常用微 ORM；SQL 自管、映射极轻。Result / Loop 常仍是**时间第一**；Loop 上分配亦可略优于手工 DataReader。  
 - **Chloe**：国产轻量 LINQ ORM，API 接近 `IQueryable`，Join/条件构建成本低，常作 Expression 组标杆。  
 - **CRL**：国产 ORM（本适配器类名 `CrlTest`），仓储/关系配置风格；本基准分配往往最省之一。  
 - **FreeSql**：国产全功能 ORM，Provider 多、API 面大；基准中稳定中后段。  
@@ -410,6 +410,80 @@
 - Result 扩容梯队：**Dapper >（Chloe ≈ mooSQL×3 ≈ SmartSql ≈ SqlKata ≈ CRL ≈ FreeSql）>（NPoco ≈ OrmLite）> EF > SqlSugar >（NHibernate ≈ LinqToDb ≈ Core.ORM）≫ FastFramework**；RepoDb NA。  
 - 新产品：SmartSql / SqlKata 可作强类型映射对照；OrmLite / NPoco 中档；Core.ORM / NHibernate 偏重但单次查询可测。  
 - 产品口径不变：Result 仍优先 **Dapper / Builder / Clip / Queryable（暖）**。
+
+### 复测：+AdoNet 原生下限（2026-08-11）
+
+背景：新增 `AdoNetTest`（`Microsoft.Data.Sqlite` + 手写 SQL + `DataReader` 手工映射）后，在扩容版 ProvideType 集上重跑 `TestResult`。本轮墙钟整体偏慢、StdDev 偏大（多适配器同 Job），**以相对梯队与分配为主**；不覆盖改写上文各轮原表。
+
+#### 原始结果（+AdoNet）
+
+
+| Method     | ProvideType         | Mean       | Error     | StdDev    | Median     | Rank | Gen0    | Gen1   | Allocated |
+| ---------- | ------------------- | ---------- | --------- | --------- | ---------- | ---- | ------- | ------ | --------- |
+| TestResult | DapperTest          | 330.9 us   | 14.21 us  | 41.66 us  | 319.2 us   | 1    | 6.8359  | 0.4883 | 55.95 KB  |
+| TestResult | ChloeTest           | 376.7 us   | 17.37 us  | 48.71 us  | 370.7 us   | 2    | 8.7891  | 0.9766 | 73.52 KB  |
+| TestResult | AdoNetTest          | 379.3 us   | 21.01 us  | 61.95 us  | 359.7 us   | 2    | 3.9063  | -      | 35.42 KB  |
+| TestResult | MooSqlBuilderTest   | 390.8 us   | 15.68 us  | 46.24 us  | 389.3 us   | 2    | 7.3242  | 0.4883 | 60.68 KB  |
+| TestResult | MooSqlClipTest      | 430.4 us   | 29.43 us  | 86.32 us  | 410.0 us   | 2    | 7.8125  | 2.4414 | 64.52 KB  |
+| TestResult | MooSqlQueryableTest | 430.6 us   | 23.65 us  | 69.73 us  | 424.0 us   | 2    | 7.8125  | 0.9766 | 64.64 KB  |
+| TestResult | FreeSqlTest         | 436.2 us   | 16.17 us  | 46.91 us  | 423.3 us   | 2    | 8.7891  | 1.9531 | 77.33 KB  |
+| TestResult | SmartSqlTest        | 451.5 us   | 21.53 us  | 63.15 us  | 437.1 us   | 2    | 3.9063  | -      | 47.73 KB  |
+| TestResult | SqlKataTest         | 477.0 us   | 20.37 us  | 60.06 us  | 470.5 us   | 2    | 8.7891  | 0.4883 | 72.16 KB  |
+| TestResult | OrmLiteTest         | 482.8 us   | 38.98 us  | 114.93 us | 466.0 us   | 2    | 8.7891  | -      | 78.43 KB  |
+| TestResult | CrlTest             | 505.8 us   | 48.97 us  | 144.38 us | 542.6 us   | 2    | 3.9063  | -      | 38.34 KB  |
+| TestResult | NPocoTest           | 604.8 us   | 35.12 us  | 103.57 us | 582.4 us   | 3    | 15.6250 | -      | 130.72 KB |
+| TestResult | EfSqlliteTest       | 761.3 us   | 48.67 us  | 139.66 us | 747.8 us   | 4    | 19.5313 | 3.9063 | 178.64 KB |
+| TestResult | SqlSugarTest        | 1,068.9 us | 68.37 us  | 201.59 us | 1,031.9 us | 5    | 11.7188 | -      | 98.54 KB  |
+| TestResult | LinqToDbTest        | 1,589.4 us | 96.54 us  | 284.66 us | 1,542.8 us | 6    | 11.7188 | -      | 118.11 KB |
+| TestResult | CoreOrmTest         | 1,828.1 us | 142.55 us | 420.31 us | 1,698.2 us | 6    | 11.7188 | -      | 106.43 KB |
+| TestResult | NHibernateTest      | 2,127.8 us | 115.06 us | 339.25 us | 2,117.4 us | 7    | 23.4375 | 3.9063 | 200.98 KB |
+| TestResult | FastFrameworkTest   | 2,655.5 us | 128.56 us | 375.01 us | 2,597.1 us | 8    | 15.6250 | -      | 153.5 KB  |
+| TestResult | RepoDbTest          | NA         | NA        | NA        | NA         | ?    | NA      | NA     | NA        |
+
+
+#### 梯队（按 Mean；不含 NA）
+
+
+| 档位  | ProvideType                                                              | Mean（约）          | Allocated（代表）                          |
+| --- | ---------------------------------------------------------------------- | ---------------- | ------------------------------------- |
+| 1   | Dapper                                                                 | **~331 μs**      | ~56 KB                                |
+| 2   | Chloe、**AdoNet**、**mooSQL×3**、FreeSql、SmartSql、SqlKata、OrmLite、CRL       | ~377–506 μs      | **AdoNet ~35 KB（最低）**；CRL ~~38；SmartSql ~~48；Moo ~~61–65 |
+| 3   | NPoco                                                                  | ~605 μs          | ~131 KB                               |
+| 4–5 | EF、SqlSugar                                                            | ~761–1069 μs     | ~99–179 KB                            |
+| 6–7 | LinqToDb、Core.ORM、NHibernate                                           | ~1.59–2.13 ms    | ~106–201 KB                           |
+| 8   | FastFramework                                                          | **~2.66 ms**     | ~154 KB                               |
+| —   | RepoDb                                                                 | **NA**           | **NA**                                |
+
+
+#### AdoNet / mooSQL / Dapper 对照
+
+
+| 路径 / 库            | Mean / Median / Allocated      | 解读 |
+| ---------------- | ------------------------------ | ---- |
+| **Dapper**       | **331 / 319 μs / 56 KB**       | 仍时间第一；IL 映射快于手工 DataReader |
+| **AdoNet**       | **379 / 360 μs / 35.4 KB**     | 首次；**Allocated 全场最低**；Mean 慢于 Dapper ~15%，与 Chloe 同档 |
+| **MooSqlBuilder** | 391 / 389 μs / 61 KB          | 相对 AdoNet ~+3% 时间、多 ~25 KB——薄封装税可接受 |
+| **MooSql Clip / Queryable** | ~431 / ~410–424 μs / ~65 KB | 同入 Rank 2；两路径几乎贴齐 |
+| Chloe            | 377 / 371 μs / 74 KB           | 时间贴近 AdoNet，分配约 2× |
+
+
+#### 简要分析
+
+1. **AdoNet 不是时间下限，是分配下限**  
+   Mean 上 **Dapper（331）仍快于 AdoNet（379）**——Dapper 编译映射可跑赢手写 `GetXxx`；但 **AdoNet Allocated ~35.4 KB 全场最低**（低于 CRL ~38 KB），Gen0 亦低。解读「无 ORM 下限」时应对齐：**时间看 Dapper+AdoNet，内存看 AdoNet**。  
+2. **Builder 相对 AdoNet**  
+   ~391 vs ~379 μs（约 **+3%**），Allocated 61 vs 35 KB——SQLBuilder 映射路径相对原生 DataReader 几乎无墙钟税，主要多的是托管分配。  
+3. **mooSQL 三路径**  
+   Builder 391、Clip/Queryable ~431 μs，仍同入 Rank 2；Queryable 与 Clip 贴齐，Allocated 健康（~65 KB）。相对扩容版墙钟整体上移属环境噪声。  
+4. **CRL 本轮 Mean 偏慢**（~506 μs，StdDev ~144）但分配仍极低（~38 KB）；以 Median/历史轮次为准，不宜单轮定 CRL 退化。  
+5. **重档顺序与扩容版一致**：NPoco → EF → SqlSugar → LinqToDb / Core.ORM / NH → FastFramework；RepoDb 仍 NA。  
+6. **未覆盖改写**上文基线 / L1/L2 / 全面版 / 扩容版表格。
+
+#### 本轮结论
+
+- 原生 ADO 入榜后：**时间 Dapper 第一；分配 AdoNet 第一**；mooSQL Builder 紧贴 AdoNet 时间、略高于 Dapper。  
+- 产品口径：Result 高吞吐仍可写 **≈ Dapper / AdoNet / Builder**；Queryable（暖）与 Clip 同档可接受。  
+- AdoNet 适合作为后续 Anonymous / Loop 的**无 ORM 对照轴**（时间未必最快，分配最省）。
 
 ---
 
@@ -1494,6 +1568,81 @@ SQL: ... WHERE b.Id = @id
 - 新产品结论：OrmLite / SmartSql / SqlKata 可作循环短查询对照；Core.ORM / NHibernate 本场景偏慢；NPoco 需关注分配。  
 - 产品口径不变：循环短查询仍优先 **Dapper / SQLBuilder**；Clip / Queryable 暖路径仍处轻量 LINQ 同档。
 
+### 复测 7：+AdoNet 原生下限（2026-08-11）
+
+背景：与同日 Result「+AdoNet」同一批适配器，重跑 `TestQueryLoop`（20× 主键查询）。本轮墙钟相对复测 6 整体偏慢、StdDev 偏大，**以相对梯队与分配为主**；不覆盖改写上文各轮原表。
+
+#### 原始结果（复测 7）
+
+
+| Method        | ProvideType         | Mean      | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
+| ------------- | ------------------- | --------- | --------- | --------- | ---- | -------- | ------- | ---------- |
+| TestQueryLoop | DapperTest          | 1.238 ms  | 0.0547 ms | 0.1612 ms | 1    | 5.8594   | -       | 58.69 KB   |
+| TestQueryLoop | AdoNetTest          | 1.383 ms  | 0.0844 ms | 0.2488 ms | 1    | 3.9063   | -       | 60.63 KB   |
+| TestQueryLoop | SmartSqlTest        | 1.464 ms  | 0.0559 ms | 0.1649 ms | 1    | 9.7656   | -       | 90.76 KB   |
+| TestQueryLoop | OrmLiteTest         | 1.609 ms  | 0.0653 ms | 0.1926 ms | 2    | 15.6250  | -       | 174.83 KB  |
+| TestQueryLoop | MooSqlBuilderTest   | 1.773 ms  | 0.0587 ms | 0.1730 ms | 3    | 15.6250  | -       | 155.09 KB  |
+| TestQueryLoop | CrlTest             | 1.928 ms  | 0.0910 ms | 0.2684 ms | 3    | 15.6250  | 11.7188 | 132.34 KB  |
+| TestQueryLoop | SqlKataTest         | 2.119 ms  | 0.0833 ms | 0.2444 ms | 3    | 42.9688  | -       | 354.48 KB  |
+| TestQueryLoop | MooSqlClipTest      | 2.144 ms  | 0.0807 ms | 0.2381 ms | 3    | 23.4375  | 19.5313 | 215.59 KB  |
+| TestQueryLoop | ChloeTest           | 2.153 ms  | 0.1064 ms | 0.3136 ms | 3    | 23.4375  | 7.8125  | 226.42 KB  |
+| TestQueryLoop | MooSqlQueryableTest | 2.276 ms  | 0.0811 ms | 0.2392 ms | 3    | 23.4375  | 7.8125  | 223.99 KB  |
+| TestQueryLoop | NPocoTest           | 2.440 ms  | 0.0951 ms | 0.2774 ms | 3    | 117.1875 | -       | 1001.48 KB |
+| TestQueryLoop | FreeSqlTest         | 3.288 ms  | 0.1285 ms | 0.3789 ms | 4    | 27.3438  | 23.4375 | 228 KB     |
+| TestQueryLoop | SqlSugarTest        | 4.380 ms  | 0.1577 ms | 0.4649 ms | 5    | 70.3125  | 7.8125  | 630.29 KB  |
+| TestQueryLoop | EfSqlliteTest       | 4.492 ms  | 0.1610 ms | 0.4672 ms | 5    | 140.6250 | 31.2500 | 1262.71 KB |
+| TestQueryLoop | CoreOrmTest         | 21.856 ms | 1.4705 ms | 4.3357 ms | 6    | 31.2500  | -       | 263.11 KB  |
+| TestQueryLoop | NHibernateTest      | 27.057 ms | 1.4148 ms | 4.1716 ms | 7    | 71.4286  | -       | 893.29 KB  |
+| TestQueryLoop | LinqToDbTest        | 29.543 ms | 1.6134 ms | 4.7570 ms | 7    | 187.5000 | -       | 1609.21 KB |
+| TestQueryLoop | FastFrameworkTest   | 65.332 ms | 3.0946 ms | 9.1246 ms | 8    | 250.0000 | -       | 2276.14 KB |
+| TestQueryLoop | RepoDbTest          | NA        | NA        | NA        | ?    | NA       | NA      | NA         |
+
+
+#### 梯队（按 Mean；不含 NA）
+
+
+| 档位  | ProvideType                                                         | Mean（约） / 约合单次           | Allocated（代表）                          |
+| --- | ----------------------------------------------------------------- | ------------------------ | ------------------------------------- |
+| 1   | Dapper、**AdoNet**、**SmartSql**                                    | **~1.24–1.46 ms**（~62–73 μs/次） | Dapper **~59 KB**；AdoNet ~~61；SmartSql ~~91 |
+| 2   | **OrmLite**                                                       | ~1.61 ms（~80 μs/次）        | ~175 KB                               |
+| 3   | **Builder**、CRL、SqlKata、**Clip**、Chloe、**Queryable**、NPoco         | ~1.77–2.44 ms            | CRL ~~132；Builder ~~155；Clip/Queryable/Chloe ~~216–226；SqlKata ~~354；NPoco **~1.0 MB** |
+| 4–5 | FreeSql、SqlSugar、EF                                               | ~3.3–4.5 ms              | ~228 KB–1.3 MB                        |
+| 6–7 | Core.ORM、NHibernate、LinqToDb                                      | ~22–30 ms                | ~263 KB–1.6 MB                        |
+| 8   | FastFramework                                                     | **~65 ms**               | ~2.3 MB                               |
+| —   | RepoDb                                                            | **NA**                   | **NA**                                |
+
+
+#### AdoNet / mooSQL / Dapper 对照
+
+
+| 路径 / 库              | Mean / Allocated / 约合单次     | 解读 |
+| ------------------ | --------------------------- | ---- |
+| **Dapper**         | **1.24 ms / 59 KB / ~62 μs** | 仍时间与分配双第一（相对 AdoNet 略省） |
+| **AdoNet**         | **1.38 ms / 61 KB / ~69 μs** | 同入 Rank 1；相对 Dapper ~**1.12×**；与 Result「分配最低」不同——Loop 上 Dapper 更省 |
+| **SmartSql**       | 1.46 ms / 91 KB / ~73 μs    | 与 AdoNet 同档 Rank 1；RealSql 循环仍干净 |
+| **MooSqlBuilder**  | 1.77 ms / 155 KB / ~89 μs   | 相对 AdoNet ~**1.28×**、相对 Dapper ~**1.43×**；分配约 2.5× AdoNet |
+| **MooSql Clip / Queryable** | ~2.14–2.28 ms / ~216–224 KB | 同入 Rank 3；≈Chloe；Queryable 暖路径健康 |
+
+
+#### 简要分析
+
+1. **Loop 上 AdoNet ≈ Dapper（同 Rank 1）**  
+   与 Result 一致：时间仍是 **Dapper 略快**；但本轮 **Allocated 也是 Dapper 略低**（59 vs 61 KB）——20× 开连接 + 每次抓列序的手工映射，相对 Dapper IL 映射几乎无内存优势。Result 单次 Take(100) 时 AdoNet 分配曾最低，**Loop 放大连接/参数开销后结论翻转**。  
+2. **薄封装第一集团扩到三人**  
+   Dapper / AdoNet / SmartSql 同入 Rank 1（~1.24–1.46 ms）；OrmLite 紧随 Rank 2。  
+3. **Builder 相对原生**  
+   ~1.77 vs ~1.38 ms（约 +28%），Allocated 155 vs 61 KB——循环短查询上 SQLBuilder 的连接/命令/映射路径相对 DataReader 仍有可见税，但远好于重 ORM。  
+4. **mooSQL 三路径**  
+   Builder 1.77、Clip 2.14、Queryable 2.28 ms，均 Rank 3；Queryable 与 Chloe（2.15）同档，Allocated 健康。相对复测 6 墙钟上移属环境噪声。  
+5. **重档顺序未变**：FreeSql → SqlSugar/EF → Core.ORM → NH/LinqToDb → FastFramework；NPoco 仍 ~1 MB；RepoDb 仍 NA。  
+6. **未覆盖改写**上文基线 / 复测 1–6 表格。
+
+#### 复测 7 结论
+
+- Loop + 原生 ADO：**Dapper ≳ AdoNet ≳ SmartSql** 为第一集团；**分配亦以 Dapper 略优**（与 Result 轮「AdoNet 分配最低」对照读）。  
+- mooSQL：**Builder 次于原生/微 ORM 一档、仍明显快于 Clip/Queryable/Chloe 之后的中后段**；Clip ≈ Queryable ≈ Chloe。  
+- 产品口径：循环短查询优先 **Dapper / AdoNet / SmartSql（RealSql）/ Builder**；Queryable 暖路径仍可接受。
+
 ---
 
 ## 方法 6：TestQueryJoin（多段 Join / 子查询 Join → SQL）
@@ -1742,6 +1891,10 @@ SQL: ... WHERE b.Id = @id
 
 **2026-08-10 `TestQueryLoop` 复测 6**（扩容 +Core.ORM/NPoco/OrmLite/NHibernate/SmartSql/SqlKata）：Dapper **~883 μs**；**SqlKata ~1.29 / SmartSql ~1.34 / OrmLite ~1.43 ms（Rank 2）**；Builder ~1.24 ms、Clip ~1.55 ms、Queryable ~1.74 ms；**Core.ORM ~13.8 ms**、**NHibernate ~21.3 ms**；NPoco ~2.13 ms / **~1 MB**；RepoDb 仍 NA。详见 **方法 5 →「复测 6」**。
 
+**2026-08-11 `TestResult` +AdoNet**：Dapper **~331 μs**；**AdoNet ~379 μs / 35 KB（Allocated 最低）**；Builder ~391 μs；Clip/Queryable ~431 μs。详见 **方法 1 →「复测：+AdoNet」**。
+
+**2026-08-11 `TestQueryLoop` 复测 7（+AdoNet）**：Dapper **~1.24 ms / 59 KB**；**AdoNet ~1.38 ms / 61 KB（同 Rank 1）**；SmartSql ~1.46 ms；Builder ~1.77 ms；Clip/Queryable ~2.14–2.28 ms。详见 **方法 5 →「复测 7」**。
+
 ---
 
 ## 附录：测试环境与入口
@@ -1755,8 +1908,8 @@ SQL: ... WHERE b.Id = @id
 
 ## 终极排名（综合六方法）
 
-> **口径**（截至 2026-08-10 扩容轮）：综合 **Result / Anonymous / Condition / MethodCondition / Loop / Join** 的相对梯队，执行+映射与 ToSql 构建并重；**空实现 / 伪 ToSql / NA 不参与加分**（如 Dapper 的 Condition/Join、EF/Core.ORM/NHibernate Join 空、NPoco/SmartSql Condition 空测、RepoDb Result/Loop NA）。  
-> **典型参数**取各方法最近有效轮的代表 Mean / Allocated（扩容版优先；未扩容的场景用最近复测）。墙钟随环境抖动，**以相对档位为准**。
+> **口径**（截至 2026-08-11 +AdoNet）：综合 **Result / Anonymous / Condition / MethodCondition / Loop / Join** 的相对梯队，执行+映射与 ToSql 构建并重；**空实现 / 伪 ToSql / NA 不参与加分**（如 AdoNet/Dapper 的 Condition/Join、EF/Core.ORM/NHibernate Join 空、NPoco/SmartSql Condition 空测、RepoDb Result/Loop NA）。  
+> **典型参数**取各方法最近有效轮的代表 Mean / Allocated（+AdoNet / 扩容版优先；未扩容的场景用最近复测）。墙钟随环境抖动，**以相对档位为准**。
 
 ### 综合排名表
 
@@ -1764,7 +1917,7 @@ SQL: ... WHERE b.Id = @id
 | 综合名次 | ORM / 路径 | 典型参数（代表值） | 描述 | 推荐场景 | ORM 说明 |
 | --- | --- | --- | --- | --- | --- |
 | **1** | **mooSQL SQLBuilder**（`useSQL`） | Result **~329 μs / 61 KB**；Condition **~1.5 μs / 4 KB**；MethodCond **~5.6 μs**；Loop **~0.88–1.24 ms**；Join **~6 μs / 25 KB**；Anon **~232 μs** | 全场综合最强：拼 SQL / Join 断层第一，列表与循环查询贴齐 Dapper 带 | 高吞吐列表/报表、动态条件、多段 Join、循环短查询；列名与 SQL 形状已知时优先 | 本仓库链式 SQL 构建 + 映射；无表达式树固定税；模板缓存热路径极轻 |
-| **2** | **Dapper** | Result **~280 μs / 56 KB**（常 Rank 1）；Loop **~883 μs**；Anon 同档前列 | 执行+映射下限标杆；ToSql 类场景多空实现，不参与条件/Join 构建对比 | 手写 SQL 已定稿、极致映射吞吐、微服务读路径 | 微软生态微 ORM；SQL 自管、映射极薄；本基准 Condition/Join/Method 多为空 |
+| **2** | **Dapper** / **AdoNet** | Result：Dapper **~331 μs**、AdoNet **~379 μs / 35 KB**；Loop：Dapper **~1.24 ms / 59 KB**、AdoNet **~1.38 ms / 61 KB**（同 Rank 1） | 执行+映射下限双轴：Dapper 常时间第一；AdoNet Result 分配最低、Loop 与 Dapper 贴齐；ToSql 类场景均空实现 | 手写 SQL 已定稿、极致映射吞吐、无 ORM 对照基线 | Dapper=微 ORM；AdoNet=`DataReader` 手工映射；Condition/Join 空 |
 | **3** | **mooSQL SQLClip**（`useClip`） | Result **~325 μs / 64 KB**；Condition **~22 μs**；MethodCond **~19 μs**；Loop **~1.12–1.55 ms**；Join **~17 μs**；Anon **~259 μs** | 类型安全窄 API，落到 Builder；Join/Loop 常快于 Chloe，综合稳定第二集团前列 | 要实体别名/Lambda 糖、又不想上完整 IQueryable；Join 构建 + 中等吞吐列表 | 实体绑定 + Lambda 糖 → SQLBuilder；成本介于 Builder 与 Queryable 之间 |
 | **4** | **mooSQL Queryable**（`useQueryable`） | Result **~331 μs / 65 KB**（基线曾 1.34 ms）；Condition **~19 μs**；MethodCond **~17 μs**；Loop **~1.26–1.74 ms**；Join **~34 μs≈Chloe**；Anon 基线 **~1.4 ms**（待复测） | L1/L2 后多数场景进入 Chloe/FreeSql 竞争带；Condition 暖路径可快于 Clip/Chloe；Anonymous 仍偏重 | 标准 LINQ / 对标 EF 写法、暖路径列表与条件查询；不宜拿冷启动/匿名投影当卖点 | Ext `IQueryable`；计划缓存 + 模板缓存后短查询固定税大幅下降；Loop NA 已修 |
 | **5** | **Chloe** | Result **~317 μs / 74 KB**；Condition **~23–24 μs**；MethodCond **~15 μs**；Loop ≈Clip 档；Join **~33 μs** | 轻量 LINQ 表达式组标杆；Result/Join/条件构建全面均衡 | 轻 ORM + LINQ API、多表 Join 构建、不想背 EF 重量 | 国产轻量 LINQ ORM；本基准 Expression→SQL / Join 对照中轴 |
@@ -1787,5 +1940,6 @@ SQL: ... WHERE b.Id = @id
 1. **名次是「综合能力」不是单场景冠军**：单看 Result 执行，Dapper 常略快于 Builder；单看 Condition/Join 构建，Builder 断层第一；综合六方法 + 有效实现完整度后，**SQLBuilder 居首**。
 2. **mooSQL 三路径不要互相替代理解**：Builder = 性能/动态 SQL；Clip = 类型安全糖；Queryable = 标准 LINQ（暖路径已可竞争，Anonymous 仍待复测）。
 3. **空测/NA 降权**：RepoDb 仅 Condition 强但 Result/Loop NA → 综合第 9；SmartSql/NPoco 的 Condition「冠军」已排除。
-4. **选型捷径**：极致吞吐 → Dapper / Builder；类型安全轻量 → Clip / Chloe / CRL；标准 LINQ → Queryable（暖）/ Chloe；全功能 → FreeSql / EF（接受更重）；SqlMap → SmartSql（RealSql）。
+4. **选型捷径**：极致吞吐 → Dapper / AdoNet / Builder；类型安全轻量 → Clip / Chloe / CRL；标准 LINQ → Queryable（暖）/ Chloe；全功能 → FreeSql / EF（接受更重）；SqlMap → SmartSql（RealSql）。
+5. **AdoNet 读法**：Result 看「分配下限」；Loop 与 Dapper 同入第一集团但分配优势消失——勿把「原生」当成所有场景的绝对最快/最省。
 
