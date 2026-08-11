@@ -64,6 +64,23 @@ namespace mooSQL.data
         public string addPara(string key, Object val) => _inner.addPara(key, val);
         public List<string> addListPara(IEnumerable<object> list, string prefix) => _inner.addListPara(list, prefix);
         public SQLBuilder setCache(string key, int timeout) { _inner.setCache(key, timeout); return this; }
+
+        /// <summary>启用 SELECT 结果缓存（无外界 key，使用 SQLCmd 指纹 + <see cref="useCachePrefix"/>）。</summary>
+        public SQLBuilder setCache(int timeoutSeconds)
+        {
+            _inner.setCache(timeoutSeconds);
+            return this;
+        }
+
+        /// <summary>
+        /// 自动结果缓存键前缀（降低指纹碰撞）；见 <see cref="StepBuilder.useCachePrefix"/>。
+        /// </summary>
+        public SQLBuilder useCachePrefix(string prefix)
+        {
+            _inner.useCachePrefix(prefix);
+            return this;
+        }
+
         public SQLBuilder setSeed(string seed) { _inner.setSeed(seed); return this; }
 
         public SQLBuilder getBrotherBuilder() => Attach(_inner.getBrotherBuilder());

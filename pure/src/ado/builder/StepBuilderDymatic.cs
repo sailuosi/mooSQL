@@ -469,28 +469,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public DataTable query()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                //尝试获取
-                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return null;
-            }
-            var res= exeQuery(sql);
-            if (this._AutoClearWay == CleanWay.Always) { 
-                clear();
-            }
-            return res;
+            return doSelect("dt", cmd => exeQuery(cmd));
         }
 
         /// <summary>
@@ -498,67 +477,25 @@ namespace mooSQL.data
         /// </summary>
         internal DataTable queryPrepared(SQLCmd sql)
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
-                if (dt != null)
-                    return dt;
-            }
-            if (sql == null || string.IsNullOrEmpty(sql.sql))
-                return null;
-            var res = exeQuery(sql);
-            if (this._AutoClearWay == CleanWay.Always)
-                clear();
-            return res;
+            return doSelect("dt", sql, cmd => exeQuery(cmd));
         }
 
         /// <summary>异步：使用已物化 SQLCmd 执行 query。</summary>
         internal Task<DataTable> queryPreparedAsync(SQLCmd sql)
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
-                if (dt != null)
-                    return Task.FromResult(dt);
-            }
-            if (sql == null || string.IsNullOrEmpty(sql.sql))
-                return null;
-            var res = exeQueryAsync(sql);
-            if (this._AutoClearWay == CleanWay.Always)
-                clear();
-            return res;
+            return doSelectAsync("dt", sql, cmd => exeQueryAsync(cmd));
         }
 
         /// <summary>泛型：使用已物化 SQLCmd 执行 query。</summary>
         internal IEnumerable<T> queryPrepared<T>(SQLCmd sql)
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
-                if (dt != null)
-                    return dt;
-            }
-            if (sql == null || string.IsNullOrEmpty(sql.sql))
-                return null;
-            if (this._AutoClearWay == CleanWay.Always)
-                clear();
-            return exeQuery<T>(sql);
+            return doSelect("enum:" + typeof(T).FullName, sql, cmd => exeQuery<T>(cmd));
         }
 
         /// <summary>异步泛型：使用已物化 SQLCmd 执行 query。</summary>
         internal Task<IEnumerable<T>> queryPreparedAsync<T>(SQLCmd sql)
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
-                if (dt != null)
-                    return Task.FromResult(dt);
-            }
-            if (sql == null || string.IsNullOrEmpty(sql.sql))
-                return null;
-            if (this._AutoClearWay == CleanWay.Always)
-                clear();
-            return exeQueryAsync<T>(sql);
+            return doSelectAsync("enum:" + typeof(T).FullName, sql, cmd => exeQueryAsync<T>(cmd));
         }
         /// <summary>
         /// 查询其它的
@@ -598,29 +535,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<DataTable> queryAsync()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                //尝试获取
-                DataTable dt = cacheHolder.Get<DataTable>(cacheKey);
-                if (dt != null)
-                {
-                    return Task.FromResult(dt);
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return null;
-            }
-            var res = exeQueryAsync(sql);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return res;
+            return doSelectAsync("dt", cmd => exeQueryAsync(cmd));
         }
         /// <summary>
         /// 分页查询，返回分页数据和总数。
@@ -959,29 +874,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public IEnumerable<T> query<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                //尝试获取
-                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return null;
-            }
-
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return exeQuery<T>(sql);
+            return doSelect("enum:" + typeof(T).FullName,cmd => exeQuery<T>(cmd));
         }
         /// <summary>
         /// 异步查询多行数据，返回泛型集合
@@ -990,29 +883,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<IEnumerable<T>> queryAsync<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
-            {
-                //尝试获取
-                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
-                if (dt != null)
-                {
-                    return Task.FromResult(dt);
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return null;
-            }
-
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return exeQueryAsync<T>(sql);
+            return doSelectAsync("enum:" + typeof(T).FullName, cmd => exeQueryAsync<T>(cmd));
         }
 
         /// <summary>
@@ -1022,30 +893,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public IEnumerable<T> queryFirstField<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelect("firstField:" + typeof(T).FullName, cmd =>
             {
-                //尝试获取
-                IEnumerable<T> dt = cacheHolder.Get<IEnumerable<T>>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return null;
-            }
-            doPrintSQL(sql);
-            var res= DBLive.ExeQueryFirstField<T>(sql,Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return res;
+                return DBLive.ExeQueryFirstField<T>(cmd, Executor);
+            });
         }
         /// <summary>
         /// 查询单行数据，只会读取第一行，忽略后续数据
@@ -1054,30 +905,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public T queryFirst<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelect("first:" + typeof(T).FullName, cmd =>
             {
-                //尝试获取
-                var dt = cacheHolder.Get<T>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default;
-            }
-            doPrintSQL(sql);
-            var res= DBLive.ExeQueryRow<T>(sql,Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return res;
+                return DBLive.ExeQueryRow<T>(cmd, Executor);
+            });
         }
 
 
@@ -1091,32 +922,10 @@ namespace mooSQL.data
         }
         private T queryUniqueInner<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelect("unique:" + typeof(T).FullName, cmd =>
             {
-                //尝试获取
-                var dt = cacheHolder.Get<T>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default;
-            }
-            doPrintSQL(sql);
-
-            var res= DBLive.ExeQueryUniqueRow<T>(sql,Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return res;
-
+                return DBLive.ExeQueryUniqueRow<T>(cmd, Executor);
+            });
         }
         private void doPrintSQL(SQLCmd cmd)
         {
@@ -1132,34 +941,12 @@ namespace mooSQL.data
         {
             return queryUniqueInnerAsync<T>();
         }
-        private async Task<T> queryUniqueInnerAsync<T>()
+        private Task<T> queryUniqueInnerAsync<T>()
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelectAsync("unique:" + typeof(T).FullName, async cmd =>
             {
-                //尝试获取
-                var dt = cacheHolder.Get<T>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default;
-            }
-            doPrintSQL(sql);
-
-            var res =await DBLive.ExeQueryUniqueRowAsync<T>(sql, Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return res;
-
+                return await DBLive.ExeQueryUniqueRowAsync<T>(cmd, Executor).ConfigureAwait(false);
+            });
         }
 
         /// <summary>
@@ -1169,62 +956,22 @@ namespace mooSQL.data
         /// <returns></returns>
         public T queryScalar<T>()
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelect("scalar:" + typeof(T).FullName, cmd =>
             {
-                //尝试获取
-                var dt = cacheHolder.Get<T>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default;
-            }
-            doPrintSQL(sql);
-
-            var tar= DBLive.ExeQueryScalar<T>(sql, Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return tar;
+                return DBLive.ExeQueryScalar<T>(cmd, Executor);
+            });
         }
         /// <summary>
         /// 异步查唯一值
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public async Task<T> queryScalarAsync<T>()
+        public Task<T> queryScalarAsync<T>()
         {
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelectAsync("scalar:" + typeof(T).FullName, async cmd =>
             {
-                //尝试获取
-                var dt = cacheHolder.Get<T>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default;
-            }
-            doPrintSQL(sql);
-
-            var tar =await DBLive.ExeQueryScalarAsync<T>(sql,Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return tar;
+                return await DBLive.ExeQueryScalarAsync<T>(cmd, Executor).ConfigureAwait(false);
+            });
         }
 
         /// <summary>
@@ -1234,34 +981,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
-
-            if (!string.IsNullOrWhiteSpace(cacheKey))
+            return doSelect("as:" + typeof(T).FullName + ":" + typeof(TResult).FullName, cmd =>
             {
-                //尝试获取
-                TResult dt = cacheHolder.Get<TResult>(cacheKey);
-                if (dt != null)
-                {
-                    return dt;
-                }
-            }
-
-            var sql = this.toSelect();
-
-            if (string.IsNullOrEmpty(sql.sql))
-            {
-                return default(TResult);
-            }
-            doPrintSQL(sql);
-            var tar= DBLive.ExecuteCmd(sql, (cmd, cont) =>
-            {
-                return onRuning(cont, typeof(T));
+                return DBLive.ExecuteCmd(cmd, (c, cont) => onRuning(cont, typeof(T)));
             });
-
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return tar;
         }
 
 
@@ -1419,7 +1142,7 @@ namespace mooSQL.data
         public int count()
         {
             var cmd = toSelectCount();
-            var tar= exeQueryCount(cmd);
+            var tar = exeQueryCount(cmd);
             if (this._AutoClearWay == CleanWay.Always)
             {
                 clear();
