@@ -9,15 +9,40 @@ namespace mooSQL.data
     /// <summary>
     /// 类型 HashCache。
     /// 过期项在 Get/ContainsKey 时惰性清理，不启动后台扫描线程。
+    /// 无显式 TTL 时使用 <see cref="DefaultExpiration"/>（默认 12 小时）。
     /// </summary>
     public class HashCache:ISooCache
     {
         /// <summary>
-        /// 初始化 HashCache。
+        /// 初始化 HashCache（默认过期 12 小时）。
         /// </summary>
         public HashCache()
+            : this(SooCacheDefaults.Expiration)
         {
         }
+
+        /// <summary>
+        /// 初始化 HashCache，并指定无显式 TTL 时的默认过期时长。
+        /// </summary>
+        /// <param name="defaultExpiration">默认绝对过期；&lt;=0 表示不过期。</param>
+        public HashCache(TimeSpan defaultExpiration)
+        {
+            DefaultExpiration = defaultExpiration;
+        }
+
+        /// <summary>
+        /// 初始化 HashCache，并指定无显式 TTL 时的默认过期秒数。
+        /// </summary>
+        public HashCache(int defaultExpirationSeconds)
+            : this(TimeSpan.FromSeconds(defaultExpirationSeconds))
+        {
+        }
+
+        /// <summary>
+        /// 无显式 TTL 时的绝对过期时长；默认 12 小时。&lt;=0 表示不过期。
+        /// 注册时可改：<c>new HashCache(TimeSpan.FromHours(6))</c> 或赋值本属性。
+        /// </summary>
+        public TimeSpan DefaultExpiration { get; set; }
 
         /// <summary>
         /// static:不会被Gc回收；
@@ -29,18 +54,23 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 默认你是不过期
+        /// 添加缓存（使用 <see cref="DefaultExpiration"/>）。
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public void Add<V>(string key, V value)
         {
-            lock (obj_Lock)
-                cacheHolder[key] = new DataModel()
-                {
-                    Value = value,
-                    ObsloteType = ObsloteType.Never
-                };
+            if (DefaultExpiration <= TimeSpan.Zero)
+            {
+                lock (obj_Lock)
+                    cacheHolder[key] = new DataModel()
+                    {
+                        Value = value,
+                        ObsloteType = ObsloteType.Never
+                    };
+                return;
+            }
+            Add(key, value, (int)Math.Max(1, DefaultExpiration.TotalSeconds));
         }
 
         /// <summary>
@@ -168,21 +198,35 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并写入（使用 <see cref="DefaultExpiration"/>）。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value);
+            return value;
+        }
+
+        /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并以绝对秒数过期写入。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory, int cacheDurationInSeconds)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value, cacheDurationInSeconds);
+            return value;
+        }
+
+        /// <summary>
         /// 获取缓存项，未命中时通过工厂委托创建并写入。
         /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
-            T t = default(T);
-            if (!ContainsKey(key))
-            {
-                t = func.Invoke();
-                Add(key, t);
-            }
-            else
-            {
-                t = Get<T>(key);
-            }
-            return t;
+            return GetOrCreate(key, func);
         }
 
         /// <summary>
@@ -202,22 +246,39 @@ namespace mooSQL.data
         }
     }
     /// <summary>
-    /// 永不过期：当前就是
-    /// 绝对过期：过了多长时间以后，就过期了 就不能用了
-    /// 滑动过期：设定好过期时间后，如果在有效期内使用过，就往后滑动
-    /// 1.Value;数据；
-    /// 2.过期时间点：
-    /// 3.滑动时间
-    /// 普通cache
+    /// 字典缓存。无显式 TTL 时使用 <see cref="DefaultExpiration"/>（默认 12 小时）。
     /// </summary>
     public class DictionaryCache:ISooCache
     {
         /// <summary>
-        /// 初始化 DictionaryCache。
+        /// 初始化 DictionaryCache（默认过期 12 小时）。
         /// </summary>
         public DictionaryCache()
+            : this(SooCacheDefaults.Expiration)
         {
         }
+
+        /// <summary>
+        /// 初始化 DictionaryCache，并指定无显式 TTL 时的默认过期时长。
+        /// </summary>
+        /// <param name="defaultExpiration">默认绝对过期；&lt;=0 表示不过期。</param>
+        public DictionaryCache(TimeSpan defaultExpiration)
+        {
+            DefaultExpiration = defaultExpiration;
+        }
+
+        /// <summary>
+        /// 初始化 DictionaryCache，并指定无显式 TTL 时的默认过期秒数。
+        /// </summary>
+        public DictionaryCache(int defaultExpirationSeconds)
+            : this(TimeSpan.FromSeconds(defaultExpirationSeconds))
+        {
+        }
+
+        /// <summary>
+        /// 无显式 TTL 时的绝对过期时长；默认 12 小时。&lt;=0 表示不过期。
+        /// </summary>
+        public TimeSpan DefaultExpiration { get; set; }
 
         /// <summary>
         /// static:不会被Gc回收；
@@ -229,18 +290,23 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 默认你是不过期
+        /// 添加缓存（使用 <see cref="DefaultExpiration"/>）。
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public void Add<V>(string key, V value)
         {
-            lock (obj_Lock)
-                CustomCacheDictionary[key] = new DataModel()
-                {
-                    Value = value,
-                    ObsloteType = ObsloteType.Never
-                };
+            if (DefaultExpiration <= TimeSpan.Zero)
+            {
+                lock (obj_Lock)
+                    CustomCacheDictionary[key] = new DataModel()
+                    {
+                        Value = value,
+                        ObsloteType = ObsloteType.Never
+                    };
+                return;
+            }
+            Add(key, value, (int)Math.Max(1, DefaultExpiration.TotalSeconds));
         }
 
         /// <summary>
@@ -364,21 +430,35 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并写入（使用 <see cref="DefaultExpiration"/>）。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value);
+            return value;
+        }
+
+        /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并以绝对秒数过期写入。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory, int cacheDurationInSeconds)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value, cacheDurationInSeconds);
+            return value;
+        }
+
+        /// <summary>
         /// 获取缓存项，未命中时通过工厂委托创建并写入。
         /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
-            T t = default(T);
-            if (!ContainsKey(key))
-            {
-                t = func.Invoke();
-                Add(key, t);
-            }
-            else
-            {
-                t = Get<T>(key);
-            }
-            return t;
+            return GetOrCreate(key, func);
         }
 
         /// <summary>
@@ -391,17 +471,40 @@ namespace mooSQL.data
         }
     }
     /// <summary>
-    /// 线程安全cache
+    /// 线程安全字典缓存。无显式 TTL 时使用 <see cref="DefaultExpiration"/>（默认 12 小时）。
     /// </summary>
     public class DictionaryCacheSafe:ISooCache
     {
 
         /// <summary>
-        /// 初始化 DictionaryCacheSafe。
+        /// 初始化 DictionaryCacheSafe（默认过期 12 小时）。
         /// </summary>
         public DictionaryCacheSafe()
+            : this(SooCacheDefaults.Expiration)
         {
         }
+
+        /// <summary>
+        /// 初始化 DictionaryCacheSafe，并指定无显式 TTL 时的默认过期时长。
+        /// </summary>
+        /// <param name="defaultExpiration">默认绝对过期；&lt;=0 表示不过期。</param>
+        public DictionaryCacheSafe(TimeSpan defaultExpiration)
+        {
+            DefaultExpiration = defaultExpiration;
+        }
+
+        /// <summary>
+        /// 初始化 DictionaryCacheSafe，并指定无显式 TTL 时的默认过期秒数。
+        /// </summary>
+        public DictionaryCacheSafe(int defaultExpirationSeconds)
+            : this(TimeSpan.FromSeconds(defaultExpirationSeconds))
+        {
+        }
+
+        /// <summary>
+        /// 无显式 TTL 时的绝对过期时长；默认 12 小时。&lt;=0 表示不过期。
+        /// </summary>
+        public TimeSpan DefaultExpiration { get; set; }
 
         /// <summary>
         /// static:不会被Gc回收；
@@ -412,17 +515,22 @@ namespace mooSQL.data
         private  ConcurrentDictionary<string, DataModel> CustomCacheDictionary = new ConcurrentDictionary<string, DataModel>();
 
         /// <summary>
-        /// 默认你是不过期
+        /// 添加缓存（使用 <see cref="DefaultExpiration"/>）。
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public  void Add<V>(string key, V value)
         {
-            CustomCacheDictionary[key] = new DataModel()
+            if (DefaultExpiration <= TimeSpan.Zero)
             {
-                Value = value,
-                ObsloteType = ObsloteType.Never
-            };
+                CustomCacheDictionary[key] = new DataModel()
+                {
+                    Value = value,
+                    ObsloteType = ObsloteType.Never
+                };
+                return;
+            }
+            Add(key, value, (int)Math.Max(1, DefaultExpiration.TotalSeconds));
         }
 
         /// <summary>
@@ -526,21 +634,35 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并写入（使用 <see cref="DefaultExpiration"/>）。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value);
+            return value;
+        }
+
+        /// <summary>
+        /// 获取或创建：命中则返回；未命中则调用工厂并以绝对秒数过期写入。
+        /// </summary>
+        public V GetOrCreate<V>(string key, Func<V> factory, int cacheDurationInSeconds)
+        {
+            if (ContainsKey(key))
+                return Get<V>(key);
+            var value = factory != null ? factory() : default(V);
+            Add(key, value, cacheDurationInSeconds);
+            return value;
+        }
+
+        /// <summary>
         /// 获取缓存项，未命中时通过工厂委托创建并写入。
         /// </summary>
         public T GetT<T>(string key, Func<T> func)
         {
-            T t = default(T);
-            if (!ContainsKey(key))
-            {
-                t = func.Invoke();
-                Add(key, t);
-            }
-            else
-            {
-                t = Get<T>(key);
-            }
-            return t;
+            return GetOrCreate(key, func);
         }
 
         /// <summary>
