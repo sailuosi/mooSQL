@@ -148,6 +148,9 @@ namespace mooSQL.data
         {
             checkType(type);
             var dic = typeMap[type];
+            // 关系配置可能早于或晚于首次分析：每次取回时尝试补丁 Navigat
+            if (_relations != null && _relations.Count > 0)
+                EntityRelationBinder.ApplyPending(this, dic.EntityInfo);
             return dic.EntityInfo;
         }
 

@@ -530,5 +530,14 @@ namespace mooSQL.data
             client.configureShard<T>(configure);
             return this;
         }
+
+        /// <summary>
+        /// Fluent 配置实体关系（对标 CRL ConfigEntity / Relation）。
+        /// </summary>
+        public BaseClientBuilder configureEntity<T>(Action<EntityRelationBuilder<T>> configure) where T : class
+        {
+            client.configureEntity(configure);
+            return this;
+        }
     }
 }
