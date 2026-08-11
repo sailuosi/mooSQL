@@ -99,6 +99,37 @@ namespace mooSQL.data
             return select(c.end(alias));
         }
 
+        /// <summary>窗口函数构建器：<c>func OVER (...)</c>。</summary>
+        public WindowBuilder window(string functionSql) => _inner.window(functionSql);
+
+        /// <summary>仅构建 <c>OVER (...)</c>。</summary>
+        public WindowBuilder over() => _inner.over();
+
+        /// <summary><see cref="window"/> 别名。</summary>
+        public WindowBuilder over(string functionSql) => _inner.over(functionSql);
+
+        /// <summary><c>ROW_NUMBER() OVER (...)</c>。</summary>
+        public WindowBuilder windowRowNumber() => _inner.windowRowNumber();
+
+        /// <summary><c>RANK() OVER (...)</c>。</summary>
+        public WindowBuilder windowRank() => _inner.windowRank();
+
+        /// <summary><c>DENSE_RANK() OVER (...)</c>。</summary>
+        public WindowBuilder windowDenseRank() => _inner.windowDenseRank();
+
+        /// <summary>构建窗口表达式并 select AS alias。</summary>
+        public SQLBuilder selectWindow(string functionSql, Action<WindowBuilder> build, string alias)
+        {
+            if (build == null) throw new ArgumentNullException(nameof(build));
+            var w = window(functionSql);
+            build(w);
+            return select(w.end(alias));
+        }
+
+        /// <summary>构建 <c>ROW_NUMBER()</c> 窗口并 select AS alias。</summary>
+        public SQLBuilder selectRowNumber(Action<WindowBuilder> build, string alias)
+            => selectWindow("ROW_NUMBER()", build, alias);
+
         public WhereItem start() => start(true);
 
         public WhereItem start(bool addBracket)
