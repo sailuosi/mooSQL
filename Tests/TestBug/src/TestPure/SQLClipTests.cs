@@ -220,7 +220,8 @@ namespace mooSQL.Pure.Tests
             // Act
             var cmd = _clip.select(user)
                 .whereIn(() => user.Id, 1, 2, 3)
-                .toSelect();
+                .toSelect()
+                .EnsureLiveParasResolved();
 
             // Assert
             cmd.Should().NotBeNull();
@@ -237,7 +238,8 @@ namespace mooSQL.Pure.Tests
             // Act
             var cmd = _clip.select(user)
                 .whereIn(() => user.Id, ids)
-                .toSelect();
+                .toSelect()
+                .EnsureLiveParasResolved();
 
             // Assert
             cmd.Should().NotBeNull();
@@ -253,7 +255,8 @@ namespace mooSQL.Pure.Tests
             // Act
             var cmd = _clip.select(user)
                 .whereNotIn(() => user.Id, 1, 2, 3)
-                .toSelect();
+                .toSelect()
+                .EnsureLiveParasResolved();
 
             // Assert
             cmd.Should().NotBeNull();

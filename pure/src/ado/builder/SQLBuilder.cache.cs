@@ -75,7 +75,7 @@ namespace mooSQL.data
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return ResolveReturnedCmd(coldBuild());
+                return coldBuild();
             }
 
             var key = BuildScriptCacheKey(buildKind);
@@ -85,21 +85,13 @@ namespace mooSQL.data
             {
                 ScriptTemplateCacheHits++;
                 _dirty = false;
-                return ResolveReturnedCmd(hot);
+                return hot;
             }
 
             ScriptTemplateCacheMisses++;
             runBuild();
             var cmd = coldBuild();
-            // 先收录未 Resolve 的壳，再解析 Live 占位，避免模板热路径失效
             TryStoreScriptTemplate(key, holder, cmd);
-            return ResolveReturnedCmd(cmd);
-        }
-
-        private static SQLCmd ResolveReturnedCmd(SQLCmd cmd)
-        {
-            if (cmd != null)
-                cmd.EnsureLiveParasResolved();
             return cmd;
         }
 
