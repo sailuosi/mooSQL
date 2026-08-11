@@ -168,7 +168,17 @@ namespace mooSQL.data
         public string getEmptySelect(string tableName) => _inner.getEmptySelect(tableName);
         public string getLikeSQL(string key, object value) => _inner.getLikeSQL(key, value);
         public object getSetedValue(string fieldName) => _inner.getSetedValue(fieldName);
-        public DBInstance getDB(int position) => _inner.getDB(position);
+
+        /// <summary>按 position 解析库实例；可被子类覆写，或通过 <see cref="loadDBInstance"/> 注入。</summary>
+        public virtual DBInstance getDB(int position) => _inner.getDB(position);
+
+        /// <summary>注入按 position 取库的委托（转发内核 <see cref="StepBuilder.loadDBInstance"/>）。</summary>
+        public Func<int, DBInstance> loadDBInstance
+        {
+            get => _inner.loadDBInstance;
+            set => _inner.loadDBInstance = value;
+        }
+
         public string paraReplaceInto(string sql, Paras para) => _inner.paraReplaceInto(sql, para);
 
         public SQLBuilder popPreWhere() { _inner.popPreWhere(); return this; }
