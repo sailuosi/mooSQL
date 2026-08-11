@@ -3,6 +3,7 @@ using mooSQL.linq;
 using mooSQL.data.richRepo;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -145,6 +146,54 @@ namespace mooSQL.data
         public static BulkBase useBulk(this DBInstance DB)
         {
             return DB.client.ClientFactory.useBulk(DB);
+        }
+
+        /// <summary>
+        /// 同库事务糖：work 返回 true 提交，false 回滚。跨库不伪装分布式事务。
+        /// </summary>
+        public static bool useTrans(this DBInstance db, Func<TransWork, bool> work,
+            IsolationLevel? level = null, Action<Exception> onError = null)
+        {
+            if (db == null) throw new ArgumentNullException(nameof(db));
+            if (work == null) throw new ArgumentNullException(nameof(work));
+
+            using var executor = new DBExecutor(db);
+            if (level.HasValue)
+                executor.useIsolationLevel(level.Value);
+            executor.beginTransaction(keepOpen: true);
+            var scope = new TransWork(db, executor);
+            try
+            {
+                var ok = work(scope);
+                if (ok)
+                {
+                    executor.commit(autoRollback: true);
+                    return true;
+                }
+                // false → Dispose 路径按 RollbackAndBreak 回滚
+                return false;
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 同库事务糖（带返回值）：元组 Item1=是否提交。
+        /// </summary>
+        public static R useTrans<R>(this DBInstance db, Func<TransWork, (bool ok, R result)> work,
+            IsolationLevel? level = null, Action<Exception> onError = null)
+        {
+            R result = default;
+            useTrans(db, w =>
+            {
+                var t = work(w);
+                result = t.result;
+                return t.ok;
+            }, level, onError);
+            return result;
         }
     }
 }

@@ -532,6 +532,15 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 配置 Schema 同步默认闸（AllowSchemaSync 等）。
+        /// </summary>
+        public BaseClientBuilder configureSchema(Action<SchemaClientOptions> configure)
+        {
+            client.configureSchema(configure);
+            return this;
+        }
+
+        /// <summary>
         /// Fluent 配置实体关系（对标 CRL ConfigEntity / Relation）。
         /// </summary>
         public BaseClientBuilder configureEntity<T>(Action<EntityRelationBuilder<T>> configure) where T : class

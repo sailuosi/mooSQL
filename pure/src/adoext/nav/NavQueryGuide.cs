@@ -148,7 +148,18 @@ namespace mooSQL.data
                 return fkCol.PropertyInfo.GetValue(item, null);
             };
             var funChild = childSelector.Compile();
-            return this.include<object>( funChild, findListPKValue, childFKSelector, childFK, childFilter);
+            // 导航集合为 null 时先物化空 List，避免回填 NRE
+            var navProp = field.Column.PropertyInfo;
+            if (navProp != null && navProp.CanWrite)
+            {
+                foreach (var row in MainList)
+                {
+                    if (row == null) continue;
+                    if (navProp.GetValue(row) == null)
+                        navProp.SetValue(row, new List<Child>());
+                }
+            }
+            return this.include<object>(funChild, findListPKValue, childFKSelector, fkCol.DbColumnName, childFilter);
 
         }
         /// <summary>

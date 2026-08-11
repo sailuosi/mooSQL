@@ -5,6 +5,7 @@ using mooSQL.data.context;
 
 using mooSQL.data.Mapping;
 using mooSQL.data.slave;
+using mooSQL.data.richRepo.schema;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -602,6 +603,21 @@ namespace mooSQL.data
         }
 
         #endregion
+
+        /// <summary>
+        /// 配置 Schema 同步默认闸（写入 <see cref="SchemaEnsure.DefaultAllowSchemaSync"/>）。
+        /// </summary>
+        public MooClient configureSchema(Action<SchemaClientOptions> configure)
+        {
+            var opt = new SchemaClientOptions
+            {
+                AllowSchemaSync = SchemaEnsure.DefaultAllowSchemaSync,
+                AllowDropColumn = false
+            };
+            configure?.Invoke(opt);
+            SchemaEnsure.DefaultAllowSchemaSync = opt.AllowSchemaSync;
+            return this;
+        }
 
     }
 }

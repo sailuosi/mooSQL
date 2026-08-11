@@ -1,7 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using mooSQL.data.clip;
+using mooSQL.data.model;
 using mooSQL.data.richRepo.schema;
 using mooSQL.data.richRepo.tracking;
 
@@ -23,6 +27,13 @@ namespace mooSQL.data.richRepo
         /// <summary>带自定义翻译器。</summary>
         public SooRichRepo(DBInstance db, EntityTranslator translator) : base(db, translator) { }
 
+        /// <summary>打印 SQL（返回富仓储以便继续链式配置）。</summary>
+        public new SooRichRepo<T> print(Action<string> onPrint)
+        {
+            base.print(onPrint);
+            return this;
+        }
+
         /// <summary>实体字典缓存 TTL（秒），默认 300。</summary>
         public int EntityCacheSeconds
         {
@@ -39,7 +50,10 @@ namespace mooSQL.data.richRepo
             return this;
         }
 
-        /// <summary>查询物化后自动 Begin 快照。</summary>
+        /// <summary>
+        /// 查询物化后自动 Begin 快照。
+        /// 覆盖：GetById / GetByIds / GetList 各重载 / GetPageList 各重载。
+        /// </summary>
         public SooRichRepo<T> autoTrackOnQuery(bool enabled = true)
         {
             _autoTrackOnQuery = enabled;
@@ -73,11 +87,45 @@ namespace mooSQL.data.richRepo
         /// <inheritdoc cref="SooRepository{T}.GetByIds{K}(List{K})"/>
         public new List<T> GetByIds<K>(List<K> ids) => AfterQueryTrack(base.GetByIds(ids));
 
+        /// <inheritdoc cref="SooRepository{T}.GetByIds(IEnumerable)"/>
+        public new List<T> GetByIds(IEnumerable ids) => AfterQueryTrack(base.GetByIds(ids));
+
+        /// <inheritdoc cref="SooRepository{T}.GetByIds{K}(K[])"/>
+        public new List<T> GetByIds<K>(params K[] ids) => AfterQueryTrack(base.GetByIds(ids));
+
         /// <inheritdoc cref="SooRepository{T}.GetList()"/>
         public new List<T> GetList() => AfterQueryTrack(base.GetList());
 
         /// <inheritdoc cref="SooRepository{T}.GetList(int)"/>
         public new List<T> GetList(int top) => AfterQueryTrack(base.GetList(top));
+
+        /// <inheritdoc cref="SooRepository{T}.GetList(Action{SQLBuilder})"/>
+        public new List<T> GetList(Action<SQLBuilder> onBuildSQL) => AfterQueryTrack(base.GetList(onBuildSQL));
+
+        /// <inheritdoc cref="SooRepository{T}.GetList(Action{SQLClip, T})"/>
+        public new List<T> GetList(Action<SQLClip, T> filterClip) => AfterQueryTrack(base.GetList(filterClip));
+
+        /// <inheritdoc cref="SooRepository{T}.GetList(QueryPara)"/>
+        public new List<T> GetList(QueryPara para) => AfterQueryTrack(base.GetList(para));
+
+        /// <inheritdoc cref="SooRepository{T}.GetList(Expression{Func{T, bool}})"/>
+        public new List<T> GetList(Expression<Func<T, bool>> whereExpression)
+            => AfterQueryTrack(base.GetList(whereExpression));
+
+        /// <inheritdoc cref="SooRepository{T}.GetPageList(QueryPara)"/>
+        public new PageOutput<T> GetPageList(QueryPara para) => AfterQueryTrack(base.GetPageList(para));
+
+        /// <inheritdoc cref="SooRepository{T}.GetPageList(int, int, Action{SQLClip, T})"/>
+        public new PageOutput<T> GetPageList(int pageSize, int pageNum, Action<SQLClip, T> filterClip = null)
+            => AfterQueryTrack(base.GetPageList(pageSize, pageNum, filterClip));
+
+        /// <inheritdoc cref="SooRepository{T}.GetPageList(Action{SQLBuilder})"/>
+        public new PageOutput<T> GetPageList(Action<SQLBuilder> onBuildSQL)
+            => AfterQueryTrack(base.GetPageList(onBuildSQL));
+
+        /// <inheritdoc cref="SooRepository{T}.GetPageList(QueryPara, Action{SQLBuilder, EntityInfo})"/>
+        public new PageOutput<T> GetPageList(QueryPara para, Action<SQLBuilder, EntityInfo> onBuildSQL)
+            => AfterQueryTrack(base.GetPageList(para, onBuildSQL));
 
         T AfterQueryTrack(T entity)
         {
@@ -91,19 +139,34 @@ namespace mooSQL.data.richRepo
             return list;
         }
 
+        PageOutput<T> AfterQueryTrack(PageOutput<T> page)
+        {
+            if (_autoTrackOnQuery && page?.Items != null)
+            {
+                var list = page.Items as IList<T> ?? page.Items.ToList();
+                Track(list);
+                page.Items = list;
+            }
+            return page;
+        }
+
         #endregion
 
         #region 更新（独立路径，不改 SooRepository.Update）
 
         /// <summary>
-        /// 已追踪则脏更新；未追踪则调用基类全列更新（兼容）。
+        /// 已追踪则脏更新；未追踪则按 <see cref="TrackingOptions.UntrackedUpdateAllColumns"/>（默认全列兼容）。
         /// </summary>
         public new bool Update(T updateObj)
         {
             if (updateObj == null) return false;
             if (EntityTracking.HasSnapshot(updateObj) || EntityTracking.IsTracked(updateObj))
                 return UpdateDirty(updateObj);
-            return base.Update(updateObj);
+
+            var opt = _trackingOptions ?? new TrackingOptions();
+            if (opt.UntrackedUpdateAllColumns)
+                return base.Update(updateObj);
+            return ApplyEmpty(updateObj, opt, "实体未追踪") > 0;
         }
 
         /// <summary>仅脏字段更新。</summary>
@@ -161,22 +224,29 @@ namespace mooSQL.data.richRepo
 
         #region Upsert
 
-        /// <summary>插入或更新（查后写；按约束列或主键判断）。</summary>
+        /// <summary>
+        /// 插入或更新。优先方言原生 upsert（MySQL ON DUPLICATE / MERGE），否则先查后写。
+        /// </summary>
         public int InsertOrUpdate(T entity, UpsertOptions options = null)
         {
             if (entity == null) return 0;
             options = options ?? new UpsertOptions();
 
-            var kit = getKit();
             OnBeforeSave(entity);
 
-            if (ExistsByConstraint(entity, options))
+            if (TryNativeDuplicateKeyUpsert(entity, options, out var n1))
             {
-                if (options.IfExistsSkipUpdate) return 0;
-                return UpdateByUpsertOptions(entity, options);
+                OnAfterSave(entity, n1);
+                return n1;
             }
 
-            return base.Insert(entity) ? 1 : 0;
+            if (TryNativeMergeUpsert(entity, options, out var n2))
+            {
+                OnAfterSave(entity, n2);
+                return n2;
+            }
+
+            return InsertOrUpdateBySelectWrite(entity, options);
         }
 
         /// <summary>批量 Upsert。</summary>
@@ -197,6 +267,213 @@ namespace mooSQL.data.richRepo
                 }
             }
             return total;
+        }
+
+        int InsertOrUpdateBySelectWrite(T entity, UpsertOptions options)
+        {
+            if (ExistsByConstraint(entity, options))
+            {
+                if (options.IfExistsSkipUpdate)
+                {
+                    options.SqlOut = "select-write:exists-skip";
+                    return 0;
+                }
+                var n = UpdateByUpsertOptions(entity, options);
+                options.SqlOut = options.SqlOut ?? "select-write:update";
+                return n;
+            }
+
+            var ok = base.Insert(entity);
+            options.SqlOut = "select-write:insert";
+            return ok ? 1 : 0;
+        }
+
+        bool TryNativeDuplicateKeyUpsert(T entity, UpsertOptions options, out int affected)
+        {
+            affected = 0;
+            var flags = DBLive?.dialect?.Option?.ProviderFlags;
+            if (flags == null || !flags.IsInsertOrUpdateSupported)
+                return false;
+
+            var kit = getKit();
+            var table = Translator.GetResolvedTableName(En, entity, null);
+            kit.setTable(table);
+
+            var insertCols = CollectInsertColumns(entity);
+            var updateCols = CollectUpdateColumns(entity, options);
+
+            foreach (var kv in insertCols)
+                kit.setI(kv.Key, kv.Value);
+
+            if (options.IfExistsSkipUpdate)
+            {
+                // 无更新列时仍走 INSERT … ON DUPLICATE，更新部分为空 → 等价于存在则跳过
+            }
+            else
+            {
+                foreach (var kv in updateCols)
+                    kit.setU(kv.Key, kv.Value);
+            }
+
+            var suffix = ResolveDuplicateKeySuffix();
+            var cmd = kit.toInsertWithDuplicateUpdate(suffix);
+            options.SqlOut = cmd?.sql ?? cmd?.toRawSQL();
+            affected = kit.exeNonQuery(cmd);
+            return true;
+        }
+
+        bool TryNativeMergeUpsert(T entity, UpsertOptions options, out int affected)
+        {
+            affected = 0;
+            if (!SupportsMergeDialect(DBLive?.config?.dbType ?? DataBaseType.None))
+                return false;
+
+            var kit = getKit();
+            var table = Translator.GetResolvedTableName(En, entity, null);
+            var constraints = ResolveConstraintColumns(options);
+            if (constraints.Count == 0)
+                return false;
+
+            var insertCols = CollectInsertColumns(entity);
+            var updateCols = CollectUpdateColumns(entity, options);
+            // MERGE source 需要约束列 + 插入/更新列
+            var sourceCols = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var c in constraints)
+            {
+                var col = FindColumn(c);
+                if (col == null) continue;
+                sourceCols[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+            }
+            foreach (var kv in insertCols)
+                sourceCols[kv.Key] = kv.Value;
+            foreach (var kv in updateCols)
+                sourceCols[kv.Key] = kv.Value;
+
+            if (sourceCols.Count == 0)
+                return false;
+
+            var merge = kit.mergeInto(table, "t");
+            merge.from("s", src =>
+            {
+                var parts = new List<string>();
+                foreach (var kv in sourceCols)
+                {
+                    var pname = src.addPara("u_" + kv.Key, kv.Value);
+                    parts.Add(pname + " AS " + kv.Key);
+                }
+                src.select(string.Join(", ", parts));
+            });
+
+            var on = new StringBuilder();
+            for (int i = 0; i < constraints.Count; i++)
+            {
+                var col = FindColumn(constraints[i]);
+                if (col == null) continue;
+                if (on.Length > 0) on.Append(" AND ");
+                on.Append("t.").Append(col.DbColumnName).Append("=s.").Append(col.DbColumnName);
+            }
+            if (on.Length == 0) return false;
+            merge.on(on.ToString());
+
+            if (!options.IfExistsSkipUpdate && updateCols.Count > 0)
+            {
+                merge.whenMatchThenUpdate(u =>
+                {
+                    foreach (var kv in updateCols)
+                        u.set(kv.Key, "s." + kv.Key, false);
+                });
+            }
+
+            merge.whenNotMatchThenInsert(ins =>
+            {
+                foreach (var kv in insertCols)
+                    ins.set(kv.Key, "s." + kv.Key, false);
+            });
+
+            var cmd = merge.toMergeInto();
+            options.SqlOut = cmd?.sql ?? cmd?.toRawSQL();
+            // 经 kit 执行以继承事务 Executor
+            affected = kit.exeNonQuery(cmd);
+            return true;
+        }
+
+        static bool SupportsMergeDialect(DataBaseType dbType)
+        {
+            switch (dbType)
+            {
+                case DataBaseType.MSSQL:
+                case DataBaseType.Oracle:
+                case DataBaseType.PostgreSQL:
+                case DataBaseType.Oscar:
+                case DataBaseType.DM:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        static string ResolveDuplicateKeySuffix()
+        {
+            // 当前仅 MySQL 置 IsInsertOrUpdateSupported；后缀与 MySQLClauseTranslator 一致
+            return "ON DUPLICATE KEY UPDATE";
+        }
+
+        List<string> ResolveConstraintColumns(UpsertOptions options)
+        {
+            var list = new List<string>();
+            if (options.ConstraintMembers != null && options.ConstraintMembers.Count > 0)
+            {
+                list.AddRange(options.ConstraintMembers);
+                return list;
+            }
+            var pks = En.GetPK();
+            if (pks != null)
+            {
+                foreach (var pk in pks)
+                    list.Add(pk.PropertyName);
+            }
+            return list;
+        }
+
+        Dictionary<string, object> CollectInsertColumns(T entity)
+        {
+            var dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var col in En.Columns)
+            {
+                if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
+                dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+            }
+            return dict;
+        }
+
+        Dictionary<string, object> CollectUpdateColumns(T entity, UpsertOptions options)
+        {
+            var dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            var constraints = new HashSet<string>(ResolveConstraintColumns(options), StringComparer.OrdinalIgnoreCase);
+
+            if (options.UpdateMembers != null && options.UpdateMembers.Count > 0)
+            {
+                foreach (var name in options.UpdateMembers)
+                {
+                    var col = FindColumn(name);
+                    if (col == null || col.IsPrimarykey) continue;
+                    if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
+                        continue;
+                    dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+                }
+                return dict;
+            }
+
+            foreach (var col in En.Columns)
+            {
+                if (col.IsIgnore || col.IsPrimarykey || col.PropertyInfo == null) continue;
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
+                if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
+                    continue;
+                dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+            }
+            return dict;
         }
 
         bool ExistsByConstraint(T entity, UpsertOptions options)
@@ -235,7 +512,6 @@ namespace mooSQL.data.richRepo
             }
             if (dict.Count == 0) return 0;
 
-            // 默认按主键 WHERE → 复用 Translator 脏更新路径
             if (options.ConstraintMembers == null || options.ConstraintMembers.Count == 0)
             {
                 var kit = getKit();
@@ -387,6 +663,20 @@ namespace mooSQL.data.richRepo
         /// <summary>同步注释（Mode=SyncCaptions）。</summary>
         public void SyncCaptions()
             => EnsureSchema(SyncMode.SyncCaptions);
+
+        #endregion
+
+        #region Include（复用 NavQueryGuide）
+
+        /// <summary>对已物化主列表加载一对多导航（二次 IN，复用 includeNav）。</summary>
+        public NavQueryGuide<T, Child> Include<Child>(
+            IEnumerable<T> list,
+            Expression<Func<T, ICollection<Child>>> nav,
+            Action<SQLBuilder> childFilter = null)
+            where Child : class, new()
+        {
+            return getKit().includeNav(list, nav, childFilter);
+        }
 
         #endregion
     }
