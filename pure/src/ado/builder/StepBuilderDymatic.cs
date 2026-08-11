@@ -1141,13 +1141,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public int count()
         {
+            if (TryHitUserResultCache("count", out int userHit))
+                return userHit;
             var cmd = toSelectCount();
-            var tar = exeQueryCount(cmd);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return tar;
+            if (cmd == null || string.IsNullOrEmpty(cmd.sql))
+                return 0;
+            return doSelectCore("count", cmd, c => exeQueryCount(c));
         }
         /// <summary>
         /// 执行大数据量的查询，返回long
@@ -1155,13 +1154,12 @@ namespace mooSQL.data
         /// <returns></returns>
         public long countLong()
         {
+            if (TryHitUserResultCache("countLong", out long userHit))
+                return userHit;
             var cmd = toSelectCount();
-            var tar = DBLive.ExeQueryScalar<long>(cmd, Executor);
-            if (this._AutoClearWay == CleanWay.Always)
-            {
-                clear();
-            }
-            return tar;
+            if (cmd == null || string.IsNullOrEmpty(cmd.sql))
+                return 0L;
+            return doSelectCore("countLong", cmd, c => DBLive.ExeQueryScalar<long>(c, Executor));
         }
 
         /// <summary>
