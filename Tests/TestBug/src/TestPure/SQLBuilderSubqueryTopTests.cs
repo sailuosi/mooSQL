@@ -2,6 +2,7 @@ using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
 using System;
+using TestMooSQL.src;
 using Xunit;
 
 namespace mooSQL.Pure.Tests
@@ -149,7 +150,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void FromSubquery_Top_Oracle12_ShouldEmitFetchFirst()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.Oracle);
+            var db = DBTest.CreateDialectInstance(DataBaseType.Oracle);
             db.config.versionNumber = 12;
             db.config.version = "12.2";
             using var kit = db.useSQL();
@@ -307,7 +308,7 @@ namespace mooSQL.Pure.Tests
         public void TopOnly_MSSQL_ShouldNotUseOffsetFetch_EvenWhenVersionHigh()
         {
             // 白盒：HasSkipTakePaging 要求 skipNum>0 或 setPage，纯 top 走 TOP 而非 OFFSET/FETCH
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MSSQL);
+            var db = DBTest.CreateDialectInstance(DataBaseType.MSSQL);
             db.config.versionNumber = 13;
             using var kit = db.useSQL();
             kit.select("id").from("users").top(5);
@@ -321,7 +322,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SkipTake_MSSQL_HighVersion_ShouldUseOffsetFetch_NotTop()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MSSQL);
+            var db = DBTest.CreateDialectInstance(DataBaseType.MSSQL);
             db.config.versionNumber = 13;
             using var kit = db.useSQL();
             kit.select("id").from("users").orderBy("id").skipTake(10, 5);

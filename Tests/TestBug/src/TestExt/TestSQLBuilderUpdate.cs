@@ -49,9 +49,9 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void fastUpdateByClip()
     {
-        if (!DBTest.IsAvailable(0)) return;
+        if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useBusinessRunDB().useSQL();
 
         var demoOID = Guid.Empty.ToString();
 
@@ -69,9 +69,9 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void RemoveByClip()
     {
-        if (!DBTest.IsAvailable(0)) return;
+        if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useBusinessRunDB().useSQL();
 
         var demoOID = Guid.Empty.ToString();
 
@@ -90,9 +90,9 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void fastRemoveByClip()
     {
-        if (!DBTest.IsAvailable(0)) return;
+        if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useBusinessRunDB().useSQL();
 
         var demoOID = Guid.Empty.ToString();
 
@@ -110,7 +110,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void mergeBase()
     {
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useMSSQLDB().useSQL();
         var cmd=kit    
             .mergeInto("SK_RealInBill", "b")
             .from("r", (r) =>
@@ -142,9 +142,9 @@ public class TestSQLBuilderUpdate
 
     [Fact]
     public void matchBulkBase1() {
-        if (!DBTest.IsAvailable(0)) return;
+        if (!DBTest.IsBusinessRunAvailable()) return;
         int cc = 0;
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useBusinessRunDB().useSQL();
 
         var dt = kit.select("*")
                    .from("UCML_RESPONSIBILITY r")
@@ -186,8 +186,8 @@ public class TestSQLBuilderUpdate
 
     [Fact]
     public void addBulkBase1() {
-        if (!DBTest.IsAvailable(0)) return;
-        var kit = DBTest.useSQL(0);
+        if (!DBTest.IsBusinessRunAvailable()) return;
+        var kit = DBTest.useBusinessRunDB().useSQL();
         var list = new List<HHDutyItem>() {
             new HHDutyItem() { },
             new HHDutyItem() { }
@@ -197,8 +197,8 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void addBulkBase2()
     {
-        if (!DBTest.IsAvailable(0)) return;
-        var kit = DBTest.useSQL(0);
+        if (!DBTest.IsBusinessRunAvailable()) return;
+        var kit = DBTest.useBusinessRunDB().useSQL();
         var bk = kit.DBLive.useBulk();
         var list = new List<HHDutyItem>() {
             new HHDutyItem() { },

@@ -17,9 +17,9 @@ public class DBInsTest
     [Fact]
     public void selectTop1()
     {
-        if (!DBTest.IsAvailable(0)) return;
+        if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var db = DBTest.GetDBInstance(0);
+        var db = DBTest.useBusinessRunDB();
         //查询一个表
         var cmd = "select a.* from table as a where a.idx>{0}".formatSQL(3);
         DataTable dt = db.ExeQuery(cmd);

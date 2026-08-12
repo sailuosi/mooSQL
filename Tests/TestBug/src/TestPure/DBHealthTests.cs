@@ -4,6 +4,7 @@ using mooSQL.data.cluster;
 using mooSQL.data.health;
 using mooSQL.Pure.Tests.TestHelpers;
 using System;
+using TestMooSQL.src;
 using Xunit;
 
 namespace mooSQL.Pure.Tests
@@ -75,7 +76,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void MySQL_sentence_whitelist_detects_gone_away()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MySQL);
+            var db = DBTest.useMySQLDB();
             var sentence = db.dialect.sentence;
             sentence.IsConnectionLost(new NumberedTestException(2006)).Should().BeTrue();
             sentence.IsConnectionLost(new NumberedTestException(1146, "Table not found")).Should().BeFalse();
@@ -84,7 +85,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void ConnectionExceptionClassifier_delegates_to_dialect()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MySQL);
+            var db = DBTest.useMySQLDB();
             ConnectionExceptionClassifier.IsConnectionError(null, db.dialect).Should().BeFalse();
             ConnectionExceptionClassifier.IsConnectionError(new Exception("syntax"), null).Should().BeFalse();
             ConnectionExceptionClassifier.IsConnectionError(
@@ -96,7 +97,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Npgsql_sentence_whitelist_sql_state()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.PostgreSQL);
+            var db = DBTest.usePostgreSQLDB();
             db.dialect.sentence.IsConnectionLost(new SqlStateTestException("08006")).Should().BeTrue();
             db.dialect.sentence.IsConnectionLost(new SqlStateTestException("42P01")).Should().BeFalse();
         }

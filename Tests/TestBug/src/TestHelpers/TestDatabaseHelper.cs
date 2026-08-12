@@ -1,76 +1,49 @@
 using mooSQL.data;
-using mooSQL.data.context;
-using mooSQL.data.Mapping;
-using System;
-using System.Data;
-using System.IO;
+using TestMooSQL.src;
 
 namespace mooSQL.Pure.Tests.TestHelpers
 {
     /// <summary>
-    /// 测试数据库辅助类，用于创建测试用的数据库实例
+    /// 测试数据库辅助类，用于创建测试用的数据库实例。
+    /// 默认 SQLite 与 <see cref="DBTest.LocalSQLiteConnStr"/> / 槽位 0 共用；
+    /// 方言空连接委托 <see cref="DBTest.CreateDialectInstance"/>。
     /// </summary>
     public static class TestDatabaseHelper
     {
         /// <summary>
-        /// 创建一个用于测试的 DBInstance（不连接真实数据库）
+        /// 创建一个用于测试的 DBInstance。
+        /// 未指定连接串时：SQLite 用本地共享库；其它类型用空连接串（仅方言）。
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
-        /// <param name="connectionString">可选自定义连接字符串</param>
-        /// <returns>DBInstance 实例</returns>
         public static DBInstance CreateTestDBInstance(DataBaseType dbType = DataBaseType.SQLite, string? connectionString = null)
         {
-            var client = new MooClient();
-            client.dialectFactory = new DialectFactory();
-            var factory = new BaseEntityAnalyseFactory();
-            factory.register(new MooEntityAnalyser());
-            client.entityAnalyseFactory = factory;
+            if (connectionString != null)
+                return DBTest.BuildStandaloneInstance(dbType, connectionString);
 
-            var dbConfig = new DataBase
-            {
-                dbType = dbType,
-                DBConnectStr = connectionString ?? GetTestConnectionString(dbType)
-            };
+            if (dbType == DataBaseType.SQLite)
+                return DBTest.BuildStandaloneInstance(DataBaseType.SQLite, DBTest.LocalSQLiteConnStr);
 
-            var dbInstance = new DBInstance
-            {
-                config = dbConfig,
-                client = client
-            };
-
-            // 获取方言
-            dbInstance.dialect = client.dialectFactory.getDialect(dbConfig);
-            dbInstance.dialect.dbInstance = dbInstance;
-            dbInstance.dialect.db = dbConfig;
-
-            // 设置命令执行器，否则 ExeNonQuery 等会 NRE
-            dbInstance.cmd = new CmdExecutor(dbInstance);
-
-            return dbInstance;
+            // 其它类型默认空连接：每次新建，避免与 useXxxDB 缓存互相污染
+            return DBTest.CreateDialectInstance(dbType);
         }
 
         /// <summary>
-        /// 获取测试用的连接字符串
+        /// 获取测试用的连接字符串（SQLite 与 DBTest 槽位 0 对齐）。
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
-        /// <returns>连接字符串</returns>
-        private static string GetTestConnectionString(DataBaseType dbType)
+        public static string GetTestConnectionString(DataBaseType dbType)
         {
             return dbType switch
             {
-                DataBaseType.SQLite => "Data Source=" + Path.Combine(Path.GetTempPath(), "mooSQL_test_sqlite.db") + ";Mode=ReadWriteCreate",
+                DataBaseType.SQLite => DBTest.LocalSQLiteConnStr,
                 DataBaseType.MySQL => "Server=localhost;Database=test;Uid=root;Pwd=test;",
                 DataBaseType.MSSQL => "Server=localhost;Database=test;User Id=sa;Password=test;",
                 DataBaseType.PostgreSQL => "Host=localhost;Database=test;Username=postgres;Password=test;",
-                _ => "Data Source=:memory:"
+                _ => string.Empty
             };
         }
 
         /// <summary>
         /// 创建一个 SQLBuilder 实例用于测试
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
-        /// <returns>SQLBuilder 实例</returns>
         public static SQLBuilder CreateSQLBuilder(DataBaseType dbType = DataBaseType.SQLite)
         {
             var dbInstance = CreateTestDBInstance(dbType);
@@ -80,8 +53,6 @@ namespace mooSQL.Pure.Tests.TestHelpers
         /// <summary>
         /// 创建一个 SQLClip 实例用于测试
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
-        /// <returns>SQLClip 实例</returns>
         public static SQLClip CreateSQLClip(DataBaseType dbType = DataBaseType.SQLite)
         {
             var dbInstance = CreateTestDBInstance(dbType);

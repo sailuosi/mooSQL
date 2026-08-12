@@ -69,8 +69,13 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
 ## 测试辅助类
 
+### DBTest 数据库提供层
+- 槽位 0 / `useSQLiteDB`：本地共享 SQLite（`LocalSQLiteConnStr`）
+- 方言产物：`useMySQLDB` / `useMSSQLDB` / …（空连接串）
+- 执行：`useRunDB` / `useSQL()`，可用 `setRunDB` 切换；`IsRunAvailable()`
+
 ### TestDatabaseHelper
-提供创建测试用数据库实例的静态方法，支持多种数据库类型。
+默认 SQLite 与 DBTest 槽位 0 共用路径；其它类型空连接委托 DBTest。
 
 ### TestEntity
 提供测试用的实体类：

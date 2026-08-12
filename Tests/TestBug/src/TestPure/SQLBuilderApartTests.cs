@@ -2,6 +2,7 @@ using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
 using System.Linq;
+using TestMooSQL.src;
 using Xunit;
 
 namespace mooSQL.Pure.Tests
@@ -82,7 +83,7 @@ namespace mooSQL.Pure.Tests
             var sqliteKit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.SQLite);
             var apart = sqliteKit.select("1").from("t").toApart();
 
-            var mssqlDb = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MSSQL);
+            var mssqlDb = DBTest.useMSSQLDB();
             var mssqlKit = mssqlDb.useSQL();
 
             var act = () => mssqlKit.useApart(apart);

@@ -7,6 +7,7 @@ using mooSQL.data.richRepo;
 using mooSQL.data.richRepo.schema;
 using mooSQL.data.richRepo.tracking;
 using mooSQL.Pure.Tests.TestHelpers;
+using TestMooSQL.src;
 using Xunit;
 
 namespace mooSQL.Pure.Tests
@@ -213,7 +214,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Upsert_MySqlDialect_BuildsOnDuplicateKeySql()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MySQL);
+            var db = DBTest.useMySQLDB();
             db.dialect.Option.ProviderFlags.IsInsertOrUpdateSupported.Should().BeTrue();
 
             using var kit = db.useSQL();
@@ -231,7 +232,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Upsert_MssqlMerge_BuildsMergeSql()
         {
-            var db = TestDatabaseHelper.CreateTestDBInstance(DataBaseType.MSSQL);
+            var db = DBTest.useMSSQLDB();
             using var kit = db.useSQL();
             var cmd = kit.mergeInto("t_user", "t")
                 .from("s", s => s.select("@id AS id, @email AS email"))

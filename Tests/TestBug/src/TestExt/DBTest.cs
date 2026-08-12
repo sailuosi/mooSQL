@@ -3,7 +3,6 @@
 
 using HHNY.NET.Core.MooSQL;
 using mooSQL.data;
-using mooSQL.data.cluster;
 using mooSQL.linq;
 using mooSQL.linq.core;
 using System;
@@ -68,29 +67,16 @@ public partial class DBTest
     {
         int cc = 0;
 
-        
-            var db1 = new DataBase();
-            db1.dbType = DataBaseType.MSSQL;
-            db1.DBConnectStr = "Enlist=false;Data Source=localhost;Database=netapi;User Id=test;Password=123456;Encrypt=True;TrustServerCertificate=True;";
-            db1.name ="0";
-            db1.version ="13.0";
-            db1.versionNumber = 13.0;
-            //db1.databaseName = "ZHXT_Tar";
+        // 连接位 0：本地默认库（SQLite，与专项测试共用同一文件；改此配置可快捷切换默认产物/执行库）
+        var db1 = new DataBase();
+        db1.dbType = DataBaseType.SQLite;
+        db1.DBConnectStr = LocalSQLiteConnStr;
+        db1.name = "0";
 
-            cash.addDataBase(0, db1);
-            cc++;
-            
-            addMoreDB();
+        cash.addDataBase(0, db1);
+        cc++;
 
-            // 连接位0为主库，连接位1为灾备热库；主库宕机时自动切换到连接位1
-            cash.configureGroup(0, g => g
-                .master(0)
-                .failover(FailoverMode.OnNextConnect)
-                .addSlave(1, s =>
-                {
-                    s.HotStandby = true;
-                    s.WriteEnabled = true;
-                }));
+        addMoreDB();
 
         return cc;
     }
@@ -124,7 +110,7 @@ public partial class DBTest
         return db.useSQL();
     }
 
-    /// <summary>本地 MSSQL 不可用时，依赖真实库的集成测试应直接 return。</summary>
+    /// <summary>指定连接位不可用时，依赖真实库的集成测试应直接 return。</summary>
     public static bool IsAvailable(int position = 0)
     {
         try
@@ -138,6 +124,9 @@ public partial class DBTest
             return false;
         }
     }
+
+    /// <summary>无参：走执行库（useRunDB）取 SQLBuilder。</summary>
+    public static SQLBuilder useSQL() => useRunDB().useSQL();
 
 
     public static DbBus<T> useBus<T>(int position)

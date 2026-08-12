@@ -1,5 +1,6 @@
 ﻿// 基础功能说明：
 
+using mooSQL.data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,11 @@ using Xunit;
 namespace TestMooSQL.src;
 public class TestSQLBuilderMergeIno
 {
+    /// <summary>MERGE 方言 SQL 产物（MSSQL），不执行。</summary>
     [Fact]
     public void selectTop1()
     {
-        if (!DBTest.IsAvailable(0)) return;
-
-        var kit = DBTest.useSQL(0);
+        var kit = DBTest.useMSSQLDB().useSQL();
         var cmd= kit.mergeInto("HH_SysRole")
             .from("UCML_RESPONSIBILITY as r")
             .on("HH_SysRole.Code=r.R_Code")
@@ -29,6 +29,9 @@ public class TestSQLBuilderMergeIno
             .toMergeInto();
 
         var sql = cmd.toRawSQL();
-        Assert.Equal("merge into HH_SysRole  using UCML_RESPONSIBILITY as r on (HH_SysRole.Code=r.R_Code)   when not matched  then insert(Name,Remark,OrderNo,DataScope,Code,TenantId,IsDelete) values( r.RESP_NAME,r.RESP_DESC_TEXT,r.[level],r.accessType,r.R_Code,'1300000000001',0)   when not matched  then update set Name=r.RESP_NAME ,Remark=r.RESP_DESC_TEXT ,OrderNo=r.[level] ,DataScope=r.accessType  ;", sql);
+        Assert.Equal(
+            "merge into HH_SysRole  using UCML_RESPONSIBILITY as r on (HH_SysRole.Code=r.R_Code)   when not matched  then insert(Name,Remark,OrderNo,DataScope,Code,TenantId,IsDelete) values( r.RESP_NAME,r.RESP_DESC_TEXT,r.[level],r.accessType,r.R_Code,'1300000000001',0)   when not matched  then update set Name=r.RESP_NAME ,Remark=r.RESP_DESC_TEXT ,OrderNo=r.[level] ,DataScope=r.accessType  ;",
+            sql,
+            ignoreCase: true);
     }
 }
