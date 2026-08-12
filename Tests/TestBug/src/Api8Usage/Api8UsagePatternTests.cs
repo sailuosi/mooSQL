@@ -327,5 +327,177 @@ namespace mooSQL.Pure.Tests.Api8Usage
         }
 
         #endregion
+
+        #region P3 mineone/api8 高频缺口
+
+        /// <summary>对标 ShareResourceService / PortalGysp：whereFormat 多字段 OR LIKE（同一占位符复用）</summary>
+        [Fact]
+        public void WhereFormat_MultiOrLike_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("r.SR_Name")
+                    .from("ShareResource r")
+                    .whereFormat(
+                        "(r.SR_Name like {0} or r.SR_Tag like {0} or r.SR_classification like {0})",
+                        "%kw%")
+                    .toSelect(),
+                "SELECT r.SR_Name FROM ShareResource r WHERE (r.SR_Name like '%kw%' or r.SR_Tag like '%kw%' or r.SR_classification like '%kw%') ");
+        }
+
+        /// <summary>对标 VMS / AI 控制器：whereFormat 软删字面量片段</summary>
+        [Fact]
+        public void WhereFormat_SoftDeleteLiteral_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("id")
+                    .from("VMS_Deploy")
+                    .whereFormat("([SYS_Deleted] IS NULL OR [SYS_Deleted] = 0)")
+                    .toSelect(),
+                "SELECT id FROM VMS_Deploy WHERE ([SYS_Deleted] IS NULL OR [SYS_Deleted] = 0) ");
+        }
+
+        /// <summary>对标 ManCommonController：sinkOR + whereLikeLeft + rise</summary>
+        [Fact]
+        public void SinkOR_WhereLikeLeft_Rise_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("c.PersonName")
+                    .from("ucml_contact c")
+                    .sinkOR()
+                        .whereLikeLeft("c.MobilePhone", "138")
+                        .whereLikeLeft("c.CertifNO", "138")
+                    .rise()
+                    .toSelect(),
+                "SELECT c.PersonName FROM ucml_contact c WHERE  ( c.MobilePhone LIKE '138%' OR c.CertifNO LIKE '138%' )  ");
+        }
+
+        /// <summary>对标 ThreeViolationsTools / 隐患检索：whereLikes 多字段</summary>
+        [Fact]
+        public void WhereLikes_MultiFields_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("h.H_Name")
+                    .from("HR_Human h")
+                    .whereLikes(new[] { "h.H_Name", "h.H_PYM", "h.H_Mobile" }, "zhang")
+                    .toSelect(),
+                "SELECT h.H_Name FROM HR_Human h WHERE  ( h.H_Name LIKE '%zhang%' OR h.H_PYM LIKE '%zhang%' OR h.H_Mobile LIKE '%zhang%' )  ");
+        }
+
+        /// <summary>对标 BPO_*SteepListController：joinFormat 参数化 LEFT JOIN</summary>
+        [Fact]
+        public void JoinFormat_LeftJoin_Param_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("mtb.Id, chk.ET_InspectDate")
+                    .from("ET_MnrSteep mtb")
+                    .joinFormat(
+                        "LEFT JOIN ET_MnrSteepChk chk ON chk.ET_MnrSteep_FK = mtb.ET_MnrSteepOID AND chk.ET_StatYearMonth = {0}",
+                        "2026-01")
+                    .toSelect(),
+                "SELECT mtb.Id, chk.ET_InspectDate FROM ET_MnrSteep mtb LEFT JOIN ET_MnrSteepChk chk ON chk.ET_MnrSteep_FK = mtb.ET_MnrSteepOID AND chk.ET_StatYearMonth = '2026-01' ");
+        }
+
+        /// <summary>对标 MatchPlanToNext.syncStopProd*：doUpdateFrom（MSSQL）</summary>
+        [Fact]
+        public void DoUpdateFrom_JoinAlias_SetExpr_ExactSql()
+        {
+            AssertExactSql(
+                MssqlKit().clear()
+                    .setTable("r")
+                    .from("PS_StopProdReport r inner join PS_StopProdMonthPlan p on r.PS_StopProdMonthPlan_FK = p.PS_StopProdMonthPlanOID")
+                    .set("PS_PlanDayStopCount", "p.PS_Day01", false)
+                    .set("SYS_LAST_UPD", "2026-01-01", false)
+                    .whereIn("r.PS_StopProdMonthPlan_FK", "oid1", "oid2")
+                    .where("r.SYS_Deleted", false)
+                    .toUpdateFrom(),
+                "UPDATE r SET PS_PlanDayStopCount=p.PS_Day01 ,SYS_LAST_UPD=2026-01-01   FROM PS_StopProdReport r inner join PS_StopProdMonthPlan p on r.PS_StopProdMonthPlan_FK = p.PS_StopProdMonthPlanOID  WHERE  ( r.PS_StopProdMonthPlan_FK IN ('oid1','oid2') AND r.SYS_Deleted = 'False' ) ");
+        }
+
+        /// <summary>对标 PushPool：doInsert + from + set(expr,false) + whereNotIn 子查询（insert-select）</summary>
+        [Fact]
+        public void DoInsert_From_WhereNotInSubquery_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("HR_RealeaseState")
+                    .set("HR_RealeaseStateOID", "newid()", false)
+                    .set("HR_ReleaseItem_FK", "item-oid")
+                    .set("RS_OID", "o.OID", false)
+                    .set("RS_State", "2")
+                    .from("MD_Tree as o")
+                    .where("o.SYS_Deleted", "0")
+                    .whereNotIn("o.OID", s => s
+                        .select("s.RS_OID")
+                        .from("HR_RealeaseState s")
+                        .where("s.HR_ReleaseItem_FK", "item-oid"))
+                    .toInsert(),
+                "INSERT INTO HR_RealeaseState  (HR_RealeaseStateOID,HR_ReleaseItem_FK,RS_OID,RS_State)  SELECT  newid(),'item-oid',o.OID,'2'  FROM MD_Tree as o  WHERE  ( o.SYS_Deleted = '0' AND o.OID  NOT IN   (SELECT s.RS_OID FROM HR_RealeaseState s WHERE s.HR_ReleaseItem_FK = 'item-oid' )  )  ");
+        }
+
+        /// <summary>对标门户/MDM 列表：rowNumber + orderBy（MSSQL，非 CTE 分页）</summary>
+        [Fact]
+        public void RowNumber_OrderBy_List_ExactSql()
+        {
+            AssertExactSql(
+                MssqlKit().clear()
+                    .select("a.ZH_PortPageOID, a.PP_Pose")
+                    .from("ZH_PortPage a")
+                    .rowNumber("a.PP_Pose asc, a.PP_Idx asc", "rowm")
+                    .orderBy("rowm")
+                    .toSelect(),
+                "SELECT a.ZH_PortPageOID, a.PP_Pose, ROW_NUMBER() OVER (ORDER BY a.PP_Pose asc, a.PP_Idx asc) AS rowm  FROM ZH_PortPage a ORDER BY rowm ");
+        }
+
+        /// <summary>对标 SafeOverviewHelper：whereNotIn 值列表</summary>
+        [Fact]
+        public void WhereNotIn_Values_ExactSql()
+        {
+            AssertExactSql(
+                Kit().clear()
+                    .select("count(*) cnt")
+                    .from("SF_HiddenList")
+                    .whereNotIn("HL_Status", new[] { 1, 6, 4 })
+                    .toSelect(),
+                "SELECT count(*) cnt FROM SF_HiddenList WHERE HL_Status NOT IN (1,6,4) ");
+        }
+
+        /// <summary>对标门户/安全概览：queryRow 唯一行；0 行或 &gt;1 行返回 null</summary>
+        [Fact]
+        public void QueryRow_UniqueOrNull_OnSharedSqlite()
+        {
+            var kit = TestDatabaseHelper.CreateSQLBuilderWithTestUserSchema();
+            const int id = 910003;
+
+            kit.clear().setTable("test_users").where("id", id).doDelete();
+
+            kit.clear()
+                .from("test_users")
+                .where("id", id)
+                .queryRow()
+                .Should().BeNull();
+
+            kit.clear()
+                .setTable("test_users")
+                .set("id", id)
+                .set("name", "qrow")
+                .set("email", "q@x.com")
+                .set("is_active", 1)
+                .doInsert();
+
+            var row = kit.clear()
+                .select("id, name")
+                .from("test_users")
+                .where("id", id)
+                .queryRow();
+            row.Should().NotBeNull();
+            row!["name"].ToString().Should().Be("qrow");
+        }
+
+        #endregion
     }
 }

@@ -1,6 +1,9 @@
 # api8 mooSQL 用法模式清单
 
-来源：`H:\coding\gitlab\PXXT\pxxt8\api8` 全库扫描（约 2238 处 `using mooSQL*` / 1546 文件）。  
+来源：
+- 历史：`H:\coding\gitlab\PXXT\pxxt8\api8` 全库扫描（约 2238 处 `using mooSQL*` / 1546 文件）→ P0–P2。
+- 当前：`H:\UCML\UCML8\aqyth\mineone\api8` 全库扫描（约 3013 `.cs`）→ P3 缺口补齐。
+
 测试入口约定见 [测试项目说明.md](../测试项目说明.md) 中「测试数据库提供层」。
 
 ## 规模与入口
@@ -42,21 +45,35 @@
 | P1 | BatchSQL 排队 | `BPO_ClassConinueController` | `BatchSQL_CanQueueBuilders` | 产物/结构 |
 | P1 | useWork 多语句 | `examWork.prepare` | `UnitOfWork_UseWork_OnRunDb` | 执行（可 skip） |
 | P1 | 手工 Upsert（先查后写） | PointGrant / Cert | `ManualUpsert_SelectThenWrite_Flow` | 执行 |
-| P2 | skipTake(0,1) | `BPO_AttendedClassController` | `SkipTake_FirstRow_SqlShape` | 产物 |
-| P2 | leftJoin + 聚合子查询 | Teach/Resource | `LeftJoin_DerivedTable_SqlShape` | 产物 |
+| P2 | skipTake(0,1) | `BPO_AttendedClassController` | `SkipTake_FirstRow_ExactSql` | 产物 |
+| P2 | leftJoin + 聚合子查询 | Teach/Resource | `LeftJoin_DerivedTable_ExactSql` | 产物 |
+| P3 | whereFormat 多字段 OR LIKE | `ShareResourceService` / PortalGysp | `WhereFormat_MultiOrLike_ExactSql` | 产物 |
+| P3 | whereFormat 软删字面量 | VMS / AI Controller | `WhereFormat_SoftDeleteLiteral_ExactSql` | 产物 |
+| P3 | sinkOR + whereLikeLeft + rise | `ManCommonController` | `SinkOR_WhereLikeLeft_Rise_ExactSql` | 产物 |
+| P3 | whereLikes 多字段 | `ThreeViolationsTools` / 隐患 | `WhereLikes_MultiFields_ExactSql` | 产物 |
+| P3 | joinFormat 参数化 LEFT JOIN | `BPO_*SteepListController` | `JoinFormat_LeftJoin_Param_ExactSql` | 产物 |
+| P3 | doUpdateFrom JOIN 别名 + set(expr) | `MatchPlanToNext` | `DoUpdateFrom_JoinAlias_SetExpr_ExactSql` | 产物（MSSQL） |
+| P3 | doInsert + from + whereNotIn 子查询 | `PushPool` / DBTool | `DoInsert_From_WhereNotInSubquery_ExactSql` | 产物 |
+| P3 | rowNumber + orderBy 列表 | 门户 / MDM | `RowNumber_OrderBy_List_ExactSql` | 产物（MSSQL） |
+| P3 | whereNotIn 值列表 | `SafeOverviewHelper` | `WhereNotIn_Values_ExactSql` | 产物 |
+| P3 | queryRow 唯一行 | 门户 / 安全概览 | `QueryRow_UniqueOrNull_OnSharedSqlite` | 执行 |
 | P3 | useBus ToPageList | `SysOnlineUserService` | （可选后续） | 执行 |
 | Gap | MERGE / useApart / RichRepo | api8 未用 | 不强制；库侧另有单测 | — |
+
+> **来源说明**：P0–P2 最初对标 pxxt；P3 按当前工作区 **mineone/api8** 全库扫描补齐高频缺口。
 
 ---
 
 ## 热点文件（补充用例时优先对标）
 
-- `pxxt/slnTeach/.../BPO_ClassConinueController.cs` + `ClassConinueEditSql*`
-- `pxxt/PXXT_Core/.../examWork.*.cs`
-- `pxxt/slnExam/.../BPO_MyExamRecordEditController.cs`
-- `pxxt/slnTeach/.../BPO_PX_PostClassController.cs`
-- `HHNY.NET.Core/Service/*`（Clip / Bus / Auth / DDL）
-- `pxxt/PXXT_Core/.../BCServiceBase.cs`（`useRepo` + Position）
+- `MineOne/.../ManCommonController.cs`（sinkOR + LikeLeft）
+- `MineOne/sln_product/.../MatchPlanToNext.cs`（doUpdateFrom）
+- `MineOne/sln_BusiBase/.../PushPool.cs`（insert-select + whereNotIn 子查询）
+- `MineOne/sln_Elec/.../BPO_*SteepListController.cs`（joinFormat）
+- `FrameWork/.../ThreeViolationsTools.cs`、`sln_safe` 隐患/三违（whereLikes）
+- `HHNY.NET.Application/.../ShareResourceService.cs`、VMS/Portal（whereFormat）
+- `HHNY.NET.Application/.../ZHPort*`、MDM（rowNumber 列表）
+- 历史 pxxt：`ClassConinue*`、`examWork.*`、`BPO_MyExamRecordEditController`
 
 ---
 
