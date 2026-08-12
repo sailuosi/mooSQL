@@ -74,6 +74,7 @@ namespace mooSQL.Pure.Tests
     private static SQLBuilder CreateBuilder(EntityTranslator translator)
     {
       var db = TestDatabaseHelper.CreateTestDBInstance();
+      TestDatabaseHelper.EnsureTestUserSchema(db);
       EnsureEntityParser(db.client);
       db.client.useClientFactory(new SharedTranslatorClientFactory(translator));
       return db.useSQL();
@@ -82,6 +83,7 @@ namespace mooSQL.Pure.Tests
     private static SQLBuilder CreateKit()
     {
       var db = TestDatabaseHelper.CreateTestDBInstance();
+      TestDatabaseHelper.EnsureTestUserSchema(db);
       EnsureEntityParser(db.client);
       return db.useSQL();
     }

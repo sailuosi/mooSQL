@@ -51,6 +51,35 @@ namespace mooSQL.Pure.Tests.TestHelpers
         }
 
         /// <summary>
+        /// 确保共享 SQLite 上存在 <c>test_users</c>（执行类用例依赖）。
+        /// </summary>
+        public static void EnsureTestUserSchema(DBInstance db)
+        {
+            if (db?.config?.dbType != DataBaseType.SQLite)
+                return;
+
+            db.ExeNonQuery(new SQLCmd(@"
+CREATE TABLE IF NOT EXISTS test_users (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL DEFAULT '',
+  email TEXT,
+  age INTEGER,
+  created_at TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1
+)"));
+        }
+
+        /// <summary>
+        /// 创建可执行的 SQLite SQLBuilder，并确保 <c>test_users</c> 存在。
+        /// </summary>
+        public static SQLBuilder CreateSQLBuilderWithTestUserSchema()
+        {
+            var db = CreateTestDBInstance(DataBaseType.SQLite);
+            EnsureTestUserSchema(db);
+            return db.useSQL();
+        }
+
+        /// <summary>
         /// 创建一个 SQLClip 实例用于测试
         /// </summary>
         public static SQLClip CreateSQLClip(DataBaseType dbType = DataBaseType.SQLite)

@@ -18,7 +18,7 @@ namespace mooSQL.Pure.Tests
 
         public SQLBuilderExtensionTests()
         {
-            _builder = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.SQLite);
+            _builder = TestDatabaseHelper.CreateSQLBuilderWithTestUserSchema();
         }
 
         #region 工具与入口
