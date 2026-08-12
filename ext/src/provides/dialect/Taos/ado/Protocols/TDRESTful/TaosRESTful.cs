@@ -15,7 +15,6 @@ using System.Net.NetworkInformation;
 using System.Threading;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace mooSQL.data.taos.Protocols.TDRESTful
 {

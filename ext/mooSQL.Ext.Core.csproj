@@ -96,17 +96,13 @@
 	<ItemGroup>
 	  <Compile Remove="src\AI\**" />
 	  <Compile Remove="src\excel\**" />
-	  <Compile Remove="src\word\**" />
 	  <EmbeddedResource Remove="src\AI\**" />
 	  <EmbeddedResource Remove="src\excel\**" />
-	  <EmbeddedResource Remove="src\word\**" />
 	  <None Remove="src\AI\**" />
 	  <None Remove="src\excel\**" />
-	  <None Remove="src\word\**" />
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>

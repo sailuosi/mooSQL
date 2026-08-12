@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 namespace mooSQL.linq.Linq.Builder
 {
 	using Common.Internal;
-    using DocumentFormat.OpenXml.EMMA;
 	using Extensions;
 	using Mapping;
     using mooSQL.data;
