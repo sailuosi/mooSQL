@@ -32,7 +32,6 @@
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="1.1.2" />
 	</ItemGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
 		<Reference Include="Microsoft.CSharp" />
@@ -53,7 +52,6 @@
 		<PackageReference Include="Npgsql" Version="4.0.14" />
 		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite">
@@ -67,7 +65,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.6" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
 		<PackageReference Include="System.Data.OleDb" Version="8.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite">
@@ -81,7 +78,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.6" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
 		<PackageReference Include="System.Data.OleDb" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite">
@@ -95,7 +91,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.6" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
 		<PackageReference Include="System.Data.OleDb" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 	</ItemGroup>
 
   <ItemGroup>

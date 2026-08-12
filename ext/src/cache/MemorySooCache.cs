@@ -2,52 +2,53 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Caching.Memory;
+using System.Runtime.Caching;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// 基于 <see cref="IMemoryCache"/> 的 <see cref="ISooCache"/> 实现。
+    /// 基于 <see cref="MemoryCache"/>（System.Runtime.Caching）的 <see cref="ISooCache"/> 实现。
     /// 无显式 TTL 时使用 <see cref="DefaultExpiration"/>（默认 12 小时）。
     /// 示例：<c>client.useCache(new MemorySooCache(TimeSpan.FromHours(6)));</c>
     /// </summary>
     public class MemorySooCache : ISooCache, IDisposable
     {
-        private readonly IMemoryCache _cache;
+        private readonly MemoryCache _cache;
         private readonly bool _ownsCache;
         private readonly ConcurrentDictionary<string, byte> _keys = new ConcurrentDictionary<string, byte>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, object> _createLocks = new ConcurrentDictionary<string, object>(StringComparer.Ordinal);
 
-        /// <summary>使用默认 <see cref="MemoryCache"/>，默认过期 12 小时。</summary>
+        /// <summary>使用独立 <see cref="MemoryCache"/> 实例，默认过期 12 小时。</summary>
         public MemorySooCache()
             : this(SooCacheDefaults.Expiration)
         {
         }
 
-        /// <summary>使用默认 <see cref="MemoryCache"/>，并指定无显式 TTL 时的默认过期。</summary>
+        /// <summary>使用独立 <see cref="MemoryCache"/> 实例，并指定无显式 TTL 时的默认过期。</summary>
         public MemorySooCache(TimeSpan defaultExpiration)
-            : this(new MemoryCache(new MemoryCacheOptions()), ownsCache: true, defaultExpiration)
+            : this(new MemoryCache(nameof(MemorySooCache) + Guid.NewGuid().ToString("N")), ownsCache: true, defaultExpiration)
         {
         }
 
-        /// <summary>使用默认 <see cref="MemoryCache"/>，并指定无显式 TTL 时的默认过期秒数。</summary>
+        /// <summary>使用独立 <see cref="MemoryCache"/> 实例，并指定无显式 TTL 时的默认过期秒数。</summary>
         public MemorySooCache(int defaultExpirationSeconds)
             : this(TimeSpan.FromSeconds(defaultExpirationSeconds))
         {
         }
 
-        /// <summary>注入外部 <see cref="IMemoryCache"/>（不负责 Dispose），默认过期 12 小时。</summary>
-        public MemorySooCache(IMemoryCache cache)
+        /// <summary>注入外部 <see cref="MemoryCache"/>（不负责 Dispose），默认过期 12 小时。</summary>
+        public MemorySooCache(MemoryCache cache)
             : this(cache, ownsCache: false, SooCacheDefaults.Expiration)
         {
         }
 
-        /// <summary>注入外部 <see cref="IMemoryCache"/>，并指定默认过期。</summary>
-        public MemorySooCache(IMemoryCache cache, TimeSpan defaultExpiration)
+        /// <summary>注入外部 <see cref="MemoryCache"/>，并指定默认过期。</summary>
+        public MemorySooCache(MemoryCache cache, TimeSpan defaultExpiration)
             : this(cache, ownsCache: false, defaultExpiration)
         {
         }
 
-        private MemorySooCache(IMemoryCache cache, bool ownsCache, TimeSpan defaultExpiration)
+        private MemorySooCache(MemoryCache cache, bool ownsCache, TimeSpan defaultExpiration)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _ownsCache = ownsCache;
@@ -66,9 +67,7 @@ namespace mooSQL.data
             TimeSpan? absolute = null;
             if (DefaultExpiration > TimeSpan.Zero)
                 absolute = DefaultExpiration;
-            var options = BuildOptions(absolute);
-            _cache.Set(key, (object)value, options);
-            _keys[key] = 0;
+            SetEntry(key, value, absolute);
         }
 
         /// <inheritdoc />
@@ -76,9 +75,7 @@ namespace mooSQL.data
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
             var seconds = cacheDurationInSeconds > 0 ? cacheDurationInSeconds : 1;
-            var options = BuildOptions(TimeSpan.FromSeconds(seconds));
-            _cache.Set(key, (object)value, options);
-            _keys[key] = 0;
+            SetEntry(key, value, TimeSpan.FromSeconds(seconds));
         }
 
         /// <inheritdoc />
@@ -86,7 +83,7 @@ namespace mooSQL.data
         {
             if (string.IsNullOrEmpty(key))
                 return false;
-            if (_cache.TryGetValue(key, out _))
+            if (_cache.Contains(key))
                 return true;
             _keys.TryRemove(key, out _);
             return false;
@@ -97,24 +94,9 @@ namespace mooSQL.data
         {
             if (string.IsNullOrEmpty(key))
                 return default(V);
-            object boxed;
-            if (_cache.TryGetValue(key, out boxed))
-            {
-                if (boxed is V typed)
-                    return typed;
-                if (boxed != null)
-                {
-                    try
-                    {
-                        return (V)boxed;
-                    }
-                    catch
-                    {
-                        return default(V);
-                    }
-                }
-                return default(V);
-            }
+            var boxed = _cache.Get(key);
+            if (boxed != null)
+                return CastOrDefault<V>(boxed);
             _keys.TryRemove(key, out _);
             return default(V);
         }
@@ -123,14 +105,10 @@ namespace mooSQL.data
         public V GetOrCreate<V>(string key, Func<V> factory)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
-            return _cache.GetOrCreate(key, entry =>
-            {
-                if (DefaultExpiration > TimeSpan.Zero)
-                    entry.AbsoluteExpirationRelativeToNow = DefaultExpiration;
-                entry.RegisterPostEvictionCallback(OnEvicted);
-                _keys[key] = 0;
-                return factory != null ? factory() : default(V);
-            });
+            TimeSpan? absolute = null;
+            if (DefaultExpiration > TimeSpan.Zero)
+                absolute = DefaultExpiration;
+            return GetOrCreateCore(key, factory, absolute);
         }
 
         /// <inheritdoc />
@@ -138,13 +116,7 @@ namespace mooSQL.data
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
             var seconds = cacheDurationInSeconds > 0 ? cacheDurationInSeconds : 1;
-            return _cache.GetOrCreate(key, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(seconds);
-                entry.RegisterPostEvictionCallback(OnEvicted);
-                _keys[key] = 0;
-                return factory != null ? factory() : default(V);
-            });
+            return GetOrCreateCore(key, factory, TimeSpan.FromSeconds(seconds));
         }
 
         /// <inheritdoc />
@@ -152,7 +124,7 @@ namespace mooSQL.data
         {
             foreach (var key in _keys.Keys.ToArray())
             {
-                if (!_cache.TryGetValue(key, out _))
+                if (!_cache.Contains(key))
                     _keys.TryRemove(key, out _);
             }
             return _keys.Keys.ToArray();
@@ -173,22 +145,71 @@ namespace mooSQL.data
             if (_ownsCache)
                 _cache.Dispose();
             _keys.Clear();
+            _createLocks.Clear();
         }
 
-        private MemoryCacheEntryOptions BuildOptions(TimeSpan? absolute)
+        private V GetOrCreateCore<V>(string key, Func<V> factory, TimeSpan? absolute)
         {
-            var options = new MemoryCacheEntryOptions();
-            if (absolute.HasValue)
-                options.AbsoluteExpirationRelativeToNow = absolute.Value;
-            options.RegisterPostEvictionCallback(OnEvicted);
-            return options;
+            var existing = _cache.Get(key);
+            if (existing != null)
+                return CastOrDefault<V>(existing);
+
+            var gate = _createLocks.GetOrAdd(key, _ => new object());
+            lock (gate)
+            {
+                existing = _cache.Get(key);
+                if (existing != null)
+                    return CastOrDefault<V>(existing);
+
+                var created = factory != null ? factory() : default(V);
+                SetEntry(key, created, absolute);
+                return created;
+            }
         }
 
-        private void OnEvicted(object key, object value, EvictionReason reason, object state)
+        private void SetEntry(string key, object value, TimeSpan? absolute)
         {
-            var s = key as string;
+            var policy = new CacheItemPolicy
+            {
+                RemovedCallback = OnRemoved
+            };
+            if (absolute.HasValue && absolute.Value > TimeSpan.Zero)
+                policy.AbsoluteExpiration = DateTimeOffset.Now.Add(absolute.Value);
+
+            // System.Runtime.Caching.MemoryCache 不允许存 null
+            _cache.Set(key, value ?? NullSentinel.Instance, policy);
+            _keys[key] = 0;
+        }
+
+        private static V CastOrDefault<V>(object boxed)
+        {
+            if (ReferenceEquals(boxed, NullSentinel.Instance))
+                return default(V);
+            if (boxed is V typed)
+                return typed;
+            try
+            {
+                return (V)boxed;
+            }
+            catch
+            {
+                return default(V);
+            }
+        }
+
+        private void OnRemoved(CacheEntryRemovedArguments args)
+        {
+            var s = args?.CacheItem?.Key;
             if (s != null)
+            {
                 _keys.TryRemove(s, out _);
+                _createLocks.TryRemove(s, out _);
+            }
+        }
+
+        private sealed class NullSentinel
+        {
+            public static readonly NullSentinel Instance = new NullSentinel();
         }
     }
 }
