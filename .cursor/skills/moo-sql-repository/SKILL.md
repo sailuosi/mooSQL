@@ -69,7 +69,32 @@ repo.SaveRange(users);
 repo.DeleteByIds(ids);
 ```
 
+## SooRichRepo<T>（富仓储，独立类型）
+
+**位置**: `pure/src/adoext/richRepo/SooRichRepo.cs`  
+**入口**: `db.useRichRepo<T>()`
+
+**不继承** `SooRepository`；内部组合薄仓转发 CRUD（`repo.Thin`）。厚能力只挂本类：
+
+| 能力 | API |
+|------|-----|
+| 脏更新 | `autoTrackOnQuery` / `Track` / `Update` / `UpdateDirty` / `UpdateAllColumns` |
+| 实体字典缓存 | `AllCache` / `QueryFromCache` / `ClearCache`（写后自动清） |
+| Schema | `EnsureSchema` / `PreviewSchema` / `SyncCaptions` |
+| Upsert | `InsertOrUpdate(entity, UpsertOptions)` |
+
+```csharp
+var repo = db.useRichRepo<User>().autoTrackOnQuery();
+var user = repo.GetById(1);
+user.Email = "n@x.com";
+repo.Update(user);              // 仅脏列
+repo.Thin.Update(user);         // 需要时显式走薄仓全列
+```
+
+薄仓 `useRepo` 行为不变，无 Tracking / EntityCache / Schema / Upsert API。
+
 ## SooUnitOfWork
+
 
 **位置**: `pure/src/adoext/repository/SooUnitOfWork.cs`
 

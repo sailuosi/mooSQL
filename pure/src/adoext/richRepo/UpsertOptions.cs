@@ -16,7 +16,10 @@ namespace mooSQL.data.richRepo
         /// <summary>存在则跳过更新（仅插入）。</summary>
         public bool IfExistsSkipUpdate { get; set; }
 
-        /// <summary>批量切片大小；0 表示不分片（整批循环）。</summary>
+        /// <summary>
+        /// 批量时逐条 InsertOrUpdate 的切片大小（非多行 SQL）。
+        /// 默认 500；≤0 表示整批仍逐条、不再二次切片。
+        /// </summary>
         public int BatchSize { get; set; } = 500;
 
         /// <summary>调试：最后生成相关说明或 SQL。</summary>

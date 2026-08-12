@@ -13,6 +13,12 @@ namespace mooSQL.data.richRepo.schema
         /// <summary>全局默认：生产可设为 false。</summary>
         public static bool DefaultAllowSchemaSync { get; set; } = true;
 
+        /// <summary>
+        /// 客户端级 DROP 闸（由 <see cref="MooClient.configureSchema"/> 写入）。
+        /// 与 <see cref="SchemaEnsureOptions.AllowDropColumn"/> 双闸同时为 true 才允许 DROP。
+        /// </summary>
+        public static bool DefaultAllowDropColumn { get; set; } = false;
+
         /// <summary>Ensure 指定实体类型。</summary>
         public static SchemaEnsureResult Ensure<T>(DBInstance db, SchemaEnsureOptions opt = null)
             => Ensure(db, typeof(T), opt);
@@ -43,20 +49,31 @@ namespace mooSQL.data.richRepo.schema
                 if (opt.Mode == SyncMode.CreateIfMissing)
                     return EnsureCreateIfMissing(db, typeArr, opt);
 
-                var dml = new DMLOption
-                {
-                    IsDropColumn = opt.Mode == SyncMode.AddAndDropExtraColumns && opt.AllowDropColumn
-                };
+                var wantDrop = opt.Mode == SyncMode.AddAndDropExtraColumns;
+                var allowDrop = wantDrop && opt.AllowDropColumn && DefaultAllowDropColumn;
+                string warn = null;
+                if (wantDrop && !allowDrop)
+                    warn = "AddAndDropExtraColumns 未同时满足 Options.AllowDropColumn 与 DefaultAllowDropColumn，已降级为只增不删";
+
+                var dml = new DMLOption { IsDropColumn = allowDrop };
                 var ddl = db.useDDL();
+                string okMsg;
+                if (allowDrop)
+                    okMsg = SyncMode.AddAndDropExtraColumns.ToString();
+                else if (wantDrop)
+                    okMsg = SyncMode.AddMissingColumns + "; " + warn;
+                else
+                    okMsg = opt.Mode.ToString();
+
                 if (opt.PreviewOnly)
                 {
                     var scripts = ddl.toInitTableList(dml, typeArr)?.ToList() ?? new List<string>();
                     opt.ScriptsOut.AddRange(scripts);
-                    return SchemaEnsureResult.Ok("preview", scripts);
+                    return SchemaEnsureResult.Ok(okMsg, scripts);
                 }
 
                 ddl.doInitTable(dml, typeArr);
-                return SchemaEnsureResult.Ok(opt.Mode.ToString());
+                return SchemaEnsureResult.Ok(okMsg);
             }
             catch (Exception ex)
             {

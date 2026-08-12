@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using mooSQL.data;
 
 namespace mooSQL.data.richRepo
 {
@@ -14,6 +11,9 @@ namespace mooSQL.data.richRepo
     {
         static readonly ConcurrentDictionary<string, CacheEntry> Global =
             new ConcurrentDictionary<string, CacheEntry>(StringComparer.Ordinal);
+
+        static readonly ConcurrentDictionary<string, object> WarmLocks =
+            new ConcurrentDictionary<string, object>(StringComparer.Ordinal);
 
         readonly string _key;
         readonly int _ttlSeconds;
@@ -29,9 +29,16 @@ namespace mooSQL.data.richRepo
             if (Global.TryGetValue(_key, out var entry) && !entry.IsExpired(_ttlSeconds))
                 return entry.Map;
 
-            var map = warm() ?? new Dictionary<string, T>(StringComparer.Ordinal);
-            Global[_key] = new CacheEntry { Map = map, CreatedUtc = DateTime.UtcNow };
-            return map;
+            var gate = WarmLocks.GetOrAdd(_key, _ => new object());
+            lock (gate)
+            {
+                if (Global.TryGetValue(_key, out entry) && !entry.IsExpired(_ttlSeconds))
+                    return entry.Map;
+
+                var map = warm() ?? new Dictionary<string, T>(StringComparer.Ordinal);
+                Global[_key] = new CacheEntry { Map = map, CreatedUtc = DateTime.UtcNow };
+                return map;
+            }
         }
 
         public void Clear()

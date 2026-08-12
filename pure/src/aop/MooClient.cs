@@ -605,17 +605,20 @@ namespace mooSQL.data
         #endregion
 
         /// <summary>
-        /// 配置 Schema 同步默认闸（写入 <see cref="SchemaEnsure.DefaultAllowSchemaSync"/>）。
+        /// 配置 Schema 同步默认闸（写入 <see cref="SchemaEnsure.DefaultAllowSchemaSync"/> /
+        /// <see cref="SchemaEnsure.DefaultAllowDropColumn"/>）。
+        /// DROP 仍须调用方 Options.AllowDropColumn=true（双闸）。
         /// </summary>
         public MooClient configureSchema(Action<SchemaClientOptions> configure)
         {
             var opt = new SchemaClientOptions
             {
                 AllowSchemaSync = SchemaEnsure.DefaultAllowSchemaSync,
-                AllowDropColumn = false
+                AllowDropColumn = SchemaEnsure.DefaultAllowDropColumn
             };
             configure?.Invoke(opt);
             SchemaEnsure.DefaultAllowSchemaSync = opt.AllowSchemaSync;
+            SchemaEnsure.DefaultAllowDropColumn = opt.AllowDropColumn;
             return this;
         }
 

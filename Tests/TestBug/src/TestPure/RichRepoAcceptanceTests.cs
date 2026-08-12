@@ -93,6 +93,9 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Tracking_ThinRepo_HasNoTrackApi_AndFullUpdate()
         {
+            typeof(SooRichRepo<SQLiteTestUser>).IsSubclassOf(typeof(SooRepository<SQLiteTestUser>))
+                .Should().BeFalse("富仓储应独立组合，不继承薄仓");
+
             var thin = _fx.Db.useRepo<SQLiteTestUser>();
             thin.GetType().GetMethod("Track", new[] { typeof(SQLiteTestUser) }).Should().BeNull();
             thin.GetType().GetMethod("UpdateDirty").Should().BeNull();
@@ -167,15 +170,93 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Schema_DropWithoutAllowDropColumn_DoesNotForceDrop()
         {
-            var opt = new SchemaEnsureOptions
+            var prevDrop = SchemaEnsure.DefaultAllowDropColumn;
+            try
             {
-                Mode = SyncMode.AddAndDropExtraColumns,
-                AllowDropColumn = false,
-                PreviewOnly = true
-            };
-            var r = SchemaEnsure.Ensure<SQLiteTestUser>(_fx.Db, opt);
-            r.Success.Should().BeTrue();
-            // IsDropColumn 应为 false → 脚本不应强调 DROP COLUMN（方言差异大，仅校验成功）
+                SchemaEnsure.DefaultAllowDropColumn = false;
+                var opt = new SchemaEnsureOptions
+                {
+                    Mode = SyncMode.AddAndDropExtraColumns,
+                    AllowDropColumn = true, // Options 开了，但 Default 仍关 → 双闸失败
+                    PreviewOnly = true
+                };
+                var r = SchemaEnsure.Ensure<SQLiteTestUser>(_fx.Db, opt);
+                r.Success.Should().BeTrue();
+                r.Message.Should().Contain("降级");
+                r.Message.Should().Contain("DefaultAllowDropColumn");
+            }
+            finally
+            {
+                SchemaEnsure.DefaultAllowDropColumn = prevDrop;
+            }
+        }
+
+        [Fact]
+        public void EntityCache_ClearOnDelete()
+        {
+            var repo = _fx.Db.useRichRepo<SQLiteTestProduct>();
+            var id = 9201;
+            _fx.Db.useSQL().setTable(SQLiteTestFixture.ProductTable).where("id", id).doDelete();
+            repo.Insert(new SQLiteTestProduct
+            {
+                Id = id,
+                Name = "DelCache",
+                Category = "T",
+                Price = 1m,
+                Stock = 1
+            });
+
+            repo.QueryItemFromCache(id).Should().NotBeNull();
+            repo.DeleteById(id).Should().BeTrue();
+            // 删除后缓存已清；再取应 Warm 且无此行
+            repo.QueryItemFromCache(id).Should().BeNull();
+        }
+
+        [Fact]
+        public void AutoTrack_GetFirst_TracksEntity()
+        {
+            var repo = _fx.Db.useRichRepo<SQLiteTestUser>().autoTrackOnQuery();
+            var user = repo.GetFirst(x => x.Id == 1);
+            user.Should().NotBeNull();
+            EntityTracking.HasSnapshot(user!).Should().BeTrue();
+            user.Email = "first@test.com";
+            string sql = null;
+            repo.print(s => sql = s);
+            repo.Update(user).Should().BeTrue();
+            var setPart = ExtractSetClause(sql!.ToLowerInvariant());
+            setPart.Should().Contain("email");
+            setPart.Should().NotContain("name");
+        }
+
+        [Fact]
+        public void ConfigureSchema_PersistsAllowDropColumn()
+        {
+            var prevSync = SchemaEnsure.DefaultAllowSchemaSync;
+            var prevDrop = SchemaEnsure.DefaultAllowDropColumn;
+            try
+            {
+                _fx.Db.client.configureSchema(c =>
+                {
+                    c.AllowSchemaSync = true;
+                    c.AllowDropColumn = true;
+                });
+                SchemaEnsure.DefaultAllowDropColumn.Should().BeTrue();
+
+                var opt = new SchemaEnsureOptions
+                {
+                    Mode = SyncMode.AddAndDropExtraColumns,
+                    AllowDropColumn = true,
+                    PreviewOnly = true
+                };
+                var r = SchemaEnsure.Ensure<SQLiteTestUser>(_fx.Db, opt);
+                r.Success.Should().BeTrue();
+                r.Message.Should().Be(SyncMode.AddAndDropExtraColumns.ToString());
+            }
+            finally
+            {
+                SchemaEnsure.DefaultAllowSchemaSync = prevSync;
+                SchemaEnsure.DefaultAllowDropColumn = prevDrop;
+            }
         }
 
         [Fact]
