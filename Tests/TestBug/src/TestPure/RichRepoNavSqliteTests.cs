@@ -181,6 +181,43 @@ namespace mooSQL.Pure.Tests
             repo.QueryItemFromCache(1)!.Orders.Should().HaveCount(2);
         }
 
+        [Fact]
+        public void Include_MaxParentCount_Throws()
+        {
+            var repo = _fx.Db.useRichRepo<SQLiteTestUser>();
+            var users = repo.GetList(x => x.Id == 1 || x.Id == 2);
+            users.Count.Should().BeGreaterThan(1);
+
+            var act = () => repo.Include(users, x => x.Orders!, null, new NavIncludeOptions { MaxParentCount = 1 });
+            act.Should().Throw<InvalidOperationException>().WithMessage("*MaxParentCount*");
+        }
+
+        [Fact]
+        public void Include_CrossShard_BlockedByDefault()
+        {
+            var client = _fx.Db.client;
+            var en = client.EntityCash.getEntityInfo(typeof(SQLiteTestOrder));
+            var prev = en.Shard;
+            try
+            {
+                // 临时标记子实体为分片活跃
+                en.Shard = new EntityShardConfig { Mode = TableShardMode.Month };
+                en.Shard.IsActive.Should().BeTrue();
+
+                var repo = _fx.Db.useRichRepo<SQLiteTestUser>();
+                var users = repo.GetList(x => x.Id == 1);
+                var act = () => repo.Include(users, x => x.Orders!);
+                act.Should().Throw<InvalidOperationException>().WithMessage("*分片*");
+
+                // 显式允许则可继续（可能因无物理分表策略而查默认表）
+                repo.Include(users, x => x.Orders!, null, new NavIncludeOptions { AllowCrossShard = true });
+            }
+            finally
+            {
+                en.Shard = prev;
+            }
+        }
+
         static string ExtractSetClause(string sqlLower)
         {
             var setIdx = sqlLower.IndexOf(" set ", StringComparison.Ordinal);

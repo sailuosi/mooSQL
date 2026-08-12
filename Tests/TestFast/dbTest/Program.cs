@@ -79,7 +79,24 @@ public class Program
             var method = a.testQueryMethodCondition();
             a.testQueryLoop();
             a.testQueryJoin();
-            Console.WriteLine($"[ok] {name} conditionLen={cond?.Length ?? 0} methodLen={method?.Length ?? 0} join=ok");
+            a.testInclude();
+            Console.WriteLine($"[ok] {name} conditionLen={cond?.Length ?? 0} methodLen={method?.Length ?? 0} join=ok include=ok");
+        }
+
+        // RichRepo 冒烟：薄/厚边界 + 字典缓存写后失效
+        {
+            var repo = MooSqlDb.Db.useRichRepo<TestEntity>();
+            var one = repo.GetList(1);
+            if (one != null && one.Count > 0)
+            {
+                var _ = repo.QueryFromCache(x => x.Id == one[0].Id);
+                one[0].F_String = "rich-smoke";
+                repo.UpdateAllColumns(one[0]);
+                var again = repo.QueryItemFromCache(one[0].Id);
+                if (again == null || again.F_String != "rich-smoke")
+                    throw new Exception("RichRepo EntityCache smoke failed after UpdateAllColumns");
+            }
+            Console.WriteLine("[ok] RichRepo smoke");
         }
 
         // 确认 Join SQL 非空跑（Queryable 当前为 CROSS APPLY 形态）

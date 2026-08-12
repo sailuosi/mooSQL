@@ -16,7 +16,19 @@ namespace mooSQL.data
             where T : class, new()
             where Child : class, new()
         {
-            return Context.Builder.includeNav(list, nav, childFilter);
+            return include(list, nav, childFilter, null);
+        }
+
+        /// <summary>Include，并可指定 <see cref="NavIncludeOptions"/>。</summary>
+        public NavQueryGuide<T, Child> include<T, Child>(
+            IEnumerable<T> list,
+            Expression<Func<T, ICollection<Child>>> nav,
+            Action<SQLBuilder> childFilter,
+            NavIncludeOptions options)
+            where T : class, new()
+            where Child : class, new()
+        {
+            return Context.Builder.includeNav(list, nav, childFilter, options);
         }
     }
 }

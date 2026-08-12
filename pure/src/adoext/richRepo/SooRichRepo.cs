@@ -894,7 +894,18 @@ namespace mooSQL.data.richRepo
             Action<SQLBuilder> childFilter = null)
             where Child : class, new()
         {
-            return getKit().includeNav(list, nav, childFilter);
+            return Include(list, nav, childFilter, null);
+        }
+
+        /// <summary>Include，并可指定限流/跨片选项。</summary>
+        public NavQueryGuide<T, Child> Include<Child>(
+            IEnumerable<T> list,
+            Expression<Func<T, ICollection<Child>>> nav,
+            Action<SQLBuilder> childFilter,
+            NavIncludeOptions options)
+            where Child : class, new()
+        {
+            return getKit().includeNav(list, nav, childFilter, options);
         }
 
         /// <summary>指定物理表名（转发薄仓）。</summary>

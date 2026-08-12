@@ -83,11 +83,69 @@ namespace mooSQL.Pure.Tests
             var repo = _fx.Db.useRichRepo<SQLiteTestUser>().print(s => sql = s);
             var user = repo.GetById(1);
             user.Should().NotBeNull();
-            user!.Cumulate(x => x.Age, 1);
+            var before = user!.Age ?? 0;
+            user.Cumulate(x => x.Age, 1);
             repo.UpdateDirty(user).Should().BeTrue();
 
             sql.Should().NotBeNullOrEmpty();
-            sql!.ToLowerInvariant().Should().MatchRegex(@"age\s*=\s*age\s*\+");
+            var lower = sql!.ToLowerInvariant();
+            lower.Should().MatchRegex(@"age\s*=\s*age\s*\+");
+            // print 可能展开参数为字面量；执行后 Age 应 +1
+            repo.GetById(1)!.Age.Should().Be(before + 1);
+        }
+
+        [Fact]
+        public void Tracking_MarkDirty_AndExcludeMembers()
+        {
+            string sql = null;
+            var opt = new TrackingOptions();
+            opt.ExcludeMembers.Add(nameof(SQLiteTestUser.Age));
+            var repo = _fx.Db.useRichRepo<SQLiteTestUser>()
+                .useTracking(opt)
+                .print(s => sql = s);
+
+            var user = repo.GetById(1);
+            user.Should().NotBeNull();
+            EntityTracking.Begin(user!, repo.En, opt);
+            user!.MarkDirty(x => x.Email, "mark@test.com");
+            user.Age = 99; // 已 Exclude，不应进 SET
+
+            repo.UpdateDirty(user).Should().BeTrue();
+            var setPart = ExtractSetClause(sql!.ToLowerInvariant());
+            setPart.Should().Contain("email");
+            setPart.Should().NotContain("age");
+        }
+
+        [Fact]
+        public void Tracking_Untracked_NoOp_WhenDisabled()
+        {
+            var repo = _fx.Db.useRichRepo<SQLiteTestUser>()
+                .useTracking(new TrackingOptions { UntrackedUpdateAllColumns = false });
+            var user = new SQLiteTestUser
+            {
+                Id = 1,
+                Name = "X",
+                Email = "noop@test.com",
+                Age = 1,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+            // 未 Begin 追踪 → NoOp
+            repo.Update(user).Should().BeFalse();
+            repo.GetById(1)!.Email.Should().NotBe("noop@test.com");
+        }
+
+        [Fact]
+        public void Schema_CreateIfMissing_SkipsExistingTable()
+        {
+            var r = SchemaEnsure.Ensure<SQLiteTestUser>(_fx.Db, new SchemaEnsureOptions
+            {
+                Mode = SyncMode.CreateIfMissing,
+                PreviewOnly = true
+            });
+            r.Success.Should().BeTrue();
+            // 表已存在 → 无 CREATE 脚本
+            (r.Scripts == null || r.Scripts.Count == 0).Should().BeTrue();
         }
 
         [Fact]

@@ -247,8 +247,8 @@ nav.commit();
 1. **主表主键**：`includeNav` 在未指定 `BossKey` 时要求主表有且仅有一个主键。
 2. **集合非空**：回填前确保 `Posts` 等集合已 `new`，否则 `Add` 会空引用。
 3. **过滤条件**：`childFilter` 作用在子查询的 `SQLBuilder` 上，可写 `where` / `orderby` 等，勿改乱主上下文。
-4. **分片**：跨分片导航未内建；分片场景请自行限定表或禁用跨片加载。
-5. **深度**：加载/保存层数由链式调用控制；注意 N 次往返与数据量。
+4. **分片**：默认 **禁止** 主/子任一方启用分片时的 Include（`NavIncludeOptions.AllowCrossShard=false`）。确需时显式打开并自行限定物理表。
+5. **深度 / 条数**：`NavIncludeOptions` 默认 `MaxDepth=5`、`MaxParentCount=2000`、`MaxChildRows=50000`；超出抛 `InvalidOperationException`。
 6. **命名**：`includeHis` 是早期/手动键入口（「原始加载」），与按元数据的 `includeNav` 相对。
 
 ---

@@ -1306,23 +1306,49 @@ namespace mooSQL.data
         /// <exception cref="Exception"></exception>
         public static NavQueryGuide<T, Child> includeHis<T, Child, K>(this SQLBuilder kit, IEnumerable<T> list, Func<T, ICollection<Child>> childSelector, Func<T, K> findListPKValue, Func<Child, K> childFKSelector, string childFKName, Action<SQLBuilder> childFilter)
         {
-            var gide = new NavQueryGuide<T, Child>(kit, list);
+            return includeHis(kit, list, childSelector, findListPKValue, childFKSelector, childFKName, childFilter, null);
+        }
+
+        /// <summary>核心加载子表集合（可传 <see cref="NavIncludeOptions"/>）。</summary>
+        public static NavQueryGuide<T, Child> includeHis<T, Child, K>(
+            this SQLBuilder kit,
+            IEnumerable<T> list,
+            Func<T, ICollection<Child>> childSelector,
+            Func<T, K> findListPKValue,
+            Func<Child, K> childFKSelector,
+            string childFKName,
+            Action<SQLBuilder> childFilter,
+            NavIncludeOptions options)
+        {
+            var gide = new NavQueryGuide<T, Child>(kit, list)
+            {
+                Options = options,
+                Depth = 1
+            };
             return gide.include<K>(childSelector, findListPKValue, childFKSelector, childFKName, childFilter);
         }
+
         /// <summary>
         /// 按导航特性进行加载子集合
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="Child"></typeparam>
-        /// <param name="builder"></param>
-        /// <param name="list"></param>
-        /// <param name="childSelector"></param>
-        /// <param name="childFilter"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
         public static NavQueryGuide<T, Child> includeNav<T, Child>(this SQLBuilder builder, IEnumerable<T> list, Expression<Func<T, ICollection<Child>>> childSelector, Action<SQLBuilder> childFilter = null)
         {
-            var gide = new NavQueryGuide<T, Child>(builder, list);
+            return includeNav(builder, list, childSelector, childFilter, null);
+        }
+
+        /// <summary>按导航特性加载子集合（可传限流选项）。</summary>
+        public static NavQueryGuide<T, Child> includeNav<T, Child>(
+            this SQLBuilder builder,
+            IEnumerable<T> list,
+            Expression<Func<T, ICollection<Child>>> childSelector,
+            Action<SQLBuilder> childFilter,
+            NavIncludeOptions options)
+        {
+            var gide = new NavQueryGuide<T, Child>(builder, list)
+            {
+                Options = options,
+                Depth = 1
+            };
             return gide.includeNav(childSelector, childFilter);
         }
         /// <summary>

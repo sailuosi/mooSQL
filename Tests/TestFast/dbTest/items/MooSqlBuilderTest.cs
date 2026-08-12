@@ -71,6 +71,28 @@ namespace dbTest.items
         }
 
         /// <summary>
+        /// Include 冒烟：Blog→Posts（includeHis 二次 IN）。依赖 CrlTest.InitData 建表灌数。
+        /// </summary>
+        public override void testInclude()
+        {
+            var kit = MooSqlDb.Db.useSQL();
+            var blogs = kit.setTable("Blog").top(listTake).query<Blog>().ToList();
+            if (blogs == null || blogs.Count == 0)
+                return;
+            foreach (var b in blogs)
+                b.Posts = b.Posts ?? new System.Collections.Generic.List<Post>();
+
+            kit.clear();
+            kit.includeHis(
+                blogs,
+                b => b.Posts,
+                b => b.Id,
+                (Post p) => p.BlogId,
+                "BlogId",
+                null);
+        }
+
+        /// <summary>
         /// 对齐 Chloe：Take(100) 投影 → InnerJoin Item → 再投影 → InnerJoin Entity → 取 SQL。
         /// </summary>
         public override void testQueryJoin()
