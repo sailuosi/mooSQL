@@ -66,3 +66,20 @@
 2. **方言产物**（如 `rowNumber`、MSSQL CTE 分页形态）→ `DBTest.useMSSQLDB().useSQL()`。  
 3. **需要执行** → `useRunDB()` / `CreateSQLBuilderWithTestUserSchema()`；业务表 → `IsBusinessRunAvailable()`。  
 4. 参数序踩坑：`setPage(pageSize, pageNum)`，勿颠倒。
+
+## examWork.cs 专项
+
+源文件：`api8/pxxt/PXXT_Core/src/Service/exam/examWork.cs`（仅本文件，不含 partial）。  
+用例类：[`ExamWorkCsUsageTests`](ExamWorkCsUsageTests.cs)
+
+| 源方法 / 片段 | mooSQL 用法 | 测试方法 |
+|---------------|-------------|----------|
+| `ExamSQLBuilderExtensions.set` | `set(SYS_*)` 审计列 | `Set_Loginer_*` |
+| `createAnswerTable` | 原生 `SELECT * INTO` + `create index` | `CreateAnswerTable_*` |
+| `checkQuestQt` | `select *` + `whereGuid` + `query` | `CheckQuestQt_SelectStar_WhereGuid_SqlShape` |
+| `addExamlogBacked` | `setTable` + `set(loginer)` + `doInsert` | `AddExamlogBacked_SetTable_DoInsert_SqlShape` |
+| `getExamGroupId` | `queryScalar` 单列 | `GetExamGroupId_SelectWhere_QueryScalar_SqlShape` |
+| `getAnswerGroupId` | `where(col,"=",子查询)` + `whereGuid` | `GetAnswerGroupId_WhereEqualsSubquery_SqlShape` |
+| `getExamGroupIdByStu` | `whereGuid` + 回表子查询 | `GetExamGroupIdByStu_WhereGuid_ThenSubquery_SqlShape` |
+| `loadNormPaper` | 多 `select` 别名 + `[db].dbo.tb` | `LoadNormPaper_*` |
+| `loadMoniPaper` | 同上 + `whereIn` + `with(nolock)` | `LoadMoniPaper_*` |
