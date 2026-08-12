@@ -1,7 +1,6 @@
 using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
-using System;
 using System.Linq;
 using TestMooSQL.src;
 using Xunit;
@@ -10,109 +9,115 @@ namespace mooSQL.Pure.Tests.Api8Usage
 {
     /// <summary>
     /// 对标 api8 真实调用链的用法模式测试（见 src/Api8Usage/api8-mooSQL用法模式.md）。
-    /// 默认用槽位 0 / SQLite 验 SQL 形态；方言特有链用 useMSSQLDB；执行走共享库 schema。
+    /// SQL 形态用例断言完整产物一致；执行/流程用例保留行为断言。
     /// </summary>
     public class Api8UsagePatternTests
     {
         static SQLBuilder Kit() => DBTest.useSQL(0);
         static SQLBuilder MssqlKit() => DBTest.useMSSQLDB().useSQL();
 
+        /// <summary>
+        /// 完整 SQL 产出：EnsureLiveParasResolved + 参数名长度降序展开
+        /// （避免 toRawSQL 对 s1/s10 前缀误替换）。
+        /// </summary>
+        static string ExactSql(SQLCmd cmd)
+        {
+            cmd.EnsureLiveParasResolved();
+            var sql = cmd.sql ?? "";
+            if (cmd.para?.value == null || cmd.para.value.Count == 0)
+                return sql;
+
+            foreach (var item in cmd.para.value.OrderByDescending(kv => (kv.Value?.holder ?? kv.Key).Length))
+            {
+                var holder = item.Value?.holder;
+                var lit = "'" + item.Value?.val + "'";
+                if (!string.IsNullOrEmpty(holder) && sql.Contains(holder))
+                    sql = sql.Replace(holder, lit);
+                else
+                    sql = sql.Replace("@" + item.Key, lit);
+            }
+            return sql;
+        }
+
+        static void AssertExactSql(SQLCmd cmd, string expected) =>
+            ExactSql(cmd).Should().Be(expected);
+
         #region P0 SQLBuilder
 
         /// <summary>对标 ClassConinueEditSql.Exam.QueryPaperStudentGroupCount</summary>
         [Fact]
-        public void Select_WhereIn_GroupBy_SqlShape()
+        public void Select_WhereIn_GroupBy_ExactSql()
         {
-            var sql = Kit().clear()
-                .select("p.PX_ExamInfo_FK, count(*) as cnt")
-                .from("PX_PaperStudent as p")
-                .whereIn("p.PX_ExamInfo_FK", "a", "b", "c")
-                .groupBy("p.PX_ExamInfo_FK")
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().Contain("PX_PaperStudent");
-            sql.Should().Contain("PX_ExamInfo_FK");
-            sql.Should().ContainEquivalentOf("count(*)");
-            sql.Should().ContainEquivalentOf("group by");
-            // whereIn 在 toRawSQL 中折叠为列表占位符
-            sql.Should().Contain("moo.lp");
+            AssertExactSql(
+                Kit().clear()
+                    .select("p.PX_ExamInfo_FK, count(*) as cnt")
+                    .from("PX_PaperStudent as p")
+                    .whereIn("p.PX_ExamInfo_FK", "a", "b", "c")
+                    .groupBy("p.PX_ExamInfo_FK")
+                    .toSelect(),
+                "SELECT p.PX_ExamInfo_FK, count(*) as cnt FROM PX_PaperStudent as p WHERE p.PX_ExamInfo_FK IN ('a','b','c') GROUP BY p.PX_ExamInfo_FK ");
         }
 
         /// <summary>对标 BPO_ClassConinueController 软删 doUpdate</summary>
         [Fact]
-        public void DoUpdate_SoftDelete_WhereIn_SqlShape()
+        public void DoUpdate_SoftDelete_WhereIn_ExactSql()
         {
-            var sql = Kit().clear()
-                .setTable("PX_Class")
-                .set("SYS_Deleted", 1)
-                .set("SYS_LAST_UPD", "now()", false)
-                .whereIn("PX_Class_FK", "oid1", "oid2")
-                .whereIsOrNull("SYS_Deleted", 0)
-                .toUpdate()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("update");
-            sql.Should().Contain("SYS_Deleted");
-            sql.Should().Contain("moo.lp");
-            sql.Should().MatchRegex(@"(?i)(is\s+null|or)");
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("PX_Class")
+                    .set("SYS_Deleted", 1)
+                    .set("SYS_LAST_UPD", "now()", false)
+                    .whereIn("PX_Class_FK", "oid1", "oid2")
+                    .whereIsOrNull("SYS_Deleted", 0)
+                    .toUpdate(),
+                "UPDATE PX_Class  SET SYS_Deleted='1' ,SYS_LAST_UPD=now()  WHERE  ( PX_Class_FK IN ('oid1','oid2') AND  ( SYS_Deleted = '0' OR SYS_Deleted IS NULL )  ) ");
         }
 
         /// <summary>对标 ClassConinueEditSql.Exam doDelete + whereIn</summary>
         [Fact]
-        public void DoDelete_WhereIn_SqlShape()
+        public void DoDelete_WhereIn_ExactSql()
         {
-            var sql = Kit().clear()
-                .setTable("PX_ExamMan")
-                .whereIn("PX_CONTACT_FK", "c1", "c2")
-                .toDelete()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("delete");
-            sql.Should().Contain("PX_ExamMan");
-            sql.Should().Contain("moo.lp");
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("PX_ExamMan")
+                    .whereIn("PX_CONTACT_FK", "c1", "c2")
+                    .toDelete(),
+                "DELETE FROM PX_ExamMan WHERE PX_CONTACT_FK IN ('c1','c2')");
         }
 
         /// <summary>对标 BC_PX_TeaDockService：setPage(pageSize, pageNum)</summary>
         [Fact]
-        public void SetPage_ArgOrder_IsSizeThenNum()
+        public void SetPage_ArgOrder_IsSizeThenNum_ExactSql()
         {
-            var sql = Kit().clear()
-                .select("mtb.TD_Name")
-                .from("PX_TeaDock mtb")
-                .orderBy("mtb.TD_Name ASC")
-                .setPage(20, 3)
-                .toSelect()
-                .toRawSQL();
-
-            // SQLite：LIMIT size OFFSET (num-1)*size → LIMIT 20 OFFSET 40
-            sql.Should().Contain("LIMIT");
-            sql.Should().Contain("20");
-            sql.Should().Contain("40");
+            AssertExactSql(
+                Kit().clear()
+                    .select("mtb.TD_Name")
+                    .from("PX_TeaDock mtb")
+                    .orderBy("mtb.TD_Name ASC")
+                    .setPage(20, 3)
+                    .toSelect(),
+                "SELECT mtb.TD_Name FROM PX_TeaDock mtb ORDER BY mtb.TD_Name ASC LIMIT 20 OFFSET 40 ");
         }
 
         /// <summary>对标 QueryPaperStudentExaminees：top + whereIsOrNull</summary>
         [Fact]
-        public void Top_WhereIsOrNull_OrderBy_SqlShape()
+        public void Top_WhereIsOrNull_OrderBy_ExactSql()
         {
-            var sql = Kit().clear()
-                .top(5000)
-                .select("p.PX_PaperStudentOID,p.PS_Name")
-                .from("PX_PaperStudent as p")
-                .where("p.PX_ExamInfo_FK", "exam-oid")
-                .whereIsOrNull("p.PS_SrcType", "0")
-                .orderBy("p.PS_Name")
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().Contain("PX_PaperStudent");
-            sql.Should().Contain("PS_SrcType");
-            sql.Should().ContainEquivalentOf("order by");
+            AssertExactSql(
+                Kit().clear()
+                    .top(5000)
+                    .select("p.PX_PaperStudentOID,p.PS_Name")
+                    .from("PX_PaperStudent as p")
+                    .where("p.PX_ExamInfo_FK", "exam-oid")
+                    .whereIsOrNull("p.PS_SrcType", "0")
+                    .orderBy("p.PS_Name")
+                    .toSelect(),
+                "SELECT p.PX_PaperStudentOID,p.PS_Name FROM PX_PaperStudent as p WHERE  ( p.PX_ExamInfo_FK = 'exam-oid' AND  ( p.PS_SrcType = '0' OR p.PS_SrcType IS NULL )  )  ORDER BY p.PS_Name LIMIT 5000 OFFSET 0 ");
         }
 
         /// <summary>对标 examWork.Quest：toSelect 结果落库/嵌入</summary>
         [Fact]
-        public void ToSelect_ToRawSql_Embeddable()
+        public void ToSelect_ToRawSql_Embeddable_ExactSql()
         {
             var sub = Kit().clear()
                 .select("id")
@@ -120,33 +125,28 @@ namespace mooSQL.Pure.Tests.Api8Usage
                 .where("QS_Type", 1)
                 .toSelect();
 
-            var raw = sub.toRawSQL();
-            raw.Should().NotBeNullOrWhiteSpace();
-            raw.Should().Contain("PX_QuestStoreDe");
+            var subSql = ExactSql(sub);
+            subSql.Should().Be("SELECT id FROM PX_QuestStoreDe WHERE QS_Type = '1' ");
 
-            var outer = Kit().clear()
-                .select("a.*")
-                .from("t a")
-                .where($"a.id in ({raw})")
-                .toSelect()
-                .toRawSQL();
-
-            outer.Should().Contain("in (");
-            outer.Should().Contain("PX_QuestStoreDe");
+            AssertExactSql(
+                Kit().clear()
+                    .select("a.*")
+                    .from("t a")
+                    .where($"a.id in ({subSql})")
+                    .toSelect(),
+                "SELECT a.* FROM t a WHERE a.id in (SELECT id FROM PX_QuestStoreDe WHERE QS_Type = '1' ) ");
         }
 
         /// <summary>对标 BPO_ClassConinueController.exist</summary>
         [Fact]
-        public void Exist_ToSelectExist_SqlShape()
+        public void Exist_ToSelectExist_ExactSql()
         {
-            var sql = Kit().clear()
-                .from("PX_Class")
-                .where("PX_ClassOID", "old-code")
-                .toSelectExist()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("exists");
-            sql.Should().Contain("PX_Class");
+            AssertExactSql(
+                Kit().clear()
+                    .from("PX_Class")
+                    .where("PX_ClassOID", "old-code")
+                    .toSelectExist(),
+                "SELECT EXISTS(SELECT 1 FROM PX_Class WHERE PX_ClassOID = 'old-code' LIMIT 1)");
         }
 
         #endregion
@@ -155,54 +155,48 @@ namespace mooSQL.Pure.Tests.Api8Usage
 
         /// <summary>对标 BPO_MyExamRecordEditController withSelect + setPage（MSSQL 方言产物）</summary>
         [Fact]
-        public void WithSelect_CteThenSetPage_SqlShape()
+        public void WithSelect_CteThenSetPage_ExactSql()
         {
-            var sql = MssqlKit().clear()
-                .withSelect("grouped", inner => inner
-                    .select("PX_ExamInfoOID, LastSubmitTime")
-                    .from("PX_ExamInfo"))
-                .withSelect("paged", inner => inner
-                    .rowNumber("LastSubmitTime DESC", "rn")
+            AssertExactSql(
+                MssqlKit().clear()
+                    .withSelect("grouped", inner => inner
+                        .select("PX_ExamInfoOID, LastSubmitTime")
+                        .from("PX_ExamInfo"))
+                    .withSelect("paged", inner => inner
+                        .rowNumber("LastSubmitTime DESC", "rn")
+                        .select("*")
+                        .from("grouped"))
                     .select("*")
-                    .from("grouped"))
-                .select("*")
-                .from("paged")
-                .orderBy("rn")
-                .setPage(10, 1)
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("with");
-            sql.Should().Contain("grouped");
-            sql.Should().Contain("paged");
-            sql.Should().MatchRegex(@"(?i)(row_number|rn)");
+                    .from("paged")
+                    .orderBy("rn")
+                    .setPage(10, 1)
+                    .toSelect(),
+                "WITH  grouped AS (SELECT PX_ExamInfoOID, LastSubmitTime FROM PX_ExamInfo ) , paged AS (SELECT *, ROW_NUMBER() OVER (ORDER BY LastSubmitTime DESC) AS rn  FROM grouped )  WITH datares AS ( SELECT TOP 10 *,ROW_NUMBER() OVER (ORDER BY rn) AS rowoonum FROM paged  ) SELECT * FROM datares WHERE rowoonum > 0 ORDER BY rowoonum ASC  ");
         }
 
         /// <summary>对标 examWork.Quest union + top</summary>
         [Fact]
-        public void Union_Top_SqlShape()
+        public void Union_Top_ExactSql()
         {
-            var sql = Kit().clear()
-                .top(5)
-                .select("'1' as srcType, id")
-                .from("PX_QuestStoreDe")
-                .where("QS_Type", 1)
-                .union()
-                .top(5)
-                .select("'2' as srcType, id")
-                .from("PX_QuestStoreDe")
-                .where("QS_Type", 2)
-                .toggleToUnionOutor()
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("union");
-            sql.Should().Contain("PX_QuestStoreDe");
+            AssertExactSql(
+                Kit().clear()
+                    .top(5)
+                    .select("'1' as srcType, id")
+                    .from("PX_QuestStoreDe")
+                    .where("QS_Type", 1)
+                    .union()
+                    .top(5)
+                    .select("'2' as srcType, id")
+                    .from("PX_QuestStoreDe")
+                    .where("QS_Type", 2)
+                    .toggleToUnionOutor()
+                    .toSelect(),
+                "SELECT * FROM (  SELECT '1' as srcType, id FROM PX_QuestStoreDe WHERE QS_Type = '1' LIMIT 5 OFFSET 0   UNION  SELECT '2' as srcType, id FROM PX_QuestStoreDe WHERE QS_Type = '2'   ) as tmpunioned LIMIT 5 OFFSET 0 ");
         }
 
         /// <summary>对标 SysFileService：SQLClip whereLike + setPage</summary>
         [Fact]
-        public void SQLClip_WhereLike_SetPage_SqlShape()
+        public void SQLClip_WhereLike_SetPage_ExactSql()
         {
             var clip = DBTest.useSQLiteDB().useClip();
             clip.from<TestUser>(out var f)
@@ -210,11 +204,10 @@ namespace mooSQL.Pure.Tests.Api8Usage
                 .orderByDesc(() => f.Id)
                 .select(f)
                 .setPage(20, 1);
-            var sql = clip.toSelect().toRawSQL();
 
-            sql.Should().Contain("test_users");
-            sql.Should().MatchRegex(@"(?i)like");
-            sql.Should().Contain("LIMIT");
+            AssertExactSql(
+                clip.toSelect(),
+                "SELECT * FROM  test_users AS f WHERE f.name LIKE '%报告%' ORDER BY  f.id DESC LIMIT 20 OFFSET 0 ");
         }
 
         /// <summary>对标 ClassAuto.findList</summary>
@@ -305,37 +298,32 @@ namespace mooSQL.Pure.Tests.Api8Usage
 
         /// <summary>对标 BPO_AttendedClassController skipTake(0,1)</summary>
         [Fact]
-        public void SkipTake_FirstRow_SqlShape()
+        public void SkipTake_FirstRow_ExactSql()
         {
-            var sql = Kit().clear()
-                .select("id")
-                .from("PX_Class")
-                .orderBy("id")
-                .skipTake(0, 1)
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().Contain("LIMIT");
-            sql.Should().Contain("1");
+            AssertExactSql(
+                Kit().clear()
+                    .select("id")
+                    .from("PX_Class")
+                    .orderBy("id")
+                    .skipTake(0, 1)
+                    .toSelect(),
+                "SELECT id FROM PX_Class ORDER BY id LIMIT 1 OFFSET 0 ");
         }
 
         /// <summary>对标常见 leftJoin 派生表聚合</summary>
         [Fact]
-        public void LeftJoin_DerivedTable_SqlShape()
+        public void LeftJoin_DerivedTable_ExactSql()
         {
-            var sql = Kit().clear()
-                .select("a.id, b.cnt")
-                .from("PX_ExamInfo a")
-                .leftJoin("b on a.PX_ExamInfoOID = b.PX_ExamInfo_FK", t => t
-                    .select("PX_ExamInfo_FK, count(*) cnt")
-                    .from("PX_PaperStudent")
-                    .groupBy("PX_ExamInfo_FK"))
-                .toSelect()
-                .toRawSQL();
-
-            sql.Should().ContainEquivalentOf("left join");
-            sql.Should().Contain("PX_PaperStudent");
-            sql.Should().ContainEquivalentOf("group by");
+            AssertExactSql(
+                Kit().clear()
+                    .select("a.id, b.cnt")
+                    .from("PX_ExamInfo a")
+                    .leftJoin("b on a.PX_ExamInfoOID = b.PX_ExamInfo_FK", t => t
+                        .select("PX_ExamInfo_FK, count(*) cnt")
+                        .from("PX_PaperStudent")
+                        .groupBy("PX_ExamInfo_FK"))
+                    .toSelect(),
+                "SELECT a.id, b.cnt FROM PX_ExamInfo a  LEFT JOIN (SELECT PX_ExamInfo_FK, count(*) cnt FROM PX_PaperStudent GROUP BY PX_ExamInfo_FK ) as b on a.PX_ExamInfoOID = b.PX_ExamInfo_FK  ");
         }
 
         #endregion
