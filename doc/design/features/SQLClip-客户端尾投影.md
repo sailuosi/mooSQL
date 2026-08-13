@@ -502,29 +502,28 @@ var list = clip
 
 ## 9. 实施阶段
 
-### P0 — 可用主路径
+### P0 — 可用主路径 ✅（已交付）
 
-0. **TDD + 基线先行**（§6.5）：落盘对标红灯用例（G1–G4）与 SQLClip 纯列核心耗时基线；无此两项不进入实现合并。  
-1. **廉价探测 + 分流骨架**（§6.4）：纯列必须走旧路径；单测断言投影器/RowBag 零触达。  
-2. 按 G1→G2→G3 切片实现：`SelectAnalyzer` → 槽位 SELECT → `ClientProjectorCompiler` → `queryList`/`queryUnique`。  
-3. 每组变绿后跑 P-gate：纯列 Result/Anonymous 对比基线。  
-4. 纯列回归（G4）与 SQL 无函数断言贯穿始终。
+0. **TDD + 基线先行**（§6.5）：对标红灯用例（G1–G4）与 SQLClip 纯列核心耗时基线。  
+1. **廉价探测 + 分流骨架**（§6.4）：纯列走旧路径。  
+2. `SelectAnalyzer` → 槽位 SELECT → `ClientProjectorCompiler` → `queryList`/`queryUnique`。  
+3. 纯列回归（G4）与 SQL 无函数断言。
 
-### P1 — 体验与硬化
+### P1 — 体验与硬化 ✅（已交付）
 
-1. `queryPage` 完整接入 + 对应用例。  
-2. 投影计划 / 委托缓存（缓存查找不得拖累纯列路径）。  
-3. Reader 直读（跳过 RowBag 堆分配）可选优化。  
-4. 可空尾调用传播选项。  
-5. 明确错误消息与文档示例（Clip API 说明增补一节）。  
-6. 尾投影 dbTest/microbench 固化倍率；纯列持续对比基线。
+1. `queryPage` + Total。  
+2. 投影委托缓存（`ClientProjectionCache`，表达式结构相等 + `nullPropagate`）。  
+3. Reader 直读：`SQLBuilder.queryReader` + 槽位序 `RowBag.FromReader`。  
+4. `nullPropagateTail()` 可空尾调用传播。  
+5. Clip API 说明增补「七.1」。  
+6. 微基准记录 Tail/Anon 倍率（见 `baseline/SQLClip-客户端尾投影-perf-baseline.md`）。
 
-### P2 — 扩展
+### P2 — 扩展（未做）
 
 1. 命名 DTO（`MemberInit`）与匿名类型同等支持。  
 2. 分析器复用到 Ext LINQ Select（可选）。  
 3. AOT 友好源生成投影器。  
-4. 与结果缓存（`setCache`）键规则对齐（缓存的是投影后 `R` 还是列行，需单独约定）。
+4. 与结果缓存（`setCache`）键规则对齐。
 
 ---
 
@@ -544,12 +543,210 @@ var list = clip
 | 负例 | WHERE 位置尾调用、未绑定成员、聚合 → 明确异常 |
 
 对比基线（功能）：同一连接下「阶段 A 手写 select 列 + 内存 `.Select(lambda)`」黄金结果。  
-对比基线（性能）：`MooSqlClipTest` Result/Anonymous 等核心耗时落盘值。
+对比基线（性能）：见 `baseline/SQLClip-客户端尾投影-perf-baseline.md`。
+
+自动化：`Tests/TestBug/src/TestPure/SQLClipClientTailProjectionTests.cs`。
 
 ---
 
 ## 11. 结论
 
-SQLClip 补齐「Select 尾方法」时，应走 **列抽取 + 客户端投影**，而不是 Chloe 式 **SQL 函数翻译**。这样 SQL 保持简单、跨库行为稳定，投影语义与 C# 一致，且业务仍只维护一条 Lambda。
+SQLClip 补齐「Select 尾方法」时，走 **列抽取 + 客户端投影**，而不是 Chloe 式 **SQL 函数翻译**。P0/P1 已落地：廉价探测分流、槽位 SELECT、表达式改写编译、Reader 直读、委托缓存、`nullPropagateTail`、分页与测试/基线护栏。纯列主路径不进入重管线。WHERE 下推与 SQL 函数映射仍非目标。
 
-首期交付聚焦：以初始对标代码 **TDD**、以现网 Clip **性能基线** 门禁；再做廉价探测分流、分析器、槽位 SELECT、表达式改写编译与 `queryList`/`queryUnique` 接入；**纯列主路径零重管线副作用**；明确不覆盖 WHERE 下推与 SQL 函数映射。
+---
+
+## 12. 实施总结（开发者视角）
+
+> 本节描述 **当前源码中的真实落点与行为**，供维护/排障/扩展时查阅。设计动机见上文 §1–§6。
+
+### 12.1 一句话行为
+
+`select(() => new { ... })` 若投影表达式含「列上的尾方法/属性、三元、纯客户端计算」等，则：
+
+1. SQL 只 `SELECT` 去重后的 **列根**（别名 `__c0`…）；  
+2. `queryList` / `queryUnique` / `queryPage` 用 **编译后的原 Lambda** 在 C# 侧算投影属性。
+
+纯列（如 `new { a.Id, a.Name }`）与整表 `select(entity)`：**不进入**本管线。
+
+### 12.2 代码地图
+
+| 职责 | 路径 |
+|------|------|
+| 廉价探测 `NeedsClientTail` | `pure/src/adoext/clip/project/SelectClientTailProbe.cs` |
+| 列根解析（表变量 + 实体列） | `…/ColumnRootResolver.cs` |
+| 列依赖收集 / 槽位 | `…/SelectAnalyzer.cs`、`ProjectionPlan.cs` |
+| 表达式改写 + Compile | `…/ClientProjectorCompiler.cs` |
+| 投影委托缓存 | `…/ClientProjectionCache.cs`（键：`ExpSameCheckor` + `nullPropagate` + 返回类型） |
+| 分流入口 | `ClipProvider.PatchSelect` → `PatchSelectClientTail` |
+| 执行出口 | `SQLClip<T>.queryList` / `queryUnique` / `queryPage` |
+| Reader API | `SQLBuilder.queryReader`（`StepBuilderDymatic` / `SQLBuilder.defer.exec`） |
+| 上下文标记 | `ClipContext.ClientProjection`、`NullPropagateTailCalls` |
+| 对外 API | `SQLClip.nullPropagateTail(bool)` |
+| 单测 | `Tests/TestBug/src/TestPure/SQLClipClientTailProjectionTests.cs` |
+| 性能基线摘录 | `doc/design/features/baseline/SQLClip-客户端尾投影-perf-baseline.md` |
+
+### 12.3 运行时流水线
+
+```text
+select(Expression<Func<R>>)
+  ├─ 整表绑定？ → 旧路径 select(alias.*)
+  ├─ SelectClientTailProbe.NeedsClientTail == false？
+  │     → TranslateFieldToSelect（旧路径）→ query<T> 映射
+  └─ true
+        → SelectAnalyzer.Analyze（列根去重 → 槽位）
+        → Builder.select("a.col AS __cN") …
+        → ClientProjectionCache 命中？复用 Delegate : Compile 后写入
+        → Context.ClientProjection = plan
+
+queryList / queryUnique
+  └─ ClientProjection != null
+        → builder.queryReader → RowBag.FromReader(按列序)
+        → Func<RowBag,R>(bag)
+
+queryPage
+  └─ queryPaged() 取页 DataTable + Total
+        → 逐行 FromDataRow → 同一投影器
+```
+
+### 12.4 关键实现细节
+
+**探测（§6.4）**  
+仅当 Body 为 `New`/`MemberInit` 时才可能 `NeedsClientTail=true`；整表 `select(entity)`、单列等直接旧路径。匿名体参数须为「可解析列根」（允许外侧 Convert）；出现 `MethodCall` / `Conditional` / 非列 `Member`（如 `.Length`）等即进入尾投影。纯列路径 **零** Analyze/Compile/RowBag。
+
+**整表选择**  
+`PatchSelect` 用 `body.Type`（非 `lmd.Type`/`Func<R>`）匹配 `BindTables`，生成 `alias.*`。
+
+**列根**  
+复用 Clip 表绑定：闭包字段名 → `BindTables` → `EntityInfo.GetColumn`。键为 `alias + "\0" + DbColumnName`，多投影属性共用同一列只占一个槽位。
+
+**改写**  
+`a.Name` → `row.Get<string>(slotIndex)`；外侧 `.Length` / `.ToLower()` 等保留。闭包常量（`startTime`、`Parse` 字面量）不进 SELECT。
+
+**可空传播**  
+`nullPropagateTail()` 后，对引用类型实例上的尾方法/属性改写为：
+
+`instance == null ? default(NullableLifted) : access`
+
+值类型尾结果提升为 `Nullable<T>`，故投影请写 `(int?)a.Email.Length`。未开启时，列值为 null 调用实例成员会抛 NRE（与 C# 一致）。
+
+**缓存**  
+仅在已判定尾投影后查表。键用 `ExpSameCheckor` 结构相等，避免 int 哈希碰撞串用投影器；`nullPropagate` 参与键。
+
+**Reader**  
+`queryReader` 经 `doSelect` 物化；`Executor` 为空时 `new DBExecutor(DBLive)`。槽位与 SELECT 列序一致，按 ordinal 取值。分页仍用 `queryPaged`（需 Total），行侧走 DataRow。
+
+**性能护栏（本机 Stopwatch，n=300，量级）**  
+纯列 Anonymous/Result 与改造前同档；TailG1 / Anon 约 **1.4–2×**（见 baseline 文档）。
+
+### 12.5 维护注意
+
+| 注意点 | 说明 |
+|--------|------|
+| 勿在纯列路径调用 Analyzer | 违反 §6.4，Anonymous 基准会回退 |
+| WHERE 中的 `.Contains` 等 | **不会**走本特性；用 `whereLike` 等 |
+| 缓存键 | 改 Compile 语义时须让表达式结构或 `nullPropagate` 区分开 |
+| `query(Func<DataRow>)` 与 Reader | 勿再增加易歧义的 `query(Func<DbDataReader>)` 重载（曾导致 CS0121） |
+| 扩展命名 DTO | P2：Analyzer/`VisitMemberInit` 已部分可走，需补 Compiler 与单测 |
+
+### 12.6 用例
+
+#### 用例 A — 字符串尾方法（对标 Chloe Demo）
+
+```csharp
+var clip = db.useClip();
+clip.from<Person>(out var a);
+var list = clip
+    .where(() => a.Id, 1, ">=")
+    .select(() => new
+    {
+        Id = a.Id,
+        String_Length = (int?)a.Name.Length,
+        Substring1_2 = a.Name.Substring(1, 2),
+        ToLower = a.Name.ToLower(),
+        ToUpper = a.Name.ToUpper(),
+        Trim = a.Name.Trim(),
+        Contains = (bool?)a.Name.Contains("s"),
+        StartsWith = (bool?)a.Name.StartsWith("A"),
+        Replace = a.Name.Replace("l", "L"),
+    })
+    .queryList()
+    .ToList();
+// SQL 形如：SELECT a.id AS __c0, a.name AS __c1 FROM ... （无 LEN/LOWER/SUBSTRING）
+```
+
+#### 用例 B — 三元 + 列
+
+```csharp
+clip.from<Person>(out var a);
+var rows = clip
+    .select(() => new
+    {
+        Id = a.Id,
+        B = a.Age == null ? false : a.Age > 1,
+    })
+    .queryList();
+```
+
+#### 用例 C — 闭包常量 / Parse（无列或极少列）
+
+```csharp
+var startTime = new DateTime(2020, 1, 1);
+clip.from<Person>(out var a);
+var row = clip
+    .where(() => a.Id, 1)
+    .select(() => new
+    {
+        Id = a.Id,
+        AddDays = startTime.AddDays(1),
+        Int_Parse = int.Parse("1"),
+        Guid_Parse = Guid.Parse("D544BC4C-739E-4CD3-A3D3-7BF803FCE179"),
+    })
+    .queryList()
+    .Single();
+```
+
+#### 用例 D — 可空尾调用传播
+
+```csharp
+clip.from<Person>(out var a);
+var row = clip
+    .nullPropagateTail()
+    .where(() => a.Id, id)
+    .select(() => new
+    {
+        Id = a.Id,
+        EmailLen = (int?)a.Email.Length,   // Email 为 null → EmailLen 为 null（不抛 NRE）
+        EmailUpper = a.Email.ToUpper(),
+    })
+    .queryList()
+    .Single();
+```
+
+#### 用例 E — 分页
+
+```csharp
+var page = clip
+    .from<Person>(out var a)
+    .where(() => a.Status, 1)
+    .select(() => new { Id = a.Id, Upper = a.Name.ToUpper() })
+    .setPage(20, 1)
+    .queryPage();
+// page.Items / page.Total / page.PageSize / page.PageNum
+```
+
+#### 用例 F — 纯列（确认不走尾投影）
+
+```csharp
+var q = clip
+    .from<Person>(out var a)
+    .select(() => new { a.Id, a.Name, a.Age });
+var sql = q.toSelect().sql;   // 不应出现 __cN
+var list = q.queryList();     // Context.ClientProjection == null
+```
+
+#### 用例 G — 单测入口
+
+```text
+dotnet test Tests/TestBug/mooSQL.Pure.Tests.csproj -f net8.0 ^
+  --filter "FullyQualifiedName~SQLClipClientTailProjectionTests"
+```

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using System.Text;
+using mooSQL.data.clip.project;
 
 
 namespace mooSQL.data
@@ -40,6 +41,13 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <inheritdoc cref="SQLClip.nullPropagateTail"/>
+        public new SQLClip<T> nullPropagateTail(bool enabled = true)
+        {
+            base.nullPropagateTail(enabled);
+            return this;
+        }
+
 
         /// <summary>
         /// 查询出唯一结果，自动根据字段数量自动选择查询方法。
@@ -47,6 +55,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public T queryUnique()
         {
+            if (Context.ClientProjection != null)
+            {
+                return Context.ClientProjection.ExecuteUnique<T>(Context.Builder);
+            }
             if (this.Context.FieldCount == 1)
             {
                 return Context.Builder.queryScalar<T>();
@@ -62,6 +74,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public IEnumerable<T> queryList()
         {
+            if (Context.ClientProjection != null)
+            {
+                return Context.ClientProjection.ExecuteQuery<T>(Context.Builder);
+            }
             if (this.Context.FieldCount == 1)
             {
                 return Context.Builder.queryFirstField<T>();
@@ -77,6 +93,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public PageOutput<T> queryPage()
         {
+            if (Context.ClientProjection != null)
+            {
+                return Context.ClientProjection.ExecutePage<T>(Context.Builder);
+            }
 
             return Context.Builder.queryPaged<T>();
         }

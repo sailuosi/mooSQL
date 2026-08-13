@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mooSQL.data.clip;
+using mooSQL.data.clip.project;
 
 namespace mooSQL.data
 {
@@ -80,6 +81,15 @@ namespace mooSQL.data
 
         internal List<ClipJoinData> Joins { get; set; }
 
+        /// <summary>
+        /// 非 null 时 query* 走客户端尾投影（阶段 A 槽位列 + 阶段 B 投影器）。
+        /// </summary>
+        internal ProjectionPlan ClientProjection { get; set; }
+
+        /// <summary>
+        /// 尾调用在列值为 null 时不抛 NRE，改为返回 null（值类型提升为 Nullable）。
+        /// </summary>
+        public bool NullPropagateTailCalls { get; set; }
 
         internal ClipTable getFromTable() { 
             return _bindTables[_fromTarget];
@@ -115,6 +125,7 @@ namespace mooSQL.data
             _fromBinded = false;
             _updateTarget = null;
             _updateBinded = false;
+            ClientProjection = null;
             _builder.clear();
         }
     }

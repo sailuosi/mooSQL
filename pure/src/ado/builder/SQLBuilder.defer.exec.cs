@@ -182,6 +182,15 @@ namespace mooSQL.data
             return _inner.query(createEntity);
         }
 
+        /// <summary>
+        /// 按行自定义读取（DbDataReader）。
+        /// </summary>
+        public IEnumerable<T> queryReader<T>(Func<System.Data.Common.DbDataReader, T> onReadRow)
+        {
+            runBuild();
+            return _inner.queryReader(onReadRow);
+        }
+
         public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
             runBuild();

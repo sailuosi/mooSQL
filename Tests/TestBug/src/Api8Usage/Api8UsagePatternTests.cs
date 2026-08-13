@@ -207,7 +207,7 @@ namespace mooSQL.Pure.Tests.Api8Usage
 
             AssertExactSql(
                 clip.toSelect(),
-                "SELECT * FROM  test_users AS f WHERE f.name LIKE '%报告%' ORDER BY  f.id DESC LIMIT 20 OFFSET 0 ");
+                "SELECT f.* FROM  test_users AS f WHERE f.name LIKE '%报告%' ORDER BY  f.id DESC LIMIT 20 OFFSET 0 ");
         }
 
         /// <summary>对标 ClassAuto.findList</summary>

@@ -145,6 +145,38 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 
 ---
 
+## 七.1、客户端尾投影（Select 尾方法）
+
+当 `select(() => new { ... })` 中对列使用 `.Length` / `.ToLower()` / 三元等 **尾调用** 时，SQLClip **不**翻译为 SQL 函数，而是：
+
+1. 抽取列根生成最简 `SELECT`；  
+2. 在 C# 中执行原 Lambda 完成投影。
+
+纯列投影（如 `new { a.Id, a.Name }`）仍走原路径，无额外重管线。
+
+| 方法签名 | 说明 |
+|----------|------|
+| `SQLClip nullPropagateTail(bool enabled = true)` | 列值为 null 时尾方法不抛 NRE，返回 null；值类型请投影为可空，如 `(int?)a.Email.Length`。 |
+| `SQLClip<T> nullPropagateTail(bool enabled = true)` | 泛型链上同义。 |
+
+```csharp
+clip.from<User>(out var a);
+var list = clip
+    .nullPropagateTail()
+    .where(() => a.Id, 1, ">=")
+    .select(() => new
+    {
+        a.Id,
+        Len = (int?)a.Name.Length,
+        Lower = a.Name.ToLower(),
+    })
+    .queryList();
+```
+
+设计说明：`doc/design/features/SQLClip-客户端尾投影.md`。
+
+---
+
 ## 八、排序、TOP、GROUP BY、HAVING、DISTINCT
 
 | 方法签名 | 说明 |

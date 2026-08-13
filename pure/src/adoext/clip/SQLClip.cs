@@ -58,6 +58,16 @@ namespace mooSQL.data
             this.Context.clear();
             return this;
         }
+
+        /// <summary>
+        /// 客户端尾投影：列值为 null 时，尾方法/属性不抛 NRE，改为返回 null
+        /// （值类型结果提升为 <c>Nullable&lt;T&gt;</c>，投影属性请使用可空类型，如 <c>(int?)a.Name.Length</c>）。
+        /// </summary>
+        public SQLClip nullPropagateTail(bool enabled = true)
+        {
+            Context.NullPropagateTailCalls = enabled;
+            return this;
+        }
         /// <summary>
         /// 注册打印回调，用于调试SQL语句。
         /// </summary>

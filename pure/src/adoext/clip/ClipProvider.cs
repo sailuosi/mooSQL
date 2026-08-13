@@ -1,5 +1,6 @@
 ﻿using mooSQL.linq;
 using mooSQL.utils;
+using mooSQL.data.clip.project;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -223,9 +224,12 @@ namespace mooSQL.data.clip
         }
 
         public void PatchSelect(Expression exp) {
+            clip.Context.ClientProjection = null;
+
             if (exp is LambdaExpression lmd) { 
                 var body=   lmd.Body;
-                var obj = lmd.Type.UnwrapNullable();
+                // 必须用 Body 返回类型：lmd.Type 是 Func<R>，无法与实体类型匹配
+                var obj = body.Type.UnwrapNullable();
                 //如果类型是当前一个选取表，则不再需要解析。
                 foreach( var tb in clip.Context.BindTables) {
                     if (tb.Value.EnityType == obj) {
@@ -241,6 +245,14 @@ namespace mooSQL.data.clip
                         return;
                     }
                 }
+
+                // 廉价探测：纯列走旧路径；含尾调用才进入两阶段投影
+                if (SelectClientTailProbe.NeedsClientTail(clip, body))
+                {
+                    PatchSelectClientTail(lmd);
+                    checkJoin();
+                    return;
+                }
             }
 
 
@@ -251,6 +263,49 @@ namespace mooSQL.data.clip
             checkJoin();
 
 
+        }
+
+        private void PatchSelectClientTail(LambdaExpression selectLambda)
+        {
+            var nullProp = clip.Context.NullPropagateTailCalls;
+            var plan = SelectAnalyzer.Analyze(clip, selectLambda);
+            if (plan.Slots.Count == 0)
+            {
+                // 无列依赖仍需合法 SELECT（与 FROM 配合取行数）
+                clip.Context.Builder.select("0 AS __c_dummy");
+                clip.Context.FieldCount = 0;
+            }
+            else
+            {
+                var db = clip.Context.Builder.DBLive;
+                foreach (var slot in plan.Slots)
+                {
+                    var sb = new StringBuilder();
+                    if (!string.IsNullOrWhiteSpace(slot.Root.Alias))
+                    {
+                        sb.Append(slot.Root.Alias);
+                        sb.Append(".");
+                    }
+                    sb.Append(db.dialect.expression.wrapField(slot.Root.SqlField));
+                    sb.Append(" AS ");
+                    sb.Append(slot.Alias);
+                    clip.Context.Builder.select(sb.ToString());
+                }
+                clip.Context.FieldCount = plan.Slots.Count;
+            }
+
+            // 委托缓存：仅尾投影路径；Analyze 仍跑以便绑定别名；键含 nullPropagate
+            var cacheKey = ClientProjectionCache.MakeKey(selectLambda, nullProp);
+            if (ClientProjectionCache.TryGet(cacheKey, out var cached))
+            {
+                plan.CompiledProjector = cached;
+            }
+            else
+            {
+                plan.CompiledProjector = ClientProjectorCompiler.Compile(clip, plan, nullProp);
+                ClientProjectionCache.Set(cacheKey, plan.CompiledProjector);
+            }
+            clip.Context.ClientProjection = plan;
         }
 
         public void PatchSetTable<T>() {

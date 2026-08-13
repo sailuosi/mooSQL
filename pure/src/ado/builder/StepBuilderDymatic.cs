@@ -7,6 +7,7 @@ using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 
 
 
@@ -1011,6 +1012,20 @@ namespace mooSQL.data
                 }
             }
             return t;
+        }
+
+        /// <summary>
+        /// 按行自定义读取（DbDataReader），走 doSelect 物化，供客户端尾投影等使用。
+        /// </summary>
+        public IEnumerable<T> queryReader<T>(Func<DbDataReader, T> onReadRow)
+        {
+            return doSelect("reader:" + typeof(T).FullName, cmd =>
+            {
+                CheckDBForRead();
+                doPrintSQL(cmd);
+                var runner = Executor ?? new DBExecutor(DBLive);
+                return runner.ExeQuery(cmd, onReadRow);
+            });
         }
         /// <summary>
         /// 查询结果为唯一一行记录的结果，非1行结果返回null
