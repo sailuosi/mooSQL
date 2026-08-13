@@ -34,6 +34,9 @@ namespace mooSQL.data.clip.project
                     return true;
 
                 case MemberInitExpression init:
+                    // ctor 参数与对象初始化器均须为纯列，否则走尾投影
+                    if (!IsPureColumnTree(clip, init.NewExpression))
+                        return false;
                     foreach (var b in init.Bindings)
                     {
                         if (b is MemberAssignment ass && !IsPureColumnTree(clip, ass.Expression))

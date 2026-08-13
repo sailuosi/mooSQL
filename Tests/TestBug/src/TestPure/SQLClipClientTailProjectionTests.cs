@@ -314,6 +314,160 @@ namespace mooSQL.Pure.Tests
 
         #endregion
 
+        #region P2：命名 DTO / setCache / 解释执行
+
+        private sealed class TailNameDto
+        {
+            public int Id { get; set; }
+            public string Upper { get; set; }
+            public int? NameLen { get; set; }
+        }
+
+        private sealed class TailCtorDto
+        {
+            public TailCtorDto() { }
+            public TailCtorDto(int id) { Id = id; }
+            public int Id { get; set; }
+            public string Lower { get; set; }
+        }
+
+        [Fact]
+        public void P2_MemberInit_NamedDto_ShouldClientTail()
+        {
+            var clip = Clip();
+            clip.from<TestUser>(out var a);
+            var q = clip
+                .where(() => a.Id, 91001)
+                .select(() => new TailNameDto
+                {
+                    Id = a.Id,
+                    Upper = a.Name.ToUpper(),
+                    NameLen = a.Name.Length,
+                });
+
+            q.Context.ClientProjection.Should().NotBeNull();
+            AssertNoSqlTailFunctions(q.toSelect().sql);
+            q.toSelect().sql.Should().Contain("__c");
+
+            var row = q.queryList().Single();
+            row.Id.Should().Be(91001);
+            row.Upper.Should().Be(" ALICE ");
+            row.NameLen.Should().Be(" Alice ".Length);
+        }
+
+        [Fact]
+        public void P2_MemberInit_PureColumns_ShouldNotClientTail()
+        {
+            var clip = Clip();
+            clip.from<TestUser>(out var a);
+            var q = clip
+                .where(() => a.Id, 91001)
+                .select(() => new TailNameDto
+                {
+                    Id = a.Id,
+                    Upper = a.Name,
+                });
+
+            q.Context.ClientProjection.Should().BeNull();
+            q.toSelect().sql.Should().NotContain("__c");
+            var row = q.queryList().Single();
+            row.Id.Should().Be(91001);
+            row.Upper.Should().Be(" Alice ");
+        }
+
+        [Fact]
+        public void P2_MemberInit_CtorPlusTail_ShouldClientTail()
+        {
+            var clip = Clip();
+            clip.from<TestUser>(out var a);
+            var q = clip
+                .where(() => a.Id, 91001)
+                .select(() => new TailCtorDto(a.Id)
+                {
+                    Lower = a.Name.ToLower(),
+                });
+
+            q.Context.ClientProjection.Should().NotBeNull();
+            var row = q.queryList().Single();
+            row.Id.Should().Be(91001);
+            row.Lower.Should().Be(" alice ");
+        }
+
+        [Fact]
+        public void P2_SetCache_CachesProjectedResult_NotRawSlots()
+        {
+            var shared = new HashCache();
+            List<TailNameDto> first;
+            List<TailNameDto> second;
+
+            {
+                var clip = Clip();
+                clip.useSQL(b => b.setCacheHolder(shared).configClear(CleanWay.Never));
+                clip.from<TestUser>(out var a);
+                first = clip
+                    .setCache("clip:tail:dto", 300)
+                    .where(() => a.Id, 91001)
+                    .select(() => new TailNameDto
+                    {
+                        Id = a.Id,
+                        Upper = a.Name.ToUpper(),
+                        NameLen = a.Name.Length,
+                    })
+                    .queryList()
+                    .ToList();
+            }
+
+            _db.ExeNonQuery(new SQLCmd("UPDATE test_users SET name='Zzz' WHERE id=91001"));
+
+            {
+                var clip = Clip();
+                clip.useSQL(b => b.setCacheHolder(shared).configClear(CleanWay.Never));
+                clip.from<TestUser>(out var a);
+                second = clip
+                    .setCache("clip:tail:dto", 300)
+                    .where(() => a.Id, 91001)
+                    .select(() => new TailNameDto
+                    {
+                        Id = a.Id,
+                        Upper = a.Name.ToUpper(),
+                        NameLen = a.Name.Length,
+                    })
+                    .queryList()
+                    .ToList();
+            }
+
+            first.Should().HaveCount(1);
+            shared.GetKeys().Should().Contain(k => k != null && k.Contains("clip:tail:dto"));
+            second.Should().HaveCount(1);
+            second[0].Upper.Should().Be(first[0].Upper, "应命中投影后结果缓存");
+            second[0].Upper.Should().Be(" ALICE ");
+
+            // 恢复种子，避免影响后续用例
+            Seed();
+        }
+
+        [Fact]
+        public void P2_PreferInterpretedTail_ShouldStillProject()
+        {
+            var clip = Clip();
+            clip.from<TestUser>(out var a);
+            var row = clip
+                .preferInterpretedTail()
+                .where(() => a.Id, 91001)
+                .select(() => new
+                {
+                    Id = a.Id,
+                    Upper = a.Name.ToUpper(),
+                })
+                .queryList()
+                .Single();
+
+            row.Id.Should().Be(91001);
+            row.Upper.Should().Be(" ALICE ");
+        }
+
+        #endregion
+
         #region 性能烟雾（非 BDN；基线见 baseline 文档）
 
         [Fact]

@@ -12,7 +12,7 @@ namespace mooSQL.data.clip.project
         private static readonly MethodInfo GetMethod =
             typeof(RowBag).GetMethod(nameof(RowBag.Get), BindingFlags.Instance | BindingFlags.Public);
 
-        public static Delegate Compile(SQLClip clip, ProjectionPlan plan, bool nullPropagateTailCalls)
+        public static Delegate Compile(SQLClip clip, ProjectionPlan plan, bool nullPropagateTailCalls, bool preferInterpretation = false)
         {
             var resultType = plan.Source.ReturnType;
             var rowParam = Expression.Parameter(typeof(RowBag), "row");
@@ -20,7 +20,12 @@ namespace mooSQL.data.clip.project
             var body = rewriter.Visit(plan.Source.Body);
             var lambdaType = typeof(Func<,>).MakeGenericType(typeof(RowBag), resultType);
             var lambda = Expression.Lambda(lambdaType, body, rowParam);
+#if NET6_0_OR_GREATER
+            return preferInterpretation ? lambda.Compile(preferInterpretation: true) : lambda.Compile();
+#else
+            _ = preferInterpretation;
             return lambda.Compile();
+#endif
         }
 
         private sealed class Rewriter : ExpressionVisitor

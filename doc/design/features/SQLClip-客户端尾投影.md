@@ -518,12 +518,12 @@ var list = clip
 5. Clip API 说明增补「七.1」。  
 6. 微基准记录 Tail/Anon 倍率（见 `baseline/SQLClip-客户端尾投影-perf-baseline.md`）。
 
-### P2 — 扩展（未做）
+### P2 — 扩展 ✅（Queryable 排除）
 
-1. 命名 DTO（`MemberInit`）与匿名类型同等支持。  
-2. 分析器复用到 Ext LINQ Select（可选）。  
-3. AOT 友好源生成投影器。  
-4. 与结果缓存（`setCache`）键规则对齐。
+1. 命名 DTO（`MemberInit`，含 ctor+初始化器）与匿名类型同等支持。  
+2. ~~分析器复用到 Ext LINQ / Queryable Select~~ — **明确不做**：本策略仅 SQLClip。  
+3. AOT 折中：`preferInterpretedTail()`（表达式解释执行）；完整源生成投影器仍未提供。  
+4. 结果缓存：`SQLClip.setCache` 转发 Builder；尾投影 `resultTypeTag=clientTail:{Type}:np{0|1}`，缓存值为投影后 `R`。
 
 ---
 
@@ -551,7 +551,7 @@ var list = clip
 
 ## 11. 结论
 
-SQLClip 补齐「Select 尾方法」时，走 **列抽取 + 客户端投影**，而不是 Chloe 式 **SQL 函数翻译**。P0/P1 已落地：廉价探测分流、槽位 SELECT、表达式改写编译、Reader 直读、委托缓存、`nullPropagateTail`、分页与测试/基线护栏。纯列主路径不进入重管线。WHERE 下推与 SQL 函数映射仍非目标。
+SQLClip 补齐「Select 尾方法」时，走 **列抽取 + 客户端投影**，而不是 Chloe 式 **SQL 函数翻译**。P0–P2（除 Queryable）已落地：廉价探测分流、槽位 SELECT、表达式改写编译、Reader 直读、委托缓存、`nullPropagateTail`、命名 DTO、`setCache` 投影指纹、`preferInterpretedTail`、分页与测试/基线护栏。纯列主路径不进入重管线。**Ext LINQ / `IQueryable` 不采用本策略。** WHERE 下推与 SQL 函数映射仍非目标。
 
 ---
 
@@ -646,7 +646,10 @@ queryPage
 | WHERE 中的 `.Contains` 等 | **不会**走本特性；用 `whereLike` 等 |
 | 缓存键 | 改 Compile 语义时须让表达式结构或 `nullPropagate` 区分开 |
 | `query(Func<DataRow>)` 与 Reader | 勿再增加易歧义的 `query(Func<DbDataReader>)` 重载（曾导致 CS0121） |
-| 扩展命名 DTO | P2：Analyzer/`VisitMemberInit` 已部分可走，需补 Compiler 与单测 |
+| 扩展命名 DTO | ✅ `MemberInit`（含 ctor 参数）与匿名同等；Queryable **不做** |
+| setCache | ✅ 缓存投影后 R；tag=`clientTail:{Type}:np{0|1}` |
+| AOT | ✅ `preferInterpretedTail`；完整源生成未做 |
+| Queryable | ❌ **不做**本策略 |
 
 ### 12.6 用例
 
@@ -742,6 +745,43 @@ var q = clip
     .select(() => new { a.Id, a.Name, a.Age });
 var sql = q.toSelect().sql;   // 不应出现 __cN
 var list = q.queryList();     // Context.ClientProjection == null
+```
+
+#### 用例 H — 命名 DTO（MemberInit）
+
+```csharp
+clip.from<Person>(out var a);
+var list = clip
+    .where(() => a.Id, 1, ">=")
+    .select(() => new PersonNameDto
+    {
+        Id = a.Id,
+        Upper = a.Name.ToUpper(),
+        NameLen = a.Name.Length,
+    })
+    .queryList();
+// 亦支持：new PersonNameDto(a.Id) { Upper = a.Name.ToUpper() }
+```
+
+#### 用例 I — setCache（缓存投影后结果）
+
+```csharp
+clip.useSQL(b => b.setCacheHolder(shared).configClear(CleanWay.Never));
+var rows = clip
+    .setCache("report:names", 300)
+    .from<Person>(out var a)
+    .select(() => new { Id = a.Id, Upper = a.Name.ToUpper() })
+    .queryList();
+// 自动指纹时标签含类型与 nullPropagate，显式 key 由业务保证唯一
+```
+
+#### 用例 J — 解释执行（AOT 折中）
+
+```csharp
+clip.preferInterpretedTail()
+    .from<Person>(out var a)
+    .select(() => new { Upper = a.Name.ToUpper() })
+    .queryList();
 ```
 
 #### 用例 G — 单测入口

@@ -158,6 +158,10 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 |----------|------|
 | `SQLClip nullPropagateTail(bool enabled = true)` | 列值为 null 时尾方法不抛 NRE，返回 null；值类型请投影为可空，如 `(int?)a.Email.Length`。 |
 | `SQLClip<T> nullPropagateTail(bool enabled = true)` | 泛型链上同义。 |
+| `SQLClip preferInterpretedTail(bool enabled = true)` | 尾投影委托优先解释执行（AOT/裁剪折中；非源生成）。 |
+| `SQLClip setCache(string key, int timeoutSeconds)` / `setCache(int)` | 转发 Builder 结果缓存；**尾投影缓存的是投影后的 R**，标签含投影指纹。 |
+
+支持匿名类型与命名 DTO（`MemberInit`，含 `new Dto(a.Id) { ... }`）。**不**适用于 `IQueryable` / Ext LINQ Select。
 
 ```csharp
 clip.from<User>(out var a);
@@ -170,6 +174,11 @@ var list = clip
         Len = (int?)a.Name.Length,
         Lower = a.Name.ToLower(),
     })
+    .queryList();
+
+// 命名 DTO
+var dtos = clip
+    .select(() => new UserNameDto { Id = a.Id, Upper = a.Name.ToUpper() })
     .queryList();
 ```
 

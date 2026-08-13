@@ -1018,8 +1018,17 @@ namespace mooSQL.data
         /// 按行自定义读取（DbDataReader），走 doSelect 物化，供客户端尾投影等使用。
         /// </summary>
         public IEnumerable<T> queryReader<T>(Func<DbDataReader, T> onReadRow)
+            => queryReader("reader:" + typeof(T).FullName, onReadRow);
+
+        /// <summary>
+        /// 同 <see cref="queryReader{T}(Func{DbDataReader, T})"/>，可指定结果缓存类型标签（尾投影含投影指纹）。
+        /// </summary>
+        public IEnumerable<T> queryReader<T>(string resultTypeTag, Func<DbDataReader, T> onReadRow)
         {
-            return doSelect("reader:" + typeof(T).FullName, cmd =>
+            var tag = string.IsNullOrWhiteSpace(resultTypeTag)
+                ? "reader:" + typeof(T).FullName
+                : resultTypeTag;
+            return doSelect(tag, cmd =>
             {
                 CheckDBForRead();
                 doPrintSQL(cmd);

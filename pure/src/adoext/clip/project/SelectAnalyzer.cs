@@ -32,6 +32,8 @@ namespace mooSQL.data.clip.project
                         Collect(clip, arg, plan);
                     break;
                 case MemberInitExpression init:
+                    // 含 ctor 参数：new Dto(a.Id) { Name = a.Name.ToUpper() }
+                    Collect(clip, init.NewExpression, plan);
                     foreach (var b in init.Bindings)
                     {
                         if (b is MemberAssignment ass)

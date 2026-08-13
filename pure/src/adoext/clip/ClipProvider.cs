@@ -268,6 +268,7 @@ namespace mooSQL.data.clip
         private void PatchSelectClientTail(LambdaExpression selectLambda)
         {
             var nullProp = clip.Context.NullPropagateTailCalls;
+            var preferInterp = clip.Context.PreferInterpretedTailProjector;
             var plan = SelectAnalyzer.Analyze(clip, selectLambda);
             if (plan.Slots.Count == 0)
             {
@@ -294,18 +295,30 @@ namespace mooSQL.data.clip
                 clip.Context.FieldCount = plan.Slots.Count;
             }
 
-            // 委托缓存：仅尾投影路径；Analyze 仍跑以便绑定别名；键含 nullPropagate
-            var cacheKey = ClientProjectionCache.MakeKey(selectLambda, nullProp);
+            // 委托缓存：仅尾投影路径；键含 nullPropagate + preferInterpretation
+            var cacheKey = ClientProjectionCache.MakeKey(selectLambda, nullProp, preferInterp);
             if (ClientProjectionCache.TryGet(cacheKey, out var cached))
             {
                 plan.CompiledProjector = cached;
             }
             else
             {
-                plan.CompiledProjector = ClientProjectorCompiler.Compile(clip, plan, nullProp);
+                plan.CompiledProjector = ClientProjectorCompiler.Compile(clip, plan, nullProp, preferInterp);
                 ClientProjectionCache.Set(cacheKey, plan.CompiledProjector);
             }
+            plan.ResultCacheTag = BuildClientTailResultCacheTag(selectLambda.ReturnType, nullProp, preferInterp);
             clip.Context.ClientProjection = plan;
+        }
+
+        /// <summary>
+        /// 稳定标签：同显式 setCache key / 同 SQL 指纹下可命中；区分 nullPropagate 与解释执行。
+        /// 不用表达式 GetHashCode（闭包实例会导致跨查询指纹漂移）。
+        /// </summary>
+        private static string BuildClientTailResultCacheTag(Type returnType, bool nullProp, bool preferInterp)
+        {
+            var typeName = returnType?.FullName ?? "R";
+            var tag = "clientTail:" + typeName + (nullProp ? ":np1" : ":np0");
+            return preferInterp ? tag + ":i" : tag;
         }
 
         public void PatchSetTable<T>() {

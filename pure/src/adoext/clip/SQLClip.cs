@@ -68,6 +68,34 @@ namespace mooSQL.data
             Context.NullPropagateTailCalls = enabled;
             return this;
         }
+
+        /// <summary>
+        /// 客户端尾投影：投影委托优先解释执行（减轻 JIT/裁剪压力；完整 AOT 源生成未提供）。
+        /// </summary>
+        public SQLClip preferInterpretedTail(bool enabled = true)
+        {
+            Context.PreferInterpretedTailProjector = enabled;
+            return this;
+        }
+
+        /// <summary>
+        /// SELECT 结果缓存（转发 Builder）：缓存值为查询结果（尾投影时为投影后的 R 列表）。
+        /// </summary>
+        public SQLClip setCache(string key, int timeoutSeconds)
+        {
+            Context.Builder.setCache(key, timeoutSeconds);
+            return this;
+        }
+
+        /// <summary>
+        /// SELECT 结果缓存（无显式 key，SQLCmd 指纹）；尾投影标签含投影指纹与 nullPropagate。
+        /// </summary>
+        public SQLClip setCache(int timeoutSeconds)
+        {
+            Context.Builder.setCache(timeoutSeconds);
+            return this;
+        }
+
         /// <summary>
         /// 注册打印回调，用于调试SQL语句。
         /// </summary>

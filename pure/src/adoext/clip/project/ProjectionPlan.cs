@@ -23,6 +23,8 @@ namespace mooSQL.data.clip.project
         public List<ColumnSlot> Slots { get; } = new List<ColumnSlot>();
         public Dictionary<string, ColumnSlot> SlotsByKey { get; } = new Dictionary<string, ColumnSlot>(StringComparer.Ordinal);
         public Delegate CompiledProjector { get; set; }
+        /// <summary>setCache 结果类型标签：缓存的是投影后 R，并区分投影指纹。</summary>
+        public string ResultCacheTag { get; set; }
 
         public ColumnSlot GetOrAddSlot(ColumnRoot root)
         {
@@ -44,7 +46,10 @@ namespace mooSQL.data.clip.project
         {
             var projector = (Func<RowBag, T>)CompiledProjector;
             var slots = Slots;
-            return builder.queryReader((DbDataReader reader) =>
+            var tag = string.IsNullOrEmpty(ResultCacheTag)
+                ? "clientTail:" + typeof(T).FullName
+                : ResultCacheTag;
+            return builder.queryReader(tag, (DbDataReader reader) =>
             {
                 var bag = RowBag.FromReader(reader, slots);
                 return projector(bag);

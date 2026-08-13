@@ -48,6 +48,27 @@ namespace mooSQL.data
             return this;
         }
 
+        /// <inheritdoc cref="SQLClip.preferInterpretedTail"/>
+        public new SQLClip<T> preferInterpretedTail(bool enabled = true)
+        {
+            base.preferInterpretedTail(enabled);
+            return this;
+        }
+
+        /// <inheritdoc cref="SQLClip.setCache(string, int)"/>
+        public new SQLClip<T> setCache(string key, int timeoutSeconds)
+        {
+            base.setCache(key, timeoutSeconds);
+            return this;
+        }
+
+        /// <inheritdoc cref="SQLClip.setCache(int)"/>
+        public new SQLClip<T> setCache(int timeoutSeconds)
+        {
+            base.setCache(timeoutSeconds);
+            return this;
+        }
+
 
         /// <summary>
         /// 查询出唯一结果，自动根据字段数量自动选择查询方法。

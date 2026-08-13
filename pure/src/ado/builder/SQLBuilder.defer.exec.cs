@@ -191,6 +191,12 @@ namespace mooSQL.data
             return _inner.queryReader(onReadRow);
         }
 
+        public IEnumerable<T> queryReader<T>(string resultTypeTag, Func<System.Data.Common.DbDataReader, T> onReadRow)
+        {
+            runBuild();
+            return _inner.queryReader(resultTypeTag, onReadRow);
+        }
+
         public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
             runBuild();

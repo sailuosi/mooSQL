@@ -91,6 +91,11 @@ namespace mooSQL.data
         /// </summary>
         public bool NullPropagateTailCalls { get; set; }
 
+        /// <summary>
+        /// 尾投影委托用表达式解释执行（AOT/裁剪友好折中；非源生成）。
+        /// </summary>
+        public bool PreferInterpretedTailProjector { get; set; }
+
         internal ClipTable getFromTable() { 
             return _bindTables[_fromTarget];
         }
