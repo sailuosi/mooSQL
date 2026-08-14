@@ -1,12 +1,8 @@
 using BenchmarkDotNet.Attributes;
-using Chloe.Reflection;
 using dbTest.items;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dbTest
 {
@@ -16,16 +12,13 @@ namespace dbTest
         public TestBase(Func<Type, bool> check = null)
         {
             CrlTest.Init();
-            var types = typeof(ITest).GetAssembly().GetTypes().Where(b => typeof(ITest).IsAssignableFrom(b) && !b.IsAbstract && b.IsPublic);
+            var types = typeof(ITest).Assembly.GetTypes().Where(b => typeof(ITest).IsAssignableFrom(b) && !b.IsAbstract && b.IsPublic);
             foreach (var t in types)
             {
-                if (check != null)
-                {
-                    if (!check.Invoke(t))
-                    {
-                        continue;
-                    }
-                }
+                if (!DbTestConfig.Allow(t))
+                    continue;
+                if (check != null && !check.Invoke(t))
+                    continue;
                 tests.Add(Activator.CreateInstance(t) as ITest);
             }
         }

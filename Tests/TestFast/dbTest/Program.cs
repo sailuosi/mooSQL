@@ -16,12 +16,17 @@ public class Program
 {
     static void Main(string[] args)
     {
+        var scopeExplicit = DbTestConfig.ApplyArgs(args);
+
         CrlTest.InitData();
         if (args != null && args.Length > 0 && string.Equals(args[0], "moosmoke", StringComparison.OrdinalIgnoreCase))
         {
             testMooSqlSmoke();
             return;
         }
+
+        DbTestConfig.PromptScope(skipIfExplicit: scopeExplicit);
+        Console.WriteLine("[dbTest] " + DbTestConfig.Describe());
         ConsoleTest.DoCommand(typeof(Program));
     }
     static void Run<T>()

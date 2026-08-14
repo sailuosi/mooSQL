@@ -4,6 +4,39 @@
 由于 SQL 的实际执行由数据库引擎负责，ORM 无法改变数据库层面的执行逻辑；不同 ORM 的差异主要体现在 SQL 拼接、表达式解析和数据映射等实现细节（例如插入操作可通过生成 SQL 或使用 BulkCopy 实现）。
 因此，本测试不对实现方式完全不同的操作（如 BulkCopy）进行比较，而是重点衡量表达式解析与数据映射两方面的运行效率与内存占用。
 
+## 适配器范围（Full / Compare）
+
+默认 **Compare（对比组）**，只跑：
+
+| ProvideType | 说明 |
+|-------------|------|
+| `MooSqlBuilderTest` | SQLBuilder |
+| `AdoNetTest` | ADO.NET |
+| `DapperTest` | Dapper |
+| `CrlTest` | CRL |
+| `ChloeTest` | Chloe |
+
+**Full** 跑发现到的全部 `ITest` 适配器。
+
+启动后会提示输入数字选择范围（在进入测试菜单之前）：
+
+```text
+选择适配器范围：
+  1 = 对比组（SQLBuilder + ADO.NET + Dapper + CRL + Chloe）[默认]
+  2 = 全部 ITest 适配器
+请输入数字 (1/2，回车=1):
+```
+
+也可跳过交互，用参数或环境变量直接指定：
+
+```bash
+dotnet run -c Release --project Tests/TestFast/dbTest/dbTest2.csproj -- compare
+dotnet run -c Release --project Tests/TestFast/dbTest/dbTest2.csproj -- full
+set DBTEST_SCOPE=Full
+```
+
+配置见 `DbTestConfig.cs`；过滤发生在 `TestBase` 发现适配器时（须在 Benchmark 启动前选定）。
+
 ## 测试声明
 
 本测试不代表任何立场和原作者也没任何关系，仅是在研究、学习、优化、测试，对内部项目`myTest`整理过程中形成的测试，有其它测式可下载源码自行添加实现。

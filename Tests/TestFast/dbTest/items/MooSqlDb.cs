@@ -37,9 +37,6 @@ namespace dbTest.items
                     return;
                 }
 
-                // 复测：开启执行模板缓存（HashCache 忙等已修，观察 Allocated 是否回到正常）。
-                SQLBuilder.DefaultUseScriptTemplateCache = true;
-
                 var cash = new DBClientBuilder()
                     .useEntityAnalyser(new BenchmarkEntityAnalyser())
                     .doBuild();
