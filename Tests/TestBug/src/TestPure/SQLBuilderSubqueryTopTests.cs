@@ -153,7 +153,7 @@ namespace mooSQL.Pure.Tests
             var db = DBTest.CreateDialectInstance(DataBaseType.Oracle);
             db.config.versionNumber = 12;
             db.config.version = "12.2";
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             BuildFromSubqueryWithTop(kit);
             var sql = kit.toSelect().toRawSQL();
 
@@ -310,7 +310,7 @@ namespace mooSQL.Pure.Tests
             // 白盒：HasSkipTakePaging 要求 skipNum>0 或 setPage，纯 top 走 TOP 而非 OFFSET/FETCH
             var db = DBTest.CreateDialectInstance(DataBaseType.MSSQL);
             db.config.versionNumber = 13;
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.select("id").from("users").top(5);
             var sql = kit.toSelect().toRawSQL();
 
@@ -324,7 +324,7 @@ namespace mooSQL.Pure.Tests
         {
             var db = DBTest.CreateDialectInstance(DataBaseType.MSSQL);
             db.config.versionNumber = 13;
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.select("id").from("users").orderBy("id").skipTake(10, 5);
             var sql = kit.toSelect().toRawSQL();
 

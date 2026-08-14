@@ -55,7 +55,7 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
     public void SqlBuilder_InsertWithDuplicateUpdate_AppendsSetClause()
     {
         var db = _sqlite.Db;
-        var kit = db.useSQL();
+        var kit = TestDatabaseHelper.UseSQL(db);
         kit.setTable("test_table");
         kit.setI("Id", 1, false);
         kit.setI("Name", "a", false);
@@ -205,8 +205,8 @@ public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
     public void SqlBuilder_SetPage_MatchesSkipTakeOffsetLimit()
     {
         var db = _sqlite.Db;
-        var setPageSql = db.useSQL().setTable(SQLiteTestFixture.UserTable).setPage(10, 3).toSelect().sql;
-        var skipTakeSql = db.useSQL().setTable(SQLiteTestFixture.UserTable).skipTake(20, 10).toSelect().sql;
+        var setPageSql = TestDatabaseHelper.UseSQL(db).setTable(SQLiteTestFixture.UserTable).setPage(10, 3).toSelect().sql;
+        var skipTakeSql = TestDatabaseHelper.UseSQL(db).setTable(SQLiteTestFixture.UserTable).skipTake(20, 10).toSelect().sql;
 
         Assert.Contains("OFFSET 20", setPageSql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("LIMIT 10", setPageSql, StringComparison.OrdinalIgnoreCase);

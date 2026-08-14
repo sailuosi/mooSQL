@@ -9,8 +9,8 @@ using Xunit.Abstractions;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// SQLBuilder（编排门面）vs StepBuilder（内核）同形状构建 + 查询性能对比。
-    /// 场景：3×JOIN + 多 where（无子查询）；含模板缓存关/开两组对照。
+    /// 三方对照：SQLBuilder(关模板缓存) / SQLBuilder(开模板缓存) / StepBuilder(内核基线)。
+    /// 场景：3×JOIN + 8 where（无子查询）。
     /// </summary>
     public class SQLBuilderVsStepBuilderPerfTests : IDisposable
     {
@@ -33,9 +33,6 @@ namespace mooSQL.Pure.Tests
 
         public void Dispose() => _fx.Dispose();
 
-        /// <summary>
-        /// 复杂查询 ×100：关缓存 / 开缓存对照。
-        /// </summary>
         [Fact]
         public void QueryLoop_100_SQLBuilder_Vs_StepBuilder()
         {
@@ -44,30 +41,17 @@ namespace mooSQL.Pure.Tests
             viaFacade.Rows.Count.Should().Be(viaInner.Rows.Count);
             viaFacade.Rows.Count.Should().BeGreaterThan(0, "种子用户 1 应能命中 join 结果");
 
+            var shared = new HashCache();
             for (var i = 0; i < Warmup; i++)
             {
                 _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: false, sharedCache: null);
+                _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: true, sharedCache: shared);
                 _ = RunStepBuilderQuery(IdFor(i));
             }
 
-            var offFacade = MeasureUs(() =>
-            {
-                for (var i = 0; i < Iterations; i++)
-                    _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: false, sharedCache: null);
-            });
-            var offInner = MeasureUs(() =>
-            {
-                for (var i = 0; i < Iterations; i++)
-                    _ = RunStepBuilderQuery(IdFor(i));
-            });
-
-            var shared = new HashCache();
             var hitsAfterWarm = 0;
             var missesAfterWarm = 0;
-            for (var i = 0; i < Warmup; i++)
-                _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: true, sharedCache: shared);
-
-            using (var probe = _fx.Db.useSQL())
+            using (var probe = _fx.Db.usePrepareSQL())
             {
                 probe.setCacheHolder(shared).useScriptTemplateCache(true);
                 ApplyComplex(probe, 1);
@@ -76,30 +60,32 @@ namespace mooSQL.Pure.Tests
                 missesAfterWarm = probe.ScriptTemplateCacheMisses;
             }
 
-            Emit($"[SQLBuilder vs StepBuilder] query templateProbe hits={hitsAfterWarm} misses={missesAfterWarm}");
+            Emit($"[tri] query templateProbe hits={hitsAfterWarm} misses={missesAfterWarm}");
 
-            var onFacade = MeasureUs(() =>
+            // 固定顺序：关缓存 → 开缓存 → Step 基线（各测一次，避免把 Step 拆进两臂）
+            var facadeOff = MeasureUs(() =>
+            {
+                for (var i = 0; i < Iterations; i++)
+                    _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: false, sharedCache: null);
+            });
+            var facadeOn = MeasureUs(() =>
             {
                 for (var i = 0; i < Iterations; i++)
                     _ = RunSqlBuilderQuery(IdFor(i), useTemplateCache: true, sharedCache: shared);
             });
-            var onInner = MeasureUs(() =>
+            var step = MeasureUs(() =>
             {
                 for (var i = 0; i < Iterations; i++)
                     _ = RunStepBuilderQuery(IdFor(i));
             });
 
-            WriteReport("query", offFacade, offInner, onFacade, onInner);
+            WriteTriReport("query", facadeOff, facadeOn, step);
 
-            offFacade.Should().BeLessThan(50_000);
-            offInner.Should().BeLessThan(50_000);
-            onFacade.Should().BeLessThan(50_000);
-            onInner.Should().BeLessThan(50_000);
+            facadeOff.Should().BeLessThan(50_000);
+            facadeOn.Should().BeLessThan(50_000);
+            step.Should().BeLessThan(50_000);
         }
 
-        /// <summary>
-        /// 仅 toSelect：同一复杂形状，关/开缓存对照。
-        /// </summary>
         [Fact]
         public void ToSelectLoop_100_SQLBuilder_Vs_StepBuilder()
         {
@@ -109,33 +95,19 @@ namespace mooSQL.Pure.Tests
             AssertComplexSqlShape(cmdB.sql);
             cmdA.para.Count.Should().BeGreaterThan(0);
             cmdB.para.Count.Should().BeGreaterThan(0);
-
-            Emit($"[SQLBuilder vs StepBuilder] toSelect sampleSql len={cmdA.sql?.Length ?? 0}");
-
-            for (var i = 0; i < Warmup; i++)
-            {
-                _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: false, sharedCache: null);
-                _ = RunStepBuilderToSelect(IdFor(i));
-            }
-
-            var offFacade = MeasureUs(() =>
-            {
-                for (var i = 0; i < Iterations; i++)
-                    _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: false, sharedCache: null);
-            });
-            var offInner = MeasureUs(() =>
-            {
-                for (var i = 0; i < Iterations; i++)
-                    _ = RunStepBuilderToSelect(IdFor(i));
-            });
+            Emit($"[tri] toSelect sampleSql len={cmdA.sql?.Length ?? 0}");
 
             var shared = new HashCache();
             for (var i = 0; i < Warmup; i++)
+            {
+                _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: false, sharedCache: null);
                 _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: true, sharedCache: shared);
+                _ = RunStepBuilderToSelect(IdFor(i));
+            }
 
             var hitsAfterWarm = 0;
             var missesAfterWarm = 0;
-            using (var probe = _fx.Db.useSQL())
+            using (var probe = _fx.Db.usePrepareSQL())
             {
                 probe.setCacheHolder(shared).useScriptTemplateCache(true);
                 ApplyComplex(probe, 1);
@@ -144,25 +116,29 @@ namespace mooSQL.Pure.Tests
                 missesAfterWarm = probe.ScriptTemplateCacheMisses;
             }
 
-            Emit($"[SQLBuilder vs StepBuilder] toSelect templateProbe hits={hitsAfterWarm} misses={missesAfterWarm}");
+            Emit($"[tri] toSelect templateProbe hits={hitsAfterWarm} misses={missesAfterWarm}");
 
-            var onFacade = MeasureUs(() =>
+            var facadeOff = MeasureUs(() =>
+            {
+                for (var i = 0; i < Iterations; i++)
+                    _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: false, sharedCache: null);
+            });
+            var facadeOn = MeasureUs(() =>
             {
                 for (var i = 0; i < Iterations; i++)
                     _ = RunSqlBuilderToSelect(IdFor(i), useTemplateCache: true, sharedCache: shared);
             });
-            var onInner = MeasureUs(() =>
+            var step = MeasureUs(() =>
             {
                 for (var i = 0; i < Iterations; i++)
                     _ = RunStepBuilderToSelect(IdFor(i));
             });
 
-            WriteReport("toSelect", offFacade, offInner, onFacade, onInner);
+            WriteTriReport("toSelect", facadeOff, facadeOn, step);
 
-            offFacade.Should().BeLessThan(50_000);
-            offInner.Should().BeLessThan(50_000);
-            onFacade.Should().BeLessThan(50_000);
-            onInner.Should().BeLessThan(50_000);
+            facadeOff.Should().BeLessThan(50_000);
+            facadeOn.Should().BeLessThan(50_000);
+            step.Should().BeLessThan(50_000);
         }
 
         /// <summary>
@@ -213,20 +189,23 @@ namespace mooSQL.Pure.Tests
             sql.Should().NotContain("select id from", "本轮去掉子查询");
         }
 
-        private void WriteReport(string kind, double offFacade, double offInner, double onFacade, double onInner)
+        /// <summary>
+        /// 三方对照输出：SQLBuilder 关缓存 / 开缓存 / StepBuilder 基线。
+        /// </summary>
+        private void WriteTriReport(string kind, double facadeOff, double facadeOn, double step)
         {
             Emit(
-                $"[SQLBuilder vs StepBuilder] {kind} n={Iterations} complex=3join+8pred " +
-                $"SQLBuilder.meanUs={offFacade:F1} StepBuilder.meanUs={offInner:F1} " +
-                $"Facade/Inner={Ratio(offFacade, offInner):F2}x (templateCache=off)");
+                $"[tri] {kind} n={Iterations} complex=3join+8pred | " +
+                $"SQLBuilder.off={facadeOff:F1}us | SQLBuilder.on={facadeOn:F1}us | StepBuilder={step:F1}us");
             Emit(
-                $"[SQLBuilder vs StepBuilder] {kind} n={Iterations} complex=3join+8pred " +
-                $"SQLBuilder.meanUs={onFacade:F1} StepBuilder.meanUs={onInner:F1} " +
-                $"Facade/Inner={Ratio(onFacade, onInner):F2}x (templateCache=on)");
+                $"[tri] {kind} ratios | " +
+                $"FacadeOff/Step={Ratio(facadeOff, step):F2}x | " +
+                $"FacadeOn/Step={Ratio(facadeOn, step):F2}x | " +
+                $"FacadeOn/FacadeOff={Ratio(facadeOn, facadeOff):F2}x");
             Emit(
-                $"[SQLBuilder vs StepBuilder] {kind} cacheDelta " +
-                $"Facade.on/off={Ratio(onFacade, offFacade):F2}x " +
-                $"Facade.on/Step={Ratio(onFacade, onInner):F2}x");
+                $"[tri] {kind} vsStep | " +
+                $"off {(facadeOff <= step ? "≤" : ">")} Step by {Math.Abs(facadeOff - step):F1}us | " +
+                $"on {(facadeOn <= step ? "≤" : ">")} Step by {Math.Abs(facadeOn - step):F1}us");
         }
 
         private void Emit(string line)
@@ -245,12 +224,11 @@ namespace mooSQL.Pure.Tests
             return sw.Elapsed.TotalMilliseconds * 1000.0 / Iterations;
         }
 
-        /// <summary>仅 1/2：is_active=1 且有订单；3 会空结果但仍测构建/执行路径。</summary>
         private static int IdFor(int i) => (i % 2) + 1;
 
         private System.Data.DataTable RunSqlBuilderQuery(int id, bool useTemplateCache, HashCache? sharedCache)
         {
-            using var kit = _fx.Db.useSQL();
+            using var kit = _fx.Db.usePrepareSQL();
             if (sharedCache != null)
                 kit.setCacheHolder(sharedCache);
             kit.useScriptTemplateCache(useTemplateCache);
@@ -268,7 +246,7 @@ namespace mooSQL.Pure.Tests
 
         private SQLCmd RunSqlBuilderToSelect(int id, bool useTemplateCache, HashCache? sharedCache)
         {
-            using var kit = _fx.Db.useSQL();
+            using var kit = _fx.Db.usePrepareSQL();
             if (sharedCache != null)
                 kit.setCacheHolder(sharedCache);
             kit.useScriptTemplateCache(useTemplateCache);

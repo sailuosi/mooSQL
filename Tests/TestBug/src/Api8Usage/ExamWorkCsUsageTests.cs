@@ -1,5 +1,6 @@
 using FluentAssertions;
 using mooSQL.data;
+using mooSQL.Pure.Tests.TestHelpers;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,10 +27,10 @@ namespace mooSQL.Pure.Tests.Api8Usage
         const string FixedAt = "2026-01-01 00:00:00";
 
         /// <summary>对标 exam 连接位（api8 的 useSQLExam / Position 1）→ MSSQL 方言产物。</summary>
-        static SQLBuilder ExamKit() => DBTest.useMSSQLDB().useSQL();
+        static SQLBuilder ExamKit() => TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
 
         /// <summary>对标 exam log 连接位写入形态（useSQLExamLog）。</summary>
-        static SQLBuilder ExamLogKit() => DBTest.useMSSQLDB().useSQL();
+        static SQLBuilder ExamLogKit() => TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
 
         /// <summary>
         /// 对标 <c>ExamSQLBuilderExtensions.set</c>：ClientUserInfo → SYS_* 系统列。

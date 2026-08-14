@@ -5,6 +5,7 @@ using HHNY.NET.Core.MooSQL;
 using mooSQL.data;
 using mooSQL.linq;
 using mooSQL.linq.core;
+using mooSQL.Pure.Tests.TestHelpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,7 +108,7 @@ public partial class DBTest
     {
 
         var db = GetDBInstance(position);
-        return db.useSQL();
+        return TestDatabaseHelper.UseSQL(db);
     }
 
     /// <summary>指定连接位不可用时，依赖真实库的集成测试应直接 return。</summary>
@@ -125,8 +126,8 @@ public partial class DBTest
         }
     }
 
-    /// <summary>无参：走执行库（useRunDB）取 SQLBuilder。</summary>
-    public static SQLBuilder useSQL() => useRunDB().useSQL();
+    /// <summary>无参：走执行库（useRunDB）取 SQLBuilder（经测试 Kind 切换）。</summary>
+    public static SQLBuilder useSQL() => TestDatabaseHelper.UseSQL(useRunDB());
 
 
     public static DbBus<T> useBus<T>(int position)

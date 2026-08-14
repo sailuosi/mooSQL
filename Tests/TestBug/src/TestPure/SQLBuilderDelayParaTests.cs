@@ -10,7 +10,7 @@ namespace mooSQL.Pure.Tests
     /// <summary>IDelayPara / PlaceHolder / Paras.ResolveDelayParas。</summary>
     public class SQLBuilderDelayParaTests
     {
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereInGuid_RegistersDelayPara_AndResolveReplacesPlaceholder()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -32,7 +32,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().NotContain("@@{{moo.lp:");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereInGuid_Empty_ResolvesToOneEqualsTwo()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -44,7 +44,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().Contain("1=2");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereFormat_Resolve_WritesParas()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -60,7 +60,7 @@ namespace mooSQL.Pure.Tests
             cmd.para.Count.Should().BeGreaterThan(beforeCount);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ResolveDelayParas_IsIdempotent()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -72,16 +72,16 @@ namespace mooSQL.Pure.Tests
             twice.Should().NotContain("@@{{moo.lp:");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_WhereInGuid_EmptyVsNonEmpty_Different()
         {
-            var empty = new SQLBuilder().select("id").from("t").whereInGuid("oid", new List<Guid>());
-            var filled = new SQLBuilder().select("id").from("t")
+            var empty = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").whereInGuid("oid", new List<Guid>());
+            var filled = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t")
                 .whereInGuid("oid", new[] { Guid.NewGuid() });
             empty.OrchestrationHash.Should().NotBe(filled.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereIn_RegistersDelayPara_AndResolveBuildsIn()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -98,7 +98,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().NotContain("@@{{moo.lp:");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereIn_Empty_ResolvesToOneEqualsTwo()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -108,7 +108,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().Contain("1=2");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereNotIn_Empty_ResolvesToOneEqualsOne()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -119,7 +119,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().NotContain("1=2");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereNotIn_Resolve_ContainsNotIn()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();
@@ -130,7 +130,7 @@ namespace mooSQL.Pure.Tests
             resolved.Should().Contain("9");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void SelectFromJoinFormat_RegistersDelayParas_AndResolveUsesFormatSQL()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();

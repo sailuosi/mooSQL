@@ -254,7 +254,7 @@ namespace mooSQL.Pure.Tests
         {
             var repo = _fx.Db.useRichRepo<SQLiteTestProduct>();
             var id = 9201;
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.ProductTable).where("id", id).doDelete();
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.ProductTable).where("id", id).doDelete();
             repo.Insert(new SQLiteTestProduct
             {
                 Id = id,
@@ -356,7 +356,7 @@ namespace mooSQL.Pure.Tests
             var db = DBTest.useMySQLDB();
             db.dialect.Option.ProviderFlags.IsInsertOrUpdateSupported.Should().BeTrue();
 
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.setTable("t_user")
                 .setI("id", 1)
                 .setI("email", "a@x.com")
@@ -372,7 +372,7 @@ namespace mooSQL.Pure.Tests
         public void Upsert_MssqlMerge_BuildsMergeSql()
         {
             var db = DBTest.useMSSQLDB();
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             var cmd = kit.mergeInto("t_user", "t")
                 .from("s", s => s.select("@id AS id, @email AS email"))
                 .on("t.id=s.id")
@@ -389,7 +389,7 @@ namespace mooSQL.Pure.Tests
         public void UseTrans_CommitAndRollback()
         {
             var id = 9100;
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable).where("id", id).doDelete();
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable).where("id", id).doDelete();
 
             _fx.Db.useTrans(work =>
             {

@@ -123,7 +123,7 @@ namespace mooSQL.Pure.Tests
             cmd.sql.Should().Contain(">");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void WhereIn_ShouldBuildCorrectSQL()
         {
             // Act

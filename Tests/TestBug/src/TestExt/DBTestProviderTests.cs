@@ -1,3 +1,4 @@
+using mooSQL.Pure.Tests.TestHelpers;
 using FluentAssertions;
 using mooSQL.data;
 using Xunit;
@@ -37,7 +38,7 @@ public class DBTestProviderTests
     [Fact]
     public void DialectAlias_CanBuildSelectSql()
     {
-        var sql = DBTest.useMySQLDB().useSQL()
+        var sql = TestDatabaseHelper.UseSQL(DBTest.useMySQLDB())
             .select("id").from("t").top(1)
             .toSelect().toRawSQL();
 

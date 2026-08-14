@@ -1,3 +1,4 @@
+using mooSQL.Pure.Tests.TestHelpers;
 // 基础功能说明：
 
 using HHNY.NET.Application.Entity;
@@ -17,7 +18,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void selectTop1() {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var sql = kit.select("a")
             .from("t")
             .top(1)
@@ -30,7 +31,7 @@ public class TestSQLBuilderSelect
     public void selectWith()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var sql = kit.withSelect("t1", "select a from t")
             .select("a")
             .from("t1")
@@ -44,7 +45,7 @@ public class TestSQLBuilderSelect
     public void selectWith2()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var sql = kit
             .withSelect("t1", "select a from t")
             .withSelect("t2", (t) => { 
@@ -64,7 +65,7 @@ public class TestSQLBuilderSelect
     public void selectFromSub1()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var cmd = kit
             .select("a")
             .from("t1", (t) => { 
@@ -81,7 +82,7 @@ public class TestSQLBuilderSelect
     [Fact]
     public void selectJoinSub1()
     {
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var cmd = kit
             .select("a")
             .from("tableA as a")
@@ -99,7 +100,7 @@ public class TestSQLBuilderSelect
     public void selectUnion1()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var sql = kit
             .select("a")
             .from("t1")
@@ -118,7 +119,7 @@ public class TestSQLBuilderSelect
     public void selectUnion2()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var sql = kit
             .select("a")
             .from("t1")
@@ -138,7 +139,7 @@ public class TestSQLBuilderSelect
     public void selectWhereSub1()
     {
 
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var cmd = kit
             .select("a.Name")
             .from("tableA as a")
@@ -242,7 +243,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var list = kit.findList<HHDutyItem>((c,h)=>c.where(()=>h.Di_Idx,0));
 
         Assert.NotNull(list);
@@ -252,7 +253,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var list = kit.findListByIds<HHDutyItem>("0001,0002");
         var list2 = kit.useRepo<HHDutyItem>().GetByIds("0001","0002");
         Assert.NotNull(list);
@@ -297,7 +298,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var list = kit.findRow<HHDutyItem>((c, h) => c.where(() => h.HH_DutyItemOID, "0001"));
 
         Assert.NotNull(list);
@@ -307,7 +308,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findField((SQLClip c, HHDutyItem h) => c.select(() =>new { h.HH_DutyItemOID }));
 
@@ -318,7 +319,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findFieldValue(oid,(SQLClip c,HHDutyItem h) => c.select(() => h.HH_DutyItemOID));
 
@@ -330,7 +331,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findFieldValue<HHDutyItem,string>(oid, (c,h) => c.select(() => h.HH_DutyItemOID));
 
@@ -341,7 +342,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findFieldValue(oid,(HHDutyItem h) => h.Di_Note);
 
@@ -352,7 +353,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findFieldValue<HHDutyItem,string>(oid, (h) => h.Di_Note);
 
@@ -364,7 +365,7 @@ public class TestSQLBuilderSelect
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var oid = Guid.Empty;
         var val = kit.findFieldValues((SQLClip c, HHDutyItem h) => {
             return c.where(()=> h.HH_DutyItemOID, oid.ToString())

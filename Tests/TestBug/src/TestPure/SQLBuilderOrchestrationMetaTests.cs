@@ -1,5 +1,6 @@
 using FluentAssertions;
 using mooSQL.data;
+using mooSQL.Pure.Tests.TestHelpers;
 using System.Collections.Generic;
 using Xunit;
 
@@ -10,10 +11,10 @@ namespace mooSQL.Pure.Tests
     /// </summary>
     public class SQLBuilderOrchestrationMetaTests
     {
-        [Fact]
+        [PrepareOnlyFact]
         public void Counts_LazyScan_ReflectStepKinds()
         {
-            var b = new SQLBuilder();
+            var b = TestDatabaseHelper.CreateSQLBuilder();
             b.select("id, name")
                 .from("users")
                 .where("status", 1)
@@ -40,10 +41,10 @@ namespace mooSQL.Pure.Tests
             b.ColumnCount.Should().Be(0);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ClearWhere_LazyCount_ResetsWhere()
         {
-            var b = new SQLBuilder();
+            var b = TestDatabaseHelper.CreateSQLBuilder();
             b.select("id").from("t").where("a", 1);
             var h1 = b.OrchestrationHash;
             b.WhereConditionCount.Should().Be(1);
@@ -53,56 +54,56 @@ namespace mooSQL.Pure.Tests
             b.OrchestrationHash.Should().NotBe(h1);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_SeedsWithParaRule_ThenSteps()
         {
-            var a = new SQLBuilder().select("id").from("t").where("age", 18, ">=");
+            var a = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("age", 18, ">=");
             var h1 = a.OrchestrationHash;
             a.paraRule = "all";
             a.OrchestrationHash.Should().NotBe(h1);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_SameSteps_DifferentParamValues_SameHash()
         {
-            var a = new SQLBuilder().select("id").from("t").where("age", 18, ">=");
-            var b = new SQLBuilder().select("id").from("t").where("age", 99, ">=");
+            var a = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("age", 18, ">=");
+            var b = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("age", 99, ">=");
             a.OrchestrationHash.Should().Be(b.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_DifferentOp_DifferentHash()
         {
-            var a = new SQLBuilder().select("id").from("t").where("age", 18, ">=");
-            var b = new SQLBuilder().select("id").from("t").where("age", 18, "<");
+            var a = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("age", 18, ">=");
+            var b = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("age", 18, "<");
             a.OrchestrationHash.Should().NotBe(b.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_WhereIn_EmptyVsNonEmpty_DifferentHash()
         {
-            var empty = new SQLBuilder().select("id").from("t").whereIn("id", new List<int>());
-            var nonempty = new SQLBuilder().select("id").from("t").whereIn("id", new List<int> { 1, 2 });
+            var empty = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").whereIn("id", new List<int>());
+            var nonempty = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").whereIn("id", new List<int> { 1, 2 });
             empty.OrchestrationHash.Should().NotBe(nonempty.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Hash_WhereIn_DifferentValuesSameNonEmpty_SameHash()
         {
-            var a = new SQLBuilder().select("id").from("t").whereIn("id", new[] { 1, 2 });
-            var b = new SQLBuilder().select("id").from("t").whereIn("id", new[] { 9, 8, 7 });
+            var a = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").whereIn("id", new[] { 1, 2 });
+            var b = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").whereIn("id", new[] { 9, 8, 7 });
             a.OrchestrationHash.Should().Be(b.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void IfsFalse_Where_HasSqlZero_NextWhereUnaffected()
         {
-            var gated = new SQLBuilder()
+            var gated = TestDatabaseHelper.CreateSQLBuilder()
                 .select("id").from("t")
                 .ifs(false).where("a", 1)
                 .where("b", 2);
 
-            var open = new SQLBuilder()
+            var open = TestDatabaseHelper.CreateSQLBuilder()
                 .select("id").from("t")
                 .where("b", 2);
 
@@ -110,31 +111,31 @@ namespace mooSQL.Pure.Tests
             gated.OrchestrationHash.Should().NotBe(open.OrchestrationHash);
 
             // empty val under notEmpty → same HasSql 0 as ifs-gated empty would; focus: ifs consumes
-            var onlyIfsSkip = new SQLBuilder().select("id").from("t").ifs(false).where("a", 1);
-            var onlySelectFrom = new SQLBuilder().select("id").from("t");
+            var onlyIfsSkip = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").ifs(false).where("a", 1);
+            var onlySelectFrom = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t");
             // both where skipped for SQL emit, but tape still has Ifs+Where steps → different hash
             onlyIfsSkip.OrchestrationHash.Should().NotBe(onlySelectFrom.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ParaRule_NotEmpty_EmptyString_Where_DifferentFromNonEmpty()
         {
-            var empty = new SQLBuilder().select("id").from("t").where("name", "");
-            var filled = new SQLBuilder().select("id").from("t").where("name", "x");
+            var empty = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("name", "");
+            var filled = TestDatabaseHelper.CreateSQLBuilder().select("id").from("t").where("name", "x");
             empty.OrchestrationHash.Should().NotBe(filled.OrchestrationHash);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Clear_ResetsCountsAndGates()
         {
-            var b = new SQLBuilder().select("a").from("t").where("x", 1);
+            var b = TestDatabaseHelper.CreateSQLBuilder().select("a").from("t").where("x", 1);
             b.ifs(false);
             b.paraRule = "all";
             b.clear();
             b.SelectFragmentCount.Should().Be(0);
             b.WhereConditionCount.Should().Be(0);
             b.paraRule.Should().Be("notEmpty");
-            b.OrchestrationHash.Should().Be(new SQLBuilder().OrchestrationHash);
+            b.OrchestrationHash.Should().Be(TestDatabaseHelper.CreateSQLBuilder().OrchestrationHash);
         }
     }
 }

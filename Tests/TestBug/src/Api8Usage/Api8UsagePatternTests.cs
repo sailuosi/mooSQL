@@ -14,7 +14,7 @@ namespace mooSQL.Pure.Tests.Api8Usage
     public class Api8UsagePatternTests
     {
         static SQLBuilder Kit() => DBTest.useSQL(0);
-        static SQLBuilder MssqlKit() => DBTest.useMSSQLDB().useSQL();
+        static SQLBuilder MssqlKit() => TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
 
         /// <summary>
         /// 完整 SQL 产出：EnsureLiveParasResolved + 参数名长度降序展开

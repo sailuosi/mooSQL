@@ -25,7 +25,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void BasicQuery_SelectFromTable_ShouldReturnDataTable()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("id")
                 .select("name")

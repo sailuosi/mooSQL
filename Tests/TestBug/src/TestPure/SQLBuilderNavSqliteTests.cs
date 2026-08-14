@@ -40,7 +40,7 @@ namespace mooSQL.Pure.Tests
 
         List<SQLiteTestUser> LoadUsers(params int[] ids)
         {
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             return kit.select("*")
                 .from(SQLiteTestFixture.UserTable)
                 .whereIn("id", ids)
@@ -56,7 +56,7 @@ namespace mooSQL.Pure.Tests
             foreach (var u in users)
                 u.Orders = new List<SQLiteTestOrder>();
 
-            using (var kit = _fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(_fx.Db))
             {
                 var guide = kit.includeHis(
                     users,
@@ -82,7 +82,7 @@ namespace mooSQL.Pure.Tests
             var users = LoadUsers(1);
             users[0].Orders = new List<SQLiteTestOrder>();
 
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             kit.includeHis(
                 users,
                 u => u.Orders!,
@@ -99,7 +99,7 @@ namespace mooSQL.Pure.Tests
             var users = LoadUsers(1);
             users[0].Orders = new List<SQLiteTestOrder>();
 
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             kit.includeHis(
                 users,
                 u => u.Orders!,
@@ -118,7 +118,7 @@ namespace mooSQL.Pure.Tests
             var users = LoadUsers(1);
             users[0].Orders.Should().BeNull();
 
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             var guide = kit.includeNav(users, u => u.Orders!);
 
             users[0].Orders.Should().NotBeNull();
@@ -132,7 +132,7 @@ namespace mooSQL.Pure.Tests
         {
             var users = LoadUsers(1, 2, 3);
             // id=3 无订单
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             kit.includeNav(users, u => u.Orders!);
 
             users.Single(u => u.Id == 1).Orders.Should().HaveCount(2);
@@ -145,7 +145,7 @@ namespace mooSQL.Pure.Tests
         public void IncludeNav_WithChildFilter_AppliesExtraWhere()
         {
             var users = LoadUsers(1, 2);
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             kit.includeNav(users, u => u.Orders!, child => child.where("status", 1));
 
             users.Single(u => u.Id == 1).Orders.Should().HaveCount(1);
@@ -157,7 +157,7 @@ namespace mooSQL.Pure.Tests
         public void IncludeHis_EmptyMainList_DoesNotThrow()
         {
             var users = new List<SQLiteTestUser>();
-            using var kit = _fx.Db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             var guide = kit.includeHis(
                 users,
                 u => u.Orders!,
@@ -174,7 +174,7 @@ namespace mooSQL.Pure.Tests
         public void IncludeNav_QueryViaEntitySelectFrom_Works()
         {
             List<SQLiteTestUser> users;
-            using (var kit = _fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(_fx.Db))
             {
                 var en = _fx.Db.client.EntityCash.getEntityInfo<SQLiteTestUser>();
                 _fx.Db.client.ClientFactory.getEntityTranslator().BuildSelectFrom(kit, en);
@@ -182,7 +182,7 @@ namespace mooSQL.Pure.Tests
             }
 
             users.Should().HaveCount(2);
-            using (var kit = _fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(_fx.Db))
             {
                 kit.includeNav(users, u => u.Orders!);
             }

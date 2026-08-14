@@ -126,28 +126,28 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Exist_WithMatchingRow_ShouldReturnTrue()
         {
-            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", 1).exist()
+            TestDatabaseHelper.UseSQL(_fx.Db).from(SQLiteTestFixture.UserTable).where("id", 1).exist()
                 .Should().BeTrue();
         }
 
         [Fact]
         public void Exist_WithNoMatchingRow_ShouldReturnFalse()
         {
-            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", 99999).exist()
+            TestDatabaseHelper.UseSQL(_fx.Db).from(SQLiteTestFixture.UserTable).where("id", 99999).exist()
                 .Should().BeFalse();
         }
 
         [Fact]
         public void Exist_ShouldAgreeWithCountGreaterThanZero()
         {
-            var kit = _fx.Db.useSQL().from(SQLiteTestFixture.ProductTable).where("category", "Electronics");
+            var kit = TestDatabaseHelper.UseSQL(_fx.Db).from(SQLiteTestFixture.ProductTable).where("category", "Electronics");
             kit.exist().Should().Be(kit.count() > 0);
         }
 
         [Fact]
         public void Exist_GeneratedSql_ShouldContainExists()
         {
-            var sql = _fx.Db.useSQL()
+            var sql = TestDatabaseHelper.UseSQL(_fx.Db)
                 .from(SQLiteTestFixture.UserTable)
                 .where("id", 1)
                 .toSelectExist()

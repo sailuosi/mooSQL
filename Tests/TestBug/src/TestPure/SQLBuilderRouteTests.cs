@@ -20,8 +20,8 @@ namespace mooSQL.Pure.Tests
                 .master(0)
                 .addSlave(0, s => s.ReadReplica = true));
 
-            var kitA = db.useSQL().useReadReplica();
-            var kitB = db.useSQL();
+            var kitA = TestDatabaseHelper.UseSQL(db).useReadReplica();
+            var kitB = TestDatabaseHelper.UseSQL(db);
 
             kitA.RouteContext.Should().NotBeNull();
             kitA.RouteContext.PreferReadReplica.Should().BeTrue();
@@ -41,7 +41,7 @@ namespace mooSQL.Pure.Tests
             client.CashHolder.addDataBase(0, db.config);
             client.CashHolder.addDataBase(3, slave.config);
 
-            var kit = db.useSQL().setPosition(0).useTarget(3);
+            var kit = TestDatabaseHelper.UseSQL(db).setPosition(0).useTarget(3);
             kit.RouteContext.TargetPosition.Should().Be(3);
         }
 
@@ -49,7 +49,7 @@ namespace mooSQL.Pure.Tests
         public void copy_inherits_route_context()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            var kit = db.useSQL().useFailover(FailoverMode.OnNextConnect);
+            var kit = TestDatabaseHelper.UseSQL(db).useFailover(FailoverMode.OnNextConnect);
             var copy = kit.copy();
             copy.RouteContext.Should().NotBeNull();
             copy.RouteContext.FailoverOverride.Should().Be(FailoverMode.OnNextConnect);
@@ -59,7 +59,7 @@ namespace mooSQL.Pure.Tests
         public void resetRoute_clears_context()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            var kit = db.useSQL().useMaster().resetRoute();
+            var kit = TestDatabaseHelper.UseSQL(db).useMaster().resetRoute();
             kit.RouteContext.Should().BeNull();
         }
     }

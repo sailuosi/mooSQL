@@ -42,37 +42,37 @@ namespace mooSQL.Pure.Tests
                 .doCreateTable();
             _fx.TableExists(table).Should().BeTrue();
 
-            var insertRows = _fx.Db.useSQL().setTable(table)
+            var insertRows = TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
                 .set("id", 9001)
                 .set("title", "lifecycle-item")
                 .doInsert();
             insertRows.Should().Be(1);
 
-            var dt = _fx.Db.useSQL().setTable(table)
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
                 .select("id").select("title")
                 .where("id", 9001)
                 .query();
             dt.Rows.Count.Should().Be(1);
             dt.Rows[0]["title"].ToString().Should().Be("lifecycle-item");
 
-            var updated = _fx.Db.useSQL().setTable(table)
+            var updated = TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
                 .set("title", "lifecycle-updated")
                 .where("id", 9001)
                 .doUpdate();
             updated.Should().Be(1);
 
-            var title = _fx.Db.useSQL().setTable(table)
+            var title = TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
                 .select("title")
                 .where("id", 9001)
                 .queryScalar<string>();
             title.Should().Be("lifecycle-updated");
 
-            var deleted = _fx.Db.useSQL().setTable(table)
+            var deleted = TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
                 .where("id", 9001)
                 .doDelete();
             deleted.Should().Be(1);
 
-            _fx.Db.useSQL().setTable(table).count().Should().Be(0);
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table).count().Should().Be(0);
 
             ddl.clear().setTable(table).doDropTable();
             _fx.TableExists(table).Should().BeFalse();
@@ -130,7 +130,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SelectAll_ShouldReturnRows()
         {
-            var count = _fx.Db.useSQL()
+            var count = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .count();
             count.Should().Be(3);
@@ -139,7 +139,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SelectWithWhere_ShouldFilter()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("name")
                 .where("is_active", 1)
@@ -151,7 +151,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SelectWithInAndLike_ShouldFilter()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("name")
                 .whereIn("id", new object[] { 1, 3 })
@@ -163,7 +163,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SelectWithOrderByAndTop_ShouldLimit()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("name")
                 .orderBy("age desc")
@@ -175,7 +175,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SelectWithGroupBy_ShouldAggregate()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.ProductTable)
                 .select("category, count(*) as cnt")
                 .whereIn("category", new object[] { "Electronics", "Furniture" })
@@ -187,7 +187,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_JoinQuery_ShouldReturnJoinedData()
         {
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .select("u.name")
                 .select("o.order_no")
                 .select("o.amount")
@@ -201,7 +201,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_QueryGeneric_ShouldMaterializeEntities()
         {
-            var users = _fx.Db.useSQL()
+            var users = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("*")
                 .where("id", 1)
@@ -214,13 +214,13 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_QueryScalarAndCount_ShouldReturnValues()
         {
-            _fx.Db.useSQL()
+            TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.OrderTable)
                 .where("user_id", 1)
                 .count()
                 .Should().Be(2);
 
-            _fx.Db.useSQL()
+            TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.OrderTable)
                 .select("sum(amount)")
                 .where("user_id", 1)
@@ -231,7 +231,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_SetPage_ShouldReturnPagedResults()
         {
-            var cmd = _fx.Db.useSQL()
+            var cmd = TestDatabaseHelper.UseSQL(_fx.Db)
                 .setTable(SQLiteTestFixture.UserTable)
                 .select("id").select("name")
                 .orderBy("id")
@@ -250,7 +250,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_DoInsert_DoUpdate_DoDelete_ShouldModifyData()
         {
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .set("id", 100)
                 .set("name", "TempUser")
                 .set("email", "temp@test.com")
@@ -259,19 +259,19 @@ namespace mooSQL.Pure.Tests
                 .doInsert()
                 .Should().Be(1);
 
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .set("name", "TempUserUpdated")
                 .where("id", 100)
                 .doUpdate()
                 .Should().Be(1);
 
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .select("name")
                 .where("id", 100)
                 .queryScalar<string>()
                 .Should().Be("TempUserUpdated");
 
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .where("id", 100)
                 .doDelete()
                 .Should().Be(1);
@@ -290,18 +290,18 @@ namespace mooSQL.Pure.Tests
                 IsActive = true
             };
 
-            _fx.Db.useSQL().insert(user).Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).insert(user).Should().Be(1);
 
             user.Name = "EntityUserUpdated";
-            _fx.Db.useSQL().update(user).Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).update(user).Should().Be(1);
 
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .select("name")
                 .where("id", 200)
                 .queryScalar<string>()
                 .Should().Be("EntityUserUpdated");
 
-            _fx.Db.useSQL().delete(user).Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).delete(user).Should().Be(1);
         }
 
         #endregion
@@ -337,7 +337,7 @@ namespace mooSQL.Pure.Tests
         public void SQLClip_JoinQuery_ShouldBuildAndExecuteJoin()
         {
             // 变量名 order 是 SQL 保留字，Clip 默认别名会导致执行失败；此处用 SQLBuilder 验证 JOIN 执行
-            var dt = _fx.Db.useSQL()
+            var dt = TestDatabaseHelper.UseSQL(_fx.Db)
                 .select("u.name")
                 .select("ord.order_no")
                 .from($"{SQLiteTestFixture.UserTable} u")
@@ -359,7 +359,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLClip_DoUpdateAndDoDelete_ShouldModifyData()
         {
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .set("id", 300).set("name", "ClipTarget").set("email", "clip@test.com")
                 .set("age", 25).set("is_active", 1)
                 .doInsert();
@@ -394,12 +394,12 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SQLBuilder_Exist_ShouldReturnBoolWithoutFullCount()
         {
-            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", 1).exist()
+            TestDatabaseHelper.UseSQL(_fx.Db).from(SQLiteTestFixture.UserTable).where("id", 1).exist()
                 .Should().BeTrue();
-            _fx.Db.useSQL().from(SQLiteTestFixture.UserTable).where("id", -1).exist()
+            TestDatabaseHelper.UseSQL(_fx.Db).from(SQLiteTestFixture.UserTable).where("id", -1).exist()
                 .Should().BeFalse();
 
-            var sql = _fx.Db.useSQL()
+            var sql = TestDatabaseHelper.UseSQL(_fx.Db)
                 .from(SQLiteTestFixture.UserTable)
                 .where("is_active", 1)
                 .toSelectExist()
@@ -454,7 +454,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Repository_DeleteByIdAndCount_ShouldWork()
         {
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.UserTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.UserTable)
                 .set("id", 500).set("name", "ToDelete").set("email", "del@test.com")
                 .set("age", 20).set("is_active", 0)
                 .doInsert();
@@ -519,7 +519,7 @@ namespace mooSQL.Pure.Tests
             var committed = uow.Commit();
             committed.Should().BeGreaterThan(0);
 
-            _fx.Db.useSQL().setTable(SQLiteTestFixture.ProductTable)
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(SQLiteTestFixture.ProductTable)
                 .where("category", "UowBatch")
                 .count()
                 .Should().Be(2);

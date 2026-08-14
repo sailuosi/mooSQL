@@ -56,7 +56,7 @@ namespace mooSQL.Pure.Tests
         public void SetCache_Int_EnablesResultCacheWithoutUserKey()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.setCache(60);
             kit.Inner.resultCacheEnabled.Should().BeTrue();
             kit.Inner.HasUserResultCacheKey.Should().BeFalse();
@@ -74,7 +74,7 @@ namespace mooSQL.Pure.Tests
             DataTable first;
             DataTable second;
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared)
                     .configClear(CleanWay.Never)
@@ -86,7 +86,7 @@ namespace mooSQL.Pure.Tests
 
             shared.GetKeys().Should().Contain(k => k != null && k.Contains("users:all"));
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared)
                     .configClear(CleanWay.Never)
@@ -110,7 +110,7 @@ namespace mooSQL.Pure.Tests
             var shared = new HashCache();
             string keyAfterFirst = null;
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared)
                     .useCachePrefix("ut")
@@ -126,7 +126,7 @@ namespace mooSQL.Pure.Tests
 
             keyAfterFirst.Should().NotBeNullOrEmpty();
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared)
                     .useCachePrefix("ut")
@@ -150,7 +150,7 @@ namespace mooSQL.Pure.Tests
 
             var shared = new HashCache();
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared).configClear(CleanWay.Never).setCache(60)
                     .select("id").from(SQLiteTestFixture.UserTable).where("is_active", 1);
@@ -160,7 +160,7 @@ namespace mooSQL.Pure.Tests
             var keys1 = shared.GetKeys().Where(k => k != null && k.StartsWith("RC:")).ToList();
             keys1.Should().NotBeEmpty();
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.setCacheHolder(shared).configClear(CleanWay.Never).setCache(60)
                     .select("id").from(SQLiteTestFixture.UserTable).where("is_active", 0);

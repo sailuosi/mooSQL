@@ -31,7 +31,7 @@ namespace mooSQL.data
         public BatchSQL newBatchKit(int position)
         {
 
-            var builder = new SQLBuilder();
+            var builder = this.client.ClientFactory.useSQL(this);
             builder.setDBInstance(this);
             var res = new BatchSQL(builder);
             return res;

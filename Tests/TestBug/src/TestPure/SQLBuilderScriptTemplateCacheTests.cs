@@ -15,13 +15,13 @@ namespace mooSQL.Pure.Tests
         private static readonly string S0 = StaticSlotMarks.FormatSetName("", "0", 0);
         private static readonly string S1 = StaticSlotMarks.FormatSetName("", "0", 1);
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_SecondBuilder_HitsSharedCacheHolder_RebindsStaticValues()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").where("age", 18);
             var cmdA = a.toSelect();
@@ -31,7 +31,7 @@ namespace mooSQL.Pure.Tests
             cmdA.sql.Should().Contain("@" + W0);
             cmdA.para.GetParameter(W0).val.Should().Be(18);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").where("age", 99);
             var cmdB = b.toSelect();
@@ -42,13 +42,13 @@ namespace mooSQL.Pure.Tests
             cmdB.para.GetParameter(W0).val.Should().Be(99);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_ExplicitlyDisabled_DoesNotTouchCache()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             // TEMP: 生产默认曾为关；现临时默认开，本用例显式关闭
             a.setCacheHolder(shared).useScriptTemplateCache(false);
             a.select("id").from("t").where("age", 1);
@@ -59,11 +59,11 @@ namespace mooSQL.Pure.Tests
             shared.GetKeys().Should().NotContain(k => k != null && k.StartsWith(ScriptCacheKey.Prefix));
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_SameBuilderTwice_SecondIsHit()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.setCacheHolder(new HashCache()).useScriptTemplateCache();
 
             kit.select("id").from("t").where("age", 1);
@@ -76,13 +76,13 @@ namespace mooSQL.Pure.Tests
             cmd2.para.GetParameter(W0).val.Should().Be(1);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_WhereCompare_HitsAndRebinds()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").whereGreaterThan("age", 18).whereNotEqual("flag", 0);
             var cmdA = a.toSelect();
@@ -90,7 +90,7 @@ namespace mooSQL.Pure.Tests
             cmdA.sql.Should().Contain("@" + W0);
             cmdA.sql.Should().Contain("@" + W1);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").whereGreaterThan("age", 30).whereNotEqual("flag", 1);
             var cmdB = b.toSelect();
@@ -100,13 +100,13 @@ namespace mooSQL.Pure.Tests
             cmdB.para.GetParameter(W1).val.Should().Be(1);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_StaticPlusWhereIn_Hits_ShellSame_ResolveDiffers()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").where("age", 18).whereIn("id", new[] { 1, 2 });
             var cmdA = a.toSelect();
@@ -118,7 +118,7 @@ namespace mooSQL.Pure.Tests
             resolvedA.Should().Contain("1");
             resolvedA.Should().Contain("2");
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").where("age", 99).whereIn("id", new[] { 9 });
             var cmdB = b.toSelect();
@@ -131,20 +131,20 @@ namespace mooSQL.Pure.Tests
             resolvedB.Should().NotBe(resolvedA);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_WhereFormatOnly_HitsAndRebinds()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").whereFormat("age > {0}", 18);
             var cmdA = a.toSelect();
             a.ScriptTemplateCacheMisses.Should().Be(1);
             cmdA.sql.Should().Contain("@@{{moo.lp:0}}");
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").whereFormat("age > {0}", 40);
             var cmdB = b.toSelect();
@@ -155,19 +155,19 @@ namespace mooSQL.Pure.Tests
             cmdB.para.Count.Should().BeGreaterThan(0);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_WhereIn_EmptyVsNonEmpty_DifferentKeys_NoCrossHit()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").whereIn("id", new int[0]);
             a.toSelect();
             a.ScriptTemplateCacheMisses.Should().Be(1);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").whereIn("id", new[] { 1 });
             b.toSelect();
@@ -176,19 +176,19 @@ namespace mooSQL.Pure.Tests
             b.ScriptTemplateCacheMisses.Should().Be(1);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void Query_UsesFacadeToSelect_HitsSharedTemplateCache()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.select("id").from("t").where("age", 18);
             a.toSelect();
             a.ScriptTemplateCacheMisses.Should().Be(1);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.select("id").from("t").where("age", 99);
             // query → facade.toSelect 热路径；执行可能因无真实表失败，但命中计数在 exeQuery 前已累加
@@ -197,13 +197,13 @@ namespace mooSQL.Pure.Tests
             b.ScriptTemplateCacheMisses.Should().Be(0);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToUpdate_HitsAndRebinds_SetAndWhere()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.setTable("users").set("name", "a").where("id", 1);
             var cmdA = a.toUpdate();
@@ -213,7 +213,7 @@ namespace mooSQL.Pure.Tests
             cmdA.para.GetParameter(S0).val.Should().Be("a");
             cmdA.para.GetParameter(W1).val.Should().Be(1);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.setTable("users").set("name", "b").where("id", 9);
             var cmdB = b.toUpdate();
@@ -223,13 +223,13 @@ namespace mooSQL.Pure.Tests
             cmdB.para.GetParameter(W1).val.Should().Be(9);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToInsert_HitsAndRebinds_SetColumns()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.setTable("users").set("name", "a").set("age", 18);
             var cmdA = a.toInsert();
@@ -237,7 +237,7 @@ namespace mooSQL.Pure.Tests
             cmdA.sql.Should().Contain("@" + S0);
             cmdA.sql.Should().Contain("@" + S1);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.setTable("users").set("name", "z").set("age", 40);
             var cmdB = b.toInsert();
@@ -247,20 +247,20 @@ namespace mooSQL.Pure.Tests
             cmdB.para.GetParameter(S1).val.Should().Be(40);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void ToDelete_HitsAndRebinds_Where()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var shared = new HashCache();
 
-            using var a = db.useSQL();
+            using var a = TestDatabaseHelper.UseSQL(db);
             a.setCacheHolder(shared).useScriptTemplateCache();
             a.setTable("users").where("id", 1);
             var cmdA = a.toDelete();
             a.ScriptTemplateCacheMisses.Should().Be(1);
             cmdA.sql.Should().Contain("@" + W0);
 
-            using var b = db.useSQL();
+            using var b = TestDatabaseHelper.UseSQL(db);
             b.setCacheHolder(shared).useScriptTemplateCache();
             b.setTable("users").where("id", 99);
             var cmdB = b.toDelete();
@@ -272,11 +272,11 @@ namespace mooSQL.Pure.Tests
         /// <summary>
         /// 回归：父 where + whereIn(Action) 子 where 不得共用裸 ms_s0；子名须带兄弟 lv seed。
         /// </summary>
-        [Fact]
+        [PrepareOnlyFact]
         public void ToSelect_ParentWhere_Plus_WhereInSubqueryWhere_DistinctSeededParams()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            using var kit = db.useSQL();
+            using var kit = TestDatabaseHelper.UseSQL(db);
             kit.useScriptTemplateCache(false);
 
             kit.select("id").from("t")

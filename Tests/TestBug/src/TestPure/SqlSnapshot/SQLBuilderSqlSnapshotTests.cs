@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mooSQL.Pure.Tests.TestHelpers;
 using Xunit;
 
 namespace mooSQL.Pure.Tests.SqlSnapshot
@@ -18,7 +19,7 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
         public static IEnumerable<object[]> MergeNames()
             => SQLBuilderSqlSnapshotCatalog.Merges().Select(c => new object[] { c.Name });
 
-        [Theory]
+        [PrepareOnlyTheory]
         [MemberData(nameof(CaseNames))]
         public void Snapshot_ToXxx(string name)
         {
@@ -26,7 +27,7 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
             SqlSnap.AssertSql(c.Name, c.Build, c.ToXxx, c.DbType);
         }
 
-        [Theory]
+        [PrepareOnlyTheory]
         [MemberData(nameof(MergeNames))]
         public void Snapshot_MergeInto(string name)
         {
@@ -34,7 +35,7 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
             SqlSnap.AssertMerge(c.Name, c.Build, c.DbType);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void CaptureAllBaselines()
         {
             var rows = new List<(string, string)>();

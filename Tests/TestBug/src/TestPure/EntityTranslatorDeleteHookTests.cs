@@ -77,7 +77,7 @@ namespace mooSQL.Pure.Tests
       TestDatabaseHelper.EnsureTestUserSchema(db);
       EnsureEntityParser(db.client);
       db.client.useClientFactory(new SharedTranslatorClientFactory(translator));
-      return db.useSQL();
+      return TestDatabaseHelper.UseSQL(db);
     }
 
     private static SQLBuilder CreateKit()
@@ -85,7 +85,7 @@ namespace mooSQL.Pure.Tests
       var db = TestDatabaseHelper.CreateTestDBInstance();
       TestDatabaseHelper.EnsureTestUserSchema(db);
       EnsureEntityParser(db.client);
-      return db.useSQL();
+      return TestDatabaseHelper.UseSQL(db);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ namespace mooSQL.Pure.Tests
       var db = TestDatabaseHelper.CreateTestDBInstance();
       EnsureEntityParser(db.client);
       _ = new SooRepository<TestUser>(db, translator);
-      var kit = db.useSQL();
+      var kit = TestDatabaseHelper.UseSQL(db);
       var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(TestUser));
 
       translator.prepareDeleteById(kit, en, int.MaxValue - 1);
@@ -212,7 +212,7 @@ namespace mooSQL.Pure.Tests
       var db = TestDatabaseHelper.CreateTestDBInstance();
       EnsureEntityParser(db.client);
       _ = new SooRepository<TestUser>(db, translator);
-      var kit = db.useSQL();
+      var kit = TestDatabaseHelper.UseSQL(db);
       var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(TestUser));
 
       translator.prepareDelete(kit, en, new[] { int.MaxValue - 2, int.MaxValue - 3 });

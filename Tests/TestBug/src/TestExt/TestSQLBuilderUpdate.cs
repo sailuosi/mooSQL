@@ -1,3 +1,4 @@
+using mooSQL.Pure.Tests.TestHelpers;
 ﻿// 基础功能说明：
 
 using System;
@@ -51,7 +52,7 @@ public class TestSQLBuilderUpdate
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
 
         var demoOID = Guid.Empty.ToString();
 
@@ -71,7 +72,7 @@ public class TestSQLBuilderUpdate
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
 
         var demoOID = Guid.Empty.ToString();
 
@@ -92,7 +93,7 @@ public class TestSQLBuilderUpdate
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
 
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
 
         var demoOID = Guid.Empty.ToString();
 
@@ -110,7 +111,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void mergeBase()
     {
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var cmd=kit    
             .mergeInto("SK_RealInBill", "b")
             .from("r", (r) =>
@@ -144,7 +145,7 @@ public class TestSQLBuilderUpdate
     public void matchBulkBase1() {
         if (!DBTest.IsBusinessRunAvailable()) return;
         int cc = 0;
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
 
         var dt = kit.select("*")
                    .from("UCML_RESPONSIBILITY r")
@@ -187,7 +188,7 @@ public class TestSQLBuilderUpdate
     [Fact]
     public void addBulkBase1() {
         if (!DBTest.IsBusinessRunAvailable()) return;
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var list = new List<HHDutyItem>() {
             new HHDutyItem() { },
             new HHDutyItem() { }
@@ -198,7 +199,7 @@ public class TestSQLBuilderUpdate
     public void addBulkBase2()
     {
         if (!DBTest.IsBusinessRunAvailable()) return;
-        var kit = DBTest.useBusinessRunDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useBusinessRunDB());
         var bk = kit.DBLive.useBulk();
         var list = new List<HHDutyItem>() {
             new HHDutyItem() { },

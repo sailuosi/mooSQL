@@ -30,7 +30,7 @@ public class LINQTest : IClassFixture<LinqSqliteTestFixture>
         var db = LinqSqliteTestHelper.CreateSugarDatabase(out var path);
         try
         {
-            var kit = db.useSQL();
+            var kit = TestDatabaseHelper.UseSQL(db);
             var fieldName = kit.DBLive.FindFieldName(exp);
             Assert.Equal("Di_Code", fieldName);
         }
@@ -52,7 +52,7 @@ public class LINQTest : IClassFixture<LinqSqliteTestFixture>
         var db = LinqSqliteTestHelper.CreateSugarDatabase(out var path);
         try
         {
-            var kit = db.useSQL();
+            var kit = TestDatabaseHelper.UseSQL(db);
             var sw = Stopwatch.StartNew();
             var fieldName = kit.DBLive.FindFieldName(exp);
             sw.Stop();

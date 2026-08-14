@@ -89,7 +89,7 @@ namespace mooSQL.Pure.Tests
             {
                 try
                 {
-                    var kit = _fx.Db.useSQL();
+                    var kit = TestDatabaseHelper.UseSQL(_fx.Db);
                     var dt = kit.clear()
                         .setTable(SQLiteTestFixture.UserTable)
                         .select("id")

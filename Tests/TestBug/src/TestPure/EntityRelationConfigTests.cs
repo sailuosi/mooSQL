@@ -138,14 +138,14 @@ CREATE TABLE RelPost (
             });
 
             List<RelBlog> blogs;
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 blogs = kit.select("*").from("RelBlog").where("Id", "b1").query<RelBlog>().ToList();
             }
             blogs.Should().HaveCount(1);
             blogs[0].Posts = new List<RelPost>();
 
-            using (var kit = fx.Db.useSQL())
+            using (var kit = TestDatabaseHelper.UseSQL(fx.Db))
             {
                 kit.includeNav(blogs, b => b.Posts);
             }

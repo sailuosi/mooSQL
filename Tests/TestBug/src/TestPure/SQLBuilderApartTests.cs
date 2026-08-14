@@ -20,7 +20,7 @@ namespace mooSQL.Pure.Tests
             }
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void toApart_useApart_ShouldMatchManualBuild_BasicSelect()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -46,7 +46,7 @@ namespace mooSQL.Pure.Tests
             AssertSqlCmdEqual(manual, replay);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void toApart_useApart_ShouldMatchManualBuild_SinkOrWhere()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -77,20 +77,20 @@ namespace mooSQL.Pure.Tests
             AssertSqlCmdEqual(manual, replay);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void useApart_OnDifferentDbType_ShouldThrow()
         {
             var sqliteKit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.SQLite);
             var apart = sqliteKit.select("1").from("t").toApart();
 
             var mssqlDb = DBTest.useMSSQLDB();
-            var mssqlKit = mssqlDb.useSQL();
+            var mssqlKit = TestDatabaseHelper.UseSQL(mssqlDb);
 
             var act = () => mssqlKit.useApart(apart);
             act.Should().Throw<ApartIncompatibleException>();
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void apart_clear_ShouldRemoveSteps()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -102,7 +102,7 @@ namespace mooSQL.Pure.Tests
             cmd.sql.Should().NotContain("users");
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void toApart_WithCte_ShouldReplay()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -126,7 +126,7 @@ namespace mooSQL.Pure.Tests
             AssertSqlCmdEqual(manual, replay);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void useApart_ParameterKeys_ShouldMatchManualChain()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -141,7 +141,7 @@ namespace mooSQL.Pure.Tests
             replayKeys.Should().Equal(manualKeys);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void record_stop_ShouldCaptureSegmentWithoutPollutingParent()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -170,7 +170,7 @@ namespace mooSQL.Pure.Tests
             AssertSqlCmdEqual(manual, replay);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void record_stop_ShouldMatchToApart_OnShadowBuilder()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
@@ -195,7 +195,7 @@ namespace mooSQL.Pure.Tests
             AssertSqlCmdEqual(apartCmd, recordedCmd);
         }
 
-        [Fact]
+        [PrepareOnlyFact]
         public void stop_WithoutRecord_ShouldThrow()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();

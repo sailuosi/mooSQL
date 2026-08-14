@@ -1,3 +1,4 @@
+using mooSQL.Pure.Tests.TestHelpers;
 ﻿// 基础功能说明：
 
 using mooSQL.data;
@@ -15,7 +16,7 @@ public class TestSQLBuilderMergeIno
     [Fact]
     public void selectTop1()
     {
-        var kit = DBTest.useMSSQLDB().useSQL();
+        var kit = TestDatabaseHelper.UseSQL(DBTest.useMSSQLDB());
         var cmd= kit.mergeInto("HH_SysRole")
             .from("UCML_RESPONSIBILITY as r")
             .on("HH_SysRole.Code=r.R_Code")
