@@ -18,7 +18,7 @@ namespace mooSQL.data
         /// <param name="tbName"></param>
         /// <returns></returns>
 
-        public StepBuilder setTable(string tbName)
+        public override SQLBuilder setTable(string tbName)
         {
             current.setTable(tbName);
             return this;
@@ -50,7 +50,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="option"></param>
         /// <returns></returns>
-        public StepBuilder configSetNull(UpdateSetNullOption option) { 
+        public override SQLBuilder configSetNull(UpdateSetNullOption option) { 
             this.setNullOption = option;
             return this;
         }
@@ -62,7 +62,7 @@ namespace mooSQL.data
         /// <param name="value"></param>
         /// <param name="maxLength"></param>
         /// <returns></returns>
-        public StepBuilder set(string key, string value, int maxLength) {
+        public override SQLBuilder set(string key, string value, int maxLength) {
             if (value != null && value.Length > maxLength) { 
                 value= value.Substring(0, maxLength);
             }
@@ -78,7 +78,7 @@ namespace mooSQL.data
         /// <param name="updatable"></param>
         /// <param name="insertable"></param>
         /// <returns></returns>
-        public StepBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
+        public override SQLBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
             return setCore(key, val, paramed, type, updatable, insertable, null);
         }
@@ -86,7 +86,7 @@ namespace mooSQL.data
         /// <summary>
         /// 使用编排期烘焙的槽位全名写入 set（paramKey 已定，不再用 cl_ 计数起名）。
         /// </summary>
-        public StepBuilder setWithSlot(
+        public SQLBuilder setWithSlot(
             string key,
             object val,
             string staticSlotName,
@@ -101,7 +101,7 @@ namespace mooSQL.data
         /// <summary>
         /// 兼容：按当前 paraSeed / groupKey 派生 set 槽位名后写入。
         /// </summary>
-        public StepBuilder setWithSlot(
+        public SQLBuilder setWithSlot(
             string key,
             object val,
             int staticSlotId,
@@ -174,7 +174,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public object getSetedValue(string fieldName)
+        public override object getSetedValue(string fieldName)
         {
             SetFrag field = current.getSetFrag(fieldName,false);
             if (field == null) return null;
@@ -186,7 +186,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public StepBuilder setToNull(string fieldName)
+        public override SQLBuilder setToNull(string fieldName)
         {
             return set(fieldName, "NULL",false);
         }
@@ -198,7 +198,7 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <returns></returns>
 
-        public StepBuilder setI(string key, Object val)
+        public override SQLBuilder setI(string key, Object val)
         {
             this.set(key, val, true, null, false, true);
             return this;
@@ -210,7 +210,7 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <param name="paramed"></param>
         /// <returns></returns>
-        public StepBuilder setI(string key, Object val, bool paramed)
+        public override SQLBuilder setI(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, false, true);
             return this;
@@ -221,7 +221,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="val"></param>
         /// <returns></returns>
-        public StepBuilder setU(string key, Object val)
+        public override SQLBuilder setU(string key, Object val)
         {
             this.set(key, val, true, null, true, false);
             return this;
@@ -233,7 +233,7 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <param name="paramed"></param>
         /// <returns></returns>
-        public StepBuilder setU(string key, Object val, bool paramed)
+        public override SQLBuilder setU(string key, Object val, bool paramed)
         {
             this.set(key, val, paramed, null, true, false);
             return this;
@@ -248,7 +248,7 @@ namespace mooSQL.data
         /// <param name="tbName"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public MergeIntoBuilder mergeInto(string tbName,string asName=null)
+        public override MergeIntoBuilder mergeInto(string tbName,string asName=null)
         {
             var kit=new MergeIntoBuilder(DBLive);
             if (this._printSQL) {
@@ -262,7 +262,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder mergeAs(string asName)
+        public override SQLBuilder mergeAs(string asName)
         {
             current.mergeAs(asName);
             return this;
@@ -273,7 +273,7 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="buildSelect"></param>
         /// <returns></returns>
-        public StepBuilder mergeUsing(string asName,Action<StepBuilder> buildSelect)
+        public override SQLBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
         {
             current.mergeAs(asName);
             buildSelect(this);
@@ -285,7 +285,7 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="tabname"></param>
         /// <returns></returns>
-        public StepBuilder mergeUsing(string asName, string tabname)
+        public override SQLBuilder mergeUsing(string asName, string tabname)
         {
             current.mergeAs(asName);
             from(tabname);
@@ -297,7 +297,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="onPart"></param>
         /// <returns></returns>
-        public StepBuilder mergeOn(string onPart)
+        public override SQLBuilder mergeOn(string onPart)
         {
             current.mergeOn(onPart);
             return this;
@@ -307,7 +307,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="thenDelete"></param>
         /// <returns></returns>
-        public StepBuilder mergeDelete(bool thenDelete)
+        public override SQLBuilder mergeDelete(bool thenDelete)
         {
             current.mergeDelete(thenDelete);
             return this;
@@ -320,12 +320,13 @@ namespace mooSQL.data
         /// <summary>
         /// 用来执行的SQL语句。
         /// </summary>
-        public List<string> todoSQLs = new List<string>();
+        private List<string> _todoSQLs= new List<string>();
+        public List<string> todoSQLs { get { return _todoSQLs; } set { _todoSQLs = value; } }
         /// <summary>
         /// 用于创建 insert into values 多行值的SQL移动到下一行。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder newRow()
+        public override SQLBuilder newRow()
         {
             current.newRow();
             return this;
@@ -334,7 +335,7 @@ namespace mooSQL.data
         /// insert into values 多行值的添加本行值。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder addRow()
+        public override SQLBuilder addRow()
         {
             current.addRow();
             return this;
@@ -343,7 +344,7 @@ namespace mooSQL.data
         /// 创建SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder addInsert()
+        public override SQLBuilder addInsert()
         {
             if (EnsureWriteTableName(nameof(addInsert)))
             {
@@ -359,7 +360,7 @@ namespace mooSQL.data
         /// 创建 update SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder addUpdate()
+        public override SQLBuilder addUpdate()
         {
             if (EnsureWriteTableName(nameof(addUpdate)))
             {
@@ -375,7 +376,7 @@ namespace mooSQL.data
         /// 创建 update from SQL语句到语句池中，同时积累参数。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder addUpdateFrom()
+        public override SQLBuilder addUpdateFrom()
         {
             if (EnsureWriteTableName(nameof(addUpdateFrom)))
             {

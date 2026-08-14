@@ -19,13 +19,13 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public StepBuilder withSelect(string name, Action<StepBuilder> doselect) {
+        public override SQLBuilder withSelect(string name, Action<SQLBuilder> doselect) {
 
             var kit = this.getBrotherBuilder();
             doselect(kit);
 
             var item = new SqlCTEItem();
-            item.builder = kit;
+            item.builder = kit.Inner;
             item.type = SqlCTEType.Select;
             item.asName = name;
 
@@ -41,7 +41,7 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="selectBuilder"></param>
         /// <returns></returns>
-        public StepBuilder withAs(string name, Action<StepBuilder> selectBuilder)
+        public override SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
         {
             this.withSelect(name, selectBuilder);
             //var kit = this.getBrotherBuilder();
@@ -56,7 +56,7 @@ namespace mooSQL.data
         /// <summary>
         /// withRecurTo 方法（返回 RecurCTEBuilder）。
         /// </summary>
-        public RecurCTEBuilder withRecurTo(string name)
+        public override RecurCTEBuilder withRecurTo(string name)
         {
             var rec = new RecurCTEBuilder();
             rec.setWithAsName(name);
@@ -67,7 +67,7 @@ namespace mooSQL.data
         /// <summary>
         /// withRecur 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
+        public override SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
         {
 
             var rec = new RecurCTEBuilder();
@@ -84,7 +84,7 @@ namespace mooSQL.data
         /// <param name="name"></param>
         /// <param name="selectSQL"></param>
         /// <returns></returns>
-        public StepBuilder withSelect(string name, string selectSQL)
+        public override SQLBuilder withSelect(string name, string selectSQL)
         {
 
             var item = new SqlCTEItem();
@@ -102,7 +102,7 @@ namespace mooSQL.data
         /// <param name="columns"></param>
         /// <returns></returns>
 
-        public StepBuilder select(string columns)
+        public override SQLBuilder select(string columns)
         {
             current.select(columns);
             return this;
@@ -113,7 +113,7 @@ namespace mooSQL.data
         /// <param name="selectSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public StepBuilder selectFormat(string selectSQLPart, params object[] paras)
+        public override SQLBuilder selectFormat(string selectSQLPart, params object[] paras)
         {
             var fromPart = ps.formatSQL(selectSQLPart, paras);
             select(fromPart);
@@ -123,7 +123,7 @@ namespace mooSQL.data
         /// <summary>
         /// 登记延迟 format 片段到 select：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
         /// </summary>
-        public StepBuilder selectLive(IDelayPara live)
+        public SQLBuilder selectLive(IDelayPara live)
         {
             if (live == null) return this;
             if (ps == null) ps = new Paras();
@@ -136,7 +136,7 @@ namespace mooSQL.data
         /// <param name="asName"></param>
         /// <param name="doColSelect"></param>
         /// <returns></returns>
-        public StepBuilder select(string asName, Action<StepBuilder> doColSelect)
+        public override SQLBuilder select(string asName, Action<SQLBuilder> doColSelect)
         {
             var ckit = this.getBrotherBuilder();
             doColSelect(ckit);
@@ -151,7 +151,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="columns"></param>
         /// <returns></returns>
-        public StepBuilder selectUnioned(string columns)
+        public override SQLBuilder selectUnioned(string columns)
         {
             unionHolder.unitedWraper.select(columns);
             return this;
@@ -161,7 +161,7 @@ namespace mooSQL.data
         /// 默认不唯一，调用则设置为distinct。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder distinct()
+        public override SQLBuilder distinct()
         {
             current.distinct();
             return this;
@@ -171,7 +171,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="num"></param>
         /// <returns></returns>
-        public StepBuilder top(int num)
+        public override SQLBuilder top(int num)
         {
             return skipTake(0, num);
         }
@@ -179,7 +179,7 @@ namespace mooSQL.data
         /// <summary>
         /// 设置 skip/take 分页（与 LINQ Skip/Take 同构；take=-1 表示仅跳过不限制行数）
         /// </summary>
-        public StepBuilder skipTake(int skip, int take)
+        public override SQLBuilder skipTake(int skip, int take)
         {
             if (unionHolder.Count > 1)
             {
@@ -189,7 +189,7 @@ namespace mooSQL.data
             current.skipTake(skip, take);
             return this;
         }
-        public StepBuilder skip(int skip)
+        public override SQLBuilder skip(int skip)
         {
             if (unionHolder.Count > 1)
             {
@@ -199,7 +199,7 @@ namespace mooSQL.data
             current.skip(skip);
             return this;
         }
-        public StepBuilder take(int skip)
+        public override SQLBuilder take(int skip)
         {
             if (unionHolder.Count > 1)
             {
@@ -216,7 +216,7 @@ namespace mooSQL.data
         /// <param name="fromPart"></param>
         /// <returns></returns>
 
-        public StepBuilder from(string fromPart)
+        public override SQLBuilder from(string fromPart)
         {
             current.from(fromPart);
             return this;
@@ -227,7 +227,7 @@ namespace mooSQL.data
         /// <param name="fromSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public StepBuilder fromFormat(string fromSQLPart, params object[] paras)
+        public override SQLBuilder fromFormat(string fromSQLPart, params object[] paras)
         {
             var fromPart = ps.formatSQL(fromSQLPart, paras);
             from(fromPart);
@@ -237,7 +237,7 @@ namespace mooSQL.data
         /// <summary>
         /// 登记延迟 format 片段到 from：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
         /// </summary>
-        public StepBuilder fromLive(IDelayPara live)
+        public SQLBuilder fromLive(IDelayPara live)
         {
             if (live == null) return this;
             if (ps == null) ps = new Paras();
@@ -249,7 +249,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="joinSQLString"></param>
         /// <returns></returns>
-        public StepBuilder join(string joinSQLString)
+        public override SQLBuilder join(string joinSQLString)
         {
             current.fromAppend(joinSQLString);
             return this;
@@ -261,7 +261,7 @@ namespace mooSQL.data
         /// <param name="onLeft"></param>
         /// <param name="onRight"></param>
         /// <returns></returns>
-        public StepBuilder join(string targetTable,string onLeft ,string onRight)
+        public override SQLBuilder join(string targetTable,string onLeft ,string onRight)
         {
             var joinSQLString = string.Format(" {0} on {1}={2} ", targetTable, onLeft, onRight);
             current.fromAppend(joinSQLString);
@@ -273,7 +273,7 @@ namespace mooSQL.data
         /// <param name="JoinSQLPart"></param>
         /// <param name="paras"></param>
         /// <returns></returns>
-        public StepBuilder joinFormat(string JoinSQLPart,params object[] paras)
+        public override SQLBuilder joinFormat(string JoinSQLPart,params object[] paras)
         {
             var fromPart = ps.formatSQL(JoinSQLPart, paras);
             join(fromPart);
@@ -283,7 +283,7 @@ namespace mooSQL.data
         /// <summary>
         /// 登记延迟 format 片段到 join：PlaceHolder 入列，<see cref="Paras.formatSQL"/> 延至 Resolve。
         /// </summary>
-        public StepBuilder joinLive(IDelayPara live)
+        public SQLBuilder joinLive(IDelayPara live)
         {
             if (live == null) return this;
             if (ps == null) ps = new Paras();
@@ -296,7 +296,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart">(select的查询语句) as {childFromPart}</param>
         /// <returns></returns>
-        public StepBuilder join(string joinKey,string joinSQLString, Action<StepBuilder> childFromPart)
+        public override SQLBuilder join(string joinKey,string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
             childFromPart(ckit);
@@ -311,14 +311,14 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder leftJoin( string joinSQLString, Action<StepBuilder> childFromPart)
+        public override SQLBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("LEFT JOIN", joinSQLString, childFromPart);
         }
         /// <summary>
         /// leftJoin 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder leftJoin(string joinSQLString)
+        public override SQLBuilder leftJoin(string joinSQLString)
         {
             return this.join("LEFT JOIN "+ joinSQLString);
         }
@@ -328,14 +328,14 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder innerJoin(string joinSQLString, Action<StepBuilder> childFromPart)
+        public override SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("INNER JOIN", joinSQLString, childFromPart);
         }
         /// <summary>
         /// innerJoin 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder innerJoin(string joinSQLString)
+        public override SQLBuilder innerJoin(string joinSQLString)
         {
             return this.join("INNER JOIN "+ joinSQLString);
         }
@@ -345,7 +345,7 @@ namespace mooSQL.data
         /// <param name="joinSQLString"></param>
         /// <param name="childFromPart"></param>
         /// <returns></returns>
-        public StepBuilder rightJoin(string joinSQLString, Action<StepBuilder> childFromPart)
+        public override SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
         {
             return this.join("RIGHT JOIN", joinSQLString, childFromPart);
         }
@@ -355,7 +355,7 @@ namespace mooSQL.data
         /// <param name="childFromPart"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder from(string asName, Action<StepBuilder> childFromPart)
+        public override SQLBuilder from(string asName, Action<SQLBuilder> childFromPart)
         {
             var ckit = this.getBrotherBuilder();
             childFromPart(ckit);
@@ -370,7 +370,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public StepBuilder pivot(PivotItem SQLString)
+        public override SQLBuilder pivot(PivotItem SQLString)
         {
             current.pivot(SQLString);
             return this;
@@ -380,7 +380,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public StepBuilder unpivot(UnpivotItem SQLString)
+        public override SQLBuilder unpivot(UnpivotItem SQLString)
         {
             current.unpivot(SQLString);
             return this;
@@ -393,7 +393,7 @@ namespace mooSQL.data
         /// <param name="values"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder pivot(string aggregation, string field, List<string> values, string asName)
+        public override SQLBuilder pivot(string aggregation, string field, List<string> values, string asName)
         {
             current.pivot(new PivotItem(aggregation, field, values, asName));
             return this;
@@ -406,7 +406,7 @@ namespace mooSQL.data
         /// <param name="fields"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder unpivot(string valueName, string fieldName, List<string> fields, string asName)
+        public override SQLBuilder unpivot(string valueName, string fieldName, List<string> fields, string asName)
         {
             current.unpivot(new UnpivotItem(valueName, fieldName, fields, asName));
             return this;
@@ -417,7 +417,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="groupField"></param>
         /// <returns></returns>
-        public StepBuilder groupBy(string groupField)
+        public override SQLBuilder groupBy(string groupField)
         {
             current.groupBy(groupField);
             return this;
@@ -427,7 +427,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="havingStr"></param>
         /// <returns></returns>
-        public StepBuilder having(string havingStr)
+        public override SQLBuilder having(string havingStr)
         {
             current.having(havingStr);
             return this;
@@ -440,7 +440,7 @@ namespace mooSQL.data
         /// <param name="wrapSelect"></param>
         /// <param name="wrapAsName"></param>
         /// <returns></returns>
-        public StepBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned") {
+        public override SQLBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned") {
             this.union(true, wrapSelect, wrapAsName);
             return this;
         }
@@ -451,7 +451,7 @@ namespace mooSQL.data
         /// <param name="isUnionAll"></param>
         /// <param name="wrapSelect"></param>
         /// <returns></returns>
-        public StepBuilder union( bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
+        public override SQLBuilder union( bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned")
         {
             unionHolder.union(this, isUnionAll, wrapSelect, wrapAsName);
             return this;
@@ -461,7 +461,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="dogroup"></param>
         /// <returns></returns>
-        public StepBuilder unionAs(Action<SqlGoup> dogroup)
+        public override SQLBuilder unionAs(Action<SqlGoup> dogroup)
         {
             //this._unionAll = isUnionAll;
             //this._unionWrap = wrapSelect;
@@ -472,7 +472,7 @@ namespace mooSQL.data
         /// 将当前的语句配置焦点移动到 union 的包裹层SQL分组
         /// </summary>
         /// <returns></returns>
-        public StepBuilder toggleToUnionOutor()
+        public override SQLBuilder toggleToUnionOutor()
         {
             if (this.unionHolder.Count == 0)
             {
@@ -493,7 +493,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="doUnion"></param>
         /// <returns></returns>
-        public StepBuilder union(Action<StepBuilder> doUnion)
+        public override SQLBuilder union(Action<SQLBuilder> doUnion)
         {
             //当开始时，把当前的放入到union列表。并创建一个新的
             var cur = current;
@@ -511,7 +511,7 @@ namespace mooSQL.data
         /// <param name="orderByPart"></param>
         /// <returns></returns>
 
-        public StepBuilder orderBy(string orderByPart)
+        public override SQLBuilder orderBy(string orderByPart)
         {
             if (this.unionHolder.Count>0 )
             {
@@ -528,7 +528,7 @@ namespace mooSQL.data
         /// <param name="orderByPart"></param>
         /// <returns></returns>
         [Obsolete("规范化后废弃，请使用 orderBy 方法代替")]
-        public StepBuilder orderby(string orderByPart) { 
+        public override SQLBuilder orderby(string orderByPart) { 
             return orderBy(orderByPart);
         }
 
@@ -537,7 +537,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public StepBuilder rowNumber()
+        public override SQLBuilder rowNumber()
         {
             current.rowNumber();
             return this;
@@ -547,7 +547,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="numFieldName"></param>
         /// <returns></returns>
-        public StepBuilder rowNumberUse(string numFieldName)
+        public override SQLBuilder rowNumberUse(string numFieldName)
         {
             current.rowNumberUse(numFieldName);
             return this;
@@ -557,7 +557,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="orderPart"></param>
         /// <returns></returns>
-        public StepBuilder rowNumber(string orderPart)
+        public override SQLBuilder rowNumber(string orderPart)
         {
             if (this.unionHolder.Count>1)
             {
@@ -573,7 +573,7 @@ namespace mooSQL.data
         /// <param name="orderPart"></param>
         /// <param name="asName"></param>
         /// <returns></returns>
-        public StepBuilder rowNumber(string orderPart, string asName)
+        public override SQLBuilder rowNumber(string orderPart, string asName)
         {
 
             if (this.unionHolder.Count > 1)
@@ -590,7 +590,7 @@ namespace mooSQL.data
         /// <param name="size"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        public StepBuilder setPage(int? size, int? num)
+        public override SQLBuilder setPage(int? size, int? num)
         {
             if (size == null && num == null) { 
                 return this;

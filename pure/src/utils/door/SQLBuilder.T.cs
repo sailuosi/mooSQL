@@ -13,7 +13,7 @@ namespace mooSQL.data
     /// 接入了一个实体类型的SQLBuilder
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SQLBuilder<T>:SQLBuilder
+    public class SQLBuilder<T> : SQLBuilder
     {
 
         /// <summary>

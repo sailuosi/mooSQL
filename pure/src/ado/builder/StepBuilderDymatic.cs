@@ -44,7 +44,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public int exeNonQuery(string SQL, Paras? para= null)
+        public override int exeNonQuery(string SQL, Paras? para= null)
         {
             if(para==null) para= new Paras();
             CheckDBForWrite();
@@ -82,7 +82,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public int exeNonQuery(SQLCmd sql)
+        public override int exeNonQuery(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
             CheckDBForWrite();
@@ -101,7 +101,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public Task<int> exeNonQueryAsync(SQLCmd sql)
+        public override Task<int> exeNonQueryAsync(SQLCmd sql)
         {
             if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
             CheckDBForWrite();
@@ -120,7 +120,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="cmds"></param>
         /// <returns></returns>
-        public int exeNonQuery(IEnumerable<SQLCmd> cmds)
+        public override int exeNonQuery(IEnumerable<SQLCmd> cmds)
         {
             if (cmds==null ||cmds.Count()==0) return 0;
             if (this._printSQL)
@@ -138,7 +138,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public DataTable exeQuery(string SQL, Paras? para=null)
+        public override DataTable exeQuery(string SQL, Paras? para=null)
         {
             if (para == null) para = new Paras();
             CheckDBForRead();
@@ -153,7 +153,7 @@ namespace mooSQL.data
         /// <summary>
         /// exeQuery 方法（返回 DataTable）。
         /// </summary>
-        public DataTable exeQuery(SQLCmd sql)
+        public override DataTable exeQuery(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
             CheckDBForRead();
@@ -165,7 +165,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public Task<DataTable> exeQueryAsync(SQLCmd sql)
+        public override Task<DataTable> exeQueryAsync(SQLCmd sql)
         {
             if (sql.para == null) sql.para = new Paras();
             doPrintSQL(sql);
@@ -180,7 +180,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public IEnumerable<T> exeQuery<T>(string SQL, Paras? para=null)
+        public override IEnumerable<T> exeQuery<T>(string SQL, Paras? para=null)
         {
             if (para == null) para = new Paras();
             var cmd = geneCmd(SQL, para);
@@ -195,7 +195,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="SQL"></param>
         /// <returns></returns>
-        public IEnumerable<T> exeQuery<T>(SQLCmd SQL)
+        public override IEnumerable<T> exeQuery<T>(SQLCmd SQL)
         {
             if (SQL.para == null) SQL.para = new Paras();
             doPrintSQL(SQL);
@@ -207,7 +207,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="SQL"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
+        public override Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
         {
             if (SQL.para == null) SQL.para = new Paras();
             doPrintSQL(SQL);
@@ -235,7 +235,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public string paraReplaceInto(string SQL, Paras para)
+        public override string paraReplaceInto(string SQL, Paras para)
         {
             var sql = SQL;
             foreach (var item in para.value)
@@ -249,7 +249,7 @@ namespace mooSQL.data
         /// 查询第一列第一个值。没查到时返回-1
         /// </summary>
         /// <returns></returns>
-        public int exeQueryCount(SQLCmd sqlCmd)
+        public override int exeQueryCount(SQLCmd sqlCmd)
         {
             var dt = exeQuery(sqlCmd);
             if (dt.Rows.Count > 0)
@@ -264,7 +264,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sqlCmd"></param>
         /// <returns></returns>
-        public async Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
+        public override async Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
         {
             var dt = await exeQueryAsync(sqlCmd);
             if (dt.Rows.Count > 0)
@@ -279,7 +279,7 @@ namespace mooSQL.data
         /// 根据上下文创建插入语句，可以是单行插入、多行插入、select from等
         /// </summary>
         /// <returns></returns>
-        public int doInsert()
+        public override int doInsert()
         {
 
             int res = exeNonQuery(toInsert());
@@ -308,7 +308,7 @@ namespace mooSQL.data
         /// 异步执行插入
         /// </summary>
         /// <returns></returns>
-        public Task<int> doInsertAsync()
+        public override Task<int> doInsertAsync()
         {
 
             var res = exeNonQueryAsync(toInsert());
@@ -321,7 +321,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public int doInsertFrom()
+        public override int doInsertFrom()
         {
             var sql = this.toInsertFrom();
             if (sql.Empty) return 0;
@@ -337,7 +337,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public int doUpdate()
+        public override int doUpdate()
         {
             int res = exeNonQuery(this.toUpdate());
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
@@ -347,7 +347,7 @@ namespace mooSQL.data
         /// 异步执行更新
         /// </summary>
         /// <returns></returns>
-        public Task<int> doUpdateAsync()
+        public override Task<int> doUpdateAsync()
         {
             var res = exeNonQueryAsync(this.toUpdate());
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
@@ -359,7 +359,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public int doUpdateFrom()
+        public override int doUpdateFrom()
         {
             var sql = this.toUpdateFrom();
             if (sql.Empty)
@@ -375,7 +375,7 @@ namespace mooSQL.data
         /// 创建 merge into 语句并立即执行，执行后清理配置
         /// </summary>
         /// <returns></returns>
-        public int doMergeInto()
+        public override int doMergeInto()
         {
             int res = exeNonQuery(this.toMergeInto());
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
@@ -385,7 +385,7 @@ namespace mooSQL.data
         /// 异步执行合并
         /// </summary>
         /// <returns></returns>
-        public Task<int> doMergeIntoAsync()
+        public override Task<int> doMergeIntoAsync()
         {
             var res = exeNonQueryAsync(this.toMergeInto());
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
@@ -397,7 +397,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public int doDelete()
+        public override int doDelete()
         {
             if (current.wherePart.Count == 0)
             {
@@ -414,7 +414,7 @@ namespace mooSQL.data
         /// 异步执行删除
         /// </summary>
         /// <returns></returns>
-        public Task<int> doDeleteAsync()
+        public override Task<int> doDeleteAsync()
         {
             if (current.wherePart.Count == 0)
             {
@@ -468,7 +468,7 @@ namespace mooSQL.data
         /// 根据上下文配置获取查询结果。
         /// </summary>
         /// <returns></returns>
-        public DataTable query()
+        public override DataTable query()
         {
             return doSelect("dt", cmd => exeQuery(cmd));
         }
@@ -503,7 +503,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="queryOther"></param>
         /// <returns></returns>
-        public StepBuilder selectWith(Action<StepBuilder> queryOther) {
+        public override SQLBuilder selectWith(Action<SQLBuilder> queryOther) {
             this.clearSelect();
             if (queryOther != null)
                 queryOther(this);
@@ -513,7 +513,7 @@ namespace mooSQL.data
         /// <summary>
         /// selectWith 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder selectWith(string queryOther)
+        public override SQLBuilder selectWith(string queryOther)
         {
             this.clearSelect();
             select(queryOther);
@@ -524,7 +524,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="queryOther"></param>
         /// <returns></returns>
-        public StepBuilder selectSummary(string queryOther)
+        public override SQLBuilder selectSummary(string queryOther)
         {
             this._MakeUps.addSummaryField(queryOther);
             return this;
@@ -534,7 +534,7 @@ namespace mooSQL.data
         /// 异步查询
         /// </summary>
         /// <returns></returns>
-        public Task<DataTable> queryAsync()
+        public override Task<DataTable> queryAsync()
         {
             return doSelectAsync("dt", cmd => exeQueryAsync(cmd));
         }
@@ -542,7 +542,7 @@ namespace mooSQL.data
         /// 分页查询，返回分页数据和总数。
         /// </summary>
         /// <returns></returns>
-        public PagedDataTable queryPaged() {
+        public override PagedDataTable queryPaged() {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
             var dt = this.query();
@@ -565,7 +565,7 @@ namespace mooSQL.data
         /// 查询翻页结果，带汇总
         /// </summary>
         /// <returns></returns>
-        public PagedSumDataTable queryPageSum(string selectCols)
+        public override PagedSumDataTable queryPageSum(string selectCols)
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -608,7 +608,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="selectCols"></param>
         /// <returns></returns>
-        public async Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        public override async Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -653,7 +653,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public PageOutput<T> queryPaged<T>()
+        public override PageOutput<T> queryPaged<T>()
         {
             var sumSQL = this._MakeUps.getSummaryFieldSQL();
             if (!string.IsNullOrWhiteSpace(sumSQL))
@@ -684,7 +684,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="summSQL"></param>
         /// <returns></returns>
-        public PageOutput<T> queryPaged<T>(string summSQL) {
+        public override PageOutput<T> queryPaged<T>(string summSQL) {
             return this.queryPaged<T>((res) =>
             {
                 var sum = this.querySummary(summSQL,true);
@@ -709,7 +709,7 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 queryPaged（返回 PageOutput<T>）。
         /// </summary>
-        public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
+        public override PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -739,7 +739,7 @@ namespace mooSQL.data
         /// <summary>
         /// 执行汇总 SQL 并返回键值结果（可选包含 total 列）。
         /// </summary>
-        public Dictionary<string, object> querySummary(string sumSQL,bool containToal) {
+        public override Dictionary<string, object> querySummary(string sumSQL,bool containToal) {
             var res = new Dictionary<string, object>();
             clearPage();
             this.selectWith(sumSQL);
@@ -768,7 +768,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="selectCols"></param>
         /// <returns></returns>
-        public PageSumOutput<T> queryPageSum<T>(string selectCols)
+        public override PageSumOutput<T> queryPageSum<T>(string selectCols)
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -873,7 +873,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public IEnumerable<T> query<T>()
+        public override IEnumerable<T> query<T>()
         {
             return doSelect("enum:" + typeof(T).FullName,cmd => exeQuery<T>(cmd));
         }
@@ -882,7 +882,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public Task<IEnumerable<T>> queryAsync<T>()
+        public override Task<IEnumerable<T>> queryAsync<T>()
         {
             return doSelectAsync("enum:" + typeof(T).FullName, cmd => exeQueryAsync<T>(cmd));
         }
@@ -995,7 +995,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="createEntity"></param>
         /// <returns></returns>
-        public List<T> query<T>(Func<DataRow, T> createEntity)
+        public override List<T> query<T>(Func<DataRow, T> createEntity)
         {
             var dt = query();
             if (dt == null)
@@ -1041,7 +1041,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public DataRow queryRow()
+        public override DataRow queryRow()
         {
             DataTable dt = this.query();
             if (dt.Rows.Count == 1)
@@ -1054,7 +1054,7 @@ namespace mooSQL.data
         /// 异步查询唯一行
         /// </summary>
         /// <returns></returns>
-        public async Task<DataRow> queryRowAsync()
+        public override async Task<DataRow> queryRowAsync()
         {
             DataTable dt = await this.queryAsync();
             if (dt.Rows.Count == 1)
@@ -1068,7 +1068,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T queryRow<T>()
+        public override T queryRow<T>()
         {
             return queryUniqueInner<T>();
         }
@@ -1080,7 +1080,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public T queryRow<T>(Func<DataRow, T> builder)
+        public override T queryRow<T>(Func<DataRow, T> builder)
         {
             DataTable dt = this.query();
             if (dt.Rows.Count == 1)
@@ -1095,7 +1095,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="defaultVal"></param>
         /// <returns></returns>
-        public int queryRowInt(int defaultVal)
+        public override int queryRowInt(int defaultVal)
         {
             var row = queryRow();
             if (row == null)
@@ -1107,7 +1107,7 @@ namespace mooSQL.data
         /// <summary>
         /// queryRowLong 方法（返回 long）。
         /// </summary>
-        public long queryRowLong(long defaultVal)
+        public override long queryRowLong(long defaultVal)
         {
             var row = queryRow();
             if (row == null)
@@ -1121,7 +1121,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="defaultVal"></param>
         /// <returns></returns>
-        public string queryRowString(string defaultVal)
+        public override string queryRowString(string defaultVal)
         {
             var row = queryRow();
             if (row == null)
@@ -1135,7 +1135,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="defaultVal"></param>
         /// <returns></returns>
-        public double queryRowDouble(double defaultVal)
+        public override double queryRowDouble(double defaultVal)
         {
             var row = queryRow();
             if (row == null)
@@ -1150,7 +1150,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public Object queryRowValue()
+        public override Object queryRowValue()
         {
             DataTable dt = this.query();
             if (dt.Rows.Count == 1)
@@ -1163,7 +1163,7 @@ namespace mooSQL.data
         /// 返回查询结果的计数，使用 select count(*) 执行
         /// </summary>
         /// <returns></returns>
-        public int count()
+        public override int count()
         {
             if (TryHitUserResultCache("count", out int userHit))
                 return userHit;
@@ -1176,7 +1176,7 @@ namespace mooSQL.data
         /// 执行大数据量的查询，返回long
         /// </summary>
         /// <returns></returns>
-        public long countLong()
+        public override long countLong()
         {
             if (TryHitUserResultCache("countLong", out long userHit))
                 return userHit;
@@ -1190,7 +1190,7 @@ namespace mooSQL.data
         /// 检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行
         /// </summary>
         /// <returns></returns>
-        public bool exist()
+        public override bool exist()
         {
             var cmd = toSelectExist();
             if (string.IsNullOrEmpty(cmd.sql))
@@ -1211,7 +1211,7 @@ namespace mooSQL.data
         /// 异步检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> existAsync()
+        public override async Task<bool> existAsync()
         {
             var cmd = toSelectExist();
             if (string.IsNullOrEmpty(cmd.sql))
@@ -1247,7 +1247,7 @@ namespace mooSQL.data
         /// <param name="pageSize"></param>
         /// <param name="pageNum"></param>
         /// <returns></returns>
-        public DataTable exeQuery(string orderByPart, string readsql, int pageSize, int pageNum)
+        public override DataTable exeQuery(string orderByPart, string readsql, int pageSize, int pageNum)
         {
             string sql = this.expression.wrapPageOrder(orderByPart, readsql, pageSize, pageNum);
             return exeQuery(sql, null);
@@ -1258,7 +1258,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool checkExistKey(string key, Object value)
+        public override bool checkExistKey(string key, Object value)
         {
             return checkExistKey(key, value, this.name);
         }
@@ -1269,7 +1269,7 @@ namespace mooSQL.data
         /// <param name="value"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public bool checkExistKey(string key, Object value, string tableName)
+        public override bool checkExistKey(string key, Object value, string tableName)
         {
             var kitTmp = this.copy();
             var exists = kitTmp.from(tableName)
