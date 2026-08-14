@@ -10,35 +10,35 @@ namespace mooSQL.data
     /// 执行 / 物化出口：先 <see cref="runBuild"/>，再委托内核。
     /// 内核内部若再调 toSelect 等非虚方法，此时队列已回放完成。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         // ---- toXxx ----
 
-        public SQLCmd toSelectExist()
+        public override SQLCmd toSelectExist()
         {
             runBuild();
             return _inner.toSelectExist();
         }
 
-        public SQLCmd toInsertFrom()
+        public override SQLCmd toInsertFrom()
         {
             runBuild();
             return _inner.toInsertFrom();
         }
 
-        public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
+        public override SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
         {
             runBuild();
             return _inner.toInsertWithDuplicateUpdate(duplicateUpdateKeyword);
         }
 
-        public SQLCmd toUpdateFrom()
+        public override SQLCmd toUpdateFrom()
         {
             runBuild();
             return _inner.toUpdateFrom();
         }
 
-        public SQLCmd toMergeInto()
+        public override SQLCmd toMergeInto()
         {
             runBuild();
             return _inner.toMergeInto();
@@ -46,7 +46,7 @@ namespace mooSQL.data
 
         // ---- doXxx ----
 
-        public int doInsert()
+        public override int doInsert()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -56,7 +56,7 @@ namespace mooSQL.data
             return _inner.exeNonQueryPrepared(toInsert());
         }
 
-        public Task<int> doInsertAsync()
+        public override Task<int> doInsertAsync()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -66,7 +66,7 @@ namespace mooSQL.data
             return _inner.exeNonQueryPreparedAsync(toInsert());
         }
 
-        public int doUpdate()
+        public override int doUpdate()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -76,7 +76,7 @@ namespace mooSQL.data
             return _inner.exeNonQueryPrepared(toUpdate());
         }
 
-        public Task<int> doUpdateAsync()
+        public override Task<int> doUpdateAsync()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -86,7 +86,7 @@ namespace mooSQL.data
             return _inner.exeNonQueryPreparedAsync(toUpdate());
         }
 
-        public int doDelete()
+        public override int doDelete()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -98,7 +98,7 @@ namespace mooSQL.data
             return _inner.exeNonQueryPrepared(toDelete());
         }
 
-        public Task<int> doDeleteAsync()
+        public override Task<int> doDeleteAsync()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -110,25 +110,25 @@ namespace mooSQL.data
             return _inner.exeNonQueryPreparedAsync(toDelete());
         }
 
-        public int doInsertFrom()
+        public override int doInsertFrom()
         {
             runBuild();
             return _inner.doInsertFrom();
         }
 
-        public int doUpdateFrom()
+        public override int doUpdateFrom()
         {
             runBuild();
             return _inner.doUpdateFrom();
         }
 
-        public int doMergeInto()
+        public override int doMergeInto()
         {
             runBuild();
             return _inner.doMergeInto();
         }
 
-        public Task<int> doMergeIntoAsync()
+        public override Task<int> doMergeIntoAsync()
         {
             runBuild();
             return _inner.doMergeIntoAsync();
@@ -136,7 +136,7 @@ namespace mooSQL.data
 
         // ---- query / count / exist ----
 
-        public DataTable query()
+        public override DataTable query()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -146,7 +146,7 @@ namespace mooSQL.data
             return _inner.queryPrepared(toSelect());
         }
 
-        public Task<DataTable> queryAsync()
+        public override Task<DataTable> queryAsync()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -156,7 +156,7 @@ namespace mooSQL.data
             return _inner.queryPreparedAsync(toSelect());
         }
 
-        public IEnumerable<T> query<T>()
+        public override IEnumerable<T> query<T>()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -166,7 +166,7 @@ namespace mooSQL.data
             return _inner.queryPrepared<T>(toSelect());
         }
 
-        public Task<IEnumerable<T>> queryAsync<T>()
+        public override Task<IEnumerable<T>> queryAsync<T>()
         {
             if (!_scriptTemplateCacheEnabled)
             {
@@ -176,7 +176,7 @@ namespace mooSQL.data
             return _inner.queryPreparedAsync<T>(toSelect());
         }
 
-        public List<T> query<T>(Func<DataRow, T> createEntity)
+        public override List<T> query<T>(Func<DataRow, T> createEntity)
         {
             runBuild();
             return _inner.query(createEntity);
@@ -185,205 +185,205 @@ namespace mooSQL.data
         /// <summary>
         /// 按行自定义读取（DbDataReader）。
         /// </summary>
-        public IEnumerable<T> queryReader<T>(Func<System.Data.Common.DbDataReader, T> onReadRow)
+        public override IEnumerable<T> queryReader<T>(Func<System.Data.Common.DbDataReader, T> onReadRow)
         {
             runBuild();
             return _inner.queryReader(onReadRow);
         }
 
-        public IEnumerable<T> queryReader<T>(string resultTypeTag, Func<System.Data.Common.DbDataReader, T> onReadRow)
+        public override IEnumerable<T> queryReader<T>(string resultTypeTag, Func<System.Data.Common.DbDataReader, T> onReadRow)
         {
             runBuild();
             return _inner.queryReader(resultTypeTag, onReadRow);
         }
 
-        public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
+        public override TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
             runBuild();
             return _inner.queryAs<T, TResult>(onRuning);
         }
 
-        public PagedDataTable queryPaged()
+        public override PagedDataTable queryPaged()
         {
             runBuild();
             return _inner.queryPaged();
         }
 
-        public PageOutput<T> queryPaged<T>()
+        public override PageOutput<T> queryPaged<T>()
         {
             runBuild();
             return _inner.queryPaged<T>();
         }
 
-        public PageOutput<T> queryPaged<T>(string summSQL)
+        public override PageOutput<T> queryPaged<T>(string summSQL)
         {
             runBuild();
             return _inner.queryPaged<T>(summSQL);
         }
 
-        public PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
+        public override PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
             runBuild();
             return _inner.queryPaged(activeOther);
         }
 
-        public Task<PageOutput<T>> queryPagedAsync<T>()
+        public override Task<PageOutput<T>> queryPagedAsync<T>()
         {
             runBuild();
             return _inner.queryPagedAsync<T>();
         }
 
-        public PagedSumDataTable queryPageSum(string selectCols)
+        public override PagedSumDataTable queryPageSum(string selectCols)
         {
             runBuild();
             return _inner.queryPageSum(selectCols);
         }
 
-        public Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        public override Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
         {
             runBuild();
             return _inner.queryPageSumAsync(selectCols);
         }
 
-        public PageSumOutput<T> queryPageSum<T>(string selectCols)
+        public override PageSumOutput<T> queryPageSum<T>(string selectCols)
         {
             runBuild();
             return _inner.queryPageSum<T>(selectCols);
         }
 
-        public Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        public override Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
         {
             runBuild();
             return _inner.queryPagedSumAsync<T>(selectCols);
         }
 
-        public Dictionary<string, object> querySummary(string sumSQL, bool containToal)
+        public override Dictionary<string, object> querySummary(string sumSQL, bool containToal)
         {
             runBuild();
             return _inner.querySummary(sumSQL, containToal);
         }
 
-        public IEnumerable<T> queryFirstField<T>()
+        public override IEnumerable<T> queryFirstField<T>()
         {
             runBuild();
             return _inner.queryFirstField<T>();
         }
 
-        public T queryFirst<T>()
+        public override T queryFirst<T>()
         {
             runBuild();
             return _inner.queryFirst<T>();
         }
 
-        public T queryUnique<T>()
+        public override T queryUnique<T>()
         {
             runBuild();
             return _inner.queryUnique<T>();
         }
 
-        public Task<T> queryUniqueAsync<T>()
+        public override Task<T> queryUniqueAsync<T>()
         {
             runBuild();
             return _inner.queryUniqueAsync<T>();
         }
 
-        public T queryScalar<T>()
+        public override T queryScalar<T>()
         {
             runBuild();
             return _inner.queryScalar<T>();
         }
 
-        public Task<T> queryScalarAsync<T>()
+        public override Task<T> queryScalarAsync<T>()
         {
             runBuild();
             return _inner.queryScalarAsync<T>();
         }
 
-        public DataRow queryRow()
+        public override DataRow queryRow()
         {
             runBuild();
             return _inner.queryRow();
         }
 
-        public Task<DataRow> queryRowAsync()
+        public override Task<DataRow> queryRowAsync()
         {
             runBuild();
             return _inner.queryRowAsync();
         }
 
-        public T queryRow<T>()
+        public override T queryRow<T>()
         {
             runBuild();
             return _inner.queryRow<T>();
         }
 
-        public T queryRow<T>(Func<DataRow, T> builder)
+        public override T queryRow<T>(Func<DataRow, T> builder)
         {
             runBuild();
             return _inner.queryRow(builder);
         }
 
-        public int queryRowInt(int defaultVal)
+        public override int queryRowInt(int defaultVal)
         {
             runBuild();
             return _inner.queryRowInt(defaultVal);
         }
 
-        public long queryRowLong(long defaultVal)
+        public override long queryRowLong(long defaultVal)
         {
             runBuild();
             return _inner.queryRowLong(defaultVal);
         }
 
-        public string queryRowString(string defaultVal)
+        public override string queryRowString(string defaultVal)
         {
             runBuild();
             return _inner.queryRowString(defaultVal);
         }
 
-        public double queryRowDouble(double defaultVal)
+        public override double queryRowDouble(double defaultVal)
         {
             runBuild();
             return _inner.queryRowDouble(defaultVal);
         }
 
-        public object queryRowValue()
+        public override object queryRowValue()
         {
             runBuild();
             return _inner.queryRowValue();
         }
 
-        public int count()
+        public override int count()
         {
             runBuild();
             return _inner.count();
         }
 
-        public long countLong()
+        public override long countLong()
         {
             runBuild();
             return _inner.countLong();
         }
 
-        public bool exist()
+        public override bool exist()
         {
             runBuild();
             return _inner.exist();
         }
 
-        public Task<bool> existAsync()
+        public override Task<bool> existAsync()
         {
             runBuild();
             return _inner.existAsync();
         }
 
-        public bool checkExistKey(string key, object value)
+        public override bool checkExistKey(string key, object value)
         {
             runBuild();
             return _inner.checkExistKey(key, value);
         }
 
-        public bool checkExistKey(string key, object value, string tableName)
+        public override bool checkExistKey(string key, object value, string tableName)
         {
             runBuild();
             return _inner.checkExistKey(key, value, tableName);
@@ -391,13 +391,13 @@ namespace mooSQL.data
 
         // ---- where 物化窥视 ----
 
-        public string buildWhere()
+        public override string buildWhere()
         {
             runBuild();
             return _inner.buildWhere();
         }
 
-        public string buildWhereContent()
+        public override string buildWhereContent()
         {
             runBuild();
             return _inner.buildWhereContent();
@@ -405,17 +405,17 @@ namespace mooSQL.data
 
         // ---- 中间态读取：编排期计数（无需 Flush）；物化真值见 Inner ----
 
-        public int ColumnCount
+        public override int ColumnCount
         {
             get { return SetColumnCount; }
         }
 
-        public int FromCount
+        public override int FromCount
         {
             get { return FromFragmentCount; }
         }
 
-        public bool containSetColumn(string name)
+        public override bool containSetColumn(string name)
         {
             runBuild();
             return _inner.containSetColumn(name);

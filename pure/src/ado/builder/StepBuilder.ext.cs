@@ -12,7 +12,7 @@ namespace mooSQL.data
         /// 创建一个新的实例，默认会继承事务
         /// </summary>
         /// <returns></returns>
-        public SQLBuilder useSQL(bool useTransaction=true)
+        public override SQLBuilder useSQL(bool useTransaction=true)
         {
             var tar= this.DBLive.client.ClientFactory.useSQL(DBLive);
             if (useTransaction && this.Executor != null) {
@@ -24,14 +24,14 @@ namespace mooSQL.data
         /// 开始创建DDL构造器
         /// </summary>
         /// <returns></returns>
-        public DDLBuilder useDDL() {
+        public override DDLBuilder useDDL() {
             return DBLive.useDDL();
         }
         /// <summary>
         /// 获取快捷查询功能语句
         /// </summary>
         /// <returns></returns>
-        public SQLSentence useSentence()
+        public override SQLSentence useSentence()
         {
             return DBLive.dialect.sentence;
         }

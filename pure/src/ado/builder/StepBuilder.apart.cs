@@ -10,7 +10,7 @@ namespace mooSQL.data
         /// <summary>
         /// 内核侧重放：经 Attach 门面将编排步骤 Apply 到本实例。
         /// </summary>
-        public StepBuilder useApart(SQLApart apart)
+        public override SQLBuilder useApart(SQLApart apart)
         {
             if (apart == null)
                 throw new ArgumentNullException(nameof(apart));

@@ -1048,7 +1048,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
+        public override SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
             return this.sinkOR()
                 .whereNotIn(key, values)
                 .whereIsNull(key)
@@ -1157,7 +1157,7 @@ namespace mooSQL.data {
         /// <param name="op"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values)
+        public override SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values)
         {
             if (!opened)
             {
@@ -1652,7 +1652,7 @@ namespace mooSQL.data {
         /// <param name="minValue"></param>
         /// <param name="maxValue"></param>
         /// <returns></returns>
-        public SQLBuilder whereBetween<T>(string key, T minValue, T maxValue)
+        public override SQLBuilder whereBetween<T>(string key, T minValue, T maxValue)
         {
             if (!opened)
             {
@@ -1687,7 +1687,7 @@ namespace mooSQL.data {
         /// <param name="minValue"></param>
         /// <param name="maxValue"></param>
         /// <returns></returns>
-        public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue)
+        public override SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue)
         {
             if (!opened)
             {

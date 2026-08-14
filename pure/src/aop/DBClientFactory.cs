@@ -13,12 +13,20 @@ namespace mooSQL.data
     public class DBClientFactory
     {
         /// <summary>
-        /// 创建SQL构建器对象。
+        /// 创建 SQL 构建器。默认 <see cref="StepBuilder"/>。
+        /// 在 PrepareSQLBuilder 性能问题最终解决前，不得将默认实现切换为 Prepare。
         /// </summary>
-        /// <param name="DB"></param>
-        /// <returns></returns>
-        public virtual SQLBuilder useSQL(DBInstance DB) { 
-            var tar= new SQLBuilder();
+        public virtual SQLBuilder useSQL(DBInstance DB) {
+            var tar = new StepBuilder();
+            tar.setDBInstance(DB);
+            return tar;
+        }
+
+        /// <summary>
+        /// 显式创建延迟构造 / 模板缓存实现。勿作为默认路径。
+        /// </summary>
+        public virtual SQLBuilder usePrepareSQL(DBInstance DB) {
+            var tar = new PrepareSQLBuilder();
             tar.setDBInstance(DB);
             return tar;
         }

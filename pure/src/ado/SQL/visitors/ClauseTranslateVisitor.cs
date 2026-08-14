@@ -51,7 +51,7 @@ namespace mooSQL.linq
         /// <param name="DB"></param>
         protected void init(DBInstance DB) {
             this.DB = DB;
-            var builder = new SQLBuilder();
+            var builder = DB.useSQL();
             builder.setDBInstance(DB);
 
             this.rootBuilder = builder;

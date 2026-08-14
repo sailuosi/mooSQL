@@ -22,14 +22,19 @@ namespace mooSQL.data
         /// <summary>
         /// 获取数据库实例的委托
         /// </summary>
-        public Func<int, DBInstance> loadDBInstance;
+        private Func<int, DBInstance> _loadDBInstance;
+        public override Func<int, DBInstance> loadDBInstance
+        {
+            get { return _loadDBInstance; }
+            set { _loadDBInstance = value; }
+        }
         /// <summary>
         /// 获取数据库实例，由初始化工厂执行调用，本身并不使用。
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public virtual DBInstance getDB(int position)
+        public override DBInstance getDB(int position)
         {
             if (this.loadDBInstance == null)
             {
@@ -44,7 +49,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public override int exeNonQuery(string SQL, Paras? para= null)
+        public override int exeNonQuery(string SQL, Paras para= null)
         {
             if(para==null) para= new Paras();
             CheckDBForWrite();
@@ -138,7 +143,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public override DataTable exeQuery(string SQL, Paras? para=null)
+        public override DataTable exeQuery(string SQL, Paras para=null)
         {
             if (para == null) para = new Paras();
             CheckDBForRead();
@@ -180,7 +185,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <param name="para"></param>
         /// <returns></returns>
-        public override IEnumerable<T> exeQuery<T>(string SQL, Paras? para=null)
+        public override IEnumerable<T> exeQuery<T>(string SQL, Paras para=null)
         {
             if (para == null) para = new Paras();
             var cmd = geneCmd(SQL, para);
@@ -808,7 +813,7 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 queryPagedAsync（返回 Task<PageOutput<T>>）。
         /// </summary>
-        public async Task<PageOutput<T>> queryPagedAsync<T>()
+        public override async Task<PageOutput<T>> queryPagedAsync<T>()
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -834,7 +839,7 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="selectCols"></param>
         /// <returns></returns>
-        public async Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        public override async Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
         {
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
@@ -892,7 +897,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public IEnumerable<T> queryFirstField<T>()
+        public override IEnumerable<T> queryFirstField<T>()
         {
             return doSelect("firstField:" + typeof(T).FullName, cmd =>
             {
@@ -904,7 +909,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T queryFirst<T>()
+        public override T queryFirst<T>()
         {
             return doSelect("first:" + typeof(T).FullName, cmd =>
             {
@@ -918,7 +923,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T queryUnique<T>() {
+        public override T queryUnique<T>() {
             return queryUniqueInner<T>();
         }
         private T queryUniqueInner<T>()
@@ -938,7 +943,7 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 queryUniqueAsync（返回 Task<T>）。
         /// </summary>
-        public Task<T> queryUniqueAsync<T>()
+        public override Task<T> queryUniqueAsync<T>()
         {
             return queryUniqueInnerAsync<T>();
         }
@@ -955,7 +960,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T queryScalar<T>()
+        public override T queryScalar<T>()
         {
             return doSelect("scalar:" + typeof(T).FullName, cmd =>
             {
@@ -967,7 +972,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public Task<T> queryScalarAsync<T>()
+        public override Task<T> queryScalarAsync<T>()
         {
             return doSelectAsync("scalar:" + typeof(T).FullName, async cmd =>
             {
@@ -980,7 +985,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
+        public override TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning)
         {
             return doSelect("as:" + typeof(T).FullName + ":" + typeof(TResult).FullName, cmd =>
             {
@@ -1017,13 +1022,13 @@ namespace mooSQL.data
         /// <summary>
         /// 按行自定义读取（DbDataReader），走 doSelect 物化，供客户端尾投影等使用。
         /// </summary>
-        public IEnumerable<T> queryReader<T>(Func<DbDataReader, T> onReadRow)
+        public override IEnumerable<T> queryReader<T>(Func<DbDataReader, T> onReadRow)
             => queryReader("reader:" + typeof(T).FullName, onReadRow);
 
         /// <summary>
         /// 同 <see cref="queryReader{T}(Func{DbDataReader, T})"/>，可指定结果缓存类型标签（尾投影含投影指纹）。
         /// </summary>
-        public IEnumerable<T> queryReader<T>(string resultTypeTag, Func<DbDataReader, T> onReadRow)
+        public override IEnumerable<T> queryReader<T>(string resultTypeTag, Func<DbDataReader, T> onReadRow)
         {
             var tag = string.IsNullOrWhiteSpace(resultTypeTag)
                 ? "reader:" + typeof(T).FullName

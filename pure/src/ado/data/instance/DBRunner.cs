@@ -200,9 +200,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
         public SQLBuilder newSQL() { 
-            var builder= new SQLBuilder();
-            builder.expression = db.expression;
-            return builder;
+            return db.client.ClientFactory.useSQL(db);
         }
         /// <summary>
         /// 

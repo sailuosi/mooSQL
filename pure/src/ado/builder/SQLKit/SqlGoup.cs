@@ -525,7 +525,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup whereIn(string key, Action<StepBuilder> doselect)
+        public SqlGoup whereIn(string key, Action<SQLBuilder> doselect)
         {
             return where(key, " in ", doselect);
         }
@@ -543,7 +543,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup whereExist( Action<StepBuilder> doselect)
+        public SqlGoup whereExist( Action<SQLBuilder> doselect)
         {
             return where("", " exists ", doselect);
         }
@@ -559,7 +559,7 @@ namespace mooSQL.data
         /// <param name="op"></param>
         /// <param name="doselect"></param>
         /// <returns></returns>
-        public SqlGoup where(string key,string op, Action<StepBuilder> doselect)
+        public SqlGoup where(string key,string op, Action<SQLBuilder> doselect)
         {
 
             WhereFrag field = new WhereFrag();
@@ -580,7 +580,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="doWhere"></param>
         /// <returns></returns>
-        public SqlGoup where( Action<StepBuilder> doWhere)
+        public SqlGoup where( Action<SQLBuilder> doWhere)
         {
 
             WhereFrag field = new WhereFrag();

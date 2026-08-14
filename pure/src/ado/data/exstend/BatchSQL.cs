@@ -20,7 +20,7 @@ namespace mooSQL.data
         public BatchSQL(DBInstance DB)
         {
             this.DBLive = DB;
-            this.builder = new SQLBuilder(DB.expression);
+            this.builder = DB.client.ClientFactory.useSQL(DB);
             this.runner = new DBRunner(DB);
         }
         /// <summary>

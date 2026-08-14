@@ -7,7 +7,7 @@ namespace mooSQL.data
     /// 执行模板缓存：与 StepBuilder 结果缓存共用 <see cref="StepBuilder.cacheHolder"/>
     ///（setCacheHolder → Client.Cache → 默认 HashCache）。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         /// <summary>
         /// 新 <see cref="SQLBuilder"/> 实例的模板缓存默认开关。
@@ -18,24 +18,27 @@ namespace mooSQL.data
         // TEMP: 默认跟随 DefaultUseScriptTemplateCache；测完请把静态默认改回 false。
         private bool _scriptTemplateCacheEnabled = DefaultUseScriptTemplateCache;
 
+        private int _scriptTemplateCacheHits;
+        private int _scriptTemplateCacheMisses;
+
         /// <summary>本次门面实例的模板缓存命中次数（单测/诊断）。</summary>
-        public int ScriptTemplateCacheHits { get; private set; }
+        public override int ScriptTemplateCacheHits => _scriptTemplateCacheHits;
 
         /// <summary>本次门面实例的模板缓存未命中次数（单测/诊断）。</summary>
-        public int ScriptTemplateCacheMisses { get; private set; }
+        public override int ScriptTemplateCacheMisses => _scriptTemplateCacheMisses;
 
         /// <summary>
         /// 启用/关闭执行模板缓存。
         /// TEMP: 当前静态默认开启便于业务测试；正式默认应为关闭。
         /// </summary>
-        public SQLBuilder useScriptTemplateCache(bool enabled = true)
+        public override SQLBuilder useScriptTemplateCache(bool enabled = true)
         {
             _scriptTemplateCacheEnabled = enabled;
             return this;
         }
 
         /// <summary>toSelect：可选冷热分流。</summary>
-        public SQLCmd toSelect()
+        public override SQLCmd toSelect()
         {
             return ToCached(
                 ScriptCacheKey.BuildKindToSelect,
@@ -44,7 +47,7 @@ namespace mooSQL.data
         }
 
         /// <summary>toInsert：可选冷热分流。</summary>
-        public SQLCmd toInsert()
+        public override SQLCmd toInsert()
         {
             return ToCached(
                 ScriptCacheKey.BuildKindToInsert,
@@ -53,7 +56,7 @@ namespace mooSQL.data
         }
 
         /// <summary>toUpdate：可选冷热分流。</summary>
-        public SQLCmd toUpdate()
+        public override SQLCmd toUpdate()
         {
             return ToCached(
                 ScriptCacheKey.BuildKindToUpdate,
@@ -62,7 +65,7 @@ namespace mooSQL.data
         }
 
         /// <summary>toDelete：可选冷热分流。</summary>
-        public SQLCmd toDelete()
+        public override SQLCmd toDelete()
         {
             return ToCached(
                 ScriptCacheKey.BuildKindToDelete,
@@ -83,12 +86,12 @@ namespace mooSQL.data
             var cached = holder.Get<ScriptTemplate>(key);
             if (cached != null && TryBindHot(cached, queryType, out var hot))
             {
-                ScriptTemplateCacheHits++;
+                _scriptTemplateCacheHits++;
                 _dirty = false;
                 return hot;
             }
 
-            ScriptTemplateCacheMisses++;
+            _scriptTemplateCacheMisses++;
             runBuild();
             var cmd = coldBuild();
             TryStoreScriptTemplate(key, holder, cmd);

@@ -56,6 +56,16 @@ namespace mooSQL.data
         {
             return DB.client.ClientFactory.useSQL(DB);
         }
+
+        /// <summary>
+        /// 显式创建延迟构造 / 模板缓存实现。勿作为默认路径；
+        /// 在 PrepareSQLBuilder 性能问题最终解决前，不得改为 useSQL 的默认实现。
+        /// </summary>
+        public static SQLBuilder usePrepareSQL(this DBInstance DB)
+        {
+            return DB.client.ClientFactory.usePrepareSQL(DB);
+        }
+
         /// <summary>
         /// 批量SQL执行器
         /// </summary>

@@ -3,7 +3,7 @@ namespace mooSQL.data
     /// <summary>
     /// 编排门控与懒计算元数据（Count / OrchestrationHash 扫 _steps，无实时累计）。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         private string _paraRule = "notEmpty";
         private bool _opened = true;
@@ -11,7 +11,7 @@ namespace mooSQL.data
         private int _nextStaticSlot;
 
         /// <summary>可选 notEmpty / all / notNull；默认 notEmpty。编排 Hash 种子与步骤判定共用。</summary>
-        public string paraRule
+        public override string paraRule
         {
             get { return _paraRule; }
             set
@@ -29,25 +29,25 @@ namespace mooSQL.data
             set { _opened = value; }
         }
 
-        public int SelectFragmentCount { get { return CountKind(StepKind.Select, StepKind.ClearSelect); } }
-        public int FromFragmentCount { get { return CountKind(StepKind.From, null); } }
-        public int JoinCount { get { return CountKind(StepKind.Join, null); } }
-        public int FromTotalCount { get { return FromFragmentCount + JoinCount; } }
-        public int WhereConditionCount { get { return CountKind(StepKind.Where, StepKind.ClearWhere); } }
-        public int OrderByCount { get { return CountKind(StepKind.OrderBy, null); } }
-        public int GroupByCount { get { return CountKind(StepKind.GroupBy, null); } }
-        public int HavingCount { get { return CountKind(StepKind.Having, null); } }
-        public int SetColumnCount { get { return CountKind(StepKind.Set, null); } }
+        public override int SelectFragmentCount { get { return CountKind(StepKind.Select, StepKind.ClearSelect); } }
+        public override int FromFragmentCount { get { return CountKind(StepKind.From, null); } }
+        public override int JoinCount { get { return CountKind(StepKind.Join, null); } }
+        public override int FromTotalCount { get { return FromFragmentCount + JoinCount; } }
+        public override int WhereConditionCount { get { return CountKind(StepKind.Where, StepKind.ClearWhere); } }
+        public override int OrderByCount { get { return CountKind(StepKind.OrderBy, null); } }
+        public override int GroupByCount { get { return CountKind(StepKind.GroupBy, null); } }
+        public override int HavingCount { get { return CountKind(StepKind.Having, null); } }
+        public override int SetColumnCount { get { return CountKind(StepKind.Set, null); } }
 
-        public bool HasSelect { get { return SelectFragmentCount > 0; } }
-        public bool HasFrom { get { return FromTotalCount > 0; } }
-        public bool HasWhere { get { return WhereConditionCount > 0; } }
-        public bool HasOrderBy { get { return OrderByCount > 0; } }
-        public bool HasGroupBy { get { return GroupByCount > 0; } }
-        public bool HasHaving { get { return HavingCount > 0; } }
+        public override bool HasSelect { get { return SelectFragmentCount > 0; } }
+        public override bool HasFrom { get { return FromTotalCount > 0; } }
+        public override bool HasWhere { get { return WhereConditionCount > 0; } }
+        public override bool HasOrderBy { get { return OrderByCount > 0; } }
+        public override bool HasGroupBy { get { return GroupByCount > 0; } }
+        public override bool HasHaving { get { return HavingCount > 0; } }
 
         /// <summary>先 Combine 门面 paraRule，再按步骤磁带 ContributeHash。</summary>
-        public int OrchestrationHash
+        public override int OrchestrationHash
         {
             get
             {

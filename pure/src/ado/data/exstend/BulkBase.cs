@@ -241,7 +241,7 @@ namespace mooSQL.data
         {
             if (kit == null)
             {
-                kit = new SQLBuilder();
+                kit = DB.useSQL();
                 kit.setDBInstance(DB);
             }
             else {

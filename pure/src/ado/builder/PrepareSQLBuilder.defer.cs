@@ -4,7 +4,7 @@ namespace mooSQL.data
     /// 门面延迟构造：构造 API 只入队；执行 / 物化出口 Flush。
     /// 默认纯延迟；<see cref="useDeferred"/>(false) 可临时恢复双写（入队 + 立即 Apply）便于对照排查。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         /// <summary>默认 true：仅入队，出口 Flush。</summary>
         private bool _deferredEnabled = true;
@@ -12,7 +12,7 @@ namespace mooSQL.data
         /// <summary>
         /// 切换延迟模式。默认开启；传 false 时恢复双写（兼容对照）。
         /// </summary>
-        public SQLBuilder useDeferred(bool enabled = true)
+        public override SQLBuilder useDeferred(bool enabled = true)
         {
             _deferredEnabled = enabled;
             return this;
@@ -46,33 +46,33 @@ namespace mooSQL.data
 
         // ---- 手写核心构造 API（与生成器 SKIP 对齐）----
 
-        public SQLBuilder select(string columns) => Enqueue(new SelectStep(columns));
+        public override SQLBuilder select(string columns) => Enqueue(new SelectStep(columns));
 
-        public SQLBuilder from(string fromPart) => Enqueue(new FromStep(fromPart));
+        public override SQLBuilder from(string fromPart) => Enqueue(new FromStep(fromPart));
 
-        public SQLBuilder distinct() => Enqueue(DistinctStep.Instance);
+        public override SQLBuilder distinct() => Enqueue(DistinctStep.Instance);
 
-        public SQLBuilder orderBy(string orderByPart) => Enqueue(new OrderByStep(orderByPart));
+        public override SQLBuilder orderBy(string orderByPart) => Enqueue(new OrderByStep(orderByPart));
 
-        public SQLBuilder setPage(int? size, int? num) => Enqueue(new SetPageStep(size, num));
+        public override SQLBuilder setPage(int? size, int? num) => Enqueue(new SetPageStep(size, num));
 
-        public SQLBuilder where(string key) => Enqueue(new WhereRawStep(key));
+        public override SQLBuilder where(string key) => Enqueue(new WhereRawStep(key));
 
-        public SQLBuilder where(string key, object val)
+        public override SQLBuilder where(string key, object val)
         {
             var step = new WhereKeyValStep(key, val);
             step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
-        public SQLBuilder where(string key, object val, string op)
+        public override SQLBuilder where(string key, object val, string op)
         {
             var step = new WhereKeyValOpParamedStep(key, val, op, true);
             step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
             return Enqueue(step);
         }
 
-        public SQLBuilder where(string key, object val, string op, bool paramed)
+        public override SQLBuilder where(string key, object val, string op, bool paramed)
         {
             var step = new WhereKeyValOpParamedStep(key, val, op, paramed);
             step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentWhereGroupSeed);
@@ -83,52 +83,52 @@ namespace mooSQL.data
         /// 登记已解析参数（Clause VisitParameter / VisitValueWord）。
         /// 必须走编排入队：直接 <c>ps.Add</c> 会在 <see cref="runBuild"/> clear 后丢失。
         /// </summary>
-        public SQLBuilder addResolvedPara(Parameter para) => Enqueue(new AddParaStep(para));
+        public override SQLBuilder addResolvedPara(Parameter para) => Enqueue(new AddParaStep(para));
 
-        public SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
+        public override SQLBuilder clearSelect() => Enqueue(ClearSelectStep.Instance);
 
-        public SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);
+        public override SQLBuilder clearWhere() => Enqueue(ClearWhereStep.Instance);
 
-        public SQLBuilder clearPage() => Enqueue(ClearPageStep.Instance);
+        public override SQLBuilder clearPage() => Enqueue(ClearPageStep.Instance);
 
-        public SQLBuilder whereBetween<T>(string key, T minValue, T maxValue) =>
+        public override SQLBuilder whereBetween<T>(string key, T minValue, T maxValue) =>
             Enqueue(new WhereBetweenStep<T>(key, minValue, maxValue));
 
-        public SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue) =>
+        public override SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue) =>
             Enqueue(new WhereNotBetweenStep<T>(key, minValue, maxValue));
 
-        public SQLBuilder whereIn<T>(string key, IEnumerable<T> values) =>
+        public override SQLBuilder whereIn<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereInGenericStep<T>(key, values));
 
-        public SQLBuilder whereIn<T>(string key, params T[] values) =>
+        public override SQLBuilder whereIn<T>(string key, params T[] values) =>
             whereIn(key, (IEnumerable<T>)values);
 
-        public SQLBuilder whereIn<T>(string key, List<T> val) =>
+        public override SQLBuilder whereIn<T>(string key, List<T> val) =>
             whereIn(key, (IEnumerable<T>)val);
 
-        public SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values) =>
+        public override SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereNotInGenericStep<T>(key, values));
 
-        public SQLBuilder whereNotIn<T>(string key, List<T> values) =>
+        public override SQLBuilder whereNotIn<T>(string key, List<T> values) =>
             whereNotIn(key, (IEnumerable<T>)values);
 
-        public SQLBuilder whereNotIn<T>(string key, params T[] values) =>
+        public override SQLBuilder whereNotIn<T>(string key, params T[] values) =>
             whereNotIn(key, (IEnumerable<T>)values);
 
-        public SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) =>
+        public override SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereNotInOrNullStep<T>(key, values));
 
-        public SQLBuilder whereNotInOrNull<T>(string key, List<T> values) =>
+        public override SQLBuilder whereNotInOrNull<T>(string key, List<T> values) =>
             whereNotInOrNull(key, (IEnumerable<T>)values);
 
-        public SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values) =>
+        public override SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values) =>
             Enqueue(new WhereListGenericStep<T>(key, op, values));
 
-        public SQLBuilder whereOR<T>(string key, params T[] values) =>
+        public override SQLBuilder whereOR<T>(string key, params T[] values) =>
             Enqueue(new WhereORValuesStep<T>(key, values));
 
         /// <summary>编排期条件分支：通过时执行 whenTrue（闭包内链式调用继续入队）。</summary>
-        public SQLBuilder ifs(bool isPass, Action whenTrue)
+        public override SQLBuilder ifs(bool isPass, Action whenTrue)
         {
             if (isPass)
                 whenTrue?.Invoke();
@@ -136,7 +136,7 @@ namespace mooSQL.data
         }
 
         /// <summary>编排期条件分支：按 isPass 执行 whenTrue / whenFalse。</summary>
-        public SQLBuilder ifs(bool isPass, Action whenTrue, Action whenFalse)
+        public override SQLBuilder ifs(bool isPass, Action whenTrue, Action whenFalse)
         {
             if (isPass)
                 whenTrue?.Invoke();
@@ -151,7 +151,7 @@ namespace mooSQL.data
         /// 清空 select 后，在当前门面上执行委托（非子查询）。
         /// 例：<c>from(a).selectWith(s =&gt; s.from(b))</c> → from a,b。
         /// </summary>
-        public SQLBuilder selectWith(Action<SQLBuilder> queryOther)
+        public override SQLBuilder selectWith(Action<SQLBuilder> queryOther)
         {
             if (queryOther == null)
                 throw new ArgumentNullException(nameof(queryOther));
@@ -161,7 +161,7 @@ namespace mooSQL.data
         }
 
         /// <summary>mergeAs 后在当前门面上编织 using 源查询。</summary>
-        public SQLBuilder mergeUsing(string asName, Action<SQLBuilder> buildSelect)
+        public override SQLBuilder mergeUsing(string asName, Action<SQLBuilder> buildSelect)
         {
             if (buildSelect == null)
                 throw new ArgumentNullException(nameof(buildSelect));
@@ -171,7 +171,7 @@ namespace mooSQL.data
         }
 
         /// <summary>orLeft → 委托 → orRight，均入队到当前门面。</summary>
-        public SQLBuilder or(Action<SQLBuilder> doSomeWhere)
+        public override SQLBuilder or(Action<SQLBuilder> doSomeWhere)
         {
             if (doSomeWhere == null)
                 throw new ArgumentNullException(nameof(doSomeWhere));
@@ -182,7 +182,7 @@ namespace mooSQL.data
         }
 
         /// <summary>andLeft → 委托 → andRight，均入队到当前门面。</summary>
-        public SQLBuilder and(Action<SQLBuilder> doSomeWhere)
+        public override SQLBuilder and(Action<SQLBuilder> doSomeWhere)
         {
             if (doSomeWhere == null)
                 throw new ArgumentNullException(nameof(doSomeWhere));
@@ -194,7 +194,7 @@ namespace mooSQL.data
 
         // ---- 基础 toXxx（其余见 defer.exec；toSelect 冷热分流见 SQLBuilder.cache.cs）----
 
-        public SQLCmd toSelectCount()
+        public override SQLCmd toSelectCount()
         {
             runBuild();
             return _inner.toSelectCount();

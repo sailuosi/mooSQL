@@ -6,7 +6,7 @@ namespace mooSQL.data
     /// <summary>
     /// B 类子查询：编排期捕获子步骤队列；Apply 时 getBrotherBuilder + 重放（不调用委托重载）。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         /// <summary>
         /// 编排期执行委托，收集其入队的步骤快照。
@@ -18,7 +18,7 @@ namespace mooSQL.data
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            var child = Attach(_inner.createCaptureBrother());
+            var child = (PrepareSQLBuilder)Attach(_inner.createCaptureBrother());
             action(child);
             return child.CopySteps();
         }

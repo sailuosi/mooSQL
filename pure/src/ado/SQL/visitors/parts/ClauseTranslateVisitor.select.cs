@@ -406,7 +406,7 @@ namespace mooSQL.linq
 
         string RenderSelectQuerySubquery(SelectQueryClause clause)
         {
-            var subBuilder = new SQLBuilder();
+            var subBuilder = DB.useSQL();
             subBuilder.setDBInstance(DB);
             var saved = builder;
             builder = subBuilder;

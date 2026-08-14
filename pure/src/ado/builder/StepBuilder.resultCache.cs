@@ -25,7 +25,7 @@ namespace mooSQL.data
         /// <summary>
         /// 仅 TTL：无外界 key，查询时用 <see cref="BuildAutoResultCacheKey"/>。
         /// </summary>
-        public StepBuilder setCache(int timeoutSeconds)
+        public override SQLBuilder setCache(int timeoutSeconds)
         {
             this.cacheKey = "";
             this.cacheTimeout = timeoutSeconds > 0 ? timeoutSeconds : defaultCacheTimeout;

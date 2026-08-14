@@ -8,9 +8,14 @@
 
 ## 1. 一句话结论
 
-把 **`SQLBuilder` 升格为抽象类（公共 API 宿主）**；**`StepBuilder` 改为继承它**（无编排缓存的 eager 实现）；**现有编排门面 `SQLBuilder` 更名为 `PrepareSQLBuilder`**（延迟构造 + 模板缓存实现）。对外仍以 `SQLBuilder` 类型编程，默认工厂继续产出 Prepare 实现。**各类子查询 / 嵌套构建的声明一律为 `SQLBuilder`**（不得再写 `StepBuilder` / `PrepareSQLBuilder`）。
+把 **`SQLBuilder` 升格为抽象类（公共 API 宿主）**；**`StepBuilder` 改为继承它**（无编排缓存的 eager 实现）；**现有编排门面更名为 `PrepareSQLBuilder`**（延迟构造 + 模板缓存实现）。对外仍以 `SQLBuilder` 类型编程。**各类子查询 / 嵌套构建的声明一律为 `SQLBuilder`**（不得再写 `StepBuilder` / `PrepareSQLBuilder`）。
 
-> **实施注记（已落地）**：默认实现以 `abstract partial class SQLBuilder` 承载原门面方法体（`virtual`），`PrepareSQLBuilder` 为可 `new` 的薄子类；`StepBuilder` 经 `KernelCtorMarker` 内核构造并 `override` 为 eager。`useSQL()` → `new PrepareSQLBuilder()`。
+> **实施注记（现行）**：
+> - 抽象 `SQLBuilder` **仅**声明公共 API，并允许持有 `DBLive` 等架构成员；**不得**持有 `_steps` / ScriptTemplate 等功能状态。
+> - `PrepareSQLBuilder` 承载原门面实现（defer / proxy / cache / apart / stats）；`StepBuilder` 为 eager override。
+> - **`DBClientFactory.useSQL` / `DB.useSQL()` 默认 `StepBuilder`**。`usePrepareSQL` 为显式入口。
+> - **在 Prepare 性能问题最终解决前，永不将默认切换为 `PrepareSQLBuilder`。**
+> - 业务侧实例获取点上收到工厂；内核兄弟 `new StepBuilder()` 等内部构造可保留。
 
 ---
 
@@ -42,10 +47,11 @@ useSQL() → new SQLBuilder() → Flush / 模板缓存 → StepBuilder
 
 | 目标 | 说明 |
 |------|------|
-| **SQLBuilder = 抽象公共面** | 所有对外 public 方法/属性声明（及可共享的默认行为）落在抽象类上 |
-| **StepBuilder = 无缓存实现** | `StepBuilder : SQLBuilder`；调用即构造；**不**走 `IStep` 队列 / ScriptTemplate 编排缓存 |
-| **PrepareSQLBuilder = 现门面** | 现有 `SQLBuilder` 整体更名；保留延迟构造、编排 Hash、模板缓存 |
-| **对外兼容** | 业务代码继续写 `SQLBuilder`、`useSQL()`、`Action<SQLBuilder>`；默认仍是 Prepare 实现 |
+| **SQLBuilder = 抽象公共面** | 声明全部对外 API；仅可持有 `DBLive` 等架构成员，**不持有**编排/缓存功能状态 |
+| **StepBuilder = 无缓存实现** | `StepBuilder : SQLBuilder`；调用即构造；**不**走 `IStep` 队列 / ScriptTemplate 编排缓存；**默认工厂产出** |
+| **PrepareSQLBuilder = 现门面** | 延迟构造、编排 Hash、模板缓存；须 **`usePrepareSQL` 显式获取** |
+| **对外兼容** | 业务代码继续写 `SQLBuilder`、`useSQL()`、`Action<SQLBuilder>`；默认现为 Step |
+| **工厂上收** | 客户侧创建经 `DBClientFactory` / `DB.useSQL`；禁止散落 `new PrepareSQLBuilder` 作为默认路径 |
 | **子查询声明统一** | 凡子查询 / 嵌套构建相关的参数、返回、委托，**一律声明为 `SQLBuilder`**，禁止再出现 `Action<StepBuilder>` 等具体实现类型（见 §5.4） |
 | **变动面可控** | 以更名 + 继承接线为主；**尽量不改** Step 方法体与 Prepare 入队/Flush 逻辑 |
 
@@ -58,12 +64,13 @@ useSQL() → new SQLBuilder() → Flush / 模板缓存 → StepBuilder
 
 ### 2.4 成功判据
 
-1. `SQLBuilder` 为 `abstract`；业务与扩展方法参数/返回类型仍指向它。  
+1. `SQLBuilder` 为 `abstract`；业务与扩展方法参数/返回类型仍指向它；抽象类无功能状态。  
 2. `StepBuilder : SQLBuilder`，直连调用与改造前 eager 行为一致（无编排缓存）。  
-3. 原门面类型名为 `PrepareSQLBuilder : SQLBuilder`；`useSQL()` 默认 `new PrepareSQLBuilder(...)`。  
+3. 原门面类型名为 `PrepareSQLBuilder : SQLBuilder`；**`useSQL()` 默认 `StepBuilder`**；Prepare 仅 `usePrepareSQL()`。  
 4. **各类子查询**相关签名中不再出现 `StepBuilder` / `PrepareSQLBuilder`，一律为 `SQLBuilder`。  
 5. 既有回归（快照、Apart、Exist、模板缓存冷热路径、withRecurTo 等）全绿。  
-6. 性能对照测试可表述为：`PrepareSQLBuilder`（关/开模板缓存）vs `StepBuilder`（基线），而非「两个无关类型」。
+6. 性能对照测试可表述为：`PrepareSQLBuilder`（关/开模板缓存）vs `StepBuilder`（默认基线）。  
+7. **硬约束**：Prepare 性能问题最终解决前，**不得**将工厂默认切回 Prepare。
 
 ---
 
@@ -88,7 +95,8 @@ useSQL() → new SQLBuilder() → Flush / 模板缓存 → StepBuilder
 | **SQLBuilder** | 抽象公共 API；链式返回 `SQLBuilder`；用户编程入口类型 |
 | **StepBuilder** | 无缓存实现：构造即写状态；可作性能测试基线、特殊直连场景 |
 | **PrepareSQLBuilder** | 有准备过程的实现：入队 →（可选模板命中）→ Flush → 内核执行 |
-| **默认实现** | 工厂 / `useSQL()` 返回的具体类型 = `PrepareSQLBuilder` |
+| **默认实现** | 工厂 / `useSQL()` 返回的具体类型 = **`StepBuilder`**（Prepare 性能问题解决前不得切换） |
+| **Prepare 入口** | `DBClientFactory.usePrepareSQL` / `DB.usePrepareSQL()` |
 | **子查询声明** | select/from/join/where/CTE/union/merge 等嵌套闭包与对外返回的 Builder 类型 = **`SQLBuilder`**（§5.4） |
 | **无缓存** | 相对「编排 ScriptTemplate / OrchestrationHash 热路径」而言；与结果缓存 `setCache` 等产品能力无关 |
 
@@ -127,23 +135,18 @@ useSQL() → new SQLBuilder() → Flush / 模板缓存 → StepBuilder
 
 | 纳入 | 说明 |
 |------|------|
-| 全部对外 **public** 方法签名 | `select` / `where` / `toXxx` / `queryXxx` / `doXxx` / 事务 / 配置等 |
-| 对外 **public** 属性签名 | `DBLive` / `Dialect` / `ps` / …（实现可 abstract 或由子类提供） |
-| 链式返回类型 | 一律 `SQLBuilder`（或嵌套 DSL 类型仍返回门面抽象） |
-| 可选：少量真正共享的非虚工具 | 仅当两处实现已完全一致且无状态分歧时再上收；**默认不上收实现** |
+| 全部对外 **public** 方法/属性 **声明**（`abstract`） | `select` / `where` / `toXxx` / `queryXxx` / 事务 / 配置等 |
+| **架构成员（可持有状态）** | 如 `DBLive`；用于接线 DB 栈，**不是**编排/缓存功能状态 |
+| 链式返回类型 | 一律 `SQLBuilder` |
+| 静态适配 | `Attach(StepBuilder, …)` → `PrepareSQLBuilder`（编排捕获 / Apply） |
 
-| 不强制纳入基类实现体 | 说明 |
+| **禁止**落在抽象类上 | 说明 |
 |----------------------|------|
-| `List<IStep>` / `runBuild` | 仅 Prepare |
-| ScriptTemplate / OrchestrationHash | 仅 Prepare |
-| `SqlGoup` 立即改写 | 仅 Step（及 Prepare 的 `_inner`） |
+| `List<IStep>` / `_inner` / Enqueue 队列 | 仅 Prepare |
+| ScriptTemplate / OrchestrationHash / `_paraRule` 编排门控字段 | 仅 Prepare（API 可仍为 abstract，由子类实现） |
+| `SqlGoup` 立即改写实现体 | 仅 Step（及 Prepare 的 `_inner`） |
 
-基类方法形态建议（实施时二选一，文档锁定偏好 **A**）：
-
-| 方案 | 做法 | 取舍 |
-|------|------|------|
-| **A（偏好）** | 基类对「有两套实现」的 API 标 `abstract`；Prepare / Step 各自已有 partial 实现挂到 override | 改动清晰，编译器强制两边齐套 |
-| B | 基类放 `virtual` 空/抛 `NotImplemented`，子类 override | 易漏 override，仅作过渡 |
+基类形态锁定为方案 **A**：API 标 `abstract`；Prepare / Step 各自 `override`。
 
 嵌套委托统一规则见 **§5.4**（锁定）。
 

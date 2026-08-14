@@ -6,7 +6,7 @@ namespace mooSQL.data
     /// <summary>
     /// Apart：在 SQLBuilder 编排磁带上录制 / 快照 / 重放 <see cref="IStep"/>。
     /// </summary>
-    public partial class SQLBuilder
+    public partial class PrepareSQLBuilder
     {
         /// <summary>record() 时的磁带起点下标；null 表示未在录制。</summary>
         private int? _recordStart;
@@ -18,7 +18,7 @@ namespace mooSQL.data
         /// var seg = kit.record().where("status", 1).stop();
         /// kit.select("*").from("users").useApart(seg).toSelect();
         /// </example>
-        public SQLBuilder record()
+        public override SQLBuilder record()
         {
             if (_recordStart != null)
                 throw new InvalidOperationException("Already in record(); call stop() first.");
@@ -29,7 +29,7 @@ namespace mooSQL.data
         /// <summary>
         /// 结束 <see cref="record"/>：截取录制区间步骤为 <see cref="SQLApart"/>，并从当前磁带移除。
         /// </summary>
-        public SQLApart stop()
+        public override SQLApart stop()
         {
             if (_recordStart == null)
                 throw new InvalidOperationException("Call record() before stop().");
@@ -57,7 +57,7 @@ namespace mooSQL.data
         /// <summary>
         /// 将当前编排磁带快照为可复用碎片（浅拷贝步骤列表；步骤实例与磁带共享直至 clear）。
         /// </summary>
-        public SQLApart toApart()
+        public override SQLApart toApart()
         {
             return new SQLApart(CopySteps(), ResolveApartDbType());
         }
@@ -65,7 +65,7 @@ namespace mooSQL.data
         /// <summary>
         /// 将碎片步骤按序重绑静态槽后入队到当前编排（合并追加）。
         /// </summary>
-        public SQLBuilder useApart(SQLApart apart)
+        public override SQLBuilder useApart(SQLApart apart)
         {
             if (apart == null)
                 throw new ArgumentNullException(nameof(apart));

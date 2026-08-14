@@ -25,7 +25,7 @@ namespace mooSQL.linq
 
             var fastContext = new FastCompileContext<TResult>();
 
-            var kit = new SQLBuilder();
+            var kit = DB.useSQL();
             kit.setDBInstance(DB);
             fastContext.initByBuilder( kit);
 ;

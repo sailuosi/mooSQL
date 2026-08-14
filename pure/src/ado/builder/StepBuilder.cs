@@ -16,30 +16,28 @@ namespace mooSQL.data
     /// <summary>
     /// SQL 语句的创建器。由于数据库方言的问题，需要注入 数据库方言的表达式类 
     /// </summary>
-    public partial class StepBuilder:IDisposable
+    public partial class StepBuilder : SQLBuilder
     {
+        /// <inheritdoc />
+        internal override StepBuilder Inner => this;
+
 /*****注入成员**/
         
        /// <summary>
        /// 释放资源，由于集成了事务功能，当使用事务时，需要释放资源。
        /// </summary>
-        public void Dispose()
+        public override void Dispose()
         {
             if(this.Executor != null)
             {
                 this.Executor.Dispose();
             }
         }
-
-
-        /// <summary>
-        /// 数据库核心运行实例
-        /// </summary>
-        public DBInstance DBLive { get; private set; }
+        // DBLive：架构成员在抽象 SQLBuilder 上
         /// <summary>
         /// 核心运行实例 MooClient
         /// </summary>
-        public MooClient MooClient
+        public override MooClient MooClient
         {
             get {
                 if (this.DBLive != null)
@@ -52,7 +50,7 @@ namespace mooSQL.data
         /// <summary>
         /// 客户端核心实例
         /// </summary>
-        public MooClient Client
+        public override MooClient Client
         {
             get
             {
@@ -66,7 +64,7 @@ namespace mooSQL.data
         /// <summary>
         /// 数据库方言处理类。
         /// </summary>
-        public Dialect Dialect
+        public override Dialect Dialect
         {
             get {
                 return DBLive.dialect;
@@ -75,16 +73,18 @@ namespace mooSQL.data
         /// <summary>
         /// 数据库执行器,用于处理事务的逻辑
         /// </summary>
-        public DBExecutor Executor { get; private set; }
+        public override DBExecutor Executor { get; protected set; }
 
         /// <summary>
         /// 数据库方言表达式 
         /// </summary>
-        public SQLExpression expression;
+        private SQLExpression _expression;
+        public override SQLExpression expression { get { return _expression; } set { _expression = value; } }
         /// <summary>
         /// 默认 -1 此时为禁用状态。禁用状态下必须传入数据库实例 DbInstance
         /// </summary>
-        public int position = -1;
+        private int _position= -1;
+        public override int position { get { return _position; } set { _position = value; } }
 
         internal ISooCache cache;
 
@@ -97,19 +97,19 @@ namespace mooSQL.data
         /// <summary>
         /// 新令，在一个信令下创建的SQL，都将持有该信令
         /// </summary>
-        public string Signal { get; set; }
+        public override string Signal { get; set; }
 
         /// <summary>
         /// 属性 _MakeUps（SQLMakeUps）。
         /// </summary>
-        public SQLMakeUps _MakeUps { get; set; }
+        public override SQLMakeUps _MakeUps { get; set; }
         private CleanWay _AutoClearWay { get; set; }
         /// <summary>
         /// 配置自动清理方式，默认为每次执行修改或删除后清理
         /// </summary>
         /// <param name="way"></param>
         /// <returns></returns>
-        public StepBuilder configClear(CleanWay way) { 
+        public override SQLBuilder configClear(CleanWay way) { 
             this._AutoClearWay = way;
             return this;
         }
@@ -118,7 +118,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="signalName"></param>
         /// <returns></returns>
-        public StepBuilder useSignal(string signalName) {
+        public override SQLBuilder useSignal(string signalName) {
             this.Signal = signalName;
             return this;
         }
@@ -126,7 +126,7 @@ namespace mooSQL.data
         /// 置空信令
         /// </summary>
         /// <returns></returns>
-        public StepBuilder resetSignal()
+        public override SQLBuilder resetSignal()
         {
             this.Signal = string.Empty;
             return this;
@@ -137,7 +137,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        public StepBuilder setPosition(int position)
+        public override SQLBuilder setPosition(int position)
         {
             this.position = position;
             return this;
@@ -145,7 +145,7 @@ namespace mooSQL.data
         /// <summary>
         /// 当前的set配置下的字段数
         /// </summary>
-        public int ColumnCount
+        public override int ColumnCount
         {
             get { 
                 return current.columns.Count;
@@ -156,7 +156,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool containSetColumn(string name)
+        public override bool containSetColumn(string name)
         {
             return current.getFieldByKey(name)!=-1;
         }
@@ -164,7 +164,7 @@ namespace mooSQL.data
         /// <summary>
         /// 当前的from计数
         /// </summary>
-        public int FromCount
+        public override int FromCount
         {
             get
             {
@@ -179,7 +179,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="onPrint"></param>
         /// <returns></returns>
-        public StepBuilder print(Action<string> onPrint)
+        public override SQLBuilder print(Action<string> onPrint)
         {
             this._printSQL = true;
             this.onSQLPrint = onPrint;
@@ -190,7 +190,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="cacher"></param>
         /// <returns></returns>
-        public StepBuilder setCacheHolder(ISooCache cacher)
+        public override SQLBuilder setCacheHolder(ISooCache cacher)
         {
             this.cache = cacher;
             return this;
@@ -201,7 +201,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public StepBuilder setDBInstance(DBInstance db)
+        public override SQLBuilder setDBInstance(DBInstance db)
         {
             this.DBLive = db;
             this.expression = db.expression;
@@ -216,7 +216,8 @@ namespace mooSQL.data
 
 
 
-        internal SqlGoup current;
+        private SqlGoup _current;
+        internal override SqlGoup current { get { return _current; } set { _current = value; } }
 
 
         internal string cacheKey = "";
@@ -229,11 +230,13 @@ namespace mooSQL.data
         /**
          * 分组模式下的最终执行器。
          */
-        internal UnionCollection unionHolder;
+        private UnionCollection _unionHolder;
+        internal override UnionCollection unionHolder { get { return _unionHolder; } set { _unionHolder = value; } }
         /**
          * 上一个信息组。
          */
-        public SqlGoup preSQL;
+        private SqlGoup _preSQL;
+        public override SqlGoup preSQL { get { return _preSQL; } set { _preSQL = value; } }
         /// <summary>
         /// 参数化前缀种子，传入后将作为所有参数名的前缀。
         /// </summary>
@@ -241,7 +244,7 @@ namespace mooSQL.data
         /// <summary>
         /// 参数化前缀种子，传入后将作为所有参数名的前缀。
         /// </summary>
-        public string paraSeed
+        public override string paraSeed
         {
             get
             {
@@ -251,26 +254,35 @@ namespace mooSQL.data
         /// <summary>
         /// 层深，递归调用时增长
         /// </summary>
-        public int level = 0;
+        private int _level= 0;
+        public override int level { get { return _level; } set { _level = value; } }
         /// <summary>
         /// 当前操作的名称，默认为空字符串。
         /// </summary>
-        public string name = "";
+        private string _name= "";
+        public override string name { get { return _name; } set { _name = value; } }
         /// <summary>
         /// 参数存储体
         /// </summary>
-        public Paras ps = new Paras();
+        private Paras _ps= new Paras();
+        public override Paras ps { get { return _ps; } set { _ps = value; } }
         /// <summary>
         /// 当执行buildwhere后，缓存结果到这里，以便后续副作用使用。
         /// </summary>
-        public string preWhere = "";
+        private string _preWhere= "";
+        public override string preWhere { get { return _preWhere; } set { _preWhere = value; } }
 
         
         /// <summary>
         /// 可选 notEmpty all notNull 默认 notEmpty
         /// </summary>
          
-        public string paraRule = "notEmpty";//
+        private string _paraRule = "notEmpty";
+        public override string paraRule
+        {
+            get { return _paraRule; }
+            set { _paraRule = string.IsNullOrEmpty(value) ? "notEmpty" : value; }
+        }
 
         private bool opened = true;
 
@@ -278,16 +290,14 @@ namespace mooSQL.data
         /// 命名的SQL构建器，便于调试和追踪。
         /// </summary>
         /// <param name="name"></param>
-        public StepBuilder(string name)
-        {
+        public StepBuilder(string name) {
             this.name = name;
             init();
         }
         /// <summary>
         /// SQL构建器。
         /// </summary>
-        public StepBuilder()
-        {
+        public StepBuilder() {
             this.name = "";
             init();
         }
@@ -295,8 +305,7 @@ namespace mooSQL.data
         /// SQL构建器，延迟初始化。
         /// </summary>
         /// <param name="lazyInit"></param>
-        public StepBuilder(bool lazyInit)
-        {
+        public StepBuilder(bool lazyInit) {
             this.name = "";
             if (!lazyInit) {
                 init();
@@ -307,8 +316,7 @@ namespace mooSQL.data
         /// SQL构建器，传入表达式实例。
         /// </summary>
         /// <param name="expression"></param>
-        public StepBuilder(SQLExpression expression)
-        {
+        public StepBuilder(SQLExpression expression) {
             this.name = "";
             this.expression = expression;
             init();
@@ -328,7 +336,7 @@ namespace mooSQL.data
         /// 开启事务，此后的所有的操作在commit前都会在一个事务中
         /// </summary>
         /// <returns></returns>
-        public StepBuilder beginTransaction() { 
+        public override SQLBuilder beginTransaction() { 
             SyncPendingRouteContext();
             var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
             this.Executor= new  DBExecutor(this.DBLive);
@@ -342,7 +350,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="lv"></param>
         /// <returns></returns>
-        public StepBuilder beginTransaction(IsolationLevel lv)
+        public override SQLBuilder beginTransaction(IsolationLevel lv)
         {
             SyncPendingRouteContext();
             var prevCtx = Executor?.RouteContext?.Clone() ?? _pendingRouteContext?.Clone();
@@ -358,7 +366,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public StepBuilder useTransaction(DBExecutor executor)
+        public override SQLBuilder useTransaction(DBExecutor executor)
         {
             if (_pendingRouteContext != null && executor != null && executor.RouteContext == null)
                 executor.RouteContext = _pendingRouteContext;
@@ -371,7 +379,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="autoRollBack"></param>
         /// <exception cref="Exception"></exception>
-        public void commit(bool autoRollBack = true) {
+        public override void commit(bool autoRollBack = true) {
             if (this.Executor == null) { 
                 throw new Exception("事务未开启");
             }
@@ -384,7 +392,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public StepBuilder reset()
+        public override SQLBuilder reset()
         {
             this.groups.Clear();
             this.unionHolder.Clear();
@@ -441,7 +449,7 @@ namespace mooSQL.data
         /// <param name="source"></param>
         /// <param name="onlyWrite"></param>
         /// <returns></returns>
-        public string SqlFilter(string source, bool onlyWrite)
+        public override string SqlFilter(string source, bool onlyWrite)
         {
             //sql注入过滤
             if (!onlyWrite)
@@ -462,9 +470,6 @@ namespace mooSQL.data
             source = replace(source, "0x", "0 x");
             return source;
         }
-        //public string paraRule = "notEmpty";//
-
-
         /// <summary>
         /// 返回已经包装的命名参数名，可以直接拼接再SQL中
         /// </summary>
@@ -472,7 +477,7 @@ namespace mooSQL.data
         /// <param name="val"></param>
         /// <returns></returns>
 
-        public string addPara(string key, Object val)
+        public override string addPara(string key, Object val)
         {
             return this.current.addPara(key, val);
         }
@@ -482,7 +487,7 @@ namespace mooSQL.data
         /// <param name="list"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public List<string> addListPara(IEnumerable<object> list, string prefix)
+        public override List<string> addListPara(IEnumerable<object> list, string prefix)
         {
             return this.current.addListPara(list, prefix);
         }
@@ -492,7 +497,7 @@ namespace mooSQL.data
         /// <param name="key"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public StepBuilder setCache(string key,int timeout)
+        public override SQLBuilder setCache(string key,int timeout)
         {
             this.cacheKey = key;
             this.cacheTimeout=timeout;
@@ -506,7 +511,7 @@ namespace mooSQL.data
         /// 不影响显式 <see cref="setCache(string, int)"/> 的用户键；用户 <see cref="clear"/> 会一并清除本前缀。
         /// </summary>
         /// <param name="prefix">如 <c>Shop</c>、<c>report:daily</c>；空或 null 表示仅用默认 <c>RC:</c>。</param>
-        public StepBuilder useCachePrefix(string prefix)
+        public override SQLBuilder useCachePrefix(string prefix)
         {
             this.cacheKeyPrefix = prefix ?? "";
             return this;
@@ -546,7 +551,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="seed"></param>
         /// <returns></returns>
-        public StepBuilder setSeed(string seed) { 
+        public override SQLBuilder setSeed(string seed) { 
             this.seed=seed;
             return this;
         }
@@ -556,7 +561,7 @@ namespace mooSQL.data
         /// <param name="isPass"></param>
         /// <returns></returns>
 
-        public StepBuilder ifs(bool isPass)
+        public override SQLBuilder ifs(bool isPass)
         {
             this.opened = isPass;
             return this;
@@ -568,7 +573,7 @@ namespace mooSQL.data
         /// <param name="whenTrue"></param>
         /// <param name="whenFalse"></param>
         /// <returns></returns>
-        public StepBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
+        public override SQLBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
         {
             if (isPass)
             {
@@ -583,7 +588,7 @@ namespace mooSQL.data
         /// <summary>
         /// ifs 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder ifs(bool isPass, Action whenTrue)
+        public override SQLBuilder ifs(bool isPass, Action whenTrue)
         {
             if (isPass)
             {
@@ -598,7 +603,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public StepBuilder clear()
+        public override SQLBuilder clear()
         {
             this.unionHolder.Clear();
             this.CTECollection.Clear();
@@ -635,7 +640,7 @@ namespace mooSQL.data
         /// 清空列选择部分，保留其他信息。
         /// </summary>
         /// <returns></returns>
-        public StepBuilder clearSelect()
+        public override SQLBuilder clearSelect()
         {
             this.current.selectPart.Clear();
             return this;
@@ -647,7 +652,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public StepBuilder clearWhere()
+        public override SQLBuilder clearWhere()
         {
             this.current.clearWhere();
             return this;
@@ -658,7 +663,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
   
-        public StepBuilder clearPage()
+        public override SQLBuilder clearPage()
         {
             this.current.clearPage();
             return this;
@@ -670,7 +675,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public string buildWhere()
+        public override string buildWhere()
         {
             string conditon = current.buildWhere();
             this.preWhere = conditon;
@@ -680,7 +685,7 @@ namespace mooSQL.data
         /// 获取当前的构造器的where条件。
         /// </summary>
         /// <returns></returns>
-        public string buildWhereContent()
+        public override string buildWhereContent()
         {
             string conditon = current.buildWhereContent();
             return conditon;
@@ -698,7 +703,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public StepBuilder prefix(string SQLString)
+        public override SQLBuilder prefix(string SQLString)
         {
             current.prefix(SQLString);
             return this;
@@ -708,7 +713,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="SQLString"></param>
         /// <returns></returns>
-        public StepBuilder subfix(string SQLString)
+        public override SQLBuilder subfix(string SQLString)
         {
             current.subfix(SQLString);
             return this;
@@ -724,7 +729,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public StepBuilder copyPreSelect()
+        public override SQLBuilder copyPreSelect()
         {
             current.copySelect(preSQL);
             return this;
@@ -733,7 +738,7 @@ namespace mooSQL.data
         /// 复制上一组SQL配置的from
         /// </summary>
         /// <returns></returns>
-        public StepBuilder copyPreFrom()
+        public override SQLBuilder copyPreFrom()
         {
             current.copyFrom(preSQL);
             return this;
@@ -742,7 +747,7 @@ namespace mooSQL.data
         /// 复制上一组SQL配置的where
         /// </summary>
         /// <returns></returns>
-        public StepBuilder copyPreWere()
+        public override SQLBuilder copyPreWere()
         {
             current.copyWhere(preSQL);
             return this;
@@ -763,7 +768,7 @@ namespace mooSQL.data
         /// <summary>
         /// 多行插入时的行索引
         /// </summary>
-        public int InsertRowIndex
+        public override int InsertRowIndex
         {
             get {
                 return current.RowIndex;
@@ -796,7 +801,7 @@ namespace mooSQL.data
         /// 创建 select 语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toSelect()
+        public override SQLCmd toSelect()
         {
             string sql = "";
             if (this.unionHolder.Count == 0)
@@ -825,7 +830,7 @@ namespace mooSQL.data
         ///  创建 select count(*) from ... 语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toSelectCount()
+        public override SQLCmd toSelectCount()
         {
             if (this.unionHolder.Count == 0)
             {
@@ -843,7 +848,7 @@ namespace mooSQL.data
         /// 创建存在性检查 select exists(...) / case when exists(...) 语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toSelectExist()
+        public override SQLCmd toSelectExist()
         {
             string sql;
             if (this.unionHolder.Count == 0)
@@ -897,7 +902,7 @@ namespace mooSQL.data
         /// 创建包含参数信息的 插入语句。
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toInsert() {
+        public override SQLCmd toInsert() {
             if (!EnsureWriteTableName(nameof(toInsert)))
                 return EmptyWriteCmd(QueryType.Insert);
             string sql = current.buildInsert();
@@ -907,7 +912,7 @@ namespace mooSQL.data
         /// <summary>
         /// INSERT … ON DUPLICATE KEY UPDATE / UPSERT 等方言 upsert 语句。
         /// </summary>
-        public SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
+        public override SQLCmd toInsertWithDuplicateUpdate(string duplicateUpdateKeyword)
         {
             if (!EnsureWriteTableName(nameof(toInsertWithDuplicateUpdate)))
                 return EmptyWriteCmd(QueryType.InsertOrUpdate);
@@ -921,7 +926,7 @@ namespace mooSQL.data
         /// 创建 insert from语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toInsertFrom()
+        public override SQLCmd toInsertFrom()
         {
             if (!EnsureWriteTableName(nameof(toInsertFrom)))
                 return EmptyWriteCmd(QueryType.Insert);
@@ -932,7 +937,7 @@ namespace mooSQL.data
         /// 创建update 语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toUpdate()
+        public override SQLCmd toUpdate()
         {
             if (!EnsureWriteTableName(nameof(toUpdate)))
                 return EmptyWriteCmd(QueryType.Update);
@@ -948,7 +953,7 @@ namespace mooSQL.data
         /// 创建update from 语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toUpdateFrom()
+        public override SQLCmd toUpdateFrom()
         {
             if (!EnsureWriteTableName(nameof(toUpdateFrom)))
                 return EmptyWriteCmd(QueryType.Update);
@@ -965,7 +970,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
 
-        public SQLCmd toDelete()
+        public override SQLCmd toDelete()
         {
             string sql = current.buildDelete();
             return geneCmd(sql, ps, QueryType.Delete);
@@ -974,7 +979,7 @@ namespace mooSQL.data
         /// 创建 merge into语句
         /// </summary>
         /// <returns></returns>
-        public SQLCmd toMergeInto()
+        public override SQLCmd toMergeInto()
         {
             string sql = current.buildMerge();
             return geneCmd(sql, ps, QueryType.Merge);
@@ -991,7 +996,7 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public string getEmptySelect(string tableName) {
+        public override string getEmptySelect(string tableName) {
             return string.Format("select * from {0} where 1=2 ", tableName);
         }
 

@@ -19,7 +19,7 @@ namespace mooSQL.data
         /// <summary>
         /// 父构建器，用于构建SQL语句的主体部分。
         /// </summary>
-        public StepBuilder parent { get; set; }
+        public SQLBuilder parent { get; set; }
         /// <summary>
         /// 目标表
         /// </summary>
@@ -40,11 +40,11 @@ namespace mooSQL.data
         /// <summary>
         /// 源表构建器
         /// </summary>
-        public StepBuilder srcBuilder { get; set; }
+        public SQLBuilder srcBuilder { get; set; }
         /// <summary>
         /// 桥接条件
         /// </summary>
-        public StepBuilder onPart { get; set; }
+        public SQLBuilder onPart { get; set; }
 
         /// <summary>
         /// 分支条件，可以有多个，每个分支可以有更新和插入操作
@@ -135,7 +135,7 @@ namespace mooSQL.data
             {
 
             
-                var facade = SQLBuilder.Attach(this.srcBuilder);
+                var facade = SQLBuilder.Attach(this.srcBuilder.Inner);
 
             
                 doSelect(facade);

@@ -9,7 +9,7 @@ namespace mooSQL.data
         private SQLRouteContext _pendingRouteContext;
 
         /// <summary>执行作用域路由上下文（读 Executor，写 pending/Executor）。</summary>
-        public SQLRouteContext RouteContext
+        public override SQLRouteContext RouteContext
         {
             get => Executor?.RouteContext ?? _pendingRouteContext;
             internal set
@@ -41,17 +41,17 @@ namespace mooSQL.data
         /// <summary>
         /// useReadReplica 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
+        public override SQLBuilder useReadReplica() => useRoute(r => r.PreferReadReplica = true);
 
         /// <summary>
         /// useMaster 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useMaster() => useRoute(r => r.ForceMaster = true);
+        public override SQLBuilder useMaster() => useRoute(r => r.ForceMaster = true);
 
         /// <summary>
         /// useDualWrite 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useDualWrite(params int[] slavePositions) =>
+        public override SQLBuilder useDualWrite(params int[] slavePositions) =>
             useRoute(r =>
             {
                 r.EnableDualWrite = true;
@@ -59,7 +59,7 @@ namespace mooSQL.data
             });
 
         /// <summary>临时 Failover；启用后立即探活并在需要时选举，绑定 DBLive / TargetInstance。</summary>
-        public StepBuilder useFailover(FailoverMode mode)
+        public override SQLBuilder useFailover(FailoverMode mode)
         {
             useRoute(r => r.FailoverOverride = mode);
             ApplyProactiveFailoverForBuilder();
@@ -69,25 +69,25 @@ namespace mooSQL.data
         /// <summary>
         /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useTarget(int position) =>
+        public override SQLBuilder useTarget(int position) =>
             useRoute(r => r.TargetPosition = position);
 
         /// <summary>
         /// useTarget 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useTarget(DBInstance instance) =>
+        public override SQLBuilder useTarget(DBInstance instance) =>
             useRoute(r => r.TargetInstance = instance);
 
         /// <summary>
         /// useReadPolicy 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useReadPolicy(ReadRoutePolicy policy) =>
+        public override SQLBuilder useReadPolicy(ReadRoutePolicy policy) =>
             useRoute(r => r.ReadPolicyOverride = policy);
 
         /// <summary>
         /// useRoute 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder useRoute(Action<SQLRouteContext> configure)
+        public override SQLBuilder useRoute(Action<SQLRouteContext> configure)
         {
             if (configure == null) return this;
             SQLRouteContext ctx;
@@ -102,7 +102,7 @@ namespace mooSQL.data
         /// <summary>
         /// resetRoute 方法（返回 StepBuilder）。
         /// </summary>
-        public StepBuilder resetRoute()
+        public override SQLBuilder resetRoute()
         {
             _pendingRouteContext = null;
             if (Executor != null)
