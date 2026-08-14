@@ -22,6 +22,14 @@ namespace mooSQL.data
             hc.Add(1);
             hc.Add(_name);
         }
-                public override void Apply(SQLBuilder builder) => builder.Inner.withRecur(_name, _buildRecur);
+                public override void Apply(SQLBuilder builder)
+        {
+            // 兼容旧 Apart / 队列中残留的本 Step：与门面 withRecur 同路径
+            var rec = new RecurCTEBuilder();
+            rec.setWithAsName(_name);
+            rec.useBuilder(builder);
+            _buildRecur(rec);
+            rec.apply();
+        }
     }
 }

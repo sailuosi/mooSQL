@@ -43,6 +43,29 @@ namespace mooSQL.data
         public SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
             => withSelect(name, selectBuilder);
 
+        /// <summary>
+        /// 递归 CTE：返回编排器；<see cref="RecurCTEBuilder.apply"/> 后回到本门面。
+        /// </summary>
+        public RecurCTEBuilder withRecurTo(string name)
+        {
+            var rec = new RecurCTEBuilder();
+            rec.setWithAsName(name);
+            rec.useBuilder(this);
+            return rec;
+        }
+
+        /// <summary>
+        /// 递归 CTE：编排期展开为 <see cref="withSelect"/> 子步骤（不另存 Action Step）。
+        /// </summary>
+        public SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur)
+        {
+            if (buildRecur == null)
+                throw new ArgumentNullException(nameof(buildRecur));
+            var rec = withRecurTo(name);
+            buildRecur(rec);
+            return rec.apply();
+        }
+
         public SQLBuilder where(string key, string op, Action<SQLBuilder> doselect)
         {
             var steps = CaptureChildSteps(doselect);

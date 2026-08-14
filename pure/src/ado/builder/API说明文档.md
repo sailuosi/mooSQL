@@ -50,10 +50,10 @@ SQLBuilder 采用贴近 SQL 的语法构建方式，方法声明为反 C# 约定
 - 将自动调用委托的 `toSelect` 方法获取 SQL 语句编织的结果
 
 **`withRecurTo(string name)`**
-- 返回递归 CTE 构建器（RecurCTEBuilder）
+- 返回递归 CTE 构建器（RecurCTEBuilder）；`apply()` 经门面 `withSelect` 入队后回到 `SQLBuilder`
 
 **`withRecur(string name, Action<RecurCTEBuilder> buildRecur)`**
-- 构建递归 CTE
+- 编排期配置并 `apply`，等价于 `withRecurTo(...).…apply()`
 
 **`withSelect(string name, string selectSQL)`**
 - 创建一个 CTE，可以多个

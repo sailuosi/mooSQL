@@ -334,6 +334,56 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
                 .select("*")
                 .from("tree"),
                 dbType: DataBaseType.MSSQL);
+
+            // 业务：组织树向上递归（ParentOID→OID）+ lvType 差异列 + apply 后外层去重子查询
+            // 权限 useDuty 分支简化为固定 where；修 withRecurTo 门面衔接时以此 SQL 为回归锚
+            yield return C("cte_recur_to_org_parent_root", k =>
+            {
+                var commFields =
+                    "OrgName,ClassCode,Varchar1,ORG_FLG,Varchar7,Varchar3,Int2,ACTIVE_FLAG,Boolean1,OrgNO";
+                k.withRecurTo("O")
+                    .fromRoot("UCML_Organize")
+                    .joinOn("ParentOID", "UCML_OrganizeOID")
+                    .selectDeep("tDeepNum")
+                    .select("CAST( 'root' as varchar(50))", "CAST( 'parent' as varchar(50))", "lvType")
+                    .select(commFields)
+                    .whereRoot((r, _) => r.where("src.UCML_OrganizeOID", "00000000-0000-0000-0000-000000000001"))
+                    .apply()
+                    .from("p", p =>
+                    {
+                        p.select(
+                                "* ,ROW_NUMBER()over (partition by UCML_OrganizeOID  order by Varchar1) n,(select COUNT(*) from UCML_Organize n where n.ParentOID=o.UCML_OrganizeOID) as childcc")
+                            .from("o");
+                    })
+                    .where("p.n=1");
+            }, dbType: DataBaseType.MSSQL);
+
+            // 业务用例2：向下递归（OID→ParentOID）+ whereNext 深度限制 + apply 后直接 select/from/where
+            // 条件字面量按业务原文固化（含 o.UCML_OrganizeOI）
+            yield return C("cte_recur_to_org_children", k =>
+            {
+                var commFields =
+                    "OrgName,ClassCode,Varchar1,ORG_FLG,Varchar7,Varchar3,Int2,ACTIVE_FLAG,Boolean1,OrgNO";
+                const string rootId = "00000000-0000-0000-0000-000000000001";
+                const int deep = 3;
+                k.withRecurTo("o")
+                    .select(commFields)
+                    .selectDeep("tDeepNum")
+                    .fromRoot("UCML_Organize")
+                    .joinOn("UCML_OrganizeOID", "ParentOID")
+                    .whereRoot((r, t) =>
+                    {
+                        r.where("tar.UCML_OrganizeOID", rootId);
+                    })
+                    .whereNext((n, t) =>
+                    {
+                        n.where("np.tDeepNum<" + deep);
+                    })
+                    .apply()
+                    .select("*,(select COUNT(*) from UCML_Organize n where n.ParentOID=o.UCML_OrganizeOID) as childcc")
+                    .from("o")
+                    .where("o.UCML_OrganizeOI", rootId, "<>");
+            }, dbType: DataBaseType.MSSQL);
         }
 
         private static IEnumerable<Case> Dml()

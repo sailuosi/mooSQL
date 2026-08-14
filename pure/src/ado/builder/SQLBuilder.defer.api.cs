@@ -125,7 +125,7 @@ namespace mooSQL.data
 
         // ---- union ----
 
-        public SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur) => Enqueue(new WithRecurstringAction_RecurCTEBuilderStep(name, buildRecur));
+        // withRecur：见 SQLBuilder.defer.b.cs（编排期展开）
 
         public SQLBuilder withSelect(string name, string selectSQL) => Enqueue(new WithSelectstringstringStep(name, selectSQL));
 

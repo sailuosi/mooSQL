@@ -264,7 +264,7 @@ namespace mooSQL.data
             return _inner.exeQueryCountAsync(sqlCmd);
         }
 
-        public RecurCTEBuilder withRecurTo(string name) => _inner.withRecurTo(name);
+        // withRecurTo / withRecur：见 SQLBuilder.defer.b.cs（编排期展开为 withSelect）
 
         // Apart：record / stop / toApart / useApart 见 SQLBuilder.apart.cs（编排磁带）
     }

@@ -176,7 +176,7 @@ var cc = kit.setTable("ZH_Danger")
 ## CTE
 创建递归CTE表达式：  
 ::: warning
-注意：withRecurTo 将切换当前this 到 递归CTE构造器，直到执行apply 返回 SQLBuilder
+注意：withRecurTo 返回 RecurCTEBuilder；执行 apply() 后回到编排门面 SQLBuilder，后续 select/from/where/query 均挂在门面上（与延迟构造队列一致）。
 :::
 以下语句含义：
 
