@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using mooSQL.utils;
 
 namespace mooSQL.data
 {
-    /// <summary>from (select…) as alias —— 存子步骤，不存 Action。</summary>
+    /// <summary>from (select鈥? as alias 鈥斺€?瀛樺瓙姝ラ锛屼笉瀛?Action銆?/summary>
     public sealed class FromSubqueryStep : StepBase {
         public override int Id { get { return 524349; } }
         public override StepKind Kind { get { return StepKind.From; } }
@@ -27,13 +27,13 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var sql = bro.toSelect().sql;
             builder.Inner.current.from(string.Format("({0}) as {1} ", sql, _asName));
         }
     }
 
-    /// <summary>JOIN (select…) as alias</summary>
+    /// <summary>JOIN (select鈥? as alias</summary>
     public sealed class JoinSubqueryStep : StepBase {
         public override int Id { get { return 524350; } }
         public override StepKind Kind { get { return StepKind.Join; } }
@@ -59,14 +59,14 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var sql = bro.toSelect().sql;
             builder.Inner.current.fromAppend(
                 string.Format(" {0} ({1}) as {2} ", _joinKey, sql, _asName));
         }
     }
 
-    /// <summary>select (select…) as alias</summary>
+    /// <summary>select (select鈥? as alias</summary>
     public sealed class SelectSubqueryStep : StepBase {
         public override int Id { get { return 524351; } }
         public override StepKind Kind { get { return StepKind.Select; } }
@@ -89,13 +89,13 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var sql = bro.toSelect().sql;
             builder.Inner.current.select(string.Format("({0}) as {1} ", sql, _asName));
         }
     }
 
-    /// <summary>where key op (select…)</summary>
+    /// <summary>where key op (select鈥?</summary>
     public sealed class WhereSubqueryStep : StepBase {
         public override int Id { get { return 524352; } }
         public override StepKind Kind { get { return StepKind.Where; } }
@@ -131,7 +131,7 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var sql = bro.toSelect().sql;
             builder.Inner.current.where(_key, " (" + sql + ") ", _op, false);
         }
@@ -166,13 +166,13 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var bro = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var content = bro.buildWhereContent();
             builder.Inner.current.where("", " (" + content + ") ", "", false);
         }
     }
 
-    /// <summary>whereOR：兄弟 or 模式搓条件再并入</summary>
+    /// <summary>whereOR锛氬厔寮?or 妯″紡鎼撴潯浠跺啀骞跺叆</summary>
     public sealed class WhereORSubqueryStep : StepBase {
         public override int Id { get { return 524354; } }
         public override StepKind Kind { get { return StepKind.Where; } }
@@ -202,7 +202,7 @@ namespace mooSQL.data
         {
             var bro = builder.Inner.getBrotherBuilder();
             bro.or();
-            SQLBuilder.ReplaySteps(bro, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(bro.Inner, _childSteps);
             var t = bro.buildWhereContent();
             if (!string.IsNullOrWhiteSpace(t))
             {
@@ -211,7 +211,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>withSelect / withAs：兄弟上重放后挂入 CTE</summary>
+    /// <summary>withSelect / withAs锛氬厔寮熶笂閲嶆斁鍚庢寕鍏?CTE</summary>
     public sealed class WithSelectSubqueryStep : StepBase {
         public override int Id { get { return 524355; } }
         public override StepKind Kind { get { return StepKind.Cte; } }
@@ -234,9 +234,9 @@ namespace mooSQL.data
                 public override void Apply(SQLBuilder builder)
         {
             var kit = builder.Inner.getBrotherBuilder();
-            SQLBuilder.ReplaySteps(kit, _childSteps);
+            PrepareSQLBuilder.ReplaySteps(kit.Inner, _childSteps);
             var item = new SqlCTEItem();
-            item.builder = kit;
+            item.builder = kit.Inner;
             item.type = SqlCTEType.Select;
             item.asName = _name;
             builder.Inner.ApartGetCte().add(item);

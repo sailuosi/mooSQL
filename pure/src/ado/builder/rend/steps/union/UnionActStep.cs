@@ -18,7 +18,7 @@ namespace mooSQL.data
         {
             builder.Inner.union(inner =>
             {
-                var facade = SQLBuilder.Attach(inner, materializing: true);
+                var facade = SQLBuilder.Attach(inner.Inner, materializing: true);
                 _doUnion(facade);
             });
         }

@@ -21,7 +21,7 @@ namespace mooSQL.data
             {
                 if (item.type == SqlCTEType.Select && item.builder != null)
                 {
-                    var inner = Emit(item.builder);
+                    var inner = Emit(item.builder.Inner);
                     script.Add(new ApartCteSelectStep(item.asName, inner));
                 }
                 else if (item.type == SqlCTEType.SolidSQL && !string.IsNullOrWhiteSpace(item.solidSQL))

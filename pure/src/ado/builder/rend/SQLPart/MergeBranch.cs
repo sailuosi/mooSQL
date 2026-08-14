@@ -19,11 +19,11 @@ namespace mooSQL.data
         /// <summary>
         /// 条件部分，放在这里。
         /// </summary>
-        public StepBuilder Condtion { get; set; }
+        public SQLBuilder Condtion { get; set; }
         /// <summary>
         /// 更新部分，放在这里。
         /// </summary>
-        public StepBuilder SetPart { get; set; }
+        public SQLBuilder SetPart { get; set; }
 
         /// <summary>
         /// 是否匹配，默认为null。
@@ -84,7 +84,7 @@ namespace mooSQL.data
 
 
 
-                var facade = SQLBuilder.Attach(this.Condtion);
+                var facade = SQLBuilder.Attach(this.Condtion.Inner);
 
 
 
@@ -115,7 +115,7 @@ namespace mooSQL.data
             {
 
 
-                var facade = SQLBuilder.Attach(this.Condtion);
+                var facade = SQLBuilder.Attach(this.Condtion.Inner);
 
 
                 action(facade);
@@ -139,7 +139,7 @@ namespace mooSQL.data
             }
             {
 
-                var facade = SQLBuilder.Attach(this.SetPart);
+                var facade = SQLBuilder.Attach(this.SetPart.Inner);
 
                 action(facade);
 
@@ -162,7 +162,7 @@ namespace mooSQL.data
             }
             {
 
-                var facade = SQLBuilder.Attach(this.SetPart);
+                var facade = SQLBuilder.Attach(this.SetPart.Inner);
 
                 action(facade);
 
