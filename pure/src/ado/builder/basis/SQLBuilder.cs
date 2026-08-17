@@ -21,7 +21,7 @@ namespace mooSQL.data
     public abstract partial class SQLBuilder : IDisposable
     {
         /// <summary>内核构造器。Prepare 指向组合的 Step；Step 指向自身。</summary>
-        internal abstract StepBuilder Inner { get; }
+        public abstract StepBuilder Inner { get; }
 
         /// <summary>数据库核心运行实例（架构成员）。</summary>
         public virtual DBInstance DBLive { get; protected set; }
@@ -542,7 +542,7 @@ namespace mooSQL.data
 
         public abstract SQLRouteContext RouteContext { get; internal set; }
 
-        internal abstract SqlGoup current { get; set; }
+        public abstract SqlGoup current { get; set; }
 
         internal abstract UnionCollection unionHolder { get; set; }
 

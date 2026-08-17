@@ -167,6 +167,6 @@ namespace mooSQL.data.health
         }
 
         /// <summary>单元测试用：模拟探活中间态。</summary>
-        internal void ForceStatus(DBHealthStatus next) => SetStatus(next);
+        public void ForceStatus(DBHealthStatus next) => SetStatus(next);
     }
 }

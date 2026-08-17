@@ -19,7 +19,7 @@ namespace mooSQL.data
     public partial class StepBuilder : SQLBuilder
     {
         /// <inheritdoc />
-        internal override StepBuilder Inner => this;
+        public override StepBuilder Inner => this;
 
 /*****注入成员**/
         
@@ -217,7 +217,7 @@ namespace mooSQL.data
 
 
         private SqlGoup _current;
-        internal override SqlGoup current { get { return _current; } set { _current = value; } }
+        public override SqlGoup current { get { return _current; } set { _current = value; } }
 
 
         internal string cacheKey = "";
@@ -527,7 +527,7 @@ namespace mooSQL.data
         }
 
         /// <summary>规范化自动键前缀：保证以 <c>RC:</c> 开头、以 <c>:</c> 结尾（便于拼接 X8）。</summary>
-        internal static string ComposeAutoCacheKeyPrefix(string userPrefix)
+        public static string ComposeAutoCacheKeyPrefix(string userPrefix)
         {
             if (string.IsNullOrWhiteSpace(userPrefix))
                 return SQLCmd.ResultCacheKeyPrefix;

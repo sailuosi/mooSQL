@@ -13,7 +13,7 @@ namespace mooSQL.linq.Linq
 	/// Structural expression comparer for query plan cache keys.
 	/// Constant nodes compare by type only (not runtime value).
 	/// </summary>
-	sealed class ExtExpressionStructuralComparer : IEqualityComparer<Expression?>
+	public sealed class ExtExpressionStructuralComparer : IEqualityComparer<Expression?>
 	{
 		public static ExtExpressionStructuralComparer Instance { get; } = new();
 

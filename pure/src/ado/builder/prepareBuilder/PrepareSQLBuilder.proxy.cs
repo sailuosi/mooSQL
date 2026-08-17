@@ -46,7 +46,7 @@ namespace mooSQL.data
             get => _inner.RouteContext;
             internal set => _inner.RouteContext = value;
         }
-        internal override SqlGoup current { get => _inner.current; set => _inner.current = value; }
+        public override SqlGoup current { get => _inner.current; set => _inner.current = value; }
         internal override UnionCollection unionHolder { get => _inner.unionHolder; set => _inner.unionHolder = value; }
 
         // ---- 配置 / 事务 / 工厂 ----

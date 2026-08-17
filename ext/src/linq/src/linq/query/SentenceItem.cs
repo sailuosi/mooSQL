@@ -30,6 +30,6 @@ namespace mooSQL.linq.Linq
         /// <summary>
         /// L2：安全门下缓存的 SQLCmd 文本模板（sql 固定，执行时只改 para）。
         /// </summary>
-        internal ExtSqlCmdTemplate? L2Template;
+        public ExtSqlCmdTemplate? L2Template;
     }
 }

@@ -372,7 +372,7 @@ namespace mooSQL.data
             return this;
         }
 
-        internal bool HasSkipTakePaging() {
+        public bool HasSkipTakePaging() {
             // => skipNum >= 0 || pageSize >= 0;
             if (pageSize > 0 && pageNum > 0) {
                 return true;

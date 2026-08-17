@@ -94,7 +94,7 @@ namespace mooSQL.data
         }
 
         /// <summary>当前已分配槽位数（下一 Id）。</summary>
-        internal int NextStaticSlotId { get { return _nextStaticSlot; } }
+        public int NextStaticSlotId { get { return _nextStaticSlot; } }
 
         /// <summary>当前 where 分组 seed（WhereCollection.paramPrefix）。</summary>
         internal string CurrentWhereGroupSeed

@@ -4,7 +4,7 @@ using mooSQL.linq.Common;
 
 namespace mooSQL.linq.Linq
 {
-	static partial class QueryRunner
+	public static partial class QueryRunner
 	{
 		internal static readonly ConcurrentQueue<Action> CacheCleaners = new();
 

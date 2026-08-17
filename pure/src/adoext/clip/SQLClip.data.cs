@@ -84,7 +84,7 @@ namespace mooSQL.data
         /// <summary>
         /// 非 null 时 query* 走客户端尾投影（阶段 A 槽位列 + 阶段 B 投影器）。
         /// </summary>
-        internal ProjectionPlan ClientProjection { get; set; }
+        public ProjectionPlan ClientProjection { get; set; }
 
         /// <summary>
         /// 尾调用在列值为 null 时不抛 NRE，改为返回 null（值类型提升为 Nullable）。

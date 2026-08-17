@@ -27,7 +27,7 @@ namespace mooSQL.linq.Linq
     /// </summary>
     public class QueryMate
     {
-        internal static SentenceBag<T> GetQuery<T>(DBInstance DB, ref Expression expr, out bool dependsOnParameters)
+        public static SentenceBag<T> GetQuery<T>(DBInstance DB, ref Expression expr, out bool dependsOnParameters)
         {
             using var mt = ActivityService.Start(ActivityID.GetQueryTotal);
 

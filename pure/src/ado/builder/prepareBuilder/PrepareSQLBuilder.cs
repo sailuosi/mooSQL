@@ -17,7 +17,7 @@ namespace mooSQL.data
 
         internal bool IsMaterializing => _materializing;
         internal IReadOnlyList<IStep> Steps => _steps;
-        internal override StepBuilder Inner => _inner;
+        public override StepBuilder Inner => _inner;
 
         public PrepareSQLBuilder()
         {

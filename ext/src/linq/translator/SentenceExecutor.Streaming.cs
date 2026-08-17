@@ -9,7 +9,7 @@ using mooSQL.linq.Linq;
 
 namespace mooSQL.linq.translator;
 
-internal static partial class SentenceExecutor
+public static partial class SentenceExecutor
 {
     /// <summary>
     /// 逐行异步读取 SELECT（无 Includes 时使用；有 NavColumns 请走 ExecuteListAsync）。

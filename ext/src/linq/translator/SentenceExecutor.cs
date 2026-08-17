@@ -19,7 +19,7 @@ namespace mooSQL.linq.translator;
 /// Statement → ClauseTranslateVisitor → <see cref="SQLBuilderClause.ToCmd"/> → 执行；
 /// 实体映射使用 <see cref="SQLBuilder.exeQuery{T}(SQLCmd)"/>。
 /// </summary>
-internal static partial class SentenceExecutor
+public static partial class SentenceExecutor
 {
     public static TResult Execute<TResult>(SentenceBag bag, QueryContext context, Expression expression, object?[]? parameters = null)
     {
@@ -246,7 +246,7 @@ internal static partial class SentenceExecutor
     internal static bool HasL2Template(SentenceBag bag)
         => bag.Sentences is { Count: > 0 } && bag.Sentences[0].L2Template != null;
 
-    internal static void FinalizeBag(SentenceBag bag, DBInstance db)
+    public static void FinalizeBag(SentenceBag bag, DBInstance db)
     {
         if (bag.IsFinalized)
             return;

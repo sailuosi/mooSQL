@@ -12,14 +12,14 @@ namespace mooSQL.data
     public partial class StepBuilder
     {
         /// <summary>是否已启用结果缓存（任一 setCache 重载）。</summary>
-        internal bool resultCacheEnabled;
+        public bool resultCacheEnabled;
 
         /// <summary>用户显式键或已启用自动缓存。</summary>
-        internal bool IsResultCacheArmed
+        public bool IsResultCacheArmed
             => resultCacheEnabled || !string.IsNullOrWhiteSpace(cacheKey);
 
         /// <summary>是否存在业务显式缓存键。</summary>
-        internal bool HasUserResultCacheKey
+        public bool HasUserResultCacheKey
             => !string.IsNullOrWhiteSpace(cacheKey);
 
         /// <summary>

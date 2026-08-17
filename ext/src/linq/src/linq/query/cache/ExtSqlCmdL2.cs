@@ -10,10 +10,10 @@ namespace mooSQL.linq.Linq
 	/// L2：在 L1 <see cref="SentenceBag"/> 之上缓存 SQLCmd 文本模板。
 	/// 安全门（首期）：全部参数非 null，且无 List/Enumerable（string/byte[] 除外）。
 	/// </summary>
-	internal static class ExtSqlCmdL2
+	public static class ExtSqlCmdL2
 	{
 		/// <summary>安全门：可复用同一 SQL 文本、仅改 para。</summary>
-		public static bool IsSafeGate(IReadOnlyList<ParameterAccessor> accessors, SqlParameterValues values)
+		internal static bool IsSafeGate(IReadOnlyList<ParameterAccessor> accessors, SqlParameterValues values)
 		{
 			if (accessors == null || accessors.Count == 0)
 				return true;
@@ -196,7 +196,7 @@ namespace mooSQL.linq.Linq
 	}
 
 	/// <summary>挂在 <see cref="SentenceItem"/> 上的 SQL 文本模板（随 L1 bag 复用）。</summary>
-	internal sealed class ExtSqlCmdTemplate
+	public sealed class ExtSqlCmdTemplate
 	{
 		public ExtSqlCmdTemplate(string sql, string[] paraKeys, QueryType type, string? targetTable)
 		{

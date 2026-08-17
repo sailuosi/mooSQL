@@ -9,7 +9,7 @@ using mooSQL.linq.Tools;
 namespace mooSQL.linq.translator;
 
 /// <summary>向方言 <see cref="DbFuncRegistry"/> 注册 Ext DbFunc / Pure SQLExpression 可译模板。</summary>
-internal static class DbFuncRegistryBootstrap
+public static class DbFuncRegistryBootstrap
 {
     static readonly HashSet<DbFuncRegistry> Registered = new();
 

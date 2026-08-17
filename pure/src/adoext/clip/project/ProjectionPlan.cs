@@ -17,16 +17,16 @@ namespace mooSQL.data.clip.project
     /// <summary>
     /// Select 尾投影计划：槽位 SELECT + 编译后的行投影器。
     /// </summary>
-    internal sealed class ProjectionPlan
+    public sealed class ProjectionPlan
     {
         public LambdaExpression Source { get; set; }
-        public List<ColumnSlot> Slots { get; } = new List<ColumnSlot>();
-        public Dictionary<string, ColumnSlot> SlotsByKey { get; } = new Dictionary<string, ColumnSlot>(StringComparer.Ordinal);
+        internal List<ColumnSlot> Slots { get; } = new List<ColumnSlot>();
+        internal Dictionary<string, ColumnSlot> SlotsByKey { get; } = new Dictionary<string, ColumnSlot>(StringComparer.Ordinal);
         public Delegate CompiledProjector { get; set; }
         /// <summary>setCache 结果类型标签：缓存的是投影后 R，并区分投影指纹。</summary>
         public string ResultCacheTag { get; set; }
 
-        public ColumnSlot GetOrAddSlot(ColumnRoot root)
+        internal ColumnSlot GetOrAddSlot(ColumnRoot root)
         {
             if (SlotsByKey.TryGetValue(root.Key, out var existing))
                 return existing;

@@ -8,9 +8,9 @@ namespace mooSQL.linq.Linq;
 /// <summary>
 /// 统一 RunnerContext 构造与表达式 / 参数解析。
 /// </summary>
-internal static class RunnerContextFactory
+public static class RunnerContextFactory
 {
-    internal static RunnerContext Create(
+    public static RunnerContext Create(
         SentenceBag bag,
         DBInstance db,
         Expression? expression = null,
@@ -25,7 +25,7 @@ internal static class RunnerContextFactory
             cancellationToken = cancellationToken
         };
 
-    internal static Expression ResolveExpression(RunnerContext context)
+    public static Expression ResolveExpression(RunnerContext context)
     {
         if (context.expression != null)
             return context.expression;
@@ -36,6 +36,6 @@ internal static class RunnerContextFactory
         throw new InvalidOperationException("RunnerContext requires expression or sentenceBag.srcExp.");
     }
 
-    internal static (Expression expression, object?[]? parameters) ResolveExecutionArgs(RunnerContext context)
+    public static (Expression expression, object?[]? parameters) ResolveExecutionArgs(RunnerContext context)
         => (ResolveExpression(context), context.paras);
 }

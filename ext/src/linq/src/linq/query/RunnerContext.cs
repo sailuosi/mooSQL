@@ -8,7 +8,7 @@ namespace mooSQL.linq.Linq;
 /// <summary>
 /// 执行 SentenceBag 时的上下文参数。
 /// </summary>
-internal class RunnerContext
+public class RunnerContext
 {
     public DBInstance dataContext = default!;
     public Expression? expression;

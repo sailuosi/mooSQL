@@ -103,12 +103,12 @@ namespace mooSQL.linq.Linq
     /// 含有类型参数的结果集
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class SentenceBag<T>:SentenceBag
+    public class SentenceBag<T>:SentenceBag
     {
 
         private ISentenceRunner<T> runner;
 
-        public ISentenceRunner<T> Runner
+        internal ISentenceRunner<T> Runner
         {
             get {
                 if (runner == null)

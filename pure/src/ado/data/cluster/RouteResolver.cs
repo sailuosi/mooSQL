@@ -103,7 +103,7 @@ namespace mooSQL.data.cluster
     /// <summary>
     /// 主从路由解析（仅供框架内部与单元测试）。
     /// </summary>
-    internal class RouteResolver
+    public class RouteResolver
     {
         private readonly MooClient _client;
         private readonly DBInsCash _cash;

@@ -12,7 +12,7 @@ using mooSQL.linq.Tools;
 
 namespace mooSQL.linq.translator;
 
-internal static partial class SentenceExecutor
+public static partial class SentenceExecutor
 {
     enum InsertOrUpdateExecMode
     {
@@ -295,7 +295,7 @@ internal static partial class SentenceExecutor
     /// <summary>
     /// 多语句 DML 在同一事务中顺序执行（InsertOrUpdate 展开等场景）。
     /// </summary>
-    internal static int ExecuteWriteBatchInTransaction(RunnerContext context, IReadOnlyList<SQLCmd> cmds)
+    public static int ExecuteWriteBatchInTransaction(RunnerContext context, IReadOnlyList<SQLCmd> cmds)
     {
         if (cmds.Count == 0)
             return 0;
