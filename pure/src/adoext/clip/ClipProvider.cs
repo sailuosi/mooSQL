@@ -388,10 +388,12 @@ namespace mooSQL.data.clip
                     var sql = getTableSelectDeclare(fromtb);
                         //string.Format("{0} AS {1}", fromtb.TableInfo.DbTableName, fromtb.Alias);
                     clip.Context.Builder.from(sql);
+                    // from() 是追加；必须置位，否则 PatchBeforeSelect / 再次 select 检查会重复 FROM → 行数成倍
+                    clip.Context.FromBinded = true;
                 }
 
             }
-            if (clip.Context.Joins != null)
+            if (clip.Context.Joins != null && clip.Context.Joins.Count > 0)
             {
                 foreach (var item in clip.Context.Joins)
                 {
@@ -409,6 +411,8 @@ namespace mooSQL.data.clip
                     sb.Append(item.onSQL);
                     clip.Context.Builder.join(sb.ToString());
                 }
+                // 已写入 Builder，清空以免再次 checkJoin 时重复 JOIN
+                clip.Context.Joins.Clear();
             }
         }
     }
