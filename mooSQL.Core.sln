@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.4.11605.240 stable
+VisualStudioVersion = 18.4.11605.240
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooSQL.Pure.Core", "pure\mooSQL.Pure.Core.csproj", "{37F99AC0-942B-9ECB-77BE-7966D241C79D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{72041AD8-B509-4395-A815-C9535DB2BAF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooSQL.Ext.Core", "ext\mooSQL.Ext.Core.csproj", "{C61C8AE3-E3F9-D1A3-249D-2BAF598D65D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{958A3CA0-2B89-48A0-AF4D-31C669D4782F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooSQL.Core.Dev.Tests", "Tests\TestBug\mooSQL.Core.Dev.Tests.csproj", "{36023FCE-8980-4417-3F2F-01D2DD010659}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +27,10 @@ Global
 		{C61C8AE3-E3F9-D1A3-249D-2BAF598D65D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C61C8AE3-E3F9-D1A3-249D-2BAF598D65D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C61C8AE3-E3F9-D1A3-249D-2BAF598D65D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36023FCE-8980-4417-3F2F-01D2DD010659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36023FCE-8980-4417-3F2F-01D2DD010659}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36023FCE-8980-4417-3F2F-01D2DD010659}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36023FCE-8980-4417-3F2F-01D2DD010659}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +38,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{37F99AC0-942B-9ECB-77BE-7966D241C79D} = {72041AD8-B509-4395-A815-C9535DB2BAF4}
 		{C61C8AE3-E3F9-D1A3-249D-2BAF598D65D5} = {72041AD8-B509-4395-A815-C9535DB2BAF4}
+		{36023FCE-8980-4417-3F2F-01D2DD010659} = {958A3CA0-2B89-48A0-AF4D-31C669D4782F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1CAF8892-D6F1-41AC-8AA6-5695FABE6442}

@@ -12,7 +12,7 @@ namespace mooSQL.linq.Linq
     /// <summary>
     /// 代表着一个SQL定义模型
     /// </summary>
-    internal class SentenceItem
+    public class SentenceItem
     {
 
 

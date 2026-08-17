@@ -15,7 +15,7 @@ namespace mooSQL.linq.Linq
     /// <summary>
     /// SQL模型包，代表一个LINQ查询的构建结果。
     /// </summary>
-    internal class SentenceBag
+    public class SentenceBag
     {
 
         public DBInstance DBLive;
@@ -52,14 +52,14 @@ namespace mooSQL.linq.Linq
         /// <summary>
         /// 中间环节的编辑器
         /// </summary>
-        public IClauseContext buildContext;
+        internal IClauseContext buildContext;
 
         /** 结果执行器 **/
 
 
         private ISentenceRunner runner;
 
-        public virtual ISentenceRunner Runner { 
+        internal virtual ISentenceRunner Runner { 
             get {
                 if (runner == null) {
                     runner = new BasicSentenceRunner();

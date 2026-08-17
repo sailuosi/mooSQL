@@ -1,12 +1,17 @@
 ﻿using System;
+using System.IO;
 using System.Linq.Expressions;
 
 namespace dbTest.items
 {
     public abstract class ITest
     {
-        //public static string sqlLiteDb = $"Data Source={AppDomain.CurrentDomain.BaseDirectory}sqlliteTest.db;";
-        public static string sqlLiteDb = "Data Source=d:\\sqlliteTest.db;";
+        /// <summary>
+        /// 固定绝对路径（%TEMP%），供主进程 InitData 与 BenchmarkDotNet 子进程共用。
+        /// 勿写死盘符；也勿用 BaseDirectory（BDN 工作目录不同，会连到空库 → no such table）。
+        /// </summary>
+        public static string sqlLiteDb =
+            "Data Source=" + Path.Combine(Path.GetTempPath(), "mooSQL_dbTest_sqlite.db") + ";Mode=ReadWriteCreate";
         public virtual void testQueryResult() { }
         public virtual void testQueryAnonymousResult() { }
         public virtual string testQueryCondition() { return ""; }
