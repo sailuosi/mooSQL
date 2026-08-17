@@ -259,7 +259,8 @@ namespace mooSQL.data
                 
             if (!string.IsNullOrEmpty(op))
             {
-                conditon += " " + op + " ";
+                // whereIn 等入口传入的 op 已带两侧空格（" IN "）；这里只补一层空格，避免 "  IN  "
+                conditon += " " + op.Trim() + " ";
             }
 
             if (paramed)
