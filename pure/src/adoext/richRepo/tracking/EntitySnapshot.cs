@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using mooSQL.data;
 using mooSQL.data.model;
 
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 实体原始值快照（对比用值相等，不用 GetHashCode）。

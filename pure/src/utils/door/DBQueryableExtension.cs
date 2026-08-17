@@ -1,6 +1,5 @@
 ﻿
 using mooSQL.linq;
-using mooSQL.data.richRepo;
 using System;
 using System.Collections.Generic;
 using System.Data;

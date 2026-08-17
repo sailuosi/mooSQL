@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 手动脏标记扩展（对标 CRL Change / Cumulation）。

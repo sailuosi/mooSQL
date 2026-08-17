@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using mooSQL.data;
 
-namespace mooSQL.data.richRepo.schema
+namespace mooSQL.data
 {
     /// <summary>
     /// Schema 对齐门面：包装 DDLBuilder.doInitTable / toInitTableList，默认不 DROP。

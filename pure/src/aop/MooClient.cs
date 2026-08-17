@@ -5,7 +5,6 @@ using mooSQL.data.context;
 
 using mooSQL.data.Mapping;
 using mooSQL.data.slave;
-using mooSQL.data.richRepo.schema;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

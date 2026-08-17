@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 无脏字段时的行为。

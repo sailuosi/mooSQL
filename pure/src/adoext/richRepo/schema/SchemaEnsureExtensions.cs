@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using mooSQL.data;
-using mooSQL.data.richRepo.schema;
 
-namespace mooSQL.data.richRepo.schema
+namespace mooSQL.data
 {
     /// <summary>
     /// DDL / DBInstance Schema 扩展。

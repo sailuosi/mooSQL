@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using mooSQL.data;
-using mooSQL.data.richRepo;
-using mooSQL.data.richRepo.tracking;
 using mooSQL.Pure.Tests.TestHelpers;
 using Xunit;
 

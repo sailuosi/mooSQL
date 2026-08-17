@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using mooSQL.data;
 
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 实体修改追踪门面（WeakTable 附着，POCO 友好）。

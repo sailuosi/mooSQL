@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 实体脏字段袋（对标 CRL IModel.Changes）。键以 '$' 前缀表示累加表达式更新。

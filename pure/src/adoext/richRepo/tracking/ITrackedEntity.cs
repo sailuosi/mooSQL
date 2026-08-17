@@ -1,4 +1,4 @@
-namespace mooSQL.data.richRepo.tracking
+namespace mooSQL.data
 {
     /// <summary>
     /// 可选：实体自带脏字段袋。多数场景用 WeakTable，无需实现本接口。

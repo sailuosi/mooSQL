@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooSQL.data.richRepo.schema
+namespace mooSQL.data
 {
     /// <summary>
     /// 表结构同步模式。默认只增不删。

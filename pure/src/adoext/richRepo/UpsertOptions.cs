@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace mooSQL.data.richRepo
+namespace mooSQL.data
 {
     /// <summary>
     /// Repo / RichRepo 级 Upsert 选项（对标 CRL InsertOrUpdateOption）。

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace mooSQL.data.richRepo
+namespace mooSQL.data
 {
     /// <summary>
     /// 实体字典缓存（按类型 + 库名）。与查询结果缓存分离。

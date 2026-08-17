@@ -6,10 +6,8 @@ using System.Linq.Expressions;
 using System.Text;
 using mooSQL.data.clip;
 using mooSQL.data.model;
-using mooSQL.data.richRepo.schema;
-using mooSQL.data.richRepo.tracking;
 
-namespace mooSQL.data.richRepo
+namespace mooSQL.data
 {
     /// <summary>
     /// 富仓储（独立类型，不继承 <see cref="SooRepository{T}"/>）。
