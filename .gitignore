@@ -25,3 +25,4 @@ bin-release/
 dist/
 Tests/src/TestExt/DBTest.Config.cs
 artifacts
+tools
