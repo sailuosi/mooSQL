@@ -49,14 +49,15 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void UseClip_WithAction_ShouldReturnResult()
         {
-            var n = _builder.useClip(clip =>
+            var sql = _builder.useClip(clip =>
             {
                 clip.from<TestUser>(out var u);
                 clip.select(() => u.Id);
-                var cmd = clip.toSelect();
-                return cmd != null ? 1 : 0;
+                return clip.toSelect().sql;
             });
-            n.Should().Be(1);
+            sql.Should().Contain("SELECT");
+            sql.Should().Contain("test_users");
+            sql.Should().MatchRegex("(?i)\\bid\\b");
         }
 
         [Fact]
@@ -143,9 +144,9 @@ namespace mooSQL.Pure.Tests
         {
             var n = _builder.countBy<TestUser>((clip, u) =>
             {
-                clip.where(() => u.Id, 99999);
+                clip.where(() => u.Id, int.MaxValue - 3);
             });
-            n.Should().BeGreaterOrEqualTo(0);
+            n.Should().Be(0);
         }
 
         [Fact]
