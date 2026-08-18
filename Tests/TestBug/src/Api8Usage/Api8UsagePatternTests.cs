@@ -1,6 +1,7 @@
 using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
+using System;
 using System.Linq;
 using TestMooSQL.src;
 using Xunit;
@@ -83,6 +84,37 @@ namespace mooSQL.Pure.Tests.Api8Usage
                     .whereIn("PX_CONTACT_FK", "c1", "c2")
                     .toDelete(),
                 "DELETE FROM PX_ExamMan WHERE PX_CONTACT_FK IN ('c1','c2')");
+        }
+
+        /// <summary>按 GUID 主键删除：whereGuid / whereInGuid；非法或空列表衰减为 1=2</summary>
+        [Fact]
+        public void DoDelete_WhereGuid_ExactSql()
+        {
+            var oid = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("ZH_PortCell")
+                    .whereGuid("ZH_PortCellOID", oid)
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE ZH_PortCellOID = '11111111-1111-1111-1111-111111111111'");
+
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("ZH_PortCell")
+                    .whereInGuid("ZH_PortCellOID", new[]
+                    {
+                        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                        Guid.Parse("22222222-2222-2222-2222-222222222222")
+                    })
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE ZH_PortCellOID IN ('11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222')");
+
+            AssertExactSql(
+                Kit().clear()
+                    .setTable("ZH_PortCell")
+                    .whereGuid("ZH_PortCellOID", "not-a-guid")
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE 1=2");
         }
 
         /// <summary>对标 BC_PX_TeaDockService：setPage(pageSize, pageNum)</summary>

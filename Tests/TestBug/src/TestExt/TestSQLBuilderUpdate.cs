@@ -46,6 +46,60 @@ public class TestSQLBuilderUpdate
         Assert.Equal("DELETE FROM ZH_PortCell WHERE ZH_PortCellOID = 'OID'", sql);
     }
 
+    [Fact]
+    public void deleteByGuid()
+    {
+        var kit = DBTest.useSQL(0);
+        var oid = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var cmd = kit
+            .setTable("ZH_PortCell")
+            .whereGuid("ZH_PortCellOID", oid)
+            .toDelete();
+        var sql = cmd.toRawSQL();
+        Assert.Equal("DELETE FROM ZH_PortCell WHERE ZH_PortCellOID = '11111111-1111-1111-1111-111111111111'", sql);
+    }
+
+    [Fact]
+    public void deleteByWhereInGuid()
+    {
+        var kit = DBTest.useSQL(0);
+        var oids = new[]
+        {
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222")
+        };
+        var cmd = kit
+            .setTable("ZH_PortCell")
+            .whereInGuid("ZH_PortCellOID", oids)
+            .toDelete();
+        var sql = cmd.toRawSQL();
+        Assert.Equal("DELETE FROM ZH_PortCell WHERE ZH_PortCellOID IN ('11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222')", sql);
+    }
+
+    [Fact]
+    public void deleteByInvalidGuid_ShouldNeverMatch()
+    {
+        var kit = DBTest.useSQL(0);
+        var cmd = kit
+            .setTable("ZH_PortCell")
+            .whereGuid("ZH_PortCellOID", "not-a-guid")
+            .toDelete();
+        var sql = cmd.toRawSQL();
+        Assert.Equal("DELETE FROM ZH_PortCell WHERE 1=2", sql);
+    }
+
+    [Fact]
+    public void deleteByEmptyWhereInGuid_ShouldNeverMatch()
+    {
+        var kit = DBTest.useSQL(0);
+        var cmd = kit
+            .setTable("ZH_PortCell")
+            .whereInGuid("ZH_PortCellOID", Array.Empty<Guid>())
+            .toDelete();
+        var sql = cmd.toRawSQL();
+        Assert.Equal("DELETE FROM ZH_PortCell WHERE 1=2", sql);
+    }
+
 
     [Fact]
     public void fastUpdateByClip()

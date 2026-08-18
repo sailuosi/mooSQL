@@ -403,6 +403,63 @@ namespace mooSQL.Pure.Tests
             cmd.sql.Should().Contain("WHERE");
         }
 
+        [Fact]
+        public void Delete_WhereGuid_ShouldBuildDeleteSQL()
+        {
+            var oid = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var cmd = _builder.setTable("ZH_PortCell")
+                .whereGuid("ZH_PortCellOID", oid)
+                .toDelete();
+
+            var sql = cmd.toRawSQL();
+            sql.Should().Contain("DELETE");
+            sql.Should().Contain("FROM ZH_PortCell");
+            sql.Should().Contain("ZH_PortCellOID");
+            sql.Should().Contain(oid.ToString());
+            sql.Should().NotContain("1=2");
+        }
+
+        [Fact]
+        public void Delete_WhereInGuid_ShouldBuildInList()
+        {
+            var oids = new[]
+            {
+                Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                Guid.Parse("22222222-2222-2222-2222-222222222222")
+            };
+            var cmd = _builder.setTable("ZH_PortCell")
+                .whereInGuid("ZH_PortCellOID", oids)
+                .toDelete();
+
+            var sql = cmd.toRawSQL();
+            sql.Should().Contain("DELETE");
+            sql.Should().Contain("IN");
+            sql.Should().Contain(oids[0].ToString());
+            sql.Should().Contain(oids[1].ToString());
+            sql.Should().NotContain("1=2");
+        }
+
+        [Fact]
+        public void Delete_InvalidWhereGuid_ShouldNeverMatch()
+        {
+            var cmd = _builder.setTable("ZH_PortCell")
+                .whereGuid("ZH_PortCellOID", "not-a-guid")
+                .toDelete();
+
+            cmd.toRawSQL().Should().Contain("1=2");
+            cmd.toRawSQL().Should().NotContain("ZH_PortCellOID");
+        }
+
+        [Fact]
+        public void Delete_EmptyWhereInGuid_ShouldNeverMatch()
+        {
+            var cmd = _builder.setTable("ZH_PortCell")
+                .whereInGuid("ZH_PortCellOID", Array.Empty<Guid>())
+                .toDelete();
+
+            cmd.toRawSQL().Should().Contain("1=2");
+        }
+
         #endregion
 
         #region 参数化查询测试

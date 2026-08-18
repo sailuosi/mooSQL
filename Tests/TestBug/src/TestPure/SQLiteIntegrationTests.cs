@@ -278,6 +278,56 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void SQLBuilder_DoDelete_WhereGuid_ShouldDeleteOnlyMatchingRow()
+        {
+            const string table = "moo_t_guid_del";
+            _fx.DropTableIfExists(table);
+            _fx.ExecuteSql($"CREATE TABLE {table} (oid TEXT PRIMARY KEY, name TEXT)");
+
+            var keep = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var drop = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var other = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .set("oid", keep.ToString()).set("name", "keep")
+                .doInsert().Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .set("oid", drop.ToString()).set("name", "drop")
+                .doInsert().Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .set("oid", other.ToString()).set("name", "other")
+                .doInsert().Should().Be(1);
+
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .whereGuid("oid", "not-a-guid")
+                .doDelete()
+                .Should().Be(0);
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).count().Should().Be(3);
+
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .whereGuid("oid", drop)
+                .doDelete()
+                .Should().Be(1);
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).count().Should().Be(2);
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).where("oid", drop.ToString()).exist().Should().BeFalse();
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).where("oid", keep.ToString()).exist().Should().BeTrue();
+
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .whereInGuid("oid", Array.Empty<Guid>())
+                .doDelete()
+                .Should().Be(0);
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).count().Should().Be(2);
+
+            TestDatabaseHelper.UseSQL(_fx.Db).setTable(table)
+                .whereInGuid("oid", new[] { keep, other })
+                .doDelete()
+                .Should().Be(2);
+            TestDatabaseHelper.UseSQL(_fx.Db).from(table).count().Should().Be(0);
+
+            _fx.DropTableIfExists(table);
+        }
+
+        [Fact]
         public void SQLBuilder_EntityInsertUpdateDelete_ShouldWork()
         {
             var user = new SQLiteTestUser

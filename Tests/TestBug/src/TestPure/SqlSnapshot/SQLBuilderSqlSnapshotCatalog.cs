@@ -400,6 +400,12 @@ namespace mooSQL.Pure.Tests.SqlSnapshot
                 .from("src s")
                 .where("users.id=s.id"), "toUpdateFrom");
             yield return C("delete_where", k => k.from("users").where("id", 1), "toDelete");
+            yield return C("delete_where_guid", k => k.setTable("users")
+                .whereGuid("oid", Guid.Parse("11111111-1111-1111-1111-111111111111")), "toDelete");
+            yield return C("delete_where_in_guid", k => k.setTable("users").whereInGuid("oid",
+                new[] { Guid.Parse("11111111-1111-1111-1111-111111111111"), Guid.Parse("22222222-2222-2222-2222-222222222222") }), "toDelete");
+            yield return C("delete_where_guid_invalid", k => k.setTable("users").whereGuid("oid", "not-a-guid"), "toDelete");
+            yield return C("delete_where_in_guid_empty", k => k.setTable("users").whereInGuid("oid", Array.Empty<Guid>()), "toDelete");
             yield return C("insert_setI_setU", k => k.setTable("users")
                 .setI("id", 1).setU("name", "n").set("age", 2), "toInsert");
             yield return C("update_setU_only", k => k.setTable("users")
