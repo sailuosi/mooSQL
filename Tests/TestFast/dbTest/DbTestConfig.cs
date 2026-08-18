@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using dbTest.items;
 
@@ -18,9 +19,24 @@ namespace dbTest
 
     /// <summary>
     /// dbTest 运行配置。须在 <see cref="TestBase"/> 构造 / BenchmarkRunner 之前设定。
+    /// <para>
+    /// BenchmarkDotNet 默认 out-of-process：子进程不会跑 <c>Main</c>，也收不到交互菜单结果，
+    /// 且不一定继承宿主 <c>Environment.SetEnvironmentVariable</c>。
+    /// 因此范围会同时写入：
+    /// 1) 环境变量 <c>DBTEST_SCOPE</c>（供 BDN Job.WithEnvironmentVariable 显式传入）
+    /// 2) 临时文件 <see cref="ScopeFilePath"/>（跨进程可靠回退）
+    /// </para>
     /// </summary>
     public static class DbTestConfig
     {
+        public const string ScopeEnvName = "DBTEST_SCOPE";
+
+        /// <summary>
+        /// 与 SQLite 测试库同目录约定：%TEMP%/mooSQL_dbTest_scope.txt
+        /// </summary>
+        public static string ScopeFilePath { get; } =
+            Path.Combine(Path.GetTempPath(), "mooSQL_dbTest_scope.txt");
+
         /// <summary>
         /// 对比组：SQLBuilder（Builder）+ ADO.NET + Dapper + CRL + Chloe。
         /// </summary>
@@ -33,8 +49,31 @@ namespace dbTest
             nameof(ChloeTest),
         };
 
-        /// <summary>默认对比模式，便于日常复测。</summary>
-        public static DbTestScope Scope { get; set; } = DbTestScope.Compare;
+        private static DbTestScope _scope = DbTestScope.Compare;
+        private static bool _loaded;
+
+        static DbTestConfig()
+        {
+            TryLoadPersisted();
+        }
+
+        /// <summary>
+        /// 当前范围。赋值时持久化到环境变量与临时文件，供 BDN 子进程读回。
+        /// </summary>
+        public static DbTestScope Scope
+        {
+            get
+            {
+                EnsureLoaded();
+                return _scope;
+            }
+            set
+            {
+                _scope = value;
+                _loaded = true;
+                Persist(value);
+            }
+        }
 
         public static bool Allow(Type providerType)
         {
@@ -46,14 +85,24 @@ namespace dbTest
         }
 
         /// <summary>
+        /// 强制把当前 Scope 再写一遍（Benchmark 启动前调用）。
+        /// </summary>
+        public static void PersistCurrent()
+        {
+            Persist(Scope);
+        }
+
+        /// <summary>
         /// 解析命令行 / 环境变量。支持：
         /// <c>compare</c> / <c>full</c>；或 <c>DBTEST_SCOPE=Compare|Full</c>。
+        /// 临时文件仅供 BDN 子进程回退，不作为「跳过交互菜单」的依据。
         /// </summary>
-        /// <returns>是否已由参数/环境变量显式指定范围（显式时跳过交互菜单）。</returns>
         public static bool ApplyArgs(string[] args)
         {
             var explicitSet = false;
-            var env = Environment.GetEnvironmentVariable("DBTEST_SCOPE");
+
+            // 宿主：仅环境变量视为显式配置（CI / set DBTEST_SCOPE=Full）
+            var env = Environment.GetEnvironmentVariable(ScopeEnvName);
             if (!string.IsNullOrWhiteSpace(env)
                 && Enum.TryParse(env.Trim(), ignoreCase: true, out DbTestScope fromEnv))
             {
@@ -97,7 +146,6 @@ namespace dbTest
 
         /// <summary>
         /// 控制台输入数字选择范围：1=对比组，2=全部。回车默认对比组。
-        /// 输入重定向或已由参数指定时跳过。
         /// </summary>
         public static void PromptScope(bool skipIfExplicit)
         {
@@ -144,6 +192,55 @@ namespace dbTest
             if (Scope == DbTestScope.Full)
                 return "Scope=Full (all ITest providers)";
             return "Scope=Compare [" + string.Join(", ", CompareProviders) + "]";
+        }
+
+        private static void EnsureLoaded()
+        {
+            if (_loaded)
+                return;
+            TryLoadPersisted();
+        }
+
+        private static void TryLoadPersisted()
+        {
+            var env = Environment.GetEnvironmentVariable(ScopeEnvName);
+            if (!string.IsNullOrWhiteSpace(env)
+                && Enum.TryParse(env.Trim(), ignoreCase: true, out DbTestScope fromEnv))
+            {
+                _scope = fromEnv;
+                _loaded = true;
+                return;
+            }
+
+            try
+            {
+                if (File.Exists(ScopeFilePath))
+                {
+                    var text = File.ReadAllText(ScopeFilePath).Trim();
+                    if (Enum.TryParse(text, ignoreCase: true, out DbTestScope fromFile))
+                        _scope = fromFile;
+                }
+            }
+            catch
+            {
+                // ignore corrupt / locked file
+            }
+
+            _loaded = true;
+        }
+
+        private static void Persist(DbTestScope value)
+        {
+            var text = value.ToString();
+            Environment.SetEnvironmentVariable(ScopeEnvName, text);
+            try
+            {
+                File.WriteAllText(ScopeFilePath, text);
+            }
+            catch
+            {
+                // 子进程仍可能靠 Job 环境变量；写文件失败不阻断宿主
+            }
         }
     }
 }

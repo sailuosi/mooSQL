@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{EACB65F1-8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3AF62A8F-BB98-450E-B211-9599DF4C4132}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooSQL.Pure.Tests", "Tests\TestBug\mooSQL.Pure.Tests.csproj", "{564DF378-70D0-BEF3-475E-6BE1153193F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooSQL.Tests", "Tests\TestBug\mooSQL.Tests.csproj", "{564DF378-70D0-BEF3-475E-6BE1153193F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dbTest2", "Tests\TestFast\dbTest\dbTest2.csproj", "{99F40077-311C-89EA-1D21-E07E3D415C95}"
 EndProject

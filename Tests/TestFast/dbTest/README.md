@@ -37,6 +37,14 @@ set DBTEST_SCOPE=Full
 
 配置见 `DbTestConfig.cs`；过滤发生在 `TestBase` 发现适配器时（须在 Benchmark 启动前选定）。
 
+**注意（BenchmarkDotNet）**：默认 out-of-process 时，子进程不跑 `Main`、不一定继承宿主环境变量，会出现「菜单选了全部，子进程仍是 Compare → 大量 NA」。本工程已改为 **InProcessEmit**（与宿主同进程保留 Scope），并额外写入 `%TEMP%\mooSQL_dbTest_scope.txt` / `DBTEST_SCOPE` 作双保险。
+
+启动后应看到：
+```text
+[dbTest] Scope=Full (all ITest providers)
+[dbTest] Toolchain=InProcessEmit (same process keeps Scope)
+```
+
 ## 测试声明
 
 本测试不代表任何立场和原作者也没任何关系，仅是在研究、学习、优化、测试，对内部项目`myTest`整理过程中形成的测试，有其它测式可下载源码自行添加实现。

@@ -11,6 +11,9 @@ namespace dbTest
         protected List<ITest> tests = new List<ITest>();
         public TestBase(Func<Type, bool> check = null)
         {
+            // BDN 子进程不跑 Main：依赖 DbTestConfig 从 DBTEST_SCOPE 恢复范围
+            _ = DbTestConfig.Scope;
+
             CrlTest.Init();
             var types = typeof(ITest).Assembly.GetTypes().Where(b => typeof(ITest).IsAssignableFrom(b) && !b.IsAbstract && b.IsPublic);
             foreach (var t in types)
@@ -29,6 +32,15 @@ namespace dbTest
         protected void Invoke(Action<ITest> func)
         {
             var test = tests.Find(b => b.GetType().Name == ProvideType);
+            if (test == null)
+            {
+                var loaded = string.Join(", ", tests.Select(b => b.GetType().Name));
+                throw new InvalidOperationException(
+                    $"Provider '{ProvideType}' was not loaded. Loaded=[{loaded}]. {DbTestConfig.Describe()}. " +
+                    $"env={Environment.GetEnvironmentVariable(DbTestConfig.ScopeEnvName) ?? "(null)"}, " +
+                    $"file={DbTestConfig.ScopeFilePath}. " +
+                    "请确认已选 Full，或使用：dotnet run -- full");
+            }
             func(test);
         }
     }

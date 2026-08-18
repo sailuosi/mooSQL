@@ -485,6 +485,81 @@
 - 产品口径：Result 高吞吐仍可写 **≈ Dapper / AdoNet / Builder**；Queryable（暖）与 Clip 同档可接受。  
 - AdoNet 适合作为后续 Anonymous / Loop 的**无 ORM 对照轴**（时间未必最快，分配最省）。
 
+### 复测：Full Scope + InProcess（2026-08-18）
+
+背景：修复 dbTest「交互选 Full、BDN 子进程仍 Compare → 大量 NA」后，以 **Full ProvideType** + **InProcessEmit** 重跑 `TestResult`（`Take(100)` 强类型映射）。墙钟相对 +AdoNet 轮有升有降，**以相对梯队与 mooSQL 三路径为主**；不覆盖改写上文各轮原表。下表按 **Mean 升序**（快→慢；NA 置底）。
+
+#### 原始结果（按 Mean 升序）
+
+
+| Method     | ProvideType         | Mean       | Error     | StdDev    | Median     | Rank | Gen0    | Gen1   | Allocated |
+| ---------- | ------------------- | ---------- | --------- | --------- | ---------- | ---- | ------- | ------ | --------- |
+| TestResult | DapperTest          | 333.8 us   | 6.58 us   | 11.53 us  | 329.3 us   | 1    | 6.3477  | 0.4883 | 55.75 KB  |
+| TestResult | SqlKataTest         | 349.5 us   | 6.78 us   | 8.07 us   | 348.0 us   | 1    | 8.7891  | 0.4883 | 71.92 KB  |
+| TestResult | SmartSqlTest        | 358.4 us   | 8.88 us   | 25.06 us  | 346.3 us   | 1    | 5.3711  | -      | 47.8 KB   |
+| TestResult | MooSqlBuilderTest   | 365.4 us   | 6.74 us   | 5.63 us   | 363.3 us   | 1    | 7.3242  | 0.4883 | 59.97 KB  |
+| TestResult | OrmLiteTest         | 375.1 us   | 8.17 us   | 23.05 us  | 372.3 us   | 1    | 9.2773  | 0.4883 | 78.66 KB  |
+| TestResult | ChloeTest           | 379.7 us   | 14.24 us  | 39.46 us  | 380.2 us   | 1    | 8.7891  | 0.9766 | 73.59 KB  |
+| TestResult | FreeSqlTest         | 403.6 us   | 9.05 us   | 26.26 us  | 393.5 us   | 1    | 9.2773  | 1.9531 | 77.4 KB   |
+| TestResult | CrlTest             | 412.6 us   | 21.56 us  | 62.56 us  | 394.8 us   | 1    | 4.3945  | 0.4883 | 38.41 KB  |
+| TestResult | MooSqlClipTest      | 423.3 us   | 11.71 us  | 33.60 us  | 407.1 us   | 1    | 7.8125  | 1.9531 | 65.09 KB  |
+| TestResult | AdoNetTest          | 426.9 us   | 25.45 us  | 73.03 us  | 419.0 us   | 1    | 3.9063  | -      | 35.44 KB  |
+| TestResult | NPocoTest           | 463.8 us   | 13.55 us  | 38.21 us  | 447.2 us   | 1    | 15.6250 | 1.4648 | 128.77 KB |
+| TestResult | MooSqlQueryableTest | 513.9 us   | 16.08 us  | 45.35 us  | 519.0 us   | 2    | 8.7891  | 1.9531 | 77.27 KB  |
+| TestResult | EfSqlliteTest       | 598.9 us   | 13.56 us  | 39.56 us  | 594.9 us   | 3    | 21.4844 | 3.9063 | 177.16 KB |
+| TestResult | SqlSugarTest        | 752.7 us   | 31.83 us  | 91.84 us  | 730.7 us   | 4    | 11.7188 | 0.9766 | 98.64 KB  |
+| TestResult | CoreOrmTest         | 1,308.5 us | 39.89 us  | 109.20 us | 1,270.8 us | 5    | 11.7188 | -      | 106.97 KB |
+| TestResult | LinqToDbTest        | 1,506.4 us | 86.13 us  | 238.66 us | 1,424.8 us | 6    | 21.4844 | -      | 178.75 KB |
+| TestResult | NHibernateTest      | 1,770.9 us | 143.54 us | 418.71 us | 1,700.3 us | 6    | 23.4375 | 3.9063 | 201.96 KB |
+| TestResult | FastFrameworkTest   | 2,080.3 us | 41.30 us  | 55.13 us  | 2,083.7 us | 7    | 15.6250 | 3.9063 | 154.6 KB  |
+| TestResult | RepoDbTest          | NA         | NA        | NA        | NA         | ?    | NA      | NA     | NA        |
+
+
+#### 梯队（按 Mean；不含 NA）
+
+
+| 档位  | ProvideType                                                                 | Mean（约）          | Allocated（代表） |
+| --- | ------------------------------------------------------------------------- | ---------------- | ------------ |
+| 1   | Dapper、SqlKata、SmartSql、**MooSqlBuilder**、OrmLite、Chloe、FreeSql、CRL、**MooSqlClip**、**AdoNet**、NPoco | ~334–464 μs | **AdoNet ~35 KB（最低）**；CRL ~~38；SmartSql ~~48；Builder ~~60；Clip ~~65 |
+| 2   | **MooSqlQueryable**                                                       | **~514 μs**      | ~77 KB       |
+| 3–4 | EF、SqlSugar                                                               | ~599–753 μs      | ~99–177 KB   |
+| 5–6 | Core.ORM、LinqToDb、NHibernate                                              | ~1.31–1.77 ms    | ~107–202 KB  |
+| 7   | FastFramework                                                             | **~2.08 ms**     | ~155 KB      |
+| —   | RepoDb                                                                    | **NA**           | **NA**       |
+
+
+#### mooSQL / Dapper / AdoNet 对照
+
+
+| 路径 / 库                 | Mean / Median / Allocated     | 解读 |
+| --------------------- | ----------------------------- | ---- |
+| **Dapper**            | **334 / 329 μs / 56 KB**      | 时间第一；StdDev 小（~12 μs），本轮最稳 |
+| **MooSqlBuilder**     | **365 / 363 μs / 60 KB**      | 相对 Dapper ~+9%；Rank 1；StdDev **全场最低档之一（~5.6 μs）** |
+| SqlKata / SmartSql    | ~350–358 μs / ~72 / 48 KB     | 与 Builder 同入第一集团；SmartSql 分配突出 |
+| OrmLite / Chloe       | ~375–380 μs / ~79 / 74 KB     | 紧贴 Builder |
+| **MooSqlClip**        | **423 / 407 μs / 65 KB**      | 相对 Builder ~+16%；仍 Rank 1 |
+| **AdoNet**            | **427 / 419 μs / 35.4 KB**    | **Allocated 全场最低**；Mean 慢于 Dapper ~28%、慢于 Builder ~17%（本轮 StdDev ~73 μs，噪声大） |
+| **MooSqlQueryable**   | **514 / 519 μs / 77 KB**      | Rank 2；相对 Builder ~1.4×、相对 Clip ~1.2×——暖路径仍可接受，略慢于 +AdoNet 轮贴齐态 |
+
+
+#### 简要分析
+
+1. **第一集团扩至 ~11 家（BDN Rank 1）**  
+   Dapper → SqlKata / SmartSql / **Builder** → OrmLite / Chloe → FreeSql / CRL / **Clip** / AdoNet / NPoco，Mean ~334–464 μs。薄映射与窄 ORM 仍挤在同一竞争带。  
+2. **mooSQL 三路径**  
+   Builder **365 μs**（紧贴 Dapper）、Clip **423 μs**、Queryable **514 μs**。Builder/Clip 同入 Rank 1；Queryable 单独 Rank 2，Allocated ~77 KB 健康（远好于优化前 ~777 KB）。  
+3. **AdoNet：分配下限仍在，时间本轮偏后**  
+   Allocated **~35.4 KB 全场最低**（与历史一致）；Mean ~427 μs 落在 Clip 之后，且 Error/StdDev 偏大——解读仍对齐「内存看 AdoNet，时间看 Dapper/Builder」。  
+4. **重档顺序稳定**  
+   EF → SqlSugar → Core.ORM → LinqToDb / NH → FastFramework；**RepoDb 仍 NA**。  
+5. **未覆盖改写**上文基线 / L1/L2 / 全面版 / 扩容版 / +AdoNet 表格。
+
+#### 本轮结论
+
+- Full 跑通后梯队：**Dapper ≈（SqlKata / SmartSql / Builder / OrmLite / Chloe）≳（FreeSql / CRL / Clip / AdoNet / NPoco）> Queryable > EF > SqlSugar >（Core.ORM / LinqToDb / NH）≫ FastFramework**；RepoDb NA。  
+- 产品口径：Result 高吞吐仍可写 **≈ Dapper / Builder（+ SmartSql/SqlKata）**；Clip 同入第一集团；Queryable（暖）约 **1.4× Builder**，可横向对比。  
+- 本轮确认 Scope/InProcess 修复有效：Clip / Queryable / 扩容适配器均有成绩，不再因子进程 Compare 误报 NA。
+
 ---
 
 ## 方法 2：TestAnonymousResult（投影 / 自定义映射）

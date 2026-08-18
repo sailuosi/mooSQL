@@ -1,6 +1,8 @@
 
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using dbTest;
 using dbTest.items;
 using dbTest.tests;
@@ -24,15 +26,41 @@ public class Program
             testMooSqlSmoke();
             return;
         }
+        if (args != null && args.Length > 0 && string.Equals(args[0], "repodbsmoke", StringComparison.OrdinalIgnoreCase))
+        {
+            var t = new RepoDbTest();
+            t.testQueryResult();
+            t.testQueryLoop();
+            Console.WriteLine("[ok] RepoDbTest Result/Loop mapped F_Bool");
+            return;
+        }
 
         DbTestConfig.PromptScope(skipIfExplicit: scopeExplicit);
+        DbTestConfig.PersistCurrent();
         Console.WriteLine("[dbTest] " + DbTestConfig.Describe());
+        Console.WriteLine("[dbTest] DBTEST_SCOPE=" + Environment.GetEnvironmentVariable(DbTestConfig.ScopeEnvName));
+        Console.WriteLine("[dbTest] scope-file=" + DbTestConfig.ScopeFilePath);
         ConsoleTest.DoCommand(typeof(Program));
     }
     static void Run<T>()
     {
-        BenchmarkRunner.Run<T>(ManualConfig
-                    .Create(DefaultConfig.Instance).WithOptions(ConfigOptions.DisableOptimizationsValidator));
+        DbTestConfig.PersistCurrent();
+        Console.WriteLine("[dbTest] Benchmark start: " + DbTestConfig.Describe());
+        Console.WriteLine("[dbTest] Toolchain=InProcessEmit (same process keeps Scope)");
+
+        // 关键：BDN DefaultJob 会拉起独立进程，不跑 Main，且不一定继承环境变量，
+        // 导致宿主选 Full、子进程仍 Compare → Provider 未加载。
+        // 用 InProcess 与宿主同进程，Scope  naturally 保持；文件/环境变量仍作双保险。
+        var job = Job.Default
+            .WithToolchain(InProcessEmitToolchain.Instance)
+            .WithEnvironmentVariable(DbTestConfig.ScopeEnvName, DbTestConfig.Scope.ToString());
+
+        var config = ManualConfig.Create(DefaultConfig.Instance);
+        config.UnionRule = ConfigUnionRule.AlwaysUseLocal;
+        config.AddJob(job);
+        config.WithOptions(ConfigOptions.DisableOptimizationsValidator);
+
+        BenchmarkRunner.Run<T>(config);
     }
     public static void testQueryResult()
     {
