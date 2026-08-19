@@ -39,28 +39,28 @@ namespace mooSQL.config
         /// <summary>
         /// 软件版本
         /// </summary>
-        public string Edition;
+        public string Edition { get; set; }
         /// <summary>
         /// 软件版本号，数值
         /// </summary>
-        public double EditionNumber;
+        public double EditionNumber { get; set; }
         /// <summary>
-        /// 是否监控慢SQL，默认关闭
+        /// 是否监控慢SQL，默认关闭。须为属性：Configuration Binder 不绑定字段。
         /// </summary>
-        public bool WatchSQL = false;
+        public bool WatchSQL { get; set; } = false;
         /// <summary>
-        /// 默认的慢SQL时间阈值，500ms
+        /// 默认的慢SQL时间阈值，500ms。须为属性：Configuration Binder 不绑定字段。
         /// </summary>
-        public int MinTimeSpan = 500;
+        public int MinTimeSpan { get; set; } = 500;
 
         /// <summary>
         /// 自定义探活 SQL，优先级高于方言默认值。
         /// </summary>
-        public string CustomPingSQL;
+        public string CustomPingSQL { get; set; }
 
         /// <summary>
         /// 探活超时毫秒，映射到 <see cref="DBHealthOptions.PingTimeoutMs"/>。
         /// </summary>
-        public int PingTimeoutMs;
+        public int PingTimeoutMs { get; set; }
     }
 }
