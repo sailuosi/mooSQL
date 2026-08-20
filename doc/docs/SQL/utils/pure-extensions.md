@@ -272,7 +272,7 @@ SQLBuilder 的核心业务扩展，按功能分类：
 | `findRowById` / `findListByIds` | 按主键 |
 | `findRow` / `findField` / `findFieldValues` | Clip 自定义查询 |
 | `countBy` / `countByWhere` / `countByClip` | 计数 |
-| `findIsExist` | 主键是否存在 |
+| `findIsExist` | 主键是否存在；另有 `Action<SQLClip, T>` / 指定表名委托重载 |
 | `modifyBy` / `removeBy` | Clip 条件更新/删除 |
 
 #### 导航属性

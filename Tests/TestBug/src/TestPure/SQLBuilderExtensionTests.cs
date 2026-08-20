@@ -170,6 +170,13 @@ namespace mooSQL.Pure.Tests
             exists.Should().BeFalse();
         }
 
+        [Fact]
+        public void FindIsExist_WithWhereDelegate_NonExistent_ShouldReturnFalse()
+        {
+            var exists = _builder.findIsExist<TestUser>((c, t) => c.where(() => t.Id, int.MaxValue - 1));
+            exists.Should().BeFalse();
+        }
+
         #endregion
 
         #region removeById / removeByIds

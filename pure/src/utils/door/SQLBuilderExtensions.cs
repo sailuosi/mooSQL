@@ -943,6 +943,37 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 按自定义条件检查是否存在记录。独立上下文，委托内写 where 等条件。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static bool findIsExist<T>(this SQLBuilder builder, Action<SQLClip, T> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(out var t);
+            doClipFilting(clip, t);
+            return clip.exist();
+        }
+
+        /// <summary>
+        /// 按自定义条件检查是否存在记录。手动指定表名，用于动态分表。独立上下文。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="tableName"></param>
+        /// <param name="doClipFilting"></param>
+        /// <returns></returns>
+        public static bool findIsExist<T>(this SQLBuilder builder, string tableName, Action<SQLClip, T> doClipFilting) where T : class, new()
+        {
+            var clip = builder.useClip();
+            clip.from<T>(tableName, out var t);
+            doClipFilting(clip, t);
+            return clip.exist();
+        }
+
+        /// <summary>
         /// 快速查询某个实体，不唯一时返回null
         /// </summary>
         /// <typeparam name="T"></typeparam>

@@ -352,6 +352,8 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `findPageList<T>(int pageSize, int pageNum, Action<SQLClip, T> doClipFilting)` | 分页查询 |
 | `findRow<T>(Action<SQLClip, T> doClipFilting)` | 单行，不唯一返回 null |
 | `findIsExist<T>(object PK)` | 按主键是否存在 |
+| `findIsExist<T>(Action<SQLClip, T>)` | 自定义 where 条件是否存在 |
+| `findIsExist<T>(string tableName, Action<SQLClip, T>)` | 指定表名 + 自定义条件是否存在 |
 | `countBy<T>()` | 计数全部 |
 | `countBy<T>(Action<SQLClip, T> doClipFilting)` | 条件计数 |
 | `removeById<T>(object id)` | 按主键删除 |

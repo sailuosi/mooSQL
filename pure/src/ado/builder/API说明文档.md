@@ -1075,6 +1075,12 @@ kit.clear().useApart(apart).where("u.status", 1).query<User>();
 **`findIsExist<T>(this SQLBuilder builder, object PK)`**
 - 按主键检查是否存在记录。独立上下文
 
+**`findIsExist<T>(this SQLBuilder builder, Action<SQLClip, T> doClipFilting) where T : class, new()`**
+- 按自定义条件检查是否存在记录。独立上下文，委托内写 where 等条件
+
+**`findIsExist<T>(this SQLBuilder builder, string tableName, Action<SQLClip, T> doClipFilting) where T : class, new()`**
+- 按自定义条件检查是否存在记录。手动指定表名，用于动态分表
+
 **`findRow<T>(this SQLBuilder builder, Action<SQLClip, T> doClipFilting) where T : class, new()`**
 - 快速查询某个实体，不唯一时返回 null
 
