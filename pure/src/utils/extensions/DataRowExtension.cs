@@ -25,10 +25,11 @@ namespace mooSQL.utils
         public static string getString(this DataRow row, string key, string defaultVal)
         {
             if (row == null) return null;
-            if (row[key] != null)
+            //兼容缺失列的情况
+            if (row.Table.Columns.Contains(key))
             {
                 var tar = row[key];
-                if (tar == DBNull.Value)
+                if (tar==null || tar == DBNull.Value )
                 {
                     return defaultVal;
                 }
@@ -50,10 +51,10 @@ namespace mooSQL.utils
         public static string getString(this DataRow row, string key)
         {
             if (row == null) return null;
-            if (row[key] != null)
+            if (row.Table.Columns.Contains(key))
             {
                 var tar = row[key];
-                if (tar == DBNull.Value)
+                if (tar==null || tar == DBNull.Value )
                 {
                     return null;
                 }
