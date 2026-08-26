@@ -230,17 +230,7 @@ namespace mooSQL.data
 
         public abstract SQLBuilder whereNotLikeLeftOrNull(string key, string val);
 
-        public abstract SQLBuilder whereIn(string key, IEnumerable values);
 
-        public abstract SQLBuilder whereIn(string key, List<object> val);
-
-        public abstract SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs);
-
-        public abstract SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs);
-
-        public abstract SQLBuilder whereInGuid(string key, IEnumerable<string> OIDs);
-
-        public abstract SQLBuilder whereNotIn(string key, IEnumerable values);
 
         public abstract SQLBuilder whereFields(IEnumerable<string> fields, object value, int SinkMode = 0, string op = "=");
 
@@ -354,25 +344,49 @@ namespace mooSQL.data
 
         public abstract SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue);
 
+        public abstract SQLBuilder whereIn(string key, IEnumerable values);
+
+        public abstract SQLBuilder whereIn(string key, List<object> val);
+
+        public abstract SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs);
+
+        public abstract SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs);
+
+        public abstract SQLBuilder whereInGuid(string key, IEnumerable<string> OIDs);
+
         public abstract SQLBuilder whereIn<T>(string key, IEnumerable<T> values);
 
-        public abstract SQLBuilder whereIn<T>(string key, params T[] values);
+        public abstract SQLBuilder whereIn(string key, params string[] values);
+
+        public abstract SQLBuilder whereIn<T>(string key, params T[] values) where T : struct;
 
         public abstract SQLBuilder whereIn<T>(string key, List<T> val);
 
+        public abstract SQLBuilder whereIn<T>(string key, IReadOnlyList<T> values);
+
+        public abstract SQLBuilder whereNotIn(string key, IEnumerable values);
+
         public abstract SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values);
+
+        public abstract SQLBuilder whereNotIn(string key, params string[] values);
+
+        public abstract SQLBuilder whereNotIn<T>(string key, params T[] values) where T : struct;
 
         public abstract SQLBuilder whereNotIn<T>(string key, List<T> values);
 
-        public abstract SQLBuilder whereNotIn<T>(string key, params T[] values);
+        public abstract SQLBuilder whereNotIn<T>(string key, IReadOnlyList<T> values);
 
         public abstract SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values);
 
         public abstract SQLBuilder whereNotInOrNull<T>(string key, List<T> values);
 
+        public abstract SQLBuilder whereNotInOrNull<T>(string key, IReadOnlyList<T> values);
+
         public abstract SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values);
 
-        public abstract SQLBuilder whereOR<T>(string key, params T[] values);
+        public abstract SQLBuilder whereOR(string key, params string[] values);
+
+        public abstract SQLBuilder whereOR<T>(string key, params T[] values) where T : struct;
 
         public abstract SQLBuilder ifs(bool isPass, Action whenTrue);
 

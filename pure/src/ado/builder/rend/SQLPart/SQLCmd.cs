@@ -191,8 +191,9 @@ namespace mooSQL.data
         /// <param name="paraPrefix"></param>
         /// <returns></returns>
         public string toRawSQL(string paraPrefix="") {
-
+            this.EnsureLiveParasResolved();
             var sql = this.sql;
+
             if (para == null) return sql;
             foreach (var item in para.value)
             {

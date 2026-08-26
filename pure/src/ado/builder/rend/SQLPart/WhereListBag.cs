@@ -131,6 +131,12 @@ namespace mooSQL.data
                         cc++;
                     }
                 }
+                if (item is IEnumerable listed) {
+                    foreach(var lv in listed)
+                    {
+                        cc += addValue(lv);
+                    }
+                }
                 var str = item.ToString();
                 if (isSafeStr) { 
                     
