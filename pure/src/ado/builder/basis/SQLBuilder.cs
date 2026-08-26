@@ -84,8 +84,6 @@ namespace mooSQL.data
 
         public abstract SQLBuilder selectUnioned(string columns);
 
-        public abstract SQLBuilder top(int num);
-
         public abstract SQLBuilder skipTake(int skip, int take);
 
         public abstract SQLBuilder skip(int skip);
@@ -95,8 +93,6 @@ namespace mooSQL.data
         public abstract SQLBuilder groupBy(string groupField);
 
         public abstract SQLBuilder having(string havingStr);
-
-        public abstract SQLBuilder orderby(string orderByPart);
 
         public abstract SQLBuilder rowNumber();
 
@@ -110,19 +106,7 @@ namespace mooSQL.data
 
         public abstract SQLBuilder configSetNull(UpdateSetNullOption option);
 
-        public abstract SQLBuilder set(string key, string value, int maxLength);
-
         public abstract SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true);
-
-        public abstract SQLBuilder setToNull(string fieldName);
-
-        public abstract SQLBuilder setI(string key, object val);
-
-        public abstract SQLBuilder setI(string key, object val, bool paramed);
-
-        public abstract SQLBuilder setU(string key, object val);
-
-        public abstract SQLBuilder setU(string key, object val, bool paramed);
 
         public abstract SQLBuilder newRow();
 
@@ -130,15 +114,11 @@ namespace mooSQL.data
 
         public abstract SQLBuilder mergeAs(string asName);
 
-        public abstract SQLBuilder mergeUsing(string asName, string tabname);
-
         public abstract SQLBuilder mergeOn(string onPart);
 
         public abstract SQLBuilder mergeDelete(bool thenDelete);
 
         public abstract SQLBuilder withSelect(string name, string selectSQL);
-
-        public abstract SQLBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned");
 
         public abstract SQLBuilder union(bool isUnionAll = false, bool wrapSelect = true, string wrapAsName = "tmpunioned");
 
@@ -156,10 +136,6 @@ namespace mooSQL.data
 
         public abstract SQLBuilder joinFormat(string JoinSQLPart, params object[] paras);
 
-        public abstract SQLBuilder leftJoin(string joinSQLString);
-
-        public abstract SQLBuilder innerJoin(string joinSQLString);
-
         public abstract SQLBuilder pivot(PivotItem SQLString);
 
         public abstract SQLBuilder unpivot(UnpivotItem SQLString);
@@ -168,21 +144,9 @@ namespace mooSQL.data
 
         public abstract SQLBuilder unpivot(string valueName, string fieldName, List<string> fields, string asName);
 
-        public abstract SQLBuilder orLeft();
-
-        public abstract SQLBuilder orRight();
-
-        public abstract SQLBuilder andLeft();
-
-        public abstract SQLBuilder andRight();
-
         public abstract SQLBuilder pinLeft();
 
         public abstract SQLBuilder pinRight();
-
-        public abstract SQLBuilder whereIsNull(string key);
-
-        public abstract SQLBuilder whereIsNotNull(string key);
 
         public abstract SQLBuilder where(WhereFrag frag);
 
@@ -218,59 +182,19 @@ namespace mooSQL.data
 
         public abstract SQLBuilder whereNotLikeLeft(string key, string val);
 
-        public abstract SQLBuilder whereLikeLefts(string key, IEnumerable<string> vals, bool isOr = true);
-
         public abstract SQLBuilder whereNotLikeLefts(string key, IEnumerable<string> vals);
-
-        public abstract SQLBuilder whereLikeLefts(string key, params string[] likeCodes);
 
         public abstract SQLBuilder whereNotLike(string key, object val);
 
-        public abstract SQLBuilder whereNotLikeOrNull(string key, string val);
-
-        public abstract SQLBuilder whereNotLikeLeftOrNull(string key, string val);
-
-
-
         public abstract SQLBuilder whereFields(IEnumerable<string> fields, object value, int SinkMode = 0, string op = "=");
-
-        public abstract SQLBuilder whereAnyFieid(IEnumerable<string> fields, object value, string op = "=");
-
-        public abstract SQLBuilder whereAnyFieldIs(object value, params string[] fields);
-
-        public abstract SQLBuilder whereAllFieid(IEnumerable<string> fields, object value, string op = "=");
 
         public abstract SQLBuilder where(WhereListBag bag);
 
         public abstract SQLBuilder whereExist(string value);
 
-        public abstract SQLBuilder whereNotExist(string selectSQL);
-
-        public abstract SQLBuilder whereGreaterThan(string key, object val);
-
-        public abstract SQLBuilder whereLessThan(string key, object val);
-
-        public abstract SQLBuilder whereGreaterThanOrEqual(string key, object val);
-
-        public abstract SQLBuilder whereLessThanOrEqual(string key, object val);
-
-        public abstract SQLBuilder whereNotEqual(string key, object val);
-
         public abstract SQLBuilder whereIf(bool? isTrue, string key, object val, string op = "=");
 
-        public abstract SQLBuilder whereIf(bool? isTrue, string key);
-
         public abstract SQLBuilder whereGuid(string key, object val);
-
-        public abstract SQLBuilder whereIsOrNull(string key, object val);
-
-        public abstract SQLBuilder whereIsNullOR(string key, object val, string op);
-
-        public abstract SQLBuilder whereVsOrNull(string key, object val, string op);
-
-        public abstract SQLBuilder where(string key, object val, Type t);
-
-        public abstract SQLBuilder where(string key, object val, string op, Type t);
 
         public abstract SQLBuilder where(string key, object val, string op, bool paramed, Type t);
 
@@ -280,33 +204,15 @@ namespace mooSQL.data
 
         public abstract SQLBuilder join(string joinKey, string joinSQLString, Action<SQLBuilder> childFromPart);
 
-        public abstract SQLBuilder leftJoin(string joinSQLString, Action<SQLBuilder> childFromPart);
-
-        public abstract SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart);
-
-        public abstract SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart);
-
         public abstract SQLBuilder select(string asName, Action<SQLBuilder> doColSelect);
 
         public abstract SQLBuilder withSelect(string name, Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder);
 
         public abstract RecurCTEBuilder withRecurTo(string name);
 
         public abstract SQLBuilder withRecur(string name, Action<RecurCTEBuilder> buildRecur);
 
         public abstract SQLBuilder where(string key, string op, Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder where(string key, Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder whereIn(string key, Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder whereNotIn(string key, Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder whereExist(Action<SQLBuilder> doselect);
-
-        public abstract SQLBuilder whereNotExist(Action<SQLBuilder> doselect);
 
         public abstract SQLBuilder where(Action<SQLBuilder> whereBuilder);
 
@@ -326,12 +232,6 @@ namespace mooSQL.data
 
         public abstract SQLBuilder where(string key);
 
-        public abstract SQLBuilder where(string key, object val);
-
-        public abstract SQLBuilder where(string key, object val, string op);
-
-        public abstract SQLBuilder where(string key, object val, string op, bool paramed);
-
         public abstract SQLBuilder addResolvedPara(Parameter para);
 
         public abstract SQLBuilder clearSelect();
@@ -344,9 +244,26 @@ namespace mooSQL.data
 
         public abstract SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue);
 
-        public abstract SQLBuilder whereIn(string key, IEnumerable values);
+        /// <summary>whereIn 内核（非 IEnumerable 重载语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereInCore(string key, IEnumerable values);
 
-        public abstract SQLBuilder whereIn(string key, List<object> val);
+        /// <summary>whereIn 内核（非 IEnumerable 重载语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereInCore<T>(string key, IEnumerable<T> values);
+
+        /// <summary>whereNotIn 内核（非 IEnumerable 重载语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereNotInCore(string key, IEnumerable values);
+
+        /// <summary>whereNotIn 内核（非 IEnumerable 重载语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereNotInCore<T>(string key, IEnumerable<T> values);
+
+        /// <summary>whereOR 内核（params 语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereORCore(string key, string[] values);
+
+        /// <summary>whereOR 内核（params 语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereORCore<T>(string key, T[] values) where T : struct;
+
+        /// <summary>whereOR 内核（nullable params 语法糖专用入口）。</summary>
+        protected abstract SQLBuilder whereORCore<T>(string key, T?[] values) where T : struct;
 
         public abstract SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs);
 
@@ -354,51 +271,9 @@ namespace mooSQL.data
 
         public abstract SQLBuilder whereInGuid(string key, IEnumerable<string> OIDs);
 
-        public abstract SQLBuilder whereIn<T>(string key, IEnumerable<T> values);
-
-        public abstract SQLBuilder whereIn(string key, params string[] values);
-
-        public abstract SQLBuilder whereIn<T>(string key, params T[] values) where T : struct;
-
-        public abstract SQLBuilder whereIn<T>(string key, List<T> val);
-
-        public abstract SQLBuilder whereIn<T>(string key, IReadOnlyList<T> values);
-
-        public abstract SQLBuilder whereNotIn(string key, IEnumerable values);
-
-        public abstract SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values);
-
-        public abstract SQLBuilder whereNotIn(string key, params string[] values);
-
-        public abstract SQLBuilder whereNotIn<T>(string key, params T[] values) where T : struct;
-
-        public abstract SQLBuilder whereNotIn<T>(string key, List<T> values);
-
-        public abstract SQLBuilder whereNotIn<T>(string key, IReadOnlyList<T> values);
-
-        public abstract SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values);
-
-        public abstract SQLBuilder whereNotInOrNull<T>(string key, List<T> values);
-
-        public abstract SQLBuilder whereNotInOrNull<T>(string key, IReadOnlyList<T> values);
-
         public abstract SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values);
 
-        public abstract SQLBuilder whereOR(string key, params string[] values);
-
-        public abstract SQLBuilder whereOR<T>(string key, params T[] values) where T : struct;
-
-        public abstract SQLBuilder ifs(bool isPass, Action whenTrue);
-
-        public abstract SQLBuilder ifs(bool isPass, Action whenTrue, Action whenFalse);
-
         public abstract SQLBuilder selectWith(Action<SQLBuilder> queryOther);
-
-        public abstract SQLBuilder mergeUsing(string asName, Action<SQLBuilder> buildSelect);
-
-        public abstract SQLBuilder or(Action<SQLBuilder> doSomeWhere);
-
-        public abstract SQLBuilder and(Action<SQLBuilder> doSomeWhere);
 
         public abstract SQLCmd toSelectCount();
 
@@ -619,14 +494,6 @@ namespace mooSQL.data
         public abstract WindowBuilder window(string functionSql);
 
         public abstract WindowBuilder over();
-
-        public abstract WindowBuilder over(string functionSql);
-
-        public abstract WindowBuilder windowRowNumber();
-
-        public abstract WindowBuilder windowRank();
-
-        public abstract WindowBuilder windowDenseRank();
 
         public abstract SQLBuilder selectWindow(string functionSql, Action<WindowBuilder> build, string alias);
 

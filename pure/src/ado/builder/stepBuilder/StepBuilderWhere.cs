@@ -70,81 +70,6 @@ namespace mooSQL.data {
 
 
 
-        /// <summary>
-        /// 开始一个括号，并切换到or模式
-        /// </summary>
-        /// <returns></returns>
-        public override SQLBuilder orLeft()
-        {
-            current.wherePart.sink("OR");
-            return this;
-        }
-        /// <summary>
-        /// 结束一个括号，并返回到之前的模式
-        /// </summary>
-        /// <returns></returns>
-        public override SQLBuilder orRight()
-        {
-            closeBraket();
-            return this;
-        }
-
-
-        /// <summary>
-        /// 开始一个括号，并切换到or模式
-        /// </summary>
-        /// <returns></returns>
-        public override SQLBuilder andLeft()
-        {
-            //this._currentBracket++;
-            //_currentSepator[_currentBracket] = current.whereSeprator;
-            //pinLeft().and();
-
-            //_preWhereCount[_currentBracket] = current.conditions.Count;
-            current.wherePart.sink("AND");
-            return this;
-        }
-
-        private void closeBraket() {
-            current.wherePart.rise();
-            //var nowCount = current.conditions.Count;
-
-            //var preCount = _preWhereCount[_currentBracket];
-            //if (nowCount == preCount && preCount != -1)
-            //{
-            //    //什么都没有干，于是撤销拼接，
-            //    popPreWhere();
-            //}
-            //else
-            //{
-            //    //拼接右括号
-            //    pinRight();
-            //}
-            ////恢复关联符。
-            //if (_currentSepator != null)
-            //{
-            //    current.whereSeprator = _currentSepator[_currentBracket];
-            //}
-            //else
-            //{
-            //    and();
-            //}
-            ////重置状态
-
-            //_preWhereCount[_currentBracket] = -1;
-            //_currentSepator[_currentBracket] = "";
-            //_currentBracket--;
-        }
-
-        /// <summary>
-        /// 结束一个括号，并返回到之前的模式
-        /// </summary>
-        /// <returns></returns>
-        public override SQLBuilder andRight()
-        {
-            closeBraket();
-            return this;
-        }
         #region where条件构造器
         /// <summary>
         /// 添加一个 where条件字符串
@@ -227,23 +152,6 @@ namespace mooSQL.data {
             return whereLive(new DelayWhereIn(key, op, makeBag, dbstr, paraKey, limit));
         }
         /// <summary>
-        /// 添加一个 where is null
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIsNull(string key) { 
-            return where(key + " IS NULL");
-        }
-        /// <summary>
-        ///     添加一个 where is not null
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIsNotNull(string key) { 
-            return where(key + " IS NOT NULL");
-        }
-
-        /// <summary>
         /// 添加一个 where条件字符串
         /// </summary>
         /// <param name="frag"></param>
@@ -296,6 +204,43 @@ namespace mooSQL.data {
             return this;
         }
 
+        protected override SQLBuilder whereORCore(string key, string[] values)
+        {
+            if (values == null)
+                return this;
+            if (values.Length == 0)
+                return where("1=2");
+            sinkOR();
+            foreach (var val in values)
+                where(key, val);
+            return rise();
+        }
+
+        protected override SQLBuilder whereORCore<T>(string key, T[] values)
+        {
+            if (values == null)
+                return this;
+            if (values.Length == 0)
+                return where("1=2");
+            sinkOR();
+            foreach (var val in values)
+                where(key, val);
+            return rise();
+        }
+
+        protected override SQLBuilder whereORCore<T>(string key, T?[] values)
+        {
+            if (values == null)
+                return this;
+            if (values.Length == 0)
+                return where("1=2");
+            sinkOR();
+            foreach (var val in values)
+                if (val.HasValue)
+                    where(key, val.Value);
+            return rise();
+        }
+
         /// <summary>
         /// 拼接一个左括号( 到where条件中
         /// </summary>
@@ -337,30 +282,6 @@ namespace mooSQL.data {
         public override SQLBuilder or()
         {
             current.or();
-            return this;
-        }
-        /// <summary>
-        /// 执行一组 and/or ( ... or  ... ) 的where条件的构建，构造的条件不能为空，否则形成 and () 的空结构。。
-        /// </summary>
-        /// <param name="doSomeWhere"></param>
-        /// <returns></returns>
-        public override SQLBuilder or(Action<SQLBuilder> doSomeWhere)
-        {
-            orLeft();
-            doSomeWhere(this);
-            orRight();
-            return this;
-        }
-        /// <summary>
-        /// 执行一组and条件。
-        /// </summary>
-        /// <param name="doSomeWhere"></param>
-        /// <returns></returns>
-        public override SQLBuilder and(Action<SQLBuilder> doSomeWhere)
-        {
-            andLeft();
-            doSomeWhere(this);
-            andRight();
             return this;
         }
         /// <summary>
@@ -634,32 +555,6 @@ namespace mooSQL.data {
         }
 
         /// <summary>
-        /// 层次码一组条件，形成(a.code like '100%' or a.code like '200%' ...)形式
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="vals"></param>
-        /// <param name="isOr"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereLikeLefts(string key, IEnumerable<string> vals, bool isOr = true) { 
-            //判定有效性
-            if(vals==null) return this;
-            if(vals.Count()==0) { 
-                return this;
-            }
-            if (isOr)
-            {
-                sinkOR();
-            }
-            else { 
-                sink();
-            }
-            foreach (var val in vals) { 
-                whereLikeLeft(key, val);
-            }
-            rise();
-            return this;
-        }
-        /// <summary>
         /// 否定的
         /// </summary>
         /// <param name="key"></param>
@@ -680,15 +575,6 @@ namespace mooSQL.data {
             }
 
             return this;
-        }
-        /// <summary>
-        /// 多个左模糊条件
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="likeCodes"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereLikeLefts(string key, params string[] likeCodes) { 
-            return whereLikeLefts(key, likeCodes,true);
         }
 
         /// <summary>
@@ -733,33 +619,6 @@ namespace mooSQL.data {
 
             //return whereFormat(key + " not like concat(concat('%', {0}), '%')", val);
         }
-        /// <summary>
-        /// 查询非Like或者is null
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereNotLikeOrNull(string key, string val) {
-            this.sinkOR()
-                .whereNotLike(key, val)
-                .whereIsNull(key)
-                .rise();
-            return this;
-        }
-        /// <summary>
-        /// 非左模糊或者空
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereNotLikeLeftOrNull(string key, string val)
-        {
-            this.sinkOR()
-                .whereNotLikeLeft(key, val)
-                .whereIsNull(key)
-                .rise();
-            return this;
-        }
         
         /// <summary>
         /// 检查参数是否正常，参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
@@ -788,7 +647,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public override SQLBuilder whereIn<T>(string key, IEnumerable<T> values)
+        protected override SQLBuilder whereInCore<T>(string key, IEnumerable<T> values)
         {
             if (!opened)
             {
@@ -800,52 +659,6 @@ namespace mooSQL.data {
                 return this;
             }
             whereListInner(key, " IN ", values);
-            return this;
-        }
-        /// <summary>
-        /// 构建where in + (固定范围值) 条件。注意：数值型集合直接转为数值范围SQL，简单字符集合转为字符SQL，复杂字符串为参数化。 受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIn<T>(string key,params T[] values)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            if (!checkWhereIn(values))
-            {
-                return this;
-            }
-            whereListInner(key, " IN ", values);
-            return this;
-        }
-        /// <summary>
-        /// 形成 ( key =val1 or key =val2 or ... 形式，等同于 whereIn(key,values.ToArray()
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereOR<T>(string key, params T[] values)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            if (!checkWhereIn(values))
-            {
-                return this;
-            }
-            sinkOR();
-            foreach (var val in values) {
-                where(key, val);
-            }
-            rise();
             return this;
         }
         /// <summary>
@@ -854,7 +667,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public override SQLBuilder whereIn(string key, IEnumerable values)
+        protected override SQLBuilder whereInCore(string key, IEnumerable values)
         {
             if (!opened)
             {
@@ -873,47 +686,6 @@ namespace mooSQL.data {
             return this;
         }
 
-        /// <summary>
-        /// 构建where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="val">参数量为空时，自动转为 1=2的不可能条件，为null时忽略。</param>
-        /// <returns></returns>
-        public override SQLBuilder whereIn<T>(string key, List<T> val)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            if (!checkWhereIn(val))
-            {
-                return this;
-            }
-            whereListInner(key, " IN ", val);
-            return this;
-        }
-        /// <summary>
-        /// 构建where in 范围值，所有值均参数化。注意：受SQL参数上限影响，请不要传入过大的list。参数量为空时，自动转为 1=2的不可能条件，为null时忽略。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val">参数量为空时，自动转为 1=2的不可能条件，为null时忽略。</param>
-        /// <returns></returns>
-        public override SQLBuilder whereIn(string key, List<Object> val)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            if (!checkWhereIn(val))
-            {
-                return this;
-            }
-            whereListInner(key, " IN ", val);
-            return this;
-        }
         /// <summary>
         /// 创建一个 自定义嵌套 where in 的 select
         /// </summary>
@@ -1031,37 +803,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public override SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            whereListInner(key, " NOT IN ", values);
-            return this;
-        }
-        /// <summary>
-        /// 不包含或者空
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) {
-            return this.sinkOR()
-                .whereNotIn(key, values)
-                .whereIsNull(key)
-                .rise();
-        }
-        /// <summary>
-        /// 展开模式的not in 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereNotIn<T>(string key,params T[] values)
+        protected override SQLBuilder whereNotInCore<T>(string key, IEnumerable<T> values)
         {
             if (!opened)
             {
@@ -1077,7 +819,7 @@ namespace mooSQL.data {
         /// <param name="key"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public override SQLBuilder whereNotIn(string key, IEnumerable values)
+        protected override SQLBuilder whereNotInCore(string key, IEnumerable values)
         {
             if (!opened)
             {
@@ -1116,38 +858,6 @@ namespace mooSQL.data {
                 rise();
             }
             return this;
-        }
-        /// <summary>
-        /// 任意一个字段满足条件，即形成（field1 = val or field2 = val or ...）。等同于 whereAnyFieids 方法。
-        /// </summary>
-        /// <param name="fields"></param>
-        /// <param name="value"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereAnyFieid(IEnumerable<string> fields, object value,string op = "=")
-        {
-            return whereFields(fields, value, 1,op);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="fields"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereAnyFieldIs(object value,params string[] fields)
-        {
-            return whereFields(fields, value, 1);
-        }
-        /// <summary>
-        /// 所有字段都满足条件,即形成（field1 = val and field2 = val and ...）。等同于 whereAllFieids 方法。
-        /// </summary>
-        /// <param name="fields"></param>
-        /// <param name="value"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereAllFieid(IEnumerable<string> fields, object value, string op = "=")
-        {
-            return whereFields(fields, value, 2, op);
         }
         /// <summary>
         /// 创建一个 where key op (list)的SQL条件
@@ -1314,17 +1024,6 @@ namespace mooSQL.data {
             return this;
         }
         /// <summary>
-        /// 创建固定的 where not exists ( YourSQL ) 条件
-        /// </summary>
-        /// <param name="selectSQL"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereNotExist(string selectSQL)
-        {
-            this.where(string.Format(" not exists ({0})", selectSQL));
-            return this;
-        }
-
-        /// <summary>
         /// 创建 where not exists 子查询条件
         /// </summary>
         /// <param name="doselect"></param>
@@ -1355,33 +1054,6 @@ namespace mooSQL.data {
             }
             current.where(key, op, doselect);
             return this;
-        }
-        /// <summary>
-        /// 创建 where 后面一个 key=#{val}形式的条件。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="doselect"></param>
-        /// <returns></returns>
-        public override SQLBuilder where(string key, Action<SQLBuilder> doselect)
-        {
-            if (!opened)
-            {
-                opened = true;
-                return this;
-            }
-            current.where(key, "=", doselect);
-            return this;
-        }
-        /// <summary>
-        /// 创建 where 后面一个 key=#{val}形式的条件。
-        /// </summary>
-        /// <param name="key">where条件的字段部</param>
-        /// <param name="val">where条件的字段值</param>
-        /// <returns></returns>
-
-        public override SQLBuilder where(string key, Object val)
-        {
-            return where(key, val, "=", true);
         }
 
         /// <summary>
@@ -1436,41 +1108,6 @@ namespace mooSQL.data {
             return whereWithSlot(key, val, StaticSlotMarks.FormatWhereName(paraSeed, group, staticSlotId), op);
         }
         /// <summary>
-        /// whereGreaterThan 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder whereGreaterThan(string key, Object val)
-        {
-            return where(key, val, ">", true);
-        }
-        /// <summary>
-        /// whereLessThan 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder whereLessThan(string key, Object val)
-        {
-            return where(key, val, "<", true);
-        }
-        /// <summary>
-        /// whereGreaterThanOrEqual 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder whereGreaterThanOrEqual(string key, Object val)
-        {
-            return where(key, val, ">=", true);
-        }
-        /// <summary>
-        /// whereLessThanOrEqual 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder whereLessThanOrEqual(string key, Object val)
-        {
-            return where(key, val, "<=", true);
-        }
-        /// <summary>
-        /// whereNotEqual 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder whereNotEqual(string key, Object val)
-        {
-            return where(key, val, "<>", true);
-        }
-        /// <summary>
         /// 带条件判断的 where 条件添加，如果 isTrue 为false或null,则忽略本次条件添加。
         /// </summary>
         /// <param name="isTrue"></param>
@@ -1484,20 +1121,6 @@ namespace mooSQL.data {
                 return this;
             }
             return where(key, val, op, true);
-        }
-        /// <summary>
-        /// 带条件判断的 where 条件添加
-        /// </summary>
-        /// <param name="isTrue"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIf(bool? isTrue, string key)
-        {
-            if (isTrue.HasValue == false || isTrue.Value == false)
-            {
-                return this;
-            }
-            return where(key);
         }
 
         /// <summary>
@@ -1527,84 +1150,6 @@ namespace mooSQL.data {
             //return this;
         }
 
-        /// <summary>
-        /// 创建 where 后面一个 key op #{val}形式的条件。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public override SQLBuilder where(string key, Object val, string op)
-        {
-            return where(key, val, op, true);
-        }
-        /// <summary>
-        /// 等于某个值或者空的条件
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIsOrNull(string key, Object val)
-        {
-            return sinkOR().where(key, val).whereIsNull(key).rise();
-        }
-        /// <summary>
-        /// 形成 where (a.id is null or a.id>1 )类似条件
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereIsNullOR(string key, Object val,string op)
-        {
-            return sinkOR().where(key, val,op).whereIsNull(key).rise();
-        }
-        /// <summary>
-        /// 自定义操作符的比较，或者null
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public override SQLBuilder whereVsOrNull(string key, Object val,string op)
-        {
-            return sinkOR().where(key, val,op).whereIsNull(key).rise();
-        }
-        /// <summary>
-        /// 字段、值、值类型
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public override SQLBuilder where(string key, Object val, Type t)
-        {
-            return where(key, val, "=", true, t);
-        }
-        /// <summary>
-        /// 字段、值、比较符、值类型。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="op"></param>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public override SQLBuilder where(string key, Object val, string op, Type t)
-        {
-            return where(key, val, op, true, t);
-        }
-        /// <summary>
-        /// 字段、值、比较符、是否参数化。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="op"></param>
-        /// <param name="paramed"></param>
-        /// <returns></returns>
-        public override SQLBuilder where(string key, Object val, string op, bool paramed)
-        {
-            return where(key, val, op, paramed, null);
-        }
         /// <summary>
         /// 添加 where 条件项
         /// </summary>

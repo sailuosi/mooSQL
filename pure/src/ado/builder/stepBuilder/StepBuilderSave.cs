@@ -56,20 +56,6 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 设置一个字符串值，并指定其最大长度，多余的会被自动截断。
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="maxLength"></param>
-        /// <returns></returns>
-        public override SQLBuilder set(string key, string value, int maxLength) {
-            if (value != null && value.Length > maxLength) { 
-                value= value.Substring(0, maxLength);
-            }
-            return set(key, value);
-        }
-
-        /// <summary>
         /// 设置一个插入或更新 字段的名--值映射。指定是否参数化，是否用于insert 或 update语句
         /// </summary>
         /// <param name="key"></param>
@@ -181,63 +167,7 @@ namespace mooSQL.data
             var val= field.getValue(current.RowIndex);
             return val;
         }
-        /// <summary>
-        /// 将字段设置为null。
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
-        public override SQLBuilder setToNull(string fieldName)
-        {
-            return set(fieldName, "NULL",false);
-        }
 
-        /// <summary>
-        /// 参数化的插入值
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-
-        public override SQLBuilder setI(string key, Object val)
-        {
-            this.set(key, val, true, null, false, true);
-            return this;
-        }
-        /// <summary>
-        /// 设置一个用于 insert的 字段的名--值映射。 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="paramed"></param>
-        /// <returns></returns>
-        public override SQLBuilder setI(string key, Object val, bool paramed)
-        {
-            this.set(key, val, paramed, null, false, true);
-            return this;
-        }
-        /// <summary>
-        /// 设置一个用于 update 的 字段的名--值映射。 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        public override SQLBuilder setU(string key, Object val)
-        {
-            this.set(key, val, true, null, true, false);
-            return this;
-        }
-        /// <summary>
-        /// 设置一个用于 update 的 字段的名--值映射。 并指定是否参数化
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        /// <param name="paramed"></param>
-        /// <returns></returns>
-        public override SQLBuilder setU(string key, Object val, bool paramed)
-        {
-            this.set(key, val, paramed, null, true, false);
-            return this;
-        }
         #endregion
 
 
@@ -267,31 +197,6 @@ namespace mooSQL.data
             current.mergeAs(asName);
             return this;
         }
-        /// <summary>
-        /// merge into语句的来源表。使用更符合SQL语句结构的写法，即using (select ...) as asName.
-        /// </summary>
-        /// <param name="asName"></param>
-        /// <param name="buildSelect"></param>
-        /// <returns></returns>
-        public override SQLBuilder mergeUsing(string asName,Action<SQLBuilder> buildSelect)
-        {
-            current.mergeAs(asName);
-            buildSelect(this);
-            return this;
-        }
-        /// <summary>
-        /// merge into 语句的来源表。使用更符合SQL语句结构的写法，即using tabname as asName.
-        /// </summary>
-        /// <param name="asName"></param>
-        /// <param name="tabname"></param>
-        /// <returns></returns>
-        public override SQLBuilder mergeUsing(string asName, string tabname)
-        {
-            current.mergeAs(asName);
-            from(tabname);
-            return this;
-        }
-
         /// <summary>
         /// merge into 语句的on 部分
         /// </summary>

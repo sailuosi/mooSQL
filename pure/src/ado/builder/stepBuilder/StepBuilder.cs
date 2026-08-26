@@ -567,36 +567,6 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 自定义条件
-        /// </summary>
-        /// <param name="isPass"></param>
-        /// <param name="whenTrue"></param>
-        /// <param name="whenFalse"></param>
-        /// <returns></returns>
-        public override SQLBuilder ifs(bool isPass,Action whenTrue, Action whenFalse)
-        {
-            if (isPass)
-            {
-                whenTrue();
-            }
-            else { 
-                whenFalse();
-            }
-            return this;
-        }
-
-        /// <summary>
-        /// ifs 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder ifs(bool isPass, Action whenTrue)
-        {
-            if (isPass)
-            {
-                whenTrue();
-            }
-            return this;
-        }
-        /// <summary>
         /// 清空当前SQL构造器 参数体、添加列集合、选择列、from部分、翻页设置、where条件等所有信息，相当于重新获取一个SQL分组实例。
         /// 未清空的：seed,level。
         /// 同时清除结果缓存配置（setCache / useCachePrefix）。

@@ -5,6 +5,7 @@ namespace mooSQL.data
 {
     /// <summary>
     /// Prepare 专属能力在 Step 上的兼容桩。真正编排 / 模板缓存请用 usePrepareSQL。
+    /// cast 重载已迁入 <see cref="SQLBuilder.sugar.cs"/>。
     /// </summary>
     public partial class StepBuilder
     {
@@ -58,11 +59,5 @@ namespace mooSQL.data
         public override bool HasHaving => HavingCount > 0;
 
         public override int OrchestrationHash => 0;
-
-        public override SQLBuilder whereNotIn<T>(string key, List<T> values) =>
-            whereNotIn(key, (IEnumerable<T>)values);
-
-        public override SQLBuilder whereNotInOrNull<T>(string key, List<T> values) =>
-            whereNotInOrNull(key, (IEnumerable<T>)values);
     }
 }

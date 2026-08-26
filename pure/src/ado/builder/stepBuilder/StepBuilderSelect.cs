@@ -36,24 +36,6 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 插入一段 with tabletmp as ( ... ) 的SQL语句到 后续执行的SQL之前。 将自动调用委托的 toSelect 方法获取SQL语句编织的结果。
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="selectBuilder"></param>
-        /// <returns></returns>
-        public override SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
-        {
-            this.withSelect(name, selectBuilder);
-            //var kit = this.getBrotherBuilder();
-
-            //selectBuilder(kit);
-            //var sql = kit.toSelect();
-            //var withSQL = string.Format("with {0} as ({1})", name, sql.sql);
-            //current.prefix(withSQL);
-            return this;
-        }
-
-        /// <summary>
         /// withRecurTo 方法（返回 RecurCTEBuilder）。
         /// </summary>
         public override RecurCTEBuilder withRecurTo(string name)
@@ -166,16 +148,6 @@ namespace mooSQL.data
             current.distinct();
             return this;
         }
-        /// <summary>
-        /// 选取前几条记录，自动根据数据库使用top或limit 
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        public override SQLBuilder top(int num)
-        {
-            return skipTake(0, num);
-        }
-
         /// <summary>
         /// 设置 skip/take 分页（与 LINQ Skip/Take 同构；take=-1 表示仅跳过不限制行数）
         /// </summary>
@@ -306,50 +278,6 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 左连接
-        /// </summary>
-        /// <param name="joinSQLString"></param>
-        /// <param name="childFromPart"></param>
-        /// <returns></returns>
-        public override SQLBuilder leftJoin( string joinSQLString, Action<SQLBuilder> childFromPart)
-        {
-            return this.join("LEFT JOIN", joinSQLString, childFromPart);
-        }
-        /// <summary>
-        /// leftJoin 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder leftJoin(string joinSQLString)
-        {
-            return this.join("LEFT JOIN "+ joinSQLString);
-        }
-        /// <summary>
-        /// 内连接
-        /// </summary>
-        /// <param name="joinSQLString"></param>
-        /// <param name="childFromPart"></param>
-        /// <returns></returns>
-        public override SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
-        {
-            return this.join("INNER JOIN", joinSQLString, childFromPart);
-        }
-        /// <summary>
-        /// innerJoin 方法（返回 StepBuilder）。
-        /// </summary>
-        public override SQLBuilder innerJoin(string joinSQLString)
-        {
-            return this.join("INNER JOIN "+ joinSQLString);
-        }
-        /// <summary>
-        /// 右连接
-        /// </summary>
-        /// <param name="joinSQLString"></param>
-        /// <param name="childFromPart"></param>
-        /// <returns></returns>
-        public override SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
-        {
-            return this.join("RIGHT JOIN", joinSQLString, childFromPart);
-        }
-        /// <summary>
         /// 使用子查询来构建 from布局 ，子查询可配置所有select配置。
         /// </summary>
         /// <param name="childFromPart"></param>
@@ -435,17 +363,6 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// union All
-        /// </summary>
-        /// <param name="wrapSelect"></param>
-        /// <param name="wrapAsName"></param>
-        /// <returns></returns>
-        public override SQLBuilder unionAll(bool wrapSelect = true, string wrapAsName = "tmpunioned") {
-            this.union(true, wrapSelect, wrapAsName);
-            return this;
-        }
-
-        /// <summary>
         /// 设置是否使用 union all,以及union 外层是否需要自动用一层select包裹
         /// </summary>
         /// <param name="isUnionAll"></param>
@@ -521,15 +438,6 @@ namespace mooSQL.data
             }
             current.orderby(orderByPart);
             return this;
-        }
-        /// <summary>
-        /// 设置排序部分，规范化后废弃，请使用 orderBy 方法代替
-        /// </summary>
-        /// <param name="orderByPart"></param>
-        /// <returns></returns>
-        [Obsolete("规范化后废弃，请使用 orderBy 方法代替")]
-        public override SQLBuilder orderby(string orderByPart) { 
-            return orderBy(orderByPart);
         }
 
         /// <summary>

@@ -19,15 +19,6 @@ namespace mooSQL.data
             return Enqueue(new JoinSubqueryStep(joinKey, joinSQLString, steps));
         }
 
-        public override SQLBuilder leftJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
-            => join("LEFT JOIN", joinSQLString, childFromPart);
-
-        public override SQLBuilder innerJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
-            => join("INNER JOIN", joinSQLString, childFromPart);
-
-        public override SQLBuilder rightJoin(string joinSQLString, Action<SQLBuilder> childFromPart)
-            => join("RIGHT JOIN", joinSQLString, childFromPart);
-
         public override SQLBuilder select(string asName, Action<SQLBuilder> doColSelect)
         {
             var steps = CaptureChildSteps(doColSelect);
@@ -39,9 +30,6 @@ namespace mooSQL.data
             var steps = CaptureChildSteps(doselect);
             return Enqueue(new WithSelectSubqueryStep(name, steps));
         }
-
-        public override SQLBuilder withAs(string name, Action<SQLBuilder> selectBuilder)
-            => withSelect(name, selectBuilder);
 
         /// <summary>
         /// 递归 CTE：返回编排器；<see cref="RecurCTEBuilder.apply"/> 后回到本门面。
@@ -71,21 +59,6 @@ namespace mooSQL.data
             var steps = CaptureChildSteps(doselect);
             return Enqueue(new WhereSubqueryStep(key, op, steps));
         }
-
-        public override SQLBuilder where(string key, Action<SQLBuilder> doselect)
-            => where(key, "=", doselect);
-
-        public override SQLBuilder whereIn(string key, Action<SQLBuilder> doselect)
-            => where(key, " in ", doselect);
-
-        public override SQLBuilder whereNotIn(string key, Action<SQLBuilder> doselect)
-            => where(key, " NOT IN ", doselect);
-
-        public override SQLBuilder whereExist(Action<SQLBuilder> doselect)
-            => where("", " exists ", doselect);
-
-        public override SQLBuilder whereNotExist(Action<SQLBuilder> doselect)
-            => where("", " NOT EXISTS ", doselect);
 
         public override SQLBuilder where(Action<SQLBuilder> whereBuilder)
         {

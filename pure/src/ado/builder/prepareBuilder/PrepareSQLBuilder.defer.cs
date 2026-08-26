@@ -97,53 +97,23 @@ namespace mooSQL.data
         public override SQLBuilder whereNotBetween<T>(string key, T minValue, T maxValue) =>
             Enqueue(new WhereNotBetweenStep<T>(key, minValue, maxValue));
 
-        public override SQLBuilder whereIn<T>(string key, IEnumerable<T> values) =>
+        protected override SQLBuilder whereInCore<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereInGenericStep<T>(key, values));
 
-        public override SQLBuilder whereIn<T>(string key, params T[] values) =>
-            whereIn(key, (IEnumerable<T>)values);
-
-        public override SQLBuilder whereIn<T>(string key, List<T> val) =>
-            whereIn(key, (IEnumerable<T>)val);
-
-        public override SQLBuilder whereNotIn<T>(string key, IEnumerable<T> values) =>
+        protected override SQLBuilder whereNotInCore<T>(string key, IEnumerable<T> values) =>
             Enqueue(new WhereNotInGenericStep<T>(key, values));
 
-        public override SQLBuilder whereNotIn<T>(string key, List<T> values) =>
-            whereNotIn(key, (IEnumerable<T>)values);
+        protected override SQLBuilder whereORCore(string key, string[] values) =>
+            Enqueue(new WhereORValuesStep<string>(key, values));
 
-        public override SQLBuilder whereNotIn<T>(string key, params T[] values) =>
-            whereNotIn(key, (IEnumerable<T>)values);
+        protected override SQLBuilder whereORCore<T>(string key, T[] values) where T : struct =>
+            Enqueue(new WhereORValuesStep<T>(key, values));
 
-        public override SQLBuilder whereNotInOrNull<T>(string key, IEnumerable<T> values) =>
-            Enqueue(new WhereNotInOrNullStep<T>(key, values));
-
-        public override SQLBuilder whereNotInOrNull<T>(string key, List<T> values) =>
-            whereNotInOrNull(key, (IEnumerable<T>)values);
+        protected override SQLBuilder whereORCore<T>(string key, T?[] values) where T : struct =>
+            Enqueue(new WhereORNullableValuesStep<T>(key, values));
 
         public override SQLBuilder whereList<T>(string key, string op, IEnumerable<T> values) =>
             Enqueue(new WhereListGenericStep<T>(key, op, values));
-
-        public override SQLBuilder whereOR<T>(string key, params T[] values) =>
-            Enqueue(new WhereORValuesStep<T>(key, values));
-
-        /// <summary>编排期条件分支：通过时执行 whenTrue（闭包内链式调用继续入队）。</summary>
-        public override SQLBuilder ifs(bool isPass, Action whenTrue)
-        {
-            if (isPass)
-                whenTrue?.Invoke();
-            return this;
-        }
-
-        /// <summary>编排期条件分支：按 isPass 执行 whenTrue / whenFalse。</summary>
-        public override SQLBuilder ifs(bool isPass, Action whenTrue, Action whenFalse)
-        {
-            if (isPass)
-                whenTrue?.Invoke();
-            else
-                whenFalse?.Invoke();
-            return this;
-        }
 
         // ---- A 类同实例 Action：编排期展开，委托内 API 继续入队到 this ----
 
@@ -157,38 +127,6 @@ namespace mooSQL.data
                 throw new ArgumentNullException(nameof(queryOther));
             clearSelect();
             queryOther(this);
-            return this;
-        }
-
-        /// <summary>mergeAs 后在当前门面上编织 using 源查询。</summary>
-        public override SQLBuilder mergeUsing(string asName, Action<SQLBuilder> buildSelect)
-        {
-            if (buildSelect == null)
-                throw new ArgumentNullException(nameof(buildSelect));
-            mergeAs(asName);
-            buildSelect(this);
-            return this;
-        }
-
-        /// <summary>orLeft → 委托 → orRight，均入队到当前门面。</summary>
-        public override SQLBuilder or(Action<SQLBuilder> doSomeWhere)
-        {
-            if (doSomeWhere == null)
-                throw new ArgumentNullException(nameof(doSomeWhere));
-            orLeft();
-            doSomeWhere(this);
-            orRight();
-            return this;
-        }
-
-        /// <summary>andLeft → 委托 → andRight，均入队到当前门面。</summary>
-        public override SQLBuilder and(Action<SQLBuilder> doSomeWhere)
-        {
-            if (doSomeWhere == null)
-                throw new ArgumentNullException(nameof(doSomeWhere));
-            andLeft();
-            doSomeWhere(this);
-            andRight();
             return this;
         }
 

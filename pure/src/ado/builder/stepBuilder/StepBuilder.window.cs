@@ -37,18 +37,6 @@ namespace mooSQL.data
             return new WindowBuilder(null, ResolveWindowExpression());
         }
 
-        /// <summary><see cref="window"/> 的别名（对标 Clip/LINQ <c>over</c> 语义，带函数头）。</summary>
-        public override WindowBuilder over(string functionSql) => window(functionSql);
-
-        /// <summary><c>ROW_NUMBER() OVER (...)</c>。</summary>
-        public override WindowBuilder windowRowNumber() => window("ROW_NUMBER()");
-
-        /// <summary><c>RANK() OVER (...)</c>。</summary>
-        public override WindowBuilder windowRank() => window("RANK()");
-
-        /// <summary><c>DENSE_RANK() OVER (...)</c>。</summary>
-        public override WindowBuilder windowDenseRank() => window("DENSE_RANK()");
-
         /// <summary>构建窗口表达式并直接加入 SELECT（带别名）。</summary>
         public override SQLBuilder selectWindow(string functionSql, Action<WindowBuilder> build, string alias)
         {

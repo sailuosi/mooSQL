@@ -76,11 +76,7 @@ namespace mooSQL.data
         public override void Apply(SQLBuilder builder)
         {
             if (_values == null) return;
-            var inner = builder.Inner;
-            inner.sinkOR();
-            inner.whereLiveInList(Key, " NOT IN ", () => WhereListBag.newBag(_values));
-            inner.whereIsNull(Key);
-            inner.rise();
+            builder.whereNotInOrNull(Key, _values);
         }
     }
 
@@ -156,6 +152,71 @@ namespace mooSQL.data
             hc.Add(_values != null && _values.Length > 0 ? 1 : 0);
         }
 
-        public override void Apply(SQLBuilder builder) => builder.Inner.whereOR(_key, _values);
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            if (_values.Length == 0)
+            {
+                builder.where("1=2");
+                return;
+            }
+            builder.sinkOR();
+            foreach (var val in _values)
+                builder.where(_key, val);
+            builder.rise();
+        }
+    }
+
+    /// <summary>对应 SQLBuilder.whereOR&lt;T&gt;(key, params T?[] values)。</summary>
+    public sealed class WhereORNullableValuesStep<T> : StepBase where T : struct
+    {
+        public override int Id { get { return 196746; } }
+        public override StepKind Kind { get { return StepKind.Where; } }
+
+        private readonly string _key;
+        private readonly T?[] _values;
+
+        public WhereORNullableValuesStep(string key, T?[] values)
+        {
+            _key = key;
+            _values = values;
+        }
+
+        public override void ContributeHash(ref ScriptHash hc, string paraRule, ref bool opened)
+        {
+            if (!ConsumeOpened(ref opened))
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                return;
+            }
+            if (_values == null && paraRule != "all")
+            {
+                hc.Add(Id);
+                hc.Add(0);
+                hc.Add(_key);
+                return;
+            }
+            hc.Add(Id);
+            hc.Add(1);
+            hc.Add(_key);
+            hc.Add(_values != null && _values.Length > 0 ? 1 : 0);
+        }
+
+        public override void Apply(SQLBuilder builder)
+        {
+            if (_values == null) return;
+            if (_values.Length == 0)
+            {
+                builder.where("1=2");
+                return;
+            }
+            builder.sinkOR();
+            foreach (var val in _values)
+                if (val.HasValue)
+                    builder.where(_key, val.Value);
+            builder.rise();
+        }
     }
 }

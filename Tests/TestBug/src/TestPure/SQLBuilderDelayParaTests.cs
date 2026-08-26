@@ -120,6 +120,23 @@ namespace mooSQL.Pure.Tests
         }
 
         [PrepareOnlyFact]
+        public void WhereIn_IReadOnlyList_RegistersDelayPara_WithMultipleValues()
+        {
+            using var b = TestDatabaseHelper.CreateSQLBuilder();
+            IReadOnlyList<int> ids = new List<int> { 1, 2, 3 };
+            b.select("id").from("t").whereIn("id", ids);
+            b.runBuild(true);
+
+            b.Inner.ps.DelayParas.Count.Should().Be(1);
+            var cmd = b.toSelect();
+            var resolved = cmd.para.ResolveDelayParas(cmd.sql);
+            resolved.Should().Contain("IN");
+            resolved.Should().Contain("1");
+            resolved.Should().Contain("2");
+            resolved.Should().Contain("3");
+        }
+
+        [PrepareOnlyFact]
         public void WhereNotIn_Resolve_ContainsNotIn()
         {
             using var b = TestDatabaseHelper.CreateSQLBuilder();

@@ -9,8 +9,16 @@ description: Builds and executes SQL using mooSQL SQLBuilder with chainable meth
 
 SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 SQL 字符串构建，扩展类（MooSQLBuilderExtensions）负责实体操作、findXxx、useXxx 等。
 
-**位置**: `pure/src/ado/builder/SQLBuilder.cs`  
+**位置**: `pure/src/ado/builder/basis/SQLBuilder.cs`（abstract 内核 API）  
+**语法糖**: `pure/src/ado/builder/basis/SQLBuilder.sugar.cs`（virtual 默认实现：重载转发、op 简写、OrNull 组合）  
+**实现**: `StepBuilder` / `PrepareSQLBuilder` 仅 override 内核  
 **扩展**: `MooSQLBuilderExtensions` 提供 insert/update/delete/save、findXxx、useClip、useRepo 等
+
+### 语法糖编码规范
+
+- **禁止** expression-bodied 成员（`=>` 单行体）：注释或换行易导致整段语法错误。
+- **必须** 使用完整 `{ return ...; }` 或 `{ ...; return this; }` 块体。
+- 集合重载转发内核时使用 `whereInCore` / `whereNotInCore` / `whereORCore`，禁止 `(IEnumerable<T>)` cast 强转重载。
 
 ### 方法分类
 
@@ -238,13 +246,21 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 
 | 方法 | 说明 |
 |------|------|
-| `whereIn<T>(string key, IEnumerable<T> values)` | where in |
-| `whereIn<T>(string key, params T[] values)` | where in |
+| `whereIn<T>(string key, IEnumerable<T> values)` | where in（集合兜底） |
+| `whereIn(string key, params string[] values)` | 字符串多值展开 |
+| `whereIn<T>(string key, params T[] values) where T : struct` | 值类型多值展开（int/Guid/enum 等） |
+| `whereIn<T>(string key, List<T> val)` | List 专用 |
+| `whereIn<T>(string key, IReadOnlyList<T> values)` | 只读列表专用（ReadOnlyCollection 等） |
 | `whereIn(string key, Action<SQLBuilder> doselect)` | where in 子查询 |
 | `whereNotIn<T>(string key, IEnumerable<T> values)` | where not in |
+| `whereNotIn(string key, params string[] values)` | 字符串多值 not in |
+| `whereNotIn<T>(string key, params T[] values) where T : struct` | 值类型多值 not in |
+| `whereNotIn<T>(string key, IReadOnlyList<T> values)` | 只读列表 not in |
 | `whereNotIn(string key, Action<SQLBuilder> doselect)` | where not in 子查询 |
 | `whereBetween<T>(string key, T minValue, T maxValue)` | between and |
 | `whereNotBetween<T>(string key, T minValue, T maxValue)` | not between |
+
+> **whereIn 重载决议**：`params` 仅用于字符串/值类型多值展开；传入 `IReadOnlyList<T>`、`List<T>`、`HashSet<T>` 等集合时分别命中对应重载或 `IEnumerable<T>`，避免把整个集合当作单个 IN 值。
 
 > **whereIn 自动分组**（v8.1.2+）：IN 列表超出方言参数上限（如 SQL Server ~2000）时，自动拆成多组 `(field IN (...)) OR (field IN (...))`。
 
