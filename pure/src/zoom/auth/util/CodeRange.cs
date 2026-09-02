@@ -19,11 +19,15 @@ namespace mooSQL.auth
         /// <summary>
         /// 直接绑定不含下级的单位
         /// </summary>
-        public List<T> bindValues = new List<T>();
+        //public List<T> bindValues = new List<T>();
+
+        public ItemBuildable<T> bindRange = new ItemBuildable<T>();
+
         /// <summary>
         /// 包含下级的单位
         /// </summary>
-        public List<T> containValues = new List<T>();
+        //public List<T> containValues = new List<T>();
+        public RangeBuildable<T> containRange = new RangeBuildable<T>();
         /// <summary>
         /// 是否空
         /// </summary>
@@ -31,27 +35,34 @@ namespace mooSQL.auth
         {
             get
             {
-                if (bindValues.Count > 0)
+                if (bindRange.Values.Count > 0)
                 {
                     return false;
                 }
-                if (containValues.Count > 0)
+                if (containRange.Values.Count > 0)
                 {
                     return false;
                 }
                 return true;
             }
         }
+        public List<T> containValues
+        {
+            get { return containRange.Values; }
+        }
+
+        public List<T> bindValues
+        {
+            get { return bindRange.Values; }
+        }
+
         /// <summary>
         /// 清空注册的过滤器
         /// </summary>
         public void resetBuilder()
         {
-            this.onbuildIs = null;
-            this.onbuildLike = null;
-            this.onbuildManyIn = null;
-            this.onbuildOne = null;
-            this.onbuildManyLike = null;
+            this.bindRange.reset();
+            this.containRange.reset();
         }
         /// <summary>
         /// 获取所有已绑定的值
@@ -59,10 +70,10 @@ namespace mooSQL.auth
         /// <returns></returns>
         public List<T> getAllBind() { 
             var t= new HashSet<T>();
-            foreach (var h in bindValues) {
+            foreach (var h in bindRange.Values) {
                 t.Add(h);
             }
-            foreach (var h in containValues)
+            foreach (var h in containRange.Values)
             {
                 t.Add(h);
             }
@@ -78,7 +89,7 @@ namespace mooSQL.auth
 
             bool res = false;
             //如果当前编码是一个顶级码的子码，且顶级码是包含下级的，忽略它。
-            foreach (var li in containValues)
+            foreach (var li in containRange.Values)
             {
                 if (val.isChildOf(li))
                 {
@@ -107,7 +118,7 @@ namespace mooSQL.auth
             //}
 
             //执行添加
-            bindValues.Add(val);
+            bindRange.Values.Add(val);
             return true;
         }
         /// <summary>
@@ -119,41 +130,19 @@ namespace mooSQL.auth
         {
 
             //添加包含下级时，不需要在直接绑定中查重
-            bool res = false;
-            //如果当前编码是一个顶级码的子码，且顶级码是包含下级的，忽略它。
-            foreach (var li in containValues)
-            {
-                if (value.isChildOf(li))
-                {
-                    return false;
-                }
-            }
-
-            //反向检查，如果新增的编码，是现有编码的父编码，则移除现有编码
-
-            for (int i = containValues.Count - 1; i >= 0; i--)
-            {
-                //比如加 116， 则移除11601这样的子级
-                var li = containValues[i];
-                if (li.isChildOf(value))
-                {
-                    containValues.RemoveAt(i);
-                }
-            }
+            var added = this.containRange.add(value);
+            if (!added) return false;
             //遍历直接绑定集合，如果是当前组织的子级，则移除它
-            for (int i = bindValues.Count - 1; i >= 0; i--)
+            for (int i = bindRange.Values.Count - 1; i >= 0; i--)
             {
                 //比如加 116， 则移除11601这样的子级
-                var li = bindValues[i];
+                var li = bindRange.Values[i];
                 if (li.isChildOf(value))
                 {
-                    bindValues.RemoveAt(i);
+                    bindRange.Values.RemoveAt(i);
                 }
             }
-
-            //执行添加
-            containValues.Add(value);
-            return res;
+            return true;
         }
         /// <summary>
         /// 添加一组绑定值
@@ -197,9 +186,9 @@ namespace mooSQL.auth
         public List<string> buildWhere(List<string> wh, Func<T, bool, string> doBuild)
         {
 
-            if (containValues.Count == 0 && bindValues.Count == 0) return wh;
+            if (containRange.Values.Count == 0 && bindRange.Values.Count == 0) return wh;
 
-            foreach (var org in containValues)
+            foreach (var org in containRange.Values)
             {
 
                 var res = doBuild(org, true);
@@ -208,7 +197,7 @@ namespace mooSQL.auth
                     wh.Add(res);
                 }
             }
-            foreach (var org in bindValues)
+            foreach (var org in bindRange.Values)
             {
 
                 var res = doBuild(org, false);
@@ -220,109 +209,109 @@ namespace mooSQL.auth
             return wh;
         }
 
-        private List<string> buildContainWhere(List<string> wh) {
-            if (containValues == null || containValues.Count == 0)
-            {
-                return wh;
-            }
+        //private List<string> buildContainWhere(List<string> wh) {
+        //    if (containValues == null || containValues.Count == 0)
+        //    {
+        //        return wh;
+        //    }
 
-            if (this.onbuildManyLike != null)
-            {
-                var mval = onbuildManyLike(containValues);
-                if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval))
-                {
-                    wh.Add(mval);
-                }
-                return wh;
-            }
+        //    if (this.onbuildManyLike != null)
+        //    {
+        //        var mval = onbuildManyLike(containValues);
+        //        if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval))
+        //        {
+        //            wh.Add(mval);
+        //        }
+        //        return wh;
+        //    }
 
-            //在没有单个处理器的情况下，检查保底的多个处理器
-            if (onbuildLike == null && this.onbuildLikesByPK != null) {
-                var val = this.onbuildLikesByPK(this.containValues);
-                if (!string.IsNullOrWhiteSpace(val) && !wh.Contains(val))
-                {
-                    wh.Add(val);
-                }
-                return wh;
-            }
+        //    //在没有单个处理器的情况下，检查保底的多个处理器
+        //    if (onbuildLike == null && this.onbuildLikesByPK != null) {
+        //        var val = this.onbuildLikesByPK(this.containValues);
+        //        if (!string.IsNullOrWhiteSpace(val) && !wh.Contains(val))
+        //        {
+        //            wh.Add(val);
+        //        }
+        //        return wh;
+        //    }
 
-            foreach (var org in containValues)
-            {
+        //    foreach (var org in containValues)
+        //    {
 
-                // 检查 单个适配器
-                var res = "";
-                if (onbuildLike != null)
-                {
-                    res = onbuildLike(org);
-                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
-                    {
-                        wh.Add(res);
-                    }
-                    continue;
-                }
-                if (onbuildLikeByPK != null)
-                {
-                    res = onbuildLikeByPK(org);
-                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
-                    {
-                        wh.Add(res);
-                    }
-                    continue;
-                }
+        //        // 检查 单个适配器
+        //        var res = "";
+        //        if (onbuildLike != null)
+        //        {
+        //            res = onbuildLike(org);
+        //            if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+        //            {
+        //                wh.Add(res);
+        //            }
+        //            continue;
+        //        }
+        //        if (onbuildLikeByPK != null)
+        //        {
+        //            res = onbuildLikeByPK(org);
+        //            if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+        //            {
+        //                wh.Add(res);
+        //            }
+        //            continue;
+        //        }
 
-                if (onbuildOne != null)
-                {
-                    res = onbuildOne(org, true);
-                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
-                    {
-                        wh.Add(res);
-                    }
-                    continue;
-                }
+        //        if (onbuildOne != null)
+        //        {
+        //            res = onbuildOne(org, true);
+        //            if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+        //            {
+        //                wh.Add(res);
+        //            }
+        //            continue;
+        //        }
 
-            }
-            return wh;
-        }
+        //    }
+        //    return wh;
+        //}
 
-        private List<string> buildBindWhere(List<string> wh) {
-            if (this.bindValues == null || bindValues.Count == 0) return wh;
+        //private List<string> buildBindWhere(List<string> wh) {
+        //    if (this.bindValues == null || bindValues.Count == 0) return wh;
 
-            if (onbuildManyIn != null && bindValues.Count > 0)
-            {
-                var mval = onbuildManyIn(bindValues);
-                if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval))
-                {
-                    wh.Add(mval);
-                }
-                return wh;
-            }
+        //    if (onbuildManyIn != null && bindValues.Count > 0)
+        //    {
+        //        var mval = onbuildManyIn(bindValues);
+        //        if (!string.IsNullOrWhiteSpace(mval) && !wh.Contains(mval))
+        //        {
+        //            wh.Add(mval);
+        //        }
+        //        return wh;
+        //    }
 
-            foreach (var org in bindValues)
-            {
+        //    foreach (var org in bindValues)
+        //    {
 
-                // 检查 单个适配器
-                var res = "";
-                if (onbuildIs != null)
-                {
-                    res = onbuildIs(org);
-                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
-                    {
-                        wh.Add(res);
-                    }
-                    continue;
-                }
-                if (onbuildOne != null)
-                {
-                    res = onbuildOne(org, false);
-                    if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
-                    {
-                        wh.Add(res);
-                    }
-                    continue;
-                }
-            }
-            return wh;
-        }
+        //        // 检查 单个适配器
+        //        var res = "";
+        //        if (onbuildIs != null)
+        //        {
+        //            res = onbuildIs(org);
+        //            if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+        //            {
+        //                wh.Add(res);
+        //            }
+        //            continue;
+        //        }
+        //        if (onbuildOne != null)
+        //        {
+        //            res = onbuildOne(org, false);
+        //            if (!string.IsNullOrWhiteSpace(res) && !wh.Contains(res))
+        //            {
+        //                wh.Add(res);
+        //            }
+        //            continue;
+        //        }
+        //    }
+        //    return wh;
+        //}
 
         /// <summary>
         /// 执行条件编制，检查注册的编织器。
@@ -332,7 +321,7 @@ namespace mooSQL.auth
         public List<string> buildWhere(List<string> wh)
         {
 
-            if (containValues.Count == 0 && bindValues.Count == 0) return wh;
+            if (this.Empty) return wh;
             if (onBuildAll != null) { 
                 var t = onBuildAll(this);
                 if (!string.IsNullOrWhiteSpace(t) && !wh.Contains(t)) { 
@@ -340,9 +329,9 @@ namespace mooSQL.auth
                 }
             }
 
-            wh = this.buildContainWhere(wh);
+            this.containRange.build(wh);
 
-            wh = this.buildBindWhere(wh);
+            this.bindRange.build(wh);
 
             return wh;
         }
@@ -353,21 +342,21 @@ namespace mooSQL.auth
         /// <summary>
         /// 执行一个的条件处理。
         /// </summary>
-        private Func<T, bool, string>? onbuildOne;
+        //private Func<T, bool, string>? onbuildOne;
 
-        private Func<T, string>? onbuildLike;
+        //private Func<T, string>? onbuildLike;
 
-        private Func<T, string>? onbuildLikeByPK;
+        //private Func<T, string>? onbuildLikeByPK;
 
-        private Func<T, string>? onbuildIs;
+        //private Func<T, string>? onbuildIs;
         /// <summary>
         /// 执行多个指定范围的处理。
         /// </summary>
-        private Func<List<T>, string>? onbuildManyIn;
+        //private Func<List<T>, string>? onbuildManyIn;
 
-        private Func<List<T>, string>? onbuildManyLike;
+        //private Func<List<T>, string>? onbuildManyLike;
 
-        private Func<List<T>, string>? onbuildLikesByPK;
+        //private Func<List<T>, string>? onbuildLikesByPK;
 
         /// <summary>
         /// 从另一范围对象复制尚未设置的委托（编织器），用于默认分组拷贝配置。
@@ -377,30 +366,9 @@ namespace mooSQL.auth
             if (this.onBuildAll == null && src.onBuildAll != null) { 
                 this.onBuildAll = src.onBuildAll;
             }
-            if (this.onbuildOne == null && src.onbuildOne != null)
-            {
-                this.onbuildOne = src.onbuildOne;
-            }
-            if (this.onbuildLike == null && src.onbuildLike != null)
-            {
-                this.onbuildLike = src.onbuildLike;
-            }
-            if (this.onbuildIs == null && src.onbuildIs != null)
-            {
-                this.onbuildIs = src.onbuildIs;
-            }
-            if (this.onbuildManyIn == null && src.onbuildManyIn != null)
-            {
-                this.onbuildManyIn = src.onbuildManyIn;
-            }
-            if (this.onbuildLikeByPK == null && src.onbuildLikeByPK != null)
-            {
-                this.onbuildLikeByPK = src.onbuildLikeByPK;
-            }
-            if (this.onbuildLikesByPK == null && src.onbuildLikesByPK != null)
-            {
-                this.onbuildLikesByPK = src.onbuildLikesByPK;
-            }
+
+            this.bindRange.CopyBuilder(src.bindRange);
+            this.containRange.CopyBuilder(src.containRange);
 
         }
 
@@ -422,7 +390,8 @@ namespace mooSQL.auth
         /// <returns>当前实例。</returns>
         public CodeRange<T> useOneBuilder(Func<T, bool, string> builder)
         {
-            this.onbuildOne = builder;
+            this.bindRange.useOneBuilder(builder);
+            this.containRange.useOneBuilder(builder);
             return this;
         }
         /// <summary>
@@ -432,7 +401,17 @@ namespace mooSQL.auth
         /// <returns>当前实例。</returns>
         public CodeRange<T> useInBuilder(Func<List<T>, string> builder)
         {
-            this.onbuildManyIn = builder;
+            this.bindRange.useInBuilder(builder);
+            return this;
+        }
+        /// <summary>
+        /// 注册等值（IS）条件编织器。
+        /// </summary>
+        /// <param name="builder">编织委托。</param>
+        /// <returns>当前实例。</returns>
+        public CodeRange<T> useIsBuilder(Func<T, string> builder)
+        {
+            this.bindRange.useIsBuilder(builder);
             return this;
         }
         /// <summary>
@@ -442,7 +421,7 @@ namespace mooSQL.auth
         /// <returns>当前实例。</returns>
         public CodeRange<T> useLikeBuilder(Func<T, string> builder)
         {
-            this.onbuildLike = builder;
+            this.containRange.useLikeBuilder(builder);
             return this;
         }
         /// <summary>
@@ -452,7 +431,7 @@ namespace mooSQL.auth
         /// <returns></returns>
         public CodeRange<T> useLikePKBuilder(Func<T, string> builder)
         {
-            this.onbuildLikeByPK = builder;
+            this.containRange.useLikePKBuilder(builder);
             return this;
         }
         /// <summary>
@@ -462,21 +441,12 @@ namespace mooSQL.auth
         /// <returns></returns>
         public CodeRange<T> useLikesPKBuilder(Func<List<T>, string> builder)
         {
-            this.onbuildLikesByPK = builder;
+            this.containRange.useLikesPKBuilder(builder);
             return this;
         }
         
 
-        /// <summary>
-        /// 注册等值（IS）条件编织器。
-        /// </summary>
-        /// <param name="builder">编织委托。</param>
-        /// <returns>当前实例。</returns>
-        public CodeRange<T> useIsBuilder(Func<T, string> builder)
-        {
-            this.onbuildIs = builder;
-            return this;
-        }
+
         /// <summary>
         /// 注册多值 LIKE 组合条件编织器。
         /// </summary>
@@ -484,7 +454,7 @@ namespace mooSQL.auth
         /// <returns>当前实例。</returns>
         public CodeRange<T> useManyLikeBuilder(Func<List<T>, string> builder)
         {
-            this.onbuildManyLike = builder;
+            this.containRange.useManyLikeBuilder(builder);
             return this;
         }
 
@@ -495,12 +465,12 @@ namespace mooSQL.auth
         /// <returns></returns>
         public bool checkInScope(T t)
         {
-            foreach (var org in bindValues)
+            foreach (var org in bindRange.Values)
             {
                 //是父编码，且前几位相同，返回
                 if (org.isSame(t)) return true;
             }
-            foreach (var org in containValues)
+            foreach (var org in containRange.Values)
             {
                 //是父编码，且前几位相同，返回
                 if (t.isChildOf(org)) return true;
@@ -516,7 +486,7 @@ namespace mooSQL.auth
         public List<string> selectTopOrg(Func<T, string> getVal)
         {
             var wh = new List<string>();
-            foreach (var org in containValues)
+            foreach (var org in containRange.Values)
             {
 
                 var res = getVal(org);
@@ -525,7 +495,7 @@ namespace mooSQL.auth
                     wh.Add(res);
                 }
             }
-            foreach (var org in bindValues)
+            foreach (var org in bindRange.Values)
             {
 
                 var res = getVal(org);
