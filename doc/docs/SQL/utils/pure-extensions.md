@@ -371,9 +371,11 @@ db.useDbBus<Order>()
 
 | 方法 | 说明 |
 |------|------|
-| `asDataBase()` | `DBPosition` → 内部 `DataBase`（连接串、版本、健康检查等） |
+| `asDataBase()` | `DBPosition` → 内部 `DataBase`（连接串、版本、健康检查、`Readable`/`Writable` 等） |
 | `asDBType()` | 字符串 → `DataBaseType` 枚举 |
 | `addConfig(cash, positions)` | 批量注册数据库配置到 `DBInsCash` |
+
+`Readable` / `Writable`（默认 `true`）映射为 `DataBase.readable` / `writable`。禁用后由 `DBInstance` **方法入口**拦截（查询类 / `ExeNonQuery*`），抛出 `NotSupportedException`；**不解析 SQL 文本**。错位调用（如用 `ExeQuery` 执行 UPDATE）在对应开关允许时仍会执行。详见 [配置](../basis/initconfig.md)。
 
 ---
 

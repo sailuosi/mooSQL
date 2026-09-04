@@ -54,6 +54,31 @@ namespace mooSQL.data
         public DBInstance() {
 
         }
+
+        /// <summary>
+        /// 连接位禁用读时抛出 <see cref="NotSupportedException"/>。
+        /// </summary>
+        private void EnsureReadable()
+        {
+            if (config != null && config.readable == false)
+            {
+                throw new NotSupportedException(
+                    $"连接位 {config.index}({config.name}) 已禁用读操作（readable=false）。");
+            }
+        }
+
+        /// <summary>
+        /// 连接位禁用写时抛出 <see cref="NotSupportedException"/>。
+        /// </summary>
+        private void EnsureWritable()
+        {
+            if (config != null && config.writable == false)
+            {
+                throw new NotSupportedException(
+                    $"连接位 {config.index}({config.name}) 已禁用写操作（writable=false）。");
+            }
+        }
+
         /// <summary>
         /// 获取数据库方言的表达式代理。
         /// </summary>
@@ -71,6 +96,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public DataTable ExeQuery(SQLCmd cmd, DBExecutor executor=null)
         {
+            EnsureReadable();
             if (executor == null) {
                 executor = new DBExecutor(this);
             }
@@ -86,6 +112,7 @@ namespace mooSQL.data
         /// <returns>查询结果表。</returns>
         public Task<DataTable> ExeQueryAsync(SQLCmd SQL, DBExecutor executor = null)
         {
+            EnsureReadable();
             if (executor == null)
             {
                 executor = new DBExecutor(this);
@@ -288,6 +315,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public R ExeQueryReader<R>(SQLCmd SQL, Func<DbDataReader, R> executor, DBExecutor runner = null)
         {
+            EnsureReadable();
             if(runner == null)
             { runner = new DBExecutor(this); }
             return runner.ExeQueryReader<R>(SQL, executor);
@@ -300,6 +328,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <returns></returns>
         public IEnumerable<T> ExeQuery<T>(SQLCmd SQL, DBExecutor runner = null) {
+            EnsureReadable();
             if(runner == null)
             { runner = new DBExecutor(this); }
             return runner.ExeQuery<T>(SQL);
@@ -335,6 +364,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -352,6 +382,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<IEnumerable<T>> ExeQueryAsyc<T>(SQLCmd SQL, Func<DbDataReader, T> reader, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this); 
@@ -386,6 +417,7 @@ namespace mooSQL.data
         /// <param name="cmd"></param>
         /// <returns></returns>
         public DataReaderWrapper ExecutingReader(SQLCmd cmd, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -405,6 +437,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<DataReaderWrapper> ExeQueryReaderAsync(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -426,6 +459,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<DataReaderWrapper> ExeQueryReaderAsync(SQLCmd cmd,CancellationToken token, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -439,6 +473,7 @@ namespace mooSQL.data
         /// </summary>
         public IAsyncEnumerable<T> StreamQueryAsync<T>(SQLCmd cmd, CancellationToken cancellationToken = default, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
                 runner = new DBExecutor(this);
             return runner.StreamQueryAsync<T>(cmd, cancellationToken);
@@ -452,6 +487,7 @@ namespace mooSQL.data
         /// <param name="onReadRow"></param>
         /// <returns></returns>
         public IEnumerable<T> ExeQuery<T>(SQLCmd SQL, Func<DbDataReader, T> onReadRow, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -477,6 +513,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <returns></returns>
         public IEnumerable<T> ExeQueryFirstField<T>(SQLCmd SQL, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -501,6 +538,7 @@ namespace mooSQL.data
         /// <param name="SQL"></param>
         /// <returns></returns>
         public T ExeQueryRow<T>(SQLCmd SQL, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -527,6 +565,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public T ExeQueryUniqueRow<T>(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -542,6 +581,7 @@ namespace mooSQL.data
         /// <returns>映射后的单行结果。</returns>
         public Task<T> ExeQueryUniqueRowAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -564,6 +604,7 @@ namespace mooSQL.data
         /// </summary>
         public TResult ExeQueryMultiple<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
                 runner = new DBExecutor(this);
             return runner.ExeQueryMultiple(SQL, read);
@@ -576,6 +617,7 @@ namespace mooSQL.data
         /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)" path="/param"/>
         public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, Task<TResult>> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
                 runner = new DBExecutor(this);
             return runner.ExeQueryMultipleAsync(SQL, read, cancellationToken);
@@ -587,6 +629,7 @@ namespace mooSQL.data
         /// <inheritdoc cref="ExeQueryMultiple{TResult}(SQLCmd, Func{IMultiReader, TResult}, DBExecutor)" path="/param"/>
         public Task<TResult> ExeQueryMultipleAsync<TResult>(SQLCmd SQL, Func<IMultiReader, TResult> read, CancellationToken cancellationToken = default, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
                 runner = new DBExecutor(this);
             return runner.ExeQueryMultipleAsync(SQL, read, cancellationToken);
@@ -598,6 +641,7 @@ namespace mooSQL.data
         /// </summary>
         public T ExeQueryScalar<T>(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -609,6 +653,7 @@ namespace mooSQL.data
         /// </summary>
         public Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -625,6 +670,7 @@ namespace mooSQL.data
         /// 执行查询，取首行首列为 <see cref="object"/>（标量）。
         /// </summary>
         public object ExeQueryScalar(SQLCmd SQL, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -650,6 +696,7 @@ namespace mooSQL.data
         /// <param name="cancellationToken">取消标记。</param>
         /// <param name="runner">可选执行器。</param>
         public Task<object?> ExeQueryScalarAsync(SQLCmd cmd,CancellationToken cancellationToken, DBExecutor runner = null) {
+            EnsureReadable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -665,6 +712,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<int> ExeNonQueryAsync(SQLCmd cmd, DBExecutor runner = null)
         {
+            EnsureWritable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -679,6 +727,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<int> ExeNonQueryAsync(SQLCmd cmd,CancellationToken token, DBExecutor runner = null)
         {
+            EnsureWritable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -702,6 +751,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public int ExeNonQuery(SQLCmd SQL, DBExecutor runner = null)
         {
+            EnsureWritable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -716,6 +766,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public int ExeNonQuery(IEnumerable<SQLCmd> SQLs, DBExecutor runner = null)
         {
+            EnsureWritable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);
@@ -730,6 +781,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public Task<int> ExeNonQueryAsync(IEnumerable<SQLCmd> SQLs, DBExecutor runner = null)
         {
+            EnsureWritable();
             if (runner == null)
             {
                 runner = new DBExecutor(this);

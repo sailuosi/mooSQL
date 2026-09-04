@@ -52,6 +52,14 @@ namespace mooSQL.config
         /// 默认的慢SQL时间阈值，500ms。须为属性：Configuration Binder 不绑定字段。
         /// </summary>
         public int MinTimeSpan { get; set; } = 500;
+        /// <summary>
+        /// 是否允许读操作，默认 true。须为属性：Configuration Binder 不绑定字段。
+        /// </summary>
+        public bool Readable { get; set; } = true;
+        /// <summary>
+        /// 是否允许写操作，默认 true。须为属性：Configuration Binder 不绑定字段。
+        /// </summary>
+        public bool Writable { get; set; } = true;
 
         /// <summary>
         /// 自定义探活 SQL，优先级高于方言默认值。

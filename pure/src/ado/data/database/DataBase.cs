@@ -57,6 +57,14 @@ namespace mooSQL.data
         /// 默认的慢SQL时间阈值，500ms
         /// </summary>
         public int minTimeSpan = 500;
+        /// <summary>
+        /// 是否允许读操作，默认 true。为 false 时 <see cref="DBInstance"/> 查询入口抛出 <see cref="NotSupportedException"/>。
+        /// </summary>
+        public bool readable = true;
+        /// <summary>
+        /// 是否允许写操作，默认 true。为 false 时 <see cref="DBInstance"/> 的 ExeNonQuery 入口抛出 <see cref="NotSupportedException"/>。
+        /// </summary>
+        public bool writable = true;
 
         //private Dialect _lect = null;
         /// <summary>
@@ -122,6 +130,22 @@ namespace mooSQL.data
         public DataBase setName(string name)
         {
             this.name = name;
+            return this;
+        }
+        /// <summary>
+        /// 设置是否允许读操作。
+        /// </summary>
+        public DataBase setReadable(bool value)
+        {
+            this.readable = value;
+            return this;
+        }
+        /// <summary>
+        /// 设置是否允许写操作。
+        /// </summary>
+        public DataBase setWritable(bool value)
+        {
+            this.writable = value;
             return this;
         }
         /// <summary>

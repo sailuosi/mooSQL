@@ -45,6 +45,8 @@ namespace mooSQL.config
             if (db.MinTimeSpan > 0) {
                 res.minTimeSpan = db.MinTimeSpan;
             }
+            res.readable = db.Readable;
+            res.writable = db.Writable;
             if (!string.IsNullOrWhiteSpace(db.CustomPingSQL))
             {
                 res.healthOptions = res.healthOptions ?? new mooSQL.data.health.DBHealthOptions();

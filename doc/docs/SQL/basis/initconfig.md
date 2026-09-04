@@ -77,6 +77,47 @@ PORT=5432;DATABASE=xxx;HOST=137.12.7.**;PASSWORD=xxxxxxxxxx;USER ID=xxxxx;
         "Version": "5.7.21"
       }
 ````
+
+### 可读 / 可写开关（Readable / Writable）
+
+连接位可配置是否允许读、写（`DBPosition.Readable` / `Writable`，映射到运行时 `DataBase.readable` / `writable`），**默认均为 `true`**。
+
+| 配置项 | 运行时字段 | 默认 | 禁用效果 |
+|--------|------------|------|----------|
+| `Readable` | `readable` | `true` | `DBInstance` 上所有查询类入口（`ExeQuery*`、`ExeQueryReader*`、`ExecutingReader`、`StreamQueryAsync` 等）抛出 `NotSupportedException` |
+| `Writable` | `writable` | `true` | `DBInstance` 上全部 `ExeNonQuery` / `ExeNonQueryAsync` 入口抛出 `NotSupportedException` |
+
+JSON 示例（可选字段）：
+
+````json
+{
+  "Position": 2,
+  "Name": "DeviceReadonly",
+  "DbType": "MySQL",
+  "ConnectString": "...",
+  "Readable": true,
+  "Writable": false
+}
+````
+
+也可在代码中直接配置：
+
+````c#
+var db = new DataBase()
+    .setConnection("...")
+    .setDBType(DataBaseType.MSSQL)
+    .setReadable(true)
+    .setWritable(false); // 只读连接位
+````
+
+**拦截逻辑为方法拦截，不是 SQL 语义解析。** 闸门只看调用的是查询入口还是更新入口，**不解析** SQL 文本是 SELECT 还是 UPDATE。因此：
+
+- `writable=false` 时调用 `ExeNonQuery("UPDATE ...")` → 被拦截；
+- `writable=false` 但错位调用 `ExeQuery("UPDATE ...")` → **仍会执行**（走的是查询方法入口，只校验 `readable`）；
+- 同理，`readable=false` 时若用 `ExeNonQuery` 执行 SELECT，只要 `writable=true` 也不会被读闸门拦住。
+
+以下入口**不受**本开关约束：`ExecuteCmd` / `Execute`（自定义委托）、`beginTransaction`、`GetSchema`，以及 `DBExecutor` 内部引擎与健康探活。本特性也与主从路由的 `ReadEnabled` / `WriteEnabled` 无关。
+
 ##  DBCash
 ````c#
     public partial class DBCash
