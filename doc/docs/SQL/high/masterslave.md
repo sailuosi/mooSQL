@@ -45,12 +45,13 @@ mooSQL 的主从与多库能力，解决三类问题：
 ### 2.1 注册主从组
 
 ```csharp
-var client = builder.Client; // 或 MooClient 实例
-var cash = DBCash;           // DBInsCash
+var client = builder.Client; // 或 doBuild 后的 cash.client
+var cash = /* DBInsCash */;
 
 // 连接位 0 为主库，1/2 为从库
 client.configureGroup(0, g => g
     .master(0)
+    .autoReadReplica(true)   // 默认 false；必须开启或改用 .useReadReplica()，SELECT 才会自动走从库
     .readPolicy(ReadRoutePolicy.WeightedRandom)
     .readFallbackToMaster(true)
     .failover(FailoverMode.OnNextConnect)
@@ -58,21 +59,22 @@ client.configureGroup(0, g => g
     .addSlave(2, s => { s.ReadReplica = true; s.HotStandby = true; s.WriteEnabled = true; }));
 ```
 
-也可通过 `DBInsCash.configureGroup(...)` 调用，内部委托给 `MooClient`。
+也可通过 `DBInsCash.configureGroup(...)` 调用，内部委托给 `MooClient`。Builder 上可用 `useMasterSlave(Action<MasterSlaveOptions>)` 设置全局默认，见 [BaseClientBuilder](/SQL/configs/dbclientbuilder#6-主从与异步复制入口)。
 
 ### 2.2 读写分离查询
 
 ```csharp
 var db = cash.getInstance(0);   // 锚点 = 主库连接位
 
-// 注册主从组后，SELECT 会按 ReadPolicy 自动路由到可用从库
+// 仅当组开启 autoReadReplica(true)（或 GroupOverride.AutoReadReplica）时，
+// SELECT 才会按 ReadPolicy 自动路由到可用从库；否则默认仍走锚点/主库。
 var list = db.useSQL()
     .select("Id", "Name")
     .from("User")
     .where("Status", 1)
     .query<User>();
 
-// 显式声明「本次读走从库」（推荐用于报表等场景，语义更清晰）
+// 显式声明「本次读走从库」（不依赖 AutoReadReplica；报表等场景推荐）
 var report = db.useSQL()
     .useReadReplica()
     .select("*").from("Order")
@@ -106,6 +108,7 @@ db.useSQL()
 | `addSlave(position, configure)` | 添加从库并设置能力 |
 | `readPolicy(policy)` | 读路由策略 |
 | `readFallbackToMaster(bool)` | 从库全不可用时是否回退主库 |
+| `autoReadReplica(bool)` | **是否对 SELECT 自动走读从**（组默认 `false`；为 `true` 且策略非 `MasterOnly` 时生效） |
 | `failover(mode)` | 灾切模式 |
 | `enableDualWrite(params int[] positions)` | 批量标记双写从库 |
 
@@ -129,6 +132,7 @@ client.MasterSlaveOptions.Groups[0] = new GroupOverride
 {
     Failover = FailoverMode.ImmediateOnFailure,
     ReadPolicy = ReadRoutePolicy.FirstAvailable,
+    AutoReadReplica = true,
     RequireReadReplica = true
 };
 ```
@@ -139,7 +143,7 @@ client.MasterSlaveOptions.Groups[0] = new GroupOverride
 
 ```xml
 <database index="0" name="main">
-  <master failover="OnNextConnect">
+  <master failover="OnNextConnect" autoReadReplica="true" readFallback="true">
     <!-- 只读从库，权重 2 -->
     <slave index="1" readReplica="true" weight="2"/>
     <!-- 可读 + 可升主的热备 -->
@@ -154,10 +158,19 @@ client.MasterSlaveOptions.Groups[0] = new GroupOverride
 
 **向后兼容**：若从库未声明任何能力属性，默认 `asyncReplica="true"`，与旧版 `DataBase.slaves` 行为一致。
 
+`master` 节点属性：
+
+| 属性 | 说明 |
+|------|------|
+| `failover` | 灾切模式，取值见 [Failover 模式](#81-failover-模式) |
+| `autoReadReplica` | `true` 时 SELECT 自动走读从（与代码 `autoReadReplica(true)` 相同） |
+| `readFallback` | 从库全不可用时是否回退主库 |
+
 支持的 slave 属性：
 
 | 属性 | 说明 |
 |------|------|
+| `index` | 从库连接位 |
 | `readReplica` | 参与读路由 |
 | `hotStandby` | 灾备热库，主挂时可被选举为新主 |
 | `dualWrite` | 同步双写目标 |
@@ -165,7 +178,7 @@ client.MasterSlaveOptions.Groups[0] = new GroupOverride
 | `writeEnabled` | 是否允许写（DualWrite / HotStandby 需要） |
 | `weight` | 读负载权重（用于 WeightedRandom） |
 
-`master` 节点支持 `failover` 属性，取值见 [Failover 模式](#51-failover-模式)。
+通过 `BaseClientBuilder.useDBXMLConfig(path)` 或设置 `cash.configPath` 后，加载配置时自动调用 `MasterSlaveConfigLoader`。
 
 ---
 
@@ -400,9 +413,12 @@ new DBHealthOptions
     ReTrySize = 10,               // 超过后停止定时探活
     RecoveryInterval = TimeSpan.FromSeconds(30),
     StaleThreshold = TimeSpan.FromMinutes(5),
-    CustomPingSQL = "SELECT 1"     // 覆盖方言默认 ping SQL
+    CustomPingSQL = "SELECT 1",   // 覆盖方言默认 ping SQL
+    PingTimeoutMs = 3000          // 探活超时毫秒（默认 3000）
 };
 ```
+
+连接位 JSON 可通过 `CustomPingSQL` / `PingTimeoutMs` 映射到上述两项，见 [初始化配置](/SQL/basis/initconfig#5-探活字段与健康配置)。
 
 方言默认 ping：MySQL `SELECT 1`，Oracle `SELECT 1 FROM DUAL` 等。
 
@@ -494,7 +510,12 @@ client.events.OnFailover += ctx =>
 
 ### Q1：注册主从组后，不写 `useReadReplica()` 也会走从库吗？
 
-会。注册组后，`SELECT` 在 `ExecuteCmd` 内自动走 `ResolveRead`，按组的 `ReadPolicy` 选择从库。`useReadReplica()` 用于显式表达意图，或配合未注册组的场景。
+**默认不会。** 组级 `AutoReadReplica` 默认为 `false`。要自动把 SELECT 路由到从库，需满足其一：
+
+1. `configureGroup` 中 `.autoReadReplica(true)`，或 XML `autoReadReplica="true"`，或 `GroupOverride.AutoReadReplica = true`，且读策略不是 `MasterOnly`；
+2. 单笔 SQL 显式 `.useReadReplica()`（`PreferReadReplica = true`）。
+
+仅注册组、添加 `ReadReplica` 从库，而不开启上述开关时，SELECT 仍走锚点/主库写路径分类下的主库侧行为。
 
 ### Q2：读从库会读到最新数据吗？
 
@@ -517,10 +538,62 @@ var active = group?.GetActiveMaster();
 
 ---
 
-## 14. 相关文档
+## 14. 端到端配置案例
+
+场景：业务库连接位 0（主）、1（读从）、2（热备可读可升主）；全局加权读、下次连接灾切；慢 SQL 与 Failover 告警。
+
+```csharp
+var positions = new List<DBPosition>
+{
+    new DBPosition { Position = 0, Name = "master", DbType = "MySQL", ConnectString = cs0, WatchSQL = true, MinTimeSpan = 500 },
+    new DBPosition { Position = 1, Name = "replica", DbType = "MySQL", ConnectString = cs1, Readable = true, Writable = false },
+    new DBPosition { Position = 2, Name = "standby", DbType = "MySQL", ConnectString = cs2 }
+};
+
+var cash = new DBClientBuilder()
+    .useDataBase(positions)
+    .useMasterSlave(o =>
+    {
+        o.DefaultReadPolicy = ReadRoutePolicy.WeightedRandom;
+        o.DefaultFailover = FailoverMode.OnNextConnect;
+        o.ReadFallbackToMaster = true;
+    })
+    .onFailover(ctx => Console.WriteLine($"Failover -> {ctx.NewMaster?.config.index}"))
+    .onWatchSlowSQL((ctx, span, id) => Console.WriteLine($"slow {span.TotalMilliseconds}ms"))
+    .doBuild();
+
+cash.client.configureGroup(0, g => g
+    .master(0)
+    .autoReadReplica(true)
+    .failover(FailoverMode.OnNextConnect)
+    .addSlave(1, s => { s.ReadReplica = true; s.Weight = 3; })
+    .addSlave(2, s => { s.ReadReplica = true; s.HotStandby = true; s.WriteEnabled = true; s.Weight = 1; }));
+
+var db = cash.getInstance(0);
+
+// 自动读从（因 AutoReadReplica=true）
+db.useSQL().select("*").from("User").query();
+
+// 强一致读主
+db.useSQL().useMaster().select("*").from("Account").where("Id", 1).queryRow<Account>();
+
+// 写主；主挂后下次写可升热备 2
+db.useSQL().set("Status", 1).from("Order").where("Id", 9).doUpdate();
+```
+
+说明：
+
+- 连接位 1 配置 `Writable=false` 只禁用该实例上的 `ExeNonQuery*` **方法闸门**；主从路由写路径仍以组能力为准，一般写不会落到该从库。
+- `autoReadReplica(true)` 是自动读写分离的关键开关。
+- 更细的 Builder 事件与审计见 [BaseClientBuilder](/SQL/configs/dbclientbuilder)。
+
+---
+
+## 15. 相关文档
 
 - 内部设计说明：`doc/slave/主从与多库功能设计.md`
 - 事务传递：[事务](/moohelp/morelv/transaction)
 - 仓储：[SooRepository](/SQL/high/repository)
 - SQLClip：[SQLClip](/SQL/high/sqlclip)
 - 初始化配置：[初始化配置](/SQL/basis/initconfig)
+- 流式构建器：[BaseClientBuilder](/SQL/configs/dbclientbuilder)

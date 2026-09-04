@@ -4,9 +4,227 @@ outline: deep
 
 # 更新迭代记录
 
-## v3 .net6.0 全面支持版
+## 【第3代】 .net6/8/10 全面支持版
 
-### 更新 v8.0.0.2 2026-1-22
+### 2026-7-1 更新 v8.1.2.2
+- 版本号 v8.1.2.1-v8.1.2.2 说明
+    本版本在 v8.1.2.1 基础上，补齐 DDL 注释、自动分表、SQL 关键字大写、Ext LINQ（useQueryable）重构融合，以及翻页/条件/Apart 等增强。
+
+- bugfix
+    - 修正 `top()` 在部分方言下不生效的问题（内部统一走 `skipTake(0, n)`）
+    - 修正翻页判定逻辑，避免 `skip/take` 与 `setPage` 混用时误判
+    - 修正表达式解析中对布尔字段取反（如 `!m.IsHide`）的条件生成
+
+- 新增功能——DDL / 表注释
+    - **完整的表注释独立添加功能**
+        - 表注释与列注释分离生成：`buildSoloTableCaption` / `buildSoloFieldCaption`，不再依赖建表语句内嵌 COMMENT
+        - `DDLBuilder` 新增 `toAddTableCaption` / `doAddTableCaption`、`toAddColumnCaption` / `doAddColumnCaption` 等独立 API
+        - `buildCreateTableCaption` 支持建表后增量补齐：对比库中已有注释，按需 ADD/UPDATE，避免重复写入
+        - 多方言适配：MySQL、MSSQL（extendedproperty）、Oracle、PostgreSQL、SQLite、GBase、Taos、Oscar 等
+
+- 新增功能——自动分表
+    - **实体分表体系**
+        - `[SooTable]` 增加 `ShardMode`（Year/Quarter/Month/Week/Day/Interval/Custom）、`ShardAnchor`、`ShardIntervalValue` 等配置
+        - `[SooShardField]` 标记分片键字段；`ITableShardStrategy` 可自定义策略（内置时间分表、间隔分表）
+    - **Client / 实体注册**
+        - `MooClient.useShard<T>(Func<T,string>)` Lambda 动态表名
+        - `configureShard<T>` 编程式配置；`useShardStrategy<T>` 注册完整策略
+    - **仓储 / SQLBuilder / SQLClip**
+        - 仓储 `ForShard` 单分片写入；`QueryRange` 跨分片 UNION 查询；`InsertRange` 按物理表分组
+        - `ShardScope.For<T>(pointTime)` 限定当前分片上下文
+        - SQLBuilder `splitTable` / `fromShardRange`；SQLClip 分表 from 扩展
+        - DDL `DBTableCreator` 支持按分表规则批量建表
+
+- 行为变更——SQL 生成
+    - **生成的 SQL 关键字大写统一**
+        - 各方言 Express 层统一输出大写关键字：`SELECT`、`FROM`、`WHERE`、`JOIN`、`LEFT JOIN`、`INSERT`、`UPDATE`、`DELETE`、`DISTINCT`、`ORDER BY`、`GROUP BY` 等
+        - 列名、表名、参数占位保持原样，仅 SQL 保留字大写，便于日志阅读与 SQL 审查
+
+- 新增功能——Ext LINQ（useQueryable 重构与融合）
+    - **标准 Queryable 入口**
+        - `DBInstance.useQueryable<T>()` / `AsQueryable<T>()`（`DBExtLinqExtension`），Ext LINQ 推荐入口
+        - 与 Fast LINQ（`useBus` / `useDbBus`）**并行共存**：Fast 为本 ORM 特色路径；Ext 对标 EF / 标准 IQueryable
+    - **编译架构重构**
+        - 双访问器对齐 FastLinq：`ClauseCompiler` → `ClauseExpressionVisitor` + `ClauseMethodVisitor`
+        - 所有 MethodCall 走 MethodVisitor，Expression 节点走 ExpressionVisitor；移除 legacy `*Builder` 壳与 `DispatchLegacy`
+        - 新增 `SentenceExecutor`、`NavColumnLoader`、`ClauseCompileContext` 等执行/导航组件
+        - Skip/Take/SetPage/Includes/InjectSQL 等算子迁入统一 VisitXxxCore 分发
+    - **能力融合**
+        - Ext 与 Pure 层 `ClauseTranslateVisitor` 共享翻译管线
+        - 支持标准 Queryable 习惯：Where/Select/Join/Includes/ToList/ToPageList 等，底层仍走 mooSQL 方言与 SQLBuilder 执行
+
+- 新增功能——SQLBuilder
+    - 翻页增强
+        - 新增 `skipTake(int skip, int take)` / `skip(int)` / `take(int)`，与 LINQ Skip/Take 同构；`take=-1` 表示仅跳过、不限制行数
+        - `top(n)` 现等价于 `skipTake(0, n)`，高版本数据库优先生成 OFFSET/LIMIT 语句
+        - `setPage` 重载为 `setPage(int? size, int? num)`：参数为 null 时忽略翻页；`size` 与 `num` 同时为 0 时也忽略（兼容外界 int 默认值未传参的场景）
+    - 条件增强
+        - 新增 `whereIsNullOR(string key, Object val, string op)`，生成 `(field op val OR field IS NULL)` 形式条件
+    - SQL 碎片复用（Apart）
+        - 步骤录播默认关闭，避免每次构建都记录步骤影响性能；需显式调用 `record()` 开启
+        - 新增 `record()` / `stop()` / `toApart()` / `useApart(SQLApart)` 一组 API，可将 where 等链式片段录制后复用到其它查询
+
+- 新增功能——方言
+    - MSSQL 翻页语句生成逻辑微调，配合数据库 Version 配置选用更优分页 SQL
+
+### 2026-5-28 更新 v8.1.2.1 
+- 版本号 v8.1.0-v8.1.2说明
+    本次变更增加了主从功能及灾切、仓储钩子大幅扩充、AOT模式支持等重大特性，因此跳过1个小版本
+
+- bugfix
+    - 修正字段解析时，递归解析名称导致崩溃的问题
+    - LINQ缓存、Client实例缓存、EntityInfo缓存，均更改为使用多线程安全版本的集合，解决低频偶发的实体解析等报错问题
+
+- 新增功能——SQLBuilder
+    - 行为变更
+        - whereIn方法现在支持自动对超出限制的数据集进行自动分组，以规避SQL的参数上限限制。
+
+    - 扩展增加
+        - saveList 方法，支持批量的保存实体
+        - insert/update/save/delete 均支持第2参数自定义表名
+
+- AOT模式
+    - 增加AOT模式，默认不启用，启用后改变实体的解析方式，同时业务侧需要根据预生成器SG
+    - useAotMode 通过本方式开启
+
+- 主从功能大修
+    - 支持自动灾切，配置后一个连接位宕机，自动切换
+    - 支持数据库连接位的健康状态检测，
+    - 支持读写分离，可将读请求分发到从库
+    - 支持脑裂多写
+
+- 新增功能——其它
+    - 仓储模式
+        - 表名自定义功能增强，支持parseTableName，支持覆写表名解析逻辑
+        - 增加OnInsertField 字段插入时钩子
+        - 仓储保存逻辑增加字段赋值和主键加载钩子
+        - 增加主键泛型泛型版仓储子类 SooRepositoryT,K，提供更强的主键处理
+    - 实体解析器 EntityTranslator
+        - 增加一组可重写的自定义解析的支持，
+            - fireInsertField
+            - fireUpdateField
+            - fireBeforeInsert
+            - fireBeforeUpdate
+            - ...等等
+
+
+
+### 2026-4-16 更新 v8.1.0.1 
+- 版本号 v8.0-v8.1说明
+    本次变更将AI功能从核心库抽离，独立为Sleveen.AI包。后续将针对AI持续增强。
+
+- bugfix
+    - 修正Guid类型的字段，读取到string类型的属性时报错的问题。
+    - 实体保存Updatable、insertable等套件保存报错问题fix
+    - 微调扩展方法map、writeTo等逻辑
+
+- 新增功能——SQLBuilder
+    - 行为变更
+        - whereIn方法现在支持自动对超出限制的数据集进行自动分组，以规避SQL的参数上限限制。
+
+
+- 新增功能——其它
+    - 仓储模式下列表读取条件增强
+        - 增加对likes和 likelefts等2个操作符的支持。
+        - 查询实体QueryPara允许多轮注册
+            - OnBuildSQL
+
+    - 核心执行器增加多重查询功能，分别应用在DBInstance、DBExecutor、CmdExecutor
+        - ExeQueryMultiple
+        - ExeQueryMultipleAsync
+
+    - 增加监听入口，支持按语句类型如select/update/delete，结合表名插入监听逻辑。
+        - onSQLRuned
+        - 其它可以在Client上注册
+
+    - 权限增强
+        - CodeRange增加对按PK进行过滤条件的增强支持
+            - useLikePKBuilder 按主键实现包含下级的逻辑
+            - useLikesPKBuilder 按主键实现多个包含下级条件的逻辑
+
+        - AuthorBuilder现在大多数方法均开放重写支持
+    
+
+
+### 2026-3-23 更新 v8.0.1.1 
+重点增加了方言的支持和方言的适配；汇总行功能正式纳入；以及其它细节优化等
+
+- bugfix
+    - 修正fastlinq下对groupBy的解析时，遇到select字句情况下解析不对的问题
+    - 对npg/GBase/Taos等库的方言实现进行微调
+- 新增功能——SQLBuilder
+    - 增加了SQLMakeUps成员，用于完成汇总行的查询功能
+        - selectSummary 设置汇总字段，配合分页查询使用
+        - 
+    - join 增加3参的版本，支持join的三段式写法，即 join("tableA a","a.id","b.id")形式
+    
+    - 行为变更
+        - queryPagedT泛型方法，现在会依据  selectSummary发生行为变更，如果设置了汇总字段，则执行汇总查询。
+        - MergeIntoBuilder 现在mergeInto语句会自动进行空分支判定，分支为空时，将自动忽略
+    
+- 新增功能——方言
+    - IsView
+    - IsExitsTableCol
+    - IsExitsTableIndex
+    - GetTablePKName
+    - 增加对JetSQL的支持，初步版本。用于读取access数据库
+- 新增功能——其它
+    - 仓储模式下适配否定分组的定义功能
+    - groupByAsList 增加DataTable映射为字典列表值的功能
+
+### 2026-2-24 更新 v8.0.0.3 
+
+- 新增功能——SQLBuilder
+    - 增加可选的条件生效 ifs 方法
+    - 增加执行层异步套件 Async系列方法
+        - exeNonQueryAsync
+        - exeQueryAsync
+        - exeQueryCountAsync
+        - doInsertAsync
+        - doUpdateAsync
+        - doMergeIntoAsync
+        - doDeleteAsync
+        - queryAsync
+        - queryPagedAsync
+        - queryUniqueAsync
+        - queryScalarAsync
+        - queryRowAsync
+        - queryPageSumAsync
+    - 增加 useDBInitor 建表类入口扩展
+    - 增加 countBy 扩展方法，快捷按类统计记录数
+    - beginTransaction增加一个可以指定事务隔离级别的重载
+    - 增加 removeById 按实体删除扩展
+    - 增加 clearSelect 的清理select部分方法
+    - 增加 selectWith 更换select内容的方法
+    - 增加支持汇总的翻页查询方法，QueryPara增加 sumFields 参数，允许定义汇总逻辑
+        - queryPageSum 自定义汇总SQL，返回DataTable
+        - queryPaged 支持SQL和委托，返回实体
+        - querySummary 查询汇总
+    - 增加where定义
+        - whereLikesOr 一个字段like多个值，中间or条件
+        - whereLikesAnd 一个字段like多个值，中间and条件
+    - 增加查询扩展
+        - findListWhere 
+        - countByClip
+        - countByWhere
+        - findFieldsWhere
+        - findFieldWhere
+        - findRowWhere
+- 新增功能——其它
+    - 完善建表功能 DBTableCreator 类，现可快捷的按实体类建表
+    - 通用字符串扩展，增加 formatSQLBy 方法，允许按字典格式化SQL
+    - SQLClip增强：
+        - 增加 whereIsOrNull 方法
+    - Client主类增加对参数添加前 OnBeforeAddPara 注册事件的支持
+    - DbBus下的fastLinq支持对 Equals的解析，正确解析 where a=b 条件
+- 其它优化
+    - 内置实体解析器类，变更为支持继承的父类的字段注解读取，修正实体名称未读取的问题
+    - BulkBase批量写入类，更改对枚举字段的行为，变更为与其它类一致，都转为int写库
+    - 集合扩展增加 count 方法，用于计数
+
+
+
+### 2026-1-22 更新 v8.0.0.2 
 - 废弃【obsolute】
     - 【不再推荐】废弃错别字注册实体解析器方法useEnityAnalyser，建议改为useEntityAnalyser
     - 【不再推荐】BatchSQL类下DBInstance属性，建议改为 DBLive引用；rows属性废弃，不再使用
@@ -25,7 +243,7 @@ outline: deep
     - EntityTranslator 实体转义器增加切面，允许对实体的插入、更新、删除的SQL生成前后插入自定义逻辑
     - DataTable的groupBy 增加二阶聚合重载，允许按2个属性聚合成二层字典。
 
-### 更新 v8.0.0.1 2026-1-8
+### 2026-1-8 更新 v8.0.0.1 
 - bugfix
     - 修正批量写入在大数据量循环时下偶尔写入错误的问题
     - 权限，修正权限为空时的空权限事件执行不一致问题，修正直接绑定权限时的上下级包含错误问题

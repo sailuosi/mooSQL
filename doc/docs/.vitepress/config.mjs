@@ -16,24 +16,6 @@ export default defineConfig({
           { text: 'API', link: '/SQL/basis/initconfig' },
         ]
       },
-      { text: '开发平台',
-        items: [
-          { text: '开发平台', link: '/uplat/uplatindex' },
-          { text: 'U8', link: '/ucml/u8/bcgeneral' },
-          { text: 'U7', link: '/ucml/u7/vueformu7' },
-        ]
-      },      
-      
-      { text: '.Net', link: '/net6/net6index' },
-      { text: '制品库',
-        items: [
-          { text: 'webUI组件', link: '/pcui/pcuiindex' },
-          { text: '流程', link: '/ccflow/ccftou8' },
-          { text: '大模型', link: '/AI/llmcash' },
-        ]
-      },
-
-      
     ],
 
     sidebar: {
@@ -79,6 +61,7 @@ export default defineConfig({
           items: [
             { text: '更新日志', link: '/SQL/configs/updatelog' },
             { text: '初始化配置', link: '/SQL/basis/initconfig' },
+            { text: 'BaseClientBuilder', link: '/SQL/configs/dbclientbuilder' },
             { text: 'DBCash', link: '/SQL/basis/DBCash' },
             { text: '渐进式 DI（DBInsCash）', link: '/SQL/basis/MooSqlDiIntegration' },
             { text: 'SQLBuilder', link: '/SQL/basis/SQLBuilder' },
