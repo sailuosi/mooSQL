@@ -6,6 +6,110 @@ outline: deep
 
 ## 【第3代】 .net6/8/10 全面支持版
 
+### 2026-9-4 更新（相对 v8.2.1.2，未单独发版）
+- 版本说明
+    在已发布的 v8.2.1.2 基线上的后续改动：连接位「软」可读/可写策略、配置与主从文档补全，以及权限侧范围构造器拆分。对应提交：`连接位置增加软的可读可写的控制配置`、`文档更新`、`范围构造器类升级拆分`。
+
+- 新增功能——连接位可读 / 可写（Readable / Writable）
+    - **配置面**
+        - `DataBase` 新增字段 `readable` / `writable`（默认均为 `true`），链式方法 `setReadable` / `setWritable`
+        - `DBPosition` 新增属性 `Readable` / `Writable`（默认 `true`，供 Configuration Binder 绑定）
+        - `FastConfigExtensions.asDataBase` **始终拷贝**两端布尔值，确保配置为 `false` 时能生效
+    - **执行闸门（方法拦截，非 SQL 解析）**
+        - 落在 `DBInstance` 公开入口：`EnsureReadable()` / `EnsureWritable()`，**不进入** `DBExecutor` 引擎
+        - `readable=false`：查询类入口（`ExeQuery*`、`ExeQueryReader*`、`ExecutingReader`、`StreamQueryAsync` 等）抛出 `NotSupportedException`
+        - `writable=false`：全部 `ExeNonQuery` / `ExeNonQueryAsync` 抛出 `NotSupportedException`
+        - 不受约束：`ExecuteCmd` / `Execute`、`beginTransaction`、`GetSchema`、健康探活；与主从 `ReadEnabled`/`WriteEnabled` 无关
+    - **语义注意**
+        - 闸门只认调用的是查询方法还是更新方法，**不解析** SQL 文本；错位调用（如用 `ExeQuery` 执行 `UPDATE`）在对应开关允许时仍会执行
+    - **测试**
+        - 新增 `DBInstanceAccessGateTests`：禁用读写抛 `NotSupportedException`、默认不误拦、`asDataBase` 映射校验（无需真实库）
+
+- 文档
+    - [初始化配置](/SQL/basis/initconfig)：`DBPosition` 全属性说明表、JSON 示例、可读可写 / 慢 SQL / 探活字段
+    - [BaseClientBuilder](/SQL/configs/dbclientbuilder)：流式 `use*` 与生命周期事件完整案例（每例附含义说明），含主从入口、审计、Schema/分表摘要
+    - [主从与多库](/SQL/high/masterslave)：修正 `AutoReadReplica` 默认 `false` 的说明与 FAQ；补全 XML `master` 属性、端到端配置案例；VitePress 侧栏增加 BaseClientBuilder 入口
+
+- 其它
+    - 权限工具：`CodeRange` 重构拆分，新增 `ItemBuildable` / `RangeBuildable`（层次码/范围构造升级）
+
+### 2026-9-2 更新 v8.2.1.2
+- 版本号说明
+    小版本加固：SQLBuilder 语法糖集中重构、存在性查询扩展，以及配置绑定、集合泛型与缺列读取等兼容修复。
+
+- bugfix
+    - `DBPosition` 慢 SQL / 探活等相关项改为**属性**（原为字段），修复 Configuration Binder 配置写入不生效的问题
+    - `DataRow.getString`：列不存在时返回默认值/空，而不再因缺列抛异常（容忍列不存在）
+    - 修正 `whereIn` / `whereNotIn` / `whereOR` 等集合泛型重载歧义（区分 `string[]`、值类型 `params T[]`、`IReadOnlyList<T>` 等）
+
+- 新增功能——SQLBuilder 语法糖
+    - 将大量 where 便捷重载抽至 `SQLBuilder.sugar`，门面更清晰；语义保持「可省略的默认实现」风格
+    - 新增 `findIsExist<T>(Action<SQLClip,T>)` 及指定表名重载：按自由 where 判断是否存在（支持动态分表表名）
+    - 配套语法糖编译测试用例，覆盖链式调用签名
+
+### 2026-8-19 更新 v8.2.1.1
+- 版本号说明
+    面向业务层与查询体验：富仓储、实体关系、SQL 结果一级缓存、SQLClip 投影增强、递归 CTE、Excel 扩展，并统一仓储命名空间；文档侧补齐导航。
+
+- bugfix
+    - 修复子查询相关拼接 / 提供问题
+    - 参数名解析等问题随回归测试一并修正
+
+- 新增功能——富仓储（Rich Repo）
+    - 新增 `SooRichRepo`：实体变更跟踪、快照、Upsert 选项、Schema 保障（`SchemaEnsure` / `SyncMode`）
+    - 仓储命名空间归一，统一业务仓储入口与扩展用法
+
+- 新增功能——实体关系
+    - 实体关系定义与注册（`EntityRelation*`、`MooClient.relation`、`EntityContext.relation`）
+    - 配合导航 / Include 查询能力；文档增加导航说明
+
+- 新增功能——SQL 结果一级缓存
+    - SQLBuilder / StepBuilder 支持查询结果 L1 缓存（`ResultCacheKey` / `resultCache`），重复查询可命中内存结果
+
+- 新增功能——SQLClip / 投影 Plus
+    - SQLClip 增强：Include、Window、Case 等能力扩展
+    - **客户端尾投影（Projection Plus）**：分析 Select 后在客户端编译投影计划，减少库侧多余列与重复编译
+
+- 新增功能——递归 CTE
+    - `withRecur` / `RecurCTEBuilder` 与延迟构建门面衔接，便于递归查询链式书写
+
+- 新增功能——Excel 扩展
+    - Pure 层 Excel 读写 / 导入框架 + Ext 层 NPOI 实现（导入配置、校验规则、导出 Builder）
+
+### 2026-8-10 更新 v8.2.0.1
+- 版本号说明
+    对 SQLBuilder 做纯净架构重写（步骤编排 + 延迟参数 + L1/L2 脚本缓存），并修复多实例池冲突；属基础设施大版本，对外链式 API 以兼容为主。次版本号升至 8.2。
+
+- bugfix / 稳定性
+    - 实例池配置改为**非静态**，消除多 `DBInsCash` 并存时的潜在冲突
+    - 配套 SQLBuilder 快照与回归用例加固；测试工程升级至 .NET 10
+
+- 新增功能——SQLBuilder 纯净重写
+    - 构建链路拆为门面 `SQLBuilder` + 步骤编排 `StepBuilder`：链式调用录制为可哈希步骤，再统一渲染 SQL
+    - **延迟参数（Delay Para）**：`whereIn` / 格式化条件等可延迟到执行前再展开参数，利于脚本模板复用
+    - **脚本缓存 L1/L2**：按步骤结构缓存脚本模板与静态槽位，重复构建同构 SQL 时减少重复拼装
+    - Where 步骤抽象统一（字符串步骤 / In 集合步骤等），步骤带身份哈希，便于缓存命中与编排统计
+
+- 新增功能——条件与查询体验
+    - `whereInGuid` 增加强类型参数重载（`IEnumerable<Guid>` / `Guid?` / `string` 等）
+    - Ext Queryable 侧同步增强查询计划 / 表达式结构缓存（L1/L2），提升重复 LINQ 查询编译效率
+
+### 2026-7-28 更新 v8.1.2.3
+- 版本号说明
+    在 v8.1.2.2 基础上加固执行器并发与写入表名校验，并补齐 SQLite 方言、可空字段条件解析，以及翻页参数「全 0」向前兼容。
+
+- bugfix
+    - 修正 SQLite 方言表 / 类型映射与语句生成（`SQLiteDialect` / `Express` / `MappingPanel` / `Sentence`）
+    - 表达式条件支持 `!field.HasValue` 等正确翻译为 `IS NULL`；自动 Id / HasValue 解析增强
+    - `setPage`：当 `size` 与 `num` 同为 `0` 时忽略翻页的向前兼容行为加固（兼容外界 `int` 默认值未传参）
+
+- 行为变更——执行器并发
+    - 同一 `DBExecutor` 上 `ExecuteCmd` 族调用串行化（执行闸），避免共享连接被并发 Open/Dispose 污染其它请求
+    - 灾切重试等路径继续走不带门禁的 Core 方法，避免嵌套加锁
+
+- 行为变更——写入 SQL 构建
+    - `toInsert` / `toUpdate` 等在未设置表名时增强检测与防护，降低误拼 SQL、误执行风险
+
 ### 2026-7-1 更新 v8.1.2.2
 - 版本号 v8.1.2.1-v8.1.2.2 说明
     本版本在 v8.1.2.1 基础上，补齐 DDL 注释、自动分表、SQL 关键字大写、Ext LINQ（useQueryable）重构融合，以及翻页/条件/Apart 等增强。
