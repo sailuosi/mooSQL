@@ -344,8 +344,16 @@ namespace mooSQL.data
             provider.PatchSelect(()=>val);
             return new SQLClip<R>(this) { };
         }
-
-
+        /// <summary>
+        /// 暴露原始的
+        /// </summary>
+        /// <param name="rawSQL"></param>
+        /// <returns></returns>
+        public SQLClip select(string rawSQL)
+        {
+            Context.Builder.select(rawSQL);
+            return this;
+        }
         /// <summary>
         /// 构造TOP语句。例如：top(10) 即 select top 10 * from ...;
         /// </summary>
@@ -389,6 +397,13 @@ namespace mooSQL.data
             provider.PatchOrderBy(orderCondition);
             return this;
         }
+
+        public SQLClip orderBy( string orderbySQL)
+        {
+            this.Context._builder.orderBy(orderbySQL);
+            return this;
+        }
+
         /// <summary>
         /// 构造ORDER BY DESC语句。
         /// </summary>
