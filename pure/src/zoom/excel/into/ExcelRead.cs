@@ -502,7 +502,7 @@ namespace mooSQL.excel
         /// 执行导入结果的数据库批量保存：触发各 <see cref="Writelist"/> 表的 <c>save</c>，并串联保存前后钩子与可选回写 Excel。
         /// </summary>
         /// <returns>汇总的人类可读结果消息（插入/更新条数及回调附加文本）。</returns>
-        public string doBulk()
+        public virtual string doBulk()
         {
             var msg = new StringBuilder();
             if (context.option.onBeforeSave != null)
@@ -530,7 +530,7 @@ namespace mooSQL.excel
             foreach (var kv in Writelist)
             {   //获取基准列类型数据
                 var tb = kv.Value;
-                tb.save();
+                SaveWriteTable(tb);
                 if (tb.canInsert)
                 {
                     cc += tb.insertCount;
@@ -564,6 +564,16 @@ namespace mooSQL.excel
             }
             return msg.ToString();
         }
+
+        /// <summary>
+        /// 提交单个写入表到数据库。默认调用 <see cref="WriteTable.save"/>；子类可 override 以自管落库。
+        /// </summary>
+        /// <param name="tb">写入表。</param>
+        protected virtual void SaveWriteTable(WriteTable tb)
+        {
+            tb.save();
+        }
+
         /// <summary>
         /// 保存消息到表格
         /// </summary>

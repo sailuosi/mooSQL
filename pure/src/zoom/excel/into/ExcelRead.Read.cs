@@ -22,7 +22,7 @@ namespace mooSQL.excel
         /// <summary>
         /// 执行Excel数据体dataTable的写入循环。
         /// </summary>
-        public void ReadDataRows()
+        public virtual void ReadDataRows()
         {
             workBeforeReadRows();
             var strSQLs = new StringBuilder();
@@ -109,7 +109,7 @@ namespace mooSQL.excel
         /// </summary>
         /// <param name="row">当前 Excel 数据行封装。</param>
         /// <returns>本行处理产生的提示或空字符串。</returns>
-        public string WriteExcelRow(rowInfo row)
+        public virtual string WriteExcelRow(rowInfo row)
         {   //向主表内写入语句的DataRow row,int[] log,0成功 1数据错误，2重复 3未匹配到
             //excelRowNum dataRowNum;
             context.valueCollection.setInnerColValue("dataRowNum", row.dataRowIndex.ToString());
@@ -156,6 +156,21 @@ namespace mooSQL.excel
                 row.rowMark += cpname + "为" + outv + "";
             }
 
+            if (WriteTablesForRow(row) == breakPoint.excelRowContine)
+            {
+                return "";
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// 单行内的写入表循环（含动态列模式）。子类可 override 以调整表顺序、过滤表或完全自管表写入。
+        /// </summary>
+        /// <param name="row">当前 Excel 行。</param>
+        /// <returns>循环控制断点；<see cref="breakPoint.excelRowContine"/> 表示跳过本 Excel 行后续逻辑。</returns>
+        protected virtual breakPoint WriteTablesForRow(rowInfo row)
+        {
             //循环逻辑变更，如果存在动态列，则开启动态列的循环取值。
             if (dynamicCols.Count > 0)
             {
@@ -184,7 +199,7 @@ namespace mooSQL.excel
 
                             var dwres = this.doTableWrite(tbinfo);
                             checkClearConnectCol(tbinfo, dwres);
-                            if (dwres == breakPoint.excelRowContine) { return ""; }
+                            if (dwres == breakPoint.excelRowContine) { return breakPoint.excelRowContine; }
                             else if (dwres == breakPoint.tableBreak) { break; }
                         }
                     }
@@ -206,13 +221,13 @@ namespace mooSQL.excel
 
                         var dwres = this.doTableWrite(tbinfo);
                         checkClearConnectCol(tbinfo, dwres);
-                        if (dwres == breakPoint.excelRowContine) { return ""; }
+                        if (dwres == breakPoint.excelRowContine) { return breakPoint.excelRowContine; }
                         else if (dwres == breakPoint.tableBreak) { break; }
                     }
                 }
             }
 
-            return "";
+            return breakPoint.none;
         }
 
         private void checkClearConnectCol(WriteTable tb, breakPoint next)
@@ -233,7 +248,7 @@ namespace mooSQL.excel
         /// <param name="li"></param>
         /// <returns></returns>
         //表检查过后的所有数据读写直至形成结果的部分
-        public breakPoint doTableWrite(WriteTable li)
+        public virtual breakPoint doTableWrite(WriteTable li)
         {
             var res = "";//返回值用来控制表的循环和上层代码的执行。这里return空即相当于continue，end则结束上层函数调用，break则结束上层表循环。
             li.clearRowData();
@@ -304,6 +319,24 @@ namespace mooSQL.excel
                 li.StartRow();
             }
 
+            var applyRes = ApplyWriteColumns(li, tbinfo, jump);
+            if (applyRes != breakPoint.none)
+            {
+                return applyRes;
+            }
+            doRowAdd(tbinfo);
+            return breakPoint.none;
+        }
+
+        /// <summary>
+        /// 将写入表的列集合取值并 patch 到插入行/更新集。子类可 override 以自管列写入。
+        /// </summary>
+        /// <param name="li">写入表。</param>
+        /// <param name="tbinfo">与 <paramref name="li"/> 相同的表上下文（保持与原调用点一致）。</param>
+        /// <param name="jump">跳转控制符（与原逻辑一致，按值传递）。</param>
+        /// <returns><see cref="breakPoint.none"/> 表示继续 <see cref="doRowAdd"/>；其它值表示中断本表写入。</returns>
+        protected virtual breakPoint ApplyWriteColumns(WriteTable li, WriteTable tbinfo, string jump)
+        {
             //常规写入列集合处理。
             foreach (var kvc in li.writeCols)
             {
@@ -329,7 +362,6 @@ namespace mooSQL.excel
                 context.writelog[3]++;
                 return breakPoint.tableBreak;
             }
-            doRowAdd(tbinfo);
             return breakPoint.none;
         }
         /// <summary>
@@ -338,7 +370,7 @@ namespace mooSQL.excel
         /// <param name="tbinfo"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        private DataRow[] CheckTable(WriteTable tbinfo, out breakPoint msg)
+        protected virtual DataRow[] CheckTable(WriteTable tbinfo, out breakPoint msg)
         {
             //从tableinfo对象中获取查询信息
             tbinfo.inserting = 0;
@@ -536,7 +568,7 @@ namespace mooSQL.excel
         /// 写入表查重发现为插入状态的处理。
         /// </summary>
         /// <param name="tbinfo"></param>
-        private void initTableToInsert(WriteTable tbinfo)
+        protected virtual void initTableToInsert(WriteTable tbinfo)
         {
             tbinfo.inserting = 1;
             //校验记录不存在，且要执行插入，此时需要初始化主键列的值。
@@ -554,7 +586,7 @@ namespace mooSQL.excel
         /// <param name="tbinfo"></param>
         /// <param name="jump"></param>
         /// <returns></returns>
-        public string patchValueToWrite(colInfo col, string val, WriteTable tbinfo, string jump)
+        public virtual string patchValueToWrite(colInfo col, string val, WriteTable tbinfo, string jump)
         {
             /* 列循环--列值纳入  将写入所需数据从kvmap中取出，放置到写入的存储容器tabmap或者bulkrow中
              * 返回控制符：end=终止excel本行写入  break=终止本表的行插入  
@@ -663,7 +695,7 @@ namespace mooSQL.excel
         /// </summary>
         /// <param name="tbinfo">目标写入表上下文（内含查重结果 <c>checkResult</c> 等）。</param>
         /// <returns>生成的 SQL 或提示文本片段。</returns>
-        private string doRowAdd(WriteTable tbinfo)
+        protected virtual string doRowAdd(WriteTable tbinfo)
         {
             //创建本表的最终sql语句
             if (tbinfo.option.onBeforeRowAdd != null)
@@ -680,55 +712,73 @@ namespace mooSQL.excel
             var res = new StringBuilder();
             string tablenam = tbinfo.option.name;
             if (checkRows.Length == 0 && tbinfo.canInsert)
-            {  //插入 必定使用批量写入。不再保留SQL语句插入
-                context.writelog[0]++;
-                tbinfo.bulk.addRow(tbinfo.addingRow);
-
-                if (context.option.checkMode == "local")
-                {
-                    //liDt.Rows.Add(liRow);
-                    //liDt.AcceptChanges();
-                    int errc;
-                    //检查回写的字段标识信息。
-                    string writeback = "";
-                    var oidval = context.valueCollection.getColVal(tbinfo.getFieldKey(tbinfo.option.keyCol));
-                    if (context.valueCollection.isValid(oidval))
-                    {
-                        writeback = tbinfo.option.keyCol + "=" + oidval;
-                    }
-
-                    if (tbinfo.writeBackInfo != null)
-                    {
-                        foreach (var x in tbinfo.writeBackInfo)
-                        {
-                            string[] ek = x.Split('=');
-                            writeback += writeback == "" ? "" : ",";
-                            writeback += ek[0] + "=" + context.valueCollection.getColVal(tbinfo.getFieldKey(ek[0]));
-                        }
-                    }
-                    //更新查出的值到键值结果。
-                    if (context.valueCollection.isValid(tbinfo.checkingWhere))
-                        tbinfo.addedIds.AddNotNull(tbinfo.checkingWhere, writeback);
-                }
-
+            {
+                ExecuteInsertRow(tbinfo);
             }
             else if (tbinfo.canUpdate && checkRows.Length == 1)
             {
-                context.writelog[2]++;//重复标记
-                pushLog(readingRow.rowMark + "的" + tbinfo.option.caption + "查到重复记录，尝试更新其信息字段<br/>", "important");
-
-                //检查自由update项，混入拼接"DQ_Content = {colname=coltype}, dq = { colname2 = coltype}" 
-                if (tbinfo.option.batchUpdate == false)
-                {
-                    var oid = checkRows[0][tbinfo.keyColInfo.field];
-                    //var keycolUpdate = string.Format("{0}='{1}'", tbinfo.keyColInfo.field, oid);
-                    tbinfo.rowKit.where(tbinfo.keyColInfo.field, oid);
-                    tbinfo.rowKit.setTable(tbinfo.option.DBName);
-                    tbinfo.EndUpdate();
-                    //tbinfo.updateSQL.Append(tbinfo.DBInstance.expression.dealUpdate(tbinfo.option.DBName, tbinfo.updatekv, keycolUpdate));
-                }
+                ExecuteUpdateRow(tbinfo);
             }
             return res.ToString();
+        }
+
+        /// <summary>
+        /// 攒批阶段的插入执行（默认 <c>bulk.addRow</c> 及 local 模式下的 addedIds 登记）。
+        /// </summary>
+        /// <param name="tbinfo">目标写入表。</param>
+        protected virtual void ExecuteInsertRow(WriteTable tbinfo)
+        {  //插入 必定使用批量写入。不再保留SQL语句插入
+            context.writelog[0]++;
+            tbinfo.bulk.addRow(tbinfo.addingRow);
+
+            if (context.option.checkMode == "local")
+            {
+                //liDt.Rows.Add(liRow);
+                //liDt.AcceptChanges();
+                int errc;
+                //检查回写的字段标识信息。
+                string writeback = "";
+                var oidval = context.valueCollection.getColVal(tbinfo.getFieldKey(tbinfo.option.keyCol));
+                if (context.valueCollection.isValid(oidval))
+                {
+                    writeback = tbinfo.option.keyCol + "=" + oidval;
+                }
+
+                if (tbinfo.writeBackInfo != null)
+                {
+                    foreach (var x in tbinfo.writeBackInfo)
+                    {
+                        string[] ek = x.Split('=');
+                        writeback += writeback == "" ? "" : ",";
+                        writeback += ek[0] + "=" + context.valueCollection.getColVal(tbinfo.getFieldKey(ek[0]));
+                    }
+                }
+                //更新查出的值到键值结果。
+                if (context.valueCollection.isValid(tbinfo.checkingWhere))
+                    tbinfo.addedIds.AddNotNull(tbinfo.checkingWhere, writeback);
+            }
+        }
+
+        /// <summary>
+        /// 攒批阶段的更新执行（默认日志 + 非 batchUpdate 时 EndUpdate）。
+        /// </summary>
+        /// <param name="tbinfo">目标写入表。</param>
+        protected virtual void ExecuteUpdateRow(WriteTable tbinfo)
+        {
+            var checkRows = tbinfo.checkResult;
+            context.writelog[2]++;//重复标记
+            pushLog(readingRow.rowMark + "的" + tbinfo.option.caption + "查到重复记录，尝试更新其信息字段<br/>", "important");
+
+            //检查自由update项，混入拼接"DQ_Content = {colname=coltype}, dq = { colname2 = coltype}" 
+            if (tbinfo.option.batchUpdate == false)
+            {
+                var oid = checkRows[0][tbinfo.keyColInfo.field];
+                //var keycolUpdate = string.Format("{0}='{1}'", tbinfo.keyColInfo.field, oid);
+                tbinfo.rowKit.where(tbinfo.keyColInfo.field, oid);
+                tbinfo.rowKit.setTable(tbinfo.option.DBName);
+                tbinfo.EndUpdate();
+                //tbinfo.updateSQL.Append(tbinfo.DBInstance.expression.dealUpdate(tbinfo.option.DBName, tbinfo.updatekv, keycolUpdate));
+            }
         }
         #endregion
     }
