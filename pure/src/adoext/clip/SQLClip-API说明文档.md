@@ -18,8 +18,15 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 
 因此：
 
-- **别名语义**：`from<User>(out var user)` 中的 `user` 即该表在 SQL 中的别名来源；`LeftJoin<Order>(out var order)` 中的 `order` 即该次 JOIN 的别名。同一实体多次 JOIN 时，用不同 out 变量即可得到不同别名。
-- **WHERE 推荐**：各 where 子方法优先使用「实体字段选择器 + 值」的形式，不推荐复杂组合 LINQ 表达式。例如应写成 `where(() => p.Id, 1)` 或 `where(() => p.Id, 1, ">=")`，而不是 `where((p) => p.Id == 1)`，以保持与 SQLBuilder 的键值式习惯一致，并减少表达式解析边界情况。
+- **别名语义**：`from<User>(out var user)` 中的 `user` 仅在被 **Lambda 字段选择器**引用时（如 `() => user.Id`）才会解析为 SQL AS 别名；`from` 本身不会提前定别名（不可用 CallerArgumentExpression 等方式抢先命名）。
+- **调用顺序**：先 `from` / `join` 绑定 out 变量 → 再 `where` / `orderBy` / `on` 等字段选择器（此时绑定别名）→ 再 `select(table)` 整表选列或 `query*`。**整表 `select(u)` 必须在至少一次字段 Lambda 之后**，否则 FROM 可能尚未带上 `AS u`。
+- **WHERE 推荐**：各 where 子方法优先使用「实体字段选择器 + 值」的形式，不推荐复杂组合 LINQ 表达式。例如应写成 `where(() => p.Id, 1)` 或 `where(() => p.Id, 1, ">=")`，而不是 `where((p) => p.Id == 1)`。
+
+### 与 SQLBuilder 对齐边界
+
+- **应对齐**：查询构建主干（FROM/JOIN/WHERE/GROUP/ORDER/分页/子查询条件、UPDATE/DELETE set）。
+- **刻意不进 Clip（用 `useSQL` / Builder / 仓储）**：INSERT、MERGE、CTE、通用 UNION、Apart、`ifs`/`pin`、Pivot 等。
+- **新增公开 API 门禁**：须同时具备语法测试、SQL 产物快照（`SqlSnapshot/SQLClipSqlSnapshot*`）、SQLite 执行测试。
 
 ### 在项目中的位置
 
@@ -46,6 +53,7 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 | `SQLClip from<T>(out T table) where T : new()` | 绑定实体表，`table` 为 out 参数，供后续 Lambda 引用；T 必须有无参构造函数。 |
 | `SQLClip from(string tableName)` | 直接指定 from 表名（字符串）。**必须先**调用过 `from<T>(out T table)` 绑定实体。 |
 | `SQLClip from<T>(string tbname, out T table) where T : new()` | 动态分表：同时指定表名并绑定实体类型与 out 变量。 |
+| `SQLClip from<T>(out T table, Func<SQLClip, SQLClip<T>> subfrom) where T : new()` | 子查询作为 FROM；别名仍由后续 Lambda 中的 out 变量名决定。 |
 
 ---
 
@@ -55,10 +63,14 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 |----------|------|
 | `ClipJoin<J> join<J>(out J tableJ, string joinPrefix = "join") where J : new()` | 通用 JOIN，默认 `"join"`，可传 `"LEFT JOIN"` 等。 |
 | `ClipJoin<J> join<J>(out J tableJ, string joinPrefix, Func<SQLClip, SQLClip<J>> subfrom)` | 子查询作为 JOIN 对象；`subfrom` 用于构建子查询（源码中此重载无 `where J : new()` 约束）。 |
+| `ClipJoin<J> InnerJoin<J>(out J tableJ) where J : new()` | 内连接。 |
+| `ClipJoin<J> InnerJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()` | 子查询内连接。 |
 | `ClipJoin<J> LeftJoin<J>(out J tableJ) where J : new()` | 左连接。 |
 | `ClipJoin<J> LeftJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()` | 子查询左连接。 |
 | `ClipJoin<J> RightJoin<J>(out J tableJ) where J : new()` | 右连接。 |
+| `ClipJoin<J> RightJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()` | 子查询右连接。 |
 | `ClipJoin<J> FullJoin<J>(out J tableJ) where J : new()` | 全连接。 |
+| `ClipJoin<J> FullJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()` | 子查询全连接。 |
 
 ### ClipJoin&lt;T&gt;
 
@@ -72,8 +84,10 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 
 | 方法签名 | 说明 |
 |----------|------|
-| `SQLClip<R> select<R>(Expression<Func<R>> selectCondition)` | Lambda 选列，如 `() => new { user.Id, user.Name }`。 |
-| `SQLClip<R> select<R>(R val) where R : class` | 按「已绑定的表变量」选该表全部列；`val` 必须是前面 from/join 中 out 出来的变量。 |
+| `SQLClip<R> select<R>(Expression<Func<R>> selectCondition)` | Lambda 选列，如 `() => new { user.Id, user.Name }`（字段访问会绑定别名）。 |
+| `SQLClip<R> select<R>(R val) where R : class` | 按「已绑定的表变量」选该表全部列；**须先**有 where/orderBy/on 等字段 Lambda 绑定别名。 |
+| `SQLClip select(string rawSQL)` | 原始 SELECT 片段。 |
+| `SQLClip select<R>(string asName, Func<SQLClip, SQLClip<R>> doColSelect)` | 子查询作为 SELECT 列，`(sub) AS asName`。 |
 
 ---
 
@@ -89,6 +103,7 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 | `SQLClip where<R>(Expression<Func<R>> fieldSelector, R value)` | 字段等于值，推荐形式，如 `where(() => p.Id, 1)`。 |
 | `SQLClip where<R>(Expression<Func<R>> fieldSelector, R value, string op)` | 字段与值按指定操作符比较，如 `where(() => p.Age, 18, ">=")`。 |
 | `SQLClip whereIf<R>(bool isTrue, Expression<Func<R>> fieldSelector, R value)` | 仅当 `isTrue` 为 true 时追加「字段=值」条件。 |
+| `SQLClip whereIf<R>(bool isTrue, Expression<Func<R>> fieldSelector, R value, string op)` | 仅当 `isTrue` 为 true 时追加「字段 op 值」。 |
 
 ### 6.2 空值
 
@@ -97,6 +112,10 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 | `SQLClip whereIsNull<R>(Expression<Func<R>> fieldSelector)` | 字段 IS NULL。 |
 | `SQLClip whereIsNotNull<R>(Expression<Func<R>> fieldSelector)` | 字段 IS NOT NULL。 |
 | `SQLClip whereIsOrNull<R>(Expression<Func<R>> fieldSelector, R value)` | 字段等于某值或为 NULL（如 name=@p OR name IS NULL）。 |
+| `SQLClip whereIsNullOR<R>(Expression<Func<R>> fieldSelector, R value, string op)` | `(field op val OR field IS NULL)`。 |
+| `SQLClip whereVsOrNull<R>(Expression<Func<R>> fieldSelector, R value, string op)` | 同 whereIsNullOR（自定义 op）。 |
+| `SQLClip whereNotLikeOrNull` / `whereNotLikeLeftOrNull` | 否定 LIKE + 可空。 |
+| `SQLClip whereNotInOrNull<R>(...)` | `(NOT IN (...) OR IS NULL)`。 |
 
 ### 6.3 IN / NOT IN
 
@@ -108,7 +127,12 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 | `SQLClip whereIn<R>(Expression<Func<R>> fieldSelector, Func<SQLClip, SQLClip<R>> doSubSelect)` | 字段 IN（子查询由 SQLClip 构建）。 |
 | `SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)` | 字段 NOT IN 集合。 |
 | `SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, params R[] values)` | 字段 NOT IN 多个值。 |
+| `SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, Action<SQLBuilder> doselect)` | 字段 NOT IN（SQLBuilder 子查询）。 |
 | `SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, Func<SQLClip, SQLClip<R>> doSubSelect)` | 字段 NOT IN（子查询由 SQLClip 构建）。 |
+| `SQLClip whereExist(Func<SQLClip, SQLClip> doSubSelect)` | WHERE EXISTS（Clip 子查询）。 |
+| `SQLClip whereExist(Action<SQLBuilder> doselect)` | WHERE EXISTS（Builder 子查询）。 |
+| `SQLClip whereNotExist(Func<SQLClip, SQLClip> doSubSelect)` | WHERE NOT EXISTS（Clip）。 |
+| `SQLClip whereNotExist(Action<SQLBuilder> doselect)` | WHERE NOT EXISTS（Builder）。 |
 
 ### 6.4 LIKE / BETWEEN / 子查询比较
 
@@ -117,6 +141,9 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 | `SQLClip whereLike(Expression<Func<string>> fieldSelector, string searchTxt)` | 模糊匹配，两边加 `%`，如 `LIKE '%keyword%'`。 |
 | `SQLClip whereNotLike(Expression<Func<string>> fieldSelector, string searchTxt)` | NOT LIKE。 |
 | `SQLClip whereLikeLeft(Expression<Func<string>> fieldSelector, string searchTxt)` | 左匹配，如 `LIKE 'prefix%'`。 |
+| `SQLClip whereNotLikeLeft(Expression<Func<string>> fieldSelector, string searchTxt)` | NOT LIKE 'prefix%'。 |
+| `SQLClip whereLikes(..., IEnumerable<string> vals, bool isOr = true)` | 单字段多值模糊。 |
+| `SQLClip whereLikeLefts(..., params string[] likeCodes)` | 单字段多值左模糊。 |
 | `SQLClip whereBetween<R>(Expression<Func<R>> fieldSelector, R min, R max)` | BETWEEN min AND max。 |
 | `SQLClip whereNotBetween<R>(Expression<Func<R>> fieldSelector, R min, R max)` | NOT BETWEEN。 |
 | `SQLClip where<R>(Expression<Func<R>> fieldSelector, string op, Func<SQLClip, SQLClip<R>> doSubSelect)` | 字段与子查询比较，如 op 为 `">"`、`"IN"` 等。 |
@@ -133,6 +160,10 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 |----------|------|
 | `SQLClip sink()` | 开启 AND 分组。 |
 | `SQLClip sinkOR()` | 开启 OR 分组。 |
+| `SQLClip sinkNot()` | 开启否定分组 NOT(...)。 |
+| `SQLClip sinkNotOR()` | 开启否定 OR 分组。 |
+| `SQLClip and()` / `or()` | 后续条件连接符。 |
+| `SQLClip clearWhere()` | 清空 where。 |
 | `SQLClip rise()` | 结束当前分组。 |
 
 ---
@@ -190,9 +221,11 @@ var dtos = clip
 
 | 方法签名 | 说明 |
 |----------|------|
-| `SQLClip orderBy<R>(Expression<Func<R>> orderCondition)` | ORDER BY 字段（ASC）。 |
+| `SQLClip orderBy<R>(Expression<Func<R>> orderCondition)` | ORDER BY 字段（ASC）；会绑定别名。 |
 | `SQLClip orderByDesc<R>(Expression<Func<R>> orderCondition)` | ORDER BY 字段 DESC。 |
 | `SQLClip top(int num)` | 前 N 条（方言由 SQLBuilder/数据库决定）。 |
+| `SQLClip setPage(int? pageSize, int? pageNum)` | 分页（非泛型也可调用）。 |
+| `SQLClip skipTake(int skip, int take)` / `skip` / `take` / `clearPage` | LINQ 风格分页。 |
 | `SQLClip groupBy<R>(Expression<Func<R>> groupCondition)` | GROUP BY。 |
 | `SQLClip having(Expression<Func<bool>> groupCondition)` | HAVING 条件。 |
 | `SQLClip distinct()` | SELECT DISTINCT。 |
@@ -213,6 +246,7 @@ var dtos = clip
 | 方法签名 | 说明 |
 |----------|------|
 | `SQLClip<T> setPage(int pageSize, int pageNum)` | 设置分页参数（仅对 SELECT 有效）。 |
+| `SQLClip<T> skipTake` / `skip` / `take` / `clearPage` | 同非泛型，返回 `SQLClip<T>`。 |
 | `T queryUnique()` | 查询唯一结果：单列时走 queryScalar，多列时走 queryUnique；无结果或多余结果时为 null。 |
 | `IEnumerable<T> queryList()` | 查询列表：单列时为 queryFirstField，多列为 query。 |
 | `PageOutput<T> queryPage()` | 分页查询，返回 `PageOutput<T>`（含列表与总数等）。 |
@@ -278,21 +312,21 @@ var clip = db.useClip();
 clip.from<User>(out var user);
 clip.LeftJoin<Order>(out var order).on(() => order.UserId == user.Id);
 clip.LeftJoin<Order>(out var lastOrder).on(() => lastOrder.UserId == user.Id && lastOrder.Id == user.LastOrderId);
-// user / order / lastOrder 分别为三张参与表的别名来源，无需依赖泛型位置
-var list = clip.select(() => new { user.Id, order.Id, lastOrder.Id }).where(() => user.Status, 1).queryList();
+// user / order / lastOrder 分别为三张参与表的别名来源；先字段 Lambda 再 select
+clip.where(() => user.Status, 1);
+var list = clip.select(() => new { user.Id, order.Id, lastOrder.Id }).queryList();
 ```
 
-### 推荐 WHERE：字段选择器 + 值
+### 推荐 WHERE：字段选择器 + 值（整表 select 放在 where 之后）
 
 ```csharp
 clip.from<User>(out var user);
-clip.select(user);
 clip.where(() => user.Id, 1);                    // 等价于 id=1
 clip.where(() => user.Age, 18, ">=");            // 等价于 age>=18
 clip.whereIf(needName, () => user.Name, "张三");
 clip.whereLike(() => user.Name, keyword);
 clip.whereIn(() => user.Status, statusIds);
-var list = clip.queryList().ToList();
+var list = clip.select(user).queryList().ToList();
 ```
 
 ### 分页与计数
@@ -300,10 +334,13 @@ var list = clip.queryList().ToList();
 ```csharp
 var clip = db.useClip();
 clip.from<User>(out var user);
-var total = clip.select(user).where(() => user.Status, 1).count();
+clip.where(() => user.Status, 1);
+var total = clip.select(user).count();
 
 var page = clip.clear().from<User>(out var u)
-    .select(u).where(() => u.Status, 1)
+    .where(() => u.Status, 1)
+    .orderBy(() => u.Id)
+    .select(u)
     .setPage(10, 1).queryPage();
 // page.Items, page.Total, page.PageSize, page.PageNum
 ```

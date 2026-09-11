@@ -30,8 +30,8 @@ namespace mooSQL.Pure.Tests.TestHelpers
         /// </summary>
         public void CreateAllTables()
         {
-            DropTableIfExists(UserTable);
             DropTableIfExists(OrderTable);
+            DropTableIfExists(UserTable);
             DropTableIfExists(ProductTable);
 
             ExecuteSql($@"

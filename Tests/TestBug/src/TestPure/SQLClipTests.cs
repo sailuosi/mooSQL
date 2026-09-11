@@ -404,7 +404,7 @@ namespace mooSQL.Pure.Tests
 
             // Assert
             cmd.Should().NotBeNull();
-            // 当条件为 false 时，不应该添加 WHERE 子句
+            cmd.sql.Should().NotContain("WHERE", because: "whereIf(false) must not append condition");
         }
 
         [Fact]
