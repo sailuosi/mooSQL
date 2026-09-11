@@ -135,13 +135,31 @@ namespace mooSQL.data
     public partial class SQLClip<T> {
 
         /// <summary>
-        /// 泛型方法 set（返回 SQLClip<T>）。
+        /// 字段赋值（返回 SQLClip&lt;T&gt; 以保持链式类型）。
         /// </summary>
-        public SQLClip<T> set<R>(Expression<Func<T, R>> expression) { 
+        public new SQLClip<T> set<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            base.set(fieldSelector, value);
             return this;
         }
 
+        /// <summary>
+        /// 设置字段值为 SQL 片段（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> set<R>(Expression<Func<R>> fieldSelector, string SQLValue, bool paraed = true)
+        {
+            base.set(fieldSelector, SQLValue, paraed);
+            return this;
+        }
 
+        /// <summary>
+        /// 设置字段值为 null（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> setToNull<R>(Expression<Func<R>> fieldSelector)
+        {
+            base.setToNull(fieldSelector);
+            return this;
+        }
     }
 
 }

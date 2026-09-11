@@ -203,7 +203,7 @@ namespace mooSQL.data.clip
         public void PatchGroupBy(Expression exp) {
             var field = this.TranslateField(exp);
 
-            if (string.IsNullOrWhiteSpace(field))
+            if (!string.IsNullOrWhiteSpace(field))
             {
                 clip.Context.Builder.groupBy(field);
             }

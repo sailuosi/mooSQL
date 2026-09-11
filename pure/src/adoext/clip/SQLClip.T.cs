@@ -34,10 +34,37 @@ namespace mooSQL.data
         /// <param name="pageSize"></param>
         /// <param name="pageNum"></param>
         /// <returns></returns>
-        public SQLClip<T> setPage(int pageSize, int pageNum)
+        public new SQLClip<T> setPage(int pageSize, int pageNum)
         {
+            base.setPage(pageSize, pageNum);
+            return this;
+        }
 
-            Context.Builder.setPage(pageSize, pageNum);
+        /// <inheritdoc cref="SQLClip.skipTake"/>
+        public new SQLClip<T> skipTake(int skip, int take)
+        {
+            base.skipTake(skip, take);
+            return this;
+        }
+
+        /// <inheritdoc cref="SQLClip.skip"/>
+        public new SQLClip<T> skip(int skip)
+        {
+            base.skip(skip);
+            return this;
+        }
+
+        /// <inheritdoc cref="SQLClip.take"/>
+        public new SQLClip<T> take(int take)
+        {
+            base.take(take);
+            return this;
+        }
+
+        /// <inheritdoc cref="SQLClip.clearPage"/>
+        public new SQLClip<T> clearPage()
+        {
+            base.clearPage();
             return this;
         }
 

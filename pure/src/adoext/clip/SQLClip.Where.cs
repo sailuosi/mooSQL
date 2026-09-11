@@ -76,6 +76,52 @@ namespace mooSQL.data
             Context.Builder.sinkOR();
             return this;
         }
+
+        /// <summary>
+        /// 开启否定分组 NOT ( ... AND ... )。
+        /// </summary>
+        public SQLClip sinkNot()
+        {
+            Context.Builder.sinkNot();
+            return this;
+        }
+
+        /// <summary>
+        /// 开启否定 OR 分组 NOT ( ... OR ... )。
+        /// </summary>
+        public SQLClip sinkNotOR()
+        {
+            Context.Builder.sinkNotOR();
+            return this;
+        }
+
+        /// <summary>
+        /// 后续条件用 AND 连接。
+        /// </summary>
+        public SQLClip and()
+        {
+            Context.Builder.and();
+            return this;
+        }
+
+        /// <summary>
+        /// 后续条件用 OR 连接。
+        /// </summary>
+        public SQLClip or()
+        {
+            Context.Builder.or();
+            return this;
+        }
+
+        /// <summary>
+        /// 清空 where 条件。
+        /// </summary>
+        public SQLClip clearWhere()
+        {
+            Context.Builder.clearWhere();
+            return this;
+        }
+
         /// <summary>
         /// 回溯上一个分支。
         /// </summary>
@@ -122,15 +168,93 @@ namespace mooSQL.data
         /// 带有if的判断，如果isTrue,则执行条件，否则不执行
         /// </summary>
         /// <typeparam name="R"></typeparam>
+        /// <param name="isTrue">为 true 时才追加条件</param>
         /// <param name="fieldSelector"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public SQLClip whereIf<R>(bool isTrue,Expression<Func<R>> fieldSelector, R value)
+        public SQLClip whereIf<R>(bool isTrue, Expression<Func<R>> fieldSelector, R value)
+        {
+            return whereIf(isTrue, fieldSelector, value, "=");
+        }
+
+        /// <summary>
+        /// 带有 if 的判断；仅当 isTrue 为 true 时追加「字段 op 值」。
+        /// </summary>
+        public SQLClip whereIf<R>(bool isTrue, Expression<Func<R>> fieldSelector, R value, string op)
+        {
+            if (!isTrue)
+            {
+                return this;
+            }
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.where(field, value, op);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// (field op val OR field IS NULL)。
+        /// </summary>
+        public SQLClip whereIsNullOR<R>(Expression<Func<R>> fieldSelector, R value, string op)
         {
             var field = provider.PatchOutField(fieldSelector);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, value);
+                Context.Builder.whereIsNullOR(field, value, op);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 自定义 op 的可空组合：(field op val OR field IS NULL)。
+        /// </summary>
+        public SQLClip whereVsOrNull<R>(Expression<Func<R>> fieldSelector, R value, string op)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereVsOrNull(field, value, op);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// (NOT LIKE '%val%' OR IS NULL)。
+        /// </summary>
+        public SQLClip whereNotLikeOrNull(Expression<Func<string>> fieldSelector, string searchTxt)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotLikeOrNull(field, searchTxt);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// (NOT LIKE 'val%' OR IS NULL)。
+        /// </summary>
+        public SQLClip whereNotLikeLeftOrNull(Expression<Func<string>> fieldSelector, string searchTxt)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotLikeLeftOrNull(field, searchTxt);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// (NOT IN (...) OR IS NULL)。
+        /// </summary>
+        public SQLClip whereNotInOrNull<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotInOrNull(field, values);
             }
             return this;
         }
@@ -285,6 +409,70 @@ namespace mooSQL.data
             }
             return this;
         }
+
+        /// <summary>
+        /// 子查询采用 SQLBuilder 方式构造 where not in。
+        /// </summary>
+        public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, Action<SQLBuilder> doselect)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotIn(field, doselect);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// WHERE EXISTS（SQLClip 子查询）。
+        /// </summary>
+        public SQLClip whereExist(Func<SQLClip, SQLClip> doSubSelect)
+        {
+            if (doSubSelect == null)
+            {
+                return this;
+            }
+            var bro = Context.Builder.getBrotherBuilder();
+            var sub = DBLive.useClip(bro);
+            doSubSelect(sub);
+            Context.Builder.whereExist(sub.toSelect().sql);
+            return this;
+        }
+
+        /// <summary>
+        /// WHERE EXISTS（SQLBuilder 子查询）。
+        /// </summary>
+        public SQLClip whereExist(Action<SQLBuilder> doselect)
+        {
+            Context.Builder.whereExist(doselect);
+            return this;
+        }
+
+        /// <summary>
+        /// WHERE NOT EXISTS（SQLClip 子查询）。
+        /// </summary>
+        public SQLClip whereNotExist(Func<SQLClip, SQLClip> doSubSelect)
+        {
+            if (doSubSelect == null)
+            {
+                return this;
+            }
+            var bro = Context.Builder.getBrotherBuilder();
+            var sub = DBLive.useClip(bro);
+            doSubSelect(sub);
+            Context.Builder.whereNotExist(sub.toSelect().sql);
+            return this;
+        }
+
+        /// <summary>
+        /// WHERE NOT EXISTS（SQLBuilder 子查询）。
+        /// </summary>
+        public SQLClip whereNotExist(Action<SQLBuilder> doselect)
+        {
+            Context.Builder.whereNotExist(doselect);
+            return this;
+        }
+
         /// <summary>
         /// 构造like语句，用于模糊查询字段。例如：whereLike(x=>x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。
         /// </summary>
@@ -333,6 +521,46 @@ namespace mooSQL.data
             }
             return this;
         }
+
+        /// <summary>
+        /// 左模糊 NOT LIKE 'val%'。
+        /// </summary>
+        public SQLClip whereNotLikeLeft(Expression<Func<string>> fieldSelector, string searchTxt)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereNotLikeLeft(field, searchTxt);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 单字段多值 OR/AND 模糊：LIKE '%v%'。
+        /// </summary>
+        public SQLClip whereLikes(Expression<Func<string>> fieldSelector, IEnumerable<string> vals, bool isOr = true)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereLikes(field, vals, isOr);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 单字段多值左模糊：LIKE 'v%'。
+        /// </summary>
+        public SQLClip whereLikeLefts(Expression<Func<string>> fieldSelector, params string[] likeCodes)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.whereLikeLefts(field, likeCodes);
+            }
+            return this;
+        }
+
         /// <summary>
         /// between and 
         /// </summary>

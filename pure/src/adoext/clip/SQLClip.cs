@@ -223,6 +223,31 @@ namespace mooSQL.data
 
             return this;
         }
+
+        /// <summary>
+        /// 子查询作为 FROM：绑定实体，别名仍由后续 Lambda 中的 out 变量名决定（须先 where/字段选择再 select）。
+        /// </summary>
+        public SQLClip from<T>(out T table, Func<SQLClip, SQLClip<T>> subfrom) where T : new()
+        {
+            var bro = Context.Builder.getBrotherBuilder();
+            var sub = DBLive.useClip(bro);
+            subfrom(sub);
+            var sql = sub.toSelect().sql;
+
+            table = new T();
+            var bt = new ClipTable()
+            {
+                BindValue = table,
+                EnityType = typeof(T),
+                TableInfo = DBLive.client.EntityCash.getEntityInfo<T>(),
+                BType = ClipTableType.FromBy,
+                BSrc = ClipTableSrc.SubSQL,
+                querySQL = sql,
+            };
+            this.Context.BindFrom(table, bt);
+            return this;
+        }
+
         /// <summary>
         /// 构造JOIN语句，用于连接其他表。
         /// </summary>
@@ -271,6 +296,7 @@ namespace mooSQL.data
             {
                 BindValue = tableJ,
                 EnityType = typeof(J),
+                TableInfo = DBLive.client.EntityCash.getEntityInfo(typeof(J)),
                 BType = ClipTableType.JoinBy,
                 BSrc = ClipTableSrc.SubSQL,
                 querySQL = sql,
@@ -278,6 +304,22 @@ namespace mooSQL.data
             this.Context.BindJoin(tableJ, bt);
             return join;
 
+        }
+
+        /// <summary>
+        /// INNER JOIN。
+        /// </summary>
+        public ClipJoin<J> InnerJoin<J>(out J tableJ) where J : new()
+        {
+            return join<J>(out tableJ, "INNER JOIN");
+        }
+
+        /// <summary>
+        /// INNER JOIN 子查询。
+        /// </summary>
+        public ClipJoin<J> InnerJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()
+        {
+            return join<J>(out tableJ, "INNER JOIN", subfrom);
         }
 
         /// <summary>
@@ -307,6 +349,15 @@ namespace mooSQL.data
         {
             return join<J>(out tableJ, "RIGHT JOIN");
         }
+
+        /// <summary>
+        /// RIGHT JOIN 子查询。
+        /// </summary>
+        public ClipJoin<J> RightJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()
+        {
+            return join<J>(out tableJ, "RIGHT JOIN", subfrom);
+        }
+
         /// <summary>
         /// 构造FULL JOIN语句，用于连接其他表。
         /// </summary>
@@ -316,6 +367,14 @@ namespace mooSQL.data
         public ClipJoin<J> FullJoin<J>(out J tableJ) where J : new()
         {
             return join<J>(out tableJ, "FULL JOIN");
+        }
+
+        /// <summary>
+        /// FULL JOIN 子查询。
+        /// </summary>
+        public ClipJoin<J> FullJoin<J>(out J tableJ, Func<SQLClip, SQLClip<J>> subfrom) where J : new()
+        {
+            return join<J>(out tableJ, "FULL JOIN", subfrom);
         }
 
         /// <summary>
@@ -354,6 +413,20 @@ namespace mooSQL.data
             Context.Builder.select(rawSQL);
             return this;
         }
+
+        /// <summary>
+        /// 子查询作为 SELECT 列：(subquery) AS asName。
+        /// </summary>
+        public SQLClip select<R>(string asName, Func<SQLClip, SQLClip<R>> doColSelect)
+        {
+            Context.Builder.select(asName, bro =>
+            {
+                var sub = DBLive.useClip(bro);
+                doColSelect(sub);
+            });
+            return this;
+        }
+
         /// <summary>
         /// 构造TOP语句。例如：top(10) 即 select top 10 * from ...;
         /// </summary>
@@ -361,6 +434,45 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip top(int num) { 
             Context.Builder.top(num);
+            return this;
+        }
+
+        /// <summary>
+        /// 分页：pageSize / pageNum；null 时底层忽略。
+        /// </summary>
+        public SQLClip setPage(int? pageSize, int? pageNum)
+        {
+            Context.Builder.setPage(pageSize, pageNum);
+            return this;
+        }
+
+        /// <summary>
+        /// LINQ 风格分页；take=-1 表示仅跳过不限制。
+        /// </summary>
+        public SQLClip skipTake(int skip, int take)
+        {
+            Context.Builder.skipTake(skip, take);
+            return this;
+        }
+
+        /// <summary>仅跳过。</summary>
+        public SQLClip skip(int skip)
+        {
+            Context.Builder.skip(skip);
+            return this;
+        }
+
+        /// <summary>仅限制条数。</summary>
+        public SQLClip take(int take)
+        {
+            Context.Builder.take(take);
+            return this;
+        }
+
+        /// <summary>清除分页参数。</summary>
+        public SQLClip clearPage()
+        {
+            Context.Builder.clearPage();
             return this;
         }
 
@@ -421,6 +533,7 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
         public SQLCmd toSelect() { 
+            provider.PatchBeforeSelect();
             return Context.Builder.toSelect();
         }
         /// <summary>
