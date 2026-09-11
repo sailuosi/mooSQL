@@ -16,11 +16,16 @@ namespace mooSQL.excel
         /// <summary>
         /// 在Excel的datatable行循环开始前，执行一些准备工作。
         /// </summary>
-        public void workBeforeReadRows()
+        /// <returns>false 表示准备阶段中止（如 <c>onBeforeReadTable</c> 返回 false），调用方应跳过行循环。</returns>
+        public bool workBeforeReadRows()
         {
             if (context.option.onBeforeReadTable != null)
             {
                 var re = context.option.onBeforeReadTable(this);
+                if (re == false)
+                {
+                    return false;
+                }
             }
             this.setProgress("正在与系统环境数据通讯，导入即将开始...");
             //检查输出标识列
@@ -87,6 +92,7 @@ namespace mooSQL.excel
             //导入数据库前，写入当期导入日志,
             //该调用造成日志重复，移除20201206
             //writelog( info,"pretip");
+            return true;
         }
         /// <summary>
         /// 添加内部用的环境固定值列

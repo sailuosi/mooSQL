@@ -24,10 +24,26 @@ namespace mooSQL.excel
         /// </summary>
         public virtual void ReadDataRows()
         {
-            workBeforeReadRows();
-            var strSQLs = new StringBuilder();
+            if (!workBeforeReadRows())
+            {
+                pushLog("导入准备阶段已中止（onBeforeReadTable 返回 false），跳过数据行处理。<br/>", "important");
+                pushLog("数据核查处理已结束，正在保存数据。", "important");
+                setProgress("数据核查处理已结束，正在保存数据。请稍候...");
+                var earlyMsg = doBulk();
+                if (earlyMsg == "")
+                {
+                    earlyMsg = "未添加任何数据；";
+                }
+                var earlyResult = string.Format("导入结束！最终执行结果统计：{0}<br/>\n<br/>", earlyMsg);
+                writeState = string.Format("本次导入总计发现Excel数据{0}条，尝试写入{1}条，处理重复{2}条", excelDt != null ? excelDt.Rows.Count : 0, context.writelog[0].ToString(), context.writelog[2].ToString());
+                pushLog(earlyResult, "result");
+                saveLog();
+                setProgress(earlyResult);
+                this.setWorkState(true);
+                return;
+            }
             //为优化性能，更改为每10条进行一次提交。
-            int sqlres = 0;//记录sql语句影响的行数
+            int sqlres = 0;//记录sql语句影响的行数（本阶段不编造中途影响行数）
             //for (int i = 0; i < excelDt.Rows.Count; i++)
             foreach (var erow in excelRows)
             {
@@ -42,13 +58,8 @@ namespace mooSQL.excel
                 //取得拼接结果
                 exceptionIndex = i + 1;
                 //var kvold = new Dictionary<string,string>(wkinfo.kvmap);
-                strSQLs.Append(WriteExcelRow(erow.Value));
+                WriteExcelRow(erow.Value);
                 bool toStop = getCacheValue("status").ToString() == "needStop";
-
-                if (strSQLs.Length == 0 && !toStop)
-                {
-                    continue;
-                }
 
                 if (i % 10 == 0 || i == excelDt.Rows.Count - 1)
                 {
@@ -156,7 +167,13 @@ namespace mooSQL.excel
                 row.rowMark += cpname + "为" + outv + "";
             }
 
-            if (WriteTablesForRow(row) == breakPoint.excelRowContine)
+            var tablesBp = WriteTablesForRow(row);
+            if (tablesBp == breakPoint.excel)
+            {
+                setCacheValue("status", "needStop");
+                return "";
+            }
+            if (tablesBp == breakPoint.excelRowContine)
             {
                 return "";
             }
@@ -200,6 +217,7 @@ namespace mooSQL.excel
                             var dwres = this.doTableWrite(tbinfo);
                             checkClearConnectCol(tbinfo, dwres);
                             if (dwres == breakPoint.excelRowContine) { return breakPoint.excelRowContine; }
+                            else if (dwres == breakPoint.excel) { return breakPoint.excel; }
                             else if (dwres == breakPoint.tableBreak) { break; }
                         }
                     }
@@ -222,6 +240,7 @@ namespace mooSQL.excel
                         var dwres = this.doTableWrite(tbinfo);
                         checkClearConnectCol(tbinfo, dwres);
                         if (dwres == breakPoint.excelRowContine) { return breakPoint.excelRowContine; }
+                        else if (dwres == breakPoint.excel) { return breakPoint.excel; }
                         else if (dwres == breakPoint.tableBreak) { break; }
                     }
                 }
@@ -269,6 +288,10 @@ namespace mooSQL.excel
                 li.bulk.bulkTarget.Rows.Clear();
                 li.updateSQL.Clear();
                 //li.oldData.oldData.RejectChanges();
+                return msg;
+            }
+            if (msg != breakPoint.none)
+            {
                 return msg;
             }
             if (checkRows == null) { return breakPoint.tableContinue; }
@@ -333,7 +356,7 @@ namespace mooSQL.excel
         /// </summary>
         /// <param name="li">写入表。</param>
         /// <param name="tbinfo">与 <paramref name="li"/> 相同的表上下文（保持与原调用点一致）。</param>
-        /// <param name="jump">跳转控制符（与原逻辑一致，按值传递）。</param>
+        /// <param name="jump">保留参数以兼容 override；控制流以 <see cref="patchValueToWrite"/> 返回码为准。</param>
         /// <returns><see cref="breakPoint.none"/> 表示继续 <see cref="doRowAdd"/>；其它值表示中断本表写入。</returns>
         protected virtual breakPoint ApplyWriteColumns(WriteTable li, WriteTable tbinfo, string jump)
         {
@@ -344,24 +367,24 @@ namespace mooSQL.excel
                 context.valueCollection.loadWriteColValue(li.srcRow.dataRow, col);
 
                 var ptres = this.patchValueToWrite(col, context.valueCollection.getColVal(col), tbinfo, jump);
-                if (ptres == "break" || ptres == "end")
+                if (ptres == "end")
+                {
+                    context.writelog[3]++;
+                    return breakPoint.excelRowContine;
+                }
+                if (ptres == "b")
+                {
+                    context.writelog[3]++;
+                    return breakPoint.tableBreak;
+                }
+                if (ptres == "c" || ptres == "break")
                 {
                     context.writelog[3]++;
                     return breakPoint.tableContinue;
                 }
+                // "" / "continue" → 继续列循环
             }
 
-
-            if (jump == "c")
-            {
-                context.writelog[3]++;
-                return breakPoint.tableContinue;
-            }
-            else if (jump == "b")
-            {
-                context.writelog[3]++;
-                return breakPoint.tableBreak;
-            }
             return breakPoint.none;
         }
         /// <summary>
@@ -584,12 +607,15 @@ namespace mooSQL.excel
         /// <param name="col"></param>
         /// <param name="val"></param>
         /// <param name="tbinfo"></param>
-        /// <param name="jump"></param>
-        /// <returns></returns>
+        /// <param name="jump">保留以兼容 override；控制流以返回串为准，不再依赖本参数回传。</param>
+        /// <returns>
+        /// 控制码：<c>c</c>/<c>break</c>=跳过本表；<c>b</c>=中断后续表；<c>end</c>=中断本 Excel 行；
+        /// <c>continue</c> 或空=继续列循环。
+        /// </returns>
         public virtual string patchValueToWrite(colInfo col, string val, WriteTable tbinfo, string jump)
         {
             /* 列循环--列值纳入  将写入所需数据从kvmap中取出，放置到写入的存储容器tabmap或者bulkrow中
-             * 返回控制符：end=终止excel本行写入  break=终止本表的行插入  
+             * 返回控制符：end=终止excel本行写入  b=终止后续表  c/break=终止本表
              */
             var checkRows = tbinfo.checkResult;
             bool isInsert = checkRows.Length == 0;
@@ -630,29 +656,25 @@ namespace mooSQL.excel
                     switch (tbinfo.option.failPolicy)
                     {
                         case checkFailAct.self:
-                            jump = "c";//继续下一写入表
                             pushLog(rowtip + "，继续处理下一部分。<br/>", "important");
-                            break;
+                            return "c";
                         case checkFailAct.silent:
-                            jump = "c";
-                            break;
+                            return "c";
                         case checkFailAct.next://保留之前的导入表数据，丢弃本表和后续数据
-                            jump = "b";
                             pushLog(rowtip + "，放弃本行后续导入并处理下一行。<br/>", "error");
-                            break;
+                            return "b";
                         case checkFailAct.row://丢弃本行数据并扫描下一行excel
                             pushLog(rowtip + "，放弃本行数据导入并处理下一行。<br/>", "error");
                             return "end";
                         case checkFailAct.before://清除之前的并继续
-                            jump = "c";
                             tbinfo.bulk.bulkTarget.RejectChanges();
                             tbinfo.updateSQL.Clear();
                             tbinfo.addedIds.Clear();
                             pushLog(rowtip + "，放弃本行先行数据导入。<br/>", "error");
-                            res = "continue";
-                            return res;
+                            return "c";
+                        default:
+                            return "c";
                     }
-                    return "break";
                 }
                 else
                 {   //因提示信息太多，筛查不便，放弃循环中的小提示的显示和记录
@@ -757,6 +779,15 @@ namespace mooSQL.excel
                 if (context.valueCollection.isValid(tbinfo.checkingWhere))
                     tbinfo.addedIds.AddNotNull(tbinfo.checkingWhere, writeback);
             }
+
+            try
+            {
+                OnAfterInsertRow(tbinfo, tbinfo.addingRow);
+            }
+            catch (Exception ex)
+            {
+                pushLog("OnAfterInsertRow 日志回调异常（不影响落库）：" + ex.Message + "<br/>", "important");
+            }
         }
 
         /// <summary>
@@ -779,7 +810,33 @@ namespace mooSQL.excel
                 tbinfo.EndUpdate();
                 //tbinfo.updateSQL.Append(tbinfo.DBInstance.expression.dealUpdate(tbinfo.option.DBName, tbinfo.updatekv, keycolUpdate));
             }
+
+            if (checkRows != null && checkRows.Length > 0)
+            {
+                try
+                {
+                    OnAfterUpdateRow(tbinfo, checkRows[0]);
+                }
+                catch (Exception ex)
+                {
+                    pushLog("OnAfterUpdateRow 日志回调异常（不影响落库）：" + ex.Message + "<br/>", "important");
+                }
+            }
         }
+
+        /// <summary>
+        /// 攒批插入一行成功后调用。业务 override 仅写日志即可；勿在此改变写入结果。
+        /// </summary>
+        /// <param name="tb">写入表。</param>
+        /// <param name="row">已加入 Bulk 的行（通常为 <c>tb.addingRow</c>）。</param>
+        protected virtual void OnAfterInsertRow(WriteTable tb, DataRow row) { }
+
+        /// <summary>
+        /// 攒批更新一行成功后调用。业务 override 仅写日志即可；勿在此改变写入结果。
+        /// </summary>
+        /// <param name="tb">写入表。</param>
+        /// <param name="row">查重命中的库行（通常为 <c>checkResult[0]</c>）。</param>
+        protected virtual void OnAfterUpdateRow(WriteTable tb, DataRow row) { }
         #endregion
     }
 }

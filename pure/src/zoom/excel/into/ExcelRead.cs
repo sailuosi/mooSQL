@@ -505,9 +505,15 @@ namespace mooSQL.excel
         public virtual string doBulk()
         {
             var msg = new StringBuilder();
+            bool skipSave = false;
             if (context.option.onBeforeSave != null)
             {
                 var bsv = context.option.onBeforeSave(this,msg);
+                if (bsv == false)
+                {
+                    skipSave = true;
+                    pushLog("数据保存已中止（onBeforeSave 返回 false）。<br/>", "important");
+                }
             }
             //对每个写入表，检查并执行写入
             long cc = 0;
@@ -527,19 +533,22 @@ namespace mooSQL.excel
                 }
 
             }
-            foreach (var kv in Writelist)
-            {   //获取基准列类型数据
-                var tb = kv.Value;
-                SaveWriteTable(tb);
-                if (tb.canInsert)
-                {
-                    cc += tb.insertCount;
-                    if (tb.insertCount > 0) msg .AppendFormat("表【{0}】成功写入{1}条数据;",tb.option.caption, tb.insertCount);
-                }
-                if (tb.canUpdate)
-                {
+            if (!skipSave)
+            {
+                foreach (var kv in Writelist)
+                {   //获取基准列类型数据
+                    var tb = kv.Value;
+                    SaveWriteTable(tb);
+                    if (tb.canInsert)
+                    {
+                        cc += tb.insertCount;
+                        if (tb.insertCount > 0) msg .AppendFormat("表【{0}】成功写入{1}条数据;",tb.option.caption, tb.insertCount);
+                    }
+                    if (tb.canUpdate)
+                    {
 
-                    if (tb.updateCount>0) msg.AppendFormat("表【{0}】成功更新{1}条数据;", tb.option.caption, tb.updateCount);
+                        if (tb.updateCount>0) msg.AppendFormat("表【{0}】成功更新{1}条数据;", tb.option.caption, tb.updateCount);
+                    }
                 }
             }
             if(this.afterSave != null)
@@ -702,7 +711,7 @@ namespace mooSQL.excel
         public string formatSqlKey(string freeStr, out int errCount)
         {
 
-            const string regs = @"${.*?}";
+            const string regs = @"\$\{.*?\}";
             errCount = 0;
             string res = freeStr;
             MatchCollection matches = Regex.Matches(freeStr, regs);

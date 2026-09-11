@@ -51,6 +51,11 @@ namespace mooSQL.excel
             if (context.option.onBeforeReadExcel != null)
             {
                 var res = context.option.onBeforeReadExcel(workbook, dataTable, this);
+                if (res == false)
+                {
+                    this.pushLog("导入在读取 Excel 前已中止（onBeforeReadExcel 返回 false）。\n<br/>", "important");
+                    return dataTable;
+                }
             }
 
             this.pushLog("准备导入Excel文件.\n<br/>", "tip");
@@ -63,6 +68,15 @@ namespace mooSQL.excel
                 if (context.option.onBeforeReadSheet != null)
                 {
                     var res = context.option.onBeforeReadSheet(sheet, dataTable, this);
+                    if (res == false)
+                    {
+                        this.pushLog("导入在读取工作表前已中止（onBeforeReadSheet 返回 false）。\n<br/>", "important");
+                        if (context.option.onAfterReadExcel != null)
+                        {
+                            context.option.onAfterReadExcel(workbook, dataTable, this);
+                        }
+                        return dataTable;
+                    }
                 }
                 int rowCount = sheet.RowCount;//总行数
                 if (rowCount < 1)
@@ -266,10 +280,6 @@ namespace mooSQL.excel
 
                         this.readExcelRowToDt(dataTable, sheet, kvRow.Key);
                     }
-                }
-                if (context.option.onBeforeReadExcel != null)
-                {
-                    var res = context.option.onBeforeReadExcel(workbook, dataTable, this);
                 }
             }
 

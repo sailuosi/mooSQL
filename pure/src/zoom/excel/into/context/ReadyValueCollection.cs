@@ -277,7 +277,10 @@ namespace mooSQL.excel
             {
                 if (col.option.replaceReg != null)
                 {
-                    Regex.Replace(col.writeValue, col.option.replaceReg, col.option.replaceAs);
+                    if (col.writeValue != null)
+                    {
+                        col.writeValue = Regex.Replace(col.writeValue, col.option.replaceReg, col.option.replaceAs ?? "");
+                    }
                 }
                 if (col.option.onAfterLoadData != null)
                 {

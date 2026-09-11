@@ -369,10 +369,26 @@ saveToDatabase（非 virtual 外壳）
 | `ApplyWriteColumns` | `protected virtual` | `writeCols` + `patchValueToWrite` |
 | `patchValueToWrite` | `public virtual` | 单列写入 Bulk/更新集 |
 | `doRowAdd` | `protected virtual` | `onBeforeRowAdd` 后分支插入/更新 |
-| `ExecuteInsertRow` | `protected virtual` | 攒批插入 |
-| `ExecuteUpdateRow` | `protected virtual` | 攒批更新 |
+| `ExecuteInsertRow` | `protected virtual` | 攒批插入；末尾调用 `OnAfterInsertRow` |
+| `ExecuteUpdateRow` | `protected virtual` | 攒批更新；末尾调用 `OnAfterUpdateRow` |
+| `OnAfterInsertRow` | `protected virtual` | **业务写日志专用**（默认空）；插入攒批成功后 |
+| `OnAfterUpdateRow` | `protected virtual` | **业务写日志专用**（默认空）；更新攒批成功后 |
 | `doBulk` | `public virtual` | 全局 before/after + 各表保存 |
 | `SaveWriteTable` | `protected virtual` | 单表落库，默认 `tb.save()` |
+
+**行日志虚方法（推荐业务用法）**
+
+- 只 override `OnAfterInsertRow` / `OnAfterUpdateRow` 写 txt/审计即可，**不要**为日志去 override `ExecuteInsertRow`/`ExecuteUpdateRow`。
+- 时机是**攒批认定**之后，不是 `BulkInsert` 物理提交之后；已提交库的日志请 override `SaveWriteTable`。
+- 默认 `Execute*` 用 try/catch 包裹 `OnAfter*`：日志异常只 `pushLog`，**不中断**导入。
+- 若业务 override `Execute*` 且不 `base.`，须自行调用 `OnAfter*`（或改回只 override `OnAfter*`）。
+
+```csharp
+protected override void OnAfterInsertRow(WriteTable tb, DataRow row)
+{
+    File.AppendAllText(logPath, $"INSERT {tb.option.DBName} ...\n");
+}
+```
 
 **与 Func 钩子的优先级**
 
@@ -404,6 +420,21 @@ protected override breakPoint WriteTablesForRow(rowInfo row)
 ```
 
 **约束**：override 时勿破坏 `breakPoint`、`writelog[]`、主键回写与多表 `failPolicy` 约定；`saveToDatabase` 仍为非 virtual 外壳（异常与进度收尾固化）。
+
+**列校验 / 判重断点映射（正确性约定）**
+
+| 来源 | 控制结果 |
+|------|----------|
+| `CheckTable` 的 `out msg != none` | `doTableWrite` 立即返回该 `msg`，不再写列 |
+| 列 `failPolicy=self/silent` | `patch` → `"c"` → `tableContinue` |
+| 列 `failPolicy=next` | `patch` → `"b"` → `tableBreak` |
+| 列 `failPolicy=row` | `patch` → `"end"` → `excelRowContine` |
+| 列 `failPolicy=before` | 清 Bulk 后 `"c"` → `tableContinue` |
+| 判重多命中 `failPolicy=excel` | `msg=excel` → `WriteExcelRow` 置 `status=needStop` |
+
+**钩子 `false` 语义**：`onBeforeReadExcel` / `onBeforeReadSheet` / `onBeforeReadTable` / `onBeforeSave` 返回 false 分别中止读簿、跳过 sheet、跳过行循环、跳过 `SaveWriteTable`（仍跑 after/回写）。`onBeforeReadExcel` 仅在读开始调用一次。
+
+**行为变更说明（相对历史缺陷）**：`failPolicy=next/row/excel`、中途每 10 行 `ployUpdteSQL`、`${列键}` 模板、`replaceReg` 写回自此按文档生效；依赖「从不生效」的旧配置可能变严。
 
 ---
 
@@ -455,7 +486,16 @@ whereIn 源列只能是：固定值列、cell、match 等**行循环前可收集
 
 ### 7.6 断点枚举 `breakPoint`
 
-控制表循环与 Excel 行循环协作：`excelRowContine`（跳过当前 Excel 行）、`tableBreak`（不再处理后续表）、`tableContinue`、`clear`（清空已攒 Bulk）等。钩子与查重失败路径依赖这些语义，扩展时勿混用。
+控制表循环与 Excel 行循环协作：`excelRowContine`（跳过当前 Excel 行）、`tableBreak`（不再处理后续表）、`tableContinue`、`excel`（整簿中止，置 `needStop`）、`clear`（清空已攒 Bulk）等。列校验与判重须走同一套映射（见 §6.4）。扩展时勿混用字符串 `jump` 与断点枚举。
+
+### 7.7 手动验收清单（正确性）
+
+- [ ] 多命中查重 + 各 `failPolicy`（含 `excel` 整簿停止）
+- [ ] 列必填失败时 `next`/`row`/`self` 行为
+- [ ] `onBeforeReadExcel` / `onBeforeSave` 返回 false
+- [ ] `replaceReg` 去空格；`baseWhere` 含 `${列键}`
+- [ ] 仅 override `OnAfterInsertRow`/`OnAfterUpdateRow` 写 txt；日志抛错不阻断导入
+- [ ] 更新导入时每约 10 行会触发中途 `ployUpdteSQL`（网络/库侧可观察）
 
 ---
 
@@ -465,7 +505,7 @@ whereIn 源列只能是：固定值列、cell、match 等**行循环前可收集
 
 1. 继承 `ExcelLoad`（或项目内已有宿主基类），实现 §6.3。
 2. 用 `InConfig` 或 `setOption` 声明表与列；能配置的不要写钩子。
-3. 仅在下列情况加钩子或 Virtual override：跨表业务规则、非 SQL 可表达的查重、单元格清洗、自定义备查数据源；整段替换行/表循环、插入/更新执行时用 §6.4 的 `override`。
+3. 仅在下列情况加钩子或 Virtual override：跨表业务规则、非 SQL 可表达的查重、单元格清洗、自定义备查数据源；整段替换行/表循环、插入/更新执行时用 §6.4 的 `override`；**行级审计日志用 `OnAfterInsertRow`/`OnAfterUpdateRow`**。
 4. 用 `outInfoCol` + 少量 `important` 日志保证可运维性；需要下载带结果的原表时打开 `saveMsgToExcel`。
 
 ### 8.2 改核心前的检查清单
