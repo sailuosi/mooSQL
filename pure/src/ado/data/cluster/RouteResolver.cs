@@ -221,9 +221,8 @@ namespace mooSQL.data.cluster
             var group = GetGroup(position);
             if (group == null) return ArrayCache.Empty<DBInstance>();
 
-
-            var master = ResolveWrite(position, ctx);
-            var list = new List<DBInstance> { master };
+            // 仅返回双写从库，不含主库（主库由调用方单独写入）
+            var list = new List<DBInstance>();
 
             if (ctx?.DualWritePositions != null && ctx.DualWritePositions.Length > 0)
             {

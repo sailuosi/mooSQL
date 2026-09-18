@@ -224,5 +224,58 @@ namespace mooSQL.Pure.Tests
             resolver.ResolveRead(5).config.index.Should().Be(5);
             resolver.ResolveWrite(5).config.index.Should().Be(5);
         }
+
+        [Fact]
+        public void enableDualWrite_registers_CanDualWrite_slave()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 0 });
+            cash.addDataBase(100, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 100 });
+            client.configureGroup(0, g => g.master(0).enableDualWrite(100));
+
+            var member = client.getGroup(0).Slaves.Find(s => s.Position == 100);
+            member.Should().NotBeNull();
+            member.DualWrite.Should().BeTrue();
+            member.WriteEnabled.Should().BeTrue();
+            member.CanDualWrite.Should().BeTrue();
+            member.ReadReplica.Should().BeFalse();
+            member.CanRead.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ResolveDualWriteTargets_includes_only_dual_write_slave()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 0 });
+            cash.addDataBase(100, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 100 });
+            client.configureGroup(0, g => g.master(0).enableDualWrite(100));
+
+            var resolver = new RouteResolver(client, cash);
+            var targets = resolver.ResolveDualWriteTargets(0);
+            targets.Should().HaveCount(1);
+            targets[0].config.index.Should().Be(100);
+        }
+
+        [Fact]
+        public void DualWrite_only_slave_is_not_used_for_read()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 0 });
+            cash.addDataBase(100, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:", index = 100 });
+            client.configureGroup(0, g => g
+                .master(0)
+                .autoReadReplica(true)
+                .enableDualWrite(100));
+
+            var resolver = new RouteResolver(client, cash);
+            // 无 ReadReplica 可读从库时，读回退主库，不走 DualWrite 位
+            resolver.ResolveRead(0).config.index.Should().Be(0);
+        }
     }
 }

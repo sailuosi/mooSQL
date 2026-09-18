@@ -2,12 +2,14 @@
 
 
 using mooSQL.data.call;
+using mooSQL.data.cluster;
 using mooSQL.data.context;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 
 
 
@@ -79,9 +81,31 @@ namespace mooSQL.data
         {
             CheckDB();
             var exe = EnsureExecutionExecutor();
-            if (exe.RouteContext?.EnableDualWrite == true)
+            if (ShouldApplyDualWrite())
                 exe.SkipAsyncReplication = true;
         }
+
+        /// <summary>
+        /// 显式 EnableDualWrite，或主从组内存在 CanDualWrite 从库时启用同步双写。
+        /// </summary>
+        private bool ShouldApplyDualWrite()
+        {
+            if (MooClient == null) return false;
+            if (Executor?.RouteContext?.EnableDualWrite == true) return true;
+            var pos = position > -1 ? position : (DBLive?.config?.index ?? 0);
+            var group = MooClient.getGroup(pos);
+            return group?.Slaves != null && group.Slaves.Any(s => s.CanDualWrite);
+        }
+
+        private int ExecuteDualWriteNonQuery(SQLCmd sql)
+        {
+            var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
+            var master = DBLive ?? MooClient?.CashHolder?.getInstance(pos);
+            var slaves = MooClient.resolveDualWriteTargets(pos, Executor?.RouteContext);
+            var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? DualWriteErrorPolicy.MasterWins;
+            return WriteFanoutExecutor.ExecuteNonQuery(sql, master, slaves, Executor, policy);
+        }
+
         /// <summary>
         /// 执行SQL
         /// </summary>
@@ -92,13 +116,8 @@ namespace mooSQL.data
             if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
             CheckDBForWrite();
             doPrintSQL(sql);
-            if (Executor?.RouteContext?.EnableDualWrite == true && MooClient != null)
-            {
-                var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
-                var targets = MooClient.resolveDualWriteTargets(pos, Executor.RouteContext);
-                var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
-                return cluster.WriteFanoutExecutor.ExecuteNonQuery(sql, targets, Executor, policy);
-            }
+            if (ShouldApplyDualWrite())
+                return ExecuteDualWriteNonQuery(sql);
             return DBLive.ExeNonQuery(sql, Executor);
         }
         /// <summary>
@@ -111,13 +130,8 @@ namespace mooSQL.data
             if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
             CheckDBForWrite();
             doPrintSQL(sql);
-            if (Executor?.RouteContext?.EnableDualWrite == true && MooClient != null)
-            {
-                var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
-                var targets = MooClient.resolveDualWriteTargets(pos, Executor.RouteContext);
-                var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? cluster.DualWriteErrorPolicy.MasterWins;
-                return Task.FromResult(cluster.WriteFanoutExecutor.ExecuteNonQuery(sql, targets, Executor, policy));
-            }
+            if (ShouldApplyDualWrite())
+                return Task.FromResult(ExecuteDualWriteNonQuery(sql));
             return DBLive.ExeNonQueryAsync(sql, Executor);
         }
         /// <summary>
