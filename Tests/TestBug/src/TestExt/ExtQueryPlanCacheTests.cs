@@ -13,11 +13,16 @@ namespace TestMooSQL.TestExt;
 /// <summary>
 /// Ext Queryable 计划缓存 / CompileQuery 回归。
 /// </summary>
+[Collection("DbFuncMatrix")]
 public class ExtQueryPlanCacheTests : IClassFixture<LinqSqliteTestFixture>
 {
     readonly LinqSqliteTestFixture _fx;
 
-    public ExtQueryPlanCacheTests(LinqSqliteTestFixture fx) => _fx = fx;
+    public ExtQueryPlanCacheTests(LinqSqliteTestFixture fx)
+    {
+        QueryRunner.ClearCaches();
+        _fx = fx;
+    }
 
     [Fact]
     public void StructuralComparer_SameShape_DifferentClosureValues_AreEqual()

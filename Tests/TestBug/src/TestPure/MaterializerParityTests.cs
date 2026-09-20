@@ -157,53 +157,70 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void GeneratedMaterializerHook_InvokedBeforeCopy()
         {
-            var client = CreateClient(enableAot: true);
-            var hookCalled = false;
-            client.GeneratedMaterializerHook = c =>
+            // 避免其它用例写入的 TestOrder 静态项经 CopyTo 覆盖 hook 注册
+            MaterializerRegistry.Unregister(typeof(TestOrder));
+            try
             {
-                hookCalled = true;
-                c.RegisterMaterializer(typeof(TestOrder), (r, d) =>
+                var client = CreateClient(enableAot: true);
+                var hookCalled = false;
+                client.GeneratedMaterializerHook = c =>
                 {
-                    r.Read();
-                    return new TestOrder { Id = 7, OrderNo = "Hook" };
+                    hookCalled = true;
+                    c.RegisterMaterializer(typeof(TestOrder), (r, d) =>
+                    {
+                        r.Read();
+                        return new TestOrder { Id = 7, OrderNo = "Hook" };
+                    });
+                };
+                client.RegisterGeneratedMaterializers();
+                hookCalled.Should().BeTrue();
+                client.TryGetMaterializer(typeof(TestOrder), out var fn).Should().BeTrue();
+                using var reader = new FakeDbDataReader(new[]
+                {
+                    ("id", (object)1, typeof(int)),
+                    ("order_no", "x", typeof(string)),
+                    ("user_id", 1, typeof(int)),
+                    ("amount", 1m, typeof(decimal)),
+                    ("created_at", DateTime.UtcNow, typeof(DateTime)),
                 });
-            };
-            client.RegisterGeneratedMaterializers();
-            hookCalled.Should().BeTrue();
-            client.TryGetMaterializer(typeof(TestOrder), out var fn).Should().BeTrue();
-            using var reader = new FakeDbDataReader(new[]
+                reader.Read();
+                ((TestOrder)fn!(reader, null)!).Id.Should().Be(7);
+            }
+            finally
             {
-                ("id", (object)1, typeof(int)),
-                ("order_no", "x", typeof(string)),
-                ("user_id", 1, typeof(int)),
-                ("amount", 1m, typeof(decimal)),
-                ("created_at", DateTime.UtcNow, typeof(DateTime)),
-            });
-            reader.Read();
-            ((TestOrder)fn!(reader, null)!).Id.Should().Be(7);
+                MaterializerRegistry.Unregister(typeof(TestOrder));
+            }
         }
 
         [Fact]
         public void MaterializerRegistry_CanRegisterManually()
         {
-            MaterializerRegistry.Register(typeof(TestOrder), (r, d) =>
+            MaterializerRegistry.Unregister(typeof(TestOrder));
+            try
             {
-                r.Read();
-                return new TestOrder { Id = 99, OrderNo = "Registered" };
-            });
+                MaterializerRegistry.Register(typeof(TestOrder), (r, d) =>
+                {
+                    r.Read();
+                    return new TestOrder { Id = 99, OrderNo = "Registered" };
+                });
 
-            MaterializerRegistry.TryGet(typeof(TestOrder), out var fn).Should().BeTrue();
-            using var reader = new FakeDbDataReader(new[]
+                MaterializerRegistry.TryGet(typeof(TestOrder), out var fn).Should().BeTrue();
+                using var reader = new FakeDbDataReader(new[]
+                {
+                    ("id", (object)1, typeof(int)),
+                    ("order_no", "x", typeof(string)),
+                    ("user_id", 1, typeof(int)),
+                    ("amount", 1m, typeof(decimal)),
+                    ("created_at", DateTime.UtcNow, typeof(DateTime)),
+                });
+                var order = (TestOrder)fn!(reader, null)!;
+                order.Id.Should().Be(99);
+                order.OrderNo.Should().Be("Registered");
+            }
+            finally
             {
-                ("id", (object)1, typeof(int)),
-                ("order_no", "x", typeof(string)),
-                ("user_id", 1, typeof(int)),
-                ("amount", 1m, typeof(decimal)),
-                ("created_at", DateTime.UtcNow, typeof(DateTime)),
-            });
-            var order = (TestOrder)fn!(reader, null)!;
-            order.Id.Should().Be(99);
-            order.OrderNo.Should().Be("Registered");
+                MaterializerRegistry.Unregister(typeof(TestOrder));
+            }
         }
 
         [Fact]

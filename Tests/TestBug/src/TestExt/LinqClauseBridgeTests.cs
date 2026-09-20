@@ -1,5 +1,6 @@
 using mooSQL.data;
 using mooSQL.linq;
+using mooSQL.linq.Linq;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -8,11 +9,20 @@ using Xunit;
 
 namespace TestMooSQL.src;
 
+/// <summary>
+/// 与 DbFunc 矩阵同集合，避免并行下 Ext 查询计划缓存交叉污染。
+/// </summary>
+[Collection("DbFuncMatrix")]
 public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
 {
     readonly LinqSqliteTestFixture _sqlite;
 
-    public LinqClauseBridgeTests(LinqSqliteTestFixture sqlite) => _sqlite = sqlite;
+    public LinqClauseBridgeTests(LinqSqliteTestFixture sqlite)
+    {
+        // xUnit 每个用例新实例：开测前清空全局计划缓存，避免 NullIf 等污染 CharIndex
+        QueryRunner.ClearCaches();
+        _sqlite = sqlite;
+    }
 
     [Fact]
     public void StatementCompileResult_ToSQLBuilder_ProducesQuery()

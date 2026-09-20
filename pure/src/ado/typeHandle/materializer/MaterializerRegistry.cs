@@ -29,6 +29,15 @@ namespace mooSQL.data
             => _handlers.TryGetValue(type, out materializer);
 
         /// <summary>
+        /// 从静态引导表移除指定类型（主要用于测试隔离，避免污染其它用例）。
+        /// </summary>
+        public static bool Unregister(Type type)
+        {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            return _handlers.TryRemove(type, out _);
+        }
+
+        /// <summary>
         /// 将静态引导表中的物化器复制到 <see cref="MooClient"/> 实例注册表。
         /// </summary>
         internal static void CopyTo(MooClient client)

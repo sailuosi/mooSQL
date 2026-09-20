@@ -1,5 +1,6 @@
 using mooSQL.data;
 using mooSQL.linq;
+using mooSQL.linq.Linq;
 using mooSQL.linq.Tools;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
@@ -18,7 +19,11 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
 {
     readonly LinqSqliteTestFixture _sqlite;
 
-    public DbFuncTranslationMatrixTests(LinqSqliteTestFixture sqlite) => _sqlite = sqlite;
+    public DbFuncTranslationMatrixTests(LinqSqliteTestFixture sqlite)
+    {
+        QueryRunner.ClearCaches();
+        _sqlite = sqlite;
+    }
 
     [Fact]
     public void Matrix_NullCompare_EmitsIsNull()
