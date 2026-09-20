@@ -66,18 +66,5 @@ namespace mooSQL.data.cluster
             }
         }
 
-        private static SQLCmd CloneCmd(SQLCmd source)
-        {
-            if (source == null) return null;
-            var clone = new SQLCmd(source.sql, source.para)
-            {
-                type = source.type,
-                timeout = source.timeout,
-                cmdType = source.cmdType,
-                signal = source.signal,
-                TargetTable = source.TargetTable
-            };
-            return clone;
-        }
     }
 }

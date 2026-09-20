@@ -380,7 +380,8 @@ namespace mooSQL.data.clip
         private void checkJoin() {
             //检查from
 
-            if (clip.Context.FromBinded == false)
+            // 无 BindFrom（如 FromLinqExpression 注入已含 FROM 的 Builder）时跳过，避免 _bindTables[null]
+            if (clip.Context.FromBinded == false && clip.Context._fromTarget != null)
             {
                 var fromtb = clip.Context.getFromTable();
                 if (fromtb != null)
