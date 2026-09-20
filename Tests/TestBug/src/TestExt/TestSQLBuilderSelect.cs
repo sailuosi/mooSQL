@@ -151,7 +151,7 @@ public class TestSQLBuilderSelect
             .top(1)
             .toSelect();
         var sql = cmd.toRawSQL();
-        Assert.Equal("SELECT TOP 1 a.Name FROM tableA as a WHERE a.Name  in   (SELECT Name FROM student WHERE id=1 )  ", sql);
+        Assert.Equal("SELECT TOP 1 a.Name FROM tableA as a WHERE a.Name in  (SELECT Name FROM student WHERE id=1 )  ", sql);
     }
     [Fact]
     public void selectWhereSimple1()

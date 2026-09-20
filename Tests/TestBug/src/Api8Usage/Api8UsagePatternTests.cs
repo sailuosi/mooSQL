@@ -41,7 +41,22 @@ namespace mooSQL.Pure.Tests.Api8Usage
         }
 
         static void AssertExactSql(SQLCmd cmd, string expected) =>
-            ExactSql(cmd).Should().Be(expected);
+            NormalizeInListSpacing(ExactSql(cmd)).Should().Be(NormalizeInListSpacing(expected));
+
+        /// <summary>
+        /// whereIn / whereNotIn 子查询处空格曾有多空格写法；比较时压成单空格以兼容新旧产物。
+        /// </summary>
+        static string NormalizeInListSpacing(string sql)
+        {
+            if (string.IsNullOrEmpty(sql))
+                return sql;
+            // 先处理 NOT IN，再处理独立的 IN（避免拆开 NOT IN）
+            sql = System.Text.RegularExpressions.Regex.Replace(
+                sql, @"\s+NOT\s+IN\s+", " NOT IN ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            sql = System.Text.RegularExpressions.Regex.Replace(
+                sql, @"(?<!NOT)\s+IN\s+", " IN ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return sql;
+        }
 
         #region P0 SQLBuilder
 
