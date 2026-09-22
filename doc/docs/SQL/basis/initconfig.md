@@ -29,7 +29,7 @@ outline: deep
 |--------|------|--------|------------|
 | `Position` | `int` | `0` | **连接位索引**。在 `DBInsCash.getInstance(position)`、`newKit(position)`、主从组 `master(position)` 中作为唯一键使用。 |
 | `Name` | `string` | `null` | **连接位别名**。仅识别与日志展示用，不参与路由算法；异常消息（如可读/可写禁用）会带上该名称。 |
-| `DbType` | `string` | `null` | **数据库类型名**，映射为 `DataBaseType`（不区分大小写）。常用：`MSSQL`、`MySQL`、`Oracle`、`PostgreSQL`、`OceanBase`、`OceanBaseOracle`、`SQLite`、`Taos`、`GBase8a`、`DM`、`KingBaseR3`、`KingBaseR6`、`Oscar`、`Access`、`DB2` 等。解析失败则为 `None`。 |
+| `DbType` | `string` | `null` | **数据库类型名**，映射为 `DataBaseType`（不区分大小写）。常用：`MSSQL`、`MySQL`、`Oracle`、`PostgreSQL`、`OceanBase`、`OceanBaseOracle`、`SQLite`、`Taos`、`GBase8a`、`DM`、`KingBaseR3`、`KingBaseR6`、`Oscar`、`Access`、`DB2` 等。金仓见 [`KingBase-方言适配.md`](../../../design/features/KingBase-方言适配.md)（net462+；Kdbndp_V9）。解析失败则为 `None`。 |
 | `ConnectString` | `string` | `null` | **ADO 连接字符串**，映射为 `DataBase.DBConnectStr`，打开连接时使用。 |
 | `Version` | `string` | `null` | **数据库版本字符串**（如 `"13.0.0"`、`"5.7.21"`）。可用于方言特性判断；若未配 `VersionNumber`，会尝试把本字段解析为数值版本。 |
 | `VersionNumber` | `double?` | `null` | **数值型数据库版本**（如 `13.0`）。分页、窗口函数等按版本选更优 SQL 时使用；`null` 时运行时 `versionNumber` 默认为 `0`。 |

@@ -32,6 +32,10 @@ public class DBTestProviderTests
         DBTest.useOscarDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.dbType.Should().Be(DataBaseType.DM);
+#if !NET451
+        DBTest.useKingBaseDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useKingBaseDialectOnly().config.dbType.Should().Be(DataBaseType.KingBaseR6);
+#endif
         DBTest.useCrateDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useCrateDBDialectOnly().config.dbType.Should().Be(DataBaseType.CrateDB);
 #if NET6_0_OR_GREATER

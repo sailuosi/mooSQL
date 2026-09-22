@@ -134,6 +134,21 @@ public partial class DBTest
                 ?? Environment.GetEnvironmentVariable("DM_CONN")
                 ?? string.Empty);
 
+#if !NET451
+    /// <summary>人大金仓方言空连接实例（仅 SQL 产物；默认 R6）。</summary>
+    public static DBInstance useKingBaseDialectOnly() => DialectKit(DataBaseType.KingBaseR6);
+
+    /// <summary>
+    /// 人大金仓方言实例。默认读 KINGBASE_CONN；形如 Server=host;Port=54321;Database=...;User Id=...;Password=...。
+    /// </summary>
+    public static DBInstance useKingBase(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.KingBaseR6,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("KINGBASE_CONN")
+                ?? string.Empty);
+#endif
+
     /// <summary>CrateDB 方言空连接实例（仅 SQL 产物）。连接串形如 Host=…;Port=5432;Username=crate;Database=doc。</summary>
     public static DBInstance useCrateDBDialectOnly() => DialectKit(DataBaseType.CrateDB);
 

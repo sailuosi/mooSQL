@@ -94,6 +94,15 @@ namespace mooSQL.data
                 case "达梦":
                     dbType = DataBaseType.DM;
                     break;
+                case "KINGBASER3":
+                    dbType = DataBaseType.KingBaseR3;
+                    break;
+                case "KINGBASER6":
+                case "KINGBASE":
+                case "金仓":
+                case "人大金仓":
+                    dbType = DataBaseType.KingBaseR6;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;

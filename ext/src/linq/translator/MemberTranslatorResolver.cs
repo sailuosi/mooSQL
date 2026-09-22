@@ -20,6 +20,9 @@ internal static class MemberTranslatorResolver
             nameof(NpgsqlDialect)=> new NpgsqlMemberTranslator(),
             nameof(CrateDBDialect)=> new NpgsqlMemberTranslator(),
             nameof(DMDialect)    => new DMMemberTranslator(),
+#if !NET451
+            nameof(KingBaseDialect)=> new NpgsqlMemberTranslator(),
+#endif
 #if NET6_0_OR_GREATER
             nameof(DuckDBDialect)=> new DuckDBMemberTranslator(),
             nameof(ClickHouseDialect)=> new ClickHouseMemberTranslator(),

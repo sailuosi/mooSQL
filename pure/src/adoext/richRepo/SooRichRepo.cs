@@ -604,6 +604,8 @@ namespace mooSQL.data
                 case DataBaseType.CrateDB:
                 case DataBaseType.Oscar:
                 case DataBaseType.DM:
+                case DataBaseType.KingBaseR3:
+                case DataBaseType.KingBaseR6:
                 case DataBaseType.DuckDB:
                     return true;
                 default:

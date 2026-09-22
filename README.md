@@ -65,7 +65,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 
 ### Highlights
 
-- **Multi-database** — SQL Server, MySQL/OceanBase, PolarDB for MySQL (via MySQL dialect), PostgreSQL, CrateDB (PG wire), ClickHouse (net6+), Oracle, Dameng/DM (DM.DmProvider), SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
+- **Multi-database** — SQL Server, MySQL/OceanBase, PolarDB for MySQL (via MySQL dialect), PostgreSQL, CrateDB (PG wire), ClickHouse (net6+), Oracle, Dameng/DM (DM.DmProvider), KingBase (net462+; Kdbndp_V9), SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
 - **Multi-DB by design** — connection positions, primary / replica, health & failover oriented routing  
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
@@ -191,6 +191,7 @@ See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for
 | ClickHouse | 22.8+ (net6+: ClickHouse.Driver) | Supported |
 | Oracle | 11g+ | Supported |
 | Dameng (DM) | DM8 (DM.DmProvider 8.3.1.x) | Supported |
+| KingBase | DM8+/V8+ (net462+; Kdbndp_V9) | Supported (PG mode) |
 | SQLite | 3.0+ | Supported |
 | DuckDB | 0.8+ (net6+: driver 1.4.4; net8/net10: 1.5.5) | Supported |
 | OceanBase | — | Supported |
@@ -340,7 +341,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 
 ### 核心亮点
 
-- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PolarDB for MySQL（复用 MySQL 方言）、PostgreSQL、CrateDB（PG wire）、ClickHouse（net6+）、Oracle、达梦 DM（DM.DmProvider）、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
+- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PolarDB for MySQL（复用 MySQL 方言）、PostgreSQL、CrateDB（PG wire）、ClickHouse（net6+）、Oracle、达梦 DM（DM.DmProvider）、人大金仓 KingBase（net462+；Kdbndp_V9）、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
 - **天生多库模式** — 连接位切换成本低；主从、健康探测与路由见主从文档  
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
@@ -667,6 +668,7 @@ kit.select("*")
 | ClickHouse | 22.8+（net6+；ClickHouse.Driver） | 支持（见方言文档限制） |
 | Oracle | 11g+ | 完整支持 |
 | 达梦 (DM) | DM8（DM.DmProvider 8.3.1.x） | 支持（见 `doc/design/features/达梦-方言适配.md`） |
+| 人大金仓 (KingBase) | V8+/V9（net462+；Kdbndp_V9） | 支持 PG 兼容模式（见 `doc/design/features/KingBase-方言适配.md`） |
 | SQLite | 3.0+ | 完整支持 |
 | DuckDB | 0.8+（net6：驱动 1.4.4；net8/net10：1.5.5） | 完整支持 |
 | OceanBase | — | 完整支持 |

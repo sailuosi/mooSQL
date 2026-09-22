@@ -26,3 +26,4 @@ dist/
 Tests/src/TestExt/DBTest.Config.cs
 artifacts
 tools
+*.trx
