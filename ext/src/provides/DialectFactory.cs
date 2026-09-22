@@ -1,8 +1,3 @@
-
-
-
-
-
 using System.Collections.Generic;
 using System.Xml;
 using System;
@@ -14,12 +9,12 @@ using mooSQL.linq;
 namespace mooSQL.data
 {
     /// <summary>
-    /// ���Թ��������ݷ������ͣ��������ԡ�
+    /// 方言工厂：根据数据库类型创建方言。
     /// </summary>
     public class DialectFactory : DialectFactoryBase
     {
         /// <summary>
-        /// ��ʼ����Ĭ��ע���Դ���10������
+        /// 初始化时默认注册约 10 个方言。
         /// </summary>
         public DialectFactory() {
 
@@ -48,7 +43,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// �������ݿ����ã�������UCML��xml���÷���ʵ�֡�
+        /// 加载数据库配置，兼容xml 配置方式实现。
         /// </summary>
         /// <param name="dBIns"></param>
         /// <returns></returns>
