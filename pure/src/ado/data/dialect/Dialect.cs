@@ -92,6 +92,12 @@ namespace mooSQL.data
         /// </summary>
         /// <returns></returns>
         public abstract DbBulkCopy GetBulkCopy();
+
+        /// <summary>
+        /// 是否支持原生 MERGE / 等价 upsert（供 Repository Upsert 等路径选择）。
+        /// </summary>
+        public virtual bool SupportsMerge() => false;
+
         /// <summary>
         /// 最大的参数数量
         /// </summary>

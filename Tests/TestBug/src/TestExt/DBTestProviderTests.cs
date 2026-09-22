@@ -61,6 +61,26 @@ public class DBTestProviderTests
     }
 
     [Fact]
+    public void Dialect_SupportsMerge_MatchesWhitelist()
+    {
+        DBTest.useMSSQLDB().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useOracleDB().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.usePostgreSQLDB().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useOscarDB().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useDMDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useCrateDBDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+#if !NET451
+        DBTest.useKingBaseDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+#endif
+#if NET6_0_OR_GREATER
+        DBTest.useDuckDBDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+#endif
+
+        DBTest.useMySQLDB().dialect.SupportsMerge().Should().BeFalse();
+        DBTest.useSQLiteDB().dialect.SupportsMerge().Should().BeFalse();
+    }
+
+    [Fact]
     public void useRunDB_DefaultsToSlot0_And_IsSwitchable()
     {
         var prev = DBTest.RunDBPosition;

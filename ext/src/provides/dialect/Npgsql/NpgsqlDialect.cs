@@ -48,6 +48,8 @@ namespace mooSQL.data
         {
             return new NpgBulkCopyee(this.dbInstance);
         }
+
+        public override bool SupportsMerge() => true;
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is NpgsqlCommand)

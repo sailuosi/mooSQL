@@ -63,6 +63,9 @@ namespace mooSQL.data
         {
             return new MSSQBulkCopyee(this.dbInstance);
         }
+
+        /// <inheritdoc/>
+        public override bool SupportsMerge() => true;
         /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para) {
             if (cmd is SqlCommand)

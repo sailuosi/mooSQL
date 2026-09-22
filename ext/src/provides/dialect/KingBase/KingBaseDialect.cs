@@ -37,6 +37,8 @@ namespace mooSQL.data
         public override DbBulkCopy GetBulkCopy()
             => new DbBulkCopyFallback(this.dbInstance);
 
+        public override bool SupportsMerge() => true;
+
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is KdbndpCommand qcmd)

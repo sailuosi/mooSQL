@@ -524,7 +524,7 @@ namespace mooSQL.data
         bool TryNativeMergeUpsert(T entity, UpsertOptions options, out int affected)
         {
             affected = 0;
-            if (!SupportsMergeDialect(_db?.config?.dbType ?? DataBaseType.None))
+            if (!_db.dialect.SupportsMerge())
                 return false;
 
             var kit = getKit();
@@ -592,25 +592,6 @@ namespace mooSQL.data
             options.SqlOut = cmd?.sql ?? cmd?.toRawSQL();
             affected = kit.exeNonQuery(cmd);
             return true;
-        }
-
-        static bool SupportsMergeDialect(DataBaseType dbType)
-        {
-            switch (dbType)
-            {
-                case DataBaseType.MSSQL:
-                case DataBaseType.Oracle:
-                case DataBaseType.PostgreSQL:
-                case DataBaseType.CrateDB:
-                case DataBaseType.Oscar:
-                case DataBaseType.DM:
-                case DataBaseType.KingBaseR3:
-                case DataBaseType.KingBaseR6:
-                case DataBaseType.DuckDB:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         static string ResolveDuplicateKeySuffix() => "ON DUPLICATE KEY UPDATE";
