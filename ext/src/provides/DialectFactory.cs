@@ -28,6 +28,7 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.MSSQL, () => new MSSQLDialect() );
             this.useDialect(DataBaseType.Oracle, () => new OracleDialect() );
             this.useDialect(DataBaseType.PostgreSQL, () => new NpgsqlDialect() );
+            this.useDialect(DataBaseType.CrateDB, () => new CrateDBDialect());
             this.useDialect(DataBaseType.Taos, () => new TaosDialect() );
             this.useDialect(DataBaseType.GBase8a, () => new GBase8aDialect() );
             this.useDialect(DataBaseType.SQLite, () => new SQLiteDialect() );

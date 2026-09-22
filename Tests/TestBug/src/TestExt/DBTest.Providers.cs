@@ -121,6 +121,20 @@ public partial class DBTest
     /// <summary>Oscar 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOscarDB() => DialectKit(DataBaseType.Oscar);
 
+    /// <summary>CrateDB 方言空连接实例（仅 SQL 产物）。连接串形如 Host=…;Port=5432;Username=crate;Database=doc。</summary>
+    public static DBInstance useCrateDBDialectOnly() => DialectKit(DataBaseType.CrateDB);
+
+    /// <summary>
+    /// CrateDB 方言实例。默认空串仅拼 SQL；传入 CRATEDB_CONN / 连接串时可联调。
+    /// Database 参数映射为 schema（默认 doc）。
+    /// </summary>
+    public static DBInstance useCrateDB(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.CrateDB,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("CRATEDB_CONN")
+                ?? string.Empty);
+
 #if NET6_0_OR_GREATER
     /// <summary>DuckDB 方言实例。默认内存库连接串，可执行冒烟；空串时仅 SQL 产物。</summary>
     public static DBInstance useDuckDB(string? connectionString = null)

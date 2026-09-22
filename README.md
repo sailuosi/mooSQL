@@ -65,7 +65,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 
 ### Highlights
 
-- **Multi-database** — SQL Server, MySQL/OceanBase, PostgreSQL, Oracle, SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more  
+- **Multi-database** — SQL Server, MySQL/OceanBase, PostgreSQL, CrateDB (PG wire), Oracle, SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
 - **Multi-DB by design** — connection positions, primary / replica, health & failover oriented routing  
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
@@ -186,6 +186,7 @@ See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for
 | SQL Server | 2008+ | Supported |
 | MySQL | 5.7+ | Supported |
 | PostgreSQL | 9.0+ | Supported |
+| CrateDB | 4.2+ (Npgsql / PG wire) | Supported |
 | Oracle | 11g+ | Supported |
 | SQLite | 3.0+ | Supported |
 | DuckDB | 0.8+ (net6+: driver 1.4.4; net8/net10: 1.5.5) | Supported |
@@ -336,7 +337,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 
 ### 核心亮点
 
-- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PostgreSQL、Oracle、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等  
+- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PostgreSQL、CrateDB（PG wire）、Oracle、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
 - **天生多库模式** — 连接位切换成本低；主从、健康探测与路由见主从文档  
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
@@ -658,6 +659,7 @@ kit.select("*")
 | SQL Server | 2008+ | 完整支持 |
 | MySQL | 5.7+ | 完整支持 |
 | PostgreSQL | 9.0+ | 完整支持 |
+| CrateDB | 4.2+（Npgsql / PG wire） | 支持（见方言文档限制） |
 | Oracle | 11g+ | 完整支持 |
 | SQLite | 3.0+ | 完整支持 |
 | DuckDB | 0.8+（net6：驱动 1.4.4；net8/net10：1.5.5） | 完整支持 |

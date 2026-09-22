@@ -245,7 +245,11 @@ namespace mooSQL.data
         /// <summary>
         /// DuckDB（嵌入式分析库，net6+）
         /// </summary>
-        DuckDB = 18
+        DuckDB = 18,
+        /// <summary>
+        /// CrateDB（PostgreSQL wire 兼容，复用 Npgsql）
+        /// </summary>
+        CrateDB = 19
 
     }
 }

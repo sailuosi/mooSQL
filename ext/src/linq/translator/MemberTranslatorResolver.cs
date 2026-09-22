@@ -18,6 +18,7 @@ internal static class MemberTranslatorResolver
             "MySQLDialect"       => new MySqlMemberTranslator(),
             nameof(SQLiteDialect)=> new SQLiteMemberTranslator(),
             nameof(NpgsqlDialect)=> new NpgsqlMemberTranslator(),
+            nameof(CrateDBDialect)=> new NpgsqlMemberTranslator(),
 #if NET6_0_OR_GREATER
             nameof(DuckDBDialect)=> new DuckDBMemberTranslator(),
 #endif

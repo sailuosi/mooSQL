@@ -30,6 +30,8 @@ public class DBTestProviderTests
         DBTest.useGBase8aDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useOceanBaseDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useOscarDB().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useCrateDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useCrateDBDialectOnly().config.dbType.Should().Be(DataBaseType.CrateDB);
 #if NET6_0_OR_GREATER
         DBTest.useDuckDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDuckDBDialectOnly().config.dbType.Should().Be(DataBaseType.DuckDB);

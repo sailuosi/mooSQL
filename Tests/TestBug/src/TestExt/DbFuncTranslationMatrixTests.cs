@@ -298,6 +298,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Month), "%m")]
     [InlineData(typeof(SQLiteDialect), nameof(DbFunc.DateParts.Day), "%d")]
     [InlineData(typeof(NpgsqlDialect), nameof(DbFunc.DateParts.Year), "DATE_PART")]
+    [InlineData(typeof(CrateDBDialect), nameof(DbFunc.DateParts.Year), "DATE_PART")]
     [InlineData(typeof(MySQLDialect), nameof(DbFunc.DateParts.Year), "EXTRACT")]
     [InlineData(typeof(MSSQLDialect), nameof(DbFunc.DateParts.Year), "DATEPART")]
     [InlineData(typeof(DuckDBDialect), nameof(DbFunc.DateParts.Year), "date_part")]
@@ -392,6 +393,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MSSQLDialect), "DATEADD")]
     [InlineData(typeof(MySQLDialect), "DATE_ADD")]
     [InlineData(typeof(NpgsqlDialect), "interval")]
+    [InlineData(typeof(CrateDBDialect), "interval")]
     [InlineData(typeof(DuckDBDialect), "INTERVAL")]
     public void Matrix_DateAdd_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
@@ -776,6 +778,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MySQLDialect), "TIMESTAMPDIFF")]
     [InlineData(typeof(SQLiteDialect), "julianday")]
     [InlineData(typeof(NpgsqlDialect), "EXTRACT")]
+    [InlineData(typeof(CrateDBDialect), "EXTRACT")]
     [InlineData(typeof(DuckDBDialect), "date_diff")]
     public void Matrix_DateDiff_ExpressFormatMatchesDialect(System.Type dialectType, string expectedFragment)
     {
@@ -974,13 +977,14 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
 
     [Theory]
     [InlineData(typeof(NpgsqlDialect), "COLLATE \"en_US\"")]
+    [InlineData(typeof(CrateDBDialect), "COLLATE \"en_US\"")]
     [InlineData(typeof(MSSQLDialect), "COLLATE Latin1_General_CI_AS")]
     public void Matrix_Collate_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
         var format = dialect.expression.collate("{0}", expectedFragment.Contains('"') ? "en_US" : "Latin1_General_CI_AS");
         Assert.Contains("COLLATE", format!, System.StringComparison.OrdinalIgnoreCase);
-        if (dialectType == typeof(NpgsqlDialect))
+        if (dialectType == typeof(NpgsqlDialect) || dialectType == typeof(CrateDBDialect))
             Assert.Contains("\"en_US\"", format!);
     }
 
@@ -1051,6 +1055,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(SQLiteDialect), "INSTR")]
     [InlineData(typeof(MySQLDialect), "LOCATE")]
     [InlineData(typeof(NpgsqlDialect), "STRPOS")]
+    [InlineData(typeof(CrateDBDialect), "STRPOS")]
     [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
     [InlineData(typeof(OracleDialect), "INSTR")]
     [InlineData(typeof(DuckDBDialect), "STRPOS")]

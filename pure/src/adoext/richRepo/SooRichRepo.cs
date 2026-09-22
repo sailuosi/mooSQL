@@ -601,6 +601,7 @@ namespace mooSQL.data
                 case DataBaseType.MSSQL:
                 case DataBaseType.Oracle:
                 case DataBaseType.PostgreSQL:
+                case DataBaseType.CrateDB:
                 case DataBaseType.Oscar:
                 case DataBaseType.DM:
                 case DataBaseType.DuckDB:
