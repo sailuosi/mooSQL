@@ -121,6 +121,19 @@ public partial class DBTest
     /// <summary>Oscar 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOscarDB() => DialectKit(DataBaseType.Oscar);
 
+    /// <summary>达梦方言空连接实例（仅 SQL 产物）。</summary>
+    public static DBInstance useDMDialectOnly() => DialectKit(DataBaseType.DM);
+
+    /// <summary>
+    /// 达梦方言实例。默认读 DM_CONN；形如 Server=host;Port=5236;UserId=SYSDBA;PWD=***。
+    /// </summary>
+    public static DBInstance useDM(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.DM,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("DM_CONN")
+                ?? string.Empty);
+
     /// <summary>CrateDB 方言空连接实例（仅 SQL 产物）。连接串形如 Host=…;Port=5432;Username=crate;Database=doc。</summary>
     public static DBInstance useCrateDBDialectOnly() => DialectKit(DataBaseType.CrateDB);
 

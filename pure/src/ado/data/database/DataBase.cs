@@ -89,6 +89,11 @@ namespace mooSQL.data
                 case "DB2":
                     dbType = DataBaseType.DB2;
                     break;
+                case "DM":
+                case "DAMENG":
+                case "达梦":
+                    dbType = DataBaseType.DM;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;

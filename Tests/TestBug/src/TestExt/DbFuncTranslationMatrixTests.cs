@@ -885,6 +885,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
 
     [Theory]
     [InlineData(typeof(OracleDialect), "CAST")]
+    [InlineData(typeof(DMDialect), "CAST")]
     [InlineData(typeof(JetSQLDialect), "DATEDIFF")]
     public void Matrix_DateDiff_OracleAccess_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
@@ -1061,6 +1062,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(CrateDBDialect), "STRPOS")]
     [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
     [InlineData(typeof(OracleDialect), "INSTR")]
+    [InlineData(typeof(DMDialect), "INSTR")]
     [InlineData(typeof(DuckDBDialect), "STRPOS")]
     [InlineData(typeof(ClickHouseDialect), "position")]
     public void Matrix_CharIndex_RegistryTemplate(System.Type dialectType, string expectedFragment)
@@ -1139,6 +1141,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [Theory]
     [InlineData(typeof(MSSQLDialect), "TRIM")]
     [InlineData(typeof(OracleDialect), "LTRIM")]
+    [InlineData(typeof(DMDialect), "LTRIM")]
     public void Matrix_IsNullOrWhiteSpace_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;

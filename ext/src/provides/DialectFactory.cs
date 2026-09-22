@@ -33,6 +33,7 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.GBase8a, () => new GBase8aDialect() );
             this.useDialect(DataBaseType.SQLite, () => new SQLiteDialect() );
             this.useDialect(DataBaseType.Oscar, () => new OscarDialect() );
+            this.useDialect(DataBaseType.DM, () => new DMDialect());
 #if NET6_0_OR_GREATER
             this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect() );
             this.useDialect(DataBaseType.ClickHouse, () => new ClickHouseDialect());
