@@ -1,10 +1,10 @@
 ﻿using System.Linq.Expressions;
 
-namespace mooSQL.linq.DataProvider.SqlServer.Translation
+namespace mooSQL.data
 {
-	using Linq.Translation;
+	using mooSQL.linq.Linq.Translation;
     using mooSQL.data.model;
-    using SqlQuery;
+    using mooSQL.linq.SqlQuery;
 
 	public class SqlServer2022MemberTranslator : SqlServer2012MemberTranslator
 	{

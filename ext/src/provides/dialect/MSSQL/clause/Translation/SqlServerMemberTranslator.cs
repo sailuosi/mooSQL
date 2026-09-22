@@ -2,16 +2,14 @@
 using System.Globalization;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.DataProvider.SqlServer.Translation
+namespace mooSQL.data
 {
-	using Common;
-	using Linq.Translation;
-
-	using mooSQL.data;
+	using mooSQL.linq;
+	using mooSQL.linq.Common;
+	using mooSQL.linq.Linq.Translation;
 	using mooSQL.data.model;
 	using mooSQL.linq.translator;
-
-	using SqlQuery;
+	using mooSQL.linq.SqlQuery;
 
 	public class SqlServerMemberTranslator : DefaultMemberTranslator
 	{

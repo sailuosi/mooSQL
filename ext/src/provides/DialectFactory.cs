@@ -14,12 +14,12 @@ using mooSQL.linq;
 namespace mooSQL.data
 {
     /// <summary>
-    /// ╥╫ят╧╓Ё╖ё╛рю╬щ╥╫ятюЮпмё╛╡ЗиЗ╥╫ят║ё
+    /// О©╫О©╫О©╫т╧О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫щ╥О©╫О©╫О©╫О©╫О©╫О©╫мёО©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫т║О©╫
     /// </summary>
     public class DialectFactory : DialectFactoryBase
     {
         /// <summary>
-        /// ЁУй╪╩╞ё╛д╛хов╒╡Авт╢Ь╣д10╦Ж╥╫ят
+        /// О©╫О©╫й╪О©╫О©╫О©╫О©╫д╛О©╫О©╫в╒О©╫О©╫О©╫т╢О©╫О©╫О©╫10О©╫О©╫О©╫О©╫О©╫О©╫
         /// </summary>
         public DialectFactory() {
 
@@ -32,10 +32,13 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.GBase8a, () => new GBase8aDialect() );
             this.useDialect(DataBaseType.SQLite, () => new SQLiteDialect() );
             this.useDialect(DataBaseType.Oscar, () => new OscarDialect() );
+#if NET6_0_OR_GREATER
+            this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect() );
+#endif
         }
 
         /// <summary>
-        /// ╪стьйЩ╬щ©БеДжцё╛уБюОйгUCML╣дxmlеДжц╥╫ятй╣ож║ё
+        /// О©╫О©╫О©╫О©╫О©╫О©╫О©╫щ©О©╫О©╫О©╫О©╫цёО©╫О©╫О©╫О©╫О©╫О©╫О©╫UCMLО©╫О©╫xmlО©╫О©╫О©╫ц╥О©╫О©╫О©╫й╣О©╫ж║О©╫
         /// </summary>
         /// <param name="dBIns"></param>
         /// <returns></returns>

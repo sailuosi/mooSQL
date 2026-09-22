@@ -1,9 +1,9 @@
-using mooSQL.data;
 using mooSQL.data.model;
+using mooSQL.linq;
 using mooSQL.linq.Linq.Translation;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.DataProvider.Npgsql.Translation;
+namespace mooSQL.data;
 
 /// <summary>Npgsql MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/> 片段。</summary>
 public class NpgsqlMemberTranslator : DefaultMemberTranslator

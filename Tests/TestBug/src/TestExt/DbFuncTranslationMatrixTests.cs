@@ -300,6 +300,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(NpgsqlDialect), nameof(DbFunc.DateParts.Year), "DATE_PART")]
     [InlineData(typeof(MySQLDialect), nameof(DbFunc.DateParts.Year), "EXTRACT")]
     [InlineData(typeof(MSSQLDialect), nameof(DbFunc.DateParts.Year), "DATEPART")]
+    [InlineData(typeof(DuckDBDialect), nameof(DbFunc.DateParts.Year), "date_part")]
+    [InlineData(typeof(DuckDBDialect), nameof(DbFunc.DateParts.Month), "date_part")]
     public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -390,6 +392,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MSSQLDialect), "DATEADD")]
     [InlineData(typeof(MySQLDialect), "DATE_ADD")]
     [InlineData(typeof(NpgsqlDialect), "interval")]
+    [InlineData(typeof(DuckDBDialect), "INTERVAL")]
     public void Matrix_DateAdd_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -773,6 +776,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MySQLDialect), "TIMESTAMPDIFF")]
     [InlineData(typeof(SQLiteDialect), "julianday")]
     [InlineData(typeof(NpgsqlDialect), "EXTRACT")]
+    [InlineData(typeof(DuckDBDialect), "date_diff")]
     public void Matrix_DateDiff_ExpressFormatMatchesDialect(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -1049,6 +1053,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(NpgsqlDialect), "STRPOS")]
     [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
     [InlineData(typeof(OracleDialect), "INSTR")]
+    [InlineData(typeof(DuckDBDialect), "STRPOS")]
     public void Matrix_CharIndex_RegistryTemplate(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;

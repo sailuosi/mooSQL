@@ -1,11 +1,9 @@
-﻿namespace mooSQL.linq.DataProvider.SqlServer.Translation
+﻿namespace mooSQL.data
 {
-	using Common;
-	using Linq.Translation;
-
+	using mooSQL.linq.Common;
+	using mooSQL.linq.Linq.Translation;
 	using mooSQL.data.model;
-
-	using SqlQuery;
+	using mooSQL.linq.SqlQuery;
 
 	public class SqlServer2012MemberTranslator : SqlServerMemberTranslator
 	{

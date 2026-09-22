@@ -121,6 +121,15 @@ public partial class DBTest
     /// <summary>Oscar 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOscarDB() => DialectKit(DataBaseType.Oscar);
 
+#if NET6_0_OR_GREATER
+    /// <summary>DuckDB 方言实例。默认内存库连接串，可执行冒烟；空串时仅 SQL 产物。</summary>
+    public static DBInstance useDuckDB(string? connectionString = null)
+        => BuildStandaloneInstance(DataBaseType.DuckDB, connectionString ?? "Data Source=:memory:");
+
+    /// <summary>DuckDB 方言空连接实例（仅 SQL 产物）。</summary>
+    public static DBInstance useDuckDBDialectOnly() => DialectKit(DataBaseType.DuckDB);
+#endif
+
     static DBInstance DialectKit(DataBaseType dbType) =>
         _dialectKits.GetOrAdd(dbType, t => BuildStandaloneInstance(t, string.Empty));
 
