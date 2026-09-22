@@ -1,7 +1,5 @@
-
 #if NET5_0_OR_GREATER
 using Microsoft.Data.Sqlite;
-using mooSQL.linq;
 #else
 using System.Data.SQLite;
 #endif
@@ -17,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mooSQL.data.mapping;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {

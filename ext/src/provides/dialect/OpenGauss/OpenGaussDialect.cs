@@ -1,7 +1,6 @@
 #if NET8_0_OR_GREATER
 using HuaweiCloud.GaussDB;
 using HuaweiCloud.GaussDBTypes;
-using mooSQL.linq;
 #else
 using Npgsql;
 using NpgsqlTypes;
@@ -10,6 +9,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
