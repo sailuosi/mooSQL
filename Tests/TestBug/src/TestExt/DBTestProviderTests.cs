@@ -29,6 +29,8 @@ public class DBTestProviderTests
         DBTest.useTaosDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useGBase8aDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useOceanBaseDB().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useTiDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useTiDBDialectOnly().config.dbType.Should().Be(DataBaseType.TiDB);
         DBTest.useOscarDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.dbType.Should().Be(DataBaseType.DM);
@@ -98,6 +100,7 @@ public class DBTestProviderTests
 #endif
 
         DBTest.useMySQLDB().dialect.SupportsMerge().Should().BeFalse();
+        DBTest.useTiDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
         DBTest.useSQLiteDB().dialect.SupportsMerge().Should().BeFalse();
     }
 

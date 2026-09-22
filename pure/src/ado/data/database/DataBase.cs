@@ -112,6 +112,11 @@ namespace mooSQL.data
                 case "华为高斯":
                     dbType = DataBaseType.GaussDB;
                     break;
+                case "TIDB":
+                case "TiDB":
+                case "钛DB":
+                    dbType = DataBaseType.TiDB;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;
@@ -284,7 +289,11 @@ namespace mooSQL.data
         /// <summary>
         /// 华为云 / 商用 GaussDB（与 OpenGauss 共用方言；驱动策略相同）
         /// </summary>
-        GaussDB = 23
+        GaussDB = 23,
+        /// <summary>
+        /// TiDB（MySQL 协议兼容；MySqlConnector + 薄方言）
+        /// </summary>
+        TiDB = 24
 
     }
 }

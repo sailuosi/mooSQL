@@ -118,6 +118,19 @@ public partial class DBTest
     /// <summary>OceanBase 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOceanBaseDB() => DialectKit(DataBaseType.OceanBase);
 
+    /// <summary>TiDB 方言空连接实例（仅 SQL 产物，不执行）。</summary>
+    public static DBInstance useTiDBDialectOnly() => DialectKit(DataBaseType.TiDB);
+
+    /// <summary>
+    /// TiDB 方言实例。默认读 TIDB_CONN；形如 Server=host;Port=4000;Database=...;Uid=...;Pwd=...。
+    /// </summary>
+    public static DBInstance useTiDB(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.TiDB,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("TIDB_CONN")
+                ?? string.Empty);
+
     /// <summary>Oscar 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOscarDB() => DialectKit(DataBaseType.Oscar);
 
