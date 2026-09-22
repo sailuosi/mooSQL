@@ -38,12 +38,14 @@ public class KingBaseDialectSmokeTests
     {
         var r6 = DialectOnly();
         r6.dialect.Should().BeOfType<KingBaseDialect>();
+        r6.dialect.Should().BeAssignableTo<PgFamilyDialect>();
         r6.dialect.expression.Should().BeOfType<KingBaseExpress>();
         r6.dialect.sentence.Should().BeOfType<KingBaseSentence>();
         r6.dialect.expression.paraPrefix.Should().Be(":");
 
         var r3 = DBTest.BuildStandaloneInstance(DataBaseType.KingBaseR3, string.Empty);
         r3.dialect.Should().BeOfType<KingBaseDialect>();
+        r3.dialect.Should().BeAssignableTo<PgFamilyDialect>();
     }
 
     [Fact]

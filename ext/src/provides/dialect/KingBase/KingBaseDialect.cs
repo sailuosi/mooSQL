@@ -5,14 +5,13 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// 人大金仓方言：ADO 为 Kdbndp.*，SQL 对齐 PostgreSQL 兼容模式（复用 Npgsql Express/Sentence 模板）。
+    /// 人大金仓：PostgreSQL Family；ADO 为 Kdbndp；Bulk/Merge/Translator 吃族默认。
     /// </summary>
-    public class KingBaseDialect : ExtDialect
+    public class KingBaseDialect : PgFamilyDialect
     {
         public KingBaseDialect()
         {
@@ -34,14 +33,6 @@ namespace mooSQL.data
 
         public override DbDataAdapter getDataAdapter()
             => new KdbndpDataAdapter();
-
-        public override DbBulkCopy GetBulkCopy()
-            => new DbBulkCopyFallback(this.dbInstance);
-
-        public override bool SupportsMerge() => true;
-
-        protected override IMemberTranslator CreateMemberTranslator()
-            => new NpgsqlMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

@@ -1,7 +1,7 @@
 # 人大金仓（KingBase）方言适配
 
-> 面向 **使用者**（如何配置与编写查询）与 **开发人员**（Kdbndp 兄弟包、与 Npgsql 关系）。  
-> **结论先行**：**已支持** PostgreSQL 兼容模式下的金仓（`KingBaseR3` / `KingBaseR6` 共用同一方言）。  
+> 面向 **使用者**（如何配置与编写查询）与 **开发人员**（Kdbndp 驱动、与 Npgsql / PgFamily 关系）。  
+> **结论先行**：**已支持** PostgreSQL 兼容模式下的金仓（`KingBaseR3` / `KingBaseR6` 共用同一方言）；挂入 **`PgFamilyDialect`**。  
 > 关联代码：`ext/src/provides/dialect/KingBase/`、`DialectFactory`；冒烟：`Tests/TestBug/src/TestExt/KingBaseDialectSmokeTests.cs`。
 
 ---
@@ -15,13 +15,13 @@
 | TFM | **net462 / net6 / net8 / net10**；**net451 不引用、不注册** |
 | 参数 / 标识符 | `:`、`"ident"` |
 | 分页 | `LIMIT` / `OFFSET` |
-| Upsert | ANSI `MERGE INTO`（`SupportsMergeDialect` 已含 R3/R6） |
-| Bulk | `DbBulkCopyFallback`（首期；驱动另有 BinaryImporter，未封装） |
-| SQL 模板 | Express/Sentence/Clause/Function **继承 Npgsql 对应类**；Dialect/Mapping 独立（不继承 `NpgsqlDialect`） |
+| Upsert | ANSI `MERGE INTO`（族默认 `SupportsMerge() == true`） |
+| Bulk | 族默认 `DbBulkCopyFallback`（驱动另有 BinaryImporter，未封装） |
+| SQL 模板 | Express/Sentence/Clause/Function **继承 Npgsql 对应类**；Dialect 挂 `PgFamilyDialect`（不继承 `NpgsqlDialect`，以便换驱动） |
 | 模式范围 | 首期仅 **PostgreSQL 兼容模式** |
 
 ```
-Dialect ← KingBaseDialect          (Kdbndp ADO)
+ExtDialect ← PgFamilyDialect ← KingBaseDialect   (Kdbndp ADO)
 SQLExpression ← NpgsqlExpress ← KingBaseExpress
 SQLSentence ← NpgSentence ← KingBaseSentence
 ```
@@ -91,8 +91,8 @@ ext/src/provides/dialect/KingBase/
 ### 3.2 注册点
 
 - `DialectFactory`：R3/R6 → `KingBaseDialect`
-- `MemberTranslatorResolver`：`nameof(KingBaseDialect) → NpgsqlMemberTranslator`
-- `SupportsMergeDialect`：含 R3/R6
+- `MemberTranslatorResolver`：`nameof(KingBaseDialect) → NpgsqlMemberTranslator`（与族默认一致）
+- Bulk / Merge / Translator：吃 `PgFamilyDialect` 默认，Dialect 不再覆盖
 
 ### 3.3 测试
 
@@ -107,5 +107,6 @@ dotnet test Tests/TestBug/mooSQL.Tests.csproj -f net8.0 --filter "FullyQualified
 | 库 | 策略 |
 |----|------|
 | CrateDB | 继承 `NpgsqlDialect`，复用 Npgsql 驱动 |
-| KingBase | **兄弟** Dialect + Kdbndp；SQL 类继承 Npgsql Express/Sentence |
-| 达梦 | 兄弟 Dialect + DmProvider；SQL 偏 Oracle |
+| KingBase | 挂 `PgFamilyDialect` + Kdbndp；SQL 类继承 Npgsql Express/Sentence |
+| openGauss | 挂 `PgFamilyDialect` + 可换驱动（net8+ 华为 / 低 TFM Npgsql） |
+| 达梦 | 独立 Dialect + DmProvider；SQL 偏 Oracle |

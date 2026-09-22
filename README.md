@@ -65,7 +65,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 
 ### Highlights
 
-- **Multi-database** — two **Families** (**MySQL Family**, **PostgreSQL Family**) plus independent dialects (SQL Server, Oracle, Dameng, KingBase, ClickHouse, DuckDB, …). See [database support matrix](doc/design/features/方言/数据库支持清单.md).
+- **Multi-database** — two **Families** (**MySQL Family**, **PostgreSQL Family**) plus independent dialects (SQL Server, Oracle, Dameng, ClickHouse, DuckDB, …). See [database support matrix](doc/design/features/方言/数据库支持清单.md).
 - **Multi-DB by design** — connection positions, primary / replica, health & failover oriented routing  
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
@@ -203,6 +203,7 @@ Default Bulk: **`MySqlFamilyBulkCopyee`**.
 | CrateDB | `CrateDB` | Extends Npgsql; Bulk → Fallback |
 | openGauss | `OpenGauss` | net8+: HuaweiCloud.GaussDB; else Npgsql-compatible |
 | GaussDB | `GaussDB` | Same dialect class as openGauss |
+| KingBase | `KingBaseR3` / `KingBaseR6` | net462+; Kdbndp; PG-compatible mode; on `PgFamilyDialect` |
 
 Default Bulk: **`DbBulkCopyFallback`** (except PostgreSQL COPY).
 
@@ -213,7 +214,6 @@ Default Bulk: **`DbBulkCopyFallback`** (except PostgreSQL COPY).
 | SQL Server | Full support |
 | Oracle | Full support |
 | Dameng (DM) | DM.DmProvider; see dialect doc |
-| KingBase | net462+; PG-compatible mode; own dialect (not yet on PgFamily) |
 | SQLite | Full support |
 | DuckDB | net6+ |
 | ClickHouse | net6+ |
@@ -364,7 +364,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 
 ### 核心亮点
 
-- **多数据库原生支持** — **MySQL Family** / **PostgreSQL Family** 两大方言族 + 独立方言（SQL Server、Oracle、达梦、金仓、ClickHouse、DuckDB 等）。详见 [数据库支持清单](doc/design/features/方言/数据库支持清单.md)。
+- **多数据库原生支持** — **MySQL Family** / **PostgreSQL Family** 两大方言族 + 独立方言（SQL Server、Oracle、达梦、ClickHouse、DuckDB 等）。详见 [数据库支持清单](doc/design/features/方言/数据库支持清单.md)。
 - **天生多库模式** — 连接位切换成本低；主从、健康探测与路由见主从文档  
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
@@ -703,6 +703,7 @@ kit.select("*")
 | CrateDB | `CrateDB` | 继承 Npgsql；Bulk → Fallback |
 | openGauss | `OpenGauss` | net8+：HuaweiCloud.GaussDB；低 TFM：Npgsql 兼容 |
 | GaussDB | `GaussDB` | 与 openGauss 共一方言类 |
+| 人大金仓 | `KingBaseR3` / `KingBaseR6` | net462+；Kdbndp；PG 兼容模式；挂 `PgFamilyDialect` |
 
 默认 Bulk：**`DbBulkCopyFallback`**（PostgreSQL 除外走 COPY）。
 
@@ -713,7 +714,6 @@ kit.select("*")
 | SQL Server | 完整支持 |
 | Oracle | 完整支持 |
 | 达梦 (DM) | DM.DmProvider；见方言文档 |
-| 人大金仓 (KingBase) | net462+；PG 兼容模式；独立方言（尚未挂入 PgFamily） |
 | SQLite | 完整支持 |
 | DuckDB | net6+ |
 | ClickHouse | net6+ |

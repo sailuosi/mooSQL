@@ -70,6 +70,10 @@ public class DBTestProviderTests
 
         var og = (ExtDialect)DBTest.useOpenGaussDialectOnly().dialect;
         ReferenceEquals(og.MemberTranslator, og.MemberTranslator).Should().BeTrue();
+
+#if !NET451
+        DBTest.useKingBaseDialectOnly().dialect.Should().BeAssignableTo<PgFamilyDialect>();
+#endif
     }
 
     [Fact]

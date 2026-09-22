@@ -120,6 +120,6 @@ dotnet test Tests/TestBug/mooSQL.Tests.csproj -f net8.0 --filter "FullyQualified
 | 库 | 策略 |
 |----|------|
 | CrateDB | 继承 `NpgsqlDialect`，复用 Npgsql |
-| KingBase | 兄弟 Dialect + Kdbndp；无驱动 TFM 不注册 |
-| openGauss / GaussDB | 兄弟 Dialect；**分枚举**；net8+ 专用驱动，低 TFM **Npgsql 兼容** |
+| KingBase | 挂 `PgFamilyDialect` + Kdbndp；非 net451 不注册 |
+| openGauss / GaussDB | 挂 `PgFamilyDialect`；**分枚举**；net8+ 专用驱动，低 TFM **Npgsql 兼容** |
 | 达梦 | 兄弟 Dialect + DmProvider；SQL 偏 Oracle |
