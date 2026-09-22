@@ -34,6 +34,8 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.SQLite, () => new SQLiteDialect() );
             this.useDialect(DataBaseType.Oscar, () => new OscarDialect() );
             this.useDialect(DataBaseType.DM, () => new DMDialect());
+            this.useDialect(DataBaseType.OpenGauss, () => new OpenGaussDialect());
+            this.useDialect(DataBaseType.GaussDB, () => new OpenGaussDialect());
 #if !NET451
             this.useDialect(DataBaseType.KingBaseR3, () => new KingBaseDialect());
             this.useDialect(DataBaseType.KingBaseR6, () => new KingBaseDialect());

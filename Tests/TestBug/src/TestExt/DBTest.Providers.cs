@@ -149,6 +149,32 @@ public partial class DBTest
                 ?? string.Empty);
 #endif
 
+    /// <summary>openGauss 方言空连接实例（仅 SQL 产物）。</summary>
+    public static DBInstance useOpenGaussDialectOnly() => DialectKit(DataBaseType.OpenGauss);
+
+    /// <summary>
+    /// openGauss 方言实例。默认读 OPENGAUSS_CONN；形如 Host=host;Port=5432;Database=...;Username=...;Password=...。
+    /// </summary>
+    public static DBInstance useOpenGauss(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.OpenGauss,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("OPENGAUSS_CONN")
+                ?? string.Empty);
+
+    /// <summary>GaussDB 方言空连接实例（仅 SQL 产物；与 openGauss 共用方言类）。</summary>
+    public static DBInstance useGaussDBDialectOnly() => DialectKit(DataBaseType.GaussDB);
+
+    /// <summary>
+    /// GaussDB 方言实例。默认读 GAUSSDB_CONN。
+    /// </summary>
+    public static DBInstance useGaussDB(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.GaussDB,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("GAUSSDB_CONN")
+                ?? string.Empty);
+
     /// <summary>CrateDB 方言空连接实例（仅 SQL 产物）。连接串形如 Host=…;Port=5432;Username=crate;Database=doc。</summary>
     public static DBInstance useCrateDBDialectOnly() => DialectKit(DataBaseType.CrateDB);
 

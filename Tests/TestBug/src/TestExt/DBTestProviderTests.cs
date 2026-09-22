@@ -32,6 +32,10 @@ public class DBTestProviderTests
         DBTest.useOscarDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.dbType.Should().Be(DataBaseType.DM);
+        DBTest.useOpenGaussDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useOpenGaussDialectOnly().config.dbType.Should().Be(DataBaseType.OpenGauss);
+        DBTest.useGaussDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useGaussDBDialectOnly().config.dbType.Should().Be(DataBaseType.GaussDB);
 #if !NET451
         DBTest.useKingBaseDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useKingBaseDialectOnly().config.dbType.Should().Be(DataBaseType.KingBaseR6);
@@ -69,6 +73,8 @@ public class DBTestProviderTests
         DBTest.useOscarDB().dialect.SupportsMerge().Should().BeTrue();
         DBTest.useDMDialectOnly().dialect.SupportsMerge().Should().BeTrue();
         DBTest.useCrateDBDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useOpenGaussDialectOnly().dialect.SupportsMerge().Should().BeTrue();
+        DBTest.useGaussDBDialectOnly().dialect.SupportsMerge().Should().BeTrue();
 #if !NET451
         DBTest.useKingBaseDialectOnly().dialect.SupportsMerge().Should().BeTrue();
 #endif

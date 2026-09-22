@@ -103,6 +103,15 @@ namespace mooSQL.data
                 case "人大金仓":
                     dbType = DataBaseType.KingBaseR6;
                     break;
+                case "OPENGAUSS":
+                case "开源高斯":
+                    dbType = DataBaseType.OpenGauss;
+                    break;
+                case "GAUSSDB":
+                case "高斯":
+                case "华为高斯":
+                    dbType = DataBaseType.GaussDB;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;
@@ -267,7 +276,15 @@ namespace mooSQL.data
         /// <summary>
         /// ClickHouse（分析库，net6+，ClickHouse.Driver）
         /// </summary>
-        ClickHouse = 21
+        ClickHouse = 21,
+        /// <summary>
+        /// 开源 openGauss（net8+ 用 HuaweiCloud.GaussDB.Driver；低 TFM 用 Npgsql 兼容）
+        /// </summary>
+        OpenGauss = 22,
+        /// <summary>
+        /// 华为云 / 商用 GaussDB（与 OpenGauss 共用方言；驱动策略相同）
+        /// </summary>
+        GaussDB = 23
 
     }
 }
