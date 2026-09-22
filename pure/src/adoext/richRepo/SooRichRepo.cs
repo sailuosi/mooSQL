@@ -603,6 +603,7 @@ namespace mooSQL.data
                 case DataBaseType.PostgreSQL:
                 case DataBaseType.Oscar:
                 case DataBaseType.DM:
+                case DataBaseType.DuckDB:
                     return true;
                 default:
                     return false;

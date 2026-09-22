@@ -241,7 +241,11 @@ namespace mooSQL.data
         /// <summary>
         /// 南大通用
         /// </summary>
-        Oscar=17
+        Oscar=17,
+        /// <summary>
+        /// DuckDB（嵌入式分析库，net6+）
+        /// </summary>
+        DuckDB = 18
 
     }
 }

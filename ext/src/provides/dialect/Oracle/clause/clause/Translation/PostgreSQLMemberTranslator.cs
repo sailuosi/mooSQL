@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.DataProvider.PostgreSQL.Translation
+namespace mooSQL.data
 {
-	using Common;
-	using SqlQuery;
-	using Linq.Translation;
+	using mooSQL.linq;
+	using mooSQL.linq.Common;
+	using mooSQL.linq.SqlQuery;
+	using mooSQL.linq.Linq.Translation;
 	using mooSQL.data.model;
-	using mooSQL.data;
 
 	public class PostgreSQLMemberTranslator : ProviderMemberTranslatorDefault
 	{

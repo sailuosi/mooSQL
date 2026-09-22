@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using mooSQL.data.model;
 using mooSQL.linq;
 using mooSQL.linq.Linq.Translation;
@@ -5,8 +6,8 @@ using mooSQL.linq.translator;
 
 namespace mooSQL.data;
 
-/// <summary>SQLite MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/>。</summary>
-public class SQLiteMemberTranslator : DefaultMemberTranslator
+/// <summary>DuckDB MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/>。</summary>
+public class DuckDBMemberTranslator : DefaultMemberTranslator
 {
     protected override IMemberTranslator CreateDateMemberTranslator() => new DateFunctionsTranslator();
 
@@ -59,3 +60,4 @@ public class SQLiteMemberTranslator : DefaultMemberTranslator
             => TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
     }
 }
+#endif
