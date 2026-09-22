@@ -18,7 +18,7 @@ mooSQL 是自研的数据库访问层代码库，特点：
 
 ### 支持的数据库
 
-MySQL/OceanBase、SQL Server、Oracle、PostgreSQL、CrateDB（PG wire / Npgsql）、ClickHouse（net6+；ClickHouse.Driver）、Taos、GBase8a、SQLite、Oscar、DuckDB（net6+；驱动 net6=1.4.4，net8/net10=1.5.5）
+MySQL/OceanBase、PolarDB for MySQL（复用 MySQL 方言，见 `doc/design/features/PolarDB-方言适配.md`）、SQL Server、Oracle、PostgreSQL、CrateDB（PG wire / Npgsql）、ClickHouse（net6+；ClickHouse.Driver）、Taos、GBase8a、SQLite、Oscar、DuckDB（net6+；驱动 net6=1.4.4，net8/net10=1.5.5）
 
 ### 项目结构
 

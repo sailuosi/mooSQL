@@ -65,7 +65,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 
 ### Highlights
 
-- **Multi-database** — SQL Server, MySQL/OceanBase, PostgreSQL, CrateDB (PG wire), ClickHouse (net6+), Oracle, SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
+- **Multi-database** — SQL Server, MySQL/OceanBase, PolarDB for MySQL (via MySQL dialect), PostgreSQL, CrateDB (PG wire), ClickHouse (net6+), Oracle, SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
 - **Multi-DB by design** — connection positions, primary / replica, health & failover oriented routing  
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
@@ -185,6 +185,7 @@ See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for
 |----------|---------|--------|
 | SQL Server | 2008+ | Supported |
 | MySQL | 5.7+ | Supported |
+| PolarDB for MySQL | MySQL-compatible (use MySQL dialect) | Supported (see dialect doc) |
 | PostgreSQL | 9.0+ | Supported |
 | CrateDB | 4.2+ (Npgsql / PG wire) | Supported |
 | ClickHouse | 22.8+ (net6+: ClickHouse.Driver) | Supported |
@@ -338,7 +339,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 
 ### 核心亮点
 
-- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PostgreSQL、CrateDB（PG wire）、ClickHouse（net6+）、Oracle、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
+- **多数据库原生支持** — SQL Server、MySQL/OceanBase、PolarDB for MySQL（复用 MySQL 方言）、PostgreSQL、CrateDB（PG wire）、ClickHouse（net6+）、Oracle、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
 - **天生多库模式** — 连接位切换成本低；主从、健康探测与路由见主从文档  
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
@@ -659,6 +660,7 @@ kit.select("*")
 |--------|----------|------|
 | SQL Server | 2008+ | 完整支持 |
 | MySQL | 5.7+ | 完整支持 |
+| PolarDB for MySQL | MySQL 兼容（复用 MySQL 方言） | 支持（见方言文档） |
 | PostgreSQL | 9.0+ | 完整支持 |
 | CrateDB | 4.2+（Npgsql / PG wire） | 支持（见方言文档限制） |
 | ClickHouse | 22.8+（net6+；ClickHouse.Driver） | 支持（见方言文档限制） |
