@@ -2,6 +2,7 @@
 
 > **状态**：**已落地**（代码 + 冒烟；见 [MariaDB-方言适配.md](MariaDB-方言适配.md)、[方言族抽象与MariaDB支持-实施计划.md](../../plan/方言族抽象与MariaDB支持-实施计划.md)）。  
 > **结论先行**：以 **MySQL Family / PostgreSQL Family**（`MySqlFamilyDialect` / `PgFamilyDialect`）抽象父类承接大量衍生库；**MariaDB** 作为 MySQL 族首个正式差分产品（独立枚举 + 薄方言）。英文术语统一 **Family**，不用 Clan。  
+> **关联**：完整产品矩阵见 [数据库支持清单.md](数据库支持清单.md)。  
 > **关联现状**：`DialectFactory`、`DataBaseType`、`ext/src/provides/dialect/{MySQL,Npgsql,TiDB,OBMySQL,MariaDB,CrateDB,OpenGauss}/`；先例见 `CrateDB-方言适配.md`、`TiDB-方言适配.md`、`PolarDB-方言适配.md`。  
 > **Bulk**：Family 抽象 `GetBulkCopy` 默认策略（MySQL 族默认 `MySqlFamilyBulkCopyee`；PG 族默认 `DbBulkCopyFallback`）；详见实施计划 §1.1。
 

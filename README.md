@@ -65,7 +65,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 
 ### Highlights
 
-- **Multi-database** — SQL Server, MySQL/OceanBase/MariaDB/TiDB, PolarDB for MySQL (via MySQL dialect), PostgreSQL, CrateDB (PG wire), ClickHouse (net6+), Oracle, Dameng/DM (DM.DmProvider), KingBase (net462+; Kdbndp_V9), SQLite, DuckDB (net6+), Taos, GBase8a, Oscar, and more
+- **Multi-database** — two **Families** (**MySQL Family**, **PostgreSQL Family**) plus independent dialects (SQL Server, Oracle, Dameng, KingBase, ClickHouse, DuckDB, …). See [database support matrix](doc/design/features/方言/数据库支持清单.md).
 - **Multi-DB by design** — connection positions, primary / replica, health & failover oriented routing  
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
@@ -181,23 +181,45 @@ See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for
 
 ### Supported databases
 
-| Database | Version | Status |
-|----------|---------|--------|
-| SQL Server | 2008+ | Supported |
-| MySQL | 5.7+ | Supported |
-| PolarDB for MySQL | MySQL-compatible (use MySQL dialect) | Supported (see dialect doc) |
-| PostgreSQL | 9.0+ | Supported |
-| CrateDB | 4.2+ (Npgsql / PG wire) | Supported |
-| ClickHouse | 22.8+ (net6+: ClickHouse.Driver) | Supported |
-| Oracle | 11g+ | Supported |
-| Dameng (DM) | DM8 (DM.DmProvider 8.3.1.x) | Supported |
-| KingBase | DM8+/V8+ (net462+; Kdbndp_V9) | Supported (PG mode) |
-| SQLite | 3.0+ | Supported |
-| DuckDB | 0.8+ (net6+: driver 1.4.4; net8/net10: 1.5.5) | Supported |
-| OceanBase | — | Supported |
-| Taos | — | Supported |
-| GBase8a | — | Supported |
-| Oscar | — | Supported |
+Full matrix (Family · Bulk · TFM · docs): **[数据库支持清单.md](doc/design/features/方言/数据库支持清单.md)**.
+
+#### MySQL Family (`MySqlFamilyDialect` · MySqlConnector)
+
+| Database | `DataBaseType` | Notes |
+|----------|----------------|--------|
+| MySQL | `MySQL` | Reference product of the family |
+| MariaDB | `MariaDB` | Independent enum; capability flags (JSON / RETURNING) |
+| TiDB | `TiDB` | Thin dialect; MySQL protocol |
+| OceanBase (MySQL mode) | `OceanBase` | Bulk → `DbBulkCopyFallback` |
+| PolarDB for MySQL | *(use `MySQL`)* | No separate enum |
+
+Default Bulk: **`MySqlFamilyBulkCopyee`**.
+
+#### PostgreSQL Family (`PgFamilyDialect`)
+
+| Database | `DataBaseType` | Notes |
+|----------|----------------|--------|
+| PostgreSQL | `PostgreSQL` | `NpgsqlDialect`; Bulk → COPY (`NpgBulkCopyee`) |
+| CrateDB | `CrateDB` | Extends Npgsql; Bulk → Fallback |
+| openGauss | `OpenGauss` | net8+: HuaweiCloud.GaussDB; else Npgsql-compatible |
+| GaussDB | `GaussDB` | Same dialect class as openGauss |
+
+Default Bulk: **`DbBulkCopyFallback`** (except PostgreSQL COPY).
+
+#### Independent dialects
+
+| Database | Notes |
+|----------|--------|
+| SQL Server | Full support |
+| Oracle | Full support |
+| Dameng (DM) | DM.DmProvider; see dialect doc |
+| KingBase | net462+; PG-compatible mode; own dialect (not yet on PgFamily) |
+| SQLite | Full support |
+| DuckDB | net6+ |
+| ClickHouse | net6+ |
+| Taos (TDengine) | Supported |
+| GBase8a | Supported |
+| Oscar | Supported |
 
 ### Architecture
 
@@ -213,7 +235,7 @@ See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for
 ├──────────────────────────────────────────────────┤
 │     Dialect · Executor · DBInstance               │
 ├──────────────────────────────────────────────────┤
-│  SQL Server │ MySQL │ PostgreSQL │ Oracle │ …     │
+│  MySQL Family │ PG Family │ SQL Server │ Oracle │ … │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -228,6 +250,7 @@ Primary guides in this repo (Chinese VitePress tree under `doc/docs/`):
 
 | Topic | Doc |
 |-------|-----|
+| **Database support (Family)** | [doc/design/features/方言/数据库支持清单.md](doc/design/features/方言/数据库支持清单.md) |
 | SQLBuilder | [doc/docs/SQL/basis/SQLBuilder.md](doc/docs/SQL/basis/SQLBuilder.md) |
 | SQLClip | [doc/docs/SQL/high/sqlclip.md](doc/docs/SQL/high/sqlclip.md) |
 | Repository | [doc/docs/SQL/high/repository.md](doc/docs/SQL/high/repository.md) |
@@ -247,7 +270,7 @@ Classic short tutorials also remain under `doc/` (基础查询、多表、分页
 
 - **Database first** — SQL stays honest and visible  
 - **SQL semantics** — APIs read like SQL  
-- **Multi-database** — dialects isolate differences  
+- **Multi-database** — dialects isolate differences (**MySQL Family** / **PostgreSQL Family** + independents)  
 - **Multi-entry** — SQLBuilder / Clip / Repo / Fast·Ext LINQ coexist  
 - **Pragmatic performance** — Dapper-like execution paths where it matters  
 - **Interop** — common ORM entity patterns carry over  
@@ -341,7 +364,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 
 ### 核心亮点
 
-- **多数据库原生支持** — SQL Server、MySQL/OceanBase/MariaDB/TiDB、PolarDB for MySQL（复用 MySQL 方言）、PostgreSQL、CrateDB（PG wire）、ClickHouse（net6+）、Oracle、达梦 DM（DM.DmProvider）、人大金仓 KingBase（net462+；Kdbndp_V9）、SQLite、DuckDB（net6+）、Taos、GBase8a、Oscar 等
+- **多数据库原生支持** — **MySQL Family** / **PostgreSQL Family** 两大方言族 + 独立方言（SQL Server、Oracle、达梦、金仓、ClickHouse、DuckDB 等）。详见 [数据库支持清单](doc/design/features/方言/数据库支持清单.md)。
 - **天生多库模式** — 连接位切换成本低；主从、健康探测与路由见主从文档  
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
@@ -658,23 +681,45 @@ kit.select("*")
 
 ### 支持的数据库
 
-| 数据库 | 版本要求 | 状态 |
-|--------|----------|------|
-| SQL Server | 2008+ | 完整支持 |
-| MySQL | 5.7+ | 完整支持 |
-| PolarDB for MySQL | MySQL 兼容（复用 MySQL 方言） | 支持（见方言文档） |
-| PostgreSQL | 9.0+ | 完整支持 |
-| CrateDB | 4.2+（Npgsql / PG wire） | 支持（见方言文档限制） |
-| ClickHouse | 22.8+（net6+；ClickHouse.Driver） | 支持（见方言文档限制） |
-| Oracle | 11g+ | 完整支持 |
-| 达梦 (DM) | DM8（DM.DmProvider 8.3.1.x） | 支持（见 `doc/design/features/达梦-方言适配.md`） |
-| 人大金仓 (KingBase) | V8+/V9（net462+；Kdbndp_V9） | 支持 PG 兼容模式（见 `doc/design/features/KingBase-方言适配.md`） |
-| SQLite | 3.0+ | 完整支持 |
-| DuckDB | 0.8+（net6：驱动 1.4.4；net8/net10：1.5.5） | 完整支持 |
-| OceanBase | — | 完整支持 |
-| Taos | — | 完整支持 |
-| GBase8a | — | 完整支持 |
-| Oscar | — | 完整支持 |
+完整矩阵（族 · Bulk · TFM · 文档）：**[数据库支持清单.md](doc/design/features/方言/数据库支持清单.md)**。
+
+#### MySQL Family（`MySqlFamilyDialect` · MySqlConnector）
+
+| 数据库 | `DataBaseType` | 说明 |
+|--------|----------------|------|
+| MySQL | `MySQL` | 族内参考产品 |
+| MariaDB | `MariaDB` | 独立枚举；JSON / RETURNING 等差分旗标 |
+| TiDB | `TiDB` | 薄方言；MySQL 协议 |
+| OceanBase（MySQL 模式） | `OceanBase` | Bulk → `DbBulkCopyFallback` |
+| PolarDB for MySQL | *（用 `MySQL`）* | 无独立枚举 |
+
+默认 Bulk：**`MySqlFamilyBulkCopyee`**。
+
+#### PostgreSQL Family（`PgFamilyDialect`）
+
+| 数据库 | `DataBaseType` | 说明 |
+|--------|----------------|------|
+| PostgreSQL | `PostgreSQL` | `NpgsqlDialect`；Bulk → COPY（`NpgBulkCopyee`） |
+| CrateDB | `CrateDB` | 继承 Npgsql；Bulk → Fallback |
+| openGauss | `OpenGauss` | net8+：HuaweiCloud.GaussDB；低 TFM：Npgsql 兼容 |
+| GaussDB | `GaussDB` | 与 openGauss 共一方言类 |
+
+默认 Bulk：**`DbBulkCopyFallback`**（PostgreSQL 除外走 COPY）。
+
+#### 独立方言
+
+| 数据库 | 说明 |
+|--------|------|
+| SQL Server | 完整支持 |
+| Oracle | 完整支持 |
+| 达梦 (DM) | DM.DmProvider；见方言文档 |
+| 人大金仓 (KingBase) | net462+；PG 兼容模式；独立方言（尚未挂入 PgFamily） |
+| SQLite | 完整支持 |
+| DuckDB | net6+ |
+| ClickHouse | net6+ |
+| Taos (TDengine) | 支持 |
+| GBase8a | 支持 |
+| Oscar（南大通用） | 支持 |
 
 ### 架构设计
 
@@ -690,13 +735,13 @@ kit.select("*")
 ├──────────────────────────────────────────────────┤
 │        方言 · 执行器 · DBInstance                   │
 ├──────────────────────────────────────────────────┤
-│  SQL Server │ MySQL │ PostgreSQL │ Oracle │ ...  │
+│  MySQL Family │ PG Family │ SQL Server │ Oracle │ … │
 └──────────────────────────────────────────────────┘
 ```
 
 **仓库结构**：`pure/` 核心与 Fast LINQ、权限；`ext/` 方言与 Ext LINQ；站点文档在 `doc/docs/`。
 
-**多级别抽象**：执行层、SQL 编织层、仓库层、表达式层；方言抹平数据库差异。
+**多级别抽象**：执行层、SQL 编织层、仓库层、表达式层；方言抹平数据库差异（含 **Family** 复用）。
 
 ### 文档
 
@@ -705,6 +750,7 @@ kit.select("*")
 
 | 主题 | 文档 |
 |------|------|
+| **数据库支持（Family）** | [doc/design/features/方言/数据库支持清单.md](doc/design/features/方言/数据库支持清单.md) |
 | SQLBuilder | [doc/docs/SQL/basis/SQLBuilder.md](doc/docs/SQL/basis/SQLBuilder.md) |
 | SQLClip | [doc/docs/SQL/high/sqlclip.md](doc/docs/SQL/high/sqlclip.md) |
 | 仓储 | [doc/docs/SQL/high/repository.md](doc/docs/SQL/high/repository.md) |
@@ -726,7 +772,7 @@ kit.select("*")
 
 - **数据库优先** — 贴近 SQL，保持可控  
 - **SQL 语义化** — 链式 API 读法接近 SQL  
-- **多数据库兼容** — 方言抽象差异  
+- **多数据库兼容** — 方言抽象差异（**MySQL Family** / **PostgreSQL Family** + 独立方言）  
 - **多入口并存** — SQLBuilder / Clip / Repo / Fast·Ext LINQ  
 - **兼具优势** — Dapper 式性能思路 + 便捷 API  
 - **零迁移成本** — 常见 ORM 实体习惯可延续  
