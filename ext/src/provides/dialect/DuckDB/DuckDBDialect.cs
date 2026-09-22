@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
     /// DuckDB 方言（net6+；驱动按 TFM：net6=1.4.4，net8/net10=1.5.5）。
     /// </summary>
-    public class DuckDBDialect : Dialect
+    public class DuckDBDialect : ExtDialect
     {
         public DuckDBDialect()
         {
@@ -41,6 +42,9 @@ namespace mooSQL.data
             => new DuckDBBulkCopyee(this.dbInstance);
 
         public override bool SupportsMerge() => true;
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new DuckDBMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

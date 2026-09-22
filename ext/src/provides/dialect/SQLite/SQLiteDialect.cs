@@ -1,6 +1,7 @@
-﻿
+
 #if NET5_0_OR_GREATER
 using Microsoft.Data.Sqlite;
+using mooSQL.linq;
 #else
 using System.Data.SQLite;
 #endif
@@ -19,7 +20,7 @@ using mooSQL.data.mapping;
 
 namespace mooSQL.data
 {
-    public class SQLiteDialect : Dialect
+    public class SQLiteDialect : ExtDialect
     {
         public SQLiteDialect()
         {
@@ -35,6 +36,10 @@ namespace mooSQL.data
 
             this.initVersions();
         }
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new SQLiteMemberTranslator();
+
 #if NET5_0_OR_GREATER
         public override DbCommand getCommand()
         {
@@ -59,6 +64,7 @@ namespace mooSQL.data
         {
             return new DbBulkCopyFallback(this.dbInstance);
         }
+
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is SqliteCommand cmdda)

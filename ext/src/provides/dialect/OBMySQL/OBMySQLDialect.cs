@@ -1,4 +1,4 @@
-﻿
+
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
     /// 公开方言，以便业务册重写。
     /// </summary>
-    public class OBMySQLDialect : Dialect
+    public class OBMySQLDialect : ExtDialect
     {
         public OBMySQLDialect()
         {
@@ -50,6 +51,9 @@ namespace mooSQL.data
         {
             return new DbBulkCopyFallback(this.dbInstance);
         }
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new MySqlMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

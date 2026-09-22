@@ -1,4 +1,4 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using mooSQL.data.Npgsql;
 using Npgsql;
 using NpgsqlTypes;
@@ -9,10 +9,11 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
-    public class NpgsqlDialect : Dialect
+    public class NpgsqlDialect : ExtDialect
     {
         public NpgsqlDialect()
         {
@@ -50,6 +51,10 @@ namespace mooSQL.data
         }
 
         public override bool SupportsMerge() => true;
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new NpgsqlMemberTranslator();
+
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is NpgsqlCommand)

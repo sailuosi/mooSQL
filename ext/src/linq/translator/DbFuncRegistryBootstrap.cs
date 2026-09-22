@@ -14,12 +14,18 @@ public static class DbFuncRegistryBootstrap
     static readonly HashSet<DbFuncRegistry> Registered = new();
 
     public static void EnsureRegistered(DBInstance db)
+        => EnsureRegistered(db.dialect);
+
+    public static void EnsureRegistered(Dialect dialect)
     {
-        var registry = db.dialect.dbFuncRegistry;
+        if (dialect == null)
+            return;
+
+        var registry = dialect.dbFuncRegistry;
         if (!Registered.Add(registry))
             return;
 
-        var expr = db.dialect.expression;
+        var expr = dialect.expression;
         RegisterLike(registry, expr);
         RegisterBetween(registry, expr);
         RegisterInList(registry);

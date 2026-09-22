@@ -1,4 +1,4 @@
-﻿
+
 
 using System;
 using System.Collections.Generic;
@@ -11,10 +11,11 @@ using System.Threading.Tasks;
 using mooSQL.data.model;
 using mooSQL.data.Oracle;
 using Oracle.ManagedDataAccess.Client;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
-     public class OracleDialect : Dialect
+     public class OracleDialect : ExtDialect
     {
         public OracleDialect()
         {
@@ -83,6 +84,9 @@ namespace mooSQL.data
         }
 
         public override bool SupportsMerge() => true;
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new OracleMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

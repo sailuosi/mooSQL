@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using mooSQL.linq;
 
 namespace mooSQL.linq.Linq.Translation
 {

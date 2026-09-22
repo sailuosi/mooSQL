@@ -12,7 +12,7 @@ namespace mooSQL.data
     /// Jet SQL 方言：用于通过 OleDb 访问 Access、Excel 等数据源。
     /// Jet 不支持命名参数，参数按占位符在 SQL 中的出现顺序按位传参（占位符为 ?）。
     /// </summary>
-    public class JetSQLDialect : Dialect
+    public class JetSQLDialect : ExtDialect
     {
         public JetSQLDialect()
         {

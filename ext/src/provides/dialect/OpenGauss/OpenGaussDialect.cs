@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using HuaweiCloud.GaussDB;
 using HuaweiCloud.GaussDBTypes;
+using mooSQL.linq;
 #else
 using Npgsql;
 using NpgsqlTypes;
@@ -15,7 +16,7 @@ namespace mooSQL.data
     /// <summary>
     /// openGauss / GaussDB 方言：net8+ 为 HuaweiCloud.GaussDB.*，低 TFM 为 Npgsql 兼容；SQL 对齐 PostgreSQL。
     /// </summary>
-    public class OpenGaussDialect : Dialect
+    public class OpenGaussDialect : ExtDialect
     {
         public OpenGaussDialect()
         {
@@ -58,6 +59,9 @@ namespace mooSQL.data
             => new DbBulkCopyFallback(this.dbInstance);
 
         public override bool SupportsMerge() => true;
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new NpgsqlMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

@@ -1,5 +1,6 @@
-﻿namespace mooSQL.data
+namespace mooSQL.data
 {
+	using mooSQL.linq;
 	using mooSQL.linq.Common;
 	using mooSQL.linq.Linq.Translation;
 	using mooSQL.data.model;

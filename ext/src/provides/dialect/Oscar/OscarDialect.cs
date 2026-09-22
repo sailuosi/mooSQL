@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace mooSQL.data
 {
     /// <inheritdoc/>
-    public class OscarDialect : Dialect
+    public class OscarDialect : ExtDialect
     {
         public OscarDialect()
         {

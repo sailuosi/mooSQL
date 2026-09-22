@@ -1,7 +1,8 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace mooSQL.data
 {
+	using mooSQL.linq;
 	using mooSQL.linq.Linq.Translation;
     using mooSQL.data.model;
     using mooSQL.linq.SqlQuery;

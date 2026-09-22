@@ -1,4 +1,4 @@
-﻿
+
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -9,10 +9,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
-    public class MySQLDialect : Dialect
+    public class MySQLDialect : ExtDialect
     {
         public MySQLDialect()
         {
@@ -50,6 +51,10 @@ namespace mooSQL.data
         {
             return new MySQLBulkCopyee(this.dbInstance);
         }
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new MySqlMemberTranslator();
+
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is MySqlCommand)

@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
     /// 达梦（DM）方言：ADO 类型为 Dm.*，SQL 为 Oracle 兼容面 + LIMIT/OFFSET。
     /// </summary>
-    public class DMDialect : Dialect
+    public class DMDialect : ExtDialect
     {
         public DMDialect()
         {
@@ -39,6 +40,9 @@ namespace mooSQL.data
             => new DMBulkCopyee(this.dbInstance);
 
         public override bool SupportsMerge() => true;
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new DMMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

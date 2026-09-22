@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
     /// ClickHouse 方言（net6+；驱动 ClickHouse.Driver 1.4.0）。
     /// </summary>
-    public class ClickHouseDialect : Dialect
+    public class ClickHouseDialect : ExtDialect
     {
         public ClickHouseDialect()
         {
@@ -42,6 +43,9 @@ namespace mooSQL.data
 
         public override DbBulkCopy GetBulkCopy()
             => new ClickHouseBulkCopyee(this.dbInstance);
+
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new ClickHouseMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

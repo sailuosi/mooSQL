@@ -1,3 +1,4 @@
+using mooSQL.linq;
 using mooSQL.linq.Linq.Translation;
 
 namespace mooSQL.linq.translator;

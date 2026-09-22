@@ -23,6 +23,7 @@ namespace mooSQL.linq.Linq.Builder
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;
+    using mooSQL.linq;
     using mooSQL.linq.SqlProvider;
     using mooSQL.linq.translator;
     using mooSQL.data.call;
@@ -79,7 +80,9 @@ namespace mooSQL.linq.Linq.Builder
 
 			OriginalExpression = expression;
 
-			_memberTranslator = MemberTranslatorResolver.Resolve(DB);
+			_memberTranslator = DBLive.dialect is ExtDialect ext
+				? ext.MemberTranslator
+				: new RegistryAwareMemberTranslator(new DefaultMemberTranslator(), DBLive.dialect);
 
 			_optimizationContext = optimizationContext;
 			_parametersContext   = parametersContext;

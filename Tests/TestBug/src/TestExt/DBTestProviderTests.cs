@@ -54,6 +54,21 @@ public class DBTestProviderTests
     }
 
     [Fact]
+    public void ExtDialect_MemberTranslator_IsCachedPerDialectInstance()
+    {
+        var db = DBTest.usePostgreSQLDB();
+        db.dialect.Should().BeAssignableTo<ExtDialect>();
+
+        var ext = (ExtDialect)db.dialect;
+        var a = ext.MemberTranslator;
+        var b = ext.MemberTranslator;
+        ReferenceEquals(a, b).Should().BeTrue();
+
+        var og = (ExtDialect)DBTest.useOpenGaussDialectOnly().dialect;
+        ReferenceEquals(og.MemberTranslator, og.MemberTranslator).Should().BeTrue();
+    }
+
+    [Fact]
     public void DialectAlias_CanBuildSelectSql()
     {
         var sql = TestDatabaseHelper.UseSQL(DBTest.useMySQLDB())

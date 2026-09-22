@@ -14,7 +14,7 @@ namespace mooSQL.data
     /// <summary>
     /// taos数据库方言
     /// </summary>
-    public class TaosDialect : Dialect
+    public class TaosDialect : ExtDialect
     {
         /// <summary>
         /// taos数据库方言

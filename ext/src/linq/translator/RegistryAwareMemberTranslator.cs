@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using mooSQL.data;
+using mooSQL.linq;
 using mooSQL.linq.Linq.Translation;
 
 namespace mooSQL.linq.translator;
@@ -10,21 +11,21 @@ namespace mooSQL.linq.translator;
 internal sealed class RegistryAwareMemberTranslator : IMemberTranslator
 {
     readonly IMemberTranslator _inner;
-    readonly DBInstance _db;
+    readonly Dialect _dialect;
 
-    public RegistryAwareMemberTranslator(IMemberTranslator inner, DBInstance db)
+    public RegistryAwareMemberTranslator(IMemberTranslator inner, Dialect dialect)
     {
         _inner = inner;
-        _db = db;
+        _dialect = dialect;
     }
 
     public Expression? Translate(ITranslationContext translationContext, Expression memberExpression, TranslationFlags translationFlags)
     {
-        DbFuncRegistryBootstrap.EnsureRegistered(_db);
+        DbFuncRegistryBootstrap.EnsureRegistered(_dialect);
 
-        if (memberExpression is MethodCallExpression mc)
+        if (memberExpression is MethodCallExpression mc && _dialect.dbInstance != null)
         {
-            var entry = _db.dialect.dbFuncRegistry.Resolve(mc.Method);
+            var entry = _dialect.dbFuncRegistry.Resolve(mc.Method);
             if (entry != null && (entry.SqlTemplate != null || entry.IsInListPredicate
                                   || entry.IsDateDiffPredicate
                                   || entry.IsDateAddPredicate
@@ -32,7 +33,7 @@ internal sealed class RegistryAwareMemberTranslator : IMemberTranslator
                                   || entry.IsNullIfPredicate || entry.IsConcatPredicate || entry.IsCollatePredicate
                                   || entry.IsNullOrWhiteSpacePredicate || entry.IsWindowOverPredicate))
             {
-                var translated = DbFuncRegistryExpressionTranslator.TryTranslate(translationContext, mc, _db);
+                var translated = DbFuncRegistryExpressionTranslator.TryTranslate(translationContext, mc, _dialect.dbInstance);
                 if (translated != null)
                     return translated;
             }

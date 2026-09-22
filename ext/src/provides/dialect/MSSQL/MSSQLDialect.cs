@@ -1,5 +1,6 @@
-﻿
+
 using mooSQL.data;
+using mooSQL.linq;
 
 
 using System;
@@ -26,7 +27,7 @@ using Microsoft.Data.SqlClient;
 namespace mooSQL.data
 {
     /// <inheritdoc/>
-    public class MSSQLDialect : Dialect
+    public class MSSQLDialect : ExtDialect
     {
         public MSSQLDialect()
         {
@@ -66,6 +67,9 @@ namespace mooSQL.data
 
         /// <inheritdoc/>
         public override bool SupportsMerge() => true;
+        /// <inheritdoc/>
+        protected override IMemberTranslator CreateMemberTranslator()
+            => new SqlServerMemberTranslator();
         /// <inheritdoc/>
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para) {
             if (cmd is SqlCommand)
