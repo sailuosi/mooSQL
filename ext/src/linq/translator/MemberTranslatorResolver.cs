@@ -21,6 +21,7 @@ internal static class MemberTranslatorResolver
             nameof(CrateDBDialect)=> new NpgsqlMemberTranslator(),
 #if NET6_0_OR_GREATER
             nameof(DuckDBDialect)=> new DuckDBMemberTranslator(),
+            nameof(ClickHouseDialect)=> new ClickHouseMemberTranslator(),
 #endif
             _                    => new DefaultMemberTranslator()
         };

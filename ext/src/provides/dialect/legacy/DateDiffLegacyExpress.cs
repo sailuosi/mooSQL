@@ -29,10 +29,10 @@ public abstract class DateDiffFragmentExpressBase : SQLExpression
         => throw new NotSupportedException($"{GetType().Name} does not support insert SQL.");
 }
 
-/// <summary>ClickHouse DateDiff（原 DateDiffBuilderClickHouse）。</summary>
-public sealed class ClickHouseExpress : DateDiffFragmentExpressBase
+/// <summary>ClickHouse DateDiff-only legacy（原 DateDiffBuilderClickHouse；完整方言见 ClickHouseExpress）。</summary>
+public sealed class ClickHouseDateDiffExpress : DateDiffFragmentExpressBase
 {
-    public ClickHouseExpress(Dialect dia) : base(dia, "@") { }
+    public ClickHouseDateDiffExpress(Dialect dia) : base(dia, "@") { }
 
     static string DateDiffUnit(string unit, string start, string end)
         => $"date_diff('{unit}', {start}, {end})";

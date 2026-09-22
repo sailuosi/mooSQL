@@ -35,6 +35,7 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.Oscar, () => new OscarDialect() );
 #if NET6_0_OR_GREATER
             this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect() );
+            this.useDialect(DataBaseType.ClickHouse, () => new ClickHouseDialect());
 #endif
         }
 

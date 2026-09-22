@@ -35,6 +35,8 @@ public class DBTestProviderTests
 #if NET6_0_OR_GREATER
         DBTest.useDuckDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDuckDBDialectOnly().config.dbType.Should().Be(DataBaseType.DuckDB);
+        DBTest.useClickHouseDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useClickHouseDialectOnly().config.dbType.Should().Be(DataBaseType.ClickHouse);
 #endif
 
         DBTest.useMySQLDB().config.dbType.Should().Be(DataBaseType.MySQL);

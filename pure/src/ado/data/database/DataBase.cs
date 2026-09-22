@@ -249,7 +249,11 @@ namespace mooSQL.data
         /// <summary>
         /// CrateDB（PostgreSQL wire 兼容，复用 Npgsql）
         /// </summary>
-        CrateDB = 19
+        CrateDB = 19,
+        /// <summary>
+        /// ClickHouse（分析库，net6+，ClickHouse.Driver）
+        /// </summary>
+        ClickHouse = 21
 
     }
 }

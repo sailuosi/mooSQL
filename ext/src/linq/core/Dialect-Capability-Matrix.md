@@ -46,7 +46,7 @@
 | Oracle | 同左 | `OracleExpress` → `CAST ... DATE` 差值公式 |
 | Access/JetSQL | 同左 | `JetSQLExpress` → `DATEDIFF('unit', ...)` |
 | DB2 | 同左 | `DB2Express` → `Days` / `MIDNIGHT_SECONDS` 组合 |
-| ClickHouse | 同左 | `ClickHouseExpress` → `date_diff('unit', ...)` |
+| ClickHouse | 同左 | `ClickHouseExpress` / legacy `ClickHouseDateDiffExpress` → `date_diff('unit', ...)` |
 | SAP HANA | 同左 | `SapHanaExpress` → `Days_Between` / `Seconds_Between` |
 
 **全部 DateDiff 方言已无 Extension Builder**（R12–R16）。Legacy Express 见 `ext/src/provides/dialect/legacy/DateDiffLegacyExpress.cs`。

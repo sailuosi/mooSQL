@@ -303,6 +303,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MSSQLDialect), nameof(DbFunc.DateParts.Year), "DATEPART")]
     [InlineData(typeof(DuckDBDialect), nameof(DbFunc.DateParts.Year), "date_part")]
     [InlineData(typeof(DuckDBDialect), nameof(DbFunc.DateParts.Month), "date_part")]
+    [InlineData(typeof(ClickHouseDialect), nameof(DbFunc.DateParts.Year), "toYear")]
     public void Matrix_DatePart_ExpressFormat(System.Type dialectType, string partName, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -395,6 +396,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(NpgsqlDialect), "interval")]
     [InlineData(typeof(CrateDBDialect), "interval")]
     [InlineData(typeof(DuckDBDialect), "INTERVAL")]
+    [InlineData(typeof(ClickHouseDialect), "addDays")]
     public void Matrix_DateAdd_ExpressFormat(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -596,7 +598,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     }
 
     [Theory]
-    [InlineData(typeof(ClickHouseExpress), "date_diff")]
+    [InlineData(typeof(ClickHouseDateDiffExpress), "date_diff")]
     [InlineData(typeof(SapHanaExpress), "Days_Between")]
     [InlineData(typeof(DB2Express), "Days")]
     public void Matrix_DateDiff_LegacyDialect_ExpressFormat(System.Type expressType, string expectedFragment)
@@ -780,6 +782,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(NpgsqlDialect), "EXTRACT")]
     [InlineData(typeof(CrateDBDialect), "EXTRACT")]
     [InlineData(typeof(DuckDBDialect), "date_diff")]
+    [InlineData(typeof(ClickHouseDialect), "date_diff")]
     public void Matrix_DateDiff_ExpressFormatMatchesDialect(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;
@@ -1059,6 +1062,7 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     [InlineData(typeof(MSSQLDialect), "CHARINDEX")]
     [InlineData(typeof(OracleDialect), "INSTR")]
     [InlineData(typeof(DuckDBDialect), "STRPOS")]
+    [InlineData(typeof(ClickHouseDialect), "position")]
     public void Matrix_CharIndex_RegistryTemplate(System.Type dialectType, string expectedFragment)
     {
         var dialect = (Dialect)System.Activator.CreateInstance(dialectType)!;

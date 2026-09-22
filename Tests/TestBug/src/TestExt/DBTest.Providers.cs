@@ -136,6 +136,19 @@ public partial class DBTest
                 ?? string.Empty);
 
 #if NET6_0_OR_GREATER
+    /// <summary>ClickHouse 方言空连接实例（仅 SQL 产物）。</summary>
+    public static DBInstance useClickHouseDialectOnly() => DialectKit(DataBaseType.ClickHouse);
+
+    /// <summary>
+    /// ClickHouse 方言实例。默认读 CLICKHOUSE_CONN；形如 Host=localhost;Port=8123;Database=default。
+    /// </summary>
+    public static DBInstance useClickHouse(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.ClickHouse,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("CLICKHOUSE_CONN")
+                ?? string.Empty);
+
     /// <summary>DuckDB 方言实例。默认内存库连接串，可执行冒烟；空串时仅 SQL 产物。</summary>
     public static DBInstance useDuckDB(string? connectionString = null)
         => BuildStandaloneInstance(DataBaseType.DuckDB, connectionString ?? "Data Source=:memory:");
