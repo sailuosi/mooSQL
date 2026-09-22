@@ -11,16 +11,16 @@
 | 项 | 说明 |
 |----|------|
 | 枚举 | `DataBaseType.TiDB = 24` |
-| 方言类 | `TiDBDialect`（`ExtDialect`）；Express 为 `TiDBExpress : MySQLExpress` |
+| 方言类 | `TiDBDialect`（`MySqlFamilyDialect`）；Express 为 `TiDBExpress : MySQLExpress` |
 | ADO 驱动 | Ext 已有 **MySqlConnector**（无专用 TiDB 包） |
 | 参数 / 标识符 | `?`、反引号 `` `ident` `` |
 | 分页 | `LIMIT` / `OFFSET` |
 | Upsert | `ON DUPLICATE KEY UPDATE`；`SupportsMerge() == false` |
-| Bulk | `MySQLBulkCopyee`（与 `MySQLDialect` 一致） |
+| Bulk | `MySqlFamilyBulkCopyee`（与 `MySQLDialect` 一致） |
 | 默认端口 | 常见 **4000** |
 
 ```
-ExtDialect ← TiDBDialect          (MySqlConnector ADO)
+ExtDialect ← MySqlFamilyDialect ← TiDBDialect   (MySqlConnector ADO；Bulk 族默认 MySqlFamilyBulkCopyee)
 SQLExpression ← MySQLExpress ← TiDBExpress
 sentence / mapping / clause / function → 复用 MySQL*
 ```

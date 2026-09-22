@@ -21,7 +21,7 @@ mooSQL 通过方言层接入 **CrateDB**。Crate ≥4.2 官方兼容 **PostgreSQ
 继承关系：
 
 ```
-Dialect ← NpgsqlDialect ← CrateDBDialect
+ExtDialect ← PgFamilyDialect ← NpgsqlDialect ← CrateDBDialect
 SQLExpression ← NpgsqlExpress ← CrateDBExpress
 SQLSentence ← NpgSentence ← CrateDBSentence
 ```

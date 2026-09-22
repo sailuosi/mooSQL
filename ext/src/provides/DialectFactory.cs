@@ -21,6 +21,7 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.MySQL, () => new MySQLDialect());
             this.useDialect(DataBaseType.OceanBase, () => new OBMySQLDialect() );
             this.useDialect(DataBaseType.TiDB, () => new TiDBDialect());
+            this.useDialect(DataBaseType.MariaDB, () => new MariaDBDialect());
             this.useDialect(DataBaseType.MSSQL, () => new MSSQLDialect() );
             this.useDialect(DataBaseType.Oracle, () => new OracleDialect() );
             this.useDialect(DataBaseType.PostgreSQL, () => new NpgsqlDialect() );

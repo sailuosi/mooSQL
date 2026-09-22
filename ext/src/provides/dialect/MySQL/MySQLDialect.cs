@@ -1,128 +1,27 @@
-
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using mooSQL.linq;
 
 namespace mooSQL.data
 {
-    public class MySQLDialect : ExtDialect
+    /// <summary>MySQL 产品方言：继承 MySQL Family，保留版本表与 BulkLoader 辅助路径。</summary>
+    public class MySQLDialect : MySqlFamilyDialect
     {
         public MySQLDialect()
         {
-            expression = new MySQLExpress(this);
-            sentence = new MySQLSentence(this);
-            clauseTranslator = new MySQLClauseTranslator(this);
-            mapping = new MySQLMappingPanel();
-            function = new MySQLFunction();
-            Option ??= new SooOption();
-            Option.ProviderFlags ??= new SQLProviderFlags();
-            Option.ProviderFlags.IsInsertOrUpdateSupported = true;
             this.initDBVersion();
         }
-        public override DbCommand getCommand()
-        {
-            return new MySqlCommand();
-        }
 
-        public override DbConnection getConnection()
+        public override int BulkInsert(BulkBase bk)
         {
-            return new MySqlConnection(db.DBConnectStr);
-        }
-
-        public override DbDataAdapter getDataAdapter()
-        {
-            return new MySqlDataAdapter();
-        }
-
-        public override DbCommandBuilder getCmdBuilder()
-        {
-            return new MySqlCommandBuilder();
-        }
-
-        public override DbBulkCopy GetBulkCopy()
-        {
-            return new MySQLBulkCopyee(this.dbInstance);
-        }
-
-        protected override IMemberTranslator CreateMemberTranslator()
-            => new MySqlMemberTranslator();
-
-        public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
-        {
-            if (cmd is MySqlCommand)
-            {
-                MySqlCommand qcmd = (MySqlCommand)cmd;
-                return qcmd.Parameters.AddWithValue(para.key, para.val);
-            }
-            return null;
-        }
-        public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
-        {
-            if (cmd is MySqlCommand)
-            {
-                MySqlCommand qcmd = (MySqlCommand)cmd;
-                var parameter = new MySqlParameter();
-                parameter.ParameterName = parameterName;
-                parameter.DbType = GetDBTypeComm(type);
-                parameter.Size = size;
-                parameter.SourceColumn = sourceColumn;
-                return qcmd.Parameters.Add(parameter);
-            }
-            int i= cmd.Parameters.Add(parameterName);
-            return cmd.Parameters[i];
-        }
-
-        private DbType GetDBTypeComm(System.Type theType)
-        {
-            MySqlParameter p1;
-            System.ComponentModel.TypeConverter tc;
-            p1 = new MySqlParameter();
-            tc = System.ComponentModel.TypeDescriptor.GetConverter(p1.DbType);
-            if (tc.CanConvertFrom(theType))
-            {
-                p1.DbType = (DbType)tc.ConvertFrom(theType.Name);
-            }
-            else
-            {
-                //Try brute force
-                try
-                {
-                    p1.DbType = (DbType)tc.ConvertFrom(theType.Name);
-                }
-                catch (Exception)
-                {
-                    //Do Nothing; will return NVarChar as default
-                }
-            }
-            return p1.DbType;
-        }
-
-        public override int BulkInsert(BulkBase bk) {
             int cc = 0;
-            //try { 
-            //    var conn = this.getConnection() as MySqlConnection;
-            //    using (conn) {
-            //        MySqlBulkLoader bulkLoader = GetBulkLoader(conn, bk);
-            //        cc=bulkLoader.Load();
-            //    }            
-            //}
-            //catch (Exception ex)
-            //{
-                cc = this.BulkInsertByInsertValues(bk);
-            //}
-
+            cc = this.BulkInsertByInsertValues(bk);
             return cc;
         }
-
-
 
         public String SecureFilePriv { get; set; }
         public String DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
@@ -131,7 +30,8 @@ namespace mooSQL.data
         private char _fieldQuotationCharacter = '"';
         private char _escapeCharacter = '"';
         private string _lineTerminator = "\r\n";
-        private MySqlBulkLoader GetBulkLoader(MySqlConnection conn,BulkBase bulk)
+
+        private MySqlBulkLoader GetBulkLoader(MySqlConnection conn, BulkBase bulk)
         {
             var bulkLoader = new MySqlBulkLoader(conn)
             {
@@ -155,7 +55,6 @@ namespace mooSQL.data
 
         private string ToCSV(BulkBase bulk)
         {
-
             const string NULL_VALUE = "NULL";
             StringBuilder dataBuilder = new StringBuilder();
             foreach (DataRow row in bulk.bulkTarget.Rows)
@@ -220,8 +119,9 @@ namespace mooSQL.data
             return fileName;
         }
 
-        private List<DBVersion> initDBVersion() {
-            var tar= new List<DBVersion> {
+        private List<DBVersion> initDBVersion()
+        {
+            var tar = new List<DBVersion> {
                 new DBVersion(){
                     VersionCode = "3.23",
                     VersionName = "MySQL 3.23",
@@ -327,6 +227,4 @@ namespace mooSQL.data
             return tar;
         }
     }
-
-
 }

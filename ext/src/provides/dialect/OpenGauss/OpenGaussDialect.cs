@@ -9,14 +9,13 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// openGauss / GaussDB 方言：net8+ 为 HuaweiCloud.GaussDB.*，低 TFM 为 Npgsql 兼容；SQL 对齐 PostgreSQL。
+    /// openGauss / GaussDB：PostgreSQL Family；net8+ HuaweiCloud.GaussDB，低 TFM Npgsql；Bulk 吃族默认 Fallback。
     /// </summary>
-    public class OpenGaussDialect : ExtDialect
+    public class OpenGaussDialect : PgFamilyDialect
     {
         public OpenGaussDialect()
         {
@@ -54,14 +53,6 @@ namespace mooSQL.data
 #else
             => new NpgsqlDataAdapter();
 #endif
-
-        public override DbBulkCopy GetBulkCopy()
-            => new DbBulkCopyFallback(this.dbInstance);
-
-        public override bool SupportsMerge() => true;
-
-        protected override IMemberTranslator CreateMemberTranslator()
-            => new NpgsqlMemberTranslator();
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {

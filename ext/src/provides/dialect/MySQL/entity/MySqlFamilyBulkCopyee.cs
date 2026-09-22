@@ -1,33 +1,32 @@
-﻿using MySqlConnector;
-using Newtonsoft.Json.Linq;
-using NPOI.SS.Formula.Functions;
+using MySqlConnector;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
-    internal class MySQLBulkCopyee : DbBulkCopy
+    /// <summary>
+    /// MySQL Family 默认 Bulk 实现（具体类，非抽象）：封装 MySqlConnector <c>MySqlBulkCopy</c>。
+    /// 供 <see cref="MySqlFamilyDialect"/> 及吃族默认的产品方言（MySQL / MariaDB / TiDB…）直接使用。
+    /// </summary>
+    internal class MySqlFamilyBulkCopyee : DbBulkCopy
     {
         public MySqlBulkCopy _innerCopy;
-        public MySQLBulkCopyee(DBInstance DB) : base(DB)
+        public MySqlFamilyBulkCopyee(DBInstance DB) : base(DB)
         {
-            
         }
 
         private MySqlConnection sqlConnection;
 
-
-
         public override void Dispose()
         {
-            if (_innerCopy != null) {
+            if (_innerCopy != null)
+            {
                 _innerCopy = null;
             }
-            if (sqlConnection != null ) {
+            if (sqlConnection != null)
+            {
                 if (sqlConnection.State != ConnectionState.Closed)
                 {
                     sqlConnection.Close();
@@ -36,42 +35,45 @@ namespace mooSQL.data
             }
         }
 
-        private void prepareRun() {
-            if (this._innerCopy == null) {
+        private void prepareRun()
+        {
+            if (this._innerCopy == null)
+            {
                 sqlConnection = (MySqlConnection)this.DB.dialect.getConnection();
                 _innerCopy = new MySqlBulkCopy(sqlConnection);
             }
 
-            _innerCopy.DestinationTableName= this.TargetTableName;
+            _innerCopy.DestinationTableName = this.TargetTableName;
             _innerCopy.BulkCopyTimeout = this.TimeOut;
-            _innerCopy.NotifyAfter =this.NotifyAfter;
+            _innerCopy.NotifyAfter = this.NotifyAfter;
 
-            if (this.MapBag.Maps.Count > 0) {
-                foreach (var map in this.MapBag.Maps) {
-
-                    var fmap = new MySqlBulkCopyColumnMapping(map.srcIndex,map.tarName);
-
+            if (this.MapBag.Maps.Count > 0)
+            {
+                foreach (var map in this.MapBag.Maps)
+                {
+                    var fmap = new MySqlBulkCopyColumnMapping(map.srcIndex, map.tarName);
                     _innerCopy.ColumnMappings.Add(fmap);
-                    
                 }
             }
-            if (sqlConnection.State != ConnectionState.Open) { 
+            if (sqlConnection.State != ConnectionState.Open)
+            {
                 sqlConnection.Open();
             }
         }
 
-        public BulkCopyResult RunCopy(Func<MySqlBulkCopy,MySqlBulkCopyResult> onRun) {
-            
+        public BulkCopyResult RunCopy(Func<MySqlBulkCopy, MySqlBulkCopyResult> onRun)
+        {
             try
             {
                 prepareRun();
-                var res= onRun(_innerCopy);
+                var res = onRun(_innerCopy);
                 return new BulkCopyResult()
                 {
                     count = res.RowsInserted,
                 };
             }
-            catch (Exception ex) {
+            catch (Exception)
+            {
                 return new BulkCopyResult()
                 {
                     count = -1,
@@ -79,7 +81,8 @@ namespace mooSQL.data
             }
             finally
             {
-                if (this.AutoDispose) { 
+                if (this.AutoDispose)
+                {
                     this.Dispose();
                 }
             }
@@ -87,14 +90,13 @@ namespace mooSQL.data
 #if NET451
         public Task<BulkCopyResult> RunCopyAsync(Func<MySqlBulkCopy,Task<MySqlBulkCopyResult>> onRun)
         {
-
             try
             {
                 prepareRun();
 
                 var res = onRun(_innerCopy);
-                Task<BulkCopyResult> r = res.ContinueWith(t => {
-
+                Task<BulkCopyResult> r = res.ContinueWith(t =>
+                {
                     var br = new BulkCopyResult()
                     {
                         count = t.Result.RowsInserted,
@@ -102,11 +104,10 @@ namespace mooSQL.data
                     return br;
                 });
                 return r;
-
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                var t= new BulkCopyResult()
+                var t = new BulkCopyResult()
                 {
                     count = -1,
                 };
@@ -121,17 +122,15 @@ namespace mooSQL.data
             }
         }
 #else
-        public Task<BulkCopyResult> RunCopyAsync(Func<MySqlBulkCopy,ValueTask<MySqlBulkCopyResult>> onRun)
-
+        public Task<BulkCopyResult> RunCopyAsync(Func<MySqlBulkCopy, ValueTask<MySqlBulkCopyResult>> onRun)
         {
-
             try
             {
                 prepareRun();
 
                 var res = onRun(_innerCopy);
-                Task<BulkCopyResult> r = res.AsTask().ContinueWith(t => {
-
+                Task<BulkCopyResult> r = res.AsTask().ContinueWith(t =>
+                {
                     var br = new BulkCopyResult()
                     {
                         count = t.Result.RowsInserted,
@@ -139,11 +138,10 @@ namespace mooSQL.data
                     return br;
                 });
                 return r;
-
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                var t= new BulkCopyResult()
+                var t = new BulkCopyResult()
                 {
                     count = -1,
                 };
@@ -165,8 +163,6 @@ namespace mooSQL.data
                 return bc.WriteToServer(rows, MapBag.Maps.Count);
             });
         }
-
-
 
         public override BulkCopyResult WriteToServer(DataTable table)
         {
@@ -199,6 +195,7 @@ namespace mooSQL.data
                 return bc.WriteToServerAsync(rows, MapBag.Maps.Count, token);
             });
         }
+
         public override Task<BulkCopyResult> WriteToServerAsync(IDataReader reader, CancellationToken token)
         {
             return RunCopyAsync((bc) =>

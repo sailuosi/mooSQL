@@ -1,8 +1,9 @@
 # 方言族抽象与 MariaDB 支持（设计）
 
-> **状态**：**设计已定，代码暂不落地**（本文档先行）。  
-> **结论先行**：以 **MySQL 族 / PostgreSQL 族** 抽象父类承接大量衍生库；**MariaDB** 作为 MySQL 族首个正式差分产品（独立枚举 + 薄方言）。  
-> **关联现状**：`DialectFactory`、`DataBaseType`、`ext/src/provides/dialect/{MySQL,Npgsql,TiDB,OBMySQL,CrateDB,OpenGauss}/`；先例见 `CrateDB-方言适配.md`、`TiDB-方言适配.md`、`PolarDB-方言适配.md`。
+> **状态**：**已落地**（代码 + 冒烟；见 [MariaDB-方言适配.md](MariaDB-方言适配.md)、[方言族抽象与MariaDB支持-实施计划.md](../../plan/方言族抽象与MariaDB支持-实施计划.md)）。  
+> **结论先行**：以 **MySQL Family / PostgreSQL Family**（`MySqlFamilyDialect` / `PgFamilyDialect`）抽象父类承接大量衍生库；**MariaDB** 作为 MySQL 族首个正式差分产品（独立枚举 + 薄方言）。英文术语统一 **Family**，不用 Clan。  
+> **关联现状**：`DialectFactory`、`DataBaseType`、`ext/src/provides/dialect/{MySQL,Npgsql,TiDB,OBMySQL,MariaDB,CrateDB,OpenGauss}/`；先例见 `CrateDB-方言适配.md`、`TiDB-方言适配.md`、`PolarDB-方言适配.md`。  
+> **Bulk**：Family 抽象 `GetBulkCopy` 默认策略（MySQL 族默认 `MySqlFamilyBulkCopyee`；PG 族默认 `DbBulkCopyFallback`）；详见实施计划 §1.1。
 
 ---
 
@@ -119,7 +120,7 @@ ExtDialect
 | `SupportsInsertReturning` | false / 弱 | true（≥10.5） | 视版本 | LINQ/Repository 回填路径 |
 | `SupportsMerge` | false | false | false | Upsert 走 duplicate-key / ON CONFLICT |
 | `JsonAsNativeBinary` | true | false | 近似 MySQL | 影响类型映射与比较语义预期 |
-| Bulk 实现 | `MySQLBulkCopyee` | 默认同族，可限制 | 同 MySQL | OB 可继续 Fallback |
+| Bulk 实现 | `MySqlFamilyBulkCopyee` | 默认同族，可限制 | 同 MySQL | OB 可继续 Fallback |
 
 未列出的能力沿用族默认；产品只改表中差分项。
 
@@ -148,7 +149,7 @@ PolarDB for MySQL、纯兼容云实例：仍可继续 `DataBaseType.MySQL`；仅
 | Upsert | `ON DUPLICATE KEY UPDATE`（与族一致） |
 | `INSERT…RETURNING` | 能力旗标开启；与 Ext/Fast LINQ 已有 MariaDB 注释对齐 |
 | JSON | 默认生成可移植形式（`JSON_EXTRACT` / `JSON_VALUE`）；Arrow 仅在版本门控允许时启用 |
-| Bulk | 默认同 `MySQLBulkCopyee`；失败策略文档化 |
+| Bulk | 默认同 `MySqlFamilyBulkCopyee`；失败策略文档化 |
 | 冒烟测试 | 拼 SQL +（可选）`MARIADB_CONN` 联调，对标 `TiDBDialectSmokeTests` |
 
 ### 3.2 首期明确不做 / 延后
@@ -214,4 +215,4 @@ var dbConfig = new DataBase
 1. **双族抽象正确，应做**；深度限制为三层，轮子按族复用。  
 2. **MariaDB 值得独立枚举**，作为 MySQL 族差分首发，而非长期伪装成 MySQL。  
 3. **先抽象、后产品、再扩展衍生库**；在代码落地前以本文为唯一架构依据。  
-4. 暂不改仓库代码；进入阶段 B 时另开实施 PR / 实施计划补强测试清单与类文件清单即可。
+4. **已落地**：族基类、MariaDB 产品、旗标与冒烟见实施计划 DoD；后续衍生库另开文档。

@@ -31,6 +31,8 @@ public class DBTestProviderTests
         DBTest.useOceanBaseDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useTiDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useTiDBDialectOnly().config.dbType.Should().Be(DataBaseType.TiDB);
+        DBTest.useMariaDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useMariaDBDialectOnly().config.dbType.Should().Be(DataBaseType.MariaDB);
         DBTest.useOscarDB().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDMDialectOnly().config.dbType.Should().Be(DataBaseType.DM);
@@ -101,6 +103,7 @@ public class DBTestProviderTests
 
         DBTest.useMySQLDB().dialect.SupportsMerge().Should().BeFalse();
         DBTest.useTiDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
+        DBTest.useMariaDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
         DBTest.useSQLiteDB().dialect.SupportsMerge().Should().BeFalse();
     }
 

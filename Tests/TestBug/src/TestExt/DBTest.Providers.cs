@@ -131,6 +131,19 @@ public partial class DBTest
                 ?? Environment.GetEnvironmentVariable("TIDB_CONN")
                 ?? string.Empty);
 
+    /// <summary>MariaDB 方言空连接实例（仅 SQL 产物，不执行）。</summary>
+    public static DBInstance useMariaDBDialectOnly() => DialectKit(DataBaseType.MariaDB);
+
+    /// <summary>
+    /// MariaDB 方言实例。默认读 MARIADB_CONN；形如 Server=host;Port=3306;Database=...;Uid=...;Pwd=...。
+    /// </summary>
+    public static DBInstance useMariaDB(string? connectionString = null)
+        => BuildStandaloneInstance(
+            DataBaseType.MariaDB,
+            connectionString
+                ?? Environment.GetEnvironmentVariable("MARIADB_CONN")
+                ?? string.Empty);
+
     /// <summary>Oscar 方言空连接实例（仅 SQL 产物，不执行）。</summary>
     public static DBInstance useOscarDB() => DialectKit(DataBaseType.Oscar);
 

@@ -390,6 +390,25 @@ namespace mooSQL.data
 		/// </remarks>
 		[DataMember(Order = 57)]
 		public bool IsSupportedSimpleCorrelatedSubqueries { get; set; }
+
+		/// <summary>
+		/// 是否支持 JSON 箭头运算符 <c>-&gt;</c> / <c>-&gt;&gt;</c>（MySQL 8+ 为 true；MariaDB 常见 LTS 默认 false，13.1+ 可再开）。
+		/// </summary>
+		[DataMember(Order = 58)]
+		public bool IsJsonArrowSupported { get; set; }
+
+		/// <summary>
+		/// 是否支持 <c>INSERT/UPDATE/DELETE … RETURNING</c>（MariaDB 10.5+ 为 true；MySQL 族多数为 false）。
+		/// </summary>
+		[DataMember(Order = 59)]
+		public bool IsInsertReturningSupported { get; set; }
+
+		/// <summary>
+		/// JSON 是否按原生二进制类型语义预期（MySQL 8 为 true；MariaDB 存 LONGTEXT 时为 false）。
+		/// </summary>
+		[DataMember(Order = 60)]
+		public bool IsJsonNativeBinary { get; set; }
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -485,6 +504,9 @@ namespace mooSQL.data
 				^ IsUpdateTakeSupported                                .GetHashCode()
 				^ IsUpdateSkipTakeSupported                            .GetHashCode()
 				^ IsSupportedSimpleCorrelatedSubqueries                .GetHashCode()
+				^ IsJsonArrowSupported                                 .GetHashCode()
+				^ IsInsertReturningSupported                           .GetHashCode()
+				^ IsJsonNativeBinary                                   .GetHashCode()
 				^ CustomFlags.Aggregate(0, (hash, flag) => flag.GetHashCode() ^ hash);
 	}
 		/// <summary>
@@ -551,6 +573,9 @@ namespace mooSQL.data
 				&& IsUpdateTakeSupported                                 == other.IsUpdateTakeSupported
 				&& IsUpdateSkipTakeSupported                             == other.IsUpdateSkipTakeSupported
 				&& IsSupportedSimpleCorrelatedSubqueries                 == other.IsSupportedSimpleCorrelatedSubqueries
+				&& IsJsonArrowSupported                                  == other.IsJsonArrowSupported
+				&& IsInsertReturningSupported                            == other.IsInsertReturningSupported
+				&& IsJsonNativeBinary                                    == other.IsJsonNativeBinary
 				// CustomFlags as List wasn't best idea
 				&& CustomFlags.Count                                     == other.CustomFlags.Count
 				&& (CustomFlags.Count                                    == 0

@@ -17,11 +17,12 @@
 | 分页 | `LIMIT` / `OFFSET` |
 | Upsert | `Dialect.SupportsMerge() => true`（与 Npgsql 族一致） |
 | Bulk | `DbBulkCopyFallback` |
-| SQL 模板 | Express/Sentence/Clause/Function **继承 Npgsql 对应类**；Dialect 独立（不继承 `NpgsqlDialect`） |
+| SQL 模板 | Express/Sentence/Clause/Function **继承 Npgsql 对应类**；Dialect 挂 `PgFamilyDialect`（不继承 `NpgsqlDialect`，以便换驱动） |
 | 模式范围 | 首期仅 **PostgreSQL 兼容 SQL** |
 
 ```
-Dialect ← OpenGaussDialect     (net8+: GaussDB.* / 其它: Npgsql.*)
+ExtDialect ← PgFamilyDialect ← OpenGaussDialect
+  (net8+: GaussDB.* / 其它: Npgsql.*；Bulk 族默认 DbBulkCopyFallback)
 SQLExpression ← NpgsqlExpress ← OpenGaussExpress
 SQLSentence ← NpgSentence ← OpenGaussSentence
 ```

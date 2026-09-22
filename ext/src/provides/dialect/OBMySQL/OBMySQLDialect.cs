@@ -1,129 +1,31 @@
-
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using mooSQL.linq;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// 公开方言，以便业务册重写。
+    /// OceanBase MySQL 模式：MySQL Family；Bulk 走 Fallback（不用 MySqlBulkCopy）。
     /// </summary>
-    public class OBMySQLDialect : ExtDialect
+    public class OBMySQLDialect : MySqlFamilyDialect
     {
         public OBMySQLDialect()
         {
             expression = new OBMySQLExpress(this);
-            sentence = new MySQLSentence(this);
-            mapping = new MySQLMappingPanel();
-            clauseTranslator = new MySQLClauseTranslator(this);
-            function = new MySQLFunction();
             this.initVersions();
-        }
-        public override DbCommand getCommand()
-        {
-            return new MySqlCommand();
-        }
-
-        public override DbConnection getConnection()
-        {
-            return new MySqlConnection(db.DBConnectStr);
-        }
-
-        public override DbDataAdapter getDataAdapter()
-        {
-            return new MySqlDataAdapter();
-        }
-
-        public override DbCommandBuilder getCmdBuilder()
-        {
-            return new MySqlCommandBuilder();
         }
 
         public override DbBulkCopy GetBulkCopy()
+            => new DbBulkCopyFallback(this.dbInstance);
+
+        public override int BulkInsert(BulkBase bk)
         {
-            return new DbBulkCopyFallback(this.dbInstance);
-        }
-
-        protected override IMemberTranslator CreateMemberTranslator()
-            => new MySqlMemberTranslator();
-
-        public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
-        {
-            if (cmd is MySqlCommand)
-            {
-                MySqlCommand qcmd = (MySqlCommand)cmd;
-                return qcmd.Parameters.AddWithValue(para.key, para.val);
-            }
-            return null;
-        }
-        public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
-        {
-            if (cmd is MySqlCommand)
-            {
-                MySqlCommand qcmd = (MySqlCommand)cmd;
-                var parameter = new MySqlParameter();
-                parameter.ParameterName = parameterName;
-                parameter.DbType = GetDBTypeComm(type);
-                parameter.Size = size;
-                parameter.SourceColumn = sourceColumn;
-                return qcmd.Parameters.Add(parameter);
-            }
-            int i = cmd.Parameters.Add(parameterName);
-            return cmd.Parameters[i];
-        }
-
-        private DbType GetDBTypeComm(System.Type theType)
-        {
-            MySqlParameter p1;
-            System.ComponentModel.TypeConverter tc;
-            p1 = new MySqlParameter();
-            tc = System.ComponentModel.TypeDescriptor.GetConverter(p1.DbType);
-            if (tc.CanConvertFrom(theType))
-            {
-                p1.DbType = (DbType)tc.ConvertFrom(theType.Name);
-            }
-            else
-            {
-
-                try
-                {
-                    p1.DbType = (DbType)tc.ConvertFrom(theType.Name);
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-            return p1.DbType;
-        }
-
-        public override int BulkInsert(BulkBase bk) {
             int cc = 0;
             cc = this.BulkInsertByInsertValues(bk);
-            return cc;
-            //
-            //Message = "To use MySqlBulkLoader.Local=true, set AllowLoadLocalInfile=true in the connection string. See https://fl.vu/mysql-load-data"
-            //try
-            //{
-            //    cc = BulkInsertByCopy(bk);
-            //}
-            //catch (Exception ex) {
-            //    if (ex.Message.Contains("AllowLoadLocalInfile=true")) {
-            //        //此时未开启配置，回退未普通插入
-            //        cc = this.BulkInsertByInsertValues(bk);
-            //        return cc;
-            //    }
-            //    throw ex;
-            //}
-            
             return cc;
         }
 
@@ -136,13 +38,12 @@ namespace mooSQL.data
                 {
                     var conn = cont.session.connection as MySqlConnection;
                     MySqlBulkCopy bulk = new MySqlBulkCopy(conn, cont.session.transaction as MySqlTransaction);
-                    
+
                     bulk.DestinationTableName = bk.tableName;
                     if (bk.colnames.Count == 0)
                     {
                         bk.addAllTargetCol();
                     }
-                    //数据写入的来源列和目标列。
                     foreach (var col in bk.colnames)
                     {
                         var f = bk.bulkTarget.Columns[col];
@@ -156,23 +57,21 @@ namespace mooSQL.data
 
                     cc = bk.bulkTarget.Rows.Count;
 
-                    
                     return cc;
                 });
                 return cc;
             }
 
-            var conn = this.getConnection() as MySqlConnection;
-            using (conn)
+            var conn2 = this.getConnection() as MySqlConnection;
+            using (conn2)
             {
-                var bulk = new MySqlBulkCopy(conn);
+                var bulk = new MySqlBulkCopy(conn2);
                 {
                     bulk.DestinationTableName = bk.tableName;
                     if (bk.colnames.Count == 0)
                     {
                         bk.addAllTargetCol();
                     }
-                    //数据写入的来源列和目标列。
                     foreach (var col in bk.colnames)
                     {
                         var f = bk.bulkTarget.Columns[col];
@@ -182,19 +81,14 @@ namespace mooSQL.data
                         bulk.ColumnMappings.Add(m);
                     }
 
-                    //var cmdcount = new SqlCommand("SELECT COUNT(*) FROM " + tableName + ";", conn);
                     try
                     {
-                        if (conn.State != ConnectionState.Open)
+                        if (conn2.State != ConnectionState.Open)
                         {
-                            conn.Open();
+                            conn2.Open();
                         }
-                        //var countStart = System.Convert.ToInt32(cmdcount.ExecuteScalar());
                         bulk.WriteToServer(bk.bulkTarget);
-                        //var countEnd = System.Convert.ToInt32(cmdcount.ExecuteScalar());
-                        //wcount = countEnd - countStart;
                         cc = bk.bulkTarget.Rows.Count;
-                        //conn.Close();
                     }
                     catch (Exception e)
                     {
@@ -202,9 +96,9 @@ namespace mooSQL.data
                     }
                     finally
                     {
-                        if (conn.State != ConnectionState.Closed)
+                        if (conn2.State != ConnectionState.Closed)
                         {
-                            conn.Close();
+                            conn2.Close();
                         }
                     }
                 }
@@ -213,7 +107,6 @@ namespace mooSQL.data
             return cc;
         }
 
-
         public String SecureFilePriv { get; set; }
         public String DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
         public List<string> Expressions { get; } = new List<string>();
@@ -221,6 +114,7 @@ namespace mooSQL.data
         private char _fieldQuotationCharacter = '"';
         private char _escapeCharacter = '"';
         private string _lineTerminator = "\r\n";
+
         private MySqlBulkLoader GetBulkLoader(MySqlConnection conn, BulkBase bulk)
         {
             var bulkLoader = new MySqlBulkLoader(conn)
@@ -245,7 +139,6 @@ namespace mooSQL.data
 
         private string ToCSV(BulkBase bulk)
         {
-
             const string NULL_VALUE = "NULL";
             StringBuilder dataBuilder = new StringBuilder();
             foreach (DataRow row in bulk.bulkTarget.Rows)
@@ -310,8 +203,9 @@ namespace mooSQL.data
             return fileName;
         }
 
-        private List<DBVersion> initVersions() { 
-            var tar= new List<DBVersion> {
+        private List<DBVersion> initVersions()
+        {
+            var tar = new List<DBVersion> {
                 new DBVersion(){
                     VersionCode = "1.0",
                     VersionName = "OceanBase 1.0",
@@ -406,6 +300,5 @@ namespace mooSQL.data
             this.Versions = tar;
             return tar;
         }
-
     }
 }

@@ -117,6 +117,11 @@ namespace mooSQL.data
                 case "钛DB":
                     dbType = DataBaseType.TiDB;
                     break;
+                case "MARIADB":
+                case "MariaDB":
+                case "玛丽亚":
+                    dbType = DataBaseType.MariaDB;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;
@@ -293,7 +298,11 @@ namespace mooSQL.data
         /// <summary>
         /// TiDB（MySQL 协议兼容；MySqlConnector + 薄方言）
         /// </summary>
-        TiDB = 24
+        TiDB = 24,
+        /// <summary>
+        /// MariaDB（MySQL Family；MySqlConnector + 差分旗标）
+        /// </summary>
+        MariaDB = 25
 
     }
 }
