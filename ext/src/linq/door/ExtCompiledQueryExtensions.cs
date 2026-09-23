@@ -60,21 +60,5 @@ namespace mooSQL.data
                 return SentenceExecutor.ExecuteList<T>(bag, liveDb, q.Expression);
             };
         }
-
-        /// <summary>
-        /// 对已有 <see cref="IQueryable{T}"/> 表达式编译一次，返回接受「同形状 live 表达式」的执行器。
-        /// </summary>
-        public static Func<Expression, List<T>> CompileQueryExpression<T>(this DBInstance db, Expression queryExpression)
-            where T : notnull
-        {
-            if (db == null) throw new ArgumentNullException(nameof(db));
-            if (queryExpression == null) throw new ArgumentNullException(nameof(queryExpression));
-
-            var expr = queryExpression;
-            var bag = QueryMate.GetQuery<T>(db, ref expr, out _);
-            SentenceExecutor.FinalizeBag(bag, db);
-
-            return liveExpr => SentenceExecutor.ExecuteList<T>(bag, db, liveExpr);
-        }
     }
 }

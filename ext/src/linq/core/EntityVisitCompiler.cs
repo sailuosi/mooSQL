@@ -5,6 +5,10 @@ using mooSQL.linq;
 
 namespace mooSQL.linq.translator;
 
+/// <summary>
+/// <see cref="EntityVisitFactory"/> 对应的编译器另轨实现。
+/// 委托 <see cref="QueryMate.GetQuery{TResult}"/> + <see cref="SentenceExecutor"/>，与 <c>useQueryable</c> 主路径共用执行层。
+/// </summary>
 internal class EntityVisitCompiler : BaseQueryCompiler
 {
     public EntityVisitCompiler(DBInstance DB) : base(DB)

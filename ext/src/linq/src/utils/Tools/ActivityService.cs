@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace mooSQL.linq.utils
 {
 	/// <summary>
-	/// Provides API to register factory methods that return an Activity object or <c>null</c> for provided <see cref="ActivityID"/> event.
+	/// Ext LINQ 诊断活动钩子：调用点通过 <see cref="Start"/> 埋点；未注册工厂时恒返回 <c>null</c>（no-op）。
+	/// 需要诊断时调用 <see cref="AddFactory"/> 注册实现（可多次叠加）。
 	/// </summary>
-	
 	public static class ActivityService
 	{
 		internal static Func<ActivityID,IActivity?> Start { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; private set; } = static _ => null;
@@ -63,9 +63,10 @@ namespace mooSQL.linq.utils
 		static Func<ActivityID,IActivity?>? _factory;
 
 		/// <summary>
-		/// Adds a factory method that returns an Activity object or <c>null</c> for provided <see cref="ActivityID"/> event.
+		/// 注册诊断 Activity 工厂。未调用时 <see cref="Start"/> 恒为 no-op；可多次 <c>+=</c> 叠加多个工厂。
+		/// 本仓库业务与测试默认不注册；保留供外部诊断 / 性能分析扩展。
 		/// </summary>
-		/// <param name="factory">A factory method.</param>
+		/// <param name="factory">返回 <see cref="IActivity"/> 或 <c>null</c> 的工厂。</param>
 		public static void AddFactory(Func<ActivityID,IActivity?> factory)
 		{
 			if (_factory == null)

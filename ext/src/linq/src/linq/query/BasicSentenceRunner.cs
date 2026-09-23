@@ -1,32 +1,12 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.linq.translator;
 
 namespace mooSQL.linq
 {
-    internal class BasicSentenceRunner:ISentenceRunner
+    internal class BasicSentenceRunner : ISentenceRunner
     {
-        internal Func<RunnerContext, object?> GetElement = DefaultGetElement;
-        internal Func<RunnerContext, Task<object?>> GetElementAsync = DefaultGetElementAsync;
-
-        public void whenGetElement(Func<RunnerContext, object?> GetElement)
-        {
-            this.GetElement = GetElement;
-        }
-
-        public void whenGetElementAsync(Func<RunnerContext, Task<object?>> GetElementAsync)
-        {
-            this.GetElementAsync = GetElementAsync;
-        }
-
         public object? loadElement(RunnerContext context)
-            => GetElement(context);
-
-        public Task<object?> loadElementAsync(RunnerContext context)
-            => GetElementAsync(context);
-
-        static object? DefaultGetElement(RunnerContext context)
         {
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var db = context.dataContext ?? bag.DBLive;
@@ -34,7 +14,7 @@ namespace mooSQL.linq
             return SentenceExecutor.ExecuteObject(bag, db, expression, parameters);
         }
 
-        static Task<object?> DefaultGetElementAsync(RunnerContext context)
+        public Task<object?> loadElementAsync(RunnerContext context)
         {
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var db = context.dataContext ?? bag.DBLive;
@@ -43,19 +23,9 @@ namespace mooSQL.linq
         }
     }
 
-    internal class BasicSentenceRunner<T> : BasicSentenceRunner , ISentenceRunner<T>
+    internal class BasicSentenceRunner<T> : BasicSentenceRunner, ISentenceRunner<T>
     {
-        protected Func<RunnerContext, IResultEnumerable<T>> GetResultEnumerable = DefaultGetResultEnumerable;
-
         public IResultEnumerable<T> loadResultList(RunnerContext context)
-            => GetResultEnumerable(context);
-
-        public void whenGetResultEnumerable(Func<RunnerContext, IResultEnumerable<T>> GetResultEnumerable)
-        {
-            this.GetResultEnumerable = GetResultEnumerable;
-        }
-
-        static IResultEnumerable<T> DefaultGetResultEnumerable(RunnerContext context)
         {
             var bag = context.sentenceBag ?? throw new InvalidOperationException("RunnerContext.sentenceBag is required.");
             var db = context.dataContext ?? bag.DBLive;
