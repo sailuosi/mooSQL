@@ -331,12 +331,6 @@ internal partial class ClauseMethodVisitor
 
                 case ExpressionType.Extension    :
                 {
-                    if (expression is GetItemExpression getItemExpression)
-                    {
-                        expression = getItemExpression.Expression;
-                        break;
-                    }
-
                     if (expression is ContextRefExpression contextRef)
                     {
                         var newExpression = builder.BuildProjection(context, expression, ProjectFlags.Table);

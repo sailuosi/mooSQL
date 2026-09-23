@@ -52,15 +52,7 @@ namespace mooSQL.linq.expressions
 				return false;
 
 			if (expr1.NodeType != expr2.NodeType)
-			{
-				// special cache case
-				if (expr1.NodeType == ExpressionType.Extension && expr2.NodeType == ExpressionType.Constant && expr1 is ConstantPlaceholderExpression)
-				{
-					return true;
-				}
-
 				return false;
-			}
 
 			switch (expr1.NodeType)
 			{
@@ -374,11 +366,8 @@ namespace mooSQL.linq.expressions
 
 					if (dependentAttribute != null)
 					{
-						if (arg1 is not ConstantPlaceholderExpression)
-						{
-							if (!dependentAttribute.ExpressionsEqual(info, arg1, arg2, static (info, e1, e2) => e1.EqualsTo(e2, info)))
-								return false;
-						}
+						if (!dependentAttribute.ExpressionsEqual(info, arg1, arg2, static (info, e1, e2) => e1.EqualsTo(e2, info)))
+							return false;
 					}
 					else
 					{
