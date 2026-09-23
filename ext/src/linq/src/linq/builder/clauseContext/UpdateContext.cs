@@ -8,7 +8,6 @@ namespace mooSQL.linq.builder
 	using mooSQL.data.model;
 	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
-	using mooSQL.linq.utils;
 	using mooSQL.linq;
 	using mooSQL.linq.clause;
 	internal sealed class UpdateContext : PassThroughContext

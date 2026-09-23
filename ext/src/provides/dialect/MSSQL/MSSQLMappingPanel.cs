@@ -2,7 +2,6 @@ using mooSQL.data.mapping;
 using mooSQL.data.model;
 using mooSQL.linq.utils;
 using mooSQL.linq.provider.SqlServer;
-using mooSQL.linq.utils;
 using System;
 using System.Collections.Generic;
 using System.Data.Linq;

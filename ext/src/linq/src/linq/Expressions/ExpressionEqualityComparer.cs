@@ -18,7 +18,6 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.utils;
 	using mooSQL.linq;
     using mooSQL.utils;
-    using mooSQL.linq.utils;
 
 	/// <summary>
 	///     Internal expression infrastructure API and is not intended to be used

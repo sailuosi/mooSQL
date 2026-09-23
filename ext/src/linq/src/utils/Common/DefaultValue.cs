@@ -6,9 +6,7 @@ using System.Linq;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
-	using Internal;
-	using mooSQL.linq.mapping;
+
     using mooSQL.data;
     using mooSQL.utils;
 

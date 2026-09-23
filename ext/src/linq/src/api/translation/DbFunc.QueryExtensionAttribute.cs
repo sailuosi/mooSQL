@@ -7,7 +7,6 @@ namespace mooSQL.linq
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.builder;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
 	using mooSQL.linq.clause;
     using mooSQL.data.Mapping;

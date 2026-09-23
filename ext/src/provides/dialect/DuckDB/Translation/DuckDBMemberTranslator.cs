@@ -2,7 +2,6 @@
 using mooSQL.data.model;
 using mooSQL.linq;
 using mooSQL.linq.translator;
-using mooSQL.linq.translator;
 
 namespace mooSQL.data;
 

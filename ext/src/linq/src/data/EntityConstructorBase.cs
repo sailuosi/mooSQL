@@ -13,9 +13,7 @@ namespace mooSQL.linq.utils
 	using mooSQL.linq.builder;
 	using mooSQL.linq;
 	using mooSQL.linq.mapping;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.utils;
 	using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.utils;

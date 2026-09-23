@@ -9,13 +9,10 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq;
 	using mooSQL.linq.mapping;
     using mooSQL.data;
-    using mooSQL.linq;
     using mooSQL.utils;
-    using mooSQL.linq.mapping;
 
     /// <summary>
     /// Internal API.

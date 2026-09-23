@@ -10,24 +10,16 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.mapping;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.translator;
-	using mooSQL.linq.clause;
 	using mooSQL.linq.provider;
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;
     using mooSQL.linq;
-    using mooSQL.linq.provider;
-    using mooSQL.linq.translator;
     using mooSQL.data.call;
-    using mooSQL.linq.expressions;
 
     internal sealed partial class ClauseSqlTranslator : IExpressionEvaluator
 	{

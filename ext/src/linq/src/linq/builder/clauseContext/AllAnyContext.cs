@@ -7,7 +7,6 @@ namespace mooSQL.linq.builder
 	using mooSQL.data.model.affirms;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.clause;
 
 	internal sealed class AllAnyContext : SequenceContextBase
 	{

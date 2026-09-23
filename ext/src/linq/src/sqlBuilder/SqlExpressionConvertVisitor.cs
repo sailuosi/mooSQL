@@ -8,7 +8,6 @@ using mooSQL.linq.SqlQuery;
 namespace mooSQL.linq.provider
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq;
 	using mooSQL.linq.mapping;
 	using mooSQL.data;
@@ -16,7 +15,6 @@ namespace mooSQL.linq.provider
 	using mooSQL.data.model.affirms;
     using mooSQL.utils;
     using mooSQL.linq.clause;
-	using mooSQL.linq.clause;
     using static mooSQL.data.model.AffirmWord;
 
     public class SqlExpressionConvertVisitor : SentenceVisitor

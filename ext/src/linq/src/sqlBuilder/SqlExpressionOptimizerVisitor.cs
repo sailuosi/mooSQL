@@ -9,7 +9,6 @@ namespace mooSQL.linq.provider
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.clause;
 	using mooSQL.linq.mapping;
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;

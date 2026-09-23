@@ -14,13 +14,9 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.translator;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.mapping;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.clause;
 	using mooSQL.linq.provider;
 	using mooSQL.data.model;
@@ -28,7 +24,6 @@ namespace mooSQL.linq.builder
 	using mooSQL.data.model.affirms;
     using mooSQL.data.Mapping;
     using mooSQL.utils;
-    using mooSQL.data.mapping;
 
     partial class ClauseSqlTranslator
 	{

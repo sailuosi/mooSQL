@@ -8,7 +8,6 @@ namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
-	using mooSQL.linq.utils;
 
 	public static class MemberHelper
 	{

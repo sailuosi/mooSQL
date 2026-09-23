@@ -3,7 +3,6 @@ using mooSQL.data.model;
 using mooSQL.linq.expressions;
 using mooSQL.linq.builder;
 using mooSQL.linq;
-using mooSQL.data.model;
 using mooSQL.linq.clause;
 using System;
 using System.Linq.Expressions;

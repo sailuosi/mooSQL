@@ -7,11 +7,8 @@ using System.Reflection;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.mapping;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.clause;
 	using mooSQL.data.model;
     using mooSQL.utils;

@@ -11,7 +11,6 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.utils;
-    using mooSQL.linq.utils;
 
 	public class SqlGenericConstructorExpression : Expression, IEquatable<SqlGenericConstructorExpression>
 	{

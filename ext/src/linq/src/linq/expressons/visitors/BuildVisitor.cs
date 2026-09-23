@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.data;
 	using mooSQL.linq.expressions;

@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.mapping;
 	using mooSQL.linq.clause;

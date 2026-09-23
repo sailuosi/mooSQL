@@ -14,7 +14,6 @@ namespace mooSQL.linq.provider
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.linq.clause;
-	using mooSQL.linq.clause;
 	public class BasicSqlOptimizer : ISqlOptimizer
 	{
 		#region Init

@@ -9,7 +9,6 @@ using System.Reflection;
 namespace mooSQL.linq.mapping
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.builder;
 	using mooSQL.linq.expressions;
     using mooSQL.utils;

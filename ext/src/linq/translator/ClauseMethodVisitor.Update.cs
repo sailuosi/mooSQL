@@ -8,7 +8,6 @@ using mooSQL.linq.expressions;
 using mooSQL.linq.utils;
 using mooSQL.linq;
 using mooSQL.linq.builder;
-using mooSQL.linq;
 using mooSQL.linq.clause;
 using mooSQL.utils;
 

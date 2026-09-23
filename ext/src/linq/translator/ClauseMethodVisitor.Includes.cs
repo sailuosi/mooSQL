@@ -4,7 +4,6 @@ using mooSQL.linq;
 using mooSQL.linq.expressions;
 using mooSQL.linq.utils;
 using mooSQL.linq.builder;
-using mooSQL.linq.utils;
 using mooSQL.utils;
 using System.Linq;
 using System.Linq.Expressions;

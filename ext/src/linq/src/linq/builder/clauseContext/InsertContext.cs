@@ -9,7 +9,6 @@ namespace mooSQL.linq.builder
 	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq;
-	using mooSQL.linq.utils;
 	using mooSQL.utils;
 	using mooSQL.linq.clause;
 	internal sealed class InsertContext : PassThroughContext

@@ -9,7 +9,6 @@ using mooSQL.linq.utils;
 using mooSQL.linq.expressions;
 using mooSQL.linq;
 using mooSQL.linq.builder;
-using mooSQL.linq;
 using mooSQL.utils;
 namespace mooSQL.linq.translator;
 

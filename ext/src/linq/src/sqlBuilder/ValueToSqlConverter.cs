@@ -7,7 +7,6 @@ using System.Text;
 namespace mooSQL.linq.provider
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;

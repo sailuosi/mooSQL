@@ -7,7 +7,6 @@ using System.Reflection;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 
 	[DebuggerDisplay("{ToDebugString()}")]
 	sealed class IncludeInfo

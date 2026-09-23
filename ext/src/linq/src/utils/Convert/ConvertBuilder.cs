@@ -10,9 +10,6 @@ using System.Threading;
 namespace mooSQL.linq.utils
 {
 	using mooSQL.linq.expressions;
-	using mooSQL.linq.utils;
-	using Internal;
-	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.mapping;
     using mooSQL.utils;

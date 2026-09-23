@@ -21,7 +21,6 @@ using System.Reflection;
 namespace mooSQL.linq
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.linq.mapping;
 	using mooSQL.linq.clause;

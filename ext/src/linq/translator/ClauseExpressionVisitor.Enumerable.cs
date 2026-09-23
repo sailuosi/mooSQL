@@ -7,7 +7,6 @@ using System.Reflection;
 using mooSQL.linq.utils;
 using mooSQL.linq.expressions;
 using mooSQL.linq.builder;
-using mooSQL.linq.utils;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

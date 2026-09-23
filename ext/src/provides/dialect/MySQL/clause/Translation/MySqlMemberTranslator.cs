@@ -9,7 +9,6 @@ namespace mooSQL.data
 	using mooSQL.linq.clause;
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
-	using mooSQL.linq.translator;
 
 	public class MySqlMemberTranslator : DefaultMemberTranslator
 	{

@@ -9,7 +9,6 @@ using mooSQL.utils;
 namespace mooSQL.linq
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using MappingExtensions = mooSQL.linq.utils.MappingExtensions;
 
 	public partial class DbFunc

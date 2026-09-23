@@ -10,10 +10,8 @@ using System.Reflection;
 namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.utils;
-    using mooSQL.linq.utils;
 
 	public static class ExpressionExtensions
 	{

@@ -12,11 +12,8 @@ namespace mooSQL.linq.utils
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
-	using mooSQL.linq.utils;
-	using mooSQL.linq;
 	using mooSQL.data;
 	using mooSQL.data.model;
-    using mooSQL.linq;
     using mooSQL.linq.clause;
 	/// <summary>
 	/// This API supports the mooSQL LINQ infrastructure and is not intended to be used directly from your code.

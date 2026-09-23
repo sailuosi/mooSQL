@@ -9,9 +9,6 @@ using System.Threading.Tasks;
 namespace mooSQL.linq
 {
 	using mooSQL.linq;
-#if NET6_0_OR_GREATER
-	using mooSQL.linq;
-#endif
 
 	public static partial class LinqExtensions
 	{

@@ -11,9 +11,7 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.builder;
 	using mooSQL.linq.provider;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.provider;
 	using System.Globalization;
-	using mooSQL.linq.utils;
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.utils;

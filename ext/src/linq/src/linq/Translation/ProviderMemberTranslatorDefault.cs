@@ -6,7 +6,6 @@ using mooSQL.linq;
 namespace mooSQL.linq.translator
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;

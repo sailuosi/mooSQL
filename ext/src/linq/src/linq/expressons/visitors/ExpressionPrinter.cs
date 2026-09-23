@@ -17,7 +17,6 @@ using System.Runtime.CompilerServices;
 namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
     using mooSQL.linq;
 
     /// <summary>

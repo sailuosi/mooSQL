@@ -10,7 +10,6 @@ namespace mooSQL.linq
 	using mooSQL.linq;
 	using mooSQL.linq.expressions;
 	using PN = ProviderName;
-    using mooSQL.linq;
 
 	public static partial class SooFunctionExtension
 	{

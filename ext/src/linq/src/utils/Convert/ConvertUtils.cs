@@ -4,8 +4,7 @@ using System.Globalization;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
-	using Internal;
+
     using mooSQL.utils;
 
 	internal static class ConvertUtils

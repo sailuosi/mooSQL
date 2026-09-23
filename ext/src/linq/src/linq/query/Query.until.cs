@@ -4,13 +4,10 @@ using mooSQL.data.model;
 using mooSQL.linq.utils;
 
 using mooSQL.linq.provider;
-using mooSQL.linq.utils;
 
 using mooSQL.linq.builder;
 using mooSQL.linq.translator;
-using mooSQL.linq.provider;
 using mooSQL.linq.clause;
-using mooSQL.linq.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;

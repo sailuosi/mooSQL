@@ -5,7 +5,6 @@ using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.utils;
 using mooSQL.linq.expressions;
-using mooSQL.linq.utils;
 using mooSQL.linq.clause;
 using mooSQL.utils;
 

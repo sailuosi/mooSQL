@@ -4,7 +4,6 @@ using System.Linq;
 namespace mooSQL.linq.builder
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 
 	internal partial class ClauseSqlTranslator
 	{

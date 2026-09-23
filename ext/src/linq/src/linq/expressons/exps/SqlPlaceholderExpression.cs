@@ -7,7 +7,6 @@ using System.Threading;
 namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.linq.clause;

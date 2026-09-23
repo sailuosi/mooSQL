@@ -7,7 +7,6 @@ using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq;
 
-using mooSQL.linq;
 
 namespace mooSQL.linq.translator;
 

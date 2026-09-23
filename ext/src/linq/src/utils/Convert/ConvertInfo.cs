@@ -5,9 +5,6 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
-	using Internal;
-	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
 

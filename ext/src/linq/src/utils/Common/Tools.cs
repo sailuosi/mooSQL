@@ -12,7 +12,6 @@ namespace mooSQL.linq.utils
 	using mooSQL.linq.utils;
 	using mooSQL.linq;
 	using mooSQL.linq.mapping;
-	using mooSQL.linq.utils;
 
 	/// <summary>
 	/// Various general-purpose helpers.

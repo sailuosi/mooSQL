@@ -20,7 +20,6 @@ namespace mooSQL.linq
 	using mooSQL.linq.clause;
 
 	using mooSQL.linq.utils;
-	using mooSQL.linq.provider;
 	/// <summary>
 	/// Contains extension methods for LINQ queries.
 	/// </summary>

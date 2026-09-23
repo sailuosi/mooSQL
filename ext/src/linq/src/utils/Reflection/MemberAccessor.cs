@@ -9,8 +9,6 @@ namespace mooSQL.linq.utils
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
-	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.utils;
     using mooSQL.data;

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
-	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     /// <summary>

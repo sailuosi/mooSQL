@@ -8,7 +8,6 @@ namespace mooSQL.data
 	using mooSQL.linq.utils;
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
-	using mooSQL.linq.translator;
 	using mooSQL.linq.clause;
 
 	public class SqlServerMemberTranslator : DefaultMemberTranslator

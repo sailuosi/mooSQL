@@ -159,7 +159,7 @@ public class Program
                 from a in step1
                 from e3 in db.useQueryable<TestEntity>().InnerJoin(x => a.a3 == x.Id)
                 select new { a.a4, e3.Id };
-            var qSql = (step2 as mooSQL.linq.Linq.IExpressionQuery)?.SqlText ?? step2?.ToString() ?? "";
+            var qSql = (step2 as IExpressionQuery)?.SqlText ?? step2?.ToString() ?? "";
             Console.WriteLine($"[join-sql] Builder={bSql?.Length} Clip={cSql?.Length} Queryable={qSql?.Length}");
             if (string.IsNullOrWhiteSpace(bSql) || string.IsNullOrWhiteSpace(cSql) || string.IsNullOrWhiteSpace(qSql)
                 || bSql.IndexOf("JOIN", StringComparison.OrdinalIgnoreCase) < 0
