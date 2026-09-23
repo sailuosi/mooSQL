@@ -1,32 +1,20 @@
 using mooSQL.data.model;
-using System.Collections.Generic;
-using System.Xml;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// Ext 侧调试字符串扩展。pure 的 <c>ToDebugExtension</c> 为 assembly-internal，
+	/// 本类与其行为对齐（委托 <see cref="object.ToString"/>），供 Ext LINQ 编译层使用。
+	/// </summary>
 	public static class DebugStringExtensions
 	{
-		public static QueryElementTextWriter AppendElement<T>(this QueryElementTextWriter writer, T? element)
-			where T : ISQLNode
-		{
-			if (element == null)
-				return writer;
-
-			element.ToString();
-			return writer;
-		}
-
-
-
-
 		internal static string ToDebugString<T>(this T element, SelectQueryClause? selectQuery = null)
 			where T : ISQLNode
 		{
+			_ = selectQuery;
 			try
 			{
-				var writer = new QueryElementTextWriter(NullabilityContext.GetContext(selectQuery));
-				writer.AppendElement(element);
-				return writer.ToString();
+				return element.ToString() ?? string.Empty;
 			}
 			catch
 			{
