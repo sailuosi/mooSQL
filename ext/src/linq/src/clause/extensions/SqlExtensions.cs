@@ -57,38 +57,6 @@ namespace mooSQL.linq.clause
 		}
 
 
-
-		/// <summary>
-		/// 这是内部API，不应由业务侧使用.
-		/// It may change or be removed without further notice.
-		/// </summary>
-		public static InsertClause? GetInsertClause(this BaseSentence statement)
-		{
-			return statement switch
-			{
-				InsertSentence insert         => insert.Insert,
-				InsertOrUpdateSentence update => update.Insert,
-				_                                 => null,
-			};
-		}
-
-
-
-		/// <summary>
-		/// 这是内部API，不应由业务侧使用.
-		/// It may change or be removed without further notice.
-		/// </summary>
-		public static UpdateClause? GetUpdateClause(this BaseSentence statement)
-		{
-			return statement switch
-			{
-				UpdateSentence update                 => update.Update,
-				InsertOrUpdateSentence insertOrUpdate => insertOrUpdate.Update,
-				_                                         => null,
-			};
-		}
-
-
 		internal static bool IsSqlRow(this Expression expression)
 			=> expression.Type.IsSqlRow();
 
@@ -103,25 +71,5 @@ namespace mooSQL.linq.clause
 		}
 
 
-        public static ValueWord GetSqlValue(this ObjectWord objectWord, DBInstance mappingSchema, object obj, int index)
-        {
-            var p = objectWord._infoParameters[index];
-
-            object? value;
-			return null;
-            //if (p.ColumnDescriptor != null)
-            //{
-            //    return mappingSchema.GetSqlValueFromObject(p.ColumnDescriptor, obj);
-            //}
-
-            //if (p.GetValueFunc != null)
-            //{
-            //    value = p.GetValueFunc(obj);
-            //}
-            //else
-            //    throw new InvalidOperationException();
-
-            //return mappingSchema.GetSqlValue(p.ValueType, value, null);
-        }
     }
 }
