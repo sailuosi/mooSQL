@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace mooSQL.linq
 {
 	using mooSQL.linq.expressions;
-	using mooSQL.linq;
 	using mooSQL.linq.utils;
 
 	using static mooSQL.linq.utils.Methods.SooQuery.Merge;

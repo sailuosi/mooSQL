@@ -6,7 +6,6 @@ using PN = mooSQL.linq.ProviderName;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	public static partial class SooFunctionExtension
 	{
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]

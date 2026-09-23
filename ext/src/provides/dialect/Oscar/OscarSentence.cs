@@ -1,7 +1,4 @@
 // 基础功能说明：
-
-
-using mooSQL.data;
 using mooSQL.linq;
 using System;
 using System.Collections.Generic;

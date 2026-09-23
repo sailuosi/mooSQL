@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq.translator;
 

@@ -7,7 +7,6 @@ using PN = mooSQL.linq.ProviderName;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.linq.clause;

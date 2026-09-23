@@ -4,7 +4,6 @@ using mooSQL.data.model;
 using mooSQL.data.model.affirms;
 using mooSQL.linq.utils;
 using mooSQL.linq.provider;
-using mooSQL.linq.clause;
 
 namespace mooSQL.linq.clause
 {

@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	using mooSQL.linq.expressions;
 	using PN = ProviderName;
 

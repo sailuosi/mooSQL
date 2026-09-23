@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 
 	public static partial class TypeExtensions
 	{

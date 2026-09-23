@@ -5,7 +5,6 @@ using System.Reflection;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     public class TypeAccessor<T> : TypeAccessor

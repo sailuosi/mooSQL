@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	public static partial class LinqExtensions
 	{
 

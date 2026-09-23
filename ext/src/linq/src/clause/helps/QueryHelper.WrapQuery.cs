@@ -6,7 +6,6 @@ using mooSQL.linq.utils;
 namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
-    using mooSQL.linq.clause;
 	public partial class QueryHelper
 	{
 		class WrapQueryVisitor<TContext> : SentenceVisitor

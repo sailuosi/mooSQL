@@ -6,7 +6,6 @@ using System.Reflection;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 
 	public static class TypeHelper
 	{

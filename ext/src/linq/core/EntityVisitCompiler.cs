@@ -2,7 +2,6 @@ using System;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.translator;
 
 namespace mooSQL.linq.translator;
 

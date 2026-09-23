@@ -10,7 +10,6 @@ using mooSQL.linq.expressions;
 using mooSQL.linq.utils;
 using mooSQL.linq;
 using mooSQL.linq.builder;
-using mooSQL.linq.translator;
 using mooSQL.linq.clause;
 using InListSqlExtensions = mooSQL.linq.utils.SqlExtensions;
 

@@ -19,7 +19,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using mooSQL.data.taos;
 namespace mooSQL.data.taos
 {
 

@@ -4,7 +4,6 @@ using System.Reflection;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 	static class MappingExpressionsExtensions
 	{
 		public static TExpression GetExpressionFromExpressionMember<TExpression>(this Type type, string memberName)

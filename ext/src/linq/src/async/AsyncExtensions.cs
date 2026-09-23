@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	/// <summary>
 	/// Provides helper methods for asynchronous operations.
 	/// </summary>

@@ -1,6 +1,5 @@
 namespace mooSQL.linq;
 
-using mooSQL.linq;
 public static partial class SooFunctionExtension
 {
 	public interface IGroupBy

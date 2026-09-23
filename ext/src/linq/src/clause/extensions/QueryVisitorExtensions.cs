@@ -8,7 +8,6 @@ namespace mooSQL.linq.clause
 
 	using mooSQL.data.model;
 
-	using mooSQL.linq.clause;
 	public static class QueryVisitorExtensions
 	{
 		internal static readonly ObjectPool<ClauseFindVisitor>          FindVisitorPool      = new(() => new ClauseFindVisitor(),          v => v.Cleanup(), 100);

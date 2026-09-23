@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 	// contains reusable task instances to avoid allocations
 	internal static class TaskCache
 	{

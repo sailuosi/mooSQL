@@ -10,7 +10,6 @@ using mooSQL.linq;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 	using mooSQL.linq.expressions;
 	using mooSQL.data;
 	using mooSQL.data.model;

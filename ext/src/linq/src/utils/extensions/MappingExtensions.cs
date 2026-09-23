@@ -5,7 +5,6 @@ using mooSQL.data;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.data.model;
     using mooSQL.utils;

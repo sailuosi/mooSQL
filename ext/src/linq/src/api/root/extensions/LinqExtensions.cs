@@ -13,7 +13,6 @@ namespace mooSQL.linq
 
 	using mooSQL.linq.provider;
 	using mooSQL.linq.expressions;
-	using mooSQL.linq;
 	using mooSQL.linq.builder;
 	using mooSQL.data;
 	using mooSQL.data.model;

@@ -6,7 +6,6 @@ namespace mooSQL.linq.clause
 {
 	using mooSQL.linq.utils;
     using mooSQL.data.model;
-    using mooSQL.linq.clause;
 	/// <summary>
 	/// This base visitor implements:
 	/// <list type="bullet">

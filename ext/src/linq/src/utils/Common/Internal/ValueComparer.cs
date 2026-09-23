@@ -8,7 +8,6 @@ using System.Reflection;
 namespace mooSQL.linq.utils
 {
 	using mooSQL.linq.expressions;
-	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     abstract class ValueComparer : IEqualityComparer, IEqualityComparer<object>

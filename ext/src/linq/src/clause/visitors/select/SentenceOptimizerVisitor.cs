@@ -10,7 +10,6 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.mapping;
 	using mooSQL.linq.builder;
 	using mooSQL.linq.provider;
-	using mooSQL.linq.clause;
 	using System.Globalization;
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;

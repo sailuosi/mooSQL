@@ -3,7 +3,6 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.utils
 {
-	using mooSQL.linq.utils;
 
 	public static class ObjectFactory<T>
 	{

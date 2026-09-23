@@ -12,7 +12,6 @@ namespace mooSQL.linq
 	using System.Text;
 
 	using mooSQL.linq.utils;
-	using mooSQL.linq;
 	/// <summary>
 	/// Contains LINQ expression compilation options.
 	/// </summary>

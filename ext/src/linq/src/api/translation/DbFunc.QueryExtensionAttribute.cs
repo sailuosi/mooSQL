@@ -67,7 +67,7 @@ namespace mooSQL.linq
 
 			public QueryExtensionScope Scope                { get; }
 			/// <summary>
-			/// Instance of <see cref="ISqlExtensionBuilder"/>.
+
 			/// </summary>
 			public Type?               ExtensionBuilderType { get; set; }
 			public string[]?           ExtensionArguments   { get; set; }

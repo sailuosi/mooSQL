@@ -1,5 +1,4 @@
 using mooSQL.linq;
-using mooSQL.linq.translator;
 
 namespace mooSQL.linq.translator;
 

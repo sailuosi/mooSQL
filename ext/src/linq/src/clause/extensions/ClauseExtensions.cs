@@ -17,45 +17,6 @@ namespace mooSQL.linq.clause
     public static class ClauseExtensions
     {
 
-
-        public static void RefineDbParameter(this SetWord setWord, IExpWord column, IExpWord? value)
-        {
-            if (value is ParameterWord p && column is FieldWord field)
-            {
-                if (field.ColumnDescriptor != null && p.Type.SystemType != typeof(object))
-                {
-                    if (field.ColumnDescriptor.DataType != DataFam.Undefined && p.Type.DataType == DataFam.Undefined)
-                        p.Type = p.Type.WithDataType(field.ColumnDescriptor.DataType);
-
-                    if (field.ColumnDescriptor.DbType != null && p.Type.DbType == null)
-                        p.Type = field.ColumnDescriptor.DbType;
-                    if (field.ColumnDescriptor.Length != null && p.Type.Length == null)
-                        p.Type = p.Type.WithLength(field.ColumnDescriptor.Length);
-                    if (field.ColumnDescriptor.Precision != null && p.Type.Precision == null)
-                        p.Type = p.Type.WithPrecision(field.ColumnDescriptor.Precision);
-                    if (field.ColumnDescriptor.Scale != null && p.Type.Scale == null)
-                        p.Type = p.Type.WithScale(field.ColumnDescriptor.Scale);
-                }
-            }
-        }
-
-
-
-
-
-        public static TableSourceWord? CheckSource(this TableSourceWord src,ITableNode table,string alias){
-            foreach (var tj in src.Joins)
-			{
-				//var t = CheckTableSource(tj.Table, table, alias);
-
-				//if (t != null)
-				//	return t;
-			}
-            return null;
-        }
-
-
-
         public static List<TableSourceWord> FindTables(this ITableNode table) { 
             throw new NotImplementedException();    
         }
@@ -119,10 +80,7 @@ namespace mooSQL.linq.clause
         {
             throw new NotImplementedException();
         }
-        public static FieldWord FindIdentityField(this ITableNode selectQuery)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public static string? FindAlias(this ITableNode selectQuery)
         {
@@ -306,20 +264,6 @@ namespace mooSQL.linq.clause
             //throw new NotImplementedException();
         }
 
-
-        public static void Add(this ValuesTableWord valuesTable, FieldWord field, MemberInfo? memberInfo, Func<object, IExpWord> valueBuilder)
-        {
-            if (field.Table != null) throw new InvalidOperationException("Invalid parent table.");
-
-            field.Table = valuesTable;
-            valuesTable.Fields.Add(field);
-
-            if (memberInfo != null)
-                valuesTable.FieldsLookup!.Add(memberInfo, field);
-
-            valuesTable.ValueBuilders ??= new List<Func<object, IExpWord>>();
-            valuesTable.ValueBuilders.Add(valueBuilder);
-        }
 
         public static Clause MakeBool(bool isTrue)
         {

@@ -6,7 +6,6 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.utils;
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using mooSQL.linq.clause;
 	public class SentenceColumnUsageCollector : SentenceVisitor
 	{
 		SelectQueryClause?                _parentSelectQuery;

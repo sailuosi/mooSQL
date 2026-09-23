@@ -5,7 +5,6 @@ using System.Diagnostics;
 namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
-    using mooSQL.linq.clause;
 	public class SentenceColumnNestingCorrector : SentenceVisitor
 	{
 		[DebuggerDisplay("QN(S:{TableSource.SourceID})")]

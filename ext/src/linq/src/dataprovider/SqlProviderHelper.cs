@@ -2,7 +2,6 @@ namespace mooSQL.linq.provider
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.clause;
-	using mooSQL.linq.provider;
     using mooSQL.data.model;
     using mooSQL.data;
 

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	using Methods = mooSQL.linq.utils.Methods.SooQuery.MultiInsert;
 
 	public static class MultiInsertExtensions

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq
 {
-	using mooSQL.linq;
 	using mooSQL.linq.builder;
     using mooSQL.data;
 

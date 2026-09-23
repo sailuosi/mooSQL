@@ -16,7 +16,6 @@ using System.Xml;
 namespace mooSQL.linq.utils
 {
     using mooSQL.utils;
-    using mooSQL.linq.utils;
 
 	
 	public static class ReflectionExtensions
