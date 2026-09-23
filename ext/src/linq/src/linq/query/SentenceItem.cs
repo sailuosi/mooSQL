@@ -1,13 +1,13 @@
-﻿using mooSQL.data.model;
-using mooSQL.linq.Data;
-using mooSQL.linq.SqlQuery;
+using mooSQL.data.model;
+using mooSQL.linq.utils;
+using mooSQL.linq.clause;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
     /// <summary>
     /// 代表着一个SQL定义模型

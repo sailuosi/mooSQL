@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace mooSQL.linq.DataProvider.MySql
+namespace mooSQL.linq.provider.MySql
 {
-	using Extensions;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.utils;
     using NPOI.SS.Formula.Functions;
-    using SqlProvider;
-	using SqlQuery;
-
+    using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	public class MySqlSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
 		public MySqlSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)

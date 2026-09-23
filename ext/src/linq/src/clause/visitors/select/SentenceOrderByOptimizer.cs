@@ -1,12 +1,12 @@
-﻿using System.Linq;
+using System.Linq;
 using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
-using mooSQL.linq.Common;
-using mooSQL.linq.SqlProvider;
-using mooSQL.linq.SqlQuery.Visitors;
+using mooSQL.linq.utils;
+using mooSQL.linq.provider;
+using mooSQL.linq.clause;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	public class SentenceOrderByOptimizer : SentenceVisitor
 	{

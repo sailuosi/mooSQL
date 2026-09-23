@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data.model;
-    using SqlQuery;
+    using mooSQL.linq.clause;
 	/// <summary>
 	/// 表达式编译环境
 	/// </summary>

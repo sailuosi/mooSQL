@@ -9,16 +9,16 @@ using System.Threading;
 
 namespace mooSQL.linq
 {
-	using Common;
-	using Common.Internal;
-	using Expressions;
-	using Extensions;
-	using Linq.Builder;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.utils;
-    using SqlQuery;
+    using mooSQL.linq.clause;
     using mooSQL.linq.translator;
 
 	public partial class DbFunc

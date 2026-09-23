@@ -1,6 +1,6 @@
-﻿namespace mooSQL.linq
+namespace mooSQL.linq
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
 
     /// <summary>

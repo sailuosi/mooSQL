@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
 using mooSQL.data.Mapping;
+using mooSQL.linq.mapping;
 
-namespace mooSQL.linq.Mapping
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// Defines relation between tables or views for LINQ association navigation.

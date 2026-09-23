@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	public interface IValueInsertable<T>
 	{

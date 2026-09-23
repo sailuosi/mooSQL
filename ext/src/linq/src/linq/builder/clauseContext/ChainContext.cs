@@ -2,10 +2,10 @@ using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common.Internal;
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
     using mooSQL.utils;
 
 	internal sealed class ChainContext : SequenceContextBase

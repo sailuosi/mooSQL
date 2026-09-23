@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Data.SqlTypes;
@@ -18,13 +18,13 @@ using System.Reflection;
 // ReSharper disable RedundantLambdaParameterType
 #endregion
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Common.Internal;
-	using Extensions;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;

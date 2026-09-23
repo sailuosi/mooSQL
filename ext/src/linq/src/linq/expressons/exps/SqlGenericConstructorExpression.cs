@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Extensions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.utils;
-    using Reflection;
+    using mooSQL.linq.utils;
 
 	public class SqlGenericConstructorExpression : Expression, IEquatable<SqlGenericConstructorExpression>
 	{

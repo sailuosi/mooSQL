@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	[Flags]
 	internal enum QueryFlags

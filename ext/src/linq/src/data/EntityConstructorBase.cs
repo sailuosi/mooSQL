@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Data
+namespace mooSQL.linq.utils
 {
-	using Expressions;
-	using Extensions;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
 
-	using Linq.Builder;
-	using Linq;
-	using Mapping;
-	using Reflection;
-	using SqlQuery;
-	using Tools;
+	using mooSQL.linq.builder;
+	using mooSQL.linq;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.utils;
 	using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.utils;

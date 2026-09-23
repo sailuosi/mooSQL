@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public interface ISqlOptimizer
 	{
 		/// <summary>

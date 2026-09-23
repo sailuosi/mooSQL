@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace System.Data.Linq
 {
-	using mooSQL.linq.Common;
+	using mooSQL.linq.utils;
 
 	[DataContract]
 	[Serializable]

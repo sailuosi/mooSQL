@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Linq.Builder;
-
+	using mooSQL.linq.builder;
     sealed class ContextRefExpression : Expression, IEquatable<ContextRefExpression>
 	{
 		public ContextRefExpression(Type elementType, IClauseContext buildContext, string? alias = null)

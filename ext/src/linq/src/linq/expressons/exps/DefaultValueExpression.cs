@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
 
     public class DefaultValueExpression : Expression

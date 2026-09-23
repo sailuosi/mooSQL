@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Data.Common;
@@ -7,14 +7,14 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Extensions;
-	using Common;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
-	using Reflection;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.utils;
 
 	class FinalizeExpressionVisitor : ExpressionVisitorBase
 	{

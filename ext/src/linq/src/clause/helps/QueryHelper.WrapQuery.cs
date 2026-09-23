@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
 
-using mooSQL.linq.Common;
+using mooSQL.linq.utils;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
-    using Visitors;
-
+    using mooSQL.linq.clause;
 	public partial class QueryHelper
 	{
 		class WrapQueryVisitor<TContext> : SentenceVisitor

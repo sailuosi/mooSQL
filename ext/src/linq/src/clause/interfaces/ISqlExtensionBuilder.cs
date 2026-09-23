@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Text;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
-    using SqlProvider;
-
+    using mooSQL.linq.provider;
 	/// <summary>
 	/// Base interface for all extension builders.
 	/// </summary>

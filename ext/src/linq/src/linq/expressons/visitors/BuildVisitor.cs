@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common.Internal;
-	using Extensions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
     using mooSQL.utils;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
     sealed class BuildVisitor : ExpressionVisitorBase
 	{
 		ProjectFlags      _flags;

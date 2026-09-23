@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
-	using Extensions;
+	using mooSQL.linq.utils;
 	using Internal;
     using mooSQL.utils;
 

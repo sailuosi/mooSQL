@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
-	using Expressions;
-
+	using mooSQL.linq.expressions;
 	// moved to non-generic class to avoid instance-per-generic
 	internal sealed class ConvertReducer
 	{

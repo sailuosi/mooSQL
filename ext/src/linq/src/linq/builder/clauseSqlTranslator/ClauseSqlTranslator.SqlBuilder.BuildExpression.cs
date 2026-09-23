@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,19 +10,20 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using mooSQL.linq.SqlQuery;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using Common.Internal;
-	using Data;
-	using Extensions;
-	using Translation;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using Reflection;
-	using SqlQuery;
-	using DataProvider;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.translator;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.provider;
 	using mooSQL.data.model;
 	using mooSQL.data;
 	using mooSQL.data.model.affirms;

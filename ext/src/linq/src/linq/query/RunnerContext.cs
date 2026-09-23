@@ -1,9 +1,9 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
 
-namespace mooSQL.linq.Linq;
+namespace mooSQL.linq;
 
 /// <summary>
 /// 执行 SentenceBag 时的上下文参数。

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Diagnostics.CodeAnalysis;
@@ -14,11 +14,11 @@ using System.Text.RegularExpressions;
 
 namespace mooSQL.linq
 {
-	using Mapping;
-	using Expressions;
-	using Linq;
-	using SqlQuery;
-	using mooSQL.linq.Common;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
 	using mooSQL.data;

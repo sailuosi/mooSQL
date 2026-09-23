@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
-	using Linq.Builder;
+	using mooSQL.linq.builder;
     using mooSQL.data;
     using mooSQL.data.model;
 
-	using SqlProvider;
-
+	using mooSQL.linq.provider;
 	public class ClauseValidatorVisitor : ClauseVisitor
 	{
         SelectQueryClause?     _parentQuery;

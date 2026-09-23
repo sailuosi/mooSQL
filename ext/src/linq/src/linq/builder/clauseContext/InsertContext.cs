@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
-	using mooSQL.linq.Common;
-	using mooSQL.linq.Expressions;
-	using mooSQL.linq.ext;
-	using Common;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
+	using mooSQL.linq.utils;
 	using mooSQL.utils;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	internal sealed class InsertContext : PassThroughContext
 	{
 		public InsertSentence InsertStatement { get; }

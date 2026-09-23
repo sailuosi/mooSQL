@@ -1,4 +1,4 @@
-﻿// based on
+// based on
 // https://raw.githubusercontent.com/dotnet/runtime/main/src/libraries/System.Reflection.Metadata/src/System/Reflection/Internal/Utilities/ObjectPool%601.cs
 //
 // Licensed to the .NET Foundation under one or more agreements.
@@ -7,7 +7,7 @@
 using System;
 using System.Threading;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Generic implementation of object pooling pattern with predefined pool size limit. The main

@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Extensions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.utils;
 

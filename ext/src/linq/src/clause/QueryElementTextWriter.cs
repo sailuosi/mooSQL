@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using mooSQL.data.model;
-using mooSQL.linq.Common;
+using mooSQL.linq.utils;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	public class QueryElementTextWriter
 	{

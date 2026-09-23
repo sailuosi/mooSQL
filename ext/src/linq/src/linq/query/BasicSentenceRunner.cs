@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
     internal class BasicSentenceRunner:ISentenceRunner
     {

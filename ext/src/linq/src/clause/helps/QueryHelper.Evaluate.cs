@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
 using mooSQL.utils;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	partial class QueryHelper
 	{

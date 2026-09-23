@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,11 +10,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
-	using Expressions;
-	using Linq;
-
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
 	/// <summary>
 	/// Internal infrastructure API.
 	/// Provides functionality for <see cref="IConfigurationID.ConfigurationID"/> generation.

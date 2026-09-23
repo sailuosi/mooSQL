@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using mooSQL.linq.Reflection;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 
 	internal partial class ClauseSqlTranslator
 	{

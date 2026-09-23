@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     [Flags]
     enum ProjectFlags

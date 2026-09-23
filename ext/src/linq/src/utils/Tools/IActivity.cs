@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 
 
-namespace mooSQL.linq.Tools
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Represents a user-defined operation with context to be used for Activity Service events.

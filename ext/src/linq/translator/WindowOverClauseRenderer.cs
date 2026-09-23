@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.clause;
 
 namespace mooSQL.linq.translator;
 

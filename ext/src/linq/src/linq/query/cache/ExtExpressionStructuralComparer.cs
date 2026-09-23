@@ -7,7 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// Structural expression comparer for query plan cache keys.

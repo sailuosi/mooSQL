@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
     using mooSQL.data.model;
 
     [DebuggerDisplay("{ClauseContextDebuggingHelper.GetContextInfo(this)}")]

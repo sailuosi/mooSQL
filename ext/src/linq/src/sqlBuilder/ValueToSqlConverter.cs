@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Globalization;
 using System.Text;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
-	using Common;
-	using Extensions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.utils;

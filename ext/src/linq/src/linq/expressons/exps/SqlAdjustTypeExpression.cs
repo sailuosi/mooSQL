@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Linq.Builder;
-	using Mapping;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
 
     class SqlAdjustTypeExpression: Expression, IEquatable<SqlAdjustTypeExpression>

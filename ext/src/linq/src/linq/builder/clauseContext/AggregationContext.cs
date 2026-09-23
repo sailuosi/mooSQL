@@ -1,15 +1,14 @@
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common.Internal;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
 	using mooSQL.utils;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	internal enum AggregationType
 	{
 		Count,

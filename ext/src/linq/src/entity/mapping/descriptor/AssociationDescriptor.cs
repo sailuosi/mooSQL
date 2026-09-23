@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,12 +6,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Mapping
+namespace mooSQL.linq.mapping
 {
-	using Common;
-	using Extensions;
-	using Linq.Builder;
-	using Expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.expressions;
     using mooSQL.utils;
     using mooSQL.data;
 

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	internal static class ClauseContextDebuggingHelper
 	{

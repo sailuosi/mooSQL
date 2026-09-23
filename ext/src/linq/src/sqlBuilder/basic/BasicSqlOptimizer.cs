@@ -1,21 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
 // ReSharper disable InconsistentNaming
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
-	using Common;
-	using Expressions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using SqlQuery;
-	using SqlQuery.Visitors;
-
+    using mooSQL.linq.clause;
+	using mooSQL.linq.clause;
 	public class BasicSqlOptimizer : ISqlOptimizer
 	{
 		#region Init

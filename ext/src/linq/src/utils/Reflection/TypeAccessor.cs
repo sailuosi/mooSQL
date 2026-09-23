@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
 	[DebuggerDisplay("Type = {" + nameof(Type) + "}")]
 	public abstract class TypeAccessor

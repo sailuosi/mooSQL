@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	[AttributeUsage(AttributeTargets.ReturnValue)]
 	public class CustomMapperAttribute : Attribute

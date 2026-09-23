@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.Linq;
+namespace mooSQL.linq;
 
 internal sealed partial class StreamingResultEnumerable<T>
 {

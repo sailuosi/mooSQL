@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using mooSQL.data;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 
 namespace mooSQL.linq.translator;
 

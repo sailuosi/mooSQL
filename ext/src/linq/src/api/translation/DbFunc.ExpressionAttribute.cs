@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,18 +9,16 @@ using System.Text.RegularExpressions;
 
 namespace mooSQL.linq
 {
-	using Common.Internal;
-	using Expressions;
-	using Extensions;
-	using Linq.Builder;
-	using Mapping;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.mapping;
 	using mooSQL.data;
     using mooSQL.data.Mapping;
     using mooSQL.data.model;
 
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	partial class DbFunc
 	{
 		/// <summary>

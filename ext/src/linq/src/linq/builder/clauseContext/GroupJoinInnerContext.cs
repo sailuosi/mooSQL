@@ -2,11 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
-	using Reflection;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
 
 	[DebuggerDisplay("{ClauseContextDebuggingHelper.GetContextInfo(this)}")]
 	sealed class GroupJoinInnerContext : ClauseContextBase

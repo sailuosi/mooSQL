@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,12 +7,10 @@ using PN = mooSQL.linq.ProviderName;
 
 namespace mooSQL.linq
 {
-	using Linq;
-
+	using mooSQL.linq;
 	using mooSQL.data;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public static partial class SooFunctionExtension
 	{
 		#region StringAggregate

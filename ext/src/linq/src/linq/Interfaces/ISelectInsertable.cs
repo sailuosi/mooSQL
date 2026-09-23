@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	public interface ISelectInsertable<TSource,TTarget>
 	{

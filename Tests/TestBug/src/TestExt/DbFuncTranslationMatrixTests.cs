@@ -1,7 +1,6 @@
-using mooSQL.data;
+﻿using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Tools;
+using mooSQL.linq.utils;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -11,8 +10,8 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// DbFunc / Pure 注册表翻译矩阵（compile-only，不连库执行）。
-/// 每新增迁移函数，在此追加一条断言。
+/// DbFunc / Pure 娉ㄥ唽琛ㄧ炕璇戠煩闃碉紙compile-only锛屼笉杩炲簱鎵ц锛夈€?
+/// 姣忔柊澧炶縼绉诲嚱鏁帮紝鍦ㄦ杩藉姞涓€鏉℃柇瑷€銆?
 /// </summary>
 [Collection("DbFuncMatrix")]
 public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
@@ -149,8 +148,8 @@ public class DbFuncTranslationMatrixTests : IClassFixture<LinqSqliteTestFixture>
     {
         var db = _sqlite.Db;
         DbFuncRegistryBootstrap.EnsureRegistered(db);
-        var inMethod = typeof(mooSQL.linq.Tools.SqlExtensions).GetMethods()
-            .First(m => m.Name == nameof(mooSQL.linq.Tools.SqlExtensions.In) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2);
+        var inMethod = typeof(mooSQL.linq.utils.SqlExtensions).GetMethods()
+            .First(m => m.Name == nameof(mooSQL.linq.utils.SqlExtensions.In) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2);
         Assert.NotNull(db.dialect.dbFuncRegistry.Resolve(inMethod));
     }
 

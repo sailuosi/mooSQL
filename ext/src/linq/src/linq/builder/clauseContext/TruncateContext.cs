@@ -1,4 +1,4 @@
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
 

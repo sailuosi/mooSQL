@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using mooSQL.linq.Linq.Translation;
+using System.Linq.Expressions;
+using mooSQL.linq.translator;
 
 namespace mooSQL.linq
 {

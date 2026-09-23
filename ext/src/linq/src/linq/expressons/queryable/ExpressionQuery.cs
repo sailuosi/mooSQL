@@ -7,11 +7,11 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Data;
-	using Tools;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
     using mooSQL.data;
     using mooSQL.linq.translator;
 
@@ -93,7 +93,7 @@ namespace mooSQL.linq.Linq
 			var query = GetQuery(ref expression, false, out _);
 
 			var value = await query.Runner.loadElementAsync(MakeContext(query, expression, cancellationToken))
-				.ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
+				.ConfigureAwait(mooSQL.linq.ExtLinqOptions.ContinueOnCapturedContext);
 
 			return (TResult)value!;
 		}
@@ -131,7 +131,7 @@ namespace mooSQL.linq.Linq
             await using var enumerator = enumerable.GetAsyncEnumerator(cancellationToken);
 #pragma warning restore CA2007
 
-			while (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
+			while (await enumerator.MoveNextAsync().ConfigureAwait(mooSQL.linq.ExtLinqOptions.ContinueOnCapturedContext))
 			{
 				action(enumerator.Current);
 			}
@@ -160,7 +160,7 @@ namespace mooSQL.linq.Linq
             var enumerable = (IAsyncEnumerable<T>)query.Runner.loadResultList(context);
             var enumerator = enumerable.GetAsyncEnumerator(cancellationToken);
 
-			while (await enumerator.MoveNextAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext))
+			while (await enumerator.MoveNextAsync().ConfigureAwait(mooSQL.linq.ExtLinqOptions.ContinueOnCapturedContext))
 			{
 				if (func(enumerator.Current))
 					break;

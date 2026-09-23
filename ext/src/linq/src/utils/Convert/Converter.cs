@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Data.Linq;
@@ -9,10 +9,10 @@ using System.Xml;
 
 
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
-	using Expressions;
-	using Mapping;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
 

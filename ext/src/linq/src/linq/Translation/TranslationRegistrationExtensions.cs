@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
 	public static class TranslationRegistrationExtensions
 	{

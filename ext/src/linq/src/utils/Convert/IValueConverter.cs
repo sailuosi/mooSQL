@@ -1,6 +1,6 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	///     Defines conversions from an object of one type in a model to an object of the same or

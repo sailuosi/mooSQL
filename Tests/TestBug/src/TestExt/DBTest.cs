@@ -1,10 +1,10 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 
 using HHNY.NET.Core.MooSQL;
 using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.core;
+using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System;
 using System.Collections.Generic;

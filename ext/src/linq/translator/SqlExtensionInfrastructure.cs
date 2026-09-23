@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Threading;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.clause;
 
 namespace mooSQL.linq;
 

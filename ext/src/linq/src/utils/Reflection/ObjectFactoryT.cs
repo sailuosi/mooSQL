@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
-	using Common;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 
 	public static class ObjectFactory<T>
 	{

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +7,7 @@ using mooSQL.data;
 
 using mooSQL.linq;
 
-namespace mooSQL.linq.core
+namespace mooSQL.linq.translator
 {
 
 

@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using mooSQL.linq.SqlQuery;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
 	using mooSQL.data.model;
 
 	sealed class TableLikeQueryContext : ClauseContextBase

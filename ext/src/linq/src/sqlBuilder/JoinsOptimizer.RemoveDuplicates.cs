@@ -1,16 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
-	using Common;
+	using mooSQL.linq.utils;
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	sealed partial class JoinsOptimizer
 	{
 		Dictionary<Clause, Clause>?                                 _replaceMap;

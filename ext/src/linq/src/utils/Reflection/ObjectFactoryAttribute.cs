@@ -1,6 +1,6 @@
 using System;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
 	public class ObjectFactoryAttribute : Attribute

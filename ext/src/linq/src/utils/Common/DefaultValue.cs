@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 
 
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
-	using Extensions;
+	using mooSQL.linq.utils;
 	using Internal;
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.utils;
 

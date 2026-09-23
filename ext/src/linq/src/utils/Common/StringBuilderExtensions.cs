@@ -1,8 +1,8 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	public static class StringBuilderExtensions
 	{

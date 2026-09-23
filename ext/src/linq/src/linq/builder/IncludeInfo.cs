@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using mooSQL.linq.Common.Internal;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 
 	[DebuggerDisplay("{ToDebugString()}")]
 	sealed class IncludeInfo

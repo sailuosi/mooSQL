@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace mooSQL.linq.Mapping
+namespace mooSQL.linq.mapping
 {
 	/// <summary>
 	/// Internal API.

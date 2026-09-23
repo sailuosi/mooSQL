@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
-	using Common;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	/// <summary>
 	/// This base visitor implements:
 	/// <list type="bullet">

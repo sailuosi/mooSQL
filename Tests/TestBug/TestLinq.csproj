@@ -49,6 +49,9 @@
     <Compile Include="src\TestHelpers\SQLiteTestEntities.cs" />
     <Compile Include="src\TestHelpers\SQLiteTestFixture.cs" />
     <Compile Include="src\TestHelpers\TestDatabaseHelper.cs" />
+    <Compile Include="src\TestExt\DBTest.cs" />
+    <Compile Include="src\TestExt\DBTest.Config.cs" />
+    <Compile Include="src\TestExt\DBTest.Providers.cs" />
     <Compile Include="src\TestPure\SQLBuilderExistTests.cs" />
   </ItemGroup>
 

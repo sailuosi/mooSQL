@@ -1,6 +1,6 @@
-﻿
-using mooSQL.linq.Common.Internal;
-using mooSQL.linq.Mapping;
+
+using mooSQL.linq.utils;
+using mooSQL.linq.mapping;
 using mooSQL.linq;
 using System;
 using System.Collections.Generic;

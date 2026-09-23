@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// 带ID的配置项

@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
 	public abstract class VirtualPropertyInfoBase : PropertyInfo
 	{

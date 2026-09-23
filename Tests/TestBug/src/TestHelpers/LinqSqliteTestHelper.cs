@@ -3,7 +3,7 @@ using mooSQL.data;
 using mooSQL.data.context;
 using mooSQL.data.Mapping;
 using mooSQL.linq;
-using mooSQL.linq.core;
+using mooSQL.linq.translator;
 using System.IO;
 
 namespace mooSQL.Pure.Tests.TestHelpers;

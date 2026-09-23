@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	static class ProjectFlagExtensions
 	{

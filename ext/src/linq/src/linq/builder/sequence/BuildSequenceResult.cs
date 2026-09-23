@@ -1,6 +1,6 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	readonly struct BuildSequenceResult
 	{

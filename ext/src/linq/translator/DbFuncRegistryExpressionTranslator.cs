@@ -6,13 +6,13 @@ using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
 using mooSQL.data.translation;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Linq.Translation;
-using mooSQL.linq.SqlQuery;
-using InListSqlExtensions = mooSQL.linq.Tools.SqlExtensions;
+using mooSQL.linq.expressions;
+using mooSQL.linq.utils;
+using mooSQL.linq;
+using mooSQL.linq.builder;
+using mooSQL.linq.translator;
+using mooSQL.linq.clause;
+using InListSqlExtensions = mooSQL.linq.utils.SqlExtensions;
 
 namespace mooSQL.linq.translator;
 

@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Mapping;
+using mooSQL.linq.utils;
+using mooSQL.linq.mapping;
+using mooSQL.linq.SqlQuery;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// 这是内部API，不应由业务侧使用.

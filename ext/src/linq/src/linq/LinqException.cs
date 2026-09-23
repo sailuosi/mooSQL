@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Runtime.Serialization;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// 命名空间下的异常

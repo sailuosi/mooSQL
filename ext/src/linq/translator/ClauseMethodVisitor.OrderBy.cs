@@ -1,8 +1,8 @@
-﻿using mooSQL.data.call;
+using mooSQL.data.call;
 using mooSQL.data.model;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq.clause;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,11 +1,10 @@
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
-	using SqlQuery;
-
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
 	internal sealed class KeyContext : SelectContext
 	{
 		public KeyContext(IClauseContext? parent, LambdaExpression lambda, IClauseContext sequence, bool isSubQuery) :

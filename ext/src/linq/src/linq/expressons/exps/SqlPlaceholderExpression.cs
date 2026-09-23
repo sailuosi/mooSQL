@@ -1,17 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common.Internal;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
     using mooSQL.utils;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public sealed class SqlPlaceholderExpression : Expression
 	{
 #if DEBUG

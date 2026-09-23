@@ -1,9 +1,9 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// 置换访问者

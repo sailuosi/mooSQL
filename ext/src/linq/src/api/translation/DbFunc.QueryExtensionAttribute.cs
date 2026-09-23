@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace mooSQL.linq
 {
-	using Common;
-	using Linq.Builder;
-	using Common.Internal;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
     using mooSQL.data.Mapping;
     using mooSQL.data.model;
     using mooSQL.data;

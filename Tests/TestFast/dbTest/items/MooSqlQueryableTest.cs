@@ -1,7 +1,7 @@
 using System.Linq;
 using mooSQL.data;
-using mooSQL.linq.ext;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
+using mooSQL.linq;
 
 namespace dbTest.items
 {

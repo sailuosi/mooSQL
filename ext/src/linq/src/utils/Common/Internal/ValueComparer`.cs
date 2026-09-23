@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
 	class ValueComparer<T> : ValueComparer, IEqualityComparer<T>
 	{
@@ -152,7 +152,7 @@ namespace mooSQL.linq.Common.Internal
 			if (type != unwrappedType || !type.IsValueType)
 			{
 				expression = Expression.Condition(Expression.NotEqual(param, Expression.Constant(null, param.Type)),
-					expression, Expressions.ExpressionInstances.Constant0);
+					expression, mooSQL.linq.expressions.ExpressionInstances.Constant0);
 			}
 
 			return Expression.Lambda<Func<T, int>>(expression, param);

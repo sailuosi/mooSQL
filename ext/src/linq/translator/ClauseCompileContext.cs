@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
+using mooSQL.linq;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

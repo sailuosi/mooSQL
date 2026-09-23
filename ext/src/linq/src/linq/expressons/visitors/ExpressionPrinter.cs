@@ -1,4 +1,4 @@
-﻿// BASEDON: https://github.com/dotnet/efcore/blob/main/src/EFCore/Query/ExpressionPrinter.cs
+// BASEDON: https://github.com/dotnet/efcore/blob/main/src/EFCore/Query/ExpressionPrinter.cs
 
 // // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
@@ -14,11 +14,11 @@ using System.Runtime.CompilerServices;
 
 #pragma warning disable CA1725
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Infrastructure;
-    using mooSQL.linq.ext;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+    using mooSQL.linq;
 
     /// <summary>
     ///     <para>

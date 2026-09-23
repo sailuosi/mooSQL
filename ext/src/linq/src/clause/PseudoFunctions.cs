@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
 using mooSQL.data.model;
-using mooSQL.linq.Common;
+using mooSQL.linq.utils;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// 函数占位方法，

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using mooSQL.linq.SqlQuery;
+    using mooSQL.linq.clause;
 
 	interface ITableContext : IClauseContext
 	{

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
-	using Extensions;
+	using mooSQL.linq.utils;
 
-	public static class TypeExtensions
+	public static partial class TypeExtensions
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static Type UnwrapNullableType(this Type type)

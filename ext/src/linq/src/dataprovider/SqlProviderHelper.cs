@@ -1,9 +1,9 @@
-﻿namespace mooSQL.linq.DataProvider
+namespace mooSQL.linq.provider
 {
-	using Common.Internal;
-	using SqlQuery;
-	using SqlQuery.Visitors;
-	using SqlProvider;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.provider;
     using mooSQL.data.model;
     using mooSQL.data;
 

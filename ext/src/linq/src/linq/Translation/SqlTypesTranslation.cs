@@ -1,17 +1,15 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using mooSQL.linq;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	using mooSQL.data;
 	using mooSQL.data.model;
 
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	public class SqlTypesTranslationDefault : IMemberTranslator
 	{
 		TranslationRegistration _registration = new TranslationRegistration();

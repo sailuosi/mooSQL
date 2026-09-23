@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Globalization;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	///     A string representing a raw SQL query. This type enables overload resolution between

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,10 +13,10 @@ using System.Xml;
 
 
 
-namespace mooSQL.linq.Extensions
+namespace mooSQL.linq.utils
 {
     using mooSQL.utils;
-    using Reflection;
+    using mooSQL.linq.utils;
 
 	
 	public static class ReflectionExtensions
@@ -271,7 +271,7 @@ namespace mooSQL.linq.Extensions
 		/// </returns>
 		public static bool IsDynamicColumnPropertyEx(this MemberInfo memberInfo)
 		{
-			return memberInfo.MemberType == MemberTypes.Property && memberInfo is Mapping.DynamicColumnInfo;
+			return memberInfo.MemberType == MemberTypes.Property && memberInfo is mooSQL.linq.mapping.DynamicColumnInfo;
 		}
 
 		public static PropertyInfo[] GetPropertiesEx(this Type type)

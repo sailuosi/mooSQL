@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,10 +9,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     /// <summary>

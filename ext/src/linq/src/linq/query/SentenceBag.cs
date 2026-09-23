@@ -1,7 +1,7 @@
-﻿
+
 using mooSQL.data;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Mapping;
+using mooSQL.linq.builder;
+using mooSQL.linq.mapping;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
     /// <summary>
     /// SQL模型包，代表一个LINQ查询的构建结果。

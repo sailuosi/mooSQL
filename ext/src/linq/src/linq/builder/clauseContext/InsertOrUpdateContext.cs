@@ -1,11 +1,10 @@
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	sealed class InsertOrUpdateContext : ClauseContextBase
 	{
 		public IClauseContext Context { get; }

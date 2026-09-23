@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using Linq.Translation;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.translator;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
 	using mooSQL.data.model;
     using mooSQL.data;
 

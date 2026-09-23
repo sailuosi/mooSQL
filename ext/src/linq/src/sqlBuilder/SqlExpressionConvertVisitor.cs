@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using mooSQL.linq.SqlQuery;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
-	using Common;
-	using Extensions;
-	using Linq;
-	using Mapping;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
+	using mooSQL.linq.mapping;
 	using mooSQL.data;
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
     using mooSQL.utils;
-    using SqlQuery;
-	using SqlQuery.Visitors;
+    using mooSQL.linq.clause;
+	using mooSQL.linq.clause;
     using static mooSQL.data.model.AffirmWord;
 
     public class SqlExpressionConvertVisitor : SentenceVisitor

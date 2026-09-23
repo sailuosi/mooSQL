@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Diagnostics.CodeAnalysis;
@@ -14,11 +14,11 @@ using System.Text.RegularExpressions;
 
 namespace mooSQL.linq
 {
-	using Mapping;
-	using Expressions;
-	using Linq;
-	using SqlQuery;
-	using mooSQL.linq.Common;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
 	using mooSQL.data;
@@ -120,14 +120,14 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(ConvertBuilder))]
 		public static TTo Convert<TTo,TFrom>(TTo to, TFrom from)
 		{
-			return Common.ConvertTo<TTo>.From(from);
+			return mooSQL.linq.utils.ConvertTo<TTo>.From(from);
 		}
 
 		[CLSCompliant(false)]
 		[Function(PseudoFunctions.CONVERT_FORMAT, 0, 3, 1, 2, ServerSideOnly = true, IsNullable = IsNullableType.SameAsSecondParameter)]
 		public static TTo Convert<TTo, TFrom>(TTo to, TFrom from, int format)
 		{
-			return Common.ConvertTo<TTo>.From(from);
+			return mooSQL.linq.utils.ConvertTo<TTo>.From(from);
 		}
 
 		class ConvertBuilderSimple : IExtensionCallBuilder
@@ -147,7 +147,7 @@ namespace mooSQL.linq
 		[Extension("", BuilderType = typeof(ConvertBuilderSimple))]
 		public static TTo Convert<TTo,TFrom>(TFrom obj)
 		{
-			return Common.ConvertTo<TTo>.From(obj);
+			return mooSQL.linq.utils.ConvertTo<TTo>.From(obj);
 		}
 
 		class ConvertBuilderInner : IExtensionCallBuilder
@@ -169,7 +169,7 @@ namespace mooSQL.linq
 			[Extension("", BuilderType = typeof(ConvertBuilderInner))]
 			public static TTo From<TFrom>(TFrom obj)
 			{
-				return Common.ConvertTo<TTo>.From(obj);
+				return mooSQL.linq.utils.ConvertTo<TTo>.From(obj);
 			}
 		}
 

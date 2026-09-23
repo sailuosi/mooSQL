@@ -1,19 +1,18 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq.Expressions;
 using mooSQL.linq;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
-	using Common;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using mooSQL.linq.Expressions;
+    using mooSQL.linq.expressions;
     using mooSQL.utils;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public abstract class ProviderMemberTranslatorDefault : MemberTranslatorBase
 	{
 		protected virtual IMemberTranslator CreateSqlTypesTranslator()

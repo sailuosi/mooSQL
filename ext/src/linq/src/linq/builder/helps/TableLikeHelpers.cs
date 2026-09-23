@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using mooSQL.linq.Common;
-	using mooSQL.linq.Expressions;
-	using mooSQL.linq.Extensions;
-	using mooSQL.linq.SqlQuery;
+    using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
     using mooSQL.utils;
 
     static class TableLikeHelpers

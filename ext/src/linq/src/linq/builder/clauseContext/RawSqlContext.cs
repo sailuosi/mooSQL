@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
     using mooSQL.data.model;
 
 	sealed class SimpleSelectContext : ClauseContextBase

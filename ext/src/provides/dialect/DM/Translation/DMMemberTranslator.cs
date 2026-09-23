@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.Linq.Expressions;
 using mooSQL.linq;
-using mooSQL.linq.Common;
-using mooSQL.linq.SqlQuery;
-using mooSQL.linq.Linq.Translation;
+using mooSQL.linq.utils;
+using mooSQL.linq.clause;
+using mooSQL.linq.translator;
 using mooSQL.data.model;
 
 namespace mooSQL.data

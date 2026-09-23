@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using mooSQL.data;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	sealed class PersistentDbQuery<T> : IDbQuery<T>
 		where T : notnull

@@ -1,20 +1,20 @@
-﻿using mooSQL.data.call;
+using mooSQL.data.call;
 using mooSQL.data.model;
 using mooSQL.linq;
-using mooSQL.linq.Data;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.ext;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Reflection;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.utils;
+using mooSQL.linq;
+using mooSQL.linq.expressions;
+using mooSQL.linq;
+using mooSQL.linq.utils;
+using mooSQL.linq.builder;
+using mooSQL.linq.utils;
+using mooSQL.linq.clause;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
+using static mooSQL.linq.utils.Methods.SooQuery.Merge;
 
 namespace mooSQL.linq.translator;
 

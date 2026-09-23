@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	public class ExpressionGenerator
 	{

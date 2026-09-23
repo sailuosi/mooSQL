@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.Linq;
+namespace mooSQL.linq;
 
 /// <summary>
 /// 内存物化结果，替代 QueryRunner 映射链的 IResultEnumerable。

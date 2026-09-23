@@ -1,12 +1,11 @@
-﻿namespace mooSQL.linq.DataProvider.PostgreSQL
+namespace mooSQL.linq.provider.PostgreSQL
 {
-	using Extensions;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.utils;
-    using SqlProvider;
-	using SqlQuery;
-
+    using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	public class PostgreSQLSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
 		public PostgreSQLSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)

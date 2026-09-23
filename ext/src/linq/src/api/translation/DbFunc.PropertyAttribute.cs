@@ -1,17 +1,16 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 // ReSharper disable CheckNamespace
 
 namespace mooSQL.linq
 {
-	using Expressions;
-	using Linq.Builder;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.builder;
     using mooSQL.data;
     using mooSQL.data.model;
 
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	partial class DbFunc
 	{
 		/// <summary>

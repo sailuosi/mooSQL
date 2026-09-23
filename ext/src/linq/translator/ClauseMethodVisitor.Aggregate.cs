@@ -1,11 +1,11 @@
 using mooSQL.data.call;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Mapping;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.expressions;
+using mooSQL.linq.utils;
+using mooSQL.linq.builder;
+using mooSQL.linq.mapping;
+using mooSQL.linq.clause;
 using mooSQL.utils;
 using System;
 using System.Collections.Generic;

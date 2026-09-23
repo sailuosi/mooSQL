@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using mooSQL.data.model;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
 	public class SentenceCloneVisitorBase : SentenceVisitor
 	{

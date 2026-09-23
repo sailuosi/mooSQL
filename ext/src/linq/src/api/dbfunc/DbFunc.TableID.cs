@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace mooSQL.linq
 {
-	using Expressions;
-	using Linq.Builder;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.builder;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public partial class DbFunc
 	{
 		public enum SqlIDType

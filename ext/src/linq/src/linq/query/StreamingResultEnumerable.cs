@@ -5,7 +5,7 @@ using System.Threading;
 using mooSQL.data;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.Linq;
+namespace mooSQL.linq;
 
 /// <summary>
 /// 无 Includes 时延迟物化；同步路径按需 ToList，异步路径逐条 yield（真流式读库）。

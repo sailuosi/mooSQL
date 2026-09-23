@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	public enum RequestFor
 	{

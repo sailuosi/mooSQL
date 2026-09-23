@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Reflection;
+using mooSQL.linq.utils;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq.utils;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

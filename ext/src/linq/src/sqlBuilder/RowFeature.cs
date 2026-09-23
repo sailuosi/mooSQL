@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
 	// changing this enum incorrectly could break remote context serialization
 	// e.g. WCF require flags to be sequential

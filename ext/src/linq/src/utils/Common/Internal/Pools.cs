@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
 	internal static class Pools
 	{

@@ -1,8 +1,8 @@
 using mooSQL.data;
 using mooSQL.data.call;
 using mooSQL.data.model;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
 using System.Linq.Expressions;
 namespace mooSQL.linq.translator;
 

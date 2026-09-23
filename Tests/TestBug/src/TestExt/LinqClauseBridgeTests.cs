@@ -1,6 +1,5 @@
-using mooSQL.data;
+﻿using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.Linq;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -10,7 +9,7 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// 与 DbFunc 矩阵同集合，避免并行下 Ext 查询计划缓存交叉污染。
+/// 涓?DbFunc 鐭╅樀鍚岄泦鍚堬紝閬垮厤骞惰涓?Ext 鏌ヨ璁″垝缂撳瓨浜ゅ弶姹℃煋銆?
 /// </summary>
 [Collection("DbFuncMatrix")]
 public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
@@ -19,7 +18,7 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
 
     public LinqClauseBridgeTests(LinqSqliteTestFixture sqlite)
     {
-        // xUnit 每个用例新实例：开测前清空全局计划缓存，避免 NullIf 等污染 CharIndex
+        // xUnit 姣忎釜鐢ㄤ緥鏂板疄渚嬶細寮€娴嬪墠娓呯┖鍏ㄥ眬璁″垝缂撳瓨锛岄伩鍏?NullIf 绛夋薄鏌?CharIndex
         QueryRunner.ClearCaches();
         _sqlite = sqlite;
     }
@@ -125,11 +124,11 @@ public class LinqClauseBridgeTests : IClassFixture<LinqSqliteTestFixture>
     static string NormalizeSql(string sql)
         => Regex.Replace(sql.Trim(), @"\s+", " ", RegexOptions.None);
 
-    /// <summary>忽略参数占位符名差异（@p / @vw_*）。</summary>
+    /// <summary>蹇界暐鍙傛暟鍗犱綅绗﹀悕宸紓锛園p / @vw_*锛夈€?/summary>
     static string NormalizeSqlForCompare(string sql)
         => Regex.Replace(NormalizeSql(sql), @"@\w+", "@p", RegexOptions.None);
 
-    /// <summary>toSelect 预览可能保留 Live 壳；与 GetSqlText 对齐时先解析。</summary>
+    /// <summary>toSelect 棰勮鍙兘淇濈暀 Live 澹筹紱涓?GetSqlText 瀵归綈鏃跺厛瑙ｆ瀽銆?/summary>
     static string ResolveLiveSql(mooSQL.data.SQLCmd cmd)
     {
         cmd.EnsureLiveParasResolved();

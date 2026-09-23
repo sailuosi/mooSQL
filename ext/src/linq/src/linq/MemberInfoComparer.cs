@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Extensions;
+	using mooSQL.linq.utils;
 
 	sealed class MemberInfoComparer : IEqualityComparer<MemberInfo>
 	{

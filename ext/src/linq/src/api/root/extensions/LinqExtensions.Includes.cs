@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.ext
+namespace mooSQL.linq
 {
-	using Linq;
-	using Linq.Builder;
+	using mooSQL.linq;
+	using mooSQL.linq.builder;
     using mooSQL.data;
 
     public partial class LinqExtensions

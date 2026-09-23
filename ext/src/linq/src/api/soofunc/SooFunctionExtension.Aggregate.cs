@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -6,8 +6,7 @@ using PN = mooSQL.linq.ProviderName;
 
 namespace mooSQL.linq
 {
-	using Linq;
-
+	using mooSQL.linq;
 	public static partial class SooFunctionExtension
 	{
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]

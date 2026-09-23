@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
-	using SqlProvider;
-	using Common;
-	using Mapping;
-	using Common.Internal;
+	using mooSQL.linq.provider;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
 	using mooSQL.data;
     using mooSQL.data.model.affirms;

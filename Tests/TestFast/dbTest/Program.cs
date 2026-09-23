@@ -8,7 +8,7 @@ using dbTest.items;
 using dbTest.tests;
 using CRL.Core;
 using mooSQL.data;
-using mooSQL.linq.ext;
+using mooSQL.linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

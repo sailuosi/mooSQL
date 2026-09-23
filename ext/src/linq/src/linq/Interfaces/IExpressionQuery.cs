@@ -1,10 +1,10 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	public interface IExpressionQuery : IQueryProvider
 	{

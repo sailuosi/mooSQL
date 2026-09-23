@@ -3,10 +3,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.utils;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq.clause;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

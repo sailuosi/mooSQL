@@ -8,17 +8,17 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 #if NET5_0_OR_GREATER
-	using Async;
+	using mooSQL.linq;
 #endif
-	using Common;
-	using Extensions;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using Reflection;
-	using SqlQuery;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
 	using mooSQL.data.model;
 	using mooSQL.utils;
 	using mooSQL.data;

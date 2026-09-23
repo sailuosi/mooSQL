@@ -1,10 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common.Internal;
+	using mooSQL.linq.utils;
     using mooSQL.data;
-    using mooSQL.linq.Expressions;
+    using mooSQL.linq.expressions;
 
 	public static class EvaluationHelper
 	{

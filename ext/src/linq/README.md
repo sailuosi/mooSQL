@@ -5,6 +5,8 @@
 > - **Ext LINQ**（本目录）：对标 **EF / 通用 Queryable**，入口为 **`useQueryable` / `AsQueryable`** → `IDbQuery<T>`。
 > 详见 [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)。
 
+> **命名空间**：业务侧 `mooSQL.data` + `mooSQL.linq`；内部子层见 [命名空间规范](../../../doc/design/命名空间规范.md)（`builder` / `translator` / `clause` / `utils` 等）。
+
 > **全景分析** → [LINQ全景分析与项目对比.md](./LINQ全景分析与项目对比.md)  
 > **双访问器对齐 FastLinq（迁移清单）** → [双访问器对齐FastLinq-迁移清单.md](./双访问器对齐FastLinq-迁移清单.md)  
 > **Phase 2 架构详解** → [src/README.md](./src/README.md)

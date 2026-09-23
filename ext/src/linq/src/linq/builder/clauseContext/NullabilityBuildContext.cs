@@ -1,11 +1,11 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using mooSQL.linq.Expressions;
-	using mooSQL.linq.Mapping;
-	using mooSQL.linq.SqlQuery;
+    using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
 
 	sealed class NullabilityBuildContext : ClauseContextBase
 	{

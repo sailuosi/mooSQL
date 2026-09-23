@@ -1,26 +1,25 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using mooSQL.linq.SqlQuery;
 
 
 
 namespace mooSQL.linq
 {
-	using Common;
-	using Common.Internal;
-	using Expressions;
-	using Extensions;
-	using Linq;
-	using Mapping;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
+	using mooSQL.linq.mapping;
 	using mooSQL.data;
 	using mooSQL.data.model;
     using mooSQL.utils;
-    using SqlProvider;
-	using SqlQuery;
-
+    using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	public static partial class SooFunctionExtension
 	{
 		private sealed class FieldsExprBuilderDirect : DbFunc.IExtensionCallBuilder
@@ -549,7 +548,7 @@ namespace mooSQL.linq
 		{
 			public void Build(DbFunc.ISqExtensionBuilder builder)
 			{
-				Linq.Builder.TableRawSqlHelper.PrepareRawSqlArguments(builder.Arguments[0],
+				mooSQL.linq.builder.TableRawSqlHelper.PrepareRawSqlArguments(builder.Arguments[0],
 					builder.Arguments.Length > 1 ? builder.Arguments[1] : null,
 					out var format, out var arguments);
 

@@ -1,12 +1,11 @@
-﻿#if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System;
 using System.Globalization;
 
 namespace mooSQL.linq
 {
-	using SqlQuery;
-	using Expressions;
-
+	using mooSQL.linq.clause;
+	using mooSQL.linq.expressions;
 	using PN = ProviderName;
 
 	public partial class DbFunc

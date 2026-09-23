@@ -1,6 +1,6 @@
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.SqlProvider;
+using mooSQL.linq.provider;
 using System;
 using System.Collections.Concurrent;
 

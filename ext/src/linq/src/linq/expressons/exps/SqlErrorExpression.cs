@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Linq;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
 	public class SqlErrorExpression : Expression
 	{
 		public SqlErrorExpression(object? buildContext, Expression? expression, string? message, Type resultType, bool isCritical)

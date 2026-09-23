@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	// could allow more targets later if needed
 	[AttributeUsage(AttributeTargets.Method)]

@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using mooSQL.data.call;
 using mooSQL.data.model;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.ext;
-using Methods = mooSQL.linq.Reflection.Methods.SooQuery.MultiInsert;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq;
+using Methods = mooSQL.linq.utils.Methods.SooQuery.MultiInsert;
 
 namespace mooSQL.linq.translator;
 

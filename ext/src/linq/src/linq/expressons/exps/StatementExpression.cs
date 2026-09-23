@@ -1,10 +1,10 @@
 using System;
 using System.Linq.Expressions;
 using mooSQL.data.model;
-using mooSQL.linq.Linq.Builder;
+using mooSQL.linq.builder;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.Expressions;
+namespace mooSQL.linq.expressions;
 
 /// <summary>
 /// 编译链上的序列/语句产物节点（Fast 同构：成功解析后折叠回表达式树）。

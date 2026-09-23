@@ -4,10 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.linq
 {
-	using Data;
-	using DataProvider;
-	using Expressions;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.provider;
+	using mooSQL.linq.expressions;
 	using mooSQL.data;
 
 	/// <summary>

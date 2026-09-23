@@ -1,9 +1,9 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	sealed class ExpressionQueryImpl<T> : ExpressionQuery<T>
 	{

@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Common.Internal;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq.utils;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

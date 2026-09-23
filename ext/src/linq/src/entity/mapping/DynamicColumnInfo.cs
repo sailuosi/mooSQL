@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 
-namespace mooSQL.linq.Mapping
+namespace mooSQL.linq.mapping
 {
-	using Reflection;
+	using mooSQL.linq.utils;
 
 	/// <inheritdoc />
 	/// <summary>

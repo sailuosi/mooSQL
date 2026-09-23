@@ -1,8 +1,8 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	/// <summary>
 	/// 包含预先创建好的常用常量表达式。

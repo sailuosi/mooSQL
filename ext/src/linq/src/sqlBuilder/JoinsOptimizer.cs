@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
 	using mooSQL.data.model;
 
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	sealed partial class JoinsOptimizer
 	{
 		Dictionary<int, IExpWord[][]?>?                                                    _tableKeysCache;

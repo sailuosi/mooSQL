@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// Defines query visitor behavior of  visitor implementation when visiting query element.

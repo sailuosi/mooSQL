@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
-	using Data;
-
+	using mooSQL.linq.utils;
 	// contains reusable task instances to avoid allocations
 	internal static class TaskCache
 	{

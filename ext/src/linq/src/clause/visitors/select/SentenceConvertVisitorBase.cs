@@ -1,7 +1,7 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System.Collections.Generic;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
 	public abstract class SentenceConvertVisitorBase : SentenceVisitor
 	{

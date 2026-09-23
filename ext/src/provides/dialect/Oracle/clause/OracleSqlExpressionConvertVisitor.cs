@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.DataProvider.Oracle
+namespace mooSQL.linq.provider.Oracle
 {
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using mooSQL.linq.Extensions;
+    using mooSQL.linq.utils;
     using mooSQL.utils;
-    using SqlProvider;
-    using SqlQuery;
-
+    using mooSQL.linq.provider;
+    using mooSQL.linq.clause;
 	public class OracleSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
 		public OracleSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)

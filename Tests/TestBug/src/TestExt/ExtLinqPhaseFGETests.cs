@@ -1,8 +1,7 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.Linq;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using Xunit;
@@ -10,7 +9,7 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// Phase F/G/E 收尾：Extension 边界、ExtLinqOptions、多语句事务、SELECT 流式。
+/// Phase F/G/E 鏀跺熬锛欵xtension 杈圭晫銆丒xtLinqOptions銆佸璇彞浜嬪姟銆丼ELECT 娴佸紡銆?
 /// </summary>
 public class ExtLinqPhaseFGETests : IClassFixture<LinqSqliteTestFixture>
 {
@@ -21,9 +20,9 @@ public class ExtLinqPhaseFGETests : IClassFixture<LinqSqliteTestFixture>
     [Fact]
     public void ExtLinqOptions_ReplacesConfigurationType()
     {
-        var assembly = typeof(mooSQL.linq.Common.ExtLinqOptions).Assembly;
-        Assert.Contains(assembly.GetTypes(), t => t.Name == nameof(mooSQL.linq.Common.ExtLinqOptions));
-        Assert.DoesNotContain(assembly.GetTypes(), t => t.Name == "Configuration" && t.Namespace == "mooSQL.linq.Common");
+        var assembly = typeof(mooSQL.linq.ExtLinqOptions).Assembly;
+        Assert.Contains(assembly.GetTypes(), t => t.Name == nameof(mooSQL.linq.ExtLinqOptions));
+        Assert.DoesNotContain(assembly.GetTypes(), t => t.Name == "Configuration" && t.Namespace == "mooSQL.linq.utils");
     }
 
     [Fact]

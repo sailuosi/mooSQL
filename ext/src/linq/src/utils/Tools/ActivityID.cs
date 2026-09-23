@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 
-namespace mooSQL.linq.Tools
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Activity Service event ID.

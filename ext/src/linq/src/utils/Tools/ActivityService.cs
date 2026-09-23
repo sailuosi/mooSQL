@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 
 
-namespace mooSQL.linq.Tools
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Provides API to register factory methods that return an Activity object or <c>null</c> for provided <see cref="ActivityID"/> event.
@@ -44,7 +44,7 @@ namespace mooSQL.linq.Tools
 #if NET5_0_OR_GREATER
             public ConfiguredValueTaskAwaitable DisposeAsync()
 			{
-				return activity.DisposeAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
+				return activity.DisposeAsync().ConfigureAwait(mooSQL.linq.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 #endif
 
@@ -102,7 +102,7 @@ namespace mooSQL.linq.Tools
 			{
 				foreach (var activity in activities)
 					if (activity is not null)
-						await activity.DisposeAsync().ConfigureAwait(Common.ExtLinqOptions.ContinueOnCapturedContext);
+						await activity.DisposeAsync().ConfigureAwait(mooSQL.linq.ExtLinqOptions.ContinueOnCapturedContext);
 			}
 #endif
 

@@ -1,8 +1,8 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Common.Internal;
+	using mooSQL.linq.utils;
     using mooSQL.data;
 
     sealed class CteTable<T> : ExpressionQuery<T>

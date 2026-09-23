@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Defines conversion type such as to database / from database conversion direction.

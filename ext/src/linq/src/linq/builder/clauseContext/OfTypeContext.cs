@@ -1,9 +1,9 @@
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
 
 	sealed class OfTypeContext : PassThroughContext
 	{

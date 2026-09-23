@@ -1,6 +1,6 @@
 using mooSQL.data;
 using mooSQL.linq;
-using mooSQL.linq.Reflection;
+using mooSQL.linq.utils;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;

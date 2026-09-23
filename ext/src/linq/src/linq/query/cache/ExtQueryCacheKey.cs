@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	readonly struct ExtQueryCacheKey : IEquatable<ExtQueryCacheKey>
 	{

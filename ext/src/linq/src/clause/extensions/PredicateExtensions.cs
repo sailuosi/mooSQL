@@ -1,8 +1,8 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.data.model.affirms;
 using System;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	public static class PredicateExtensions
 	{

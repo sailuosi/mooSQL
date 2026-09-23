@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// Merge command builder that have only target table configured.

@@ -1,10 +1,10 @@
 namespace mooSQL.data
 {
 	using mooSQL.linq;
-	using mooSQL.linq.Common;
-	using mooSQL.linq.Linq.Translation;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.translator;
 	using mooSQL.data.model;
-	using mooSQL.linq.SqlQuery;
+	using mooSQL.linq.clause;
 
 	public class SqlServer2012MemberTranslator : SqlServerMemberTranslator
 	{

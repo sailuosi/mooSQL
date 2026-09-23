@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.DataProvider.SqlServer
+namespace mooSQL.linq.provider.SqlServer
 {
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using mooSQL.linq.Extensions;
+    using mooSQL.linq.utils;
     using mooSQL.utils;
-    using SqlProvider;
-    using SqlQuery;
-
+    using mooSQL.linq.provider;
+    using mooSQL.linq.clause;
 	public class SqlServerSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
 

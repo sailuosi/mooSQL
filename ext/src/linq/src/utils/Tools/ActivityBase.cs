@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 
 
-namespace mooSQL.linq.Tools
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Provides a basic implementation of the <see cref="IActivity"/> interface.

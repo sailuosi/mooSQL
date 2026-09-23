@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.DataProvider.PostgreSQL
+namespace mooSQL.linq.provider.PostgreSQL
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
 
-	using SqlProvider;
-	using SqlQuery;
-
+	using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	sealed class PostgreSQLSqlOptimizer : BasicSqlOptimizer
 	{
 		public PostgreSQLSqlOptimizer(SQLProviderFlags sqlProviderFlags) : base(sqlProviderFlags)

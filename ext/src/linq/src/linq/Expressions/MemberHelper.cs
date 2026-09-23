@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Extensions;
-	using Mapping;
-	using Reflection;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
 
 	public static class MemberHelper
 	{

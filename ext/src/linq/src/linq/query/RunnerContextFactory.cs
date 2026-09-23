@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using mooSQL.data;
 
-namespace mooSQL.linq.Linq;
+namespace mooSQL.linq;
 
 /// <summary>
 /// 统一 RunnerContext 构造与表达式 / 参数解析。

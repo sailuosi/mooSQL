@@ -3,7 +3,7 @@ using mooSQL.data.clip;
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// Global query plan cache for Ext LINQ compilation results.

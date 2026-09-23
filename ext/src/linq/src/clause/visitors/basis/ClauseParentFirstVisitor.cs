@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
-	using Common;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
 
     public class ClauseParentFirstVisitor : ClauseVisitor

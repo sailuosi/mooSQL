@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	/// <summary>
 	/// L2：在 L1 <see cref="SentenceBag"/> 之上缓存 SQLCmd 文本模板。

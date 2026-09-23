@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Extensions
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Contains data manipulation helpers (e.g. for use in query parameters).

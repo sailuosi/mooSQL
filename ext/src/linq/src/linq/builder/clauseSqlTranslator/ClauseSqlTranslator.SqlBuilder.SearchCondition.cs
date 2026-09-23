@@ -1,15 +1,14 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
-	using SqlQuery;
-
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
 	partial class ClauseSqlTranslator
 	{
 		#region Search Condition Builder

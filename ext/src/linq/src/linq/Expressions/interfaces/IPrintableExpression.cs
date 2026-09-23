@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	public interface IPrintableExpression
 	{

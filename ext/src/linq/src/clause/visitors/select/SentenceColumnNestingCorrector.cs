@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
-    using Visitors;
-
+    using mooSQL.linq.clause;
 	public class SentenceColumnNestingCorrector : SentenceVisitor
 	{
 		[DebuggerDisplay("QN(S:{TableSource.SourceID})")]

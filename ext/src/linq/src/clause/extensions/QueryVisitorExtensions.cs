@@ -1,15 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
-	using Common.Internal;
+	using mooSQL.linq.utils;
 
 	using mooSQL.data.model;
 
-	using Visitors;
-
+	using mooSQL.linq.clause;
 	public static class QueryVisitorExtensions
 	{
 		internal static readonly ObjectPool<ClauseFindVisitor>          FindVisitorPool      = new(() => new ClauseFindVisitor(),          v => v.Cleanup(), 100);

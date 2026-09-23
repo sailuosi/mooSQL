@@ -1,11 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using mooSQL.linq.Expressions;
-	using SqlQuery;
-
+    using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
 	sealed class AnchorContext : SequenceContextBase
 	{
 		public AnchorWord.AnchorKindEnum AnchorKind { get; }

@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.data.translation;
-    using mooSQL.linq.Expressions;
+    using mooSQL.linq.expressions;
 
     public interface ITranslationContext
     {

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using mooSQL.data;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 using mooSQL.linq.translator;
 
-namespace mooSQL.linq.core;
+namespace mooSQL.linq.translator;
 
 internal class EntityVisitCompiler : BaseQueryCompiler
 {

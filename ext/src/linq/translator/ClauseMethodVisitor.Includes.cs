@@ -1,10 +1,10 @@
 using mooSQL.data;
 using mooSQL.data.call;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Reflection;
+using mooSQL.linq;
+using mooSQL.linq.expressions;
+using mooSQL.linq.utils;
+using mooSQL.linq.builder;
+using mooSQL.linq.utils;
 using mooSQL.utils;
 using System.Linq;
 using System.Linq.Expressions;

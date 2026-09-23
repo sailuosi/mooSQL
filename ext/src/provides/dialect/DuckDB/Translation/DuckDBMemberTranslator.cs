@@ -1,7 +1,7 @@
 #if NET6_0_OR_GREATER
 using mooSQL.data.model;
 using mooSQL.linq;
-using mooSQL.linq.Linq.Translation;
+using mooSQL.linq.translator;
 using mooSQL.linq.translator;
 
 namespace mooSQL.data;

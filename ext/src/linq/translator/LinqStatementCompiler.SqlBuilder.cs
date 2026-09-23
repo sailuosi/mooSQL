@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

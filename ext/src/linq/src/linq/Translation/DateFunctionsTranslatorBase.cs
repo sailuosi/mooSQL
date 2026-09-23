@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Common;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.utils;
+using mooSQL.linq.expressions;
+using mooSQL.linq.utils;
+using mooSQL.linq.clause;
 using mooSQL.utils;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
 	public class DateFunctionsTranslatorBase : MemberTranslatorBase
 	{

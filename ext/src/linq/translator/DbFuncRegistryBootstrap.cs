@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using mooSQL.data;
 using mooSQL.data.translation;
-using mooSQL.linq.Tools;
+using mooSQL.linq.utils;
 
 namespace mooSQL.linq.translator;
 
@@ -69,9 +69,9 @@ public static class DbFuncRegistryBootstrap
 
     static void RegisterInList(DbFuncRegistry registry)
     {
-        foreach (var method in typeof(mooSQL.linq.Tools.SqlExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static))
+        foreach (var method in typeof(mooSQL.linq.utils.SqlExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
-            if (method.Name != nameof(mooSQL.linq.Tools.SqlExtensions.In) && method.Name != nameof(mooSQL.linq.Tools.SqlExtensions.NotIn))
+            if (method.Name != nameof(mooSQL.linq.utils.SqlExtensions.In) && method.Name != nameof(mooSQL.linq.utils.SqlExtensions.NotIn))
                 continue;
             if (!method.IsGenericMethodDefinition)
                 continue;
@@ -84,7 +84,7 @@ public static class DbFuncRegistryBootstrap
                     IsPredicate = true,
                     PreferServerSide = true,
                     IsInListPredicate = true,
-                    IsNotInListPredicate = method.Name == nameof(mooSQL.linq.Tools.SqlExtensions.NotIn)
+                    IsNotInListPredicate = method.Name == nameof(mooSQL.linq.utils.SqlExtensions.NotIn)
                 });
         }
     }

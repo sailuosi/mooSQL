@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 namespace mooSQL.data
 {
 	using mooSQL.linq;
-	using mooSQL.linq.Linq.Translation;
+	using mooSQL.linq.translator;
     using mooSQL.data.model;
-    using mooSQL.linq.SqlQuery;
+    using mooSQL.linq.clause;
 
 	public class SqlServer2022MemberTranslator : SqlServer2012MemberTranslator
 	{

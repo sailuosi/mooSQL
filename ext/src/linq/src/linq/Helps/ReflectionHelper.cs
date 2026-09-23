@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
 
 	sealed class ReflectionHelper
 	{

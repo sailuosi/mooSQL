@@ -1,7 +1,7 @@
-﻿namespace mooSQL.linq.DataProvider.Oracle
+namespace mooSQL.linq.provider.Oracle
 {
     using mooSQL.data.model;
-    using mooSQL.linq.SqlQuery;
+    using mooSQL.linq.clause;
 
 	public class Oracle12SqlExpressionConvertVisitor : OracleSqlExpressionConvertVisitor
 	{

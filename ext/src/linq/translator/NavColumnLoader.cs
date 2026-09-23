@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 
 namespace mooSQL.linq.translator;
 

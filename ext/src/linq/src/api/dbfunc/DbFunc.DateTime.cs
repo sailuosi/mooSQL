@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 namespace mooSQL.linq
 {
-	using SqlQuery;
-	using Expressions;
-
+	using mooSQL.linq.clause;
+	using mooSQL.linq.expressions;
 	using PN = ProviderName;
     using mooSQL.data.model;
 

@@ -1,7 +1,7 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.data.model.affirms;
-using mooSQL.linq.Mapping;
+using mooSQL.linq.mapping;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections;
@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
     public static class ClauseExtensions
     {

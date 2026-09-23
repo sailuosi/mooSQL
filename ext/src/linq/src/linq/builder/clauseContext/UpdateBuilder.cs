@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data;
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
-	using mooSQL.linq.ext;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
 	using mooSQL.utils;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	/// <summary>Static DML set-expression helpers shared by update/insert/merge builders.</summary>
 	static class UpdateBuilder
 	{

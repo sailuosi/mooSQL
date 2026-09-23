@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Linq.Expressions;
@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq
 {
 	using System.Text;
 
-	using Data;
-	using Linq;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
 	/// <summary>
 	/// Contains LINQ expression compilation options.
 	/// </summary>
@@ -154,7 +153,7 @@ namespace mooSQL.linq.Common
 			set
 			{
 				// Can't change the default value of "false" on platforms where nullable metadata is unavailable.
-				if (value) Mapping.Nullability.EnsureSupport();
+				if (value) mooSQL.linq.mapping.Nullability.EnsureSupport();
 				_useNullableTypesMetadata = value;
 			}
 		}

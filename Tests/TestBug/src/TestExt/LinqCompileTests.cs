@@ -1,8 +1,7 @@
-using mooSQL.data;
+﻿using mooSQL.data;
 using mooSQL.data.model;
 using mooSQL.linq;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Mapping;
+using mooSQL.linq.mapping;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Linq;
@@ -12,8 +11,7 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// LINQ 编译与 SQLite 集成测试。
-/// </summary>
+/// LINQ 缂栬瘧涓?SQLite 闆嗘垚娴嬭瘯銆?/// </summary>
 public class LinqCompileTests : IClassFixture<LinqSqliteTestFixture>
 {
     readonly LinqSqliteTestFixture _sqlite;

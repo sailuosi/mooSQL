@@ -1,6 +1,6 @@
 using System;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	interface IDbQuery
 	{

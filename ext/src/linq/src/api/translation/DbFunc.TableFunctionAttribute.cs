@@ -1,19 +1,18 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 // ReSharper disable CheckNamespace
 
 namespace mooSQL.linq
 {
-	using Common.Internal;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.Mapping;
     using mooSQL.data.model;
 
-	using SqlProvider;
-	using SqlQuery;
-
+	using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	partial class DbFunc
 	{
 		[Serializable]

@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.DataProvider.Oracle
+namespace mooSQL.linq.provider.Oracle
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
 
-	using SqlProvider;
-	using SqlQuery;
-
+	using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	public class Oracle11SqlOptimizer : BasicSqlOptimizer
 	{
 		public Oracle11SqlOptimizer(SQLProviderFlags sqlProviderFlags) : base(sqlProviderFlags)

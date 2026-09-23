@@ -1,6 +1,6 @@
 using FluentAssertions;
 using mooSQL.data;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 using mooSQL.linq.translator;
 using mooSQL.Pure.Tests.TestHelpers;
 using System.Collections.Generic;

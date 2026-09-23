@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,11 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.ext
+namespace mooSQL.linq
 {
-	using Linq;
+	using mooSQL.linq;
 #if NET6_0_OR_GREATER
-	using mooSQL.linq.Async;
+	using mooSQL.linq;
 #endif
 
 	public static partial class LinqExtensions

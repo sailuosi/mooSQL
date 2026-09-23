@@ -1,11 +1,11 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	public partial class ReservedWords
 	{

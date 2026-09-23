@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Extensions
+namespace mooSQL.linq.utils
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	static class MappingExpressionsExtensions
 	{
 		public static TExpression GetExpressionFromExpressionMember<TExpression>(this Type type, string memberName)

@@ -1,14 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using Visitors;
-
+    using mooSQL.linq.clause;
 	public class SentenceColumnUsageCollector : SentenceVisitor
 	{
 		SelectQueryClause?                _parentSelectQuery;

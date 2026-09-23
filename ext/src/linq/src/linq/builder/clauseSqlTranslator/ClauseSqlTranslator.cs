@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
@@ -7,27 +7,27 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using Common.Internal;
-	using Extensions;
-	using Infrastructure;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using SqlQuery;
-	using Tools;
-	using Translation;
-	using Visitors;
-	using DataProvider;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.translator;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.provider;
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;
     using mooSQL.linq;
-    using mooSQL.linq.SqlProvider;
+    using mooSQL.linq.provider;
     using mooSQL.linq.translator;
     using mooSQL.data.call;
-    using mooSQL.linq.Expressions;
+    using mooSQL.linq.expressions;
 
     internal sealed partial class ClauseSqlTranslator : IExpressionEvaluator
 	{

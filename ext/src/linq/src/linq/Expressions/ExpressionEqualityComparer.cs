@@ -1,4 +1,4 @@
-﻿// BASEDON: https://github.com/aspnet/EntityFrameworkCore/blob/dev/src/EFCore/Query/Internal/ExpressionEqualityComparer.cs
+// BASEDON: https://github.com/aspnet/EntityFrameworkCore/blob/dev/src/EFCore/Query/Internal/ExpressionEqualityComparer.cs
 
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
@@ -13,12 +13,12 @@ using System.Reflection;
 // ReSharper disable SwitchStatementMissingSomeCases
 // ReSharper disable ForCanBeConvertedToForeach
 // ReSharper disable LoopCanBeConvertedToQuery
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Extensions;
-	using Linq;
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
     using mooSQL.utils;
-    using Reflection;
+    using mooSQL.linq.utils;
 
 	/// <summary>
 	///     Internal expression infrastructure API and is not intended to be used

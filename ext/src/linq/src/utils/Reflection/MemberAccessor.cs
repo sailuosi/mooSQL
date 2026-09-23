@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Linq;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
-	using Common;
-	using Expressions;
-	using Extensions;
-	using Common.Internal;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.utils;
     using mooSQL.data;
 

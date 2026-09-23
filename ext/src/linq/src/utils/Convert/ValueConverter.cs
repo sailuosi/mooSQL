@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	public class ValueConverter<TModel, TProvider> : IValueConverter
 	{

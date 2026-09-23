@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data;
     using mooSQL.data.model;
-    using mooSQL.linq.Mapping;
-	using SqlQuery;
-
+    using mooSQL.linq.mapping;
+	using mooSQL.linq.clause;
 	[DebuggerDisplay("{ClauseContextDebuggingHelper.GetContextInfo(this)}")]
 	abstract class ClauseContextBase : IClauseContext
 	{

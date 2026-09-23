@@ -1,8 +1,8 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections.Generic;
 
-namespace mooSQL.linq.SqlQuery
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// 这是内部API，不应由业务侧使用.

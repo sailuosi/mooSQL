@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 using mooSQL.linq.translator;
 
 namespace mooSQL.data

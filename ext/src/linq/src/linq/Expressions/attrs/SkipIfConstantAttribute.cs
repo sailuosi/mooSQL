@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	/// <summary>
 	/// Used to tell query expression comparer to skip method call argument comparison if it is constant.

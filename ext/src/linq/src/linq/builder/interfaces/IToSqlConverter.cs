@@ -1,10 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public interface IToSqlConverter
 	{
 		IExpWord ToSql(object value);

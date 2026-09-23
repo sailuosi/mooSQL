@@ -2,8 +2,7 @@
 
 namespace mooSQL.linq
 {
-	using Linq;
-
+	using mooSQL.linq;
 	using mooSQL.data;
 
 	/// <summary>

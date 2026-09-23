@@ -4,12 +4,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.data.call;
 using mooSQL.data.model;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Extensions;
-using mooSQL.linq.Linq;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.ext;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.expressions;
+using mooSQL.linq.utils;
+using mooSQL.linq;
+using mooSQL.linq.builder;
+using mooSQL.linq;
+using mooSQL.linq.clause;
 using mooSQL.utils;
 
 namespace mooSQL.linq.translator;

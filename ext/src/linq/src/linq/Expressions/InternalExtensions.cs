@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -6,16 +6,16 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Extensions;
-	using Linq;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
-    using mooSQL.linq.ext;
+    using mooSQL.linq;
     using mooSQL.utils;
-    using mooSQL.linq.Mapping;
+    using mooSQL.linq.mapping;
 
     /// <summary>
     /// Internal API.

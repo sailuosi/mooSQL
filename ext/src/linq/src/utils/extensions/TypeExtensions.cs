@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Infrastructure
+namespace mooSQL.linq.utils
 {
+	using mooSQL.linq;
+
 	/// <summary>
 	///     <para>
 	///         Extension methods for <see cref="Type" /> instances.
@@ -11,7 +13,7 @@ namespace mooSQL.linq.Infrastructure
 	///         not used in application code.
 	///     </para>
 	/// </summary>
-	public static class TypeExtensions
+	public static partial class TypeExtensions
 	{
 		/// <summary>
 		///     <para>

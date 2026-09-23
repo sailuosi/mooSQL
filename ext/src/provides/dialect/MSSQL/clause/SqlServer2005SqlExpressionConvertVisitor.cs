@@ -1,9 +1,8 @@
-﻿namespace mooSQL.linq.DataProvider.SqlServer
+namespace mooSQL.linq.provider.SqlServer
 {
 	using mooSQL.data;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public class SqlServer2005SqlExpressionConvertVisitor : SqlServerSqlExpressionConvertVisitor
 	{
 		public SqlServer2005SqlExpressionConvertVisitor(bool allowModify) : base(allowModify)

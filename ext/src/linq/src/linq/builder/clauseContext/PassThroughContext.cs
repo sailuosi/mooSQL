@@ -1,11 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	abstract class PassThroughContext : ClauseContextBase
 	{
 		protected PassThroughContext(IClauseContext context, SelectQueryClause selectQuery) : base(context.Builder, context.ElementType, selectQuery)

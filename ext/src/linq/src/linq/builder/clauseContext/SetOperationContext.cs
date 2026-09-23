@@ -4,15 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Common.Internal;
-	using Extensions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
 	using mooSQL.utils;
-	using SqlQuery;
-
+	using mooSQL.linq.clause;
 	internal sealed class SetOperationContext : SubQueryContext
 	{
 		public SetOperationContext(SetOperation setOperation, SelectQueryClause selectQuery, SubQueryContext sequence1, SubQueryContext sequence2,

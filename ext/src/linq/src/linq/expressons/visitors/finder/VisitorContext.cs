@@ -1,4 +1,4 @@
-﻿namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	internal sealed class WritableContext<T>
 	{

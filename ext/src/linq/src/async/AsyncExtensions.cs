@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.ext
+namespace mooSQL.linq
 {
-	using Linq;
-
+	using mooSQL.linq;
 	/// <summary>
 	/// Provides helper methods for asynchronous operations.
 	/// </summary>

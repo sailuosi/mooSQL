@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Common.Internal
+namespace mooSQL.linq.utils
 {
-	using Expressions;
-	using Extensions;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     abstract class ValueComparer : IEqualityComparer, IEqualityComparer<object>

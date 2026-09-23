@@ -1,9 +1,9 @@
 using mooSQL.data;
 using mooSQL.data.Mapping;
-using mooSQL.linq.Mapping;
+using mooSQL.linq;
 using System;
 using System.Collections.Generic;
-using AssociationAttribute = mooSQL.linq.Mapping.AssociationAttribute;
+using AssociationAttribute = mooSQL.linq.AssociationAttribute;
 
 namespace mooSQL.Pure.Tests.TestHelpers
 {

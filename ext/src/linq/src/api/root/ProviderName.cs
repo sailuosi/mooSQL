@@ -1,13 +1,9 @@
-﻿using System;
+using System;
 
 
 
 namespace mooSQL.linq
 {
-
-	using DataProvider.SqlServer;
-
-	using mooSQL.linq.DataProvider.MySql;
 
 	// TODO: v6: obsolete/remove all provider-specific entries as it should be used for dialects only
 	/// <summary>

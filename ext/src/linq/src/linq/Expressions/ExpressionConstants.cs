@@ -1,7 +1,7 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	public static class ExpressionConstants
 	{

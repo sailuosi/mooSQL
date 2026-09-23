@@ -1,4 +1,4 @@
-﻿// https://github.com/dotnet/efcore/blob/main/src/Shared/SharedTypeExtensions.cs
+// https://github.com/dotnet/efcore/blob/main/src/Shared/SharedTypeExtensions.cs
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -16,8 +16,7 @@ namespace mooSQL.linq
 
 #pragma warning disable RS0030
 
-	using Common;
-
+	using mooSQL.linq.utils;
 	[DebuggerStepThrough]
 	internal static class SharedTypeExtensions
 	{

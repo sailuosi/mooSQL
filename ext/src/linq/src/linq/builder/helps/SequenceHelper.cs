@@ -1,19 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Extensions;
-	using Mapping;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
+	using mooSQL.linq.expressions;
     using mooSQL.utils;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	internal static class SequenceHelper
 	{
 		public static Expression PrepareBody(LambdaExpression lambda, params IClauseContext[] sequences)

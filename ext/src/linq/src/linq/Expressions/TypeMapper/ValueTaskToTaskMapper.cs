@@ -1,13 +1,12 @@
-﻿#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER
 
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	public class ValueTaskToTaskMapper : ICustomMapper
 	{
 		bool ICustomMapper.CanMap(Expression expression)

@@ -1,16 +1,16 @@
-﻿
+
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Common.Internal;
+using mooSQL.linq.utils;
 
-using mooSQL.linq.DataProvider;
-using mooSQL.linq.Infrastructure;
+using mooSQL.linq.provider;
+using mooSQL.linq.utils;
 
-using mooSQL.linq.Linq.Builder;
+using mooSQL.linq.builder;
 using mooSQL.linq.translator;
-using mooSQL.linq.SqlProvider;
-using mooSQL.linq.SqlQuery;
-using mooSQL.linq.Tools;
+using mooSQL.linq.provider;
+using mooSQL.linq.clause;
+using mooSQL.linq.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
     /// <summary>
     /// 查询助手，输入linq表达式，然后直接获得结果

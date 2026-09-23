@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using mooSQL.data;
 
-namespace mooSQL.linq.Extensions
+namespace mooSQL.linq.utils
 {
-	using Common;
-	using Data;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.utils;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	static class MappingExtensions
 	{
 

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Value converter to <typeparamref name="TTo"/> type.

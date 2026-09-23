@@ -1,10 +1,10 @@
 using System;
 using System.Linq.Expressions;
 using mooSQL.data.call;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.Reflection;
-using mooSQL.linq.ext;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq.utils;
+using mooSQL.linq;
 
 namespace mooSQL.linq.translator;
 

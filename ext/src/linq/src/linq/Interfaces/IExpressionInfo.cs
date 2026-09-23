@@ -1,8 +1,8 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
 
     public interface IExpressionInfo

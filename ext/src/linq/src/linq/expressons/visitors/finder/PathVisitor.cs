@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Linq;
-
+	using mooSQL.linq;
 	// PathVisitor cannot be shared/reused due to _visited state field
 	internal sealed class PathVisitor<TContext>
 	{

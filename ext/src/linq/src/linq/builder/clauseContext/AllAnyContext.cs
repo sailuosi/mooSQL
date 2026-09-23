@@ -1,13 +1,13 @@
 using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
-	using mooSQL.linq.Expressions;
-	using SqlQuery;
-	using mooSQL.linq.SqlQuery;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.clause;
 
 	internal sealed class AllAnyContext : SequenceContextBase
 	{

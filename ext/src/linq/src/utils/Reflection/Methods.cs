@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -8,18 +8,16 @@ using System.Reflection;
 
 using mooSQL.linq;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
-	using Common;
-	using Expressions;
-	using Extensions;
-	using Linq;
-
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
+	using mooSQL.linq;
 	using mooSQL.data;
 	using mooSQL.data.model;
-    using mooSQL.linq.ext;
-    using SqlQuery;
-
+    using mooSQL.linq;
+    using mooSQL.linq.clause;
 	/// <summary>
 	/// This API supports the mooSQL LINQ infrastructure and is not intended to be used directly from your code.
 	/// This API may change or be removed in future releases.
@@ -321,8 +319,8 @@ namespace mooSQL.linq.Reflection
 
 			public static class DataParameter
 			{
-				public static readonly PropertyInfo DbDataType = MemberHelper.PropertyOf<Data.DataParameter>(dp => dp.DbDataType);
-				public static readonly PropertyInfo Value      = MemberHelper.PropertyOf<Data.DataParameter>(dp => dp.Value);
+				public static readonly PropertyInfo DbDataType = MemberHelper.PropertyOf<global::mooSQL.linq.utils.DataParameter>(dp => dp.DbDataType);
+				public static readonly PropertyInfo Value      = MemberHelper.PropertyOf<global::mooSQL.linq.utils.DataParameter>(dp => dp.Value);
 			}
 
 

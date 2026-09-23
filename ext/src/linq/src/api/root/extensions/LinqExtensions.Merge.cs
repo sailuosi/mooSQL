@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,13 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.ext
+namespace mooSQL.linq
 {
-	using Expressions;
-	using Linq;
-	using Reflection;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq;
+	using mooSQL.linq.utils;
 
-	using static mooSQL.linq.Reflection.Methods.SooQuery.Merge;
+	using static mooSQL.linq.utils.Methods.SooQuery.Merge;
 
 	public static partial class LinqExtensions
 	{

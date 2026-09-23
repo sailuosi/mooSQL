@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
-	using Extensions;
+	using mooSQL.linq.utils;
     using mooSQL.utils;
 
     public class TypeAccessor<T> : TypeAccessor

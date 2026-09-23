@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Data;
-	using mooSQL.linq.Expressions;
-	using Mapping;
-	using static Data.EntityConstructorBase;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.mapping;
+	using static mooSQL.linq.utils.EntityConstructorBase;
     using mooSQL.data;
 
     internal partial class ClauseSqlTranslator

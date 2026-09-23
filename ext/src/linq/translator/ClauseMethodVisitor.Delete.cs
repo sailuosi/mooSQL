@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using mooSQL.data.call;
 using mooSQL.data.model;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.Linq.Builder;
-using mooSQL.linq.ext;
+using mooSQL.linq.expressions;
+using mooSQL.linq.builder;
+using mooSQL.linq;
 namespace mooSQL.linq.translator;
 
 internal partial class ClauseMethodVisitor

@@ -1,17 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
-	using Builder;
-	using Common;
+	using mooSQL.linq.builder;
+	using mooSQL.linq.utils;
     using mooSQL.data.model;
-    using mooSQL.linq.Expressions;
-	using SqlQuery;
-	
+    using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
 	class CloningContext
 	{
 		Dictionary<Clause, Clause> _queryElements    = new (Utils.ObjectReferenceEqualityComparer<Clause>.Default);

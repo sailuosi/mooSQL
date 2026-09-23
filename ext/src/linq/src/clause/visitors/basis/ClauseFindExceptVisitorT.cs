@@ -1,8 +1,8 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
 	/// <summary>
 	/// Search for element in query using search condition predicate.

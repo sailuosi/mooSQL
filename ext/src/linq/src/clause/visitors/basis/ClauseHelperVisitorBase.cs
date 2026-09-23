@@ -1,6 +1,6 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 
-namespace mooSQL.linq.SqlQuery.Visitors
+namespace mooSQL.linq.clause
 {
 	public class ClauseHelperVisitorBase : ClauseVisitor
 	{

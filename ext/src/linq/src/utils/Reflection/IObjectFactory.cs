@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
 	public interface IObjectFactory
 	{

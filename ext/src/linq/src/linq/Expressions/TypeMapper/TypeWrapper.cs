@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	/// <summary>
 	/// 驱动特有类型的定义，由驱动继承以扩展
 	/// </summary>

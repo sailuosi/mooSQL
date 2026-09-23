@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.data;
 using mooSQL.data.model;
-using mooSQL.linq.Linq;
-using mooSQL.linq.SqlQuery;
-using mooSQL.linq.Tools;
+using mooSQL.linq;
+using mooSQL.linq.clause;
+using mooSQL.linq.utils;
 
 namespace mooSQL.linq.translator;
 

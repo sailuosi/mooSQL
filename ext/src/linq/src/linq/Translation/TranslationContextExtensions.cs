@@ -1,14 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	using mooSQL.data.model;
-	using mooSQL.linq.Expressions;
-	using SqlQuery;
-
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.clause;
 	public static class TranslationContextExtensions
 	{
 		public static bool TryEvaluate<T>(this ITranslationContext translationContext, Expression expression, out T result)

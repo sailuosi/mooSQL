@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,16 +7,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder.Visitors
+namespace mooSQL.linq.builder
 {
-	using Common;
-	using Extensions;
-	using Mapping;
-	using Reflection;
-	using mooSQL.linq.Expressions;
-	using mooSQL.linq.Common.Internal;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.expressions;
+	using mooSQL.linq.utils;
 	using System.Globalization;
-    using mooSQL.linq.ext;
+    using mooSQL.linq;
     using mooSQL.utils;
     using mooSQL.data;
 

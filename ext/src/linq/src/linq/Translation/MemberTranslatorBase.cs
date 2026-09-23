@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using mooSQL.data.model;
 using mooSQL.linq;
-using mooSQL.linq.Expressions;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq.expressions;
+using mooSQL.linq.clause;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
 	public class MemberTranslatorBase : IMemberTranslator
 	{

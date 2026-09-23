@@ -1,10 +1,10 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 
-using mooSQL.linq.Extensions;
+using mooSQL.linq.utils;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	public static class SqlQueryDependentAttributeHelper
 	{

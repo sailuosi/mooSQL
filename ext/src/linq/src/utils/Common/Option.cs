@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
-namespace mooSQL.linq.Common
+namespace mooSQL.linq.utils
 {
 	/// <summary>
 	/// Option type implementation.

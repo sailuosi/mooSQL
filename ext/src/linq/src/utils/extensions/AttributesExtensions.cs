@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +6,9 @@ using System.Reflection;
 
 
 
-namespace mooSQL.linq.Extensions
+namespace mooSQL.linq.utils
 {
-	using Common;
-
+	using mooSQL.linq.utils;
 	/*
 	 * 1. Implements library-wide Get(Custom)Attribute(s) cache.
 	 * 2. Native reflection Get(Custom)Attribute(s) methods are banned to avoid direct non-cached queries for attributes.

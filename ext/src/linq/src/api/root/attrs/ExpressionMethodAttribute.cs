@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 
 
 namespace mooSQL.linq
 {
-	using Common.Internal;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.Mapping;
 

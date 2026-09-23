@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 namespace mooSQL.linq
 {
-	using Expressions;
-
+	using mooSQL.linq.expressions;
 	using PN = ProviderName;
 
 	public partial class DbFunc

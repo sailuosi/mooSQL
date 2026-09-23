@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 namespace mooSQL.data
 {
 	using mooSQL.linq;
-	using mooSQL.linq.Common;
-	using mooSQL.linq.SqlQuery;
-	using mooSQL.linq.Linq.Translation;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.translator;
 	using mooSQL.data.model;
 
 	public class PostgreSQLMemberTranslator : ProviderMemberTranslatorDefault

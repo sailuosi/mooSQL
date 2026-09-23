@@ -1,6 +1,6 @@
 using System;
 using mooSQL.linq;
-using mooSQL.linq.Linq;
+using mooSQL.linq;
 
 namespace mooSQL.data
 {

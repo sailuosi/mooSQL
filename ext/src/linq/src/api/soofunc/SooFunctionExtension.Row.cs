@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace mooSQL.linq
 {
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	public static partial class SooFunctionExtension
 	{
 		sealed class RowBuilder : DbFunc.IExtensionCallBuilder

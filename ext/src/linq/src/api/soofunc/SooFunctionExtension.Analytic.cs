@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,11 +7,10 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq
 {
-	using Linq;
-	using Expressions;
-
+	using mooSQL.linq;
+	using mooSQL.linq.expressions;
 	using PN = ProviderName;
-    using mooSQL.linq.ext;
+    using mooSQL.linq;
 
 	public static partial class SooFunctionExtension
 	{

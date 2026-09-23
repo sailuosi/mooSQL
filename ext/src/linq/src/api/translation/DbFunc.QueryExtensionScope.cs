@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 
 namespace mooSQL.linq
 {
-	using SqlProvider;
-
+	using mooSQL.linq.provider;
 	public partial class DbFunc
 	{
 

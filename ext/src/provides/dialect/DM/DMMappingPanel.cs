@@ -1,7 +1,7 @@
 using mooSQL.data.mapping;
 using mooSQL.data.model;
-using mooSQL.linq.Common;
-using mooSQL.linq.Extensions;
+using mooSQL.linq.utils;
+using mooSQL.linq.utils;
 using mooSQL.utils;
 using System;
 using System.Data;

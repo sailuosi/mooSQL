@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using mooSQL.linq;
 
-namespace mooSQL.linq.Linq.Translation
+namespace mooSQL.linq.translator
 {
 	public sealed class CombinedMemberTranslator : IMemberTranslator
 	{

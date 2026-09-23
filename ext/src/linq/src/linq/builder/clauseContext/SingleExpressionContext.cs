@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	sealed class SingleExpressionContext : ClauseContextBase
 	{
 		public SingleExpressionContext(ClauseSqlTranslator builder, IExpWord sqlExpression, SelectQueryClause selectQuery)

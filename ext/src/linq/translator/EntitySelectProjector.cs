@@ -1,6 +1,6 @@
 using mooSQL.data.model;
-using mooSQL.linq.Linq;
-using mooSQL.linq.SqlQuery;
+using mooSQL.linq;
+using mooSQL.linq.clause;
 
 namespace mooSQL.linq.translator;
 

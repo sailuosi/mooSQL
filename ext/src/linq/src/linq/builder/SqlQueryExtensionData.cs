@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace mooSQL.linq.Linq.Builder
+namespace mooSQL.linq.builder
 {
     using mooSQL.data.model;
-    using SqlQuery;
-
+    using mooSQL.linq.clause;
 	[DebuggerDisplay("{ToDebugString()}")]
 	public sealed class SqlQueryExtensionData
 	{

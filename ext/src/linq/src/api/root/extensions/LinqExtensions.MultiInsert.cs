@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace mooSQL.linq.ext
+namespace mooSQL.linq
 {
-	using Linq;
-	using Methods = Reflection.Methods.SooQuery.MultiInsert;
+	using mooSQL.linq;
+	using Methods = mooSQL.linq.utils.Methods.SooQuery.MultiInsert;
 
 	public static class MultiInsertExtensions
 	{

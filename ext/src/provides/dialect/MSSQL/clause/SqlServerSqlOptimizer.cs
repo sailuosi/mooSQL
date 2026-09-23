@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace mooSQL.linq.DataProvider.SqlServer
+namespace mooSQL.linq.provider.SqlServer
 {
-	using SqlProvider;
-	using SqlQuery;
-	using Mapping;
+	using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
+	using mooSQL.linq.mapping;
     using mooSQL.data.model;
     using mooSQL.data;
 

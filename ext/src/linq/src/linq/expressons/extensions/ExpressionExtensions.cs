@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -7,13 +7,13 @@ using System.Reflection;
 
 
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
-	using Common;
-	using Extensions;
-	using Mapping;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.utils;
+	using mooSQL.linq.mapping;
     using mooSQL.utils;
-    using Reflection;
+    using mooSQL.linq.utils;
 
 	public static class ExpressionExtensions
 	{

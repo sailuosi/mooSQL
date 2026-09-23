@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 
 // ReSharper disable CheckNamespace
 
 namespace mooSQL.linq
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data.Mapping;
 
     partial class DbFunc

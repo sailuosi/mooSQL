@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace mooSQL.linq;
 
-using mooSQL.linq.SqlQuery;
-using mooSQL.linq.Common.Internal;
+using mooSQL.linq.clause;
+using mooSQL.linq.utils;
 using mooSQL.data.model;
 
 public static partial class SooFunctionExtension

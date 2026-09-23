@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace mooSQL.linq.Expressions
+namespace mooSQL.linq.expressions
 {
 	public class SqlPathExpression : Expression, IEquatable<SqlPathExpression>
 	{

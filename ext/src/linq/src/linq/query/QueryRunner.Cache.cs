@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
-using mooSQL.linq.Common;
+using mooSQL.linq.utils;
 
-namespace mooSQL.linq.Linq
+namespace mooSQL.linq
 {
 	public static partial class QueryRunner
 	{

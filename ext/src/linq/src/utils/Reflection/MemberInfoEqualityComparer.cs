@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace mooSQL.linq.Reflection
+namespace mooSQL.linq.utils
 {
 	public class MemberInfoEqualityComparer : IEqualityComparer<MemberInfo>
 	{

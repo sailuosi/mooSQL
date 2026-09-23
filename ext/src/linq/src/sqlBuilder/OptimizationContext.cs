@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-using mooSQL.linq.SqlQuery.Visitors;
+using mooSQL.linq.clause;
 
-namespace mooSQL.linq.SqlProvider
+namespace mooSQL.linq.provider
 {
     using mooSQL.data;
     using mooSQL.data.model;

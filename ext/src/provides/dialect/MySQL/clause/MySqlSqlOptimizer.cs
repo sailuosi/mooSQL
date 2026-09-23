@@ -1,12 +1,11 @@
-﻿namespace mooSQL.linq.DataProvider.MySql
+namespace mooSQL.linq.provider.MySql
 {
-	using Mapping;
+	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.data.model;
 
-	using SqlProvider;
-	using SqlQuery;
-
+	using mooSQL.linq.provider;
+	using mooSQL.linq.clause;
 	sealed class MySqlSqlOptimizer : BasicSqlOptimizer
 	{
 		public MySqlSqlOptimizer(SQLProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
