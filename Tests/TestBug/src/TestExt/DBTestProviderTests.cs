@@ -52,6 +52,10 @@ public class DBTestProviderTests
         DBTest.useClickHouseDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useClickHouseDialectOnly().config.dbType.Should().Be(DataBaseType.ClickHouse);
 #endif
+#if NET10_0_OR_GREATER
+        DBTest.useSonnetDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
+        DBTest.useSonnetDBDialectOnly().config.dbType.Should().Be(DataBaseType.SonnetDB);
+#endif
 
         DBTest.useMySQLDB().config.dbType.Should().Be(DataBaseType.MySQL);
         DBTest.useMSSQLDB().config.dbType.Should().Be(DataBaseType.MSSQL);
@@ -109,6 +113,9 @@ public class DBTestProviderTests
         DBTest.useTiDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
         DBTest.useMariaDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
         DBTest.useSQLiteDB().dialect.SupportsMerge().Should().BeFalse();
+#if NET10_0_OR_GREATER
+        DBTest.useSonnetDBDialectOnly().dialect.SupportsMerge().Should().BeFalse();
+#endif
     }
 
     [Fact]

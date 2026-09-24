@@ -41,6 +41,9 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect() );
             this.useDialect(DataBaseType.ClickHouse, () => new ClickHouseDialect());
 #endif
+#if NET10_0_OR_GREATER
+            this.useDialect(DataBaseType.SonnetDB, () => new SonnetDBDialect());
+#endif
         }
 
         /// <summary>

@@ -122,6 +122,12 @@ namespace mooSQL.data
                 case "玛丽亚":
                     dbType = DataBaseType.MariaDB;
                     break;
+                case "SONNETDB":
+                case "SonnetDB":
+                case "SNDB":
+                case "索内特":
+                    dbType = DataBaseType.SonnetDB;
+                    break;
                 default:
                     dbType = DataBaseType.MSSQL;
                     break;
@@ -302,7 +308,11 @@ namespace mooSQL.data
         /// <summary>
         /// MariaDB（MySQL Family；MySqlConnector + 差分旗标）
         /// </summary>
-        MariaDB = 25
+        MariaDB = 25,
+        /// <summary>
+        /// SonnetDB（国产多模型引擎；net10+，SonnetDB.Data ADO.NET）
+        /// </summary>
+        SonnetDB = 26
 
     }
 }

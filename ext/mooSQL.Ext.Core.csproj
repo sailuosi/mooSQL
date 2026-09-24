@@ -109,6 +109,7 @@
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 		<PackageReference Include="Kdbndp_V9" Version="10.0.1.921" />
 		<PackageReference Include="HuaweiCloud.GaussDB.Driver" Version="8.0.1" />
+		<PackageReference Include="SonnetDB" Version="3.1.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="src\AI\**" />

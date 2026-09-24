@@ -18,7 +18,7 @@ mooSQL 是自研的数据库访问层代码库，特点：
 
 ### 支持的数据库
 
-MySQL Family（MySQL / MariaDB / TiDB / OceanBase；PolarDB for MySQL 复用 MySQL）、PostgreSQL Family（PostgreSQL / CrateDB / openGauss / GaussDB）、以及 SQL Server、Oracle、达梦、金仓、ClickHouse、DuckDB、Taos、GBase8a、SQLite、Oscar 等独立方言。完整矩阵见 `doc/design/features/方言/数据库支持清单.md`。
+MySQL Family（MySQL / MariaDB / TiDB / OceanBase；PolarDB for MySQL 复用 MySQL）、PostgreSQL Family（PostgreSQL / CrateDB / openGauss / GaussDB）、以及 SQL Server、Oracle、达梦、金仓、ClickHouse、DuckDB、Taos、SonnetDB（net10）、GBase8a、SQLite、Oscar 等独立方言。完整矩阵见 `doc/design/features/方言/数据库支持清单.md`。
 
 ### 项目结构
 

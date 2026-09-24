@@ -9,6 +9,8 @@
 | **SQLite** | `LIMIT n` | `LIMIT offset, n` / `OFFSET` | `AppendLimitOffset` | `IsTakeSupported`, `IsSkipSupported`, `IsSkipSupportedIfTake` |
 | **MySQL** | `LIMIT n` | `LIMIT offset, n` | 同 SQLite；8.0+ 与旧版分支在 `MySQLExpress.buildPagedSelect` | 同左 |
 | **PostgreSQL (Npgsql)** | `LIMIT n` | `OFFSET m` | `AppendLimitOffset` | 同 SQLite |
+| **DuckDB** | `LIMIT n` | `OFFSET m` | `AppendLimitOffset` | 同 SQLite；net6+ |
+| **SonnetDB** | `LIMIT n` | `OFFSET m` | `AppendLimitOffset` | 同 SQLite；**仅 net10** |
 | **SQL Server** | `TOP n` | **ROW_NUMBER 子查询**（2005+） | `buildPagedByRowNumber` / `SqlServerSqlOptimizer.ReplaceSkipWithRowNumber` | `IsTakeSupported`；Skip 常经优化器改写 |
 | **Oracle** | ROWNUM / 子查询 | 方言优化器 | `OracleExpress` / `Oracle11SqlOptimizer` | 部分子查询 Take 受限 |
 

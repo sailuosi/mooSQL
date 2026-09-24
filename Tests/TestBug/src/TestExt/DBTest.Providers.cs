@@ -3,6 +3,7 @@ using mooSQL.data.context;
 using mooSQL.data.Mapping;
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 
 namespace TestMooSQL.src;
 
@@ -235,6 +236,24 @@ public partial class DBTest
 
     /// <summary>DuckDB 方言空连接实例（仅 SQL 产物）。</summary>
     public static DBInstance useDuckDBDialectOnly() => DialectKit(DataBaseType.DuckDB);
+#endif
+
+#if NET10_0_OR_GREATER
+    /// <summary>
+    /// SonnetDB 方言实例。默认临时目录连接串（嵌入式 Data Source 为目录）；可传远程串。
+    /// </summary>
+    public static DBInstance useSonnetDB(string? connectionString = null)
+    {
+        if (!string.IsNullOrEmpty(connectionString))
+            return BuildStandaloneInstance(DataBaseType.SonnetDB, connectionString);
+
+        var dir = Path.Combine(Path.GetTempPath(), "moosql_sonnetdb_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        return BuildStandaloneInstance(DataBaseType.SonnetDB, "Data Source=" + dir);
+    }
+
+    /// <summary>SonnetDB 方言空连接实例（仅 SQL 产物）。</summary>
+    public static DBInstance useSonnetDBDialectOnly() => DialectKit(DataBaseType.SonnetDB);
 #endif
 
     static DBInstance DialectKit(DataBaseType dbType) =>
