@@ -64,3 +64,4 @@ Tests/TestFast/dbTest → MooSqlClipTest（testQueryResult / testQueryAnonymousR
 | 日期 | 说明 |
 |------|------|
 | 2026-08-13 | 首版 P-base：尾投影实现同期落盘（G1–G4 已绿） |
+| 2026-10-08 | 设计文档 §0 刷新为「P0–P2 已交付」；本表数字仍有效，未重跑 |

@@ -4,13 +4,45 @@
 > 目标：让 SQLClip 支持「Select 匿名对象中对列调用尾方法/属性」的写法，**不把尾调用翻译成 SQL 函数**，而是 **先取列、再在 C# 侧用同一套表达式完成投影**。  
 > 对比对象：Chloe 等 ORM 将 `a.Name.Length` / `Substring` / `ToLower` / `DateTime.AddDays` 等转为 `LEN` / `SUBSTRING` / `LOWER` / `DATEADD` 的路径。
 
-关联：`pure/src/adoext/clip/visitor/ClipFieldVisitor.cs`、`ClipProvider.TranslateFieldToSelect`、`SQLClip.select` / `queryList`；参考样例 `ChloeDemo/MsSqlDemo.Method`（Select 方法演示段）。
+关联：`pure/src/adoext/clip/project/*`、`ClipProvider.PatchSelect`、`SQLClip.select` / `queryList`；纯列旧路径仍见 `ClipFieldVisitor` / `TranslateFieldToSelect`；参考样例 `ChloeDemo/MsSqlDemo.Method`（Select 方法演示段）。
+
+---
+
+## 0. 功能现状（对照源码，2026-10 刷新）
+
+| 维度 | 状态 | 说明 |
+|------|------|------|
+| 交付阶段 | **P0–P2 已交付** | 主路径可用；Queryable / Ext LINQ **明确不做** |
+| 语义 | ✅ | 列根 SELECT（`__cN`）+ C# 原 Lambda 投影；**无** SQL 函数翻译 |
+| 路径分流 | ✅ | `SelectClientTailProbe` 廉价探测；纯列 / 整表不进 Analyze/Compile/RowBag |
+| 执行出口 | ✅ | `queryList` / `queryUnique` / `queryPage` 经 `Context.ClientProjection` 快判 |
+| 硬化能力 | ✅ | Reader 直读、`ClientProjectionCache`、`nullPropagateTail`、分页 Total |
+| 扩展能力 | ✅ | 命名 DTO（`MemberInit`）、`setCache` 投影指纹、`preferInterpretedTail` |
+| 测试 | ✅ 主路径绿 | `SQLClipClientTailProjectionTests`：G1–G4、P1、P2、Perf 烟雾 |
+| 性能基线 | ✅ 已落盘 | [`SQLClip-客户端尾投影-perf-baseline.md`](./SQLClip-客户端尾投影-perf-baseline.md)；Tail/Anon ≈ 1.4× |
+| API 文档 | ✅ | `pure/src/adoext/clip/SQLClip-API说明文档.md` §七.1 |
+
+**未做 / 非目标（勿当缺口去实现）：**
+
+| 项 | 归类 | 说明 |
+|----|------|------|
+| 尾调用 → SQL 函数 | 非目标 | 故意不做 |
+| WHERE/ORDER 尾方法下推 | 非目标 | 仍用 `whereLike` 等 |
+| Ext LINQ / `IQueryable` Select | 非目标 | 本策略仅 SQLClip |
+| 源生成投影器 | 未做（可选后期） | AOT 折中已有 `preferInterpretedTail` |
+| `SelectProjectMode` 强制开关 | 未做（可选） | 默认自动分流已够用 |
+| `ClientEvalNowMode` | 未做（可选） | 当前 `DateTime.Now` 留在投影器内（偏每行） |
+| 探测结果 `bool` 缓存 | 未做（可选） | 每次 `select` 重扫；树小、未入纯列热路径 |
+| dbTest 正式尾投影项 | 未做（可选） | 功能以 TestBug 为准；跨 ORM 仍用既有 Clip Anonymous/Result |
+| 负例专项单测 | 偏弱 | WHERE 尾调用 / 未绑定成员 / 聚合拒绝等计划有写、用例少 |
+
+实现与维护细节见 **§12**；阶段勾选见 **§9**。
 
 ---
 
 ## 1. 背景与动机
 
-### 1.1 问题写法（现状不支持）
+### 1.1 问题写法（改造前：纯列 Visitor 不支持尾调用）
 
 典型业务/对标写法（Chloe Demo 节选语义）：
 
@@ -31,10 +63,12 @@ q.Select(a => new
 }).ToList();
 ```
 
-SQLClip 当前 `select(() => new { ... })` 路径（`ClipFieldVisitor`）**只识别映射到实体列的 `MemberExpression`**，写入 `alias.col [AS prop]`。对 `a.Name.Length`、`a.Name.Substring(...)` 等 **MethodCall / 深层 Member**：
+**改造前**，SQLClip `select(() => new { ... })` 仅靠 `ClipFieldVisitor`：**只识别映射到实体列的 `MemberExpression`**，写入 `alias.col [AS prop]`。对 `a.Name.Length`、`a.Name.Substring(...)` 等 **MethodCall / 深层 Member**：
 
 - 不会产出正确的 SELECT 列集合（列依赖被「淹没」在尾调用里）；
-- 也 **没有**（且本期 **故意不做**）「尾调用 → 方言 SQL 函数」的翻译器。
+- 也 **没有**（且 **故意不做**）「尾调用 → 方言 SQL 函数」的翻译器。
+
+**当前（已交付）**：探测到非纯列投影后走两阶段客户端尾投影（§3 / §12）；上表写法在 SQLClip 中可用，语义对齐 C#，SQL 仅含列根。
 
 ### 1.2 典型 ORM 做法为何不采用
 
@@ -66,17 +100,19 @@ SQLClip 当前 `select(() => new { ... })` 路径（`ClipFieldVisitor`）**只�
 | WHERE/ORDER BY/HAVING 中的尾方法下推 | 过滤/排序仍须可翻译条件或手写 SQL；本期只覆盖 **Select 投影** |
 | 聚合尾调用 | `Count/Sum/...` 必须在 SQL；不进客户端投影 |
 | 服务端 Case 一等语法的替代 | `Case.When` 若需进 SQL，继续走既有/规划中的 SQLBuilder CASE；客户端可另开开关（见 §5） |
-| Ext LINQ / Fast LINQ 全量对齐 | 首期落点 **SQLClip**；其它入口可复用同一分析器，但不绑死同期交付 |
+| Ext LINQ / Fast LINQ / `IQueryable` | **明确不做**：本策略仅 SQLClip；不复用到 Queryable Select |
 
 ### 1.5 成功判据
 
-1. 支持「列 + 尾方法/属性 + 闭包常量计算 + 三元」的匿名 Select，结果与「手写两阶段」（先查列再 `Select` 投影）一致。  
-2. 生成 SQL **不含** 因尾调用产生的字符串/日期函数（允许普通列别名 `AS`）。  
-3. 同一列被多个投影属性引用时，SELECT **只出现一次**（去重）。  
-4. 纯客户端节点（无列依赖）不进入 SELECT。  
-5. **纯列 / 非尾投影路径**：相对改造前 **无额外重分析、无强制 RowBag、无多余 Compile**；基准场景（如 dbTest Anonymous / Clip `queryList`）不得因本特性引入可感知回退（见 §6.4）。  
-6. **测试驱动**：对标初始 Select 代码的用例先红后绿（§6.5）；**实现前**落盘 SQLClip 核心耗时基线，合并时做比对门禁。  
-7. 有单测：字符串尾调用、可空三元、常量 `DateTime`/`Parse`、多列去重、与手写两阶段结果对比；另有「纯列路径不触达投影器」的断言。
+| # | 判据 | 现状 |
+|---|------|------|
+| 1 | 支持「列 + 尾方法/属性 + 闭包常量计算 + 三元」匿名/命名 DTO Select，结果与手写两阶段一致 | ✅ G1–G3、P2 |
+| 2 | SQL **不含** 因尾调用产生的字符串/日期函数（允许 `AS __cN`） | ✅ `AssertNoSqlTailFunctions` |
+| 3 | 同一列多投影属性时 SELECT 只出现一次 | ✅ G1 去重用例 |
+| 4 | 纯客户端节点不进入 SELECT（或无列时用 dummy 占位） | ✅ 无列依赖 → `0 AS __c_dummy` |
+| 5 | 纯列路径无 Analyze/RowBag/Compile；性能同档 | ✅ G4 + perf baseline |
+| 6 | TDD + 实现前/中基线落盘 | ✅ 单测 + `*-perf-baseline.md` |
+| 7 | 单测覆盖字符串尾、三元、Parse/日期、去重、纯列不触达投影器 | ✅；负例专项偏弱（见 §0） |
 
 ---
 
@@ -94,11 +130,13 @@ SQLClip 当前 `select(() => new { ... })` 路径（`ClipFieldVisitor`）**只�
 
 ### 2.1 与「列直取」的关系
 
-| Select 形态 | 现状 | 两阶段后 |
-|-------------|------|----------|
-| `new { a.Id, a.Name }` | ✅ 已支持 | 退化为「仅阶段 A + 现有映射」，可不走重投影 |
-| `new { Len = a.Name.Length }` | ❌ | ✅ 阶段 A 取 `Name`，阶段 B 算 `Length` |
-| `new { a.Id, Lower = a.Name.ToLower() }` | ❌ | ✅ 混合：Id 直取，Name 取后 ToLower |
+| Select 形态 | 当前行为 |
+|-------------|---------|
+| `new { a.Id, a.Name }` | ✅ 旧路径（纯列）；`ClientProjection == null`，无 `__cN` |
+| `new { Len = a.Name.Length }` | ✅ 尾投影：阶段 A 取 `Name`，阶段 B 算 `Length` |
+| `new { a.Id, Lower = a.Name.ToLower() }` | ✅ 尾投影混合：Id/Name 进槽位，ToLower 在 C# |
+| `new Dto { Id = a.Id, Upper = a.Name.ToUpper() }` | ✅ 与匿名同等（`MemberInit`，含 ctor+初始化器） |
+| `select(entity)` 整表 | ✅ 旧路径 `alias.*` |
 
 ---
 
@@ -204,12 +242,12 @@ Visit(node):
 
 ### 4.5 `DateTime.Now` 等求值时机
 
-| 策略 | 行为 | 建议 |
+| 策略 | 行为 | 现状 |
 |------|------|------|
-| 每查询一次 | 编译前或首行前求值闭包，所有行相同 | 与「常量折叠」接近；适合演示里的 Now |
-| 每行一次 | 投影器内保留 `DateTime.Now` 调用 | 更贴近「每行映射时的时钟」 |
+| 每查询一次 | 编译前或首行前求值闭包，所有行相同 | ❌ 未实现（无 `ClientEvalNowMode`） |
+| 每行一次 | 投影器内保留 `DateTime.Now` 调用 | ✅ **当前行为**：表达式改写不折叠 `Now`，每行 Invoke 时求值 |
 
-**建议默认：每查询捕获一次**（构造投影器时把 `DateTime.Now` 收成常量，或查询开始时 `var now = DateTime.Now` 注入），避免同页结果时钟漂移；可用选项 `ClientEvalNowMode = PerQuery | PerRow`。
+可选增强：`ClientEvalNowMode = PerQuery | PerRow`（默认可改为 PerQuery 以避免同页时钟漂移）。业务若需稳定时间戳，请在查询外自行捕获闭包常量。
 
 ---
 
@@ -285,26 +323,33 @@ var list = clip
     .queryList();
 ```
 
-可选显式开关（调试 / 对比用）：
+已交付的显式 API（链式，非 `select` 参数）：
 
-| API | 含义 |
-|-----|------|
-| （默认）自动 | 含尾调用 → 两阶段；纯列 → 旧路径 |
-| `select(..., SelectProjectMode.ColumnsOnly)` | 强制旧路径；遇尾调用抛错 |
-| `select(..., SelectProjectMode.ClientTail)` | 强制两阶段（即使纯列也走 Plan，便于测试） |
+| API | 含义 | 现状 |
+|-----|------|------|
+| （默认）自动分流 | 含尾调用 → 两阶段；纯列 → 旧路径 | ✅ |
+| `nullPropagateTail(bool)` | 可空列尾调用不抛 NRE | ✅ |
+| `preferInterpretedTail(bool)` | 投影委托解释执行（AOT 折中） | ✅ |
+| `setCache(...)` | 缓存投影后 `R`（指纹含 np / interpret） | ✅ |
 
-命名可采用 `SelectProjectMode` / `ClipSelectMode`，以最终代码为准。
+设计曾列、**未实现**的调试开关（可选后期）：
 
-### 6.2 代码落点建议
+| API | 含义 | 现状 |
+|-----|------|------|
+| `SelectProjectMode.ColumnsOnly` | 强制旧路径；遇尾调用抛错 | ❌ |
+| `SelectProjectMode.ClientTail` | 强制两阶段（即使纯列） | ❌ |
 
-| 组件 | 建议路径 |
-|------|----------|
-| 分析器 | `pure/src/adoext/clip/project/SelectAnalyzer.cs` |
-| 计划 / 槽位 | `.../project/ProjectionPlan.cs`、`ColumnSlot.cs` |
-| 改写与编译 | `.../project/ClientProjectorCompiler.cs` |
-| 行袋 | `.../project/RowBag.cs` |
-| 接入 | `ClipProvider.PatchSelect` 分支；`SQLClip<T>.queryList/queryPage/queryUnique` 执行两阶段 |
-| 复用 | 列根识别尽量抽共享，供 Visitor 与 Analyzer 共用，避免两套绑定逻辑 |
+### 6.2 代码落点（已落地）
+
+| 组件 | 路径 |
+|------|------|
+| 廉价探测 | `pure/src/adoext/clip/project/SelectClientTailProbe.cs` |
+| 列根解析（Probe/Analyzer 共用） | `.../ColumnRootResolver.cs` |
+| 分析器 | `.../SelectAnalyzer.cs` |
+| 计划 / 槽位 / 行袋 | `.../ProjectionPlan.cs`（含 `ColumnSlot`、`RowBag`） |
+| 改写与编译 | `.../ClientProjectorCompiler.cs` |
+| 投影委托缓存 | `.../ClientProjectionCache.cs` |
+| 接入 | `ClipProvider.PatchSelect` → `PatchSelectClientTail`；`SQLClip<T>.queryList/queryPage/queryUnique` |
 
 ### 6.3 分页
 
@@ -322,8 +367,8 @@ var list = clip
 
 | 路径 | 判定 | 允许的工作 | **禁止**的副作用 |
 |------|------|------------|------------------|
-| **旧路径（非尾投影）** | 纯列 / 整表 `select(t)` / 强制 `ColumnsOnly` | 现有 `ClipFieldVisitor` + `Builder.select` + `query<T>` | 完整 `SelectAnalyzer` 多遍遍历、槽位重命名、`RowBag`、`Expression.Compile`、客户端投影循环 |
-| **新路径（尾投影）** | 探测到尾调用/非纯列节点，或强制 `ClientTail` | Analyzer → Plan → 阶段 A/B | 无（本路径成本由能力换取） |
+| **旧路径（非尾投影）** | 纯列 / 整表 `select(t)`（强制 `ColumnsOnly` 未实现） | 现有 `ClipFieldVisitor` + `Builder.select` + `query<T>` | 完整 `SelectAnalyzer` 多遍遍历、槽位重命名、`RowBag`、`Expression.Compile`、客户端投影循环 |
+| **新路径（尾投影）** | 探测到尾调用/非纯列节点（强制 `ClientTail` 未实现） | Analyzer → Plan → 阶段 A/B | 无（本路径成本由能力换取） |
 
 分流原则：**先廉价探测，再决定是否进入重管线**；未命中则 **立即** 回到改造前等价代码，不留下「半初始化」的 Plan 状态。
 
@@ -337,7 +382,7 @@ var list = clip
 | 不分配优先 | 避免探测阶段 `List`/`Dictionary`/字符串拼接；复用栈上或线程静态访问器若已有惯例 |
 | 不 Compile | 探测 **禁止** `Lambda.Compile` / 动态方法 |
 | 不改 SQL | 探测失败或判定纯列时，SELECT 生成仍走现有 `TranslateFieldToSelect`，**不**改写为 `__cN` 槽位 |
-| 可缓存探测结果 | 与现有表达式指纹缓存结合时，只缓存 `bool NeedsClientTail`（或等价枚举），避免每次 `select` 重扫 |
+| 可缓存探测结果 | （可选，**当前未做**）与表达式指纹结合时只缓存 `bool NeedsClientTail`；现网每次 `select` 重扫，因纯列早退且树小，未计入主路径税 |
 
 纯列常见形态（应探测为 `false` 并走旧路径）：
 
@@ -492,8 +537,8 @@ var list = clip
 | 语义与 SQL 函数不一致 | 本方案 **故意** 与 SQL 不一致，与 C# 一致 | 文档写明；勿宣称「与 Chloe SQL 结果逐字节一致」 |
 | 大数据量尾计算 | 百万行在客户端做字符串函数会吃 CPU | 文档建议投影列精简；重计算应落业务层或 DB 生成列 |
 | 过滤条件误放在 Select | `Where(a.Name.Contains)` 仍不支持客户端下推 | 文档与异常指引：过滤用 `whereLike` 等 |
-| 可空与调用 | `a.Name.Length` 在 Name 为 null 时 C# 抛异常，SQL `LEN(NULL)` 为 NULL | 可提供选项 `NullPropagateTailCalls`（改写为 null 条件）或要求用户写 `a.Name != null ? a.Name.Length : null` |
-| 匿名类型 AOT/裁剪 | `Compile` 与反射 | 与现有匿名 `query<T>` 同一约束；必要时源生成投影器（后期） |
+| 可空与调用 | `a.Name.Length` 在 Name 为 null 时 C# 抛异常，SQL `LEN(NULL)` 为 NULL | ✅ 已提供 `nullPropagateTail()`；或用户手写 `a.Name != null ? … : null` |
+| 匿名类型 AOT/裁剪 | `Compile` 与反射 | 与现有匿名 `query<T>` 同一约束；✅ `preferInterpretedTail`；完整源生成仍后期 |
 | 多表同名列 | 仅列名 AS 会冲突 | 使用槽位别名 §4.3-C |
 | 主路径性能回退 | 为统一模型让纯列也走 Plan/Compile | **§6.4 硬约束**；廉价探测 + 执行期隔离 + **§6.5 基线门禁** |
 | 无测试先实现 | 对标用例事后补、基线用过期数字 | **§6.5**：红灯用例与 P-base 落盘为合并前置条件 |
@@ -501,6 +546,8 @@ var list = clip
 ---
 
 ## 9. 实施阶段
+
+> 刷新口径：以 `pure/src/adoext/clip/project/*` + `SQLClipClientTailProjectionTests` 为准（§0）。
 
 ### P0 — 可用主路径 ✅（已交付）
 
@@ -512,52 +559,67 @@ var list = clip
 ### P1 — 体验与硬化 ✅（已交付）
 
 1. `queryPage` + Total。  
-2. 投影委托缓存（`ClientProjectionCache`，表达式结构相等 + `nullPropagate`）。  
+2. 投影委托缓存（`ClientProjectionCache`，表达式结构相等 + `nullPropagate` + interpret）。  
 3. Reader 直读：`SQLBuilder.queryReader` + 槽位序 `RowBag.FromReader`。  
 4. `nullPropagateTail()` 可空尾调用传播。  
 5. Clip API 说明增补「七.1」。  
-6. 微基准记录 Tail/Anon 倍率（见 `baseline/SQLClip-客户端尾投影-perf-baseline.md`）。
+6. 微基准记录 Tail/Anon 倍率（见同目录 `SQLClip-客户端尾投影-perf-baseline.md`）。
 
 ### P2 — 扩展 ✅（Queryable 排除）
 
 1. 命名 DTO（`MemberInit`，含 ctor+初始化器）与匿名类型同等支持。  
 2. ~~分析器复用到 Ext LINQ / Queryable Select~~ — **明确不做**：本策略仅 SQLClip。  
 3. AOT 折中：`preferInterpretedTail()`（表达式解释执行）；完整源生成投影器仍未提供。  
-4. 结果缓存：`SQLClip.setCache` 转发 Builder；尾投影 `resultTypeTag=clientTail:{Type}:np{0|1}`，缓存值为投影后 `R`。
+4. 结果缓存：`SQLClip.setCache` 转发 Builder；尾投影 `resultTypeTag=clientTail:{Type}:np{0|1}[:i]`，缓存值为投影后 `R`。
+
+### P3 — 可选 backlog（未排期）
+
+| 项 | 优先级建议 | 说明 |
+|----|-----------|------|
+| 负例单测补强 | 低 | WHERE 尾调用、未绑定成员、聚合嵌入 Select |
+| `SelectProjectMode` | 低 | 调试强制 ColumnsOnly / ClientTail |
+| `ClientEvalNowMode` | 低 | Now 每查询捕获 vs 每行 |
+| 探测 `NeedsClientTail` 结果缓存 | 低 | 与表达式指纹结合；纯列已早退，收益有限 |
+| dbTest 尾投影正式项 | 低 | 旁挂 `MooSqlClipClientTailTest`，勿破坏 Anonymous 口径 |
+| 源生成投影器 | 后期 | 替代/补充 `preferInterpretedTail` |
 
 ---
 
-## 10. 测试计划（摘要）
+## 10. 测试计划（摘要）与覆盖现状
 
-详细节奏与基线字段见 **§6.5**。摘要：
+详细节奏与基线字段见 **§6.5**。自动化：`Tests/TestBug/src/TestPure/SQLClipClientTailProjectionTests.cs`。
 
-| 用例 | 断言 |
-|------|------|
-| 对标初始 Select（G1–G3） | TDD 红→绿；结果 = C# 黄金集；SQL 无尾调用函数 |
-| 纯列回归（G4） | SQL 与结果与现网一致；**无 `__cN`、无投影器调用** |
-| 纯列性能护栏 | 相对 **实现前落盘基线** 同档（§6.4.5 / §6.5.2） |
-| 单列多尾属性 | SQL 仅一列；多个投影属性值正确 |
-| 可空三元 | 与手写 LINQ `rows.Select(...)` 一致 |
-| 无列纯客户端 | SQL 无多余列或仅需其它列；Parse/Now 正确 |
-| 分页 | 页数据投影正确；Total 不受尾调用影响 |
-| 负例 | WHERE 位置尾调用、未绑定成员、聚合 → 明确异常 |
+| 用例 | 断言 | 现状 |
+|------|------|------|
+| 对标初始 Select（G1–G3） | 结果 = C# 黄金集；SQL 无尾调用函数 | ✅ |
+| 纯列回归（G4） | 无 `__cN`、`ClientProjection == null` | ✅ |
+| 纯列 / 尾投影 Perf 烟雾 | Stopwatch 落盘；相对 baseline 同档 | ✅ `PerfSmoke_PureAndTail` |
+| 单列多尾属性 | SQL 仅一列 | ✅ |
+| 可空三元 | 与手写语义一致 | ✅ |
+| 闭包 / Parse / 日期差 | 无日期 SQL 函数堆 | ✅（G2；`DateTime.Now` 专项弱） |
+| 分页 | Items 投影正确；Total 正确 | ✅ |
+| nullPropagate / 默认 NRE | 开/关行为对照 | ✅ |
+| 命名 DTO / setCache / 解释执行 | P2 行为 | ✅ |
+| 负例 | WHERE 尾调用、未绑定成员、聚合 → 明确异常 | ⚠ 计划有、专项用例少 |
+| dbTest 跨 ORM 尾投影项 | 正式 BDN 口径 | ❌ 未挂；纯列仍用既有 Clip 场景 |
 
-对比基线（功能）：同一连接下「阶段 A 手写 select 列 + 内存 `.Select(lambda)`」黄金结果。  
-对比基线（性能）：见 `baseline/SQLClip-客户端尾投影-perf-baseline.md`。
-
-自动化：`Tests/TestBug/src/TestPure/SQLClipClientTailProjectionTests.cs`。
+对比基线（性能）：[`SQLClip-客户端尾投影-perf-baseline.md`](./SQLClip-客户端尾投影-perf-baseline.md)。
 
 ---
 
 ## 11. 结论
 
-SQLClip 补齐「Select 尾方法」时，走 **列抽取 + 客户端投影**，而不是 Chloe 式 **SQL 函数翻译**。P0–P2（除 Queryable）已落地：廉价探测分流、槽位 SELECT、表达式改写编译、Reader 直读、委托缓存、`nullPropagateTail`、命名 DTO、`setCache` 投影指纹、`preferInterpretedTail`、分页与测试/基线护栏。纯列主路径不进入重管线。**Ext LINQ / `IQueryable` 不采用本策略。** WHERE 下推与 SQL 函数映射仍非目标。
+SQLClip「Select 尾方法」走 **列抽取 + 客户端投影**，而非 Chloe 式 **SQL 函数翻译**。  
+**当前现状：P0–P2（除 Queryable）已交付并与源码/单测/基线对齐**——廉价探测分流、槽位 SELECT、表达式改写编译、Reader 直读、委托缓存、`nullPropagateTail`、命名 DTO、`setCache` 投影指纹、`preferInterpretedTail`、分页与 G1–G4/P1/P2 护栏。纯列主路径不进入重管线。
+
+仍属非目标：WHERE 下推、SQL 函数映射、Ext LINQ / `IQueryable`。  
+可选 backlog（`SelectProjectMode`、Now 模式、负例补测、dbTest 尾投影项、源生成）见 §9 P3，**不阻塞本特性「已完成」判定**。
 
 ---
 
 ## 12. 实施总结（开发者视角）
 
-> 本节描述 **当前源码中的真实落点与行为**，供维护/排障/扩展时查阅。设计动机见上文 §1–§6。
+> 本节描述 **当前源码中的真实落点与行为**，供维护/排障/扩展时查阅。功能总览见 **§0**；设计动机见 §1–§6。
 
 ### 12.1 一句话行为
 
@@ -574,16 +636,17 @@ SQLClip 补齐「Select 尾方法」时，走 **列抽取 + 客户端投影**，
 |------|------|
 | 廉价探测 `NeedsClientTail` | `pure/src/adoext/clip/project/SelectClientTailProbe.cs` |
 | 列根解析（表变量 + 实体列） | `…/ColumnRootResolver.cs` |
-| 列依赖收集 / 槽位 | `…/SelectAnalyzer.cs`、`ProjectionPlan.cs` |
+| 列依赖收集 / 槽位 | `…/SelectAnalyzer.cs`、`ProjectionPlan.cs`（内含 `ColumnSlot`、`RowBag`） |
 | 表达式改写 + Compile | `…/ClientProjectorCompiler.cs` |
-| 投影委托缓存 | `…/ClientProjectionCache.cs`（键：`ExpSameCheckor` + `nullPropagate` + 返回类型） |
+| 投影委托缓存 | `…/ClientProjectionCache.cs`（键：表达式结构相等 + `nullPropagate` + `preferInterpretation` + 返回类型） |
 | 分流入口 | `ClipProvider.PatchSelect` → `PatchSelectClientTail` |
 | 执行出口 | `SQLClip<T>.queryList` / `queryUnique` / `queryPage` |
-| Reader API | `SQLBuilder.queryReader`（`StepBuilderDymatic` / `SQLBuilder.defer.exec`） |
-| 上下文标记 | `ClipContext.ClientProjection`、`NullPropagateTailCalls` |
-| 对外 API | `SQLClip.nullPropagateTail(bool)` |
+| Reader API | `SQLBuilder.queryReader` |
+| 上下文标记 | `ClipContext.ClientProjection`、`NullPropagateTailCalls`、`PreferInterpretedTailProjector` |
+| 对外 API | `nullPropagateTail` / `preferInterpretedTail` / `setCache`（见 API 文档 §七.1） |
 | 单测 | `Tests/TestBug/src/TestPure/SQLClipClientTailProjectionTests.cs` |
-| 性能基线摘录 | `doc/design/features/baseline/SQLClip-客户端尾投影-perf-baseline.md` |
+| 性能基线摘录 | 同目录 `SQLClip-客户端尾投影-perf-baseline.md` |
+| 设计文档（本文） | `doc/design/features/baseline/SQLClip-客户端尾投影.md` |
 
 ### 12.3 运行时流水线
 
@@ -611,7 +674,7 @@ queryPage
 ### 12.4 关键实现细节
 
 **探测（§6.4）**  
-仅当 Body 为 `New`/`MemberInit` 时才可能 `NeedsClientTail=true`；整表 `select(entity)`、单列等直接旧路径。匿名体参数须为「可解析列根」（允许外侧 Convert）；出现 `MethodCall` / `Conditional` / 非列 `Member`（如 `.Length`）等即进入尾投影。纯列路径 **零** Analyze/Compile/RowBag。
+仅当 Body 为 `New`/`MemberInit` 时才可能 `NeedsClientTail=true`；整表 `select(entity)`、单列等直接旧路径。参数/绑定须为「可解析列根」（允许外侧 Convert）才算纯列；出现 `MethodCall` / `Conditional` / `Binary` / `Constant` / 非列 `Member`（如 `.Length`）等即 **保守进入**尾投影（正确优先）。纯列路径 **零** Analyze/Compile/RowBag。探测结果 **未**单独缓存（每次 `select` 重扫；未进入纯列热路径的重管线）。
 
 **整表选择**  
 `PatchSelect` 用 `body.Type`（非 `lmd.Type`/`Func<R>`）匹配 `BindTables`，生成 `alias.*`。
@@ -620,7 +683,7 @@ queryPage
 复用 Clip 表绑定：闭包字段名 → `BindTables` → `EntityInfo.GetColumn`。键为 `alias + "\0" + DbColumnName`，多投影属性共用同一列只占一个槽位。
 
 **改写**  
-`a.Name` → `row.Get<string>(slotIndex)`；外侧 `.Length` / `.ToLower()` 等保留。闭包常量（`startTime`、`Parse` 字面量）不进 SELECT。
+`a.Name` → `row.Get<T>(slotIndex)`；外侧 `.Length` / `.ToLower()` 等保留。闭包常量（`startTime`、`Parse` 字面量）不进 SELECT。`DateTime.Now` **不**做每查询折叠（见 §4.5）。
 
 **可空传播**  
 `nullPropagateTail()` 后，对引用类型实例上的尾方法/属性改写为：
@@ -630,13 +693,13 @@ queryPage
 值类型尾结果提升为 `Nullable<T>`，故投影请写 `(int?)a.Email.Length`。未开启时，列值为 null 调用实例成员会抛 NRE（与 C# 一致）。
 
 **缓存**  
-仅在已判定尾投影后查表。键用 `ExpSameCheckor` 结构相等，避免 int 哈希碰撞串用投影器；`nullPropagate` 参与键。
+仅在已判定尾投影后查表。键用表达式结构相等（避免 int 哈希碰撞串用投影器）；`nullPropagate` 与 `preferInterpretation` 参与键。`setCache` 的 `ResultCacheTag` 形如 `clientTail:{Type}:np{0|1}`，解释执行追加 `:i`。
 
 **Reader**  
-`queryReader` 经 `doSelect` 物化；`Executor` 为空时 `new DBExecutor(DBLive)`。槽位与 SELECT 列序一致，按 ordinal 取值。分页仍用 `queryPaged`（需 Total），行侧走 DataRow。
+`queryList`/`queryUnique`：`queryReader` + 槽位序 `FromReader`。分页：`queryPaged`（需 Total）+ `FromDataRow`。
 
 **性能护栏（本机 Stopwatch，n=300，量级）**  
-纯列 Anonymous/Result 与改造前同档；TailG1 / Anon 约 **1.4–2×**（见 baseline 文档）。
+纯列 Anonymous/Result 与改造前同档；TailG1 / Anon 约 **1.4×**（见 baseline 文档 P1 复测）。
 
 ### 12.5 维护注意
 
@@ -644,12 +707,13 @@ queryPage
 |--------|------|
 | 勿在纯列路径调用 Analyzer | 违反 §6.4，Anonymous 基准会回退 |
 | WHERE 中的 `.Contains` 等 | **不会**走本特性；用 `whereLike` 等 |
-| 缓存键 | 改 Compile 语义时须让表达式结构或 `nullPropagate` 区分开 |
+| 缓存键 | 改 Compile 语义时须让表达式结构 / `nullPropagate` / interpret 区分开 |
 | `query(Func<DataRow>)` 与 Reader | 勿再增加易歧义的 `query(Func<DbDataReader>)` 重载（曾导致 CS0121） |
 | 扩展命名 DTO | ✅ `MemberInit`（含 ctor 参数）与匿名同等；Queryable **不做** |
-| setCache | ✅ 缓存投影后 R；tag=`clientTail:{Type}:np{0|1}` |
+| setCache | ✅ 缓存投影后 R；tag=`clientTail:{Type}:np{0|1}[:i]` |
 | AOT | ✅ `preferInterpretedTail`；完整源生成未做 |
 | Queryable | ❌ **不做**本策略 |
+| 强制模式 / Now 模式 | ❌ `SelectProjectMode`、`ClientEvalNowMode` 未提供 |
 
 ### 12.6 用例
 
@@ -790,3 +854,18 @@ clip.preferInterpretedTail()
 dotnet test Tests/TestBug/mooSQL.Pure.Tests.csproj -f net8.0 ^
   --filter "FullyQualifiedName~SQLClipClientTailProjectionTests"
 ```
+
+### 12.7 与「设计愿景」的差异清单（文档同步用）
+
+| 设计原文 | 当前实现 | 处理 |
+|----------|---------|------|
+| §1.1「现状不支持」 | 已支持 | 改为「改造前」叙事；总览见 §0 |
+| `SelectProjectMode` | 未做 | §6.1 / §9 P3 标 ❌ |
+| `ClientEvalNowMode` 默认 PerQuery | 实际偏 PerRow | §4.5 已改写 |
+| 探测结果 bool 缓存 | 未做 | §12.4 注明 |
+| dbTest 尾投影正式项 | 未挂 | §10 标 ❌ |
+| 负例专项 | 偏弱 | §0 / §10 标 ⚠ |
+| Queryable 复用 | 不做 | §1.4 / §9 / §12.5 锁定 |
+| 源生成投影器 | 未做 | 有 `preferInterpretedTail` 折中 |
+
+**判定：功能主路径完成；本文 §0–§12 以交付态描述，P3 仅作可选增强。**

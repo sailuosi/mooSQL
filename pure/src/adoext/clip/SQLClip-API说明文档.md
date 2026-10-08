@@ -213,7 +213,7 @@ var dtos = clip
     .queryList();
 ```
 
-设计说明：`doc/design/features/SQLClip-客户端尾投影.md`。
+设计说明（含功能现状）：`doc/design/features/baseline/SQLClip-客户端尾投影.md`。
 
 ---
 
