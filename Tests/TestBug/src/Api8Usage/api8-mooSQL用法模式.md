@@ -57,10 +57,19 @@
 | P3 | rowNumber + orderBy 列表 | 门户 / MDM | `RowNumber_OrderBy_List_ExactSql` | 产物（MSSQL） |
 | P3 | whereNotIn 值列表 | `SafeOverviewHelper` | `WhereNotIn_Values_ExactSql` | 产物 |
 | P3 | queryRow 唯一行 | 门户 / 安全概览 | `QueryRow_UniqueOrNull_OnSharedSqlite` | 执行 |
-| P3 | useBus ToPageList | `SysOnlineUserService` | （可选后续） | 执行 |
+| P4 | useBus Like+SetPage+ToPageList（FastLinq） | `SysOnlineUserService` | `Api8UsageGapTests.UseBus_Like_SetPage_ToPageList_*` | 执行 |
+| P4 | useBus Contains+ToPageList(size,page) | `SysConfigService` | `UseBus_Contains_ToPageList_SizeThenPage_*` | 执行 |
+| P4 | SetPage 颠倒传参产物差 | Core Clip/Bus 误用 | `UseBus_SetPage_SwappedArgs_*` / `SQLClip_SetPage_SwappedArgs_*` | 执行/产物 |
+| P4 | SQLClip join+命名 DTO+queryPage | `SysTenantService` | `SQLClip_Join_NamedDto_QueryPage_*` | 执行 |
+| P4 | SQLClip whereIn/NotIn+whereLike+queryPage | `SysUserService` | `SQLClip_WhereIn_WhereLike_QueryPage_*` | 执行 |
+| P4 | Repo GetPageList + SaveRange | BC_*Service | `Repo_GetPageList_SaveRange_BCShape_*` | 执行 |
+| P4 | doInsertFrom 产物 + useWork 编排 | exam archive / ClassPlan | `DoInsertFrom_*` | 产物+执行 |
+| P4 | whereExist / queryPaged / ifs / distinct+having / whereBetween / innerJoin | Exam/Answer/Portal/Teach | `WhereExist_*` 等 | 产物/执行 |
+| Gap | Duty/`useDuty`、TreeQueryBuilder | api8 Auth/BC 侧 | 不在 mooSQL 库内；另轨 | — |
 | Gap | MERGE / useApart / RichRepo | api8 未用 | 不强制；库侧另有单测 | — |
 
-> **来源说明**：P0–P2 最初对标 pxxt；P3 按当前工作区 **mineone/api8** 全库扫描补齐高频缺口。
+> **来源说明**：P0–P2 最初对标 pxxt；P3 按 mineone/api8 扫描；P4 按 pxxt8/api8 再扫缺口落地（`Api8UsageGapTests`）。  
+> **注意**：`useBus` 对标须走 `DBInstance.useDbBus` / `FastLinqFactory`（与 api8 `DBCash.useBus` 一致），勿用 EntityVisit 夹具总线。
 
 ---
 
