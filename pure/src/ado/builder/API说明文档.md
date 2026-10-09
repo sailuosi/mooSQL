@@ -1129,11 +1129,11 @@ kit.clear().useApart(apart).where("u.status", 1).query<User>();
 **`includeNav<T, Child>(this SQLBuilder builder, IEnumerable<T> list, Expression<Func<T, ICollection<Child>>> childSelector, Action<SQLBuilder> childFilter = null)`**
 - 按导航特性进行加载子集合
 
-**`useNavSave<T>(this SQLBuilder builder, IEnumerable<T> list)`**
-- 使用保存导航
-
 **`useNavSave<T>(this SQLBuilder builder, T row)`**
-- 使用保存导航（单个实体）
+- 导航保存（单实体）
+
+**`useNavSaveRange<T>(this SQLBuilder builder, IEnumerable<T> list)`**
+- 导航保存（实体列表；与单实体分名，避免 List/数组误匹配）
 
 ---
 

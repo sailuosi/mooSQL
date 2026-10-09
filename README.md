@@ -70,7 +70,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 - **Five access styles** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder power tools** — `setPage` / `skipTake`, `record()` / `useApart()` fragment reuse, CTE / MERGE / UNION  
 - **Table sharding** — `useShard` / `configureShard`, range queries across physical tables  
-- **Navigation** — SQLBuilder-side `includeHis` / `includeNav` / `useNavSave` (separate from LINQ `Includes`)  
+- **Navigation** — SQLBuilder-side `includeHis` / `includeNav` / `useNavSave` / `useNavSaveRange` (separate from LINQ `Includes`)  
 - **Unit of work** — entities and raw SQL in one explicit transaction  
 - **Data authorization** — AuthBuilder / duty-style scopes  
 - **Observability** — logging, slow SQL, modify-SQL audit hooks  
@@ -175,7 +175,7 @@ repo.Update(user);
 
 **Sharding** — register shard rules on the client; repository `ForShard` / `QueryRange` for month/day (and similar) physical tables.
 
-**Navigation (SQLBuilder)** — load children onto an existing list (`includeHis` / `includeNav` / `thenInclude`) or save object graphs via `useNavSave` + UoW. Distinct from LINQ `Includes`.
+**Navigation (SQLBuilder)** — load children onto an existing list (`includeHis` / `includeNav` / `thenInclude`) or save object graphs via `useNavSave` / `useNavSaveRange` + UoW. Distinct from LINQ `Includes`.
 
 See the Chinese section for longer examples (bulk, auth, logging) and `doc/` for tutorials.
 
@@ -369,7 +369,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 - **五种访问方式** — SQLBuilder · SQLClip · Repository · Fast LINQ · Ext LINQ  
 - **SQLBuilder 增强** — `setPage` / `skipTake`、条件片段 `record()` / `useApart()`、CTE / MERGE / UNION  
 - **分表** — `useShard` / `configureShard`，仓储 `ForShard` / `QueryRange`  
-- **导航** — `includeHis` / `includeNav` / `useNavSave`（与 LINQ `Includes` 分轨）  
+- **导航** — `includeHis` / `includeNav` / `useNavSave` / `useNavSaveRange`（与 LINQ `Includes` 分轨）  
 - **工作单元** — 实体与手写 SQL 同事务  
 - **数据权限** — AuthBuilder / 职责范围过滤  
 - **可观测性** — 日志、慢 SQL、修改类 SQL 审计  
@@ -590,7 +590,7 @@ kit.includeNav(blogs, b => b.Posts);
 // 或手写键：includeHis(...)
 
 // 保存
-var nav = kit.useNavSave(orders);
+var nav = kit.useNavSaveRange(orders);
 nav.UOW = uow;
 nav.insert();
 nav.collect(o => o.Items).insert();

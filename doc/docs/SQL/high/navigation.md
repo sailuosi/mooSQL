@@ -12,7 +12,7 @@ outline: deep
 
 | 路径 | 入口 | 定位 |
 |------|------|------|
-| **SQLBuilder 导航（本文）** | `includeHis` / `includeNav` / `useNavSave` | 主列表已在手，显式二次查询或分层保存 |
+| **SQLBuilder 导航（本文）** | `includeHis` / `includeNav` / `useNavSave` / `useNavSaveRange` | 主列表已在手，显式二次查询或分层保存 |
 | Fast LINQ | `useBus` → `Includes` | 查询表达式上声明导航，执行后补查 |
 | Ext LINQ | `useQueryable` → `Includes` / `ThenInclude` | 标准 IQueryable 风格导航预加载 |
 
@@ -54,7 +54,7 @@ outline: deep
 
 ### 1.3 导航保存
 
-- `useNavSave` 只创建 `NavGuideSave`，**不会**自动挂工作单元。
+- `useNavSave` / `useNavSaveRange` 只创建 `NavGuideSave`，**不会**自动挂工作单元。
 - 调用 `insert` / `update` / `save` / `commit` 前必须设置 `UOW`（`SooUnitOfWork`）。
 
 ### 1.4 Fluent 关系配置（`configureEntity` / `Relation`）
@@ -162,13 +162,13 @@ kit.includeHis(blogs, b => b.Posts, b => b.Id, p => p.BlogId, null)
 
 在对象图已组装好的前提下，按层把实体丢进 `SooUnitOfWork` 队列，最后 `commit`。
 
-### 3.1 入口：`useNavSave`
+### 3.1 入口：`useNavSave` / `useNavSaveRange`
 
 ```csharp
 var kit = db.useSQL();
 var uow = db.useWork();
 
-var guide = kit.useNavSave(orders);  // 或 useNavSave(singleOrder)
+var guide = kit.useNavSaveRange(orders);  // 列表；单实体用 useNavSave(order)
 guide.UOW = uow;
 
 guide.save();   // 当前层：SaveRange(MainList)
@@ -188,7 +188,7 @@ guide.commit(); // → UOW.Commit()
 ### 3.2 收集子层：`collect` / `collectNext` / `thenNext`
 
 ```csharp
-var nav = kit.useNavSave(orders);
+var nav = kit.useNavSaveRange(orders);
 nav.UOW = uow;
 
 nav.insert();                                    // 写订单
@@ -219,7 +219,7 @@ nav.commit();
 
 | API | 说明 |
 |-----|------|
-| `useNavSave(list)` / `useNavSave(row)` | 创建单层 Guide |
+| `useNavSave(row)` / `useNavSaveRange(list)` | 创建单层 Guide（单实体 / 列表分名） |
 | `collect` / `collectNext` / `thenNext` | 扁平收集下一层实体 |
 | `insert` / `update` / `save` | 入队当前层 |
 | `commit` | 提交工作单元 |
@@ -235,7 +235,7 @@ nav.commit();
 | 主查询 | 你先查好列表 | 与主查询同一表达式链 |
 | 键关系 | 手写或 `EntityNavi` | 编译期注册 `NavColumns` |
 | 执行 | Guide 内立刻 `query` + 回填 | 主查询执行后 `NavColumnLoader` 补查 |
-| 保存 | `useNavSave` + UoW | 不走本套 Guide |
+| 保存 | `useNavSave` / `useNavSaveRange` + UoW | 不走本套 Guide |
 | 适用 | 已有列表、SQLBuilder/仓储结果补全 | 表达式查询一气呵成 |
 
 同一业务可混用结果，但 **不要** 假设 `includeNav` 与 `Includes` 共享同一套链式状态。
@@ -253,7 +253,16 @@ nav.commit();
 
 ---
 
-## 6. 相关文档
+## 6. 测试
+
+| 能力 | 测试类 |
+|------|--------|
+| 导航加载 | `Tests/TestBug/src/TestPure/NavInclude/SQLBuilderNavSqliteTests.cs`、`Repo/RichRepoNavSqliteTests.cs` |
+| 导航保存 | `Tests/TestBug/src/TestPure/NavInclude/SQLBuilderNavSaveSqliteTests.cs`（`useNavSave` / `useNavSaveRange` + `insert`/`update`/`save`/`collect`/`commit`） |
+
+---
+
+## 7. 相关文档
 
 - [pure 扩展与工具类](/SQL/utils/pure-extensions) — 入口方法索引
 - [工作单元](/SQL/high/unitofwork) — `UOW` / `Commit` / `SaveRange`

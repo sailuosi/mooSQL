@@ -453,14 +453,15 @@ namespace mooSQL.data
                 return cmds;
             }
             
-            //检查是否存在
+            //检查是否存在（探测须落在 ck 上；集合走 IEnumerable<object> 重载，勿把列表当单实体）
             var ck = builder.DBLive.useSQL();
-            builder.Client.Translator.BuildFromPart(builder, en, tryTableNameLoader(tbname));
+            var tableName = tbname.HasText() ? tbname : en.DbTableName;
+            ck.from(tableName);
             var pks = en.GetPK();
             foreach (var pk in pks) {
-                builder.select(pk.DbColumnName);
+                ck.select(pk.DbColumnName);
             }
-            builder.Client.Translator.setPKWhere(ck, entity, en);
+            builder.Client.Translator.setPKWhereRange(ck, entity, en);
             var oldDt = ck.query();
             if (oldDt.Rows.Count == 0 && en.Insertable != false)
             {
@@ -1383,25 +1384,20 @@ namespace mooSQL.data
             return gide.includeNav(childSelector, childFilter);
         }
         /// <summary>
-        /// 使用保存导航
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="builder"></param>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static NavGuideSave<T> useNavSave<T>(this SQLBuilder builder, IEnumerable<T> list) { 
-        
-            var guide= new NavGuideSave<T>(builder, list);
-            return guide;
-        }
-        /// <summary>
         /// 对单条实体启用导航保存（包装为单元素列表）。
         /// </summary>
         public static NavGuideSave<T> useNavSave<T>(this SQLBuilder builder, T row)
         {
-            var list= new List<T>() { row};
-            var guide = new NavGuideSave<T>(builder, list);
-            return guide;
+            var list = new List<T>() { row };
+            return new NavGuideSave<T>(builder, list);
+        }
+
+        /// <summary>
+        /// 对实体列表启用导航保存（与 <see cref="useNavSave{T}(SQLBuilder, T)"/> 分名，避免 List/数组误匹配单实体重载）。
+        /// </summary>
+        public static NavGuideSave<T> useNavSaveRange<T>(this SQLBuilder builder, IEnumerable<T> list)
+        {
+            return new NavGuideSave<T>(builder, list);
         }
         #endregion
 

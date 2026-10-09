@@ -280,7 +280,7 @@ SQLBuilder 的核心业务扩展，按功能分类：
 | 方法 | 说明 |
 |------|------|
 | `includeHis` / `includeNav` | 加载子集合（返回 `NavQueryGuide`，可 `thenInclude`） |
-| `useNavSave` | 导航保存（返回 `NavGuideSave`，需自设 `UOW`） |
+| `useNavSave` / `useNavSaveRange` | 导航保存单实体 / 列表（返回 `NavGuideSave`，需自设 `UOW`） |
 
 专项说明（机制、链式 API、与 LINQ `Includes` 边界）：[导航加载与保存](/SQL/high/navigation)。
 

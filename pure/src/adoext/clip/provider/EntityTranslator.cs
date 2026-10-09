@@ -495,7 +495,7 @@ namespace mooSQL.data
         /// <param name="entitys"></param>
         /// <param name="en"></param>
         /// <exception cref="Exception"></exception>
-        public virtual void setPKWhere(SQLBuilder builder, IEnumerable<object> entitys, EntityInfo en)
+        public virtual void setPKWhereRange(SQLBuilder builder, IEnumerable entitys, EntityInfo en)
         {
             bool gotWhere = false;
             var pks = en.GetPK();
