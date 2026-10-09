@@ -9,7 +9,7 @@ using Xunit;
 namespace mooSQL.Pure.Tests.Api8Usage
 {
     /// <summary>
-    /// 对标 api8 真实调用链的用法模式测试（见 src/Api8Usage/api8-mooSQL用法模式.md）。
+    /// 对标 api8 真实调用链的用法模式测试（见同目录 api8-mooSQL用法模式.md）。
     /// SQL 形态用例断言完整产物一致；执行/流程用例保留行为断言。
     /// </summary>
     public class Api8UsagePatternTests

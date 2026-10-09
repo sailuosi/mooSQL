@@ -35,15 +35,15 @@
 
   <ItemGroup>
     <Compile Include="src\Basis\SugarEnitiyParser.cs" />
-    <Compile Include="src\TestExt\LinqCompileTests.cs" />
-    <Compile Include="src\TestExt\ExtQueryPlanCacheTests.cs" />
-    <Compile Include="src\TestExt\StatementStructureTests.cs" />
-    <Compile Include="src\TestExt\DbFuncTranslationTests.cs" />
-    <Compile Include="src\TestExt\DbFuncMatrixCollection.cs" />
-    <Compile Include="src\TestExt\DbFuncRegistryTests.cs" />
-    <Compile Include="src\TestExt\DbFuncTranslationMatrixTests.cs" />
-    <Compile Include="src\TestExt\LinqClauseBridgeTests.cs" />
-    <Compile Include="src\TestExt\ExtLinqPhaseFGETests.cs" />
+    <Compile Include="src\TestExt\Linq\LinqCompileTests.cs" />
+    <Compile Include="src\TestExt\Linq\ExtQueryPlanCacheTests.cs" />
+    <Compile Include="src\TestExt\Linq\StatementStructureTests.cs" />
+    <Compile Include="src\TestExt\Dialects\Shared\DbFuncTranslationTests.cs" />
+    <Compile Include="src\TestExt\Dialects\Shared\DbFuncMatrixCollection.cs" />
+    <Compile Include="src\TestExt\Dialects\Shared\DbFuncRegistryTests.cs" />
+    <Compile Include="src\TestExt\Dialects\Shared\DbFuncTranslationMatrixTests.cs" />
+    <Compile Include="src\TestExt\Linq\LinqClauseBridgeTests.cs" />
+    <Compile Include="src\TestExt\Linq\ExtLinqPhaseFGETests.cs" />
     <Compile Include="src\TestHelpers\LinqSqliteTestHelper.cs" />
     <Compile Include="src\TestHelpers\LinqSqliteTestFixture.cs" />
     <Compile Include="src\TestHelpers\SQLiteTestEntities.cs" />
@@ -52,7 +52,7 @@
     <Compile Include="src\TestExt\DBTest.cs" />
     <Compile Include="src\TestExt\DBTest.Config.cs" />
     <Compile Include="src\TestExt\DBTest.Providers.cs" />
-    <Compile Include="src\TestPure\SQLBuilderExistTests.cs" />
+    <Compile Include="src\TestPure\SQLBuilder\SQLBuilderExistTests.cs" />
   </ItemGroup>
 
 </Project>
