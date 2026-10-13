@@ -29,7 +29,16 @@ namespace mooSQL.data
         /// <returns></returns>
         public DBTableCreator autoMode() {
             this.CreateMode = "createAuto";
-            this.WorkingProgress = new StringBuilder();
+            EnsureProgress();
+            this.WorkingProgress.Clear();
+            return this;
+        }
+
+        public DBTableCreator preview()
+        {
+            this.CreateMode = "preview";
+            EnsureProgress();
+            this.WorkingProgress.Clear();
             return this;
         }
 
@@ -39,12 +48,18 @@ namespace mooSQL.data
         public StringBuilder WorkingProgress { get; set; }
 
         /// <summary>
+        /// 累计过程结果（preview 下为建表/加列 SQL；执行模式下为状态文案）。
+        /// </summary>
+        public string Result => WorkingProgress?.ToString() ?? string.Empty;
+
+        /// <summary>
         /// 泛型方法 createTable（返回 DBTableCreator）。
         /// </summary>
         public DBTableCreator createTable<T>(string mode = null) { 
             if(mode == null) {
                 mode = this.CreateMode;
             }
+            EnsureProgress();
             var en = DBLive.client.EntityCash.getEntityInfo<T>();
             var res = CreateTable(en, mode);
             this.WorkingProgress.Append(res);
@@ -58,6 +73,7 @@ namespace mooSQL.data
         {
             if (mode == null)
                 mode = this.CreateMode;
+            EnsureProgress();
             var en = DBLive.client.EntityCash.getEntityInfo<T>();
             var res = CreateTable(en, physicalTableName, mode);
             this.WorkingProgress.Append(res);
@@ -71,9 +87,16 @@ namespace mooSQL.data
         /// <returns></returns>
         public DBTableCreator clear() {
             this.CreateMode = "createAuto";
+            EnsureProgress();
             this.WorkingProgress.Clear();
             this.defaultFieldLength = 50;
             return this;
+        }
+
+        void EnsureProgress()
+        {
+            if (WorkingProgress == null)
+                WorkingProgress = new StringBuilder();
         }
 
         /// <summary>
@@ -93,10 +116,7 @@ namespace mooSQL.data
         /// </summary>
         public string CreateTable(EntityInfo en, string physicalTableName, string mode)
         {
-            //先默认为表不存在。
-
             var ddl = DBLive.useDDL();
-    
 
             var tbname = physicalTableName ?? en.DbTableName;
             if (string.IsNullOrWhiteSpace(tbname))
@@ -104,40 +124,32 @@ namespace mooSQL.data
                 throw new Exception("未知表名");
             }
 
-
-            var isExist = ddl.hasTable(tbname);
-            if (isExist) {
-                return string.Format("", en.EntityName);
+            // preview 不访问真实库，始终按建表脚本生成
+            var isPreview = string.Equals(mode, "preview", StringComparison.OrdinalIgnoreCase);
+            var isExist = false;
+            if (!isPreview)
+            {
+                isExist = ddl.hasTable(tbname);
+                if (isExist)
+                {
+                    return string.Format("", en.EntityName);
+                }
             }
-            
-
-
-            //获取字段的配置
-
-
 
             if (isExist == false)
             {
-                //执行表的创建
                 ddl.setTable(tbname, en.TableDescription);
-                //if (tb.fCustomKey == null || tb.fCustomKey == false)
-                //{
-                    //ddl.set(tbname + "OID", new DbDataType(DataFam.Guid), "主键", false, null, true);
-                //}
 
                 foreach (var field in en.Columns)
                 {
                     if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
-                    if (field.Kind == FieldKind.Base) {
+                    // None 与 Base 同为可落库列（与 EntityTranslator 一致）
+                    if (field.Kind == FieldKind.Base || field.Kind == FieldKind.None) {
                         setDDLField(field, ddl);
                     }
-                    
                 }
 
-
-                //ddl.doCreateTable();
-
-                if (mode == "preview")
+                if (isPreview)
                 {
                     var sql = ddl.toCreateTable();
                     var txt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
@@ -151,9 +163,6 @@ namespace mooSQL.data
             }
             else
             {
-                //此时，表已存在，进行新增字段的添加
-                //获取已有字段
-
                 var exFields = ddl.loadColumns(tbname);
 
                 var exFNames = exFields.map(x => x.Name);
@@ -166,13 +175,11 @@ namespace mooSQL.data
                     {
                         continue;
                     }
-                    if (field.Kind == FieldKind.Base)
+                    if (field.Kind == FieldKind.Base || field.Kind == FieldKind.None)
                     {
                         setDDLField(field, ddl);
                     }
-                        
                 }
-                //ddl.doCreateTable();
 
                 if (mode == "preview")
                 {
@@ -234,6 +241,14 @@ namespace mooSQL.data
                 {
                     return new DbDataType(DataFam.Long);
                 }
+                else if (valType == typeof(short))
+                {
+                    return new DbDataType(DataFam.Int16);
+                }
+                else if (valType == typeof(byte[]))
+                {
+                    return new DbDataType(DataFam.Binary);
+                }
                 else if (valType == typeof(double)|| valType == typeof(decimal) || valType == typeof(float))
                 {
                     return new DbDataType(DataFam.Decimal, field.Length, field.Precision, field.Scale);
@@ -247,26 +262,43 @@ namespace mooSQL.data
             switch (field.DataType)
             {
                 case DataFam.Char:
-                    return new DbDataType(DataFam.Char, field.Length);
+                case DataFam.NChar:
+                    return new DbDataType(field.DataType, field.Length);
                 case DataFam.VarChar:
-                    return new DbDataType(DataFam.VarChar, field.Length);
                 case DataFam.NVarChar:
-                    return new DbDataType(DataFam.NVarChar, field.Length);
+                    return new DbDataType(field.DataType, field.Length);
                 case DataFam.Decimal:
-                    return new DbDataType(DataFam.Decimal, field.Length, field.Precision, field.Scale);
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    return new DbDataType(field.DataType, field.Length, field.Precision, field.Scale);
+                case DataFam.Vector:
+                    return new DbDataType(field.DataType, field.Length > 0 ? field.Length : 1536);
                 case DataFam.Text:
-                case DataFam.Xml://xml
-                case DataFam.Json://json
-                case DataFam.NText://html
+                case DataFam.LongText:
+                case DataFam.NText:
+                case DataFam.Xml:
+                case DataFam.Json:
+                case DataFam.BinaryJson:
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
                 case DataFam.DateTime:
+                case DataFam.DateTime2:
+                case DataFam.SmallDateTime:
+                case DataFam.DateTimeOffset:
+                case DataFam.Date:
+                case DataFam.Time:
                 case DataFam.Long:
+                case DataFam.Int16:
                 case DataFam.Int32:
                 case DataFam.Int64:
+                case DataFam.Byte:
                 case DataFam.Boolean:
                 case DataFam.Guid:
+                case DataFam.Double:
+                case DataFam.Single:
                     return new DbDataType(field.DataType);
-
-
             }
 
             return getDefaultField(field);

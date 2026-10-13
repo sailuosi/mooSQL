@@ -31,4 +31,9 @@
     <ProjectReference Include="..\..\pure\mooSQL.Pure.Generators\mooSQL.Pure.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <!-- Excel 模块未接入 Dev.Tests 引用时排除，避免阻断方言/DDL 等单测编译 -->
+  <ItemGroup>
+    <Compile Remove="src\TestPure\Excel\ExcelImportCorrectnessTests.cs" />
+  </ItemGroup>
+
 </Project>

@@ -289,22 +289,25 @@ namespace mooSQL.data
             return string.Format("CONSTRAINT {0} PRIMARY KEY ({1})", pkname, fields);
         }
         /// <summary>
-        /// 整体注释的处理
+        /// COMMENT ON 已由 buildCreateTable → buildDDLSoloCaptions 输出，此处勿再重复。
         /// </summary>
-        /// <param name="frag"></param>
-        /// <returns></returns>
         protected override string buildDDLFieldsCaption(DDLFragSQL frag)
         {
-            return buildDDLSoloCaptions(frag);
+            return string.Empty;
         }
+
+        /// <inheritdoc/>
+        protected override bool SoloCaptionsAsSeparateStatements => true;
 
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
         {
-            return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';", frag.Table, fie.FieldName, fie.Caption);
+            return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';",
+                wrapTable(frag.Table), wrapField(fie.FieldName), fie.Caption);
         }
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
-            return string.Format("COMMENT ON TABLE {0} IS '{1}';", frag.Table, frag.TableCaption);
+            return string.Format("COMMENT ON TABLE {0} IS '{1}';",
+                wrapTable(frag.Table), frag.TableCaption);
         }
 
         /// <summary>
@@ -389,8 +392,8 @@ namespace mooSQL.data
         }
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         { 
-            return string.Format("COMMENT ON COLUMN {1}.{0} IS '{2}'", columnName, tableName, caption
-                );
+            return string.Format("COMMENT ON COLUMN {1}.{0} IS '{2}'",
+                wrapField(columnName), wrapTable(tableName), caption);
         }
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
@@ -399,14 +402,13 @@ namespace mooSQL.data
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("COMMENT ON COLUMN {1}.{0} IS ''",
-                columnName, tableName
-                );
+                wrapField(columnName), wrapTable(tableName));
         }
 
 
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
-            return string.Format("COMMENT ON TABLE {0} IS '{1}'", tableName, caption);
+            return string.Format("COMMENT ON TABLE {0} IS '{1}'", wrapTable(tableName), caption);
         }
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
@@ -414,7 +416,7 @@ namespace mooSQL.data
         }
         public override string DeleteTableCaptionBy(string tableName)
         { 
-            return string.Format("COMMENT ON TABLE {0} IS ''", tableName);
+            return string.Format("COMMENT ON TABLE {0} IS ''", wrapTable(tableName));
         }
 
 

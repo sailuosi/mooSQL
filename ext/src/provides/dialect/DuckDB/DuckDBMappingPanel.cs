@@ -24,7 +24,13 @@ namespace mooSQL.data
                 case DataFam.NText:
                 case DataFam.Xml:
                 case DataFam.Json:
-                    return "VARCHAR";
+                case DataFam.BinaryJson:
+                    return "JSON";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return $"FLOAT[{n}]";
+                }
                 case DataFam.Guid:
                     return "UUID";
                 case DataFam.DateTime:

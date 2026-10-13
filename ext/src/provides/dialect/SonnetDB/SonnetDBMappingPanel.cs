@@ -23,7 +23,10 @@ namespace mooSQL.data
                 case DataFam.Guid:
                     return "STRING";
                 case DataFam.Json:
+                case DataFam.BinaryJson:
                     return "JSON";
+                case DataFam.Vector:
+                    return "STRING";
                 case DataFam.DateTime:
                 case DataFam.DateTime2:
                 case DataFam.SmallDateTime:

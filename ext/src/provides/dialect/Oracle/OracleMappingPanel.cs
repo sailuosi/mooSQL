@@ -70,6 +70,73 @@ namespace mooSQL.data.Oracle
             SetValueConverter<decimal, TimeSpan>((v) => new TimeSpan((long)v));
         }
 
+        public override string DbDataTypeToSQL(DbDataType type)
+        {
+            switch (type.DataType)
+            {
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                    if (type.Length > 0)
+                        return $"VARCHAR2({type.Length})";
+                    return "VARCHAR2(4000)";
+                case DataFam.Char:
+                case DataFam.NChar:
+                    if (type.Length > 0)
+                        return $"CHAR({type.Length})";
+                    return "CHAR(1)";
+                case DataFam.Text:
+                case DataFam.LongText:
+                case DataFam.NText:
+                case DataFam.Xml:
+                case DataFam.Json:
+                case DataFam.BinaryJson:
+                    return "CLOB";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return $"VARCHAR2({n * 16})";
+                }
+                case DataFam.Guid:
+                    return "RAW(16)";
+                case DataFam.DateTime:
+                case DataFam.SmallDateTime:
+                case DataFam.Date:
+                    return "DATE";
+                case DataFam.DateTime2:
+                case DataFam.DateTimeOffset:
+                    return "TIMESTAMP";
+                case DataFam.Time:
+                    return "INTERVAL DAY TO SECOND";
+                case DataFam.Boolean:
+                    return "NUMBER(1)";
+                case DataFam.Byte:
+                case DataFam.Int16:
+                    return "NUMBER(5)";
+                case DataFam.Int32:
+                    return "NUMBER(10)";
+                case DataFam.Int64:
+                case DataFam.Long:
+                    return "NUMBER(19)";
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    if (type.Precision > 0)
+                        return $"NUMBER({type.Precision},{type.Scale})";
+                    return "NUMBER";
+                case DataFam.Double:
+                    return "BINARY_DOUBLE";
+                case DataFam.Single:
+                    return "BINARY_FLOAT";
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
+                    return "BLOB";
+            }
+
+            return base.DbDataTypeToSQL(type);
+        }
+
         public override Type ConvertParameterType(Type type, DbDataType dataType)
         {
             if (type.IsNullable())

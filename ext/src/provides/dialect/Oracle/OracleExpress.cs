@@ -284,22 +284,25 @@ namespace mooSQL.data
             return string.Format("CONSTRAINT {0} PRIMARY KEY ({1})", pkname, fields);
         }
         /// <summary>
-        /// 整体注释的处理
+        /// COMMENT ON 已由 buildCreateTable → buildDDLSoloCaptions 输出，此处勿再重复。
         /// </summary>
-        /// <param name="frag"></param>
-        /// <returns></returns>
         protected override string buildDDLFieldsCaption(DDLFragSQL frag)
         {
-            return buildDDLSoloCaptions(frag);
+            return string.Empty;
         }
+
+        /// <inheritdoc/>
+        protected override bool SoloCaptionsAsSeparateStatements => true;
 
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
         {
-            return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';", frag.Table, fie.FieldName, fie.Caption);
+            return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';",
+                wrapTable(frag.Table), wrapField(fie.FieldName), fie.Caption);
         }
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
-            return string.Format("COMMENT ON TABLE {0} IS '{1}';", frag.Table, frag.TableCaption);
+            return string.Format("COMMENT ON TABLE {0} IS '{1}';",
+                wrapTable(frag.Table), frag.TableCaption);
         }
 
         /// <summary>

@@ -23,6 +23,7 @@ namespace mooSQL.data
         {
             expression = new TaosExpress(this);
             sentence = new TaosSentence(this);
+            mapping = new SQLiteMappingPanel();
 
             this.InitDBVersion();
         }

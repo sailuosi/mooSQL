@@ -21,6 +21,8 @@ namespace mooSQL.data
                 case DataFam.NText:
                 case DataFam.Xml:
                 case DataFam.Json:
+                case DataFam.BinaryJson:
+                case DataFam.Vector:
                 case DataFam.Guid:
                     return "TEXT";
                 case DataFam.DateTime:

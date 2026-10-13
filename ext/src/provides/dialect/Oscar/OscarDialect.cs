@@ -1,6 +1,5 @@
 ﻿
-
-
+using mooSQL.data.Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -20,6 +19,7 @@ namespace mooSQL.data
             expression = new OscarExpress(this);
             sentence = new OscarSentence(this);
             clauseTranslator = new OscarClauseTranslator(this);
+            mapping = new NpgMappingPanel();
         }
         /// <inheritdoc/>
         public override DbCommandBuilder getCmdBuilder()

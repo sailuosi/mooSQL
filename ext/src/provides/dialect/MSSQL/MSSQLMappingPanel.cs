@@ -82,7 +82,13 @@ namespace mooSQL.data.MSSQL
                 case DataFam.LongText:
                     return "text";
                 case DataFam.Json:
+                case DataFam.BinaryJson:
                     return "nvarchar(max)";
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
+                    return "varbinary(max)";
                 case DataFam.Vector:
                 {
                     var n = type.Length > 0 ? type.Length : 1536;

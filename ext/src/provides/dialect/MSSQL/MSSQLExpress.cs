@@ -364,15 +364,18 @@ namespace mooSQL.data
             return string.Format("CONSTRAINT {0} PRIMARY KEY ({1})",pkname,fields);
         }
         /// <summary>
-        /// 整体注释的处理
+        /// 整体注释的处理（sp_addextendedproperty 已由 buildDDLSoloCaptions 输出）
         /// </summary>
         /// <param name="frag"></param>
         /// <returns></returns>
         protected override string buildDDLFieldsCaption(DDLFragSQL frag)
         {
             return string.Empty;
-            //return buildDDLSoloCaptions(frag);
         }
+
+        /// <inheritdoc/>
+        protected override bool SoloCaptionsAsSeparateStatements => true;
+
         /// <summary>
         /// 独立的字段注释
         /// </summary>

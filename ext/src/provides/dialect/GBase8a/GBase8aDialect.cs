@@ -18,6 +18,7 @@ namespace mooSQL.data
         {
             expression = new GBase8aExpress(this);
             sentence = new GBase8aSentence(this);
+            mapping = new MySQLMappingPanel();
 
             this.InitDBVersions();
         }

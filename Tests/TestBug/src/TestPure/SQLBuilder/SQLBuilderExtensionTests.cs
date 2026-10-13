@@ -69,6 +69,15 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void UseDBInit_Preview_CreateTable_SysConfig_Result_ContainsCreateTable()
+        {
+            var sql = _builder.useDBInit().preview().createTable<SysConfig>().Result;
+            sql.Should().NotBeNullOrWhiteSpace();
+            sql.Should().ContainEquivalentOf("CREATE TABLE");
+            sql.Should().ContainEquivalentOf("HH_SysConfig");
+        }
+
+        [Fact]
         public void UseBatchSQL_ShouldReturnBatchSQL()
         {
             var batch = _builder.DBLive.useBatchSQL();

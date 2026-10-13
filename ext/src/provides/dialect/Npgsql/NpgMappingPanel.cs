@@ -335,15 +335,71 @@ namespace mooSQL.data.Npgsql
 
         public override string DbDataTypeToSQL(DbDataType type)
         {
-            if (type.DataType == DataFam.Vector)
+            switch (type.DataType)
             {
-                var n = type.Length > 0 ? type.Length : 1536;
-                return string.Format("vector({0})", n);
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                    if (type.Length > 0)
+                        return $"varchar({type.Length})";
+                    return "text";
+                case DataFam.Char:
+                case DataFam.NChar:
+                    if (type.Length > 0)
+                        return $"character({type.Length})";
+                    return "character(1)";
+                case DataFam.Text:
+                case DataFam.LongText:
+                case DataFam.NText:
+                case DataFam.Xml:
+                    return "text";
+                case DataFam.Json:
+                    return "json";
+                case DataFam.BinaryJson:
+                    return "jsonb";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return string.Format("vector({0})", n);
+                }
+                case DataFam.Guid:
+                    return "uuid";
+                case DataFam.DateTime:
+                case DataFam.DateTime2:
+                case DataFam.SmallDateTime:
+                    return "timestamp";
+                case DataFam.DateTimeOffset:
+                    return "timestamptz";
+                case DataFam.Date:
+                    return "date";
+                case DataFam.Time:
+                    return "time";
+                case DataFam.Boolean:
+                    return "boolean";
+                case DataFam.Byte:
+                case DataFam.Int16:
+                    return "smallint";
+                case DataFam.Int32:
+                    return "integer";
+                case DataFam.Int64:
+                case DataFam.Long:
+                    return "bigint";
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    if (type.Precision > 0)
+                        return $"numeric({type.Precision},{type.Scale})";
+                    return "numeric";
+                case DataFam.Double:
+                    return "double precision";
+                case DataFam.Single:
+                    return "real";
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
+                    return "bytea";
             }
-            if (type.DataType == DataFam.Json)
-                return "json";
-            if (type.DataType == DataFam.BinaryJson)
-                return "jsonb";
+
             return base.DbDataTypeToSQL(type);
         }
 

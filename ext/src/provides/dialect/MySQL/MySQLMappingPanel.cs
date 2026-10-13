@@ -108,7 +108,13 @@ namespace mooSQL.data
                 case DataFam.LongText:
                     return "LONGTEXT";
                 case DataFam.Json:
+                case DataFam.BinaryJson:
                     return "JSON";
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Blob:
+                case DataFam.Image:
+                    return "BLOB";
                 case DataFam.Vector:
                 {
                     var n = type.Length > 0 ? type.Length : 1536;
