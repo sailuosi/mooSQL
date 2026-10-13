@@ -174,6 +174,28 @@ namespace mooSQL.data
                     Year = 2024,
                     Note = "24.x",
                     VersionNumber = 24.8
+                },
+                new DBVersion
+                {
+                    VersionCode = "25.8",
+                    VersionName = "ClickHouse 25.8",
+                    MatchRegex = "25\\.[0-9]+(\\.[0-9]+)*",
+                    ReleaseTime = new DateTime(2025, 8, 1),
+                    Idx = 4,
+                    Year = 2025,
+                    Note = "25.x / LTS 代表",
+                    VersionNumber = 25.8
+                },
+                new DBVersion
+                {
+                    VersionCode = "26",
+                    VersionName = "ClickHouse 26",
+                    MatchRegex = "26\\.[0-9]+(\\.[0-9]+)*",
+                    ReleaseTime = new DateTime(2026, 1, 1),
+                    Idx = 5,
+                    Year = 2026,
+                    Note = "日历版 26.x（如 26.9）",
+                    VersionNumber = 26.0
                 }
             };
             Versions = tar;

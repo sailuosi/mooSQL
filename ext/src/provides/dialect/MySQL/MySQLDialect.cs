@@ -221,6 +221,26 @@ namespace mooSQL.data
                     Year = 2024,
                     Note = "创新版本，增强云原生支持",
                     VersionNumber = 9.0
+                },
+                new DBVersion(){
+                    VersionCode = "9.7",
+                    VersionName = "MySQL 9.7 LTS",
+                    MatchRegex = "^9\\.7\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2026, 1, 1),
+                    Idx = 11,
+                    Year = 2026,
+                    Note = "LTS；分页/窗口等走 ≥8.0 路径",
+                    VersionNumber = 9.7
+                },
+                new DBVersion(){
+                    VersionCode = "26",
+                    VersionName = "MySQL 26 Innovation",
+                    MatchRegex = "^26\\.[0-9]+(\\.[0-9]+)?$",
+                    ReleaseTime = new DateTime(2026, 7, 1),
+                    Idx = 12,
+                    Year = 2026,
+                    Note = "日历版 Innovation（如 26.7）；SQL 分支按 ≥8.0 兼容",
+                    VersionNumber = 26.0
                 }
             };
             this.Versions = tar;

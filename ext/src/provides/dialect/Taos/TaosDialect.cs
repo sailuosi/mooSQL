@@ -139,12 +139,32 @@ namespace mooSQL.data
                 new DBVersion(){
                     VersionCode = "3.0",
                     VersionName = "TDengine 3.0",
-                    MatchRegex = "\\.0\\.[0-9]+$",
+                    MatchRegex = "^3\\.0(\\.[0-9]+)*$",
                     ReleaseTime = new DateTime(2023, 5, 1),
                     Idx = 3,
                     Year = 2023,
                     Note = "完全分布式架构重构",
                     VersionNumber = 3.0
+                },
+                new DBVersion(){
+                    VersionCode = "3.3",
+                    VersionName = "TDengine 3.3",
+                    MatchRegex = "^3\\.3(\\.[0-9]+)*$",
+                    ReleaseTime = new DateTime(2025, 1, 1),
+                    Idx = 4,
+                    Year = 2025,
+                    Note = "3.3 维护线",
+                    VersionNumber = 3.3
+                },
+                new DBVersion(){
+                    VersionCode = "3.4",
+                    VersionName = "TDengine 3.4",
+                    MatchRegex = "^3\\.4(\\.[0-9]+)*$",
+                    ReleaseTime = new DateTime(2026, 1, 1),
+                    Idx = 5,
+                    Year = 2026,
+                    Note = "3.4.x；协议仍走自研 Taos ADO",
+                    VersionNumber = 3.4
                 }
             };
             this.Versions = tar;

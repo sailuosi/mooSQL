@@ -180,6 +180,26 @@ namespace mooSQL.data
                     Year = 2023,
                     Note = "引入SIMD加速和逻辑复制改进",
                     VersionNumber = 16.0
+                },
+                new DBVersion(){
+                    VersionCode = "17",
+                    VersionName = "PostgreSQL 17",
+                    MatchRegex = "^17(\\.[0-9]+)*$",
+                    ReleaseTime = new DateTime(2024, 9, 1),
+                    Idx = 11,
+                    Year = 2024,
+                    Note = "增量备份、JSON_TABLE、逻辑复制改进",
+                    VersionNumber = 17.0
+                },
+                new DBVersion(){
+                    VersionCode = "18",
+                    VersionName = "PostgreSQL 18",
+                    MatchRegex = "^18(\\.[0-9]+)*$",
+                    ReleaseTime = new DateTime(2025, 9, 1),
+                    Idx = 12,
+                    Year = 2025,
+                    Note = "异步 I/O、OAuth 等；wire 兼容既有 Npgsql 路径",
+                    VersionNumber = 18.0
                 }
             };
             this.Versions = tar;

@@ -28,9 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\ext\mooSQL.Ext.csproj" />
-    <ProjectReference Include="..\..\pure\mooSQL.Pure.Generators\mooSQL.Pure.Generators.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\pure\mooSQL.Pure.Generators\mooSQL.Pure.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

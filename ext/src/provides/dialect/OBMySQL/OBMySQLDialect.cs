@@ -295,6 +295,16 @@ namespace mooSQL.data
                     Year = 2025,
                     Note = "优化LSM-Tree读放大问题",
                     VersionNumber = 4.3
+                },
+                new DBVersion(){
+                    VersionCode = "4.4",
+                    VersionName = "OceanBase 4.4",
+                    MatchRegex = "4\\.4(\\.[0-9]+)*",
+                    ReleaseTime = new DateTime(2026, 1, 1),
+                    Idx = 10,
+                    Year = 2026,
+                    Note = "4.4.x CE；MySQL 模式仍走 OBMySQL 方言 / Bulk Fallback",
+                    VersionNumber = 4.4
                 }
             };
             this.Versions = tar;

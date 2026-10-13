@@ -218,8 +218,11 @@ Default Bulk: **`DbBulkCopyFallback`** (except PostgreSQL COPY).
 | DuckDB | net6+ |
 | ClickHouse | net6+ |
 | Taos (TDengine) | Supported |
+| SonnetDB | net10+ only |
 | GBase8a | Supported |
 | Oscar | Supported |
+
+Recommended server versions for smoke / CI: see [数据库版本适配调研-2026-10.md](doc/design/features/方言/数据库版本适配调研-2026-10.md) and §8 of the support matrix.
 
 ### Architecture
 
@@ -718,8 +721,11 @@ kit.select("*")
 | DuckDB | net6+ |
 | ClickHouse | net6+ |
 | Taos (TDengine) | 支持 |
+| SonnetDB | **仅 net10** |
 | GBase8a | 支持 |
 | Oscar（南大通用） | 支持 |
+
+推荐验证服务器版本见 [数据库版本适配调研-2026-10.md](doc/design/features/方言/数据库版本适配调研-2026-10.md) 与支持清单 §8。
 
 ### 架构设计
 

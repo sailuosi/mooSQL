@@ -372,6 +372,16 @@ namespace mooSQL.data
                     Year = 2022,
                     Note = "引入即时数据仓库、大规模并行处理等新功能，改进机器学习服务",
                     VersionNumber = 16.0
+                },
+                new DBVersion(){
+                    VersionCode = "17.0",
+                    VersionName = "SQL Server 2025",
+                    MatchRegex = "^17\\.[0-9]+$",
+                    ReleaseTime = new DateTime(2025, 11, 1),
+                    Idx = 17,
+                    Year = 2025,
+                    Note = "引擎版本 17.x；分页仍走 ≥2012 OFFSET/FETCH",
+                    VersionNumber = 17.0
                 }
             };
             this.Versions = list;

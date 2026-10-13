@@ -270,12 +270,22 @@ namespace mooSQL.data
                 new DBVersion(){
                     VersionCode = "23c",
                     VersionName = "Oracle 23c",
-                    MatchRegex = @"(23c)|(23[.][\d])",
+                    MatchRegex = @"(23c)|(23ai)|(23[.][\d])",
                     ReleaseTime = new DateTime(2023, 4, 1),
                     Idx = 11,
                     Year = 2023,
-                    Note = "JSON关系二元性，SQL属性图",
+                    Note = "JSON关系二元性，SQL属性图（含 23ai）",
                     VersionNumber = 23.0
+                },
+                new DBVersion(){
+                    VersionCode = "26ai",
+                    VersionName = "Oracle AI Database 26ai",
+                    MatchRegex = @"(26ai)|(26c)|(26[.][\d])",
+                    ReleaseTime = new DateTime(2026, 1, 1),
+                    Idx = 12,
+                    Year = 2026,
+                    Note = "接续 23ai；分页/FETCH 仍走 ≥12c 路径",
+                    VersionNumber = 26.0
                 }
             };
             this.Versions = tar;

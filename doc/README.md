@@ -448,15 +448,20 @@ var orders = kit
 
 ## 🗄️ 支持的数据库
 
-| 数据库        | 版本要求  | 状态     |
-| ---------- | ----- | ------ |
-| SQL Server | 2008+ | ✅ 完整支持 |
-| MySQL      | 5.7+  | ✅ 完整支持 |
-| PostgreSQL | 9.0+  | ✅ 完整支持 |
-| Oracle     | 11g+  | ✅ 完整支持 |
-| SQLite     | 3.0+  | ✅ 完整支持 |
-| OceanBase  | -     | ✅ 完整支持 |
-| Taos       | -     | ✅ 完整支持 |
+完整产品矩阵（Family · Bulk · TFM）：**[数据库支持清单.md](design/features/方言/数据库支持清单.md)**。  
+版本对照与驱动缺口：**[数据库版本适配调研-2026-10.md](design/features/方言/数据库版本适配调研-2026-10.md)**。
+
+| 数据库 | 推荐验证 | 最低兼容 | 状态 |
+| ------ | -------- | -------- | ---- |
+| SQL Server | 2022 / 2025 | 2008+ | ✅ 完整支持 |
+| MySQL | 8.4 / 9.7 | 5.7+ | ✅ 完整支持（Family） |
+| MariaDB | 11.8 / 12.3 | 10.5+ | ✅ 完整支持（Family） |
+| PostgreSQL | 16 / 18 | 9.0+ | ✅ 完整支持（Family） |
+| Oracle | 19c / 23ai / 26ai | 11g+ | ✅ 完整支持 |
+| SQLite | 3.40+ | 3.0+ | ✅ 完整支持 |
+| OceanBase（MySQL） | 4.3 / 4.4 | — | ✅ 完整支持（Family） |
+| TiDB / openGauss / 金仓 / 达梦 等 | 见支持清单 | — | ✅ 见清单 |
+| DuckDB / ClickHouse / Taos / SonnetDB 等 | 见支持清单 | — | ✅ 见清单（部分 TFM 受限） |
 
 ## 🏗️ 架构设计
 
