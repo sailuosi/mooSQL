@@ -23,6 +23,7 @@ namespace mooSQL.data
                 case DataFam.LongText:
                 case DataFam.NText:
                 case DataFam.Xml:
+                    return "VARCHAR";
                 case DataFam.Json:
                 case DataFam.BinaryJson:
                     return "JSON";

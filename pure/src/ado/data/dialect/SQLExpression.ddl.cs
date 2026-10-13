@@ -281,7 +281,8 @@ namespace mooSQL.data
             var pk = getDDLPK(frag);
             if (pk.Count > 0) {
                 var pkSQL = this.getFieldToSQL(pk);
-                var pkname = string.Format("pk_{0}_{1}", frag.Table, RandomUtils.NextString(5));
+                // 稳定约束名，便于 preview SQL 黄金比对（勿用随机后缀）
+                var pkname = string.Format("pk_{0}", frag.Table);
                 var pksetSQL= buildConstrainPK(pkname, pkSQL);
                 if (!string.IsNullOrWhiteSpace(pksetSQL)) { 
                     res.Add(pksetSQL);
