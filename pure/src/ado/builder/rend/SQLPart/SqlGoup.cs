@@ -243,10 +243,14 @@ namespace mooSQL.data
         }
 
         internal void addParaKV(string key, Object val) {
+            addParaKV(key, val, DataFam.Undefined);
+        }
+
+        internal void addParaKV(string key, Object val, DataFam dataFam) {
             if (ps == null) {
                 ps = new Paras();
             }
-            ps.AddByPrefix(key, val,dbstr);
+            ps.AddByPrefix(key, val, dbstr, dataFam);
         }
         /// <summary>
         /// 添加参数化列表
@@ -642,6 +646,8 @@ namespace mooSQL.data
             var cols = new List<string>();
             foreach (SetFrag field in columns)
             {
+                if (!field.values.TryGetValue(setIndex, out var pair) || pair.insetable == false)
+                    continue;
                 cols.Add(field.key);
             }
             return  string.Join(",", cols);
@@ -667,7 +673,7 @@ namespace mooSQL.data
                 if (pair.paramed)
                 {
                     valueRow.Add(dbstr + pair.paramKey);
-                    addParaKV(pair.paramKey, pair.value);
+                    addParaKV(pair.paramKey, pair.value, pair.dataFam);
                 }
                 else
                 {
@@ -695,11 +701,6 @@ namespace mooSQL.data
             frag.insertInto = tableName;
 
             
-            var cols= new List<string>();
-            foreach (SetFrag field in columns)
-            {
-                cols.Add(field.key);
-            }
             frag.insertCols = buildInsertFields();
             if (this.rows.Count > 0)
             {
@@ -781,7 +782,7 @@ namespace mooSQL.data
                 }
                 if (pair.paramed) {
                     values = values + field.key + "=" + dbstr + pair.paramKey;
-                    addParaKV(pair.paramKey, pair.value);
+                    addParaKV(pair.paramKey, pair.value, pair.dataFam);
                 }
                 else {
                     values = values + field.key + "=" + pair.value;
@@ -808,10 +809,12 @@ namespace mooSQL.data
                 }
                 var setPair = new FragSetPart();
                 setPair.field = field.key;
+                setPair.dataFam = pair.dataFam;
+                setPair.jsonPath = pair.jsonPath;
                 if (pair.paramed)
                 {
                     setPair.value = dbstr + pair.paramKey;
-                    addParaKV(pair.paramKey, pair.value);
+                    addParaKV(pair.paramKey, pair.value, pair.dataFam);
                 }
                 else if (pair.value is string str)
                 {

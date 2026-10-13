@@ -26,6 +26,61 @@ namespace mooSQL.data
             return "\""+value+"\"";
         }
 
+        /// <inheritdoc/>
+        protected override string buildSetAssignment(FragSetPart item)
+        {
+            if (string.IsNullOrEmpty(item.jsonPath))
+                return base.buildSetAssignment(item);
+            var pgPath = JsonPathToPgTextArray(item.jsonPath);
+            var pathLit = "'" + pgPath.Replace("'", "''") + "'";
+            return item.field + "=jsonb_set(" + item.field + "::jsonb, " + pathLit + "::text[], to_jsonb(" + item.value + "), true)";
+        }
+
+        /// <summary>
+        /// <c>$.a.b</c> / <c>$.basket[0].qty</c> → <c>{a,b}</c> / <c>{basket,0,qty}</c>。
+        /// </summary>
+        internal static string JsonPathToPgTextArray(string jsonPath)
+        {
+            if (string.IsNullOrWhiteSpace(jsonPath))
+                throw new ArgumentException("JSON path is required.", nameof(jsonPath));
+            var p = jsonPath.Trim();
+            if (p.StartsWith("$."))
+                p = p.Substring(2);
+            else if (p.StartsWith("$"))
+                p = p.Substring(1).TrimStart('.');
+            else
+                throw new NotSupportedException("PostgreSQL jsonb_set path must be a JSON Path starting with $.");
+
+            var parts = new List<string>();
+            var sb = new StringBuilder();
+            for (int i = 0; i < p.Length; i++)
+            {
+                char c = p[i];
+                if (c == '.')
+                {
+                    if (sb.Length > 0) { parts.Add(sb.ToString()); sb.Clear(); }
+                }
+                else if (c == '[')
+                {
+                    if (sb.Length > 0) { parts.Add(sb.ToString()); sb.Clear(); }
+                    int end = p.IndexOf(']', i);
+                    if (end < 0)
+                        throw new NotSupportedException("Invalid JSON Path array index: " + jsonPath);
+                    parts.Add(p.Substring(i + 1, end - i - 1));
+                    i = end;
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            if (sb.Length > 0)
+                parts.Add(sb.ToString());
+            if (parts.Count == 0)
+                throw new NotSupportedException("Empty JSON Path after $: " + jsonPath);
+            return "{" + string.Join(",", parts) + "}";
+        }
+
         public override string dateDiffDay(string start, string end)
             => $"EXTRACT(EPOCH FROM ({end}::timestamp - {start}::timestamp)) / 86400";
 

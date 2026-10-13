@@ -26,6 +26,15 @@ namespace mooSQL.data
             return "[" + value + "]";
         }
 
+        /// <inheritdoc/>
+        protected override string buildSetAssignment(FragSetPart item)
+        {
+            if (string.IsNullOrEmpty(item.jsonPath))
+                return base.buildSetAssignment(item);
+            var pathLit = "'" + item.jsonPath.Replace("'", "''") + "'";
+            return item.field + "=JSON_MODIFY(" + item.field + ", " + pathLit + ", " + item.value + ")";
+        }
+
         public override string dateDiffDay(string start, string end)
             => $"DATEDIFF(day, {start}, {end})";
 

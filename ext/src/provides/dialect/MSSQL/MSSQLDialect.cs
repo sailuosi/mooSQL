@@ -73,7 +73,13 @@ namespace mooSQL.data
             if (cmd is SqlCommand)
             {
                 SqlCommand qcmd = (SqlCommand)cmd;
-                return qcmd.Parameters.AddWithValue(para.key,para.val);
+                if (para.dataType == DataFam.Json || para.dataType == DataFam.Vector)
+                {
+                    var p = qcmd.Parameters.Add(para.key, System.Data.SqlDbType.NVarChar, -1);
+                    p.Value = para.val ?? DBNull.Value;
+                    return p;
+                }
+                return qcmd.Parameters.AddWithValue(para.key,para.val ?? DBNull.Value);
             }
             return null;
         }

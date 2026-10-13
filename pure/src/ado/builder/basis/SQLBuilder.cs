@@ -255,6 +255,29 @@ namespace mooSQL.data
         public abstract SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true);
 
         /// <summary>
+        /// 设置字段值，并指定库字段类型（用于参数绑定；<see cref="DataFam.Undefined"/> 则自动转换）。
+        /// </summary>
+        public abstract SQLBuilder set(string key, object val, DataFam dataFam, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true);
+
+        /// <summary>
+        /// 整列 JSON 赋值糖（等价 <c>set(key, val, DataFam.Json)</c>）。
+        /// </summary>
+        public abstract SQLBuilder setJson(string key, object val);
+
+        /// <summary>
+        /// 整列 VECTOR 赋值糖（等价带 <see cref="DataFam.Vector"/> 的 set；<c>float[]</c> 会规范为 JSON 数组字符串）。
+        /// </summary>
+        public abstract SQLBuilder setVector(string key, object val);
+
+        /// <summary>
+        /// 仅用于 UPDATE 的 JSON 路径赋值（对齐 <c>setU</c>；insertable=false）。
+        /// </summary>
+        /// <param name="key">JSON 列名。</param>
+        /// <param name="path">JSON Path，如 <c>$.pay</c>。</param>
+        /// <param name="val">路径上的新值。</param>
+        public abstract SQLBuilder setUJsonValue(string key, string path, object val);
+
+        /// <summary>
         /// 用于创建 insert into values 多行值的 SQL 时移动到下一行。
         /// </summary>
         public abstract SQLBuilder newRow();

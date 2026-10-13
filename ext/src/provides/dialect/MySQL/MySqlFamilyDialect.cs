@@ -49,7 +49,12 @@ namespace mooSQL.data
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is MySqlCommand qcmd)
-                return qcmd.Parameters.AddWithValue(para.key, para.val);
+            {
+                // Json / Vector：按字符串绑定（Vector 值为 JSON 数组文本）
+                if (para.dataType == DataFam.Json || para.dataType == DataFam.Vector)
+                    return qcmd.Parameters.AddWithValue(para.key, para.val ?? DBNull.Value);
+                return qcmd.Parameters.AddWithValue(para.key, para.val ?? DBNull.Value);
+            }
             return null;
         }
 

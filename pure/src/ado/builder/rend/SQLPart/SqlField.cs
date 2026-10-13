@@ -54,6 +54,16 @@ namespace mooSQL.data
          * 可用于构建插入语句
          */
         public bool insetable = true;
+
+        /// <summary>
+        /// 库字段类型提示。为 <see cref="DataFam.Undefined"/> 时打参走自动转换。
+        /// </summary>
+        public DataFam dataFam = DataFam.Undefined;
+
+        /// <summary>
+        /// JSON 路径补丁（如 <c>$.pay</c>）。非空时仅用于 UPDATE，由方言渲染路径赋值。
+        /// </summary>
+        public string jsonPath;
     }
     /// <summary>
     /// set语句定义碎片
@@ -118,7 +128,9 @@ namespace mooSQL.data
         /// <param name="updatable"></param>
         /// <param name="insetable"></param>
         /// <param name="type"></param>
-        public void setValue(int index,object val,Type valType=null, bool paramed = true, bool updatable=true, bool insetable = true,Type type=null)
+        /// <param name="dataFam">库字段类型；默认 Undefined。</param>
+        /// <param name="jsonPath">JSON 路径；非空表示路径补丁。</param>
+        public void setValue(int index,object val,Type valType=null, bool paramed = true, bool updatable=true, bool insetable = true,Type type=null, DataFam dataFam = DataFam.Undefined, string jsonPath = null)
         {
             if(valType !=null)
             {
@@ -129,6 +141,8 @@ namespace mooSQL.data
             pair.paramed = paramed;
             pair.updatable = updatable;
             pair.insetable = insetable;
+            pair.dataFam = dataFam;
+            pair.jsonPath = jsonPath;
             if (pair.paramed && (pair.paramKey == null || pair.paramKey == ("")))
             {
                 pair.paramKey = this.paraPrefix + "_" + fieldIndex + "_" + index;

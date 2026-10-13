@@ -66,7 +66,33 @@ namespace mooSQL.data
         /// <returns></returns>
         public override SQLBuilder set(string key, Object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
-            return setCore(key, val, paramed, type, updatable, insertable, null);
+            return setCore(key, val, paramed, type, updatable, insertable, null, DataFam.Undefined, null);
+        }
+
+        /// <inheritdoc/>
+        public override SQLBuilder set(string key, object val, DataFam dataFam, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
+        {
+            return setCore(key, val, paramed, type, updatable, insertable, null, dataFam, null);
+        }
+
+        /// <inheritdoc/>
+        public override SQLBuilder setJson(string key, object val)
+        {
+            return set(key, val, DataFam.Json);
+        }
+
+        /// <inheritdoc/>
+        public override SQLBuilder setVector(string key, object val)
+        {
+            return set(key, SetValueNormalize.ForVector(val), DataFam.Vector);
+        }
+
+        /// <inheritdoc/>
+        public override SQLBuilder setUJsonValue(string key, string path, object val)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentException("JSON path is required.", nameof(path));
+            return setCore(key, val, true, null, true, false, null, DataFam.Undefined, path.Trim());
         }
 
         /// <summary>
@@ -79,9 +105,11 @@ namespace mooSQL.data
             bool paramed = true,
             Type type = null,
             bool updatable = true,
-            bool insertable = true)
+            bool insertable = true,
+            DataFam dataFam = DataFam.Undefined,
+            string jsonPath = null)
         {
-            return setCore(key, val, paramed, type, updatable, insertable, staticSlotName);
+            return setCore(key, val, paramed, type, updatable, insertable, staticSlotName, dataFam, jsonPath);
         }
 
         /// <summary>
@@ -94,11 +122,13 @@ namespace mooSQL.data
             bool paramed = true,
             Type type = null,
             bool updatable = true,
-            bool insertable = true)
+            bool insertable = true,
+            DataFam dataFam = DataFam.Undefined,
+            string jsonPath = null)
         {
             var groupKey = current != null ? current.key : "";
             var name = StaticSlotMarks.FormatSetName(paraSeed, groupKey, staticSlotId);
-            return setCore(key, val, paramed, type, updatable, insertable, name);
+            return setCore(key, val, paramed, type, updatable, insertable, name, dataFam, jsonPath);
         }
 
         private StepBuilder setCore(
@@ -108,7 +138,9 @@ namespace mooSQL.data
             Type type,
             bool updatable,
             bool insertable,
-            string staticSlotName)
+            string staticSlotName,
+            DataFam dataFam,
+            string jsonPath)
         {
             if (!opened)
             {
@@ -131,10 +163,10 @@ namespace mooSQL.data
 
             if (val == DBNull.Value)
             {
-                field.setValue(current.RowIndex, "NULL", type, false, updatable, insertable);
+                field.setValue(current.RowIndex, "NULL", type, false, updatable, insertable, null, dataFam, jsonPath);
             }
             else {
-                field.setValue(current.RowIndex, val, type, paramed, updatable, insertable);
+                field.setValue(current.RowIndex, val, type, paramed, updatable, insertable, null, dataFam, jsonPath);
             }
 
             if (!string.IsNullOrEmpty(staticSlotName) && paramed && val != null && val != DBNull.Value)

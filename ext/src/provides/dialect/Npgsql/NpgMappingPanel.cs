@@ -208,6 +208,7 @@ namespace mooSQL.data.Npgsql
                 case DataFam.Dictionary: type = NpgsqlDbType.Hstore; break;
                 case DataFam.Json: type = NpgsqlDbType.Json; break;
                 case DataFam.BinaryJson: type = NpgsqlDbType.Jsonb; break;
+                case DataFam.Vector: type = NpgsqlDbType.Json; break;
                 case DataFam.Interval: type = NpgsqlDbType.Interval; break;
                 case DataFam.Int64: type = NpgsqlDbType.Bigint; break;
                 // address npgsql 6.0.0 mapping DateTime by default to timestamptz
@@ -257,6 +258,7 @@ namespace mooSQL.data.Npgsql
                 case DataFam.Dictionary: parameter.DbType = DbType.Object; break;
                 case DataFam.Json: parameter.DbType = DbType.String; break;
                 case DataFam.BinaryJson: parameter.DbType = DbType.String; break;
+                case DataFam.Vector: parameter.DbType = DbType.String; break;
             }
 
             base.SetParameterType(dataConnection, parameter, dataType);
@@ -325,9 +327,24 @@ namespace mooSQL.data.Npgsql
                 case "hstore": return DataFam.Dictionary;
                 case "json": return DataFam.Json;
                 case "jsonb": return DataFam.BinaryJson;
+                case "vector": return DataFam.Vector;
             }
 
             return DataFam.Undefined;
+        }
+
+        public override string DbDataTypeToSQL(DbDataType type)
+        {
+            if (type.DataType == DataFam.Vector)
+            {
+                var n = type.Length > 0 ? type.Length : 1536;
+                return string.Format("vector({0})", n);
+            }
+            if (type.DataType == DataFam.Json)
+                return "json";
+            if (type.DataType == DataFam.BinaryJson)
+                return "jsonb";
+            return base.DbDataTypeToSQL(type);
         }
 
 

@@ -484,12 +484,24 @@ namespace mooSQL.data
                 {
                     isFirst = false;
                 }
-                sb.Append(item.field);
-                sb.Append("=");
-                sb.Append(item.value);
+                sb.Append(buildSetAssignment(item));
                 sb.Append(" ");
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 渲染单条 SET 赋值。默认 <c>field=value</c>；
+        /// 当 <see cref="FragSetPart.jsonPath"/> 非空时由方言覆盖，否则抛错。
+        /// </summary>
+        protected virtual string buildSetAssignment(FragSetPart item)
+        {
+            if (!string.IsNullOrEmpty(item.jsonPath))
+            {
+                throw new NotSupportedException(
+                    "JSON path update (setUJsonValue) is not supported by this dialect.");
+            }
+            return item.field + "=" + item.value;
         }
 
         /// <summary>

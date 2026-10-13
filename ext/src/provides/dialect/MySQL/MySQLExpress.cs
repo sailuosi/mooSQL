@@ -29,6 +29,15 @@ namespace mooSQL.data
             return "`" + value.Replace("`", "``") + "`";
         }
 
+        /// <inheritdoc/>
+        protected override string buildSetAssignment(FragSetPart item)
+        {
+            if (string.IsNullOrEmpty(item.jsonPath))
+                return base.buildSetAssignment(item);
+            var pathLit = "'" + item.jsonPath.Replace("'", "''") + "'";
+            return item.field + "=JSON_SET(" + item.field + ", " + pathLit + ", " + item.value + ")";
+        }
+
         public override string dateDiffDay(string start, string end)
             => $"TIMESTAMPDIFF(DAY, {start}, {end})";
 
@@ -335,13 +344,28 @@ namespace mooSQL.data
                 {
                     isFirst = false;
                 }
-                if (item.field.Contains(".") == false) { 
-                    sb.Append(toTableAlias);
-                    sb.Append(".");
+                var field = item.field;
+                if (field.Contains(".") == false)
+                    field = toTableAlias + "." + field;
+
+                if (!string.IsNullOrEmpty(item.jsonPath))
+                {
+                    var pathLit = "'" + item.jsonPath.Replace("'", "''") + "'";
+                    sb.Append(field);
+                    sb.Append("=JSON_SET(");
+                    sb.Append(field);
+                    sb.Append(", ");
+                    sb.Append(pathLit);
+                    sb.Append(", ");
+                    sb.Append(item.value);
+                    sb.Append(")");
                 }
-                sb.Append(item.field);
-                sb.Append("=");
-                sb.Append(item.value);
+                else
+                {
+                    sb.Append(field);
+                    sb.Append("=");
+                    sb.Append(item.value);
+                }
                 sb.Append(" ");
             }
             return sb.ToString();

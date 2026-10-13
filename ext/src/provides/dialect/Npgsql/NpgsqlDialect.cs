@@ -38,9 +38,15 @@ namespace mooSQL.data
             {
                 var para2 = new NpgsqlParameter
                 {
-                    Value = para.val,
+                    Value = para.val ?? DBNull.Value,
                     ParameterName = para.key
                 };
+                if (para.dataType == DataFam.Json)
+                    para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Json;
+                else if (para.dataType == DataFam.BinaryJson)
+                    para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Jsonb;
+                else if (para.dataType == DataFam.Vector)
+                    para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Json; // JSON 数组文本兼容路径
                 return qcmd.Parameters.Add(para2);
             }
             return null;

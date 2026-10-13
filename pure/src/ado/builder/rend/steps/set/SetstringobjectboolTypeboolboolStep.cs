@@ -2,7 +2,7 @@ using System;
 
 namespace mooSQL.data
 {
-    /// <summary>对应 SQLBuilder.set(...)。paramed 时支持编排期 StaticSlotId。</summary>
+    /// <summary>对应 SQLBuilder.set(...)。paramed 时支持编排期 StaticSlotId；可携带 DataFam。</summary>
     public sealed class SetstringobjectboolTypeboolboolStep : StepBase, IStaticSlotStep
     {
         public override int Id { get { return 262199; } }
@@ -14,8 +14,9 @@ namespace mooSQL.data
         private readonly Type _type;
         private readonly bool _updatable;
         private readonly bool _insertable;
+        private readonly DataFam _dataFam;
 
-        public SetstringobjectboolTypeboolboolStep(string key, object val, bool paramed, Type type, bool updatable, bool insertable)
+        public SetstringobjectboolTypeboolboolStep(string key, object val, bool paramed, Type type, bool updatable, bool insertable, DataFam dataFam = DataFam.Undefined)
         {
             _key = key;
             _val = val;
@@ -23,6 +24,7 @@ namespace mooSQL.data
             _type = type;
             _updatable = updatable;
             _insertable = insertable;
+            _dataFam = dataFam;
         }
 
         public int? StaticSlotId { get; private set; }
@@ -56,6 +58,7 @@ namespace mooSQL.data
                 hc.Add(_paramed);
                 hc.Add(_updatable);
                 hc.Add(_insertable);
+                hc.Add((int)_dataFam);
                 return;
             }
             var emit = PassesParaRule(paraRule, _val);
@@ -65,16 +68,20 @@ namespace mooSQL.data
             hc.Add(_paramed);
             hc.Add(_updatable);
             hc.Add(_insertable);
+            hc.Add((int)_dataFam);
         }
 
         public override void Apply(SQLBuilder builder)
         {
             if (StaticSlotId != null && !string.IsNullOrEmpty(StaticSlotName))
             {
-                builder.Inner.setWithSlot(_key, _val, StaticSlotName, _paramed, _type, _updatable, _insertable);
+                builder.Inner.setWithSlot(_key, _val, StaticSlotName, _paramed, _type, _updatable, _insertable, _dataFam, null);
                 return;
             }
-            builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
+            if (_dataFam != DataFam.Undefined)
+                builder.Inner.set(_key, _val, _dataFam, _paramed, _type, _updatable, _insertable);
+            else
+                builder.Inner.set(_key, _val, _paramed, _type, _updatable, _insertable);
         }
     }
 }

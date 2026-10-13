@@ -200,6 +200,7 @@ namespace mooSQL.data.model
 			new TypeInfo(DataFam.NText,             null,                  null,                  null,        int.MaxValue / 2),
 			new TypeInfo(DataFam.Json,              null,                  null,                  null,        int.MaxValue / 2),
 			new TypeInfo(DataFam.BinaryJson,        null,                  null,                  null,        int.MaxValue / 2),
+			new TypeInfo(DataFam.Vector,            null,                  null,                  null,        int.MaxValue / 2),
 
 			new TypeInfo(DataFam.Binary,            8000,                  null,                  null,                    null),
 			new TypeInfo(DataFam.VarBinary,         8000,                  null,                  null,                    null),
@@ -292,6 +293,7 @@ namespace mooSQL.data.model
 				DataFam.Dictionary     => DbDictionary,
 				DataFam.Json           => DbJson,
 				DataFam.BinaryJson     => DbBinaryJson,
+				DataFam.Vector         => DbVector,
 				DataFam.SByte          => DbSByte,
 				DataFam.Int128         => DbInt128,
 				DataFam.DecFloat       => DbDecFloat,
@@ -392,6 +394,8 @@ namespace mooSQL.data.model
 		public static readonly DataTypeWord DbJson           = new (DataFam.Json,           typeof(string),      GetMaxLength,           null, null, null);
 		/// <summary>二进制 JSON / <see cref="string"/>。</summary>
 		public static readonly DataTypeWord DbBinaryJson     = new (DataFam.BinaryJson,     typeof(string),      GetMaxLength,           null, null, null);
+		/// <summary>向量（参数侧多为 JSON 数组字符串）/ <see cref="string"/>。</summary>
+		public static readonly DataTypeWord DbVector         = new (DataFam.Vector,         typeof(string),      GetMaxLength,           null, null, null);
 
 		/// <summary>定长二进制 / <c>byte[]</c>。</summary>
 		public static readonly DataTypeWord DbBinary         = new (DataFam.Binary,         typeof(byte[]),      GetMaxLength,           null, null, null);

@@ -163,6 +163,16 @@ namespace mooSQL.data.builder
         /// 字段 value（string）。
         /// </summary>
         public string value;
+
+        /// <summary>
+        /// 库字段类型提示（参数绑定用）。
+        /// </summary>
+        public DataFam dataFam = DataFam.Undefined;
+
+        /// <summary>
+        /// JSON 路径；非空时由方言渲染路径赋值。
+        /// </summary>
+        public string jsonPath;
     }
 
     /// <summary>

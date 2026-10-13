@@ -80,8 +80,14 @@ namespace mooSQL.data.MSSQL
                     return "bigint";
                 case DataFam.Text:
                 case DataFam.LongText:
-                case DataFam.Json:
                     return "text";
+                case DataFam.Json:
+                    return "nvarchar(max)";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return string.Format("vector({0})", n);
+                }
             }
             return base.DbDataTypeToSQL(type);
         }
@@ -123,6 +129,8 @@ namespace mooSQL.data.MSSQL
                 case "xml": return DataFam.Xml;
                 case "char": return DataFam.Char;
                 case "nchar": return DataFam.NChar;
+                case "json": return DataFam.Json;
+                case "vector": return DataFam.Vector;
                 case "hierarchyid":
                 case "geography":
                 case "geometry": return DataFam.Udt;

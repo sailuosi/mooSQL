@@ -112,14 +112,25 @@ namespace mooSQL.data
         /// <param name="varPrefix"></param>
         public void AddByPrefix(string key, Object val, string varPrefix)
         {
+            AddByPrefix(key, val, varPrefix, DataFam.Undefined);
+        }
+
+        /// <summary>
+        /// 添加参数并可指定库字段类型（<see cref="DataFam.Undefined"/> 时与旧行为一致）。
+        /// </summary>
+        public void AddByPrefix(string key, Object val, string varPrefix, DataFam dataFam)
+        {
             var tar = new Parameter(key, val, varPrefix);
+            if (dataFam != DataFam.Undefined)
+            {
+                tar.dataType = dataFam;
+            }
             if (value.ContainsKey(key))
             {
                 value[key] = tar;
             }
             else
             {
-
                 value.Add(key, tar);
             }
         }

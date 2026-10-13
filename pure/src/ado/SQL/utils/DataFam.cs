@@ -410,5 +410,11 @@ namespace mooSQL.data
 		/// Decimal256 ClickHouse type.
 		/// </summary>
 		Decimal256,
+
+		/// <summary>
+		/// Fixed-dimension float vector (e.g. SQL Server / MySQL VECTOR).
+		/// Parameter values are typically a JSON array string of floats.
+		/// </summary>
+		Vector,
 	}
 }

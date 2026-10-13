@@ -107,6 +107,13 @@ namespace mooSQL.data
                     return "TEXT";
                 case DataFam.LongText:
                     return "LONGTEXT";
+                case DataFam.Json:
+                    return "JSON";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return string.Format("VECTOR({0})", n);
+                }
             }
             return base.DbDataTypeToSQL(type);
         }
@@ -150,6 +157,7 @@ namespace mooSQL.data
                 "bigint" => columnType != null && columnType.Contains("unsigned") ? DataFam.UInt64 : DataFam.Int64,
                 "decimal" => DataFam.Decimal,
                 "json" => DataFam.Json,
+                "vector" => DataFam.Vector,
                 _ => DataFam.Undefined,
             };
         }

@@ -63,7 +63,31 @@ namespace mooSQL.data
 
         public override SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
-            var step = new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable);
+            var step = new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable, DataFam.Undefined);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
+            return Enqueue(step);
+        }
+
+        public override SQLBuilder set(string key, object val, DataFam dataFam, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
+        {
+            var step = new SetstringobjectboolTypeboolboolStep(key, val, paramed, type, updatable, insertable, dataFam);
+            step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
+            return Enqueue(step);
+        }
+
+        public override SQLBuilder setJson(string key, object val)
+        {
+            return set(key, val, DataFam.Json);
+        }
+
+        public override SQLBuilder setVector(string key, object val)
+        {
+            return set(key, SetValueNormalize.ForVector(val), DataFam.Vector);
+        }
+
+        public override SQLBuilder setUJsonValue(string key, string path, object val)
+        {
+            var step = new SetUJsonValuestringstringobjectStep(key, path, val);
             step.TryAssignStaticSlot(_paraRule, ref _opened, ref _nextStaticSlot, CurrentParaSeed, CurrentSetGroupKey);
             return Enqueue(step);
         }
