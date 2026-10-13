@@ -10,7 +10,7 @@ namespace TestMooSQL.src;
 public class DuckDBCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE ""HH_SysConfig"" ( ""Enabled"" BOOLEAN NOT NULL ,""OrderNo"" INTEGER NULL ,""Payload"" JSON NULL ,""Code"" VARCHAR(64) NULL ,""CreatedAt"" TIMESTAMP NULL ,""BlobData"" BLOB NULL ,""Meta"" JSON NULL ,""Embedding"" FLOAT[8] NULL ,""Remark"" VARCHAR NULL ,""Id"" BIGINT NOT NULL ,""Amount"" DECIMAL(18,2) NULL ,""RowId"" UUID NULL )
+CREATE TABLE HH_SysConfig ( Enabled BOOLEAN NOT NULL ,OrderNo INTEGER NULL ,Payload JSON NULL ,Code VARCHAR(64) NULL ,CreatedAt TIMESTAMP NULL ,BlobData BLOB NULL ,Meta JSON NULL ,Embedding FLOAT[8] NULL ,Remark VARCHAR NULL ,Id BIGINT NOT NULL ,Amount DECIMAL(18,2) NULL ,RowId UUID NULL )
 ";
 
     [Fact]

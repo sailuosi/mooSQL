@@ -22,7 +22,7 @@ namespace mooSQL.data
 
             var sb = new StringBuilder();
             sb.Append("CREATE TABLE ");
-            sb.Append(wrapTable(frag.Table));
+            sb.Append(frag.Table);
             sb.Append(" ");
 
             sb.Append("( ");
@@ -174,8 +174,8 @@ namespace mooSQL.data
         /// <returns></returns>
         protected virtual string buildDDLField(DDLField field) {
             var sb = new StringBuilder();
-            // 与主键 getFieldToSQL→wrapField、DML 标识符包裹保持一致（PostgreSQL 未加引号会折成小写）
-            sb.Append(wrapField(field.FieldName));
+            // 标识符由调用方（如实体→DDL 落点）决定是否加引号，此处原样拼接
+            sb.Append(field.FieldName);
             sb.Append(" ");
             sb.Append(field.TextType);
             sb.Append(" ");
@@ -281,8 +281,8 @@ namespace mooSQL.data
             var pk = getDDLPK(frag);
             if (pk.Count > 0) {
                 var pkSQL = this.getFieldToSQL(pk);
-                // 稳定约束名，便于 preview SQL 黄金比对（勿用随机后缀）
-                var pkname = string.Format("pk_{0}", frag.Table);
+                // 稳定约束名用裸表名（frag.Table 可能已在实体落点加引号）
+                var pkname = string.Format("pk_{0}", StripIdentQuotes(frag.Table));
                 var pksetSQL= buildConstrainPK(pkname, pkSQL);
                 if (!string.IsNullOrWhiteSpace(pksetSQL)) { 
                     res.Add(pksetSQL);
@@ -580,12 +580,25 @@ namespace mooSQL.data
             {
                 if (string.IsNullOrWhiteSpace(field)) continue;
                 var fie = field.Trim();
-                fie= this.wrapField(fie);
                 if(!fields.Contains(fie)) fields.Add(fie);
             }
 
             return string.Join(",", fields);
 
+        }
+
+        /// <summary>
+        /// 去掉常见方言引号包裹，得到裸标识符（用于约束名等）。
+        /// </summary>
+        protected static string StripIdentQuotes(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name.Length < 2)
+                return name;
+            var a = name[0];
+            var b = name[name.Length - 1];
+            if ((a == '"' && b == '"') || (a == '`' && b == '`') || (a == '[' && b == ']'))
+                return name.Substring(1, name.Length - 2);
+            return name;
         }
 
         /// <summary>

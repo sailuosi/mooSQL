@@ -23,6 +23,13 @@ namespace mooSQL.data
         /// 属性 CreateMode（string）。
         /// </summary>
         public string CreateMode { get; set; }
+
+        /// <summary>
+        /// 实体落到 DDL 时是否严格保留标识符大小写（经方言 wrap 加引号）。
+        /// null 未定义时回退 <see cref="DataBase.StrictCase"/>，最终默认 false。
+        /// </summary>
+        public bool? StrictCase { get; set; }
+
         /// <summary>
         /// 自动建表模式，如果表不存在则创建，如果存在则新增字段
         /// </summary>
@@ -40,6 +47,30 @@ namespace mooSQL.data
             EnsureProgress();
             this.WorkingProgress.Clear();
             return this;
+        }
+
+        /// <summary>
+        /// 设置实体→DDL 标识符严格大小写。
+        /// </summary>
+        public DBTableCreator strictCase(bool enable = true)
+        {
+            StrictCase = enable;
+            return this;
+        }
+
+        /// <summary>
+        /// 解析生效的 StrictCase：本层 → 连接配置 → false。
+        /// </summary>
+        public bool ResolveStrictCase() => StrictCase ?? DBLive?.config?.StrictCase ?? false;
+
+        /// <summary>
+        /// 实体标识符落入 DDLBuilder 前的命名：严格时按方言加引号，否则原样。
+        /// </summary>
+        string LandIdent(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || !ResolveStrictCase())
+                return name;
+            return DBLive.dialect.expression.wrapField(name);
         }
 
         /// <summary>
@@ -90,6 +121,7 @@ namespace mooSQL.data
             EnsureProgress();
             this.WorkingProgress.Clear();
             this.defaultFieldLength = 50;
+            this.StrictCase = null;
             return this;
         }
 
@@ -129,6 +161,7 @@ namespace mooSQL.data
             var isExist = false;
             if (!isPreview)
             {
+                // 元数据探测用物理名（不加引号）
                 isExist = ddl.hasTable(tbname);
                 if (isExist)
                 {
@@ -138,7 +171,8 @@ namespace mooSQL.data
 
             if (isExist == false)
             {
-                ddl.setTable(tbname, en.TableDescription);
+                // StrictCase 仅在实体→DDLBuilder 落点加引号；DDLBuilder 本身原样拼接
+                ddl.setTable(LandIdent(tbname), en.TableDescription);
 
                 foreach (var field in en.Columns)
                 {
@@ -166,7 +200,7 @@ namespace mooSQL.data
                 var exFields = ddl.loadColumns(tbname);
 
                 var exFNames = exFields.map(x => x.Name);
-                ddl.setTable(tbname, en.TableDescription);
+                ddl.setTable(LandIdent(tbname), en.TableDescription);
 
                 foreach (var field in en.Columns)
                 {
@@ -202,7 +236,7 @@ namespace mooSQL.data
             if ((dt.DataType == DataFam.VarChar || dt.DataType ==DataFam.NVarChar) && (dt.Length == 0|| dt.Length == 50)) {
                 dt.Length = this.defaultFieldLength; 
             }
-            ddl.set(field.DbColumnName, dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey);
+            ddl.set(LandIdent(field.DbColumnName), dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey);
             if (!string.IsNullOrWhiteSpace(field.ColumnDescription)) { 
                 
             }

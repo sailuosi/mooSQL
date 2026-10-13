@@ -128,8 +128,7 @@ namespace mooSQL.data
                 }
             };
             var str = this.DBLive.dialect.expression.buildDropColumn(frag);
-            var cmd = new SQLCmd(str, ps);
-            return cmd;
+            return new SQLCmd(str, ps);
         }
         /// <summary>
         /// 快捷的列删除
@@ -152,10 +151,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLCmd toRenameColumn(string tableName, string oldColumnName, string newColumnName)
         {
-            tableName =SQLPit.wrapTable(tableName);
-            oldColumnName = SQLPit.wrapField(oldColumnName);
-            newColumnName = SQLPit.wrapField(newColumnName);
-            var sql= SQLPit.RenameColumnBy(tableName, oldColumnName, newColumnName);
+            var sql = SQLPit.RenameColumnBy(tableName, oldColumnName, newColumnName);
             return new SQLCmd(sql);
         }
         /// <summary>
@@ -188,8 +184,7 @@ namespace mooSQL.data
         /// </summary>
         public SQLCmd toDropConstraint(string tableName, string constraintName)
         {
-            tableName = SQLPit.wrapTable(tableName);
-            var sql= SQLPit.DropConstraintBy(tableName, constraintName);
+            var sql = SQLPit.DropConstraintBy(tableName, constraintName);
             return new SQLCmd(sql);
         }
         /// <summary>

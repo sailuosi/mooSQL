@@ -222,7 +222,8 @@ namespace mooSQL.data
             //Check.CheckCondition(columns.IsNullOrEmpty(), "No columns found ");
             foreach (DbColumnInfo column in columns)
             {
-                string translationTableName = SQLPit.wrapField(column.Name);
+                // 标识符原样使用（调用方决定是否已加引号）
+                string translationTableName = column.Name;
                 string fullDataType = column.DbTypeTextFull;
                 string text = (column.IsNullable ? SQLPit.CreateTableNullBy() : SQLPit.CreateTableNotNullBy());
                 string text2 = null;
@@ -230,7 +231,7 @@ namespace mooSQL.data
                 string item = SQLPit.CreateTableColumnBy(translationTableName, fullDataType, null, text, text2, text3);
                 list.Add(item);
             }
-            return SQLPit.CreateTableBy(SQLPit.wrapTable(tableName), string.Join(",\r\n", list));
+            return SQLPit.CreateTableBy(tableName, string.Join(",\r\n", list));
         }
         /// <summary>
         /// 执行表创建
@@ -268,8 +269,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string toAddColumn(string tableName, DbColumnInfo columnInfo)
         {
-            string translationColumnName = SQLPit.wrapField(columnInfo.Name);
-            tableName = SQLPit.wrapTable(tableName);
+            string translationColumnName = columnInfo.Name;
             string fullDataType = columnInfo.DbTypeTextFull;
             string text = (columnInfo.IsNullable ? SQLPit.CreateTableNullBy() : SQLPit.CreateTableNotNullBy());
             string text2 = null;
@@ -299,8 +299,7 @@ namespace mooSQL.data
         public virtual string toUpdateColumn(string tableName, DbColumnInfo columnInfo)
         {
             //name = builder.DataContext.DB.dialect.clauseTranslator.TranslateValue(name, ConvertType.NameToQueryField);
-            string translationColumnName = SQLPit.wrapField(columnInfo.Name);
-            tableName = SQLPit.wrapTable(tableName);
+            string translationColumnName = columnInfo.Name;
             string fullDataType = columnInfo.DbTypeTextFull;
             string text = (columnInfo.IsNullable ? SQLPit.CreateTableNullBy() : SQLPit.CreateTableNotNullBy());
             string text2 = null;
@@ -328,8 +327,6 @@ namespace mooSQL.data
         public virtual string toAddPrimaryKey(string tableName, string columnName)
         {
             string arg = "PK_" + tableName + "_" + columnName;
-            tableName = SQLPit.wrapTable(tableName);
-            columnName = SQLPit.wrapTable(columnName);
             return SQLPit.AddPrimaryKeyBy(tableName, arg, columnName);
         }
         /// <summary>
@@ -354,7 +351,6 @@ namespace mooSQL.data
         {
             string arg = "PK_" + tableName + "_" + string.Join("_", columnNames);
             string arg2 = string.Join(",", columnNames);
-            tableName = SQLPit.wrapTable(tableName);
             return SQLPit.AddPrimaryKeyBy(tableName, arg, arg2);
         }
         /// <summary>

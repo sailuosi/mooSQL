@@ -297,12 +297,12 @@ namespace mooSQL.data
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
         {
             return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';",
-                wrapTable(frag.Table), wrapField(fie.FieldName), fie.Caption);
+                frag.Table, fie.FieldName, fie.Caption);
         }
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
             return string.Format("COMMENT ON TABLE {0} IS '{1}';",
-                wrapTable(frag.Table), frag.TableCaption);
+                frag.Table, frag.TableCaption);
         }
 
         /// <summary>

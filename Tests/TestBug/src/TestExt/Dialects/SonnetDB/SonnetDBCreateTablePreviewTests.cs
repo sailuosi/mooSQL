@@ -10,7 +10,7 @@ namespace TestMooSQL.src;
 public class SonnetDBCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE ""HH_SysConfig"" ( ""Enabled"" BOOL NOT NULL ,""OrderNo"" INT NULL ,""Payload"" JSON NULL ,""Code"" STRING NULL ,""CreatedAt"" DATETIME NULL ,""BlobData"" BLOB NULL ,""Meta"" JSON NULL ,""Embedding"" STRING NULL ,""Remark"" STRING NULL ,""Id"" INT NOT NULL ,""Amount"" FLOAT NULL ,""RowId"" STRING NULL )
+CREATE TABLE HH_SysConfig ( Enabled BOOL NOT NULL ,OrderNo INT NULL ,Payload JSON NULL ,Code STRING NULL ,CreatedAt DATETIME NULL ,BlobData BLOB NULL ,Meta JSON NULL ,Embedding STRING NULL ,Remark STRING NULL ,Id INT NOT NULL ,Amount FLOAT NULL ,RowId STRING NULL )
 ";
 
     [Fact]

@@ -13,6 +13,9 @@ public static class CreateTablePreviewAssert
     public static string PreviewCreateTableSql(DBInstance db)
         => db.useSQL().useDBInit().preview().createTable<SysConfig>().Result;
 
+    public static string PreviewCreateTableSqlStrict(DBInstance db)
+        => db.useSQL().useDBInit().strictCase().preview().createTable<SysConfig>().Result;
+
     public static string NormalizeWhitespace(string s)
         => Regex.Replace(s ?? string.Empty, @"\s+", string.Empty);
 

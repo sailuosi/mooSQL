@@ -66,6 +66,11 @@ namespace mooSQL.data
         /// </summary>
         public bool writable = true;
 
+        /// <summary>
+        /// 实体→DDL 时标识符是否严格保留大小写（加方言引号）。null 表示未定义，由 DBTableCreator 回退后默认 false。
+        /// </summary>
+        public bool? StrictCase { get; set; }
+
         //private Dialect _lect = null;
         /// <summary>
         /// 支持 SQLSERVER/MYSQL/ORACLE/DB2
