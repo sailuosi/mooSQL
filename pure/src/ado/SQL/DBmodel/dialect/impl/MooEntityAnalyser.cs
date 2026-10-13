@@ -1,6 +1,5 @@
-
+using mooSQL.data.model;
 using System;
-
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -66,6 +65,16 @@ namespace mooSQL.data.Mapping
                 if (ca.HasScale()) entityColumn.Scale = ca.Scale;
                 if (ca.HasIsPrimaryKey())
                     entityColumn.IsPrimarykey = ca.IsPrimaryKey;
+                if (ca.HasCanBeNull())
+                    entityColumn.IsNullable = ca.CanBeNull;
+                if (ca.DataType != DataFam.Undefined)
+                    entityColumn.DataType = ca.DataType;
+                if (!string.IsNullOrWhiteSpace(ca.Caption))
+                    entityColumn.ColumnDescription = ca.Caption;
+                if (ca.Kind != FieldKind.None)
+                    entityColumn.Kind = ca.Kind;
+                else if (entityColumn.Kind == FieldKind.None)
+                    entityColumn.Kind = FieldKind.Base;
                 if (ca.Shard && entityColumn != null)
                     ShardRegistration.MarkShardField(entityInfo, entityColumn);
             }

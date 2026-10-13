@@ -201,6 +201,14 @@ namespace mooSQL.data
                 case DataFam.LongText:
                 case DataFam.NText:
                     return "CLOB";
+                case DataFam.Json:
+                case DataFam.BinaryJson:
+                    return "CLOB";
+                case DataFam.Vector:
+                {
+                    var n = type.Length > 0 ? type.Length : 1536;
+                    return $"VARCHAR({n * 16})";
+                }
                 case DataFam.Guid:
                     return "RAW(16)";
                 case DataFam.DateTime:

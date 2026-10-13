@@ -21,7 +21,10 @@ namespace mooSQL.data
                 case DataFam.NText:
                 case DataFam.Xml:
                 case DataFam.Json:
+                case DataFam.BinaryJson:
                     return "String";
+                case DataFam.Vector:
+                    return "Array(Float32)";
                 case DataFam.Guid:
                     return "UUID";
                 case DataFam.DateTime:

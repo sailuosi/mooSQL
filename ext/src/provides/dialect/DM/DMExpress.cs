@@ -136,14 +136,20 @@ namespace mooSQL.data
         protected override string buildConstrainPK(string pkname, string fields)
             => string.Format("CONSTRAINT {0} PRIMARY KEY ({1})", pkname, fields);
 
+        /// <summary>COMMENT ON 已由 buildDDLSoloCaptions 输出，此处勿再重复。</summary>
         protected override string buildDDLFieldsCaption(DDLFragSQL frag)
-            => buildDDLSoloCaptions(frag);
+            => string.Empty;
+
+        /// <inheritdoc/>
+        protected override bool SoloCaptionsAsSeparateStatements => true;
 
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
-            => string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';", frag.Table, fie.FieldName, fie.Caption);
+            => string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';",
+                wrapTable(frag.Table), wrapField(fie.FieldName), fie.Caption);
 
         public override string buildSoloTableCaption(DDLFragSQL frag)
-            => string.Format("COMMENT ON TABLE {0} IS '{1}';", frag.Table, frag.TableCaption);
+            => string.Format("COMMENT ON TABLE {0} IS '{1}';",
+                wrapTable(frag.Table), frag.TableCaption);
 
         public override string buildAlterView(DDLFragSQL frag)
         {

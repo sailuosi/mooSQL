@@ -22,7 +22,7 @@ namespace mooSQL.data
 
             var sb = new StringBuilder();
             sb.Append("CREATE TABLE ");
-            sb.Append(frag.Table);
+            sb.Append(wrapTable(frag.Table));
             sb.Append(" ");
 
             sb.Append("( ");
@@ -57,9 +57,15 @@ namespace mooSQL.data
             
             var t0 = buildDDLSoloCaptions(frag);
             if (!string.IsNullOrWhiteSpace(t0)) {
+                // PostgreSQL/Oracle/DM/MSSQL：COMMENT ON / sp_addextendedproperty 为独立语句，须与 CREATE TABLE 用分隔符断开；
+                // MySQL 表级 COMMENT 是建表语法后缀，直接拼接。
+                if (SoloCaptionsAsSeparateStatements)
+                {
+                    sb.Append(SentenceSeprator);
+                }
                 sb.Append(t0);
             }
-            //处理独立表注释的
+            //处理独立表注释的（勿再调用 buildDDLSoloCaptions，避免与 t0 重复）
             var t1 = buildDDLFieldsCaption(frag);
             if (!string.IsNullOrWhiteSpace(t1)) { 
                 sb.Append(t1);
@@ -71,6 +77,13 @@ namespace mooSQL.data
 
             return sb.ToString();
         }
+
+        /// <summary>
+        /// 独立字段/表注释是否为与 CREATE TABLE 分离的语句。
+        /// true：如 PostgreSQL COMMENT ON、SQL Server sp_addextendedproperty；
+        /// false：如 MySQL 表级 COMMENT 作为建表语法后缀。
+        /// </summary>
+        protected virtual bool SoloCaptionsAsSeparateStatements => false;
         /// <summary>
         /// 创建表的注释
         /// </summary>
@@ -161,7 +174,8 @@ namespace mooSQL.data
         /// <returns></returns>
         protected virtual string buildDDLField(DDLField field) {
             var sb = new StringBuilder();
-            sb.Append(field.FieldName);
+            // 与主键 getFieldToSQL→wrapField、DML 标识符包裹保持一致（PostgreSQL 未加引号会折成小写）
+            sb.Append(wrapField(field.FieldName));
             sb.Append(" ");
             sb.Append(field.TextType);
             sb.Append(" ");
