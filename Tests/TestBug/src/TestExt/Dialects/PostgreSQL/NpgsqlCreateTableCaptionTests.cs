@@ -8,7 +8,7 @@ namespace TestMooSQL.src;
 
 /// <summary>
 /// PostgreSQL 建表 DDL：CREATE TABLE 与 COMMENT ON 须为独立语句；
-/// 列名/主键标识符包裹须一致（避免未加引号折小写后 PRIMARY KEY ("Id") 找不到列）。
+/// 默认不自动加引号；strictCase / 手工引号时列名与主键标识符须一致。
 /// </summary>
 public class NpgsqlCreateTableCaptionTests
 {
@@ -24,19 +24,19 @@ public class NpgsqlCreateTableCaptionTests
             .toCreateTable();
 
         var sql = cmd.sql;
-        sql.Should().Contain("CREATE TABLE \"HH_SysConfig\"");
-        sql.Should().Contain("COMMENT ON COLUMN \"HH_SysConfig\".\"OrderNo\" IS '排序'");
-        sql.Should().Contain("COMMENT ON TABLE \"HH_SysConfig\" IS '系统参数配置表'");
+        sql.Should().Contain("CREATE TABLE HH_SysConfig");
+        sql.Should().Contain("COMMENT ON COLUMN HH_SysConfig.OrderNo IS '排序'");
+        sql.Should().Contain("COMMENT ON TABLE HH_SysConfig IS '系统参数配置表'");
 
         // CREATE TABLE 结束与首条 COMMENT 之间必须有语句分隔符
         sql.Should().MatchRegex(@"\)\s*;\s*COMMENT ON", "CREATE TABLE 与 COMMENT ON 须用分号分隔");
         sql.Should().NotMatchRegex(@"\)\s*COMMENT ON", "不得出现 )COMMENT 粘连");
 
         // 每条列注释 / 表注释只出现一次
-        Regex.Matches(sql, @"COMMENT ON COLUMN ""HH_SysConfig""\.""OrderNo"" IS '排序';").Count.Should().Be(1);
-        Regex.Matches(sql, @"COMMENT ON COLUMN ""HH_SysConfig""\.""Code"" IS '编码';").Count.Should().Be(1);
-        Regex.Matches(sql, @"COMMENT ON COLUMN ""HH_SysConfig""\.""Id"" IS 'Id';").Count.Should().Be(1);
-        Regex.Matches(sql, @"COMMENT ON TABLE ""HH_SysConfig"" IS '系统参数配置表';").Count.Should().Be(1);
+        Regex.Matches(sql, @"COMMENT ON COLUMN HH_SysConfig\.OrderNo IS '排序';").Count.Should().Be(1);
+        Regex.Matches(sql, @"COMMENT ON COLUMN HH_SysConfig\.Code IS '编码';").Count.Should().Be(1);
+        Regex.Matches(sql, @"COMMENT ON COLUMN HH_SysConfig\.Id IS 'Id';").Count.Should().Be(1);
+        Regex.Matches(sql, @"COMMENT ON TABLE HH_SysConfig IS '系统参数配置表';").Count.Should().Be(1);
     }
 
     [Fact]
@@ -44,17 +44,17 @@ public class NpgsqlCreateTableCaptionTests
     {
         var db = DBTest.usePostgreSQLDB();
         var idType = new DbDataType(typeof(long), DataFam.Int64, null);
+        // 手工加引号：列定义与主键须同为 "Id"，避免 Id vs "Id" 大小写不一致
         var cmd = db.useDDL()
-            .setTable("HH_SysConfig", "系统参数配置表")
-            .set("OrderNo", "integer", "排序", true)
-            .set("Id", idType, "Id", false, defaultValue: null, isPK: true)
+            .setTable("\"HH_SysConfig\"", "系统参数配置表")
+            .set("\"OrderNo\"", "integer", "排序", true)
+            .set("\"Id\"", idType, "Id", false, defaultValue: null, isPK: true)
             .toCreateTable();
 
         var sql = cmd.sql;
-        // 列定义与主键均使用 "Id"，避免 Id vs "Id" 大小写不一致
         sql.Should().MatchRegex(@"""Id""\s+bigint\s+NOT NULL");
         sql.Should().MatchRegex(@"PRIMARY KEY\s*\(\s*""Id""\s*\)");
-        sql.Should().NotMatchRegex(@"\bId\s+bigint", "列名须加双引号，不得裸写 Id");
+        sql.Should().NotMatchRegex(@"(?<!"")\bId\s+bigint", "列名须加双引号，不得裸写 Id");
     }
 
     [Fact]

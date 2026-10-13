@@ -9,7 +9,7 @@ namespace TestMooSQL.src;
 public class DMCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE HH_SysConfig ( Enabled BIT NOT NULL ,OrderNo INT NULL ,Payload CLOB NULL ,Code VARCHAR(64) NULL ,CreatedAt DATE NULL ,BlobData BLOB NULL ,Meta CLOB NULL ,Embedding VARCHAR(128) NULL ,Remark CLOB NULL ,Id BIGINT NOT NULL ,Amount NUMBER(18,2) NULL ,RowId RAW(16) NULL ,CONSTRAINT pk_HH_SysConfig PRIMARY KEY (Id))
+CREATE TABLE HH_SysConfig ( Id BIGINT NOT NULL,OrderNo INT NULL,Code VARCHAR(64) NULL,Enabled BIT NOT NULL,Amount NUMBER(18,2) NULL,CreatedAt DATE NULL,RowId RAW(16) NULL,Remark CLOB NULL,Payload CLOB NULL,Meta CLOB NULL,BlobData BLOB NULL,Embedding VARCHAR(128) NULL,CONSTRAINT pk_HH_SysConfig PRIMARY KEY (Id))
 ";
 
     [Fact]

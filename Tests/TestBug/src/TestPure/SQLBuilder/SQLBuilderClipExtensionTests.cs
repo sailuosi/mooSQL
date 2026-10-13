@@ -15,7 +15,8 @@ namespace mooSQL.Pure.Tests
     /// </summary>
     public class SQLBuilderClipExtensionTests : IDisposable
     {
-        private static int _idSeq = 921000;
+        // 多 TFM 并行共用同一 SQLite 文件时，用进程号错开主键段，避免 UNIQUE 冲突
+        private static int _idSeq = 900_000 + (Environment.ProcessId % 20_000) * 40;
 
         private readonly SQLBuilder _kit;
         private readonly List<int> _ownedIds = new();

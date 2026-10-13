@@ -10,7 +10,7 @@ namespace TestMooSQL.src;
 public class ClickHouseCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE HH_SysConfig ( Enabled UInt8 NOT NULL ,OrderNo Int32 NULL ,Payload String NULL ,Code String NULL ,CreatedAt DateTime64(3) NULL ,BlobData String NULL ,Meta String NULL ,Embedding Array(Float32) NULL ,Remark String NULL ,Id Int64 NOT NULL ,Amount Decimal(18,2) NULL ,RowId UUID NULL )
+CREATE TABLE HH_SysConfig ( Id Int64 NOT NULL,OrderNo Int32 NULL,Code String NULL,Enabled UInt8 NOT NULL,Amount Decimal(18,2) NULL,CreatedAt DateTime64(3) NULL,RowId UUID NULL,Remark String NULL,Payload String NULL,Meta String NULL,BlobData String NULL,Embedding Array(Float32) NULL)
 ";
 
     [Fact]

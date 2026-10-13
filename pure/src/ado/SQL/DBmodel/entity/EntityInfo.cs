@@ -43,10 +43,18 @@ namespace mooSQL.data
         /// </summary>
         public Type Type { get; set; }
         /// <summary>
+        /// 字段列表缓存（与 <see cref="_FieldMap"/> 在 AddColumnInfo 中同步维护，保持插入顺序）。
+        /// </summary>
+        private List<EntityColumn> _columns;
+
+        /// <summary>
         /// 字段信息
         /// </summary>
         public List<EntityColumn> Columns {
             get {
+                // 已有列表且总数与字典相同则直接用，不再从字典转换
+                if (_columns != null && _columns.Count == _FieldMap.Count)
+                    return _columns;
                 return _FieldMap.Values.ToList();
             }
         }
@@ -196,20 +204,23 @@ namespace mooSQL.data
                     _FieldMap = new ConcurrentDictionary<string, EntityColumn>();
                 }
                 if (column == null) return;
+                if (_columns == null) {
+                    _columns = new List<EntityColumn>();
+                }
                 if (_FieldMap.ContainsKey(column.PropertyName)) {
                     _FieldMap[column.PropertyName] = column;
-                    //列的list版本只读，不再需要修改
-                    //for (var i = 0; i < Columns.Count; i++) {
-                    //    if (Columns[i].PropertyName == column.PropertyName) {
-                    //        Columns[i]=column;
-                    //        break;
-                    //    }
-                    //}
+                    for (var i = 0; i < _columns.Count; i++) {
+                        if (_columns[i].PropertyName == column.PropertyName) {
+                            _columns[i] = column;
+                            break;
+                        }
+                    }
                 }
                 else
                 {
-                    _FieldMap.TryAdd(column.PropertyName, column);
-                    //Columns.Add(column);
+                    if (_FieldMap.TryAdd(column.PropertyName, column)) {
+                        _columns.Add(column);
+                    }
                 }            
             }
 
