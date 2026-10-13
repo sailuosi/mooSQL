@@ -985,6 +985,17 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         public abstract T queryFirst<T>();
+        /// <summary>
+        /// 查询获取首行，不存在时返回null
+        /// </summary>
+        /// <returns></returns>
+        public DataRow queryFirstRow() {
+            var dt = this.query();
+            if (dt.Rows.Count > 0) { 
+                return dt.Rows[0];
+            }
+            return null;
+        }
 
         /// <summary>
         /// 查询单行数据，查询唯一的一行数据，多行或没有都是 null。
