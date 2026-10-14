@@ -76,6 +76,13 @@ namespace mooSQL.data
         /// </summary>
         public NameQuoteMode NameQuote { get; set; } = NameQuoteMode.None;
 
+        /// <summary>
+        /// 枚举写入 ADO 参数时的转换策略。
+        /// null = 未在本连接指定，回退 <see cref="SQLBuilderOption.EnumConvert"/>；
+        /// 非 null（含 <see cref="EnumParaConvert.None"/>）= 本连接显式策略。
+        /// </summary>
+        public EnumParaConvert? EnumConvert { get; set; }
+
         //private Dialect _lect = null;
         /// <summary>
         /// 支持 SQLSERVER/MYSQL/ORACLE/DB2
@@ -211,6 +218,14 @@ namespace mooSQL.data
         public DataBase setNameQuote(NameQuoteMode mode)
         {
             this.NameQuote = mode;
+            return this;
+        }
+        /// <summary>
+        /// 设置本连接枚举→ADO 参数转换策略（覆盖客户端 <see cref="SQLBuilderOption.EnumConvert"/>）。
+        /// </summary>
+        public DataBase setEnumConvert(EnumParaConvert mode)
+        {
+            this.EnumConvert = mode;
             return this;
         }
         /// <summary>

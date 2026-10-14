@@ -41,8 +41,11 @@ outline: deep
 | `Writable` | `bool` | `true` | **是否允许写**。为 `false` 时，全部 `ExeNonQuery*` 入口抛出 `NotSupportedException`。 |
 | `CustomPingSQL` | `string` | `null` | **自定义探活 SQL**，写入 `DataBase.healthOptions.CustomPingSQL`，优先级高于方言默认 ping。 |
 | `PingTimeoutMs` | `int` | `0` | **探活超时毫秒**。仅当 `> 0` 时写入 `healthOptions.PingTimeoutMs`（运行时默认一般为 `3000`）。 |
+| `NameCase` | `NameCaseMode` | `None` | **表/列名大小写**。`None` = 未配置，运行时用方言默认；其它：`Keep` / `ToUpper` / `ToLower`。见 [标识符大小写与包裹](/design/features/方言/标识符大小写与包裹)。 |
+| `NameQuote` | `NameQuoteMode` | `None` | **表/列名包裹**。`None` = 方言默认；其它：`Always` / `KeywordsOnly` / `Never` / `IfNeeded`。 |
+| `EnumConvert` | `EnumParaConvert?` | `null` | **枚举→ADO 参数转换**。`null` = 回退客户端 `SQLBuilderOption.EnumConvert`；可配 `None` / `ToInt` / `ToName` / `ToIntString`。见 [枚举列映射与参数转换](/design/features/映射/枚举列映射与参数转换)。 |
 
-映射入口：`DBPosition.asDataBase()`（`FastConfigExtensions`）。`Readable` / `Writable` **始终拷贝**（含 `false`）；`WatchSQL` 仅在为 `true` 时打开；探活相关仅在有值时创建/填充 `healthOptions`。
+映射入口：`DBPosition.asDataBase()`（`FastConfigExtensions`）。`Readable` / `Writable` / `NameCase` / `NameQuote` **始终拷贝**；`EnumConvert` 原样拷贝（含 `null`）；`WatchSQL` 仅在为 `true` 时打开；探活相关仅在有值时创建/填充 `healthOptions`。
 
 ### 1.1 与运行时 DataBase 的对应关系
 
@@ -56,9 +59,11 @@ outline: deep
 | `Edition` / `EditionNumber` | `edition` / `editionNumber` |
 | `WatchSQL` / `MinTimeSpan` | `watchSQL` / `minTimeSpan` |
 | `Readable` / `Writable` | `readable` / `writable` |
+| `NameCase` / `NameQuote` | `NameCase` / `NameQuote` |
+| `EnumConvert` | `EnumConvert` |
 | `CustomPingSQL` / `PingTimeoutMs` | `healthOptions.*` |
 
-代码侧也可直接构造 `DataBase`（字段风格），并使用链式方法：`setConnection`、`setDBType`、`setIndex`、`setName`、`setReadable`、`setWritable`。
+代码侧也可直接构造 `DataBase`（字段风格），并使用链式方法：`setConnection`、`setDBType`、`setIndex`、`setName`、`setReadable`、`setWritable`、`setNameCase`、`setNameQuote`、`setEnumConvert`。
 
 ---
 
@@ -80,10 +85,22 @@ outline: deep
     "Readable": true,
     "Writable": true,
     "CustomPingSQL": "SELECT 1",
-    "PingTimeoutMs": 3000
+    "PingTimeoutMs": 3000,
+    "NameCase": "Keep",
+    "NameQuote": "Always",
+    "EnumConvert": "ToInt"
   },
   {
     "Position": 2,
+    "Name": "PgApp",
+    "DbType": "PostgreSQL",
+    "ConnectString": "Host=...;Database=...;Username=...;Password=...;",
+    "NameCase": "ToLower",
+    "NameQuote": "IfNeeded",
+    "EnumConvert": "ToInt"
+  },
+  {
+    "Position": 3,
     "Name": "DeviceReadonly",
     "DbType": "MySQL",
     "ConnectString": "server=...;database=...;user Id=...;password=...;pooling=true;Port=3306;Charset=utf8mb4;",

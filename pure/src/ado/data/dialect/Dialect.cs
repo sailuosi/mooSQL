@@ -123,13 +123,25 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按 <see cref="SQLBuilderOption.EnumConvert"/> 解析绑定值，不修改 <see cref="Parameter.val"/>（供各方言 <see cref="AddCmdPara(DbCommand, Parameter)"/> 使用）。
+        /// 按连接 <see cref="DataBase.EnumConvert"/>（优先）或客户端 <see cref="SQLBuilderOption.EnumConvert"/> 解析绑定值，
+        /// 不修改 <see cref="Parameter.val"/>（供各方言 <see cref="AddCmdPara(DbCommand, Parameter)"/> 使用）。
         /// </summary>
         protected object ResolveCmdParaValue(object val)
         {
-            var mode = dbInstance?.client?.builderOption?.EnumConvert
-                ?? EnumParaConvert.None;
+            var mode = ResolveEnumParaConvert();
             return ParameterHandler.ApplyEnumParameterConvert(val, mode);
+        }
+
+        /// <summary>
+        /// 生效枚举绑定策略：连接显式配置优先，否则客户端 <see cref="SQLBuilderOption.EnumConvert"/>，默认 <see cref="EnumParaConvert.None"/>。
+        /// </summary>
+        public EnumParaConvert ResolveEnumParaConvert()
+        {
+            var cfg = dbInstance?.config ?? db;
+            if (cfg?.EnumConvert != null)
+                return cfg.EnumConvert.Value;
+            return dbInstance?.client?.builderOption?.EnumConvert
+                ?? EnumParaConvert.None;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mooSQL.data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,5 +71,23 @@ namespace mooSQL.config
         /// 探活超时毫秒，映射到 <see cref="DBHealthOptions.PingTimeoutMs"/>。
         /// </summary>
         public int PingTimeoutMs { get; set; }
+
+        /// <summary>
+        /// 表/列名大小写策略。默认 <see cref="NameCaseMode.None"/>（未配置，运行时回退方言默认）。
+        /// JSON 示例：<c>"ToLower"</c> / <c>"Keep"</c> / <c>"ToUpper"</c>。
+        /// </summary>
+        public NameCaseMode NameCase { get; set; } = NameCaseMode.None;
+
+        /// <summary>
+        /// 表/列名包裹策略。默认 <see cref="NameQuoteMode.None"/>（未配置，运行时回退方言默认）。
+        /// JSON 示例：<c>"IfNeeded"</c> / <c>"Always"</c> / <c>"Never"</c>。
+        /// </summary>
+        public NameQuoteMode NameQuote { get; set; } = NameQuoteMode.None;
+
+        /// <summary>
+        /// 枚举写入 ADO 参数时的转换。null = 未配置，回退客户端 <c>SQLBuilderOption.EnumConvert</c>。
+        /// JSON 示例：<c>"ToInt"</c> / <c>"ToName"</c> / <c>"None"</c>。
+        /// </summary>
+        public EnumParaConvert? EnumConvert { get; set; }
     }
 }

@@ -148,6 +148,28 @@ namespace mooSQL.Pure.Tests
             var cfg = pos.asDataBase();
             cfg.readable.Should().BeTrue();
             cfg.writable.Should().BeTrue();
+            cfg.NameCase.Should().Be(NameCaseMode.None);
+            cfg.NameQuote.Should().Be(NameQuoteMode.None);
+            cfg.EnumConvert.Should().BeNull();
+        }
+
+        [Fact]
+        public void AsDataBase_MapsNameCaseQuoteAndEnumConvert()
+        {
+            var pos = new DBPosition
+            {
+                Position = 4,
+                Name = "pg",
+                DbType = "PostgreSQL",
+                ConnectString = "Host=localhost;",
+                NameCase = NameCaseMode.ToLower,
+                NameQuote = NameQuoteMode.IfNeeded,
+                EnumConvert = EnumParaConvert.ToInt,
+            };
+            var cfg = pos.asDataBase();
+            cfg.NameCase.Should().Be(NameCaseMode.ToLower);
+            cfg.NameQuote.Should().Be(NameQuoteMode.IfNeeded);
+            cfg.EnumConvert.Should().Be(EnumParaConvert.ToInt);
         }
 
         [Fact]

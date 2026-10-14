@@ -47,6 +47,11 @@ namespace mooSQL.config
             }
             res.readable = db.Readable;
             res.writable = db.Writable;
+            // 标识符策略：始终拷贝（含 None = 委托方言默认）
+            res.NameCase = db.NameCase;
+            res.NameQuote = db.NameQuote;
+            // 枚举绑定：null 表示未配；非 null（含 None）写入连接级显式策略
+            res.EnumConvert = db.EnumConvert;
             if (!string.IsNullOrWhiteSpace(db.CustomPingSQL))
             {
                 res.healthOptions = res.healthOptions ?? new mooSQL.data.health.DBHealthOptions();

@@ -83,6 +83,36 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void AddCmdPara_DataBase_EnumConvert_ToInt_Overrides_Client()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.client.builderOption.EnumConvert = EnumParaConvert.ToName;
+            db.config.setEnumConvert(EnumParaConvert.ToInt);
+
+            var paras = new Paras();
+            paras.Add("@type", TestMenuTypeEnum.Btn);
+
+            using var conn = db.dialect.getConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+                conn.Open();
+            using var cmd = conn.CreateCommand();
+            db.dialect.addCmdPara(cmd, paras);
+
+            cmd.Parameters[0].Value.Should().Be(2);
+            cmd.Parameters[0].Value.Should().BeOfType<int>();
+            db.dialect.ResolveEnumParaConvert().Should().Be(EnumParaConvert.ToInt);
+        }
+
+        [Fact]
+        public void ResolveEnumParaConvert_FallsBack_To_Client_When_DataBase_Unset()
+        {
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            db.config.EnumConvert = null;
+            db.client.builderOption.EnumConvert = EnumParaConvert.ToName;
+            db.dialect.ResolveEnumParaConvert().Should().Be(EnumParaConvert.ToName);
+        }
+
+        [Fact]
         public void AddCmdPara_None_BindsEnumUnchanged()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
