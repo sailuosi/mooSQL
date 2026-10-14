@@ -376,7 +376,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string toAddColumnCaption(string columnName, string tableName, string description)
         {
-            return SQLPit.AddColumnCaptionBy(columnName, tableName, description);
+            return SQLPit.AddColumnCaptionBy(tableName, columnName, description);
         }
         /// <summary>
         /// 添加字段注释
@@ -399,7 +399,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public virtual string toDeleteColumnCaption(string columnName, string tableName)
         {
-            return SQLPit.DeleteColumnCaptionBy(columnName, tableName);
+            return SQLPit.DeleteColumnCaptionBy(tableName, columnName);
         }
         /// <summary>
         /// 删除字段注释
