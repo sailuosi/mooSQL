@@ -121,6 +121,17 @@ namespace mooSQL.data
 
             return msg;
         }
+
+        /// <summary>
+        /// 按 <see cref="SQLBuilderOption.EnumParameterConvert"/> 解析绑定值，不修改 <see cref="Parameter.val"/>（供各方言 <see cref="AddCmdPara(DbCommand, Parameter)"/> 使用）。
+        /// </summary>
+        protected object ResolveCmdParaValue(object val)
+        {
+            var mode = dbInstance?.client?.builderOption?.EnumParameterConvert
+                ?? EnumParameterConvert.None;
+            return ParameterHandler.ApplyEnumParameterConvert(val, mode);
+        }
+
         /// <summary>
         /// 为cmd命令添加参数
         /// </summary>

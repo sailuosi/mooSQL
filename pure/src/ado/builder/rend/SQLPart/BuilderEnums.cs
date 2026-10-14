@@ -35,5 +35,28 @@ namespace mooSQL.data
 
     }
 
+    /// <summary>
+    /// CLR 枚举写入 ADO 参数时的转换策略（仅绑定阶段生效）。
+    /// </summary>
+    public enum EnumParameterConvert
+    {
+        /// <summary>
+        /// 不转换，原样写入（默认，兼容现状）。
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// 转为底层整型（int/long/…）。
+        /// </summary>
+        ToInt = 1,
+        /// <summary>
+        /// 转为枚举名称（ToString）。
+        /// </summary>
+        ToName = 2,
+        /// <summary>
+        /// 转为数字的字符串形式（如 "2"）。
+        /// </summary>
+        ToIntString = 3,
+    }
+
 }
 

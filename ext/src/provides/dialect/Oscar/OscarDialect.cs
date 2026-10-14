@@ -55,7 +55,7 @@ namespace mooSQL.data
             if (cmd is OscarCommand)
             {
                 OscarCommand qcmd = (OscarCommand)cmd;
-                return qcmd.Parameters.Add(para.key, para.val);
+                return qcmd.Parameters.Add(para.key, ResolveCmdParaValue(para.val));
             }
             return null;
         }

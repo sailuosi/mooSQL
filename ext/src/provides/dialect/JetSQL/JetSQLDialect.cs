@@ -87,7 +87,7 @@ namespace mooSQL.data
             cmd.CommandText = sql;
             foreach (var p in ordered)
             {
-                var op = new OleDbParameter { Value = p.val ?? DBNull.Value };
+                var op = new OleDbParameter { Value = ResolveCmdParaValue(p.val) ?? DBNull.Value };
                 ocmd.Parameters.Add(op);
             }
             return string.Empty;
@@ -100,7 +100,7 @@ namespace mooSQL.data
         {
             if (cmd is OleDbCommand ocmd)
             {
-                var op = new OleDbParameter { Value = para?.val ?? DBNull.Value };
+                var op = new OleDbParameter { Value = ResolveCmdParaValue(para?.val) ?? DBNull.Value };
                 return ocmd.Parameters.Add(op);
             }
             return null;

@@ -79,9 +79,10 @@ namespace mooSQL.data
             {
                 TaosCommand qcmd = (TaosCommand)cmd;
                 TaosParameter para2 = new TaosParameter();
-                para2.Value = para.val;
+                var bindVal = ResolveCmdParaValue(para.val);
+                para2.Value = bindVal;
                 para2.ParameterName = para.key;
-                var v = para.val;
+                var v = bindVal;
                 para2.TaosType = GetDBType(v.GetType());
                 qcmd.Parameters.Add(para2);
                 return para2;

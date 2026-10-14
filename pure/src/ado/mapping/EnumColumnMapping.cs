@@ -93,6 +93,12 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 按 <see cref="EnumParameterConvert"/> 转换（供绑定层与测试）；委托 <see cref="ParameterHandler"/>。
+        /// </summary>
+        public static object ApplyEnumParameterConvert(object value, EnumParameterConvert mode)
+            => ParameterHandler.ApplyEnumParameterConvert(value, mode);
+
+        /// <summary>
         /// 枚举 → 底层数值（与 ParameterHandler.SanitizeParameterValue 一致）。
         /// </summary>
         public static object ToUnderlyingNumeric(object enumValue)

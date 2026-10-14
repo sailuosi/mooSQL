@@ -68,7 +68,7 @@ namespace mooSQL.data
         {
             if (cmd is SqliteCommand cmdda)
             {
-                return cmdda.Parameters.AddWithValue(para.key, para.val);
+                return cmdda.Parameters.AddWithValue(para.key, ResolveCmdParaValue(para.val));
             }
             return null;
         }
@@ -138,7 +138,7 @@ namespace mooSQL.data
         {
             if (cmd is SQLiteCommand cmdda)
             {
-                return cmdda.Parameters.AddWithValue(para.key, para.val);
+                return cmdda.Parameters.AddWithValue(para.key, ResolveCmdParaValue(para.val));
             }
             return null;
         }

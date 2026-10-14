@@ -77,7 +77,7 @@ namespace mooSQL.data
                 }
                 var param= new OdbcParameter();
                 param.ParameterName = key;
-                param.Value = para.val;
+                param.Value = ResolveCmdParaValue(para.val);
                 return qcmd.Parameters.Add(param);
             }
             return null;

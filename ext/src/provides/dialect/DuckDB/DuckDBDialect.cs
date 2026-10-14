@@ -53,7 +53,7 @@ namespace mooSQL.data
                 var p = new DuckDBParameter
                 {
                     ParameterName = StripParaPrefix(para.key),
-                    Value = para.val ?? DBNull.Value
+                    Value = ResolveCmdParaValue(para.val) ?? DBNull.Value
                 };
                 dcmd.Parameters.Add(p);
                 return p;

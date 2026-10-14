@@ -38,7 +38,7 @@ namespace mooSQL.data
         {
             if (cmd is KdbndpCommand qcmd)
             {
-                var p = new KdbndpParameter(para.key, para.val);
+                var p = new KdbndpParameter(para.key, ResolveCmdParaValue(para.val));
                 return qcmd.Parameters.Add(p);
             }
             return null;

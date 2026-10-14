@@ -51,7 +51,7 @@ namespace mooSQL.data
             if (cmd is SndbCommand scmd)
             {
                 var name = EnsureAtPrefix(para.key);
-                return scmd.Parameters.AddWithValue(name, para.val ?? DBNull.Value);
+                return scmd.Parameters.AddWithValue(name, ResolveCmdParaValue(para.val) ?? DBNull.Value);
             }
             return null;
         }

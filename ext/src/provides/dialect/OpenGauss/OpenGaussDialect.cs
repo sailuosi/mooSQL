@@ -56,10 +56,11 @@ namespace mooSQL.data
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
+            var bindVal = ResolveCmdParaValue(para.val);
 #if NET8_0_OR_GREATER
             if (cmd is GaussDBCommand qcmd)
             {
-                var p = new GaussDBParameter(para.key, para.val);
+                var p = new GaussDBParameter(para.key, bindVal);
                 return qcmd.Parameters.Add(p);
             }
 #else
@@ -68,7 +69,7 @@ namespace mooSQL.data
                 var p = new NpgsqlParameter
                 {
                     ParameterName = para.key,
-                    Value = para.val
+                    Value = bindVal
                 };
                 return qcmd.Parameters.Add(p);
             }

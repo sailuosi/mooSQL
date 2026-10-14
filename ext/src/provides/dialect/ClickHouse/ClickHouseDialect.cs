@@ -51,12 +51,13 @@ namespace mooSQL.data
         {
             if (cmd is ClickHouseCommand ccmd)
             {
+                var bindVal = ResolveCmdParaValue(para.val);
                 var p = new ClickHouseDbParameter
                 {
                     ParameterName = StripParaPrefix(para.key),
-                    Value = para.val ?? DBNull.Value
+                    Value = bindVal ?? DBNull.Value
                 };
-                TrySetClickHouseType(p, para.val);
+                TrySetClickHouseType(p, bindVal);
                 ccmd.Parameters.Add(p);
                 return p;
             }

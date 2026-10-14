@@ -50,10 +50,11 @@ namespace mooSQL.data
         {
             if (cmd is MySqlCommand qcmd)
             {
+                var bindVal = ResolveCmdParaValue(para.val) ?? DBNull.Value;
                 // Json / Vector：按字符串绑定（Vector 值为 JSON 数组文本）
                 if (para.dataType == DataFam.Json || para.dataType == DataFam.Vector)
-                    return qcmd.Parameters.AddWithValue(para.key, para.val ?? DBNull.Value);
-                return qcmd.Parameters.AddWithValue(para.key, para.val ?? DBNull.Value);
+                    return qcmd.Parameters.AddWithValue(para.key, bindVal);
+                return qcmd.Parameters.AddWithValue(para.key, bindVal);
             }
             return null;
         }

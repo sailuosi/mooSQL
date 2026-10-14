@@ -93,7 +93,7 @@ namespace mooSQL.data
             if (cmd is OracleCommand)
             {
                 OracleCommand qcmd = (OracleCommand)cmd;
-                return qcmd.Parameters.Add(para.key, para.val);
+                return qcmd.Parameters.Add(para.key, ResolveCmdParaValue(para.val));
             }
             return null;
         }

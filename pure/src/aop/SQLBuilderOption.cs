@@ -18,5 +18,10 @@ namespace mooSQL.data
         /// UPDATE SET 时是否写入 NULL 等策略。
         /// </summary>
         public UpdateSetNullOption UpdateSetNullOpt=UpdateSetNullOption.None;
+
+        /// <summary>
+        /// 枚举值写入数据库命令参数时的转换策略（仅 <c>Paras</c>→ADO 绑定）。
+        /// </summary>
+        public EnumParameterConvert EnumParameterConvert = EnumParameterConvert.None;
     }
 }

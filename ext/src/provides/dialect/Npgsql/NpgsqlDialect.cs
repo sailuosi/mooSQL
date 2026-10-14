@@ -38,7 +38,7 @@ namespace mooSQL.data
             {
                 var para2 = new NpgsqlParameter
                 {
-                    Value = para.val ?? DBNull.Value,
+                    Value = ResolveCmdParaValue(para.val) ?? DBNull.Value,
                     ParameterName = para.key
                 };
                 if (para.dataType == DataFam.Json)

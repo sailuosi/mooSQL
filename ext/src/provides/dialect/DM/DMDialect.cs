@@ -47,7 +47,7 @@ namespace mooSQL.data
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is DmCommand qcmd)
-                return qcmd.Parameters.Add(para.key, para.val);
+                return qcmd.Parameters.Add(para.key, ResolveCmdParaValue(para.val));
             return null;
         }
 
