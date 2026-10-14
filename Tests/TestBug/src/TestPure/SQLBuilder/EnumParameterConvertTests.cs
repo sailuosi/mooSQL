@@ -46,6 +46,19 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void UseEnumConvert_SetsBuilderOption()
+        {
+            var b = new TestClientBuilder();
+            b.useEnumConvert(EnumParaConvert.ToName);
+            b.ExposedClient.builderOption.EnumConvert.Should().Be(EnumParaConvert.ToName);
+        }
+
+        sealed class TestClientBuilder : BaseClientBuilder
+        {
+            public MooClient ExposedClient => client;
+        }
+
+        [Fact]
         public void AddCmdPara_ToInt_BindsInt_WithoutMutatingParas()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();

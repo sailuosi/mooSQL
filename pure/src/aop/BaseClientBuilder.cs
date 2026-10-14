@@ -420,6 +420,16 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 快捷配置枚举写入 ADO 参数时的转换策略（<see cref="SQLBuilderOption.EnumConvert"/>）。
+        /// </summary>
+        /// <param name="mode"><see cref="EnumParaConvert"/>；默认场景请显式传入 <see cref="EnumParaConvert.None"/> 以外的值。</param>
+        public BaseClientBuilder useEnumConvert(EnumParaConvert mode)
+        {
+            client.builderOption.EnumConvert = mode;
+            return this;
+        }
+
+        /// <summary>
         /// 启用或关闭 AOT 物化模式（源生成器 + 反射，不使用 Emit）。
         /// </summary>
         public BaseClientBuilder useAotMode(bool enable = true)
