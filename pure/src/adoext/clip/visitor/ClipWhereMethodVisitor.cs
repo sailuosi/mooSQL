@@ -28,11 +28,12 @@ namespace mooSQL.data.clip
             var prop = method.callExpression.Object;
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[0];
-            var val = EnumColumnMapping.ResolveClipValue(_clipBuddy.VisitToGotValue(argu), col);
+            var kit = CompileContext.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                CompileContext.CurrentLayer.Current.where(fie, val);
+                kit.where(fie, val);
             }
 
             return method;
@@ -43,11 +44,12 @@ namespace mooSQL.data.clip
             var prop = method.callExpression.Object;
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[0];
-            var val = EnumColumnMapping.ResolveClipValue(_clipBuddy.VisitToGotValue(argu), col);
+            var kit = CompileContext.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                CompileContext.CurrentLayer.Current.whereLike(fie, val);
+                kit.whereLike(fie, val);
             }
 
             return method;
@@ -58,11 +60,12 @@ namespace mooSQL.data.clip
             var prop = method.Arguments[0];
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[1];
-            var val = EnumColumnMapping.ResolveClipValue(_clipBuddy.VisitToGotValue(argu), col);
+            var kit = CompileContext.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                CompileContext.CurrentLayer.Current.whereLike(fie, val);
+                kit.whereLike(fie, val);
             }
 
             return method;
@@ -73,7 +76,8 @@ namespace mooSQL.data.clip
             var prop = method.Arguments[0];
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[1];
-            var val = EnumColumnMapping.ResolveClipValue(_clipBuddy.VisitToGotValue(argu), col);
+            var kit = CompileContext.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
@@ -112,7 +116,7 @@ namespace mooSQL.data.clip
                     foreach (var item in enumerable)
                     {
                         if (item == null) continue;
-                        converted.Add(EnumColumnMapping.ResolveClipValue(item, col));
+                        converted.Add(kit.Dialect.expression.ResolveColumnValue(item, col));
                     }
                     if (converted.Count > 0)
                         kit.whereIn(fie, converted);

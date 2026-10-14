@@ -7,7 +7,7 @@ namespace mooSQL.data
 {
     /// <summary>
     /// 枚举列默认映射（对齐 EF Core：无自定义类型时按底层整型）。
-    /// 供自动建表推断与 SQLClip 条件值变换共用。
+    /// 供自动建表推断与 <see cref="SQLExpression.ResolveColumnValue"/> 算法零件共用。
     /// </summary>
     public static class EnumColumnMapping
     {
@@ -75,21 +75,6 @@ namespace mooSQL.data
                 || fam == DataFam.Text
                 || fam == DataFam.NText
                 || fam == DataFam.LongText;
-        }
-
-        /// <summary>
-        /// SQLClip：按列信息变换枚举条件值。非枚举原样返回。
-        /// </summary>
-        public static object ResolveClipValue(object value, EntityColumn col)
-        {
-            if (value == null) return null;
-            if (value is not Enum) return value;
-
-            var fam = GetEffectiveDataType(col);
-            if (HasCustomDataType(col) && IsCharacterDataType(fam))
-                return value.ToString();
-
-            return ToUnderlyingNumeric(value);
         }
 
         /// <summary>

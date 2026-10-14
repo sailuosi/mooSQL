@@ -536,11 +536,12 @@ namespace mooSQL.data
             var insertCols = CollectInsertColumns(entity);
             var updateCols = CollectUpdateColumns(entity, options);
             var sourceCols = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            var exp = _db.dialect.expression;
             foreach (var c in constraints)
             {
                 var col = FindColumn(c);
                 if (col == null) continue;
-                sourceCols[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+                sourceCols[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
             }
             foreach (var kv in insertCols)
                 sourceCols[kv.Key] = kv.Value;
@@ -616,11 +617,12 @@ namespace mooSQL.data
         Dictionary<string, object> CollectInsertColumns(T entity)
         {
             var dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            var exp = _db.dialect.expression;
             foreach (var col in En.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+                dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
             }
             return dict;
         }
@@ -629,6 +631,7 @@ namespace mooSQL.data
         {
             var dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             var constraints = new HashSet<string>(ResolveConstraintColumns(options), StringComparer.OrdinalIgnoreCase);
+            var exp = _db.dialect.expression;
 
             if (options.UpdateMembers != null && options.UpdateMembers.Count > 0)
             {
@@ -638,7 +641,7 @@ namespace mooSQL.data
                     if (col == null || col.IsPrimarykey) continue;
                     if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                         continue;
-                    dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+                    dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
                 }
                 return dict;
             }
@@ -649,7 +652,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                     continue;
-                dict[col.DbColumnName] = col.PropertyInfo.GetValue(entity);
+                dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
             }
             return dict;
         }
@@ -661,11 +664,12 @@ namespace mooSQL.data
             var members = options.ConstraintMembers;
             if (members != null && members.Count > 0)
             {
+                var exp = ck.Dialect.expression;
                 foreach (var name in members)
                 {
                     var col = FindColumn(name);
                     if (col == null) continue;
-                    ck.where(col.DbColumnName, col.PropertyInfo.GetValue(entity));
+                    ck.where(col.DbColumnName, exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col));
                 }
             }
             else
@@ -682,11 +686,12 @@ namespace mooSQL.data
                 return UpdateAllColumns(entity) ? 1 : 0;
 
             var dict = new Dictionary<string, object>(StringComparer.Ordinal);
+            var exp = _db.dialect.expression;
             foreach (var name in members)
             {
                 var col = FindColumn(name);
                 if (col == null || col.IsPrimarykey) continue;
-                dict[col.PropertyName] = col.PropertyInfo.GetValue(entity);
+                dict[col.PropertyName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
             }
             if (dict.Count == 0) return 0;
 
@@ -710,7 +715,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(name);
                 if (col == null) continue;
-                upd.where(col.DbColumnName, col.PropertyInfo.GetValue(entity));
+                upd.where(col.DbColumnName, exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col));
             }
             foreach (var kv in dict)
             {

@@ -144,7 +144,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col));
+                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
             }
             return this;
         }
@@ -160,7 +160,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsOrNull(field, EnumColumnMapping.ResolveClipValue(value, col));
+                Context.Builder.whereIsOrNull(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
             }
             return this;
         }
@@ -189,7 +189,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col), op);
+                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
             }
             return this;
         }
@@ -202,7 +202,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsNullOR(field, EnumColumnMapping.ResolveClipValue(value, col), op);
+                Context.Builder.whereIsNullOR(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
             }
             return this;
         }
@@ -215,7 +215,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereVsOrNull(field, EnumColumnMapping.ResolveClipValue(value, col), op);
+                Context.Builder.whereVsOrNull(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
             }
             return this;
         }
@@ -303,7 +303,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col), op);
+                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
             }
             return this;
         }
@@ -340,14 +340,15 @@ namespace mooSQL.data
             return this;
         }
 
-        static List<object> ResolveEnumInValues<R>(IEnumerable<R> values, EntityColumn col)
+        List<object> ResolveEnumInValues<R>(IEnumerable<R> values, EntityColumn col)
         {
             var list = new List<object>();
             if (values == null) return list;
+            var exp = Context.Builder.Dialect.expression;
             foreach (var v in values)
             {
                 if (v == null) continue;
-                list.Add(EnumColumnMapping.ResolveClipValue(v, col));
+                list.Add(exp.ResolveColumnValue(v, col));
             }
             return list;
         }
@@ -380,7 +381,7 @@ namespace mooSQL.data
                 var field = provider.PatchOutField(fieldSelector, out var col);
                 if (!string.IsNullOrWhiteSpace(field))
                 {
-                    Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col));
+                    Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
                 }
             }
             Context.Builder.rise();

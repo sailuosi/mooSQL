@@ -147,7 +147,7 @@ namespace mooSQL.data.clip
                     var leftVal = VisitToGotValue(node.Left);
                     if (leftVal != null)
                     {
-                        wh.leftValue = EnumColumnMapping.ResolveClipValue(leftVal, leftCol);
+                        wh.leftValue = Builder.Dialect.expression.ResolveColumnValue(leftVal, leftCol);
                     }
                     else
                     {
@@ -169,7 +169,7 @@ namespace mooSQL.data.clip
                         var constant = VisitToGotValue(node.Right);
                         if (constant != null)
                         {
-                            wh.value = EnumColumnMapping.ResolveClipValue(constant, leftCol);
+                            wh.value = Builder.Dialect.expression.ResolveColumnValue(constant, leftCol);
                             wh.paramed = true;
                             Builder.where(wh);
                         }

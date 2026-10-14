@@ -18,21 +18,22 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ResolveClipValue_UndefinedColumn_ShouldBeUnderlyingInt()
+        public void ResolveColumnValue_UndefinedColumn_ShouldBeUnderlyingInt()
         {
-            var v = EnumColumnMapping.ResolveClipValue(TestMenuTypeEnum.Btn, null);
+            var db = TestDatabaseHelper.CreateTestDBInstance();
+            var v = db.dialect.expression.ResolveColumnValue(TestMenuTypeEnum.Btn, null);
             v.Should().Be(2);
             v.Should().BeOfType<int>();
         }
 
         [Fact]
-        public void ResolveClipValue_VarCharColumn_ShouldBeEnumName()
+        public void ResolveColumnValue_VarCharColumn_ShouldBeEnumName()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var en = db.client.EntityCash.getEntityInfo<TestEnumMenu>();
             var col = en.Columns.First(c => c.DbColumnName == "status");
             col.DataType.Should().Be(DataFam.VarChar);
-            var v = EnumColumnMapping.ResolveClipValue(TestMenuTypeEnum.Btn, col);
+            var v = db.dialect.expression.ResolveColumnValue(TestMenuTypeEnum.Btn, col);
             v.Should().Be("Btn");
         }
 

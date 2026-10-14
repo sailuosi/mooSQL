@@ -177,6 +177,7 @@ namespace mooSQL.data
                 if (col.IsPrimarykey && val == null ) {
                     val = this.loadPKValue(col);
                 }
+                val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 setInsertFieldValue(builder, col, val,en);
             }
 
@@ -286,7 +287,7 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                var val = col.PropertyInfo.GetValue(entity);
+                var val = builder.Dialect.expression.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
                 // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤
                 if (col.IsPrimarykey)
                 {
@@ -349,11 +350,12 @@ namespace mooSQL.data
                 return new StatusResult(false, "实体类无法确定目标写入表！");
 
             bool gotWhere = false;
+            var exp = builder.Dialect.expression;
             foreach (var col in en.Columns)
             {
                 if (!col.IsPrimarykey) continue;
                 if (col.IsIgnore) continue;
-                var pkVal = col.PropertyInfo.GetValue(entity);
+                var pkVal = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
                 if (pkVal == null)
                     return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
                 builder.where(col.DbColumnName, pkVal);
@@ -371,13 +373,14 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 if (CheckEdition(builder.DBLive, col) == false) continue;
 
+                var memberVal = exp.ResolveColumnValue(kv.Value, col);
                 if (isCumulation)
                 {
-                    setCumulationFieldValue(builder, col, kv.Value);
+                    setCumulationFieldValue(builder, col, memberVal);
                 }
                 else
                 {
-                    setUpdateFieldValue(builder, col, kv.Value, en);
+                    setUpdateFieldValue(builder, col, memberVal, en);
                 }
                 setCount++;
             }
@@ -417,6 +420,7 @@ namespace mooSQL.data
             // 形如：Score = Score + @p  —— 用 set(key, rawExpr, paramed:false) 无法自动加参，
             // 故采用：set(col, 拼接后由方言处理较难)；简化为两次——先参数化 delta 到表达式。
             var colName = col.DbColumnName;
+            delta = kit.Dialect.expression.ResolveColumnValue(delta, col);
             // 使用参数化 set 的变体：值侧写成 "col+{value}" 不成立。
             // 实践：set(colName, delta) 会变成 col=@p；累加需 raw。
             // 将 delta 作为独立参数名嵌入 raw 字符串风险高；此处用 builder.set(col, col + "+" + literal) 仅数值。
@@ -474,9 +478,10 @@ namespace mooSQL.data
         {
             bool gotWhere = false;
             var pks = en.GetPK();
+            var exp = builder.Dialect.expression;
             foreach (var col in pks)
             {
-                var val = col.PropertyInfo.GetValue(entity);
+                var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
                 if (val == null)
                 {
                     throw new Exception("设置主键失败！要操作的实体属性其where条件字段值为空！");
@@ -499,20 +504,22 @@ namespace mooSQL.data
         {
             bool gotWhere = false;
             var pks = en.GetPK();
+            var exp = builder.Dialect.expression;
             if (pks.Count == 1)
             {
                 var pkValues = new List<object>();
-                var prop = pks[0].PropertyInfo;
+                var pkCol = pks[0];
+                var prop = pkCol.PropertyInfo;
                 foreach (var row in entitys)
                 {
-                    var val = prop.GetValue(row);
+                    var val = exp.ResolveColumnValue(prop.GetValue(row), pkCol);
                     if (val != null)
                     {
                         pkValues.Add(val);
                     }
 
                 }
-                builder.whereIn(pks[0].DbColumnName, pkValues);
+                builder.whereIn(pkCol.DbColumnName, pkValues);
             }
             else if (pks.Count > 1) {
                 //联合主键，需要用or处理
@@ -521,7 +528,7 @@ namespace mooSQL.data
                     builder.sink();
                     foreach (var col in pks) {
 
-                        var val = col.PropertyInfo.GetValue(row);
+                        var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(row), col);
                         if (val != null)
                         {
                             builder.where(col.DbColumnName, val);
@@ -606,7 +613,14 @@ namespace mooSQL.data
             {
                 builder.setTable(tbname);
             }
-            builder.whereIn(pk.DbColumnName, ids);
+            var exp = builder.Dialect.expression;
+            var converted = new List<object>();
+            foreach (var id in ids)
+            {
+                if (id == null) continue;
+                converted.Add(exp.ResolveColumnValue(id, pk));
+            }
+            builder.whereIn(pk.DbColumnName, converted);
 
             //触发删除解析后钩子
             this.fireReadyDelete(builder, ids, en.Type, en);
@@ -640,7 +654,7 @@ namespace mooSQL.data
             {
                 throw new Exception("实体类无法确定目标写入表！");
             }
-            builder.where(pk.DbColumnName, id);
+            builder.where(pk.DbColumnName, builder.Dialect.expression.ResolveColumnValue(id, pk));
 
             //触发删除解析后钩子
             this.fireReadyDelete(builder, id, en.Type, en);
@@ -673,12 +687,13 @@ namespace mooSQL.data
             }
 
             bool gotWhere = false;
+            var exp = builder.Dialect.expression;
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                var val = col.PropertyInfo.GetValue(entity);
+                var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
                 if (col.PropertyName == updateKey)
                 {
                     if (val == null)
