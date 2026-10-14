@@ -32,6 +32,34 @@ namespace mooSQL.Pure.Tests.TestHelpers
     }
 
     /// <summary>
+    /// 枚举默认整型映射测试用状态。
+    /// </summary>
+    public enum TestMenuTypeEnum
+    {
+        Dir = 0,
+        Menu = 1,
+        Btn = 2,
+    }
+
+    /// <summary>
+    /// 含默认枚举列（无自定义 DataType）与显式 VarChar 枚举列。
+    /// </summary>
+    [SooTable("test_enum_menu")]
+    public class TestEnumMenu
+    {
+        [SooColumn("id", IsPrimaryKey = true)]
+        public int Id { get; set; }
+
+        /// <summary>无 DataType：建表与 Clip 应走底层 int。</summary>
+        [SooColumn("type")]
+        public TestMenuTypeEnum Type { get; set; }
+
+        /// <summary>显式字符串：应保持 varchar，Clip 绑枚举名。</summary>
+        [SooColumn("status", DataType = DataFam.VarChar, Length = 32)]
+        public TestMenuTypeEnum Status { get; set; }
+    }
+
+    /// <summary>
     /// 测试用的订单实体类
     /// </summary>
     [SooTable("test_orders")]

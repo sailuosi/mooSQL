@@ -287,6 +287,11 @@ namespace mooSQL.data
                 {
                     return new DbDataType(DataFam.Decimal, field.Length, field.Precision, field.Scale);
                 }
+                var enumFam = EnumColumnMapping.TryMapClrTypeToDataFam(valType);
+                if (enumFam != DataFam.Undefined)
+                {
+                    return new DbDataType(enumFam);
+                }
                 if (field.Length == 0)
                 {
                     field.Length = this.defaultFieldLength;

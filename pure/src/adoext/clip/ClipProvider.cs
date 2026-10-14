@@ -90,53 +90,8 @@ namespace mooSQL.data.clip
 
         private string TranslateField(Expression expression)
         {
-            // 待增加解析缓存。
-            var parser = new ClipExpSameCheckor();
-            var hashcode= parser.GetHashCode(expression);
-            /* 依据表达式的结构，创建缓存ID, 
-             * Clip表达式的所有表变量，都在闭包变量中
-             * 需要从表达式的闭包变量，依据字段别名，找到当前新的闭包表变量值，然后把表变量名替换进去。
-             */
-
-            ClipFieldParsed target = null;
-            if (ClipLinqParseCache.Cache.TryGetValue(hashcode, out target))
-            {
-                //var sw = Stopwatch.StartNew();
-
-                foreach (var fie in target.ClipFields) { 
-                    foreach (var cont in parser.constantVals) {
-                        //检查是否为闭包变量，如果是闭包变量，则替换别名。
-                        if (ClosureInspector.IsClosureClass(cont.Type))
-                        {
-                            var v = ClosureInspector.GetFieldValueN(cont.Value, fie.SQLAlias);
-                            if (v != null)
-                            {
-                                if (clip.Context.BindTables.TryGetValue(v,out var tb))
-                                {
-                                    if(string.IsNullOrWhiteSpace( tb.Alias) ) {
-                                        tb.Alias = fie.SQLAlias;
-                                    }
-                                }
-                            }
-                        }
-                    }                
-                }
-                //sw.Stop();
-                //Console.WriteLine($"命中表达式缓存，执行耗时: {sw.ElapsedTicks}ms");
-            }
-            else {
-                //var sw = Stopwatch.StartNew();
-                var context = new FastCompileContext();
-                context.initByBuilder(clip.Context.Builder);
-                var fidv = new ClipFieldVisitor(context, true, clip);
-                var fie = fidv.Visit(expression);  
-                target = new ClipFieldParsed();
-                target.ClipFields = fidv.ClipFields;
-                ClipLinqParseCache.Cache.Add(hashcode, target);
-                //sw.Stop();
-                //Console.WriteLine($"未命中表达式缓存，执行耗时: {sw.ElapsedTicks}ms");
-            }
-
+            var target = ResolveFieldParsed(expression);
+            if (target == null) return null;
 
             bool needAlias = true;
             if (clip.Context.BType == BuildSQLType.Edit) { 
@@ -147,6 +102,52 @@ namespace mooSQL.data.clip
                 return sql;
             }
             return null;
+        }
+
+        /// <summary>
+        /// 解析字段表达式（带缓存），返回含 <see cref="ClipExpField.EnColumn"/> 的结果。
+        /// </summary>
+        private ClipFieldParsed ResolveFieldParsed(Expression expression)
+        {
+            var parser = new ClipExpSameCheckor();
+            var hashcode = parser.GetHashCode(expression);
+
+            ClipFieldParsed target = null;
+            if (ClipLinqParseCache.Cache.TryGetValue(hashcode, out target))
+            {
+                foreach (var fie in target.ClipFields)
+                {
+                    foreach (var cont in parser.constantVals)
+                    {
+                        if (ClosureInspector.IsClosureClass(cont.Type))
+                        {
+                            var v = ClosureInspector.GetFieldValueN(cont.Value, fie.SQLAlias);
+                            if (v != null)
+                            {
+                                if (clip.Context.BindTables.TryGetValue(v, out var tb))
+                                {
+                                    if (string.IsNullOrWhiteSpace(tb.Alias))
+                                    {
+                                        tb.Alias = fie.SQLAlias;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var context = new FastCompileContext();
+                context.initByBuilder(clip.Context.Builder);
+                var fidv = new ClipFieldVisitor(context, true, clip);
+                fidv.Visit(expression);
+                target = new ClipFieldParsed();
+                target.ClipFields = fidv.ClipFields;
+                ClipLinqParseCache.Cache.Add(hashcode, target);
+            }
+
+            return target;
         }
 
         private string TranslateFieldToSelect(Expression expression,out int fieldCount)
@@ -198,6 +199,23 @@ namespace mooSQL.data.clip
         public string PatchOutField(Expression expression) {
             var field = this.TranslateField(expression);
             return field;
+        }
+
+        /// <summary>
+        /// 解析字段 SQL，并输出实体列映射（供枚举值按列类型变换）。
+        /// </summary>
+        public string PatchOutField(Expression expression, out EntityColumn column)
+        {
+            column = null;
+            var target = ResolveFieldParsed(expression);
+            if (target?.ClipFields != null && target.ClipFields.Count > 0)
+                column = target.ClipFields[0].EnColumn;
+
+            bool needAlias = true;
+            if (clip.Context.BType == BuildSQLType.Edit)
+                needAlias = false;
+            var sql = target?.GetFieldCondtionSQL(needAlias);
+            return string.IsNullOrWhiteSpace(sql) ? null : sql;
         }
 
         public void PatchGroupBy(Expression exp) {

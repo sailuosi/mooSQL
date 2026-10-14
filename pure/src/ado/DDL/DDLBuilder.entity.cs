@@ -844,16 +844,24 @@ namespace mooSQL.data
                 if (valType.IsGenericType && valType.GetGenericTypeDefinition() == typeof(Nullable<>))
                     valType = Nullable.GetUnderlyingType(valType)!;
 
-                item.DataType = valType switch
+                var enumFam = EnumColumnMapping.TryMapClrTypeToDataFam(valType);
+                if (enumFam != DataFam.Undefined)
                 {
-                    not null when valType == typeof(string) => DataFam.VarChar,
-                    not null when valType == typeof(Guid) => DataFam.Guid,
-                    not null when valType == typeof(DateTime) => DataFam.DateTime,
-                    not null when valType == typeof(bool) => DataFam.Boolean,
-                    not null when valType == typeof(int) => DataFam.Int32,
-                    not null when valType == typeof(long) => DataFam.Int64,
-                    _ => DataFam.VarChar
-                };
+                    item.DataType = enumFam;
+                }
+                else
+                {
+                    item.DataType = valType switch
+                    {
+                        not null when valType == typeof(string) => DataFam.VarChar,
+                        not null when valType == typeof(Guid) => DataFam.Guid,
+                        not null when valType == typeof(DateTime) => DataFam.DateTime,
+                        not null when valType == typeof(bool) => DataFam.Boolean,
+                        not null when valType == typeof(int) => DataFam.Int32,
+                        not null when valType == typeof(long) => DataFam.Int64,
+                        _ => DataFam.VarChar
+                    };
+                }
             }
             else if (!Enum.IsDefined(typeof(DataFam), item.DataType) || item.DataType == DataFam.Undefined)
             {

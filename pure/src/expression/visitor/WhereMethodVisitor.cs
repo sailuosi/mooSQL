@@ -15,7 +15,14 @@ namespace mooSQL.linq
 
         private FastCompileContext _context;
 
-        private ConditionVisitor Buddy;
+        /// <summary>
+        /// 关联的条件访问器（SQLClip 子类可复用字段解析）。
+        /// </summary>
+        protected ConditionVisitor Buddy { get; }
+        /// <summary>
+        /// 当前编译上下文。
+        /// </summary>
+        protected FastCompileContext CompileContext => _context;
         public WhereMethodVisitor(FastCompileContext cont,ConditionVisitor link) {
             this.Buddy = link;
             this._context = cont;

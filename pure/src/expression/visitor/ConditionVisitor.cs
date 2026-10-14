@@ -253,7 +253,10 @@ namespace mooSQL.linq
             return node;
         }
 
-        private string GetCompareOp(ExpressionType type)
+        /// <summary>
+        /// 将表达式节点类型映射为比较运算符文本；不支持时返回 null。
+        /// </summary>
+        protected string GetCompareOp(ExpressionType type)
         {
             switch (type)
             {

@@ -141,10 +141,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip where<R>(Expression<Func<R>> fieldSelector, R value)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, value);
+                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col));
             }
             return this;
         }
@@ -157,10 +157,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip whereIsOrNull<R>(Expression<Func<R>> fieldSelector, R value)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsOrNull(field, value);
+                Context.Builder.whereIsOrNull(field, EnumColumnMapping.ResolveClipValue(value, col));
             }
             return this;
         }
@@ -186,10 +186,10 @@ namespace mooSQL.data
             {
                 return this;
             }
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, value, op);
+                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col), op);
             }
             return this;
         }
@@ -199,10 +199,10 @@ namespace mooSQL.data
         /// </summary>
         public SQLClip whereIsNullOR<R>(Expression<Func<R>> fieldSelector, R value, string op)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsNullOR(field, value, op);
+                Context.Builder.whereIsNullOR(field, EnumColumnMapping.ResolveClipValue(value, col), op);
             }
             return this;
         }
@@ -212,10 +212,10 @@ namespace mooSQL.data
         /// </summary>
         public SQLClip whereVsOrNull<R>(Expression<Func<R>> fieldSelector, R value, string op)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereVsOrNull(field, value, op);
+                Context.Builder.whereVsOrNull(field, EnumColumnMapping.ResolveClipValue(value, col), op);
             }
             return this;
         }
@@ -300,10 +300,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip where<R>(Expression<Func<R>> fieldSelector, R value, string op)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.where(field, value, op);
+                Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col), op);
             }
             return this;
         }
@@ -316,11 +316,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip whereIn<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)
         {
-            //Builder.orderBy(orderCondition);
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIn(field, values);
+                Context.Builder.whereIn(field, ResolveEnumInValues(values, col));
             }
             return this;
         }
@@ -333,12 +332,24 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip whereIn<R>(Expression<Func<R>> fieldSelector,params R[] values)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIn(field, values);
+                Context.Builder.whereIn(field, ResolveEnumInValues(values, col));
             }
             return this;
+        }
+
+        static List<object> ResolveEnumInValues<R>(IEnumerable<R> values, EntityColumn col)
+        {
+            var list = new List<object>();
+            if (values == null) return list;
+            foreach (var v in values)
+            {
+                if (v == null) continue;
+                list.Add(EnumColumnMapping.ResolveClipValue(v, col));
+            }
+            return list;
         }
         /// <summary>
         /// 子查询采用SQLBuilder方式构造where in语句
@@ -366,10 +377,10 @@ namespace mooSQL.data
         public SQLClip whereAnyFieldIs<R>(R value, params Expression<Func<R>>[] fieldSelectors) {
             Context.Builder.sinkOR();
             foreach (var fieldSelector in fieldSelectors) {
-                var field = provider.PatchOutField(fieldSelector);
+                var field = provider.PatchOutField(fieldSelector, out var col);
                 if (!string.IsNullOrWhiteSpace(field))
                 {
-                    Context.Builder.where(field, value);
+                    Context.Builder.where(field, EnumColumnMapping.ResolveClipValue(value, col));
                 }
             }
             Context.Builder.rise();
@@ -385,11 +396,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, IEnumerable<R> values)
         {
-            //Builder.orderBy(orderCondition);
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereNotIn(field, values);
+                Context.Builder.whereNotIn(field, ResolveEnumInValues(values, col));
             }
             return this;
         }
@@ -402,10 +412,10 @@ namespace mooSQL.data
         /// <returns></returns>
         public SQLClip whereNotIn<R>(Expression<Func<R>> fieldSelector, params R[] values)
         {
-            var field = provider.PatchOutField(fieldSelector);
+            var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereNotIn(field, values);
+                Context.Builder.whereNotIn(field, ResolveEnumInValues(values, col));
             }
             return this;
         }
