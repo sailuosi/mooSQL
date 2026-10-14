@@ -17,6 +17,18 @@ namespace mooSQL.data
             _selectAutoIncrement = "";
             _provideType = "Oscar.ManagedDataAccess.Client.OscarClientFactory,Oscar.ManagedDataAccess";
         }
+
+        /// <inheritdoc/>
+        public override NameCaseMode DefaultNameCase => NameCaseMode.ToUpper;
+        /// <inheritdoc/>
+        public override NameQuoteMode DefaultNameQuote => NameQuoteMode.IfNeeded;
+        /// <inheritdoc/>
+        public override bool FoldsUnquotedNames => true;
+
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.Oracle;
+
         /// <inheritdoc/>
         public override string wrapKeyword(string value)
         {

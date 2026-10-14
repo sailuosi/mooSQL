@@ -17,6 +17,11 @@ namespace mooSQL.data
             _selectAutoIncrement = "";
             _provideType = "";
         }
+
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.MySql;
+
         /// <inheritdoc/>
         public override string wrapKeyword(string value)
         {

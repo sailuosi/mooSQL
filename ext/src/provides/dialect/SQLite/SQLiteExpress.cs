@@ -23,6 +23,10 @@ namespace mooSQL.data
             _provideType = "SQLite.Data.SQLiteClient.SQLiteClientFactory,SQLite.Data";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.SQLite;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("[") && value.EndsWith("]"))

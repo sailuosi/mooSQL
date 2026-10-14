@@ -18,6 +18,10 @@ namespace mooSQL.data
             _provideType = "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.SqlServer;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("[") && value.EndsWith("]")) { 

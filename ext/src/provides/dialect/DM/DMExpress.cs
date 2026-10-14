@@ -16,6 +16,17 @@ namespace mooSQL.data
             _provideType = "Dm.DmClientFactory,DM.DmProvider";
         }
 
+        /// <inheritdoc/>
+        public override NameCaseMode DefaultNameCase => NameCaseMode.ToUpper;
+        /// <inheritdoc/>
+        public override NameQuoteMode DefaultNameQuote => NameQuoteMode.IfNeeded;
+        /// <inheritdoc/>
+        public override bool FoldsUnquotedNames => true;
+
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.Oracle;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("\"") && value.EndsWith("\""))

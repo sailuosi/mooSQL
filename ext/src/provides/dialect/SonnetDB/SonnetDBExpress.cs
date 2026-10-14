@@ -18,6 +18,10 @@ namespace mooSQL.data
             _provideType = "SonnetDB.Data.SndbProviderFactory,SonnetDB.Data";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.Ansi;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("\"") && value.EndsWith("\""))

@@ -58,5 +58,40 @@ namespace mooSQL.data
         ToIntString = 3,
     }
 
+    /// <summary>
+    /// 表/列名大小写策略。None = 未在连接上配置，回退方言 <see cref="SQLExpression.DefaultNameCase"/>。
+    /// </summary>
+    public enum NameCaseMode
+    {
+        /// <summary>空白：未指定，使用方言默认。</summary>
+        None = 0,
+        /// <summary>显式保持映射名大小写，不做 ToUpper/ToLower。</summary>
+        Keep = 1,
+        /// <summary>转为大写（常见于 Oracle 未加引号约定）。</summary>
+        ToUpper = 2,
+        /// <summary>转为小写（常见于 PostgreSQL 未加引号约定）。</summary>
+        ToLower = 3,
+    }
+
+    /// <summary>
+    /// 表/列名包裹策略。None = 未在连接上配置，回退方言 <see cref="SQLExpression.DefaultNameQuote"/>。
+    /// 引号字符由方言 <see cref="SQLExpression.wrapKeyword"/> 决定。
+    /// </summary>
+    public enum NameQuoteMode
+    {
+        /// <summary>空白：未指定，使用方言默认。</summary>
+        None = 0,
+        /// <summary>凡纯标识符一律加方言引号。</summary>
+        Always = 1,
+        /// <summary>仅当命中方言保留字时加引号。</summary>
+        KeywordsOnly = 2,
+        /// <summary>一律不加引号（依赖库的默认折叠规则）。</summary>
+        Never = 3,
+        /// <summary>
+        /// 按需：保留字、非法形态，或 Keep 下含大写且方言会折叠未加引号名时加引号。
+        /// </summary>
+        IfNeeded = 4,
+    }
+
 }
 

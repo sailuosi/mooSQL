@@ -551,14 +551,14 @@ namespace mooSQL.data
             if (sourceCols.Count == 0)
                 return false;
 
-            var merge = kit.mergeInto(table, "t");
+            var merge = kit.mergeInto(exp.wrapTable(table), "t");
             merge.from("s", src =>
             {
                 var parts = new List<string>();
                 foreach (var kv in sourceCols)
                 {
                     var pname = src.addPara("u_" + kv.Key, kv.Value);
-                    parts.Add(pname + " AS " + kv.Key);
+                    parts.Add(pname + " AS " + exp.wrapField(kv.Key));
                 }
                 src.select(string.Join(", ", parts));
             });
@@ -569,7 +569,8 @@ namespace mooSQL.data
                 var col = FindColumn(constraints[i]);
                 if (col == null) continue;
                 if (on.Length > 0) on.Append(" AND ");
-                on.Append("t.").Append(col.DbColumnName).Append("=s.").Append(col.DbColumnName);
+                var cname = exp.wrapField(col.DbColumnName);
+                on.Append("t.").Append(cname).Append("=s.").Append(cname);
             }
             if (on.Length == 0) return false;
             merge.on(on.ToString());
@@ -579,14 +580,20 @@ namespace mooSQL.data
                 merge.whenMatchThenUpdate(u =>
                 {
                     foreach (var kv in updateCols)
-                        u.set(kv.Key, "s." + kv.Key, false);
+                    {
+                        var cname = exp.wrapField(kv.Key);
+                        u.set(cname, "s." + cname, false);
+                    }
                 });
             }
 
             merge.whenNotMatchThenInsert(ins =>
             {
                 foreach (var kv in insertCols)
-                    ins.set(kv.Key, "s." + kv.Key, false);
+                {
+                    var cname = exp.wrapField(kv.Key);
+                    ins.set(cname, "s." + cname, false);
+                }
             });
 
             var cmd = merge.toMergeInto();

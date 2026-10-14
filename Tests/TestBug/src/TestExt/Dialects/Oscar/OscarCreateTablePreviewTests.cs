@@ -9,7 +9,7 @@ namespace TestMooSQL.src;
 public class OscarCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE HH_SysConfig ( Id bigint NOT NULL,OrderNo integer NULL,Code varchar(64) NULL,Enabled boolean NOT NULL,Amount numeric(18,2) NULL,CreatedAt timestamp NULL,RowId uuid NULL,Remark text NULL,Payload json NULL,Meta jsonb NULL,BlobData bytea NULL,Embedding vector(8) NULL)
+CREATE TABLE HH_SYSCONFIG ( ID bigint NOT NULL,ORDERNO integer NULL,CODE varchar(64) NULL,ENABLED boolean NOT NULL,AMOUNT numeric(18,2) NULL,CREATEDAT timestamp NULL,""ROWID"" uuid NULL,REMARK text NULL,PAYLOAD json NULL,META jsonb NULL,BLOBDATA bytea NULL,EMBEDDING vector(8) NULL)
 ";
 
     [Fact]

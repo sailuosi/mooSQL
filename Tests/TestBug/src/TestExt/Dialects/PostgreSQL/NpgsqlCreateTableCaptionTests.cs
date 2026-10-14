@@ -8,7 +8,7 @@ namespace TestMooSQL.src;
 
 /// <summary>
 /// PostgreSQL 建表 DDL：CREATE TABLE 与 COMMENT ON 须为独立语句；
-/// 默认不自动加引号；strictCase / 手工引号时列名与主键标识符须一致。
+/// 默认 ToLower+Never 不加引号；Keep+Always / 手工引号时列名与主键标识符须一致。
 /// </summary>
 public class NpgsqlCreateTableCaptionTests
 {

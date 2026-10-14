@@ -67,9 +67,14 @@ namespace mooSQL.data
         public bool writable = true;
 
         /// <summary>
-        /// 实体→DDL 时标识符是否严格保留大小写（加方言引号）。null 表示未定义，由 DBTableCreator 回退后默认 false。
+        /// 表/列名大小写策略。默认 <see cref="NameCaseMode.None"/>（未配置，回退方言默认）。
         /// </summary>
-        public bool? StrictCase { get; set; }
+        public NameCaseMode NameCase { get; set; } = NameCaseMode.None;
+
+        /// <summary>
+        /// 表/列名包裹策略。默认 <see cref="NameQuoteMode.None"/>（未配置，回退方言默认）。
+        /// </summary>
+        public NameQuoteMode NameQuote { get; set; } = NameQuoteMode.None;
 
         //private Dialect _lect = null;
         /// <summary>
@@ -190,6 +195,22 @@ namespace mooSQL.data
         public DataBase setWritable(bool value)
         {
             this.writable = value;
+            return this;
+        }
+        /// <summary>
+        /// 设置表/列名大小写策略。
+        /// </summary>
+        public DataBase setNameCase(NameCaseMode mode)
+        {
+            this.NameCase = mode;
+            return this;
+        }
+        /// <summary>
+        /// 设置表/列名包裹策略。
+        /// </summary>
+        public DataBase setNameQuote(NameQuoteMode mode)
+        {
+            this.NameQuote = mode;
             return this;
         }
         /// <summary>

@@ -9,7 +9,7 @@ namespace TestMooSQL.src;
 public class TaosCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE HH_SysConfig ( Id INTEGER NOT NULL,OrderNo INTEGER NULL,Code TEXT NULL,Enabled INTEGER NOT NULL,Amount REAL NULL,CreatedAt TEXT NULL,RowId TEXT NULL,Remark TEXT NULL,Payload TEXT NULL,Meta TEXT NULL,BlobData BLOB NULL,Embedding TEXT NULL)
+CREATE TABLE `HH_SysConfig` ( `Id` INTEGER NOT NULL,`OrderNo` INTEGER NULL,`Code` TEXT NULL,`Enabled` INTEGER NOT NULL,`Amount` REAL NULL,`CreatedAt` TEXT NULL,`RowId` TEXT NULL,`Remark` TEXT NULL,`Payload` TEXT NULL,`Meta` TEXT NULL,`BlobData` BLOB NULL,`Embedding` TEXT NULL)
 ";
 
     [Fact]

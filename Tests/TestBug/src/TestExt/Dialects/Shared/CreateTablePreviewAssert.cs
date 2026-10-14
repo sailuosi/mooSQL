@@ -13,8 +13,25 @@ public static class CreateTablePreviewAssert
     public static string PreviewCreateTableSql(DBInstance db)
         => db.useSQL().useDBInit().preview().createTable<SysConfig>().Result;
 
+    /// <summary>
+    /// Keep + Always：保留映射名大小写并加方言引号（原 StrictCase 行为）。
+    /// </summary>
     public static string PreviewCreateTableSqlStrict(DBInstance db)
-        => db.useSQL().useDBInit().strictCase().preview().createTable<SysConfig>().Result;
+    {
+        var oldCase = db.config.NameCase;
+        var oldQuote = db.config.NameQuote;
+        try
+        {
+            db.config.NameCase = NameCaseMode.Keep;
+            db.config.NameQuote = NameQuoteMode.Always;
+            return PreviewCreateTableSql(db);
+        }
+        finally
+        {
+            db.config.NameCase = oldCase;
+            db.config.NameQuote = oldQuote;
+        }
+    }
 
     public static string NormalizeWhitespace(string s)
         => Regex.Replace(s ?? string.Empty, @"\s+", string.Empty);

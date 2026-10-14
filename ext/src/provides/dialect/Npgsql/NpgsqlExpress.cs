@@ -17,6 +17,17 @@ namespace mooSQL.data
             _provideType = "Npgsql.NpgsqlFactory,Npgsql";
         }
 
+        /// <inheritdoc/>
+        public override NameCaseMode DefaultNameCase => NameCaseMode.ToLower;
+        /// <inheritdoc/>
+        public override NameQuoteMode DefaultNameQuote => NameQuoteMode.IfNeeded;
+        /// <inheritdoc/>
+        public override bool FoldsUnquotedNames => true;
+
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.PostgreSQL;
+
         public override string wrapKeyword(string value)
         {
             if(value.StartsWith("\"") && value.EndsWith("\""))

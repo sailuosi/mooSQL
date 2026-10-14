@@ -18,6 +18,10 @@ namespace mooSQL.data
             _provideType = "DuckDB.NET.Data.DuckDBClientFactory,DuckDB.NET.Data";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.PostgreSQL;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("\"") && value.EndsWith("\""))

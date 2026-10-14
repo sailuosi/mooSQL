@@ -26,6 +26,17 @@ namespace mooSQL.data
             _provideType = "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess";
             _oracleDialect = dia;
         }
+
+        /// <inheritdoc/>
+        public override NameCaseMode DefaultNameCase => NameCaseMode.ToUpper;
+        /// <inheritdoc/>
+        public override NameQuoteMode DefaultNameQuote => NameQuoteMode.IfNeeded;
+        /// <inheritdoc/>
+        public override bool FoldsUnquotedNames => true;
+
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.Oracle;
         /// <summary>
         /// Oracle方言对象。
         /// </summary>

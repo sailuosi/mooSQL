@@ -9,7 +9,7 @@ namespace TestMooSQL.src;
 public class CrateDBCreateTablePreviewTests
 {
     const string Expected = @"
-CREATE TABLE HH_SysConfig ( Id bigint NOT NULL,OrderNo integer NULL,Code varchar(64) NULL,Enabled boolean NOT NULL,Amount numeric(18,2) NULL,CreatedAt timestamp NULL,RowId uuid NULL,Remark text NULL,Payload json NULL,Meta jsonb NULL,BlobData bytea NULL,Embedding vector(8) NULL,CONSTRAINT pk_HH_SysConfig PRIMARY KEY (Id))
+CREATE TABLE hh_sysconfig ( id bigint NOT NULL,orderno integer NULL,code varchar(64) NULL,enabled boolean NOT NULL,amount numeric(18,2) NULL,createdat timestamp NULL,rowid uuid NULL,remark text NULL,payload json NULL,meta jsonb NULL,blobdata bytea NULL,embedding vector(8) NULL,CONSTRAINT pk_hh_sysconfig PRIMARY KEY (id))
 ";
 
     [Fact]

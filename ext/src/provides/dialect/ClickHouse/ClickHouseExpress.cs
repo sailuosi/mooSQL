@@ -17,6 +17,10 @@ namespace mooSQL.data
             _provideType = "ClickHouse.Driver.ADO.ClickHouseConnectionFactory,ClickHouse.Driver";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.ClickHouse;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("`") && value.EndsWith("`"))

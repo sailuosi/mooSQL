@@ -21,6 +21,10 @@ namespace mooSQL.data
             _provideType = "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data";
         }
 
+        /// <inheritdoc/>
+        protected override System.Collections.Generic.HashSet<string> GetReservedWords()
+            => SqlReservedWords.MySql;
+
         public override string wrapKeyword(string value)
         {
             if (value.StartsWith("`") && value.EndsWith("`")) { 
