@@ -65,12 +65,26 @@ namespace mooSQL.data
 
         public override SQLCmd buildHasTable(string TableName)
         {
+            var name = ResolvePgCatalogIdent(TableName);
             var cmd = DBLive.useSQL()
                 .from("information_schema.tables")
                 .where("table_schema = CURRENT_SCHEMA()")
-                .where("table_name", TableName)
+                .where("table_name", name)
                 .toSelectCount();
             return cmd;
+        }
+
+        /// <summary>
+        /// 解析用于查 PG 系统目录 / information_schema 的标识符：
+        /// 带双引号则去引号并保留大小写；未加引号则按 PG 规则折叠为小写。
+        /// </summary>
+        static string ResolvePgCatalogIdent(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return name;
+            var trimmed = name.Trim();
+            if (trimmed.Length >= 2 && trimmed[0] == '"' && trimmed[trimmed.Length - 1] == '"')
+                return trimmed.Substring(1, trimmed.Length - 2);
+            return trimmed.ToLowerInvariant();
         }
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
