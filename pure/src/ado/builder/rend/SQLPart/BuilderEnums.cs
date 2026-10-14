@@ -38,7 +38,7 @@ namespace mooSQL.data
     /// <summary>
     /// CLR 枚举写入 ADO 参数时的转换策略（仅绑定阶段生效）。
     /// </summary>
-    public enum EnumParameterConvert
+    public enum EnumParaConvert
     {
         /// <summary>
         /// 不转换，原样写入（默认，兼容现状）。

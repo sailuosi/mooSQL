@@ -93,9 +93,9 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按 <see cref="EnumParameterConvert"/> 转换（供绑定层与测试）；委托 <see cref="ParameterHandler"/>。
+        /// 按 <see cref="EnumParaConvert"/> 转换（供绑定层与测试）；委托 <see cref="ParameterHandler"/>。
         /// </summary>
-        public static object ApplyEnumParameterConvert(object value, EnumParameterConvert mode)
+        public static object ApplyEnumParameterConvert(object value, EnumParaConvert mode)
             => ParameterHandler.ApplyEnumParameterConvert(value, mode);
 
         /// <summary>

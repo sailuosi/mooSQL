@@ -10,27 +10,27 @@ namespace mooSQL.Pure.Tests
     public class EnumParameterConvertTests
     {
         [Theory]
-        [InlineData(EnumParameterConvert.None)]
-        [InlineData(EnumParameterConvert.ToInt)]
-        [InlineData(EnumParameterConvert.ToName)]
-        [InlineData(EnumParameterConvert.ToIntString)]
-        public void ApplyEnumParameterConvert_Modes(EnumParameterConvert mode)
+        [InlineData(EnumParaConvert.None)]
+        [InlineData(EnumParaConvert.ToInt)]
+        [InlineData(EnumParaConvert.ToName)]
+        [InlineData(EnumParaConvert.ToIntString)]
+        public void ApplyEnumParameterConvert_Modes(EnumParaConvert mode)
         {
             var raw = TestMenuTypeEnum.Btn;
             var v = EnumColumnMapping.ApplyEnumParameterConvert(raw, mode);
             switch (mode)
             {
-                case EnumParameterConvert.None:
+                case EnumParaConvert.None:
                     v.Should().Be(raw);
                     break;
-                case EnumParameterConvert.ToInt:
+                case EnumParaConvert.ToInt:
                     v.Should().Be(2);
                     v.Should().BeOfType<int>();
                     break;
-                case EnumParameterConvert.ToName:
+                case EnumParaConvert.ToName:
                     v.Should().Be("Btn");
                     break;
-                case EnumParameterConvert.ToIntString:
+                case EnumParaConvert.ToIntString:
                     v.Should().Be("2");
                     break;
             }
@@ -39,9 +39,9 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void ApplyEnumParameterConvert_NonEnum_Unchanged()
         {
-            EnumColumnMapping.ApplyEnumParameterConvert(42, EnumParameterConvert.ToName)
+            EnumColumnMapping.ApplyEnumParameterConvert(42, EnumParaConvert.ToName)
                 .Should().Be(42);
-            EnumColumnMapping.ApplyEnumParameterConvert("x", EnumParameterConvert.ToInt)
+            EnumColumnMapping.ApplyEnumParameterConvert("x", EnumParaConvert.ToInt)
                 .Should().Be("x");
         }
 
@@ -49,7 +49,7 @@ namespace mooSQL.Pure.Tests
         public void AddCmdPara_ToInt_BindsInt_WithoutMutatingParas()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            db.client.builderOption.EnumParameterConvert = EnumParameterConvert.ToInt;
+            db.client.builderOption.EnumConvert = EnumParaConvert.ToInt;
 
             var paras = new Paras();
             paras.Add("@type", TestMenuTypeEnum.Btn);
@@ -73,7 +73,7 @@ namespace mooSQL.Pure.Tests
         public void AddCmdPara_None_BindsEnumUnchanged()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            db.client.builderOption.EnumParameterConvert = EnumParameterConvert.None;
+            db.client.builderOption.EnumConvert = EnumParaConvert.None;
 
             var paras = new Paras();
             paras.Add("@type", TestMenuTypeEnum.Btn);
@@ -91,7 +91,7 @@ namespace mooSQL.Pure.Tests
         public void AddCmdPara_ToName_BindsEnumName()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            db.client.builderOption.EnumParameterConvert = EnumParameterConvert.ToName;
+            db.client.builderOption.EnumConvert = EnumParaConvert.ToName;
 
             var paras = new Paras();
             paras.Add("@type", TestMenuTypeEnum.Btn);
@@ -110,7 +110,7 @@ namespace mooSQL.Pure.Tests
         public void SQLBuilder_DefaultNone_ParaStillHoldsEnum()
         {
             var kit = TestDatabaseHelper.CreateSQLBuilder();
-            kit.DBLive.client.builderOption.EnumParameterConvert = EnumParameterConvert.None;
+            kit.DBLive.client.builderOption.EnumConvert = EnumParaConvert.None;
             var cmd = kit.select("*").from("test_enum_menu")
                 .where("type", TestMenuTypeEnum.Btn)
                 .toSelect();

@@ -39,22 +39,22 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按 <see cref="EnumParameterConvert"/> 转换枚举，供 ADO 绑定使用。非枚举或 <see cref="EnumParameterConvert.None"/> 原样返回。
+        /// 按 <see cref="EnumParaConvert"/> 转换枚举，供 ADO 绑定使用。非枚举或 <see cref="EnumParaConvert.None"/> 原样返回。
         /// </summary>
-        internal static object ApplyEnumParameterConvert(object value, EnumParameterConvert mode)
+        internal static object ApplyEnumParameterConvert(object value, EnumParaConvert mode)
         {
-            if (value is null || mode == EnumParameterConvert.None)
+            if (value is null || mode == EnumParaConvert.None)
                 return value;
             if (value is not Enum)
                 return value;
 
             switch (mode)
             {
-                case EnumParameterConvert.ToInt:
+                case EnumParaConvert.ToInt:
                     return ToUnderlyingNumeric(value);
-                case EnumParameterConvert.ToName:
+                case EnumParaConvert.ToName:
                     return value.ToString();
-                case EnumParameterConvert.ToIntString:
+                case EnumParaConvert.ToIntString:
                     var num = ToUnderlyingNumeric(value);
                     return Convert.ToString(num, CultureInfo.InvariantCulture);
                 default:

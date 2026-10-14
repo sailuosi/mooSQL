@@ -22,6 +22,6 @@ namespace mooSQL.data
         /// <summary>
         /// 枚举值写入数据库命令参数时的转换策略（仅 <c>Paras</c>→ADO 绑定）。
         /// </summary>
-        public EnumParameterConvert EnumParameterConvert = EnumParameterConvert.None;
+        public EnumParaConvert EnumConvert = EnumParaConvert.None;
     }
 }
