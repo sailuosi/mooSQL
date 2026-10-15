@@ -237,11 +237,34 @@ namespace mooSQL.data
         /// <param name="tbName">表名。</param>
         public abstract SQLBuilder setTable(string tbName);
 
+        private UpdateSetNullOption setNullOption = UpdateSetNullOption.None;
+
         /// <summary>
-        /// 设置当 set 的值对象是 null 时如何处理。
+        /// 解析当前 UPDATE SET 的 NULL 策略（永不为 <see cref="UpdateSetNullOption.None"/>）。
+        /// 优先级：实例 <see cref="configSetNull"/> → <c>Client.builderOption</c> → <see cref="UpdateSetNullOption.IgnoreNull"/>。
+        /// </summary>
+        protected UpdateSetNullOption resolveUpdateSetNullOpt()
+        {
+            if (setNullOption != UpdateSetNullOption.None)
+            {
+                return setNullOption;
+            }
+            if (Client != null && Client.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
+            {
+                return Client.builderOption.UpdateSetNullOpt;
+            }
+            return UpdateSetNullOption.IgnoreNull;
+        }
+
+        /// <summary>
+        /// 设置当 set 的值对象是 null 时如何处理（写在基类，子类共用）。
         /// </summary>
         /// <param name="option">null 值处理策略。</param>
-        public abstract SQLBuilder configSetNull(UpdateSetNullOption option);
+        public virtual SQLBuilder configSetNull(UpdateSetNullOption option)
+        {
+            this.setNullOption = option;
+            return this;
+        }
 
         /// <summary>
         /// 设置一个插入或更新字段的名--值映射。指定是否参数化，是否用于 insert 或 update 语句。

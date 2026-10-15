@@ -163,6 +163,7 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 |------|------|
 | `set(string key, object val)` | 设置字段，paramed 默认 true |
 | `set(string key, object val, bool paramed, Type type, bool updatable, bool insertable)` | 完整参数 |
+| `setInt` / `setLong` / `setShort` / `setByte` / `setBool` / `setDecimal` / `setDouble` / `setFloat` / `setGuid` / `setString` / `setDateTime` / `setTimeSpan` | 弱类型 value 转目标类型后 `set`；失败默认忽略，`UpdateSetNullOpt=AsDBNull` 时 `setToNull` |
 | `setI(string key, object val)` | 仅 insert 用 |
 | `setU(string key, object val)` | 仅 update 用 |
 | `setToNull(string fieldName)` | 设为 null |

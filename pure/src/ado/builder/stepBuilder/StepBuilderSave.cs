@@ -26,33 +26,12 @@ namespace mooSQL.data
 
         #region 字段值赋值
 
-        private UpdateSetNullOption setNullOption = UpdateSetNullOption.None;
         /// <summary>
-        /// 永不会取 None
+        /// 永不会取 None（委托基类 <see cref="SQLBuilder.resolveUpdateSetNullOpt"/>）。
         /// </summary>
         public UpdateSetNullOption UpdateSetNullOpt
         {
-            get { 
-                if(this.setNullOption != UpdateSetNullOption.None)
-                {
-                    return this.setNullOption;
-                }
-                if(this.Client != null && this.Client.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
-                {
-                    return this.Client.builderOption.UpdateSetNullOpt;
-                }
-                return UpdateSetNullOption.IgnoreNull;
-            }
-        }
-
-        /// <summary>
-        /// 设置当set的值对象是null时如何处理。
-        /// </summary>
-        /// <param name="option"></param>
-        /// <returns></returns>
-        public override SQLBuilder configSetNull(UpdateSetNullOption option) { 
-            this.setNullOption = option;
-            return this;
+            get { return resolveUpdateSetNullOpt(); }
         }
 
         /// <summary>

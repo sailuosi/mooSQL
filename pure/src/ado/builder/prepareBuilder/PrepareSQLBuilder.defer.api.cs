@@ -59,7 +59,14 @@ namespace mooSQL.data
         // ---- set ----
         public override SQLBuilder setTable(string tbName) => Enqueue(new SetTablestringStep(tbName));
 
-        public override SQLBuilder configSetNull(UpdateSetNullOption option) => Enqueue(new ConfigSetNullUpdateSetNullOptionStep(option));
+        /// <summary>
+        /// 写入基类配置，并入队以便 materialize 时同步到 Inner。
+        /// </summary>
+        public override SQLBuilder configSetNull(UpdateSetNullOption option)
+        {
+            base.configSetNull(option);
+            return Enqueue(new ConfigSetNullUpdateSetNullOptionStep(option));
+        }
 
         public override SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
         {
