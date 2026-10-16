@@ -6,29 +6,13 @@ outline: deep
 
 ## 【第3代】 .net6/8/10 全面支持版
 
-### 2026-10-16 更新 v8.2.1.5
+### 2026-10-16 更新 v8.2.1.5（PostgreSQL适配）
 - 版本号说明
-    在 v8.2.1.3 之后集中落地：方言家族抽象与多库适配、命名空间梳理、枚举写入策略、标识符大小写/包裹、SQLBuilder 强类型 set / 实体物化，以及 PostgreSQL 建表与表名回落修复。跳过 8.2.1.4，直接发版 **8.2.1.5**（当前 `VersionPrefix`）。
+    与 **v8.2.1.4** 同属 **PostgreSQL 适配** 的重要续版（当前 `VersionPrefix`）。在 1.4 建表 / 枚举修复之后，继续收紧标识符包裹在查询物化路径上的行为，并附带强类型 set、实体物化等体验增强。
 
-- 新增功能——方言家族与数据库适配
-    - **Family 抽象**
-        - MySQL Family：`MySqlFamilyDialect`（MySQL / MariaDB / TiDB / OceanBase MySQL；PolarDB for MySQL 复用 `MySQL`）
-        - PostgreSQL Family：`PgFamilyDialect`（PostgreSQL / CrateDB / openGauss / GaussDB / 人大金仓 R3·R6）
-        - 独立方言：SQL Server、Oracle、达梦、DuckDB、ClickHouse、Taos、SonnetDB、GBase8a、Oscar 等
-    - **新注册 / 增强方言**
-        - MariaDB、TiDB、DuckDB（net6+）、达梦 DM、人大金仓、openGauss / GaussDB、SonnetDB（**仅 net10**）等；PolarDB / ClickHouse / CrateDB 等配套设计文档
-        - `DBVersion` 与驱动钉版本对齐调研（2026-10），刷新各方言版本目录
-    - 清单见 `doc/design/features/方言/数据库支持清单.md`
-
-- 新增功能——枚举写入策略（EnumParaConvert）
-    - 新增 `EnumParaConvert`：`None` / `ToInt` / `ToName` / `ToIntString`（默认 `None`，兼容现状）
-    - 连接位 `DataBase.EnumConvert` / `DBPosition.EnumConvert` 优先；否则回退 `SQLBuilderOption.EnumConvert`
-    - `BaseClientBuilder.useEnumConvert`、`DataBase.setEnumConvert`；各方言统一走参数绑定阶段转换（非 SQL 文本改写）
-
-- 新增功能——标识符大小写与包裹
-    - 新增 `NameCaseMode`（`Keep` / `ToUpper` / `ToLower`）与连接配置 `NameCase` / `setNameCase`
-    - 增强各库标识符包裹与名称归一；修复 PostgreSQL 表名大小写回落后「检测不到表」、建表/注释等相关问题
-    - 全量建表 SQL 字符串校验与 Columns 缓存加固
+- bugfix——PostgreSQL 实体查询
+    - 再次修复 PostgreSQL 下 **实体查询报错**：根因是 **字段名称包裹** 处理不当（查询结果列名与实体映射对不齐）
+    - 配套加固各库标识符包裹与名称归一逻辑
 
 - 新增功能——SQLBuilder 强类型 set / 查询快捷
     - 语法糖：`setInt` / `setLong` / `setBool` / `setGuid` / `setString` / `setDateTime` / `setDecimal` 等；转换失败默认可忽略，`SetNullOpt=AsDBNull` 时写 NULL
@@ -38,8 +22,38 @@ outline: deep
     - `DataRowMaterializer`：`DataRow` / `DataTable` → 实体，语义对齐 `query<T>` 的 `DefaultTypeMap`
     - 扩展：`DBInstance.toEntity<T>(DataRow)` / `toList<T>(DataTable)`
 
+### 2026-10-14 更新 v8.2.1.4（PostgreSQL适配）
+- 版本号说明
+    **10-14 发版**（未跳过）。定位为 **PostgreSQL 适配** 的重要版本：建表链路、枚举写入与标识符大小写/包裹一并落地；同时纳入自 v8.2.1.3 以来的方言家族与命名空间梳理。
+
+- bugfix——PostgreSQL 建表
+    - 适配 PostgreSQL 建表逻辑，修复建表报错
+    - 修复表名大小写回落后「检测不到表」、建表 / 注释相关问题
+    - 全量建表 SQL 字符串校验与 Columns 缓存加固
+
+- bugfix——枚举写入
+    - 修复枚举写入 / 绑定报错（一统各方言写入路径）
+
+- 新增功能——枚举转 int 等配置（EnumParaConvert）
+    - 新增 `EnumParaConvert`：`None` / `ToInt` / `ToName` / `ToIntString`（默认 `None`，兼容现状）
+    - 连接位 `DataBase.EnumConvert` / `DBPosition.EnumConvert` 优先；否则回退 `SQLBuilderOption.EnumConvert`
+    - `BaseClientBuilder.useEnumConvert`、`DataBase.setEnumConvert`；绑定阶段转换（非 SQL 文本改写）
+
+- 新增功能——标识符大小写
+    - 新增 `NameCaseMode`（`Keep` / `ToUpper` / `ToLower`）与连接配置 `NameCase` / `setNameCase`
+
+- 新增功能——方言家族与数据库适配（自 8.2.1.3 累计）
+    - **Family 抽象**
+        - MySQL Family：`MySqlFamilyDialect`（MySQL / MariaDB / TiDB / OceanBase MySQL；PolarDB for MySQL 复用 `MySQL`）
+        - PostgreSQL Family：`PgFamilyDialect`（PostgreSQL / CrateDB / openGauss / GaussDB / 人大金仓 R3·R6）
+        - 独立方言：SQL Server、Oracle、达梦、DuckDB、ClickHouse、Taos、SonnetDB、GBase8a、Oscar 等
+    - **新注册 / 增强方言**
+        - MariaDB、TiDB、DuckDB（net6+）、达梦 DM、人大金仓、openGauss / GaussDB、SonnetDB（**仅 net10**）等
+        - `DBVersion` 与驱动钉版本对齐调研（2026-10）
+    - 清单见 `doc/design/features/方言/数据库支持清单.md`
+
 - 工程 / 兼容
-    - Ext LINQ 等命名空间按规范收敛：业务入口优先 `mooSQL.data`，Queryable / DbFunc 落 `mooSQL.linq`（深度最多再加一层）
+    - Ext LINQ 等命名空间按规范收敛：业务入口优先 `mooSQL.data`，Queryable / DbFunc 落 `mooSQL.linq`
     - 测试工程整理、导航保存与方言建表预览用例扩充
 
 ### 2026-9-22 更新 v8.2.1.3
