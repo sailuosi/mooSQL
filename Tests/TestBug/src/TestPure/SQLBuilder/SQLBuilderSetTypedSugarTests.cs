@@ -57,6 +57,26 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void SetInt_DBNull_Always_SetToNull_Ignoring_Config()
+        {
+            using var b = NewBuilder();
+            b.setTable("t").setInt("age", DBNull.Value);
+
+            Assert.True(b.containSetColumn("age"));
+            Assert.Equal("NULL", b.getSetedValue("age")?.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void SetLong_Converts_And_Writes()
+        {
+            using var b = NewBuilder();
+            b.setTable("t").setLong("big", "9876543210");
+
+            Assert.True(b.containSetColumn("big"));
+            Assert.Equal(9876543210L, Convert.ToInt64(b.getSetedValue("big")));
+        }
+
+        [Fact]
         public void SetString_Converts_NonNull_Object()
         {
             using var b = NewBuilder();

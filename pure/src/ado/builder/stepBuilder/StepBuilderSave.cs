@@ -27,11 +27,11 @@ namespace mooSQL.data
         #region 字段值赋值
 
         /// <summary>
-        /// 永不会取 None（委托基类 <see cref="SQLBuilder.resolveUpdateSetNullOpt"/>）。
+        /// 永不会取 None（委托基类 <see cref="SQLBuilder.SetNullOpt"/>）。
         /// </summary>
         public UpdateSetNullOption UpdateSetNullOpt
         {
-            get { return resolveUpdateSetNullOpt(); }
+            get { return SetNullOpt; }
         }
 
         /// <summary>

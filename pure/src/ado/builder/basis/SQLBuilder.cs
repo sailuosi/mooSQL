@@ -243,18 +243,24 @@ namespace mooSQL.data
         /// 解析当前 UPDATE SET 的 NULL 策略（永不为 <see cref="UpdateSetNullOption.None"/>）。
         /// 优先级：实例 <see cref="configSetNull"/> → <c>Client.builderOption</c> → <see cref="UpdateSetNullOption.IgnoreNull"/>。
         /// </summary>
-        protected UpdateSetNullOption resolveUpdateSetNullOpt()
+        protected UpdateSetNullOption SetNullOpt
         {
-            if (setNullOption != UpdateSetNullOption.None)
-            {
-                return setNullOption;
+            get { 
+                if (setNullOption != UpdateSetNullOption.None)
+                {
+                    return setNullOption;
+                }
+                if (Client != null && Client.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
+                {
+                    return Client.builderOption.UpdateSetNullOpt;
+                }
+                return UpdateSetNullOption.IgnoreNull;            
             }
-            if (Client != null && Client.builderOption.UpdateSetNullOpt != UpdateSetNullOption.None)
-            {
-                return Client.builderOption.UpdateSetNullOpt;
-            }
-            return UpdateSetNullOption.IgnoreNull;
+        
         }
+        
+
+        
 
         /// <summary>
         /// 设置当 set 的值对象是 null 时如何处理（写在基类，子类共用）。

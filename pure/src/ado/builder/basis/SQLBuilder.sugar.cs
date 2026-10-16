@@ -663,428 +663,424 @@ namespace mooSQL.data
             return set(fieldName, "NULL", false);
         }
 
-        private delegate bool TryConvertValue<T>(object value, out T result);
-
         /// <summary>
-        /// 尝试将 value 转为 T 后 set；转换失败时默认忽略，AsDBNull 时 setToNull。
+        /// 值类型转换后 set：DBNull 明确写 NULL（忽略配置）；转换结果 null / 入参 null 时走 SetNullOpt。
         /// </summary>
-        private SQLBuilder setConverted<T>(string key, object value, TryConvertValue<T> tryConvert)
+        private SQLBuilder setConverted<T>(string key, object raw, Func<object, T?> convertor) where T : struct
         {
-            T converted;
-            if (!tryConvert(value, out converted))
+            if (raw == null)
             {
-                if (resolveUpdateSetNullOpt() == UpdateSetNullOption.AsDBNull)
+                if (SetNullOpt == UpdateSetNullOption.AsDBNull)
                 {
                     return setToNull(key);
                 }
                 return this;
             }
-            return set(key, converted, true, typeof(T));
-        }
-
-        private static bool IsNullOrDbNull(object value)
-        {
-            return value == null || value == DBNull.Value;
-        }
-
-        private static bool TryConvertInt(object value, out int result)
-        {
-            result = 0;
-            if (IsNullOrDbNull(value))
+            if (raw == DBNull.Value)
             {
-                return false;
+                return setToNull(key);
             }
-            if (value is int i)
+            var typeValue = convertor(raw);
+            if (typeValue == null)
             {
-                result = i;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
+                if (SetNullOpt == UpdateSetNullOption.AsDBNull)
                 {
-                    result = Convert.ToInt32(value);
-                    return true;
+                    return setToNull(key);
                 }
+                return this;
             }
-            catch
-            {
-            }
-            return int.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertLong(object value, out long result)
-        {
-            result = 0L;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is long l)
-            {
-                result = l;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToInt64(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return long.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertShort(object value, out short result)
-        {
-            result = 0;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is short s)
-            {
-                result = s;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToInt16(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return short.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertByte(object value, out byte result)
-        {
-            result = 0;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is byte b)
-            {
-                result = b;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToByte(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return byte.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertBool(object value, out bool result)
-        {
-            result = false;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is bool b)
-            {
-                result = b;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToBoolean(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return bool.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertDecimal(object value, out decimal result)
-        {
-            result = 0m;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is decimal d)
-            {
-                result = d;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToDecimal(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return decimal.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertDouble(object value, out double result)
-        {
-            result = 0d;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is double d)
-            {
-                result = d;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToDouble(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return double.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertFloat(object value, out float result)
-        {
-            result = 0f;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is float f)
-            {
-                result = f;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToSingle(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return float.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertGuid(object value, out Guid result)
-        {
-            result = Guid.Empty;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is Guid g)
-            {
-                result = g;
-                return true;
-            }
-            return Guid.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertString(object value, out string result)
-        {
-            result = null;
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is string s)
-            {
-                result = s;
-                return true;
-            }
-            result = value.ToString();
-            return true;
-        }
-
-        private static bool TryConvertDateTime(object value, out DateTime result)
-        {
-            result = default(DateTime);
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is DateTime dt)
-            {
-                result = dt;
-                return true;
-            }
-            try
-            {
-                if (value is IConvertible)
-                {
-                    result = Convert.ToDateTime(value);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-            return DateTime.TryParse(value.ToString(), out result);
-        }
-
-        private static bool TryConvertTimeSpan(object value, out TimeSpan result)
-        {
-            result = default(TimeSpan);
-            if (IsNullOrDbNull(value))
-            {
-                return false;
-            }
-            if (value is TimeSpan ts)
-            {
-                result = ts;
-                return true;
-            }
-            return TimeSpan.TryParse(value.ToString(), out result);
+            return set(key, typeValue.Value, true, typeof(T));
         }
 
         /// <summary>
-        /// 将 value 转为 int 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 引用类型（string）转换后 set：逻辑同 <see cref="setConverted{T}"/>。
+        /// </summary>
+        private SQLBuilder setConvertedString(string key, object raw, Func<object, string> convertor)
+        {
+            if (raw == null)
+            {
+                if (SetNullOpt == UpdateSetNullOption.AsDBNull)
+                {
+                    return setToNull(key);
+                }
+                return this;
+            }
+            if (raw == DBNull.Value)
+            {
+                return setToNull(key);
+            }
+            var typeValue = convertor(raw);
+            if (typeValue == null)
+            {
+                if (SetNullOpt == UpdateSetNullOption.AsDBNull)
+                {
+                    return setToNull(key);
+                }
+                return this;
+            }
+            return set(key, typeValue, true, typeof(string));
+        }
+
+        private static int? TryConvertInt(object value)
+        {
+            if (value is int i)
+            {
+                return i;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToInt32(value);
+                }
+            }
+            catch
+            {
+            }
+            if (int.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static long? TryConvertLong(object value)
+        {
+            if (value is long l)
+            {
+                return l;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToInt64(value);
+                }
+            }
+            catch
+            {
+            }
+            if (long.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static short? TryConvertShort(object value)
+        {
+            if (value is short s)
+            {
+                return s;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToInt16(value);
+                }
+            }
+            catch
+            {
+            }
+            if (short.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static byte? TryConvertByte(object value)
+        {
+            if (value is byte b)
+            {
+                return b;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToByte(value);
+                }
+            }
+            catch
+            {
+            }
+            if (byte.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static bool? TryConvertBool(object value)
+        {
+            if (value is bool b)
+            {
+                return b;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToBoolean(value);
+                }
+            }
+            catch
+            {
+            }
+            var s = value.ToString().Trim().ToLower();
+            if (s == "true" || s == "1") return true;
+            if (s == "false" || s == "0") return false;
+
+            return null;
+        }
+
+        private static decimal? TryConvertDecimal(object value)
+        {
+            if (value is decimal d)
+            {
+                return d;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToDecimal(value);
+                }
+            }
+            catch
+            {
+            }
+            if (decimal.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static double? TryConvertDouble(object value)
+        {
+            if (value is double d)
+            {
+                return d;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToDouble(value);
+                }
+            }
+            catch
+            {
+            }
+            if (double.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static float? TryConvertFloat(object value)
+        {
+            if (value is float f)
+            {
+                return f;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToSingle(value);
+                }
+            }
+            catch
+            {
+            }
+            if (float.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static Guid? TryConvertGuid(object value)
+        {
+            if (value is Guid g)
+            {
+                return g;
+            }
+            if (Guid.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static string TryConvertString(object value)
+        {
+            if (value is string s)
+            {
+                return s;
+            }
+            return value.ToString();
+        }
+
+        private static DateTime? TryConvertDateTime(object value)
+        {
+            if (value is DateTime dt)
+            {
+                return dt;
+            }
+            try
+            {
+                if (value is IConvertible)
+                {
+                    return Convert.ToDateTime(value);
+                }
+            }
+            catch
+            {
+            }
+            if (DateTime.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static TimeSpan? TryConvertTimeSpan(object value)
+        {
+            if (value is TimeSpan ts)
+            {
+                return ts;
+            }
+            if (TimeSpan.TryParse(value.ToString(), out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 将 value 转为 int 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setInt(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<int>)TryConvertInt);
+            return setConverted<int>(key, value, TryConvertInt);
         }
 
         /// <summary>
-        /// 将 value 转为 long 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 long 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setLong(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<long>)TryConvertLong);
+            return setConverted<long>(key, value, TryConvertLong);
         }
 
         /// <summary>
-        /// 将 value 转为 short 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 short 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setShort(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<short>)TryConvertShort);
+            return setConverted<short>(key, value, TryConvertShort);
         }
 
         /// <summary>
-        /// 将 value 转为 byte 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 byte 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setByte(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<byte>)TryConvertByte);
+            return setConverted<byte>(key, value, TryConvertByte);
         }
 
         /// <summary>
-        /// 将 value 转为 bool 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 bool 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setBool(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<bool>)TryConvertBool);
+            return setConverted<bool>(key, value, TryConvertBool);
         }
 
         /// <summary>
-        /// 将 value 转为 decimal 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 decimal 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setDecimal(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<decimal>)TryConvertDecimal);
+            return setConverted<decimal>(key, value, TryConvertDecimal);
         }
 
         /// <summary>
-        /// 将 value 转为 double 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 double 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setDouble(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<double>)TryConvertDouble);
+            return setConverted<double>(key, value, TryConvertDouble);
         }
 
         /// <summary>
-        /// 将 value 转为 float 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 float 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setFloat(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<float>)TryConvertFloat);
+            return setConverted<float>(key, value, TryConvertFloat);
         }
 
         /// <summary>
-        /// 将 value 转为 Guid 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 Guid 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setGuid(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<Guid>)TryConvertGuid);
+            return setConverted<Guid>(key, value, TryConvertGuid);
         }
 
         /// <summary>
-        /// 将 value 转为 string 后 set；转换失败（null/DBNull）时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 string 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setString(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<string>)TryConvertString);
+            return setConvertedString(key, value, TryConvertString);
         }
 
         /// <summary>
-        /// 将 value 转为 DateTime 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 DateTime 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setDateTime(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<DateTime>)TryConvertDateTime);
+            return setConverted<DateTime>(key, value, TryConvertDateTime);
         }
 
         /// <summary>
-        /// 将 value 转为 TimeSpan 后 set；转换失败时默认忽略，UpdateSetNullOpt=AsDBNull 时 setToNull。
+        /// 将 value 转为 TimeSpan 后 set；转换失败时默认忽略，SetNullOpt=AsDBNull 时 setToNull。DBNull 明确写 NULL。
         /// </summary>
         /// <param name="key">字段名。</param>
         /// <param name="value">待转换的值。</param>
         public virtual SQLBuilder setTimeSpan(string key, object value)
         {
-            return setConverted(key, value, (TryConvertValue<TimeSpan>)TryConvertTimeSpan);
+            return setConverted<TimeSpan>(key, value, TryConvertTimeSpan);
         }
 
         /// <summary>
