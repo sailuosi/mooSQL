@@ -6,9 +6,62 @@ outline: deep
 
 ## 【第3代】 .net6/8/10 全面支持版
 
-### 2026-9-4 更新（相对 v8.2.1.2，未单独发版）
+### 2026-10-16 更新 v8.2.1.5
+- 版本号说明
+    在 v8.2.1.3 之后集中落地：方言家族抽象与多库适配、命名空间梳理、枚举写入策略、标识符大小写/包裹、SQLBuilder 强类型 set / 实体物化，以及 PostgreSQL 建表与表名回落修复。跳过 8.2.1.4，直接发版 **8.2.1.5**（当前 `VersionPrefix`）。
+
+- 新增功能——方言家族与数据库适配
+    - **Family 抽象**
+        - MySQL Family：`MySqlFamilyDialect`（MySQL / MariaDB / TiDB / OceanBase MySQL；PolarDB for MySQL 复用 `MySQL`）
+        - PostgreSQL Family：`PgFamilyDialect`（PostgreSQL / CrateDB / openGauss / GaussDB / 人大金仓 R3·R6）
+        - 独立方言：SQL Server、Oracle、达梦、DuckDB、ClickHouse、Taos、SonnetDB、GBase8a、Oscar 等
+    - **新注册 / 增强方言**
+        - MariaDB、TiDB、DuckDB（net6+）、达梦 DM、人大金仓、openGauss / GaussDB、SonnetDB（**仅 net10**）等；PolarDB / ClickHouse / CrateDB 等配套设计文档
+        - `DBVersion` 与驱动钉版本对齐调研（2026-10），刷新各方言版本目录
+    - 清单见 `doc/design/features/方言/数据库支持清单.md`
+
+- 新增功能——枚举写入策略（EnumParaConvert）
+    - 新增 `EnumParaConvert`：`None` / `ToInt` / `ToName` / `ToIntString`（默认 `None`，兼容现状）
+    - 连接位 `DataBase.EnumConvert` / `DBPosition.EnumConvert` 优先；否则回退 `SQLBuilderOption.EnumConvert`
+    - `BaseClientBuilder.useEnumConvert`、`DataBase.setEnumConvert`；各方言统一走参数绑定阶段转换（非 SQL 文本改写）
+
+- 新增功能——标识符大小写与包裹
+    - 新增 `NameCaseMode`（`Keep` / `ToUpper` / `ToLower`）与连接配置 `NameCase` / `setNameCase`
+    - 增强各库标识符包裹与名称归一；修复 PostgreSQL 表名大小写回落后「检测不到表」、建表/注释等相关问题
+    - 全量建表 SQL 字符串校验与 Columns 缓存加固
+
+- 新增功能——SQLBuilder 强类型 set / 查询快捷
+    - 语法糖：`setInt` / `setLong` / `setBool` / `setGuid` / `setString` / `setDateTime` / `setDecimal` 等；转换失败默认可忽略，`SetNullOpt=AsDBNull` 时写 NULL
+    - 新增 `queryFirstRow()`：取结果集首行 `DataRow`（无行返回 `null`）
+
+- 新增功能——强类型实体物化
+    - `DataRowMaterializer`：`DataRow` / `DataTable` → 实体，语义对齐 `query<T>` 的 `DefaultTypeMap`
+    - 扩展：`DBInstance.toEntity<T>(DataRow)` / `toList<T>(DataTable)`
+
+- 工程 / 兼容
+    - Ext LINQ 等命名空间按规范收敛：业务入口优先 `mooSQL.data`，Queryable / DbFunc 落 `mooSQL.linq`（深度最多再加一层）
+    - 测试工程整理、导航保存与方言建表预览用例扩充
+
+### 2026-9-22 更新 v8.2.1.3
+- 版本号说明
+    纳入 9-4 连接位可读/可写闸门与权限范围构造拆分，并加固主从双写、SQLClip 链式 API；发版 **8.2.1.3**。
+
+- bugfix / 稳定性
+    - 修正主从 **双写（WriteFanout）** 路径问题，配套 `WriteFanoutExecutor` / `RouteResolver` 测试
+    - 修正测试污染与空格兼容等回归问题
+
+- 新增功能——SQLClip
+    - 子查询 / Join：`from<T>(out T, Func<…>)`、`InnerJoin` / `RightJoin` / `FullJoin` 子查询重载
+    - 投影：`select<R>(asName, Func<…>)` 列选择子查询
+    - 分页：`setPage` / `skipTake` / `skip` / `take` / `clearPage`，与 SQLBuilder 习惯对齐
+
+- 其它
+    - 核心方法虚化、控制流整理，便于方言/子类覆写
+    - 增加部分直接调用入口
+
+### 2026-9-4 更新（相对 v8.2.1.2；已纳入 v8.2.1.3）
 - 版本说明
-    在已发布的 v8.2.1.2 基线上的后续改动：连接位「软」可读/可写策略、配置与主从文档补全，以及权限侧范围构造器拆分。对应提交：`连接位置增加软的可读可写的控制配置`、`文档更新`、`范围构造器类升级拆分`。
+    在已发布的 v8.2.1.2 基线上的后续改动：连接位「软」可读/可写策略、配置与主从文档补全，以及权限侧范围构造器拆分。对应提交：`连接位置增加软的可读可写的控制配置`、`文档更新`、`范围构造器类升级拆分`。后续随 **v8.2.1.3** 一并发布。
 
 - 新增功能——连接位可读 / 可写（Readable / Writable）
     - **配置面**
