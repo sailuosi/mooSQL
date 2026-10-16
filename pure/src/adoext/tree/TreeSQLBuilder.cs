@@ -377,8 +377,14 @@ public abstract class TreeSQLBuilder<K,RealMe> where RealMe: TreeSQLBuilder<K, R
         }
         return topNodes;
     }
-
-
+    /// <summary>
+    /// 增加无参版，此时自动处理类的转换
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public TreeListOutput<T, K> loadTreeList<T>() {
+        return loadTreeList(this.DBLive.toEntity<T>);
+    }
     /// <summary>
     /// 加载顶层节点
     /// </summary>

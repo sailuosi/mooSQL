@@ -20,16 +20,35 @@ namespace mooSQL.data
         /// 默认映射
         /// </summary>
         /// <param name="type">Entity type</param>
-        public DefaultTypeMap(Type type,MooClient client)
+        public DefaultTypeMap(Type type, MooClient client)
+            : this(type, client, matchUnderscores: false)
+        {
+        }
+
+        /// <summary>
+        /// 默认映射
+        /// </summary>
+        /// <param name="type">Entity type</param>
+        /// <param name="client">持有 EntityCash 的客户端</param>
+        /// <param name="matchUnderscores">本实例是否开启去下划线匹配（不依赖全局静态开关）</param>
+        public DefaultTypeMap(Type type, MooClient client, bool matchUnderscores)
         {
             this._client = client;
             if (type is null)
                 throw new ArgumentNullException(nameof(type));
 
+            MatchUnderscores = matchUnderscores;
             _fields = GetSettableFields(type);
             Properties = GetSettableProps(type);
             _type = type;
         }
+
+        /// <summary>
+        /// 本实例是否允许 User_Id 与 UserId 一类去下划线匹配（与静态 <see cref="MatchNamesWithUnderscores"/> 任一为 true 即生效）。
+        /// </summary>
+        public bool MatchUnderscores { get; set; }
+
+        private bool AllowMatchUnderscores => MatchNamesWithUnderscores || MatchUnderscores;
 
         private EntityContext entityContext {
             get {
@@ -104,7 +123,7 @@ namespace mooSQL.data
 
                         continue;
                     } // exact match
-                    else if (MatchNamesWithUnderscores && EqualsCIU(ctorParameters[i].Name, names[i]))
+                    else if (AllowMatchUnderscores && EqualsCIU(ctorParameters[i].Name, names[i]))
                     { } // match after applying underscores
                     else
                     {
@@ -195,7 +214,7 @@ namespace mooSQL.data
                 ?? _fields.Find(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase))
                 ?? _fields.Find(p => string.Equals(p.Name, backingFieldName, StringComparison.OrdinalIgnoreCase));
 
-            if (field is null && MatchNamesWithUnderscores)
+            if (field is null && AllowMatchUnderscores)
             {
                 var effectiveColumnName = columnName.Replace("_", "");
                 backingFieldName = "<" + effectiveColumnName + ">k__BackingField";
@@ -239,7 +258,7 @@ namespace mooSQL.data
                         return member;
                     }
                 }
-                if (MatchNamesWithUnderscores)
+                if (AllowMatchUnderscores)
                 {
                     // same again, minus underscore delta
                     name = name?.Replace("_", "");
