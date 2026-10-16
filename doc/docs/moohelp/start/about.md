@@ -26,7 +26,7 @@ http://137.12.207.30:8088/maplehan/u8common.git
 | **层级**     | 开放执行层、SQL编织层、仓库层、表达式层    |
 | **多库架构** | 天生多库模式，随时切换数据库                    |
 | **主要组件**      | ORM为主，兼容（权限、Excel、AI等扩展功能） |
-| **数据库支持** | 支持 SQL Server、MySQL、PostgreSQL、Oracle、SQLite、OceanBase、Taos 等数据库 |
+| **数据库支持** | MySQL/PG 两大 Family + SQL Server、Oracle、达梦、金仓、DuckDB、ClickHouse 等，详见 [数据库支持情况](/moohelp/start/databases) |
 | **扩展性**   | 以方言模式抽象数据库差异，扩展代价低）           |
 | **高级特性**   | 支持主从模式，支持仓储，支持表达式函数           |
 | **独创特性**   | SQLClip模式，支持在无魔法字符串情况下进行复杂查询的构建           |

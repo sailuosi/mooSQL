@@ -25,12 +25,14 @@ export default defineConfig({
           items: [
             { text: '简介', link: '/moohelp/start/about' },
             { text: '快速上手', link: '/moohelp/start/quickstart' },
+            { text: '数据库支持情况', link: '/moohelp/start/databases' },
           ]
         },
         {
           text: '基础文档',
           items: [
             //{ text: '入门', link: '/moohelp/query/basicquery' },
+            { text: '建表', link: '/moohelp/sqlbasis/tableddl' },
             { text: '插入', link: '/moohelp/sqlbasis/insertbasis' },
             { text: '修改', link: '/moohelp/sqlbasis/updatebasis' },
             { text: '删除', link: '/moohelp/sqlbasis/deletebasis' },
