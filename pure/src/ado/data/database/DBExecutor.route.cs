@@ -23,7 +23,10 @@ namespace mooSQL.data
 
             var ctx = RouteContext;
             var groupId = client.resolveGroupIdFor(anchor);
-            if (groupId < 0) groupId = anchor.config?.index ?? 0;
+            if (groupId < 0 && anchor.config?.index != null)
+                groupId = anchor.config.index.Value;
+            if (groupId < 0)
+                return anchor;
             var queryType = sql?.type ?? QueryType.Unknown;
             var isWrite = RouteOperation.IsWrite(queryType, ctx);
 
@@ -47,6 +50,9 @@ namespace mooSQL.data
         /// <summary>当次执行临时切换 DBLive，finally 中 <see cref="EndExecutionRouting"/> 恢复锚点（与 useFailover 永久改绑不同）。</summary>
         private void BeginExecutionRouting(SQLCmd sql)
         {
+            if (DBLive?.config?.index == null)
+                return;
+
             _routingRestoreDbLive = DBLive;
             var target = ResolveTargetInstance(sql);
             if (target != null && target != DBLive)

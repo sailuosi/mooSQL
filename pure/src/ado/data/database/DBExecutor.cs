@@ -1039,7 +1039,7 @@ namespace mooSQL.data
                 var para = new ModifyPara();
                 para.cmd = cmd;
                 para.DB = DBLive;
-                para.position = DBLive.config.index;
+                para.position = DBLive.config?.index ?? -1;
                 _ = Task.Run(() =>
                 {
                     try
@@ -1090,7 +1090,7 @@ namespace mooSQL.data
                 cmd.type,
                 cmd.TargetTable ?? "",
                 rowsAffected,
-                dbLive.config.index,
+                dbLive.config?.index ?? -1,
                 ps,
                 dbLive);
         }

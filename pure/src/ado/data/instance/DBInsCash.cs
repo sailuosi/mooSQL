@@ -234,11 +234,12 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 代码方式添加一个数据库连接位，存在则覆盖
+        /// 代码方式添加一个数据库连接位，存在则覆盖。
+        /// <paramref name="position"/> 为空时，在已有最大键上加 1；尚无连接位时从 0 开始。
         /// </summary>
-        /// <param name="position"></param>
+        /// <param name="position">连接位。null 表示自动分配。</param>
         /// <param name="db"></param>
-        public void addDataBase(int position, DataBase db) {
+        public void addDataBase(int? position, DataBase db) {
             if (db == null) {
                 return;
             }
@@ -248,15 +249,37 @@ namespace mooSQL.data
                 configMap = new ConcurrentDictionary<int, DataBase>();
             }
 
-            if (configMap.ContainsKey(position) ) {
-                configMap[position] = db;
+            var slot = position ?? NextPosition();
+            db.index = slot;
+
+            if (configMap.ContainsKey(slot) ) {
+                configMap[slot] = db;
             }
             else
             {
 
-                configMap.TryAdd(position, db);
+                configMap.TryAdd(slot, db);
             }
 
+        }
+
+        /// <summary>
+        /// 下一个自动连接位：已有键的最大值 + 1，空表为 0。
+        /// </summary>
+        private int NextPosition()
+        {
+            if (configMap == null || configMap.IsEmpty)
+                return 0;
+
+            var max = int.MinValue;
+            foreach (var key in configMap.Keys)
+            {
+                if (key > max)
+                    max = key;
+            }
+            if (max == int.MaxValue)
+                throw new InvalidOperationException("连接位已用尽，无法自动分配。");
+            return max + 1;
         }
         /// <summary>
         /// 
@@ -324,6 +347,7 @@ namespace mooSQL.data
                 var t = client.loadDBConfig(position);
                 if (t != null)
                 {
+                    t.index = position;
                     configMap[position] = t;
                     return t;
                 }
@@ -344,6 +368,8 @@ namespace mooSQL.data
                 var t= dialectFactory.loadDBConfig(this);
                 if (t != null) { 
                     foreach (var kv in t) {
+                        if (kv.Value != null)
+                            kv.Value.index = kv.Key;
                         configMap.TryAdd(kv.Key, kv.Value);
                     }
                 

@@ -24,7 +24,8 @@ namespace mooSQL.data
             var client = DBLive?.client;
             if (client == null) return FailoverMode.Disabled;
             var pos = client.resolveGroupIdFor(DBLive);
-            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            if (pos < 0 && DBLive.config?.index != null)
+                pos = DBLive.config.index.Value;
             var group = client.getGroupInternal(pos);
             return client.ResolveFailoverMode(pos, RouteContext, group);
         }
@@ -69,7 +70,8 @@ namespace mooSQL.data
             var client = DBLive?.client;
             if (client == null) return false;
             var pos = client.resolveGroupIdFor(DBLive);
-            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            if (pos < 0 && DBLive.config?.index != null)
+                pos = DBLive.config.index.Value;
             var group = client.getGroupInternal(pos);
             var mode = client.ResolveFailoverMode(pos, RouteContext, group);
             if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure) return false;
@@ -109,7 +111,8 @@ namespace mooSQL.data
             var client = DBLive?.client;
             if (client == null) return none;
             var pos = client.resolveGroupIdFor(DBLive);
-            if (pos < 0) pos = DBLive.config?.index ?? 0;
+            if (pos < 0 && DBLive.config?.index != null)
+                pos = DBLive.config.index.Value;
             var group = client.getGroupInternal(pos);
             var mode = client.ResolveFailoverMode(pos, RouteContext, group);
             if (!MooClient.ShouldAttemptFailover(mode) || mode != FailoverMode.ImmediateOnFailure)

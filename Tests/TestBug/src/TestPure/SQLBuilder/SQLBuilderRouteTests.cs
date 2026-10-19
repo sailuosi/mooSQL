@@ -1,6 +1,7 @@
 using FluentAssertions;
 using mooSQL.data;
 using mooSQL.data.cluster;
+using mooSQL.data.model;
 using mooSQL.Pure.Tests.TestHelpers;
 using Xunit;
 
@@ -61,6 +62,78 @@ namespace mooSQL.Pure.Tests
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var kit = TestDatabaseHelper.UseSQL(db).useMaster().resetRoute();
             kit.RouteContext.Should().BeNull();
+        }
+
+        [Fact]
+        public void addDataBase_fills_index_and_write_stays_on_that_instance()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+
+            var cfg0 = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+            var cfg4 = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+            cash.addDataBase(0, cfg0);
+            cash.addDataBase(4, cfg4);
+
+            cfg0.index.Should().Be(0);
+            cfg4.index.Should().Be(4);
+            cfg0.index.Should().NotBe(cfg4.index);
+
+            var db0 = cash.getInstance(0);
+            var db4 = cash.getInstance(4);
+            var target = new DBExecutor(db4).ResolveTargetInstance(new SQLCmd
+            {
+                type = QueryType.Insert,
+                sql = "insert into t(a) values(1)"
+            });
+
+            target.Should().BeSameAs(db4);
+            target.Should().NotBeSameAs(db0);
+            target.config.index.Should().Be(4);
+        }
+
+        [Fact]
+        public void null_index_does_not_route_write_to_position_zero()
+        {
+            var client = new MooClient { dialectFactory = new DialectFactory() };
+            var cash = new DBInsCash(client);
+            client.CashHolder = cash;
+
+            cash.addDataBase(0, new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" });
+            var db0 = cash.getInstance(0);
+
+            var orphanCfg = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+            var orphan = cash.buildInstance(orphanCfg);
+            orphanCfg.index.Should().BeNull();
+
+            var target = new DBExecutor(orphan).ResolveTargetInstance(new SQLCmd
+            {
+                type = QueryType.Insert,
+                sql = "insert into t(a) values(1)"
+            });
+
+            target.Should().BeSameAs(orphan);
+            target.Should().NotBeSameAs(db0);
+        }
+
+        [Fact]
+        public void addDataBase_null_position_uses_max_key_plus_one()
+        {
+            var cash = new DBInsCash();
+            var first = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+            var second = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+            var afterGap = new DataBase { dbType = DataBaseType.SQLite, DBConnectStr = "Data Source=:memory:" };
+
+            cash.addDataBase(null, first);
+            cash.addDataBase(4, second);
+            cash.addDataBase(null, afterGap);
+
+            first.index.Should().Be(0);
+            second.index.Should().Be(4);
+            afterGap.index.Should().Be(5);
+            cash.getDBConfig(0).Should().BeSameAs(first);
+            cash.getDBConfig(5).Should().BeSameAs(afterGap);
         }
     }
 }

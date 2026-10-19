@@ -128,7 +128,14 @@ namespace mooSQL.data
 
             var groupId = client.resolveGroupIdFor(DBLive);
             if (groupId < 0)
-                groupId = position > -1 ? position : DBLive.config?.index ?? 0;
+            {
+                if (position > -1)
+                    groupId = position;
+                else if (DBLive.config?.index != null)
+                    groupId = DBLive.config.index.Value;
+                else
+                    return;
+            }
 
             var group = client.getGroupInternal(groupId);
             var ctx = RouteContext;

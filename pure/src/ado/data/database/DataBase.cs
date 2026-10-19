@@ -12,9 +12,9 @@ namespace mooSQL.data
         /// </summary>
         public string name;
         /// <summary>
-        /// 索引
+        /// 连接位索引。null 表示未指定，与 0 号连接区分。
         /// </summary>
-        public int index;
+        public int? index;
         /// <summary>
         /// 数据库连接字符串
         /// </summary>

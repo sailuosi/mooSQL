@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using mooSQL.data.context;
 using mooSQL.data.model;
@@ -37,8 +38,10 @@ namespace mooSQL.data
         {
             try
             {
-                if (DBLive?.config != null)
-                    return DBLive.config.index.ToString();
+                if (DBLive?.config?.index != null)
+                    return DBLive.config.index.Value.ToString();
+                if (DBLive != null)
+                    return "unset:" + RuntimeHelpers.GetHashCode(DBLive);
             }
             catch
             {

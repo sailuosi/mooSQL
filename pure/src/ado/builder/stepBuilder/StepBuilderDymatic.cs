@@ -85,23 +85,34 @@ namespace mooSQL.data
                 exe.SkipAsyncReplication = true;
         }
 
+        private int ResolveDualWritePosition()
+        {
+            if (position > -1) return position;
+            if (DBLive?.config?.index != null) return DBLive.config.index.Value;
+            return -1;
+        }
+
         /// <summary>
         /// 显式 EnableDualWrite，或主从组内存在 CanDualWrite 从库时启用同步双写。
+        /// 连接位未知时不双写，避免落到 0 号组。
         /// </summary>
         private bool ShouldApplyDualWrite()
         {
             if (MooClient == null) return false;
+            var pos = ResolveDualWritePosition();
+            if (pos < 0) return false;
             if (Executor?.RouteContext?.EnableDualWrite == true) return true;
-            var pos = position > -1 ? position : (DBLive?.config?.index ?? 0);
             var group = MooClient.getGroup(pos);
             return group?.Slaves != null && group.Slaves.Any(s => s.CanDualWrite);
         }
 
         private int ExecuteDualWriteNonQuery(SQLCmd sql)
         {
-            var pos = position > -1 ? position : (DBLive.config?.index ?? 0);
-            var master = DBLive ?? MooClient?.CashHolder?.getInstance(pos);
-            var slaves = MooClient.resolveDualWriteTargets(pos, Executor?.RouteContext);
+            var pos = ResolveDualWritePosition();
+            var master = DBLive ?? (pos >= 0 ? MooClient?.CashHolder?.getInstance(pos) : null);
+            var slaves = pos >= 0
+                ? MooClient.resolveDualWriteTargets(pos, Executor?.RouteContext)
+                : System.Array.Empty<DBInstance>();
             var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? DualWriteErrorPolicy.MasterWins;
             return WriteFanoutExecutor.ExecuteNonQuery(sql, master, slaves, Executor, policy);
         }
