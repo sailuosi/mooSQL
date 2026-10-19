@@ -112,7 +112,7 @@ namespace mooSQL.data
             var master = DBLive ?? (pos >= 0 ? MooClient?.CashHolder?.getInstance(pos) : null);
             var slaves = pos >= 0
                 ? MooClient.resolveDualWriteTargets(pos, Executor?.RouteContext)
-                : System.Array.Empty<DBInstance>();
+                :new List<DBInstance>();
             var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? DualWriteErrorPolicy.MasterWins;
             return WriteFanoutExecutor.ExecuteNonQuery(sql, master, slaves, Executor, policy);
         }
