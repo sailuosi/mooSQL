@@ -349,6 +349,7 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 |------|------|
 | `insert<T>(T entity)` | 实体插入 |
 | `insertList<T>(IEnumerable<T> entity)` | 批量插入 |
+| `insertList<T>(IEnumerable<T> entity, string tbname)` | 指定物理表名批量插入（个性化分表） |
 | `toInsert<T>(T entity)` | 生成插入命令 |
 | `update<T>(T entity)` | 实体更新，主键作条件 |
 | `toUpdate<T>(T entity)` | 生成更新命令 |

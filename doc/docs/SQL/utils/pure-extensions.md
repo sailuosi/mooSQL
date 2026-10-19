@@ -255,7 +255,7 @@ SQLBuilder 的核心业务扩展，按功能分类：
 | 方法 | 说明 |
 |------|------|
 | `insert` / `toInsert` | 插入（可选 `tbname` 分表） |
-| `insertList` | Bulk 批量插入 |
+| `insertList` | Bulk 批量插入；重载可指定物理表名（个性化分表） |
 | `update` / `toUpdate` / `updateBy` | 按主键或指定字段更新 |
 | `save` / `toSave` / `saveBy` | 存在则更新，否则插入 |
 | `saveList` / `toSaveList` | 批量保存 |

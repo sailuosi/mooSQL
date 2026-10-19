@@ -6,6 +6,11 @@ outline: deep
 
 ## 【第3代】 .net6/8/10 全面支持版
 
+### 2026-10-19 更新
+- 新增功能——SQLBuilder.insertList 指定表名重载
+    - 新增 `insertList<T>(IEnumerable<T> entity, string tbname)`：按物理表名 Bulk 批量插入，用于个性化分表
+    - 与原 `insertList(entity)` 并存；`tbname` 必填，避免与无表名重载签名冲突
+
 ### 2026-10-16 更新 v8.2.1.5（PostgreSQL适配）
 - 说明
 

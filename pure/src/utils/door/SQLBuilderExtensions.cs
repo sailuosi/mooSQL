@@ -178,6 +178,25 @@ namespace mooSQL.data
             return bk.doInsert();
         }
         /// <summary>
+        /// 按指定物理表名执行批量插入，通过BulkBase实现。用于个性化分表等场景。注意！在启用事务时，将继承调用者的事务上下文。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="entity"></param>
+        /// <param name="tbname">物理表名，用于动态分表等场景。</param>
+        /// <returns></returns>
+        public static int insertList<T>(this SQLBuilder builder, IEnumerable<T> entity, string tbname)
+        {
+            var bk = builder.DBLive.useBulk();
+            if (builder.Executor != null)
+            {
+                bk.useTransaction(builder.Executor);
+            }
+            bk.setTable(tbname);
+            bk.addList(entity);
+            return bk.doInsert();
+        }
+        /// <summary>
         /// 按照指定的实体类型执行插入，返回-1时为发生异常。独立执行环境，不干扰调用者环境
         /// </summary>
         /// <param name="kit"></param>

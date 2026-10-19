@@ -956,6 +956,9 @@ kit.clear().useApart(apart).where("u.status", 1).query<User>();
 **`insertList<T>(this SQLBuilder builder, IEnumerable<T> entity)`**
 - 执行批量插入，通过 BulkBase 实现。注意！在启用事务时，将继承调用者的事务上下文
 
+**`insertList<T>(this SQLBuilder builder, IEnumerable<T> entity, string tbname)`**
+- 按指定物理表名批量插入（个性化分表等场景）。`tbname` 必填，与无表名重载并存。事务上下文继承同上一重载
+
 **`insertByType(this SQLBuilder kit, object entity, Type EntityType)`**
 - 按照指定的实体类型执行插入，返回 -1 时为发生异常。独立执行环境，不干扰调用者环境
 
