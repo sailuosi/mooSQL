@@ -24,6 +24,11 @@ namespace mooSQL.data
         public bool isNumberBag=false;
 
         /// <summary>
+        /// 当前库实例；字面量经 <c>DBLive.dialect.mapping</c> 输出。
+        /// </summary>
+        public DBInstance DBLive { get; }
+
+        /// <summary>
         /// 字段名
         /// </summary>
         public string field;
@@ -51,7 +56,9 @@ namespace mooSQL.data
         /// <summary>
         /// 构造函数。
         /// </summary>
-        public WhereListBag() { 
+        /// <param name="dbLive">当前库实例。</param>
+        public WhereListBag(DBInstance dbLive) {
+            DBLive = dbLive;
             this.values = new HashSet<string>();
             this.numValues = new HashSet<string>();
             this.safedStrValues = new HashSet<string>();
@@ -65,8 +72,8 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 newBag（返回 WhereListBag）。
         /// </summary>
-        public static WhereListBag newBag<T>(IEnumerable<T> list) { 
-            var bag = new WhereListBag();
+        public static WhereListBag newBag<T>(IEnumerable<T> list, DBInstance dbLive) { 
+            var bag = new WhereListBag(dbLive);
             var t = typeof(T);
             t = t.UnwrapNullable();
             if (t == typeof(int) || t == typeof(float) || t == typeof(double) || t == typeof(long) || t == typeof(decimal) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(ushort) || t == typeof(uint) || t == typeof(ulong)) {
@@ -79,9 +86,9 @@ namespace mooSQL.data
         /// <summary>
         /// newBag 方法（返回 WhereListBag）。
         /// </summary>
-        public static WhereListBag newBag(IEnumerable list)
+        public static WhereListBag newBag(IEnumerable list, DBInstance dbLive)
         {
-            var bag = new WhereListBag();
+            var bag = new WhereListBag(dbLive);
             bool isAllNum=true;
             foreach (var v in list) {
                 var t = v.GetType();
@@ -271,31 +278,26 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 返回逗号拼接的结果，不含括号
+        /// 返回逗号拼接的结果，不含括号。
         /// </summary>
-        /// <param name="unSafeParaedNames"></param>
-        /// <returns></returns>
-        public string toWhereIn(IEnumerable<string> unSafeParaedNames) {
-
+        public string toWhereIn(IEnumerable<string> unSafeParaedNames)
+        {
             var vals = this.toWhereInValues(unSafeParaedNames);
             return string.Join(",", vals);
         }
-        /// <summary>
-        /// 支持自动分组的where in参数列表，size为每组的数量，超过则自动分组返回多条结果
-        /// </summary>
-        /// <param name="unSafeParaedNames"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public List<string> toWhereIn(IEnumerable<string> unSafeParaedNames,int? size)
-        {
-            var tstr=new List<string>();
-            var vals = this.toWhereInValues(unSafeParaedNames);
-            if (size == null || size < 1) {
 
-                var t= string.Join(",", vals);
-                if (!string.IsNullOrWhiteSpace(t)) { 
+        /// <summary>
+        /// 支持自动分组的 where in 参数列表，size 为每组数量，超过则自动分组返回多条结果。
+        /// </summary>
+        public List<string> toWhereIn(IEnumerable<string> unSafeParaedNames, int? size)
+        {
+            var tstr = new List<string>();
+            var vals = this.toWhereInValues(unSafeParaedNames);
+            if (size == null || size < 1)
+            {
+                var t = string.Join(",", vals);
+                if (!string.IsNullOrWhiteSpace(t))
                     tstr.Add(t);
-                }
                 return tstr;
             }
 
@@ -313,21 +315,20 @@ namespace mooSQL.data
                     groupValues.Clear();
                 }
             }
-            if (groupValues.Count >0)
+            if (groupValues.Count > 0)
             {
                 var part = string.Join(",", groupValues);
                 tstr.AddNotEmpty(part);
             }
             return tstr;
         }
+
         /// <summary>
-        /// 返回参数列表
+        /// 返回 IN 列表片段（安全串经 <c>DBLive.dialect.mapping</c> 输出完整字面量，调用方不得再包引号）。
         /// </summary>
-        /// <param name="unSafeParaedNames"></param>
-        /// <returns></returns>
         public List<string> toWhereInValues(IEnumerable<string> unSafeParaedNames)
         {
-
+            var mapping = DBLive.dialect.mapping;
             var vals = new List<string>();
             if (isNumberBag)
             {
@@ -336,19 +337,18 @@ namespace mooSQL.data
             else
             {
                 foreach (var v in numValues)
-                {
-                    vals.Add("'" + v + "'");
-                }
+                    vals.Add(mapping.valueToSQLString(v));
             }
 
             foreach (var v in safedStrValues)
             {
-                vals.Add("'" + v + "'");
+                if (RegxUntils.isGUID(v))
+                    vals.Add(mapping.valueToSQLGuid(v));
+                else
+                    vals.Add(mapping.valueToSQLString(v));
             }
             foreach (var v in unSafeParaedNames)
-            {
                 vals.Add(v);
-            }
             return vals;
         }
     }

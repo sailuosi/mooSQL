@@ -196,7 +196,7 @@ namespace mooSQL.excel.context
             {
                 if (whereInFields.ContainsKey(fieldName) == false)
                 {
-                    var tar = new WhereInBuilder();
+                    var tar = new WhereInBuilder(DBInstance);
                     whereInFields.Add(fieldName, tar);
                 }
 

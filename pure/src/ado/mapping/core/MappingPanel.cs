@@ -266,6 +266,15 @@ namespace mooSQL.data.mapping
         }
 
         /// <summary>
+        /// 将字符串转为可直接拼入 SQL 的完整字面量（默认两侧加单引号）。
+        /// 调用方不得再次包装引号。
+        /// </summary>
+        public virtual string valueToSQLString(string value)
+        {
+            return "'" + value + "'";
+        }
+
+        /// <summary>
         /// 设置两个不同类型的值转换器
         /// </summary>
         /// <typeparam name="VFrom"></typeparam>

@@ -21,6 +21,14 @@ namespace mooSQL.excel.context
         public HashSet<string> srcFields = new HashSet<string>();
 
         /// <summary>
+        /// 构造函数。
+        /// </summary>
+        /// <param name="dbLive">当前库实例。</param>
+        public WhereInBuilder(DBInstance dbLive) : base(dbLive)
+        {
+        }
+
+        /// <summary>
         /// 添加一个来源列
         /// </summary>
         /// <param name="fieldName"></param>

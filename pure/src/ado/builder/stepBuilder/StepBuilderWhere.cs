@@ -710,7 +710,6 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs)
         {
-            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
@@ -718,7 +717,7 @@ namespace mooSQL.data {
             {
                 if (cc > 0)
                     res.Append(",");
-                res.Append(mapping.valueToSQLGuid(oid));
+                res.Append(Dialect.mapping.valueToSQLGuid(oid));
                 cc++;
             }
             res.Append(")");
@@ -735,7 +734,6 @@ namespace mooSQL.data {
         /// <param name="OIDs"></param>
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs) {
-            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
@@ -745,7 +743,7 @@ namespace mooSQL.data {
                 {
                     if (cc > 0)
                         res.Append(",");
-                    res.Append(mapping.valueToSQLGuid(oid.Value));
+                    res.Append(Dialect.mapping.valueToSQLGuid(oid.Value));
                     cc++;
                 }
             }
@@ -764,7 +762,6 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<string> OIDs)
         {
-            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
@@ -774,7 +771,7 @@ namespace mooSQL.data {
                 {
                     if (cc > 0)
                         res.Append(",");
-                    res.Append(mapping.valueToSQLGuid(oid));
+                    res.Append(Dialect.mapping.valueToSQLGuid(oid));
                     cc++;
                 }
             }
@@ -894,7 +891,7 @@ namespace mooSQL.data {
             var limit = this.DBLive.expression.getWhereInLimit();
             if (limit != null && limit > 0)
             {
-                var parts = bag.toWhereIn(names,limit);
+                var parts = bag.toWhereIn(names, limit);
                 if (parts.Count == 0) {
                     where("1=2");
                     return this;
@@ -948,7 +945,7 @@ namespace mooSQL.data {
 
         private StepBuilder whereListInner<T>(string key, string op, IEnumerable<T> val)
         {
-            var bag = WhereListBag.newBag(val);
+            var bag = WhereListBag.newBag(val, DBLive);
             bag.field = key;
             bag.op = op;
             return whereListInner(bag);
@@ -956,7 +953,7 @@ namespace mooSQL.data {
 
         private StepBuilder whereListInner(string key, string op, IEnumerable val)
         {
-            var bag = WhereListBag.newBag(val);
+            var bag = WhereListBag.newBag(val, DBLive);
             bag.field = key;
             bag.op = op;
             return whereListInner(bag);

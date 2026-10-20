@@ -18,13 +18,13 @@ namespace mooSQL.data
         public IDelayPara CollectLive(SQLBuilder builder)
         {
             if (_values == null) return null;
-            return builder.Inner.CreateDelayWhereIn(Key, " IN ", () => WhereListBag.newBag(_values));
+            return builder.Inner.CreateDelayWhereIn(Key, " IN ", () => WhereListBag.newBag(_values, builder.DBLive));
         }
 
         public override void Apply(SQLBuilder builder)
         {
             if (_values == null) return;
-            builder.Inner.whereLiveInList(Key, " IN ", () => WhereListBag.newBag(_values));
+            builder.Inner.whereLiveInList(Key, " IN ", () => WhereListBag.newBag(_values, builder.DBLive));
         }
     }
 }

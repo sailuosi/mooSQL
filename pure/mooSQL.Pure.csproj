@@ -63,5 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="mooSQL.Pure.Tests" />
+    <InternalsVisibleTo Include="mooSQL.Tests" />
+    <InternalsVisibleTo Include="mooSQL.Pure.Tests.Core" />
   </ItemGroup>
 </Project>
