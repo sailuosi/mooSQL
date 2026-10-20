@@ -76,7 +76,19 @@ namespace mooSQL.data
             this.WorkingProgress.Append(res);
             return this;
         }
-
+        /// <summary>
+        /// 无参版本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public DBTableCreator createTable<T>()
+        {
+            EnsureProgress();
+            var en = DBLive.client.EntityCash.getEntityInfo<T>();
+            var res = CreateTable(en, this.CreateMode);
+            this.WorkingProgress.Append(res);
+            return this;
+        }
         /// <summary>
         /// 按指定物理表名创建分表（结构同实体定义）。
         /// </summary>
