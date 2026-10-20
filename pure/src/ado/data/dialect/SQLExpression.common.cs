@@ -93,6 +93,12 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 参数绑定是否要求与列类型严格一致（如 PostgreSQL 的 uuid）。
+        /// 默认 false；为 true 时 <c>whereGuid</c> 等会携带 <see cref="DataFam"/> 类型提示。
+        /// </summary>
+        public virtual bool StrictParameterTypes => false;
+
+        /// <summary>
         /// 解析生效的大小写策略：连接显式值优先，否则方言默认。
         /// </summary>
         public NameCaseMode ResolveNameCase()

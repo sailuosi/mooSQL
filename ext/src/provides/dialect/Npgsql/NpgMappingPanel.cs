@@ -131,13 +131,25 @@ namespace mooSQL.data.Npgsql
             }
         }
 
+        /// <inheritdoc/>
+        public override string valueToSQLGuid(Guid value)
+        {
+            return string.Format("'{0:D}'::uuid", value);
+        }
+
+        /// <inheritdoc/>
+        public override string valueToSQLGuid(string value)
+        {
+            return "'" + value + "'::uuid";
+        }
+
         private void initValueToSQL() {
             SetValueToSql<bool>((v) => v.ToString());
             SetValueToSql<string>((v) => ConvertStringToSql(v));
             SetValueToSql<char>((v) => ConvertCharToSql(v));
             SetValueToSql<byte[]>((v) => ConvertBinaryToSql(v));
             SetValueToSql<Binary>((v) => ConvertBinaryToSql(v.ToArray()));
-            SetValueToSql<Guid>((v) => string.Format("'{0:D}'::uuid", v));
+            SetValueToSql<Guid>(valueToSQLGuid);
             //对于一个c#类型可能对应多个数据库类型，比如int在数据库中可以是smallint, int, bigint等的情况，需要使用ValueWord类来处理
             SetValueToSql<ValueWord>((v) => ConvertDataTypeWordToSQL(v));
             SetValueToSql<BigInteger>((v) => v.ToString());

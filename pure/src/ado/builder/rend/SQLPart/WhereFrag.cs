@@ -132,6 +132,10 @@ namespace mooSQL.data
         /// </summary>
         public bool paramed = true;
         /// <summary>
+        /// 库字段类型提示。为 <see cref="DataFam.Undefined"/> 时打参走自动推断。
+        /// </summary>
+        public DataFam dataFam = DataFam.Undefined;
+        /// <summary>
         /// 是否左侧也参数化
         /// </summary>
         public bool leftParamed = false;
@@ -268,7 +272,7 @@ namespace mooSQL.data
                 string prefix = paramKey;
                 conditon += root.expression.paraPrefix + prefix;
                 if (fmt.Contains(";noPara;") == false) {
-                    root.ps.AddByPrefix(prefix, value, root.expression.paraPrefix);
+                    root.ps.AddByPrefix(prefix, value, root.expression.paraPrefix, dataFam);
                 }
                 
             }

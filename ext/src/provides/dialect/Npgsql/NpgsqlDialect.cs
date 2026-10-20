@@ -45,6 +45,8 @@ namespace mooSQL.data
                     para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Json;
                 else if (para.dataType == DataFam.BinaryJson)
                     para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Jsonb;
+                else if (para.dataType == DataFam.Guid)
+                    para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Uuid;
                 else if (para.dataType == DataFam.Vector)
                     para2.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Json; // JSON 数组文本兼容路径
                 return qcmd.Parameters.Add(para2);

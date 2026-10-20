@@ -219,6 +219,53 @@ namespace mooSQL.data.mapping
         }
 
         /// <summary>
+        /// 将值转为可内联的 SQL 字面量。优先走方言 <see cref="ValueToSQL"/>；
+        /// 未注册时回退为两侧加单引号（适用于 Guid 等安全字面量）。
+        /// </summary>
+        public string ConvertValueToSql<T>(T value)
+        {
+            if (value == null)
+                return "null";
+            if (ValueToSQL.CanConvert<T, string>())
+                return ValueToSQL.Convert<T, string>(value);
+            return "'" + value.ToString() + "'";
+        }
+
+        /// <summary>
+        /// 将值转为可内联的 SQL 字面量（非泛型入口）。
+        /// </summary>
+        public string ConvertValueToSql(object value)
+        {
+            if (value == null)
+                return "null";
+            var t = value.GetType();
+            if (ValueToSQL.CanConvert(t, typeof(string)))
+            {
+                var converted = ValueToSQL.Convert(value, typeof(string));
+                return converted as string ?? converted?.ToString() ?? "null";
+            }
+            return "'" + value.ToString() + "'";
+        }
+
+        /// <summary>
+        /// 将 Guid 转为可直接拼入 SQL 的完整字面量（含引号及方言类型后缀）。
+        /// 调用方不得再次包装引号。
+        /// </summary>
+        public virtual string valueToSQLGuid(Guid value)
+        {
+            return "'" + value.ToString("D") + "'";
+        }
+
+        /// <summary>
+        /// 将已校验的 Guid 文本转为可直接拼入 SQL 的完整字面量（含引号及方言类型后缀）。
+        /// 调用方不得再次包装引号。
+        /// </summary>
+        public virtual string valueToSQLGuid(string value)
+        {
+            return "'" + value + "'";
+        }
+
+        /// <summary>
         /// 设置两个不同类型的值转换器
         /// </summary>
         /// <typeparam name="VFrom"></typeparam>

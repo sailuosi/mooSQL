@@ -710,21 +710,16 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<Guid> OIDs)
         {
+            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
             foreach (var oid in OIDs)
             {
-
                 if (cc > 0)
-                {
                     res.Append(",");
-                }
-                res.Append("'");
-                res.Append(oid);
-                res.Append("'");
+                res.Append(mapping.valueToSQLGuid(oid));
                 cc++;
-                
             }
             res.Append(")");
             if (cc == 0)
@@ -740,6 +735,7 @@ namespace mooSQL.data {
         /// <param name="OIDs"></param>
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<Guid?> OIDs) {
+            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
@@ -748,12 +744,8 @@ namespace mooSQL.data {
                 if (oid !=null)
                 {
                     if (cc > 0)
-                    {
                         res.Append(",");
-                    }
-                    res.Append("'");
-                    res.Append(oid);
-                    res.Append("'");
+                    res.Append(mapping.valueToSQLGuid(oid.Value));
                     cc++;
                 }
             }
@@ -772,6 +764,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder whereInGuid(string key, IEnumerable<string> OIDs)
         {
+            var mapping = Dialect.mapping;
             var res = new StringBuilder();
             int cc = 0;
             res.Append("(");
@@ -780,12 +773,8 @@ namespace mooSQL.data {
                 if (RegxUntils.isGUID(oid))
                 {
                     if (cc > 0)
-                    {
                         res.Append(",");
-                    }
-                    res.Append("'");
-                    res.Append(oid);
-                    res.Append("'");
+                    res.Append(mapping.valueToSQLGuid(oid));
                     cc++;
                 }
             }
@@ -1135,19 +1124,26 @@ namespace mooSQL.data {
             {
                 return where("1=2");
             }
-            if (val is Guid)
+            Guid gid;
+            if (val is Guid g)
             {
-                return where(key, val, "=", true);
+                gid = g;
             }
             else if (RegxUntils.isGUID(val.ToString()))
             {
-                return where(key, val, "=", true);
+                gid = new Guid(val.ToString());
             }
             else
             {
                 return where("1=2");
             }
-            //return this;
+
+            // 严格类型方言（如 PG uuid）携带 Guid 类型提示，驱动按 uuid 绑定
+            if (expression != null && expression.StrictParameterTypes)
+            {
+                return where(key, gid, "=", true, typeof(Guid));
+            }
+            return where(key, gid, "=", true);
         }
 
         /// <summary>

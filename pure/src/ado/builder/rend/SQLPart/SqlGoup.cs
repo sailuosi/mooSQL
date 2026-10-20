@@ -492,6 +492,16 @@ namespace mooSQL.data
             field.value = val;
             field.paramed = paramed;
             field.op = op;
+            if (type != null)
+            {
+                var t = Nullable.GetUnderlyingType(type) ?? type;
+                if (t == typeof(Guid))
+                    field.dataFam = DataFam.Guid;
+                else if (root?.expression?.dialect?.mapping?.SharpToDataType != null
+                    && root.expression.dialect.mapping.SharpToDataType.TryGet(t, out var db)
+                    && db.DataType != DataFam.Undefined)
+                    field.dataFam = db.DataType;
+            }
 
             where(field);
             return this;

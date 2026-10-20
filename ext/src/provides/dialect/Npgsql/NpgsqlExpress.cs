@@ -25,6 +25,9 @@ namespace mooSQL.data
         public override bool FoldsUnquotedNames => true;
 
         /// <inheritdoc/>
+        public override bool StrictParameterTypes => true;
+
+        /// <inheritdoc/>
         protected override System.Collections.Generic.HashSet<string> GetReservedWords()
             => SqlReservedWords.PostgreSQL;
 

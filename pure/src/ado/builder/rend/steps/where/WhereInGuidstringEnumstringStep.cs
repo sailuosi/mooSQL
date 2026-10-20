@@ -18,13 +18,13 @@ namespace mooSQL.data
         public IDelayPara CollectLive(SQLBuilder builder)
         {
             if (_OIDs == null) return null;
-            return new DelayWhereInGuid(Key, _OIDs);
+            return new DelayWhereInGuid(Key, _OIDs, builder.Dialect.mapping);
         }
 
         public override void Apply(SQLBuilder builder)
         {
             if (_OIDs == null) return;
-            builder.Inner.whereLive(new DelayWhereInGuid(Key, _OIDs));
+            builder.Inner.whereLive(new DelayWhereInGuid(Key, _OIDs, builder.Dialect.mapping));
         }
     }
 }
