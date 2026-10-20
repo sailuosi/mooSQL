@@ -66,7 +66,7 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 createTable（返回 DBTableCreator）。
         /// </summary>
-        public DBTableCreator createTable<T>(string mode = null) { 
+        public DBTableCreator createTableByMode<T>(string mode = null) { 
             if(mode == null) {
                 mode = this.CreateMode;
             }
