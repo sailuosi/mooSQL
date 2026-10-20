@@ -4,12 +4,12 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// OpenGauss：独立补表/列注释黄金 SQL（继承 Npgsql，wrap 加双引号）。
+/// OpenGauss：独立补表/列注释黄金 SQL（继承 Npgsql：ToLower + IfNeeded）。
 /// </summary>
 public class OpenGaussSoloCaptionTests
 {
-    const string ExpectedTable = @"COMMENT ON TABLE ""HH_SysConfig"" IS '系统参数配置表'";
-    const string ExpectedColumn = @"COMMENT ON COLUMN ""HH_SysConfig"".""Code"" IS '编码'";
+    const string ExpectedTable = "COMMENT ON TABLE hh_sysconfig IS '系统参数配置表'";
+    const string ExpectedColumn = "COMMENT ON COLUMN hh_sysconfig.code IS '编码'";
 
     [Fact]
     public void ToAddTableCaption_Matches_Expected()
