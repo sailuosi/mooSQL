@@ -125,6 +125,34 @@ public class DMSentence : SQLSentence
         catch { return null; }
     }
 
+    public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+    {
+        EnsureSchemaListCurrentDatabase(options);
+        var current = GetCurrentDatabaseName();
+        try
+        {
+            var kit = DBLive.useSQL()
+                .select("username as \"Name\", username as \"Database\"")
+                .from("all_users");
+            if (options != null && options.HasDatabaseScope && !string.IsNullOrEmpty(options.EffectiveDatabaseName))
+                kit.where("username", options.EffectiveDatabaseName.ToUpperInvariant());
+            kit.orderBy("username");
+            var list = kit.query<DbSchemaInfo>().ToList();
+            foreach (var s in list)
+                s.IsDefault = !string.IsNullOrEmpty(current)
+                    && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
+            return list;
+        }
+        catch
+        {
+            if (string.IsNullOrEmpty(current)) return new List<DbSchemaInfo>();
+            return new List<DbSchemaInfo>
+            {
+                new DbSchemaInfo { Database = current, Name = current, IsDefault = true }
+            };
+        }
+    }
+
     public override bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         => throw new NotImplementedException();
 

@@ -196,6 +196,28 @@ public class OracleSentence : SQLSentence
         catch { return null; }
     }
 
+    /// <summary>Oracle 以 owner 为 schema；Database 填 owner。</summary>
+    public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+    {
+        EnsureSchemaListCurrentDatabase(options);
+        var current = GetCurrentDatabaseName();
+        var kit = DBLive.useSQL()
+            .select("username as \"Name\", username as \"Database\", " +
+                    "case when username = user then 1 else 0 end as \"IsDefault\"")
+            .from("all_users")
+            .where("username not in ('SYS','SYSTEM','OUTLN','XDB','MDSYS','CTXSYS','ORDDATA','ORDSYS','WMSYS','LBACSYS','DVSYS','DBSNMP','APPQOSSYS','AUDSYS')");
+        if (options != null && options.HasDatabaseScope && !string.IsNullOrEmpty(options.EffectiveDatabaseName))
+            kit.where("username", options.EffectiveDatabaseName.ToUpperInvariant());
+        kit.orderBy("username");
+        var list = kit.query<DbSchemaInfo>().ToList();
+        if (!string.IsNullOrEmpty(current))
+        {
+            foreach (var s in list)
+                s.IsDefault = string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
+        }
+        return list;
+    }
+
     public override List<TableInfo> GetTables(GetSchemaOptions options)
     {
         LoadCurrentUser();

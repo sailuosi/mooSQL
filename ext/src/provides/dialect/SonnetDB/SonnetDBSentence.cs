@@ -74,6 +74,24 @@ namespace mooSQL.data
             return FinalizeDbTableListAll(list, options);
         }
 
+        public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            string db = null;
+            try { db = DBLive.ExeQueryScalar<string>("SELECT current_database()", null); }
+            catch { /* ignore */ }
+            db ??= "main";
+            if (options != null)
+            {
+                options.CurrentDatabaseName ??= db;
+                if (options.HasDatabaseScope && !options.ShouldIncludeDatabase(db))
+                    return new List<DbSchemaInfo>();
+            }
+            return new List<DbSchemaInfo>
+            {
+                new DbSchemaInfo { Database = db, Name = "main", IsDefault = true }
+            };
+        }
+
         public override SQLCmd buildHasTable(string TableName)
         {
             // SHOW TABLES 为引擎原生；information_schema.tables 亦列出关系表

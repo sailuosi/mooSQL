@@ -84,6 +84,25 @@ namespace mooSQL.data
             catch { return null; }
         }
 
+        /// <summary>ClickHouse 库即命名空间；返回 system.databases。</summary>
+        public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            EnsureSchemaListCurrentDatabase(options);
+            var current = GetCurrentDatabaseName();
+            var kit = DBLive.useSQL()
+                .select("name as Name, name as Database")
+                .from("system.databases")
+                .where("name NOT IN ('system','INFORMATION_SCHEMA','information_schema')");
+            if (options != null && options.HasDatabaseScope && !string.IsNullOrEmpty(options.EffectiveDatabaseName))
+                kit.where("name", options.EffectiveDatabaseName);
+            kit.orderBy("name");
+            var list = kit.query<DbSchemaInfo>().ToList();
+            foreach (var s in list)
+                s.IsDefault = !string.IsNullOrEmpty(current)
+                    && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
+            return list;
+        }
+
         public override SQLCmd buildHasTable(string TableName)
         {
             return DBLive.useSQL()

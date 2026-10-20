@@ -66,6 +66,14 @@ public class SQLiteSentence :SQLSentence
         return FinalizeDbTableListAll(list, options);
     }
 
+    public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+    {
+        return new List<DbSchemaInfo>
+        {
+            new DbSchemaInfo { Database = "main", Name = "main", IsDefault = true }
+        };
+    }
+
     public override SQLCmd buildHasTable(string TableName)
     {
         var kit = DBLive.useSQL();

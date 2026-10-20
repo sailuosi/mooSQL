@@ -83,6 +83,25 @@ public class MySQLSentence :SQLSentence
         catch { return null; }
     }
 
+    /// <summary>MySQL 无独立 schema 层；返回 information_schema.schemata（库名即模式名）。</summary>
+    public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+    {
+        EnsureSchemaListCurrentDatabase(options);
+        var current = GetCurrentDatabaseName();
+        var kit = DBLive.useSQL()
+            .select("SCHEMA_NAME as Name, SCHEMA_NAME as Database")
+            .from("information_schema.schemata")
+            .where("SCHEMA_NAME not in ('information_schema','mysql','performance_schema','sys')");
+        if (options != null && options.HasDatabaseScope && !string.IsNullOrEmpty(options.EffectiveDatabaseName))
+            kit.where("SCHEMA_NAME", options.EffectiveDatabaseName);
+        kit.orderBy("SCHEMA_NAME");
+        var list = kit.query<DbSchemaInfo>().ToList();
+        foreach (var s in list)
+            s.IsDefault = !string.IsNullOrEmpty(current)
+                && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
+        return list;
+    }
+
     public override SQLCmd buildHasTable(string TableName)
     {
         var cmd = DBLive.useSQL()

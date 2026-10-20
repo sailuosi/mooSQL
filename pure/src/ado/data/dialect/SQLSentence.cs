@@ -133,6 +133,23 @@ namespace mooSQL.data
                 $"{GetType().Name} does not support GetDbTableListAll.");
         }
         /// <summary>
+        /// 获取数据库下的模式列表（如 PostgreSQL public、SQL Server dbo）。
+        /// <paramref name="options"/> 为 null 时返回可见范围内的全部模式。
+        /// </summary>
+        public virtual List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            throw new NotSupportedException(
+                $"{GetType().Name} does not support GetDbSchemaList.");
+        }
+        /// <summary>
+        /// Finalize 前解析当前库名（供 schema 列表库范围）。
+        /// </summary>
+        protected void EnsureSchemaListCurrentDatabase(GetDbSchemaListOptions options)
+        {
+            if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+                options.CurrentDatabaseName = GetCurrentDatabaseName();
+        }
+        /// <summary>
         /// 对拉取结果补齐未下推的过滤/排序；必要时补近似行数。
         /// </summary>
         protected List<DbTableInfo> FinalizeDbTableListAll(List<DbTableInfo> list, GetDbTableListOptions options)

@@ -81,6 +81,27 @@ namespace mooSQL.data
             catch { return "main"; }
         }
 
+        public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            EnsureSchemaListCurrentDatabase(options);
+            var db = GetCurrentDatabaseName() ?? "main";
+            if (options != null && options.HasDatabaseScope && !options.ShouldIncludeDatabase(db))
+                return new List<DbSchemaInfo>();
+
+            var kit = DBLive.useSQL()
+                .select("schema_name as Name")
+                .from("information_schema.schemata")
+                .where("schema_name NOT IN ('information_schema','pg_catalog')")
+                .orderBy("schema_name");
+            var list = kit.query<DbSchemaInfo>().ToList();
+            foreach (var s in list)
+            {
+                s.Database = db;
+                s.IsDefault = string.Equals(s.Name, "main", StringComparison.OrdinalIgnoreCase);
+            }
+            return list;
+        }
+
         public override SQLCmd buildHasTable(string TableName)
         {
             return DBLive.useSQL()

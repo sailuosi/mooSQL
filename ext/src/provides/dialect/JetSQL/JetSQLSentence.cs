@@ -200,6 +200,14 @@ namespace mooSQL.data
             return FinalizeDbTableListAll(list, options);
         }
 
+        public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            return new List<DbSchemaInfo>
+            {
+                new DbSchemaInfo { Database = "main", Name = "main", IsDefault = true }
+            };
+        }
+
         public override List<DbTableInfo> GetDbViewList()
         {
             var conn = dialect.getConnection();

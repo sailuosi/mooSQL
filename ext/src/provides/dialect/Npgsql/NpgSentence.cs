@@ -174,6 +174,75 @@ namespace mooSQL.data
             catch { return null; }
         }
 
+        public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+        {
+            EnsureSchemaListCurrentDatabase(options);
+            var result = new List<DbSchemaInfo>();
+            if (string.IsNullOrWhiteSpace(DBLive.config?.DBConnectStr))
+                return result;
+
+            List<string> dbs;
+            try
+            {
+                dbs = DBLive.ExeQuery(
+                        "SELECT datname AS NAME FROM pg_database WHERE datallowconn AND datname NOT IN ('template0','template1') ORDER BY datname")
+                    .getFieldValues("NAME");
+            }
+            catch
+            {
+                dbs = (GetDataBaseList() ?? new List<string>())
+                    .Where(d => !string.Equals(d, "template0", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(d, "template1", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            const string schemaSql =
+                "select cast(n.nspname as varchar) as Name, " +
+                "case when n.nspname = 'public' then true else false end as IsDefault " +
+                "from pg_namespace n " +
+                "where n.nspname not in ('pg_catalog','information_schema') " +
+                "and n.nspname not like 'pg_toast%' " +
+                "and n.nspname not like 'pg_temp_%' " +
+                "and n.nspname not like 'pg_toast_temp_%' " +
+                "order by n.nspname";
+
+            foreach (var datname in dbs)
+            {
+                if (string.IsNullOrWhiteSpace(datname)) continue;
+                if (options != null && !options.ShouldIncludeDatabase(datname)) continue;
+                try
+                {
+                    var cs = BuildConnectionStringForDatabase(datname);
+                    using (var conn = CreateSideConnection(cs))
+                    {
+                        if (conn.State != ConnectionState.Open)
+                            conn.Open();
+                        using (var cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = schemaSql;
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    var name = reader.IsDBNull(0) ? null : reader.GetString(0);
+                                    if (string.IsNullOrEmpty(name)) continue;
+                                    var isDefault = !reader.IsDBNull(1) && Convert.ToBoolean(reader.GetValue(1));
+                                    result.Add(new DbSchemaInfo
+                                    {
+                                        Database = datname,
+                                        Name = name,
+                                        IsDefault = isDefault
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { /* skip */ }
+            }
+            return result;
+        }
+
         /// <summary>为指定 database 改写连接串；子类可覆写以适配厂商连接串构建器。</summary>
         protected virtual string BuildConnectionStringForDatabase(string dbName)
         {

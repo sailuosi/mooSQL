@@ -191,6 +191,38 @@ public class MSSQLSentence : SQLSentence
         catch { return null; }
     }
 
+    public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
+    {
+        EnsureSchemaListCurrentDatabase(options);
+        var systemDbs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "master", "tempdb", "model", "msdb"
+        };
+        var result = new List<DbSchemaInfo>();
+        List<string> dbs;
+        try { dbs = GetDataBaseList() ?? new List<string>(); }
+        catch { return result; }
+
+        foreach (var db in dbs)
+        {
+            if (string.IsNullOrWhiteSpace(db) || systemDbs.Contains(db)) continue;
+            if (options != null && !options.ShouldIncludeDatabase(db)) continue;
+            var safe = db.Replace("]", "]]");
+            try
+            {
+                var kit = DBLive.useSQL()
+                    .select("N'" + safe + "' as Database, s.name as Name, " +
+                            "CASE WHEN s.name = N'dbo' THEN 1 ELSE 0 END as IsDefault")
+                    .from("[" + safe + "].sys.schemas s")
+                    .where("s.name not in ('sys','INFORMATION_SCHEMA','guest','db_owner','db_accessadmin','db_securityadmin','db_ddladmin','db_backupoperator','db_datareader','db_datawriter','db_denydatareader','db_denydatawriter')")
+                    .orderBy("s.name");
+                result.AddRange(kit.query<DbSchemaInfo>());
+            }
+            catch { /* skip inaccessible */ }
+        }
+        return result;
+    }
+
     public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
     {
         var kit = DBLive.useSQL()

@@ -82,6 +82,14 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 加载数据库下的模式列表（如 public、dbo）。
+        /// </summary>
+        public virtual List<DbSchemaInfo> loadSchemaList(GetDbSchemaListOptions options = null)
+        {
+            return SQLVerse.GetDbSchemaList(options);
+        }
+
+        /// <summary>
         /// loadTableList 方法（返回 List<DbTableInfo>）。
         /// </summary>
         public virtual List<DbTableInfo> loadTableList(string name)
