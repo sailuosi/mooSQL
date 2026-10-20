@@ -51,14 +51,19 @@ namespace mooSQL.data
                     return "time";
                 case DataFam.Boolean:
                     return "boolean";
+                case DataFam.SByte:
                 case DataFam.Byte:
                 case DataFam.Int16:
                     return "smallint";
+                case DataFam.UInt16:
                 case DataFam.Int32:
+                case DataFam.UInt32:
                     return "integer";
                 case DataFam.Int64:
                 case DataFam.Long:
                     return "bigint";
+                case DataFam.UInt64:
+                    return "numeric";
                 case DataFam.Decimal:
                 case DataFam.VarNumeric:
                 case DataFam.Money:

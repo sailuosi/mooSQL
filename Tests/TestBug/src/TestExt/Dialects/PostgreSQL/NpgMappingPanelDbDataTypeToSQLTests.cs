@@ -20,9 +20,15 @@ public class NpgMappingPanelDbDataTypeToSQLTests
     }
 
     [Theory]
+    [InlineData(DataFam.SByte, "smallint")]
+    [InlineData(DataFam.Byte, "smallint")]
+    [InlineData(DataFam.Int16, "smallint")]
+    [InlineData(DataFam.UInt16, "integer")]
     [InlineData(DataFam.Int32, "integer")]
+    [InlineData(DataFam.UInt32, "integer")]
     [InlineData(DataFam.Int64, "bigint")]
     [InlineData(DataFam.Long, "bigint")]
+    [InlineData(DataFam.UInt64, "numeric")]
     [InlineData(DataFam.Boolean, "boolean")]
     [InlineData(DataFam.Guid, "uuid")]
     [InlineData(DataFam.DateTime, "timestamp")]

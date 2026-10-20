@@ -109,14 +109,19 @@ namespace mooSQL.data.Oracle
                     return "INTERVAL DAY TO SECOND";
                 case DataFam.Boolean:
                     return "NUMBER(1)";
+                case DataFam.SByte:
                 case DataFam.Byte:
                 case DataFam.Int16:
                     return "NUMBER(5)";
+                case DataFam.UInt16:
                 case DataFam.Int32:
+                case DataFam.UInt32:
                     return "NUMBER(10)";
                 case DataFam.Int64:
                 case DataFam.Long:
                     return "NUMBER(19)";
+                case DataFam.UInt64:
+                    return "NUMBER(20)";
                 case DataFam.Decimal:
                 case DataFam.VarNumeric:
                 case DataFam.Money:

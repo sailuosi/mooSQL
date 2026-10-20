@@ -98,11 +98,23 @@ namespace mooSQL.data
                     return "varchar(36)";
                 case DataFam.Char:
                     return string.Format("CHAR({0})", type.Length);
+                case DataFam.SByte:
+                    return "TINYINT";
+                case DataFam.Byte:
+                    return "TINYINT UNSIGNED";
+                case DataFam.Int16:
+                    return "SMALLINT";
+                case DataFam.UInt16:
+                    return "SMALLINT UNSIGNED";
                 case DataFam.Int32:
                     return "INT";
+                case DataFam.UInt32:
+                    return "INT UNSIGNED";
                 case DataFam.Int64:
                 case DataFam.Long:
                     return "BIGINT";
+                case DataFam.UInt64:
+                    return "BIGINT UNSIGNED";
                 case DataFam.Text:
                     return "TEXT";
                 case DataFam.LongText:

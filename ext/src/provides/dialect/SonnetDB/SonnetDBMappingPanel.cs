@@ -35,6 +35,7 @@ namespace mooSQL.data
                     return "DATETIME";
                 case DataFam.Boolean:
                     return "BOOL";
+                case DataFam.SByte:
                 case DataFam.Byte:
                 case DataFam.Int16:
                 case DataFam.Int32:

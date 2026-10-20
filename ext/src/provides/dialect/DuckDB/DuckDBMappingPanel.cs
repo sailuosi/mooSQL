@@ -44,6 +44,7 @@ namespace mooSQL.data
                     return "TIME";
                 case DataFam.Boolean:
                     return "BOOLEAN";
+                case DataFam.SByte:
                 case DataFam.Byte:
                 case DataFam.Int16:
                     return "SMALLINT";

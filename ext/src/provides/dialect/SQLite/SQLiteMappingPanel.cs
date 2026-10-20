@@ -32,6 +32,7 @@ namespace mooSQL.data
                 case DataFam.Time:
                     return "TEXT";
                 case DataFam.Boolean:
+                case DataFam.SByte:
                 case DataFam.Byte:
                 case DataFam.Int16:
                 case DataFam.Int32:

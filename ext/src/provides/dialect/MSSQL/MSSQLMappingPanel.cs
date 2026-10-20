@@ -73,11 +73,20 @@ namespace mooSQL.data.MSSQL
                     return "uniqueidentifier";
                 case DataFam.Char:
                     return string.Format("char({0})", type.Length);
+                case DataFam.SByte:
+                case DataFam.Int16:
+                    return "smallint";
+                case DataFam.Byte:
+                    return "tinyint";
+                case DataFam.UInt16:
                 case DataFam.Int32:
+                case DataFam.UInt32:
                     return "int";
                 case DataFam.Int64:
                 case DataFam.Long:
                     return "bigint";
+                case DataFam.UInt64:
+                    return "numeric(20,0)";
                 case DataFam.Text:
                 case DataFam.LongText:
                     return "text";

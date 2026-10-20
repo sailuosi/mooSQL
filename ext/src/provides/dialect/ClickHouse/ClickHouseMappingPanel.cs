@@ -37,6 +37,8 @@ namespace mooSQL.data
                     return "String";
                 case DataFam.Boolean:
                     return "UInt8";
+                case DataFam.SByte:
+                    return "Int8";
                 case DataFam.Byte:
                     return "UInt8";
                 case DataFam.Int16:

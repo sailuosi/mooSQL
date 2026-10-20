@@ -43,15 +43,20 @@ namespace mooSQL.data
                     return "SINGLE";
                 case DataFam.Guid:
                     return "GUID";
-                case DataFam.Int32:
-                    return "INTEGER";
-                case DataFam.Int64:
-                case DataFam.Long:
-                    return "BIGINT";
+                case DataFam.SByte:
                 case DataFam.Int16:
                     return "SMALLINT";
                 case DataFam.Byte:
                     return "TINYINT";
+                case DataFam.UInt16:
+                case DataFam.Int32:
+                case DataFam.UInt32:
+                    return "INTEGER";
+                case DataFam.Int64:
+                case DataFam.Long:
+                    return "BIGINT";
+                case DataFam.UInt64:
+                    return "DECIMAL(20,0)";
                 case DataFam.Money:
                 case DataFam.SmallMoney:
                     return "CURRENCY";
