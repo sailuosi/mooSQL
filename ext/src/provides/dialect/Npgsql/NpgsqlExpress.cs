@@ -368,11 +368,58 @@ namespace mooSQL.data
                 );
         }
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
-        { 
-            return string.Format("ALTER TABLE {0} ALTER COLUMN {1} {2}{3} {4} {5} {6}",
-                tableName, columnName, dataType,
-                defval, nullable, p2, p3
-                );
+        {
+            // PG: ALTER COLUMN ... TYPE ...；可空性用 SET/DROP NOT NULL，不能写成 MSSQL 风格
+            var sb = new StringBuilder();
+            sb.AppendFormat("ALTER TABLE {0} ALTER COLUMN {1} TYPE {2}", tableName, columnName, dataType);
+            var nullSql = BuildPgAlterNullability(tableName, columnName, nullable);
+            if (!string.IsNullOrEmpty(nullSql))
+                sb.Append(';').Append(nullSql);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// PG 列修改：TYPE + 可空性分句（供 doAlterColumn / WidenColumns）。
+        /// </summary>
+        public override string buildAlterColumn(DDLFragSQL frag, DDLField field)
+        {
+            if (frag == null || field == null || string.IsNullOrWhiteSpace(field.FieldName))
+                return string.Empty;
+            var sb = new StringBuilder();
+            sb.Append("ALTER TABLE ")
+                .Append(frag.Table)
+                .Append(" ALTER COLUMN ")
+                .Append(field.FieldName)
+                .Append(" TYPE ")
+                .Append(field.TextType);
+            var nullClause = field.Nullable
+                ? "DROP NOT NULL"
+                : "SET NOT NULL";
+            sb.Append(';')
+                .Append("ALTER TABLE ")
+                .Append(frag.Table)
+                .Append(" ALTER COLUMN ")
+                .Append(field.FieldName)
+                .Append(' ')
+                .Append(nullClause);
+            return sb.ToString();
+        }
+
+        static string BuildPgAlterNullability(string tableName, string columnName, string nullable)
+        {
+            if (string.IsNullOrWhiteSpace(nullable))
+                return null;
+            var n = nullable.Trim();
+            if (n.Equals("NOT NULL", StringComparison.OrdinalIgnoreCase)
+                || n.IndexOf("NOT NULL", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return string.Format("ALTER TABLE {0} ALTER COLUMN {1} SET NOT NULL", tableName, columnName);
+            }
+            if (n.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.Format("ALTER TABLE {0} ALTER COLUMN {1} DROP NOT NULL", tableName, columnName);
+            }
+            return null;
         }
         public override string CreateTableBy(string tableName, string detail)
         { 
