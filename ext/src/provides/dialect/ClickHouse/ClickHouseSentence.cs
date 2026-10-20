@@ -52,6 +52,38 @@ namespace mooSQL.data
         public override string GetViewInfoListSql =>
             "SELECT name AS Name, comment AS Description FROM system.tables WHERE database = currentDatabase() AND engine LIKE '%View%'";
 
+        public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+                options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+            var kit = DBLive.useSQL()
+                .select("database AS Schema, name AS Name, comment AS Comment, total_rows AS RowCount")
+                .from("system.tables")
+                .where("engine NOT LIKE '%View%'")
+                .where("database NOT IN ('system','INFORMATION_SCHEMA','information_schema')");
+
+            options?.ApplyToBuilder(kit, new DbTableListSqlColumns
+            {
+                Name = "name",
+                Comment = "comment",
+                RowCount = "total_rows",
+                Schema = "database",
+                Database = "database",
+                DefaultOrderBy = "database, name",
+            });
+            if (options == null)
+                kit.orderBy("database, name");
+
+            return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
+        }
+
+        protected override string GetCurrentDatabaseName()
+        {
+            try { return DBLive.ExeQueryScalar<string>("SELECT currentDatabase()", null); }
+            catch { return null; }
+        }
+
         public override SQLCmd buildHasTable(string TableName)
         {
             return DBLive.useSQL()

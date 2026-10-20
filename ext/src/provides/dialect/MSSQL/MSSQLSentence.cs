@@ -119,6 +119,78 @@ public class MSSQLSentence : SQLSentence
 
     public override string GetViewInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0  AND (tbp.Name='MS_Description' OR tbp.Name is null) WHERE s.xtype IN('V')  ";
 
+    public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+    {
+        if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+            options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+        var systemDbs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "master", "tempdb", "model", "msdb"
+        };
+        var result = new List<DbTableInfo>();
+        List<string> dbs;
+        try
+        {
+            dbs = GetDataBaseList() ?? new List<string>();
+        }
+        catch
+        {
+            return FinalizeDbTableListAll(result, options);
+        }
+
+        var cols = new DbTableListSqlColumns
+        {
+            Name = "t.name",
+            Comment = "CONVERT(varchar(max), ep.value)",
+            RowCount = "(SELECT SUM(p.rows) FROM sys.partitions p WHERE p.object_id = t.object_id AND p.index_id IN (0, 1))",
+            Schema = "s.name",
+            DefaultOrderBy = "s.name, t.name",
+        };
+
+        foreach (var db in dbs)
+        {
+            if (string.IsNullOrWhiteSpace(db) || systemDbs.Contains(db)) continue;
+            if (options != null && !options.ShouldIncludeDatabase(db)) continue;
+            if (options != null && options.HasDatabaseScope)
+                options.DatabaseFilterPushed = true;
+
+            var safe = db.Replace("]", "]]");
+            var rowCountExpr =
+                "(SELECT SUM(p.rows) FROM [" + safe + "].sys.partitions p " +
+                "WHERE p.object_id = t.object_id AND p.index_id IN (0, 1))";
+            try
+            {
+                var kit = DBLive.useSQL()
+                    .select("CAST(N'" + safe + "' + N'.' + s.name AS nvarchar(256)) AS [Schema], " +
+                            "t.name AS Name, CONVERT(varchar(max), ep.value) AS Comment, " +
+                            rowCountExpr + " AS RowCount")
+                    .from("[" + safe + "].sys.tables t")
+                    .join("INNER JOIN [" + safe + "].sys.schemas s ON t.schema_id = s.schema_id")
+                    .join("LEFT JOIN [" + safe + "].sys.extended_properties ep ON ep.major_id = t.object_id AND ep.minor_id = 0 AND ep.name = N'MS_Description'")
+                    .where("t.is_ms_shipped", 0);
+
+                cols.RowCount = rowCountExpr;
+                options?.ApplyToBuilder(kit, cols, includeSort: false);
+                if (options == null)
+                    kit.orderBy("s.name, t.name");
+
+                result.AddRange(kit.query<DbTableInfo>());
+            }
+            catch
+            {
+                // 跳过无权限或不可访问的库
+            }
+        }
+        return FinalizeDbTableListAll(result, options);
+    }
+
+    protected override string GetCurrentDatabaseName()
+    {
+        try { return DBLive.ExeQueryScalar<string>("SELECT DB_NAME()", null); }
+        catch { return null; }
+    }
+
     public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
     {
         var kit = DBLive.useSQL()

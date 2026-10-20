@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 
 namespace mooSQL.data
 {
@@ -56,6 +58,36 @@ namespace mooSQL.data
             "FROM information_schema.views " +
             "WHERE table_schema = CURRENT_SCHEMA() " +
             "ORDER BY table_name";
+
+        public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+                options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+            var kit = DBLive.useSQL()
+                .select("table_schema AS Schema, table_name AS Name, CAST(NULL AS varchar) AS Comment")
+                .from("information_schema.tables")
+                .where("table_type", "BASE TABLE")
+                .where("table_schema NOT IN ('information_schema','sys','pg_catalog')");
+
+            options?.ApplyToBuilder(kit, new DbTableListSqlColumns
+            {
+                Name = "table_name",
+                Schema = "table_schema",
+                Database = "table_schema",
+                DefaultOrderBy = "table_schema, table_name",
+            });
+            if (options == null)
+                kit.orderBy("table_schema, table_name");
+
+            return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
+        }
+
+        protected override string GetCurrentDatabaseName()
+        {
+            try { return DBLive.ExeQueryScalar<string>("SELECT current_schema()", null); }
+            catch { return null; }
+        }
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {

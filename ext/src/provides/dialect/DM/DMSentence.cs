@@ -73,6 +73,58 @@ public class DMSentence : SQLSentence
         "AND VIEW_NAME !='PRODUCT_PRIVS' " +
         "AND VIEW_NAME NOT LIKE 'MVIEW_%' ";
 
+    /// <summary>
+    /// 全部可访问 schema 下的用户表；Schema = owner。
+    /// </summary>
+    public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+    {
+        if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+            options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+        try
+        {
+            var kit = DBLive.useSQL()
+                .select("a.owner as \"Schema\", a.table_name as \"Name\", b.comments as \"Comment\", a.num_rows as \"RowCount\"")
+                .from("all_tables a")
+                .join("left join all_tab_comments b ON a.owner = b.owner AND a.table_name = b.table_name")
+                .where("a.table_name not like '%$%'")
+                .where("a.table_name != 'HELP'")
+                .where("a.table_name not like 'LOGMNRC_%'");
+
+            options?.ApplyToBuilder(kit, new DbTableListSqlColumns
+            {
+                Name = "a.table_name",
+                Comment = "b.comments",
+                RowCount = "a.num_rows",
+                Schema = "a.owner",
+                Database = "a.owner",
+                DefaultOrderBy = "a.owner, a.table_name",
+            });
+            if (options == null)
+                kit.orderBy("a.owner, a.table_name");
+
+            return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
+        }
+        catch
+        {
+            var list = GetDbTableList() ?? new List<DbTableInfo>();
+            string owner = null;
+            try { owner = DBLive.ExeQueryScalar<string>("select user from dual", null); } catch { /* ignore */ }
+            foreach (var t in list)
+            {
+                if (string.IsNullOrEmpty(t.Schema))
+                    t.Schema = owner;
+            }
+            return FinalizeDbTableListAll(list, options);
+        }
+    }
+
+    protected override string GetCurrentDatabaseName()
+    {
+        try { return DBLive.ExeQueryScalar<string>("select user from dual", null); }
+        catch { return null; }
+    }
+
     public override bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         => throw new NotImplementedException();
 

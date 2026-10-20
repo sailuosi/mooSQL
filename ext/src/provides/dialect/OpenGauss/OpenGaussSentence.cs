@@ -1,3 +1,10 @@
+#if NET8_0_OR_GREATER
+using HuaweiCloud.GaussDB;
+#else
+using Npgsql;
+#endif
+using System.Data.Common;
+
 namespace mooSQL.data
 {
     /// <summary>
@@ -8,5 +15,21 @@ namespace mooSQL.data
         public OpenGaussSentence(Dialect dialect) : base(dialect)
         {
         }
+
+#if NET8_0_OR_GREATER
+        protected override string BuildConnectionStringForDatabase(string dbName)
+        {
+            var builder = new GaussDBConnectionStringBuilder(DBLive.config.DBConnectStr)
+            {
+                Database = dbName
+            };
+            return builder.ConnectionString;
+        }
+
+        protected override DbConnection CreateSideConnection(string connectionString)
+        {
+            return new GaussDBConnection(connectionString);
+        }
+#endif
     }
 }

@@ -1,8 +1,11 @@
 
 using mooSQL.linq;
+using mooSQL.utils;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -58,9 +61,140 @@ namespace mooSQL.data
             "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
             "ORDER BY c.ordinal_position";
 
-        public override string GetTableInfoListSql => "select cast(relname as varchar) as Name,   cast(obj_description(relfilenode,'pg_class') as varchar) as Comment from pg_class c   where  relkind = 'r' and relname not like 'pg_%' and relname not like 'sql_%' order by relname";
+        public override string GetTableInfoListSql =>
+            "select cast(c.relname as varchar) as Name, cast(obj_description(c.oid, 'pg_class') as varchar) as Comment " +
+            "from pg_class c join pg_namespace n on n.oid = c.relnamespace " +
+            "where c.relkind = 'r' and n.nspname = current_schema() " +
+            "and c.relname not like 'pg_%' and c.relname not like 'sql_%' " +
+            "order by c.relname";
+        public override List<DbTableInfo> GetDbTableList()
+        {
+            var dt = this.DBLive.ExeQuery<DbTableInfo>(GetTableInfoListSql);
+            return dt.ToList();
+        }
 
-        public override string GetViewInfoListSql => "select cast(relname as varchar) as Name,cast(Description as varchar) from pg_description   join pg_class on pg_description.objoid = pg_class.oid  where objsubid = 0 and relname in (SELECT viewname from pg_views   WHERE schemaname ='public')";
+        /// <summary>
+        /// 多连接逐库枚举用户表；Schema = {datname}.{nspname}。单库失败跳过。
+        /// </summary>
+        public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            var result = new List<DbTableInfo>();
+            if (string.IsNullOrWhiteSpace(DBLive.config?.DBConnectStr))
+                return FinalizeDbTableListAll(result, options);
+
+            if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+                options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+            List<string> dbs;
+            try
+            {
+                dbs = DBLive.ExeQuery(
+                        "SELECT datname AS NAME FROM pg_database WHERE datallowconn AND datname NOT IN ('template0','template1') ORDER BY datname")
+                    .getFieldValues("NAME");
+            }
+            catch
+            {
+                dbs = (GetDataBaseList() ?? new List<string>())
+                    .Where(d => !string.Equals(d, "template0", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(d, "template1", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            var cols = new DbTableListSqlColumns
+            {
+                Name = "c.relname",
+                Comment = "obj_description(c.oid, 'pg_class')",
+                RowCount = "c.reltuples",
+                Schema = "n.nspname",
+            };
+
+            foreach (var datname in dbs)
+            {
+                if (string.IsNullOrWhiteSpace(datname)) continue;
+                if (options != null && !options.ShouldIncludeDatabase(datname)) continue;
+                if (options != null && options.HasDatabaseScope)
+                    options.DatabaseFilterPushed = true;
+
+                var sql = new StringBuilder();
+                sql.Append(
+                    "select cast(n.nspname as varchar) as nsp, cast(c.relname as varchar) as Name, " +
+                    "cast(obj_description(c.oid, 'pg_class') as varchar) as Comment, " +
+                    "cast(c.reltuples as bigint) as RowCount " +
+                    "from pg_class c join pg_namespace n on n.oid = c.relnamespace " +
+                    "where c.relkind = 'r' " +
+                    "and n.nspname not in ('pg_catalog','information_schema') " +
+                    "and n.nspname not like 'pg_toast%' " +
+                    "and n.nspname not like 'pg_temp_%' " +
+                    "and c.relname not like 'pg_%' and c.relname not like 'sql_%'");
+                options?.ApplyFiltersToWhereSql(sql, cols, useILike: true);
+                sql.Append(" order by n.nspname, c.relname");
+
+                try
+                {
+                    var cs = BuildConnectionStringForDatabase(datname);
+                    using (var conn = CreateSideConnection(cs))
+                    {
+                        if (conn.State != ConnectionState.Open)
+                            conn.Open();
+                        using (var cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = sql.ToString();
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    var nsp = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                                    var name = reader.IsDBNull(1) ? null : reader.GetString(1);
+                                    var comment = reader.IsDBNull(2) ? null : reader.GetString(2);
+                                    long? rowCount = reader.IsDBNull(3) ? (long?)null : Convert.ToInt64(reader.GetValue(3));
+                                    if (string.IsNullOrEmpty(name)) continue;
+                                    result.Add(new DbTableInfo
+                                    {
+                                        Schema = string.IsNullOrEmpty(nsp) ? datname : datname + "." + nsp,
+                                        Name = name,
+                                        Comment = comment,
+                                        RowCount = rowCount
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // 跳过无权限或不可连接的库
+                }
+            }
+            return FinalizeDbTableListAll(result, options);
+        }
+
+        protected override string GetCurrentDatabaseName()
+        {
+            try { return DBLive.ExeQueryScalar<string>("SELECT current_database()", null); }
+            catch { return null; }
+        }
+
+        /// <summary>为指定 database 改写连接串；子类可覆写以适配厂商连接串构建器。</summary>
+        protected virtual string BuildConnectionStringForDatabase(string dbName)
+        {
+            var builder = new NpgsqlConnectionStringBuilder(DBLive.config.DBConnectStr)
+            {
+                Database = dbName
+            };
+            return builder.ConnectionString;
+        }
+
+        /// <summary>旁路元数据连接；不触碰 DBLive 当前会话。</summary>
+        protected virtual DbConnection CreateSideConnection(string connectionString)
+        {
+            return new NpgsqlConnection(connectionString);
+        }
+
+        public override string GetViewInfoListSql =>
+            "select cast(c.relname as varchar) as Name, cast(obj_description(c.oid, 'pg_class') as varchar) as Comment " +
+            "from pg_class c join pg_namespace n on n.oid = c.relnamespace " +
+            "where c.relkind = 'v' and n.nspname = current_schema() " +
+            "order by c.relname";
 
 
         public override SQLCmd buildHasTable(string TableName)

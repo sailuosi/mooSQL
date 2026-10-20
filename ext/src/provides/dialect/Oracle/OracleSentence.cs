@@ -159,6 +159,43 @@ public class OracleSentence : SQLSentence
         return dt.ToList();
     }
 
+    /// <summary>
+    /// 全部可访问 schema 下的用户表；Schema = owner。
+    /// </summary>
+    public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+    {
+        // Oracle 无 MySQL 式 database；CurrentDatabaseOnly / DatabaseName 映射为 owner（Schema）
+        if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+            options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+        var kit = DBLive.useSQL()
+            .select("a.owner as \"Schema\", a.table_name as \"Name\", b.comments as \"Comment\", a.num_rows as \"RowCount\"")
+            .from("all_tables a")
+            .join("left join all_tab_comments b ON a.owner = b.owner AND a.table_name = b.table_name AND b.table_type = 'TABLE'")
+            .where("a.table_name not like '%$%'")
+            .where("a.owner not in ('SYS','SYSTEM','OUTLN','XDB','MDSYS','CTXSYS','ORDDATA','ORDSYS','WMSYS','LBACSYS','DVSYS','DBSNMP','APPQOSSYS','AUDSYS')");
+
+        options?.ApplyToBuilder(kit, new DbTableListSqlColumns
+        {
+            Name = "a.table_name",
+            Comment = "b.comments",
+            RowCount = "a.num_rows",
+            Schema = "a.owner",
+            Database = "a.owner",
+            DefaultOrderBy = "a.owner, a.table_name",
+        });
+        if (options == null)
+            kit.orderBy("a.owner, a.table_name");
+
+        return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
+    }
+
+    protected override string GetCurrentDatabaseName()
+    {
+        try { return DBLive.ExeQueryScalar<string>("select user from dual", null); }
+        catch { return null; }
+    }
+
     public override List<TableInfo> GetTables(GetSchemaOptions options)
     {
         LoadCurrentUser();

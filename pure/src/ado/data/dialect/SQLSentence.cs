@@ -124,6 +124,37 @@ namespace mooSQL.data
             return dt.ToList();
         }
         /// <summary>
+        /// 获取连接实例可见的全部库（或等价目录）下的用户表列表；结果应填充 <see cref="DbTableInfo.Schema"/>。
+        /// <paramref name="options"/> 为 null 时不做过滤排序。
+        /// </summary>
+        public virtual List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            throw new NotSupportedException(
+                $"{GetType().Name} does not support GetDbTableListAll.");
+        }
+        /// <summary>
+        /// 对拉取结果补齐未下推的过滤/排序；必要时补近似行数。
+        /// </summary>
+        protected List<DbTableInfo> FinalizeDbTableListAll(List<DbTableInfo> list, GetDbTableListOptions options)
+        {
+            list ??= new List<DbTableInfo>();
+            if (options == null) return list;
+            if (options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+                options.CurrentDatabaseName = GetCurrentDatabaseName();
+            if (options.NeedsRowCount && !options.RowCountFilterPushed
+                && list.Any(t => t != null && t.RowCount == null))
+                FillApproximateRowCounts(list);
+            return options.Apply(list);
+        }
+        /// <summary>
+        /// 当前连接数据库名（供 <see cref="GetDbTableListOptions.CurrentDatabaseOnly"/>）。
+        /// </summary>
+        protected virtual string GetCurrentDatabaseName() => null;
+        /// <summary>
+        /// 为尚未填充 <see cref="DbTableInfo.RowCount"/> 的项补近似行数；默认空实现。
+        /// </summary>
+        protected virtual void FillApproximateRowCounts(List<DbTableInfo> tables) { }
+        /// <summary>
         /// 获取数据库的视图列表
         /// </summary>
         /// <returns></returns>

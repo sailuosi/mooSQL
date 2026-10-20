@@ -189,6 +189,17 @@ namespace mooSQL.data
             }
         }
 
+        public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            var list = GetDbTableList() ?? new List<DbTableInfo>();
+            foreach (var t in list)
+            {
+                if (string.IsNullOrEmpty(t.Schema))
+                    t.Schema = "main";
+            }
+            return FinalizeDbTableListAll(list, options);
+        }
+
         public override List<DbTableInfo> GetDbViewList()
         {
             var conn = dialect.getConnection();

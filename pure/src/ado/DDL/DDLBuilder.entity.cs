@@ -73,6 +73,15 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 加载连接实例可见的全部库（或等价目录）下的用户表信息。
+        /// <paramref name="options"/> 为 null 时不做过滤排序。
+        /// </summary>
+        public virtual List<DbTableInfo> loadTableListAll(GetDbTableListOptions options = null)
+        {
+            return SQLVerse.GetDbTableListAll(options);
+        }
+
+        /// <summary>
         /// loadTableList 方法（返回 List<DbTableInfo>）。
         /// </summary>
         public virtual List<DbTableInfo> loadTableList(string name)

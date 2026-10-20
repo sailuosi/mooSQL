@@ -55,6 +55,17 @@ public class SQLiteSentence :SQLSentence
     public override string GetViewInfoListSql =>
         "select name as Name, '' as Description from sqlite_master where type='view'";
 
+    public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+    {
+        var list = GetDbTableList() ?? new List<DbTableInfo>();
+        foreach (var t in list)
+        {
+            if (string.IsNullOrEmpty(t.Schema))
+                t.Schema = "main";
+        }
+        return FinalizeDbTableListAll(list, options);
+    }
+
     public override SQLCmd buildHasTable(string TableName)
     {
         var kit = DBLive.useSQL();

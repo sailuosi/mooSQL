@@ -57,6 +57,23 @@ namespace mooSQL.data
         public override string GetViewInfoListSql =>
             "SELECT table_name AS Name, '' AS Description FROM information_schema.tables WHERE table_type = 'VIEW'";
 
+        public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+        {
+            var list = GetDbTableList() ?? new List<DbTableInfo>();
+            string db = null;
+            try
+            {
+                db = DBLive.ExeQueryScalar<string>("SELECT current_database()", null);
+            }
+            catch { /* ignore */ }
+            foreach (var t in list)
+            {
+                if (string.IsNullOrEmpty(t.Schema))
+                    t.Schema = db ?? "main";
+            }
+            return FinalizeDbTableListAll(list, options);
+        }
+
         public override SQLCmd buildHasTable(string TableName)
         {
             // SHOW TABLES 为引擎原生；information_schema.tables 亦列出关系表

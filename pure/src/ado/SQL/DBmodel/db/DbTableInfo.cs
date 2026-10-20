@@ -26,6 +26,10 @@ namespace mooSQL.data
         /// </summary>
         public string Comment { get; set; }
         /// <summary>
+        /// 近似行数（来自系统目录统计，非精确 COUNT）。
+        /// </summary>
+        public long? RowCount { get; set; }
+        /// <summary>
         /// 表/视图
         /// </summary>
         public DBTableType Type { get; set; }

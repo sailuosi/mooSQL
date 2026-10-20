@@ -37,6 +37,38 @@ public class GBase8aSentence :SQLSentence
 
     public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
 
+    public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
+    {
+        if (options != null && options.CurrentDatabaseOnly && string.IsNullOrEmpty(options.CurrentDatabaseName))
+            options.CurrentDatabaseName = GetCurrentDatabaseName();
+
+        var kit = DBLive.useSQL()
+            .select("TABLE_SCHEMA as Schema, TABLE_NAME as Name, TABLE_COMMENT as Comment, TABLE_ROWS as RowCount")
+            .from("information_schema.tables")
+            .where("TABLE_TYPE", "BASE TABLE")
+            .where("TABLE_SCHEMA not in ('information_schema','mysql','performance_schema','sys','gbase')");
+
+        options?.ApplyToBuilder(kit, new DbTableListSqlColumns
+        {
+            Name = "TABLE_NAME",
+            Comment = "TABLE_COMMENT",
+            RowCount = "TABLE_ROWS",
+            Schema = "TABLE_SCHEMA",
+            Database = "TABLE_SCHEMA",
+            DefaultOrderBy = "TABLE_SCHEMA, TABLE_NAME",
+        });
+        if (options == null)
+            kit.orderBy("TABLE_SCHEMA, TABLE_NAME");
+
+        return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
+    }
+
+    protected override string GetCurrentDatabaseName()
+    {
+        try { return DBLive.ExeQueryScalar<string>("SELECT DATABASE()", null); }
+        catch { return null; }
+    }
+
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
         if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
