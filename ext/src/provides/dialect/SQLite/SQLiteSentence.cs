@@ -1,50 +1,100 @@
 // 基础功能说明：
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mooSQL.data;
-public class SQLiteSentence :SQLSentence
-{
 
-    public SQLiteSentence(Dialect dia) : base(dia) { 
-    
+public class SQLiteSentence : SQLSentence
+{
+    public SQLiteSentence(Dialect dia) : base(dia)
+    {
     }
 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
-        //sql = "SELECT COLUMN_NAME FName,DATA_TYPE FType,CHARACTER_MAXIMUM_LENGTH FLen,COLUMN_COMMENT FDesc FROM information_schema.columns WHERE table_name='
+        builder.ps.Add("Tab", tableName);
         builder.from("t", (t) =>
         {
-            t.select("co.COLUMN_NAME as columnName, co.DATA_TYPE as columnType, co.CHARACTER_MAXIMUM_LENGTH as columnLen,COLUMN_COMMENT as columnDesc ")
-                .from("information_schema.columns co")
-                .where("table_name", tableName);
+            t.select("\"name\" as columnName, \"type\" as columnType, 0 as columnLen, '' as columnDesc")
+                .from("pragma_table_info(#{Tab})")
+                .orderBy("\"cid\"");
         });
-        
         return builder;
     }
 
+    /// <summary>附加库列表（main / temp / ATTACH 名）。</summary>
+    public override string GetDataBaseSql => "SELECT name AS NAME FROM pragma_database_list";
 
-    public override string GetDataBaseSql => "SHOW DATABASES";
+    /// <summary>备用模板；正式路径见 <see cref="GetDbColumnsByTableName"/>。notnull 须加引号，否则被解析为关键字。</summary>
+    public override string GetColumnInfosByTableNameSql =>
+        "SELECT \"cid\" AS Position, \"name\" AS Name, \"type\" AS DbTypeText, \"type\" AS DbTypeTextFull, " +
+        "CASE WHEN \"notnull\" = 0 THEN 1 ELSE 0 END AS IsNullable, " +
+        "\"dflt_value\" AS DefaultValue, " +
+        "CASE WHEN \"pk\" > 0 THEN 1 ELSE 0 END AS IsPrimary, " +
+        "0 AS IsIdentity, '' AS Comment " +
+        "FROM pragma_table_info('{0}') ORDER BY \"cid\"";
 
-    public override string GetColumnInfosByTableNameSql => "SELECT  column_name AS Name," +
-        " CASE WHEN  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1)='' THEN COLUMN_TYPE ELSE  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1) END   AS DataType," +
-        "CAST(SUBSTRING(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)+1,LOCATE(')',COLUMN_TYPE)-LOCATE('(',COLUMN_TYPE)-1) AS signed) AS ColumnLength," +
-        " numeric_scale as Scale,column_default  AS  `DefaultValue`,column_comment  AS  `Comment`," +
-        "CASE WHEN COLUMN_KEY = 'PRI' THEN true ELSE false END AS `IsPrimary`," +
-        " CASE WHEN EXTRA='auto_increment' THEN true ELSE false END as IsIdentity," +
-        "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS `IsNullable` " +
-        "FROM Information_schema.columns where TABLE_NAME='{0}' and  TABLE_SCHEMA=(select database()) ORDER BY TABLE_NAME";
+    /// <summary>
+    /// SQLite 列元数据：仅 <c>pragma_table_info</c>。
+    /// 无列注释；长度/精度从声明类型解析；INTEGER PRIMARY KEY / AUTOINCREMENT 视为自增。
+    /// </summary>
+    public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
+    {
+        if (string.IsNullOrWhiteSpace(tableName))
+            return new List<DbColumnInfo>();
+
+        var kit = DBLive.useSQL();
+        kit.ps.Add("Tab", tableName);
+        var tar = kit
+            .select(
+                "\"cid\" AS Position, " +
+                "\"name\" AS Name, " +
+                "\"type\" AS DbTypeText, " +
+                "\"type\" AS DbTypeTextFull, " +
+                "CASE WHEN \"notnull\" = 0 THEN 1 ELSE 0 END AS IsNullable, " +
+                "\"dflt_value\" AS DefaultValue, " +
+                "CASE WHEN \"pk\" > 0 THEN 1 ELSE 0 END AS IsPrimary, " +
+                "0 AS IsIdentity, " +
+                "'' AS Comment")
+            .from("pragma_table_info(#{Tab})")
+            .orderBy("\"cid\"")
+            .query<DbColumnInfo>()
+            .ToList();
+
+        var tableHasAutoIncrement = TableCreateSqlContainsAutoIncrement(tableName);
+        var pkCount = 0;
+        for (var i = 0; i < tar.Count; i++)
+        {
+            if (tar[i].IsPrimary) pkCount++;
+        }
+
+        foreach (var item in tar)
+        {
+            ApplySqliteDeclaredType(item);
+            if (!string.IsNullOrWhiteSpace(item.DbTypeText))
+            {
+                item.FieldType = dialect.mapping.GetDataType(item.DbTypeText, item.DbTypeTextFull);
+            }
+
+            // 单列 INTEGER PRIMARY KEY（rowid 别名）或表 DDL 含 AUTOINCREMENT
+            if (item.IsPrimary && HasIntegerAffinity(item.DbTypeTextFull ?? item.DbTypeText))
+            {
+                if (pkCount == 1 || tableHasAutoIncrement)
+                    item.IsIdentity = true;
+            }
+        }
+
+        return tar;
+    }
 
     public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
     {
         var kit = DBLive.useSQL();
         kit.ps.Add("Tab", tableName);
-        return kit.select("name AS Name, '' AS Caption")
+        return kit.select("\"name\" AS Name, '' AS Caption")
             .from("pragma_table_info(#{Tab})")
+            .orderBy("\"cid\"")
             .query<DbColumnCaption>()
             .ToList();
     }
@@ -130,4 +180,62 @@ public class SQLiteSentence :SQLSentence
             "database disk image is malformed");
     }
 
+    /// <summary>从声明类型拆出基名与 (len[,scale])；SQLite 无独立长度列。</summary>
+    static void ApplySqliteDeclaredType(DbColumnInfo item)
+    {
+        var raw = (item.DbTypeTextFull ?? item.DbTypeText ?? string.Empty).Trim();
+        item.DbTypeTextFull = raw;
+        if (string.IsNullOrEmpty(raw))
+        {
+            item.DbTypeText = string.Empty;
+            return;
+        }
+
+        var open = raw.IndexOf('(');
+        if (open < 0)
+        {
+            item.DbTypeText = raw;
+            return;
+        }
+
+        item.DbTypeText = raw.Substring(0, open).Trim();
+        var close = raw.IndexOf(')', open + 1);
+        if (close <= open) return;
+
+        var inside = raw.Substring(open + 1, close - open - 1);
+        var parts = inside.Split(',');
+        if (parts.Length >= 1 && int.TryParse(parts[0].Trim(), out var first))
+        {
+            item.MaxLength = first;
+            item.Precision = first;
+        }
+        if (parts.Length >= 2 && int.TryParse(parts[1].Trim(), out var scale))
+            item.Scale = scale;
+    }
+
+    /// <summary>SQLite 类型亲和：声明名含 INT 则为 INTEGER 亲和（含 BIGINT 等）。</summary>
+    static bool HasIntegerAffinity(string declaredType)
+    {
+        if (string.IsNullOrWhiteSpace(declaredType)) return false;
+        return declaredType.IndexOf("INT", StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    bool TableCreateSqlContainsAutoIncrement(string tableName)
+    {
+        try
+        {
+            var createSql = DBLive.useSQL()
+                .select("sql")
+                .from("sqlite_master")
+                .where("type", "table")
+                .where("name", tableName)
+                .queryRowString(null);
+            return !string.IsNullOrEmpty(createSql)
+                   && createSql.IndexOf("AUTOINCREMENT", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
