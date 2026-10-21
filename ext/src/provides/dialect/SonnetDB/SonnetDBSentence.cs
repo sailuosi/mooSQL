@@ -26,12 +26,13 @@ namespace mooSQL.data
         public override string GetDataBaseSql => "SELECT current_database() AS Name";
 
         public override string GetColumnInfosByTableNameSql =>
-            "SELECT column_name AS Name, data_type AS DataType, " +
-            "character_maximum_length AS ColumnLength, numeric_scale AS Scale, " +
+            "SELECT column_name AS Name, data_type AS DbTypeText, " +
+            "character_maximum_length AS MaxLength, numeric_scale AS Scale, " +
             "column_default AS DefaultValue, '' AS Comment, " +
             "false AS IsPrimary, " +
             "CASE WHEN UPPER(CAST(column_default AS STRING)) LIKE '%AUTO_INCREMENT%' OR UPPER(CAST(extra AS STRING)) LIKE '%AUTO_INCREMENT%' THEN true ELSE false END AS IsIdentity, " +
-            "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS IsNullable " +
+            "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
+            "ordinal_position AS Position " +
             "FROM information_schema.columns WHERE table_name = '{0}' ORDER BY ordinal_position";
 
         public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)

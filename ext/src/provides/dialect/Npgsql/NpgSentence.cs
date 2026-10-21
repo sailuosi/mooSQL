@@ -31,35 +31,108 @@ namespace mooSQL.data
 
         public override string GetDataBaseSql => "SELECT datname FROM pg_database";
 
-        public override string GetColumnInfosByTableNameSql => "select pcolumn.column_name as Name,pcolumn.udt_name as DataType," +
-            "   case when pcolumn.udt_name='numeric' then pcolumn.numeric_precision " +
-            "   else pcolumn.character_maximum_length end as ColumnLength, " +
-            "   case when pcolumn.udt_name='numeric' then pcolumn.numeric_scale " +
-            "    else null end as Scale, " +
-            "  pcolumn.column_default as DefaultValue," +
-            " col_description(pclass.oid, pcolumn.ordinal_position) as Comment," +
-            " case when pkey.colname = pcolumn.column_name " +
-            " then true else false end as IsPrimary, " +
-            " case when pcolumn.column_default like 'nextval%' " +
-            " then true else false end as IsIdentity, " +
-            " case when pcolumn.is_nullable = 'YES' " +
-            " then true else false end as IsNullable " +
-            " from (select * from pg_tables where tablename = '{0}' and schemaname='public') ptables inner join pg_class pclass " +
-            "  on ptables.tablename = pclass.relname inner join (SELECT * " +
-            " FROM information_schema.columns  ) pcolumn on pcolumn.table_name = ptables.tablename " +
-            " left join ( select  pg_class.relname,pg_attribute.attname as colname from " +
-            "  pg_constraint  inner join pg_class    on pg_constraint.conrelid = pg_class.oid " +
-            " inner join pg_attribute on pg_attribute.attrelid = pg_class.oid " +
-            "  and  pg_attribute.attnum = pg_constraint.conkey[1] " +
-            " inner join pg_type on pg_type.oid = pg_attribute.atttypid " +
-            " where pg_constraint.contype='p'  ) pkey on pcolumn.table_name = pkey.relname " +
-            " order by ptables.tablename";
+        /// <summary>备用模板；正式路径见 <see cref="GetDbColumnsByTableName"/>。</summary>
+        public override string GetColumnInfosByTableNameSql =>
+            "SELECT c.column_name AS Name, c.udt_name AS DbTypeText, " +
+            "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_precision " +
+            "ELSE c.character_maximum_length END AS MaxLength, " +
+            "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_precision ELSE NULL END AS Precision, " +
+            "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_scale ELSE NULL END AS Scale, " +
+            "c.column_default AS DefaultValue, " +
+            "col_description(pclass.oid, c.ordinal_position) AS Comment, " +
+            "CASE WHEN pk.attname IS NOT NULL THEN true ELSE false END AS IsPrimary, " +
+            "CASE WHEN c.column_default LIKE 'nextval%' THEN true ELSE false END AS IsIdentity, " +
+            "CASE WHEN c.is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
+            "c.ordinal_position AS Position " +
+            "FROM information_schema.columns c " +
+            "INNER JOIN pg_namespace n ON n.nspname = c.table_schema " +
+            "INNER JOIN pg_class pclass ON pclass.relname = c.table_name AND pclass.relnamespace = n.oid " +
+            "LEFT JOIN ( " +
+            "  SELECT a.attname, cls.relname, ns.nspname " +
+            "  FROM pg_constraint con " +
+            "  INNER JOIN pg_class cls ON con.conrelid = cls.oid " +
+            "  INNER JOIN pg_namespace ns ON ns.oid = cls.relnamespace " +
+            "  INNER JOIN pg_attribute a ON a.attrelid = cls.oid AND a.attnum = ANY(con.conkey) " +
+            "  WHERE con.contype = 'p' " +
+            ") pk ON pk.attname = c.column_name AND pk.relname = c.table_name AND pk.nspname = c.table_schema " +
+            "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
+            "ORDER BY c.ordinal_position";
 
         public override string GetColumnCaptionsByTableNameSql => "SELECT c.column_name AS Name, col_description(pclass.oid, c.ordinal_position) AS Caption " +
             "FROM information_schema.columns c " +
-            "INNER JOIN pg_class pclass ON pclass.relname = c.table_name " +
+            "INNER JOIN pg_namespace n ON n.nspname = c.table_schema " +
+            "INNER JOIN pg_class pclass ON pclass.relname = c.table_name AND pclass.relnamespace = n.oid " +
             "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
             "ORDER BY c.ordinal_position";
+
+        /// <summary>
+        /// 用 SQLBuilder 查列元数据；按 <see cref="Dialect.CurVersion"/> 分支自增探测（PG10+ 含 is_identity）。
+        /// </summary>
+        public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
+        {
+            tableName = ResolvePgCatalogIdent(tableName);
+            var isIdentityExpr = BuildPgIsIdentitySelectExpr();
+
+            var kit = DBLive.useSQL()
+                .select(
+                    "c.column_name AS Name, c.udt_name AS DbTypeText, " +
+                    "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_precision " +
+                    "ELSE c.character_maximum_length END AS MaxLength, " +
+                    "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_precision ELSE NULL END AS Precision, " +
+                    "CASE WHEN c.udt_name = 'numeric' THEN c.numeric_scale ELSE NULL END AS Scale, " +
+                    "c.column_default AS DefaultValue, " +
+                    "col_description(pclass.oid, c.ordinal_position) AS Comment, " +
+                    "CASE WHEN pk.attname IS NOT NULL THEN true ELSE false END AS IsPrimary, " +
+                    isIdentityExpr + " AS IsIdentity, " +
+                    "CASE WHEN c.is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
+                    "c.ordinal_position AS Position")
+                .from("information_schema.columns c")
+                .innerJoin("pg_namespace n ON n.nspname = c.table_schema")
+                .innerJoin("pg_class pclass ON pclass.relname = c.table_name AND pclass.relnamespace = n.oid")
+                .leftJoin(
+                    "( SELECT a.attname, cls.relname, ns.nspname " +
+                    "FROM pg_constraint con " +
+                    "INNER JOIN pg_class cls ON con.conrelid = cls.oid " +
+                    "INNER JOIN pg_namespace ns ON ns.oid = cls.relnamespace " +
+                    "INNER JOIN pg_attribute a ON a.attrelid = cls.oid AND a.attnum = ANY(con.conkey) " +
+                    "WHERE con.contype = 'p' " +
+                    ") pk ON pk.attname = c.column_name AND pk.relname = c.table_name AND pk.nspname = c.table_schema")
+                .where("c.table_schema = current_schema()")
+                .where("c.table_name", tableName)
+                .orderBy("c.ordinal_position");
+
+            var tar = kit.query<DbColumnInfo>().ToList();
+            foreach (var item in tar)
+            {
+                if (!string.IsNullOrWhiteSpace(item.DbTypeText))
+                {
+                    item.FieldType = this.dialect.mapping.GetDataType(item.DbTypeText);
+                }
+            }
+            return tar;
+        }
+
+        public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
+        {
+            return base.GetDbColumnCaptionsByTableName(ResolvePgCatalogIdent(tableName));
+        }
+
+        /// <summary>PG 10+ 才有 information_schema.columns.is_identity。</summary>
+        protected virtual bool IsPg10OrLater()
+        {
+            var ver = dialect.CurVersion;
+            return ver != null && ver.VersionNumber >= 10;
+        }
+
+        /// <summary>按版本组装 IsIdentity 列表达式（别名由调用方追加）。</summary>
+        protected virtual string BuildPgIsIdentitySelectExpr()
+        {
+            if (IsPg10OrLater())
+            {
+                return "CASE WHEN c.column_default LIKE 'nextval%' OR c.is_identity = 'YES' THEN true ELSE false END";
+            }
+            return "CASE WHEN c.column_default LIKE 'nextval%' THEN true ELSE false END";
+        }
 
         public override string GetTableInfoListSql =>
             "select cast(c.relname as varchar) as Name, cast(obj_description(c.oid, 'pg_class') as varchar) as Comment " +

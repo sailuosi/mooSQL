@@ -27,18 +27,55 @@ namespace mooSQL.data
 
         /// <summary>列信息：仅 information_schema，无 col_description / nextval 身份探测。</summary>
         public override string GetColumnInfosByTableNameSql =>
-            "SELECT c.column_name AS Name, c.data_type AS DataType, " +
+            "SELECT c.column_name AS Name, c.data_type AS DbTypeText, " +
             "CASE WHEN c.data_type = 'numeric' THEN c.numeric_precision " +
-            "ELSE c.character_maximum_length END AS ColumnLength, " +
+            "ELSE c.character_maximum_length END AS MaxLength, " +
+            "CASE WHEN c.data_type = 'numeric' THEN c.numeric_precision ELSE NULL END AS Precision, " +
             "CASE WHEN c.data_type = 'numeric' THEN c.numeric_scale ELSE NULL END AS Scale, " +
             "c.column_default AS DefaultValue, " +
             "CAST(NULL AS varchar) AS Comment, " +
             "false AS IsPrimary, " +
             "false AS IsIdentity, " +
-            "CASE WHEN c.is_nullable = 'YES' THEN true ELSE false END AS IsNullable " +
+            "CASE WHEN c.is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
+            "c.ordinal_position AS Position " +
             "FROM information_schema.columns c " +
             "WHERE c.table_name = '{0}' AND c.table_schema = CURRENT_SCHEMA() " +
             "ORDER BY c.ordinal_position";
+
+        /// <summary>避开 Npg 的 pg_catalog 路径；仅 information_schema + SQLBuilder。</summary>
+        public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                return new List<DbColumnInfo>();
+
+            var kit = DBLive.useSQL()
+                .select(
+                    "c.column_name AS Name, c.data_type AS DbTypeText, " +
+                    "CASE WHEN c.data_type = 'numeric' THEN c.numeric_precision " +
+                    "ELSE c.character_maximum_length END AS MaxLength, " +
+                    "CASE WHEN c.data_type = 'numeric' THEN c.numeric_precision ELSE NULL END AS Precision, " +
+                    "CASE WHEN c.data_type = 'numeric' THEN c.numeric_scale ELSE NULL END AS Scale, " +
+                    "c.column_default AS DefaultValue, " +
+                    "CAST(NULL AS varchar) AS Comment, " +
+                    "false AS IsPrimary, " +
+                    "false AS IsIdentity, " +
+                    "CASE WHEN c.is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
+                    "c.ordinal_position AS Position")
+                .from("information_schema.columns c")
+                .where("c.table_schema = CURRENT_SCHEMA()")
+                .where("c.table_name", tableName)
+                .orderBy("c.ordinal_position");
+
+            var tar = kit.query<DbColumnInfo>().ToList();
+            foreach (var item in tar)
+            {
+                if (!string.IsNullOrWhiteSpace(item.DbTypeText))
+                {
+                    item.FieldType = this.dialect.mapping.GetDataType(item.DbTypeText);
+                }
+            }
+            return tar;
+        }
 
         /// <summary>Crate 无列注释函数；返回空 Caption。</summary>
         public override string GetColumnCaptionsByTableNameSql =>
