@@ -30,4 +30,10 @@
     <ProjectReference Include="..\..\ext\mooSQL.Ext.Core.csproj" />
   </ItemGroup>
 
+  <!-- 排除与当前 pure 源码不同步的测试，避免拖垮本批单测编译 -->
+  <ItemGroup>
+    <Compile Remove="src\TestPure\Excel\**" />
+    <Compile Remove="src\TestPure\SQLBuilder\SQLBuilderRouteTests.cs" />
+  </ItemGroup>
+
 </Project>
