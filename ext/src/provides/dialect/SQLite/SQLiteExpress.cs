@@ -1,13 +1,7 @@
 ﻿
 using mooSQL.data.builder;
-using mooSQL.utils;
 using System;
-using System.Collections.Generic;
-
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
@@ -215,27 +209,14 @@ namespace mooSQL.data
             throw new Exception("SQL语句不完整！无法构造！");
         }
         /// <summary>
-        /// 使SQLite的update from 语句，完全支持sqlserver的格式。
+        /// SQLite 3.33+：UPDATE target SET … FROM …（对齐 SQL Server 形态，非 MySQL JOIN 写法）。
         /// </summary>
-        /// <param name="frag"></param>
-        /// <returns></returns>
         public override string buildUpdateFrom(FragSQL frag)
         {
-            /**
-             * 创建SQLite下的update from 必须使用inner join
-             * @return update tablename inner join a on a.pid=tablename.id set ... where ...
-             */
+            EnsureSqliteVersionAtLeast(3.33, "UPDATE … FROM");
             var sb = new StringBuilder();
-            // update a set a=b from ... where ...
-            //将left join 更改为inner join 
-            if (RegxUntils.test(frag.fromInner.ToLower(), @"\sleft\s+join\s")) {
-                var reg = new Regex(@"\sleft\s+join\s", RegexOptions.IgnoreCase);
-                frag.fromInner = reg.Replace(frag.fromInner, " INNER JOIN ");// .ToLower().Replace(@"\sleft\s+join\s"," INNER JOIN ");
-            }
-            sb.AppendFormat("UPDATE {0} SET ", frag.fromInner);
-
-            sb.Append(this.buildSetPart(frag));
-            
+            sb.AppendFormat("UPDATE {0} SET {1} ", frag.updateTo, this.buildSetPart(frag));
+            sb.AppendFormat(" FROM {0} ", frag.fromInner);
             if (!string.IsNullOrWhiteSpace(frag.whereInner))
             {
                 sb.AppendFormat(" WHERE {0}", frag.whereInner);
@@ -243,8 +224,13 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
-        #region DDL
+        /// <summary>SQLite 无 TRUNCATE；用 DELETE FROM 清空表。</summary>
+        public override string buildTruncateTable(DDLFragSQL frag)
+        {
+            return "DELETE FROM " + frag.Table;
+        }
 
+        #region DDL
 
         public override string getTableAutoIdSQL()
         {
@@ -257,12 +243,14 @@ namespace mooSQL.data
             // SQLite 无独立 CREATE DATABASE；文件库在连接时创建
             return string.Empty;
         }
+
         public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName)
         {
             // SQLite 不能在建表后可靠地 ALTER ADD PRIMARY KEY；
             // 自增主键已在 CreateTableColumnBy 中内联声明，此处返回空操作。
             return "SELECT 1";
         }
+
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ADD COLUMN {1} {2}{3} {4} {5} {6}",
@@ -270,16 +258,19 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
-            // SQLite 3.25+ 支持 RENAME COLUMN；完整类型变更能力有限，保留可执行占位
-            return string.Format("ALTER TABLE {0} RENAME COLUMN {1} TO {1}", tableName, columnName);
+            // 改类型/可空/默认值需重建表；不发伪 RENAME 以免误判成功
+            return "SELECT 1";
         }
+
         public override string CreateTableBy(string tableName, string detail)
         {
             // 不保留 $PrimaryKey 占位符（核心未替换）；主键由列定义或后续空操作处理
             return string.Format("CREATE TABLE {0}(\r\n{1})", tableName, detail);
         }
+
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             // 自增列：AUTOINCREMENT 要求 INTEGER PRIMARY KEY
@@ -289,7 +280,6 @@ namespace mooSQL.data
                 dataType = "INTEGER";
                 if (string.IsNullOrWhiteSpace(p2))
                     p2 = "PRIMARY KEY";
-                // PRIMARY KEY 隐含 NOT NULL，避免重复写法冲突时可保留 nullable
             }
 
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -301,64 +291,94 @@ namespace mooSQL.data
                 p3 ?? string.Empty
                 ).Trim();
         }
-        //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
-
-        //protected override string DropTableSql(){ "DROP TABLE {0}";
 
         public override string DropColumnToTableBy(string tableName, string columnName)
-        { 
+        {
+            EnsureSqliteVersionAtLeast(3.35, "ALTER TABLE … DROP COLUMN");
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}", tableName, columnName);
         }
+
         public override string DropConstraintBy(string tableName, string constraintName)
-        { 
-            return string.Format("ALTER TABLE {0} DROP PRIMARY KEY;", tableName, constraintName);
+        {
+            // 无 ALTER DROP PRIMARY KEY / 通用 DROP CONSTRAINT；需重建表
+            return "SELECT 1";
         }
+
         public override string RenameColumnBy(string tableName, string oldName, string newName)
-        { 
-            return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {2}", tableName, oldName, newName);
+        {
+            EnsureSqliteVersionAtLeast(3.25, "ALTER TABLE … RENAME COLUMN");
+            return string.Format("ALTER TABLE {0} RENAME COLUMN {1} TO {2}", tableName, oldName, newName);
         }
-        public override string CheckSystemTablePermissionsBy(){ 
-            return "SELECT 1 FROM Information_schema.columns LIMIT 0,1";
+
+        public override string CheckSystemTablePermissionsBy()
+        {
+            return "SELECT 1 FROM sqlite_master LIMIT 1";
         }
-        public override string CreateTableNullBy(){
+
+        public override string CreateTableNullBy()
+        {
             return "NULL";
         }
-        public override string CreateTableNotNullBy(){
+
+        public override string CreateTableNotNullBy()
+        {
             return "NOT NULL";
         }
-        public override string CreateTablePirmaryKeyBy(){
+
+        public override string CreateTablePirmaryKeyBy()
+        {
             return "PRIMARY KEY";
         }
 
+        /// <summary>标准 SQLite 无表/列注释元数据。</summary>
+        public override string AddTableCaptionBy(string tableName, string caption) => string.Empty;
 
+        public override string UpdateTableCaptionBy(string tableName, string caption) => string.Empty;
 
+        public override string DeleteTableCaptionBy(string tableName) => string.Empty;
 
-        public override string AddTableCaptionBy(string tableName, string caption)
-        {
-            return string.Format("ALTER TABLE {0} COMMENT='{1}';",tableName,caption);
-        }
-        public override string UpdateTableCaptionBy(string tableName, string caption)
-        {
-            return AddTableCaptionBy(tableName, caption);
-        }
-        public override string DeleteTableCaptionBy(string tableName)
-        {
-            return string.Format("ALTER TABLE {0} COMMENT='';", tableName);
-        }
+        public override string AddColumnCaptionBy(string tableName, string columnName, string caption) => string.Empty;
 
+        public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption) => string.Empty;
+
+        public override string DeleteColumnCaptionBy(string tableName, string columnName) => string.Empty;
 
         public override string RenameTableBy(string oldTableName, string newTableName)
         {
-            return string.Format("ALTER TABLE {0} RENAME {1}", oldTableName, newTableName);
+            return string.Format("ALTER TABLE {0} RENAME TO {1}", oldTableName, newTableName);
         }
+
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unique)
         {
-            return string.Format("CREATE {3} INDEX Index_{0}_{2} ON {0} ({1})", tableName, columnName, indexName,unique);
+            return string.Format("CREATE {3} INDEX {2} ON {0} ({1})", tableName, columnName, indexName, unique);
         }
+
         public override string IsAnyIndexBy(string indexName)
         {
-            return string.Format("SELECT COUNT(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);
+            var safe = (indexName ?? string.Empty).Replace("'", "''");
+            return string.Format(
+                "SELECT COUNT(1) FROM sqlite_master WHERE type = 'index' AND name = '{0}'",
+                safe);
         }
+
+        public override string buildDropIndex(string indexName, string tableName = null)
+        {
+            return string.Format("DROP INDEX IF EXISTS {0}", indexName);
+        }
+
+        /// <summary>
+        /// 已知版本低于要求时抛错；版本未知（未探测）则放行，兼容默认较新的 Microsoft.Data.Sqlite。
+        /// </summary>
+        void EnsureSqliteVersionAtLeast(double minVersion, string feature)
+        {
+            var ver = dialect?.CurVersion;
+            if (ver != null && ver.VersionNumber < minVersion)
+            {
+                throw new NotSupportedException(
+                    string.Format("SQLite {0} 需要 {1}+，当前为 {2}", feature, minVersion, ver.VersionName ?? ver.VersionCode));
+            }
+        }
+
         #endregion
     }
 }

@@ -103,7 +103,7 @@ public class SQLiteSentence : SQLSentence
         "select name as Name, '' as Comment from sqlite_master where type='table' and name not like 'sqlite_%'";
 
     public override string GetViewInfoListSql =>
-        "select name as Name, '' as Description from sqlite_master where type='view'";
+        "select name as Name, '' as Comment from sqlite_master where type='view'";
 
     public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
     {

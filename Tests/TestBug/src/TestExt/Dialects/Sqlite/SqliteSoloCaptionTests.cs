@@ -4,11 +4,11 @@ using Xunit;
 namespace TestMooSQL.src;
 
 /// <summary>
-/// Sqlite：独立补表注释黄金 SQL；列注释当前未实现（空串）。
+/// Sqlite：标准引擎无表/列注释元数据；独立补注释应为空串。
 /// </summary>
 public class SqliteSoloCaptionTests
 {
-    const string ExpectedTable = "ALTER TABLE HH_SysConfig COMMENT='系统参数配置表';";
+    const string ExpectedTable = "";
     const string ExpectedColumn = "";
 
     [Fact]
