@@ -61,6 +61,11 @@ namespace mooSQL.data
         /// 最大值
         /// </summary>
         public int? size { get; set; }
+
+        /// <summary>
+        /// 参数目标的类型，设置后应该进行强转
+        /// </summary>
+        public Type? ShouldBeType = null;
         /// <summary>
         /// 构造函数。
         /// </summary>

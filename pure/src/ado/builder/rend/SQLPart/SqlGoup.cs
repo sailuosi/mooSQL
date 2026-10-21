@@ -486,17 +486,27 @@ namespace mooSQL.data
         /// where 方法（返回 SqlGoup）。
         /// </summary>
         public SqlGoup where(string key, Object val,string op,bool  paramed,Type type=null) {
-
+            if(val==null) return this;
             WhereFrag field = new WhereFrag();
             field.key = key;
             field.value = val;
             field.paramed = paramed;
             field.op = op;
+            field.ShouldBeType = type;
             if (type != null)
             {
                 var t = Nullable.GetUnderlyingType(type) ?? type;
-                if (t == typeof(Guid))
+                if (t == typeof(Guid)) {
                     field.dataFam = DataFam.Guid;
+                    if (val is string valstr)
+                    {
+                        field = buildGuidWhere(field, valstr);
+                    }
+                    else {
+                        field = buildGuidWhere(field, val.ToString());
+                    }
+                }
+                    
                 else if (root?.expression?.dialect?.mapping?.SharpToDataType != null
                     && root.expression.dialect.mapping.SharpToDataType.TryGet(t, out var db)
                     && db.DataType != DataFam.Undefined)
@@ -505,6 +515,24 @@ namespace mooSQL.data
 
             where(field);
             return this;
+        }
+
+        private WhereFrag buildGuidWhere(WhereFrag frag, string valstr) {
+            if (Guid.TryParse(valstr, out var valguid))
+            {
+                frag.value = valguid;
+            }
+            else
+            {
+                //无效的guid，是其它值，则为不可能条件
+                frag.value = null;
+                frag.paramed = false;
+                frag.op = null;
+
+                this.root.DBLive.Client.Loggor.LogError(string.Format("构建where条件失败，参数值不是规范的guid，降级为不可能条件！字段：{0},值：{1}", key, valstr));
+                
+            }
+            return frag;
         }
 
 

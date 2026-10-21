@@ -218,7 +218,7 @@ namespace mooSQL.data
                 pkname = string.Format("{0}.{1}", en.Alias, pkname);
             }
             var tow = kit
-                .where(pkname, id)
+                .where(pkname, id,pk.UnderType)
                 .queryUnique<T>();
             return tow;
         }

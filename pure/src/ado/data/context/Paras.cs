@@ -118,7 +118,7 @@ namespace mooSQL.data
         /// <summary>
         /// 添加参数并可指定库字段类型（<see cref="DataFam.Undefined"/> 时与旧行为一致）。
         /// </summary>
-        public void AddByPrefix(string key, Object val, string varPrefix, DataFam dataFam)
+        public Parameter AddByPrefix(string key, Object val, string varPrefix, DataFam dataFam)
         {
             var tar = new Parameter(key, val, varPrefix);
             if (dataFam != DataFam.Undefined)
@@ -133,6 +133,7 @@ namespace mooSQL.data
             {
                 value.Add(key, tar);
             }
+            return tar;
         }
         /// <summary>
         /// 直接添加自己定义的参数
@@ -161,9 +162,9 @@ namespace mooSQL.data
         /// <param name="rawKey"></param>
         /// <param name="placeholer"></param>
         /// <param name="val"></param>
-        public void Add(string rawKey, string placeholer, Object val)
+        public Parameter Add(string rawKey, string placeholer, Object val)
         {
-            AddRaw(rawKey,placeholer,val);
+            return AddRaw(rawKey,placeholer,val);
         }
         /// <summary>
         /// 添加一个不含数据库变量前缀的参数。1参为参数名，2参为参数在SQL模版中的占位符，3参为参数值。
@@ -171,7 +172,7 @@ namespace mooSQL.data
         /// <param name="rawKey"></param>
         /// <param name="placeholer"></param>
         /// <param name="val"></param>
-        public void AddRaw(string rawKey, string placeholer,Object val)
+        public Parameter AddRaw(string rawKey, string placeholer,Object val)
         {
             var tar = new Parameter(true,rawKey,placeholer,val);
             if (value.ContainsKey(rawKey))
@@ -183,6 +184,7 @@ namespace mooSQL.data
 
                 value.Add(rawKey, tar);
             }
+            return tar;
         }
         /// <summary>
         /// 复制所有的参数到当前Paras对象中

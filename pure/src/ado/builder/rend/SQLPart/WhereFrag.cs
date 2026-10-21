@@ -169,6 +169,10 @@ namespace mooSQL.data
          * 可用于构建插入语句
          */
         public bool insetable = true;
+        /// <summary>
+        /// 参数目标的类型，设置后应该进行强转
+        /// </summary>
+        public Type? ShouldBeType = null;
 
         /// <summary>
         /// 初始化 WhereFrag。
@@ -272,7 +276,10 @@ namespace mooSQL.data
                 string prefix = paramKey;
                 conditon += root.expression.paraPrefix + prefix;
                 if (fmt.Contains(";noPara;") == false) {
-                    root.ps.AddByPrefix(prefix, value, root.expression.paraPrefix, dataFam);
+                    var p= root.ps.AddByPrefix(prefix, value, root.expression.paraPrefix, dataFam);
+                    if (this.ShouldBeType != null) { 
+                        p.ShouldBeType = this.ShouldBeType;
+                    }
                 }
                 
             }
