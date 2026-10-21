@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mooSQL.utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -109,6 +110,13 @@ namespace mooSQL.data.Mapping
                 var col=result.GetColumn(property.Name);
                 EntityColumn column = this.ParseColumn(entity,property,result, col);
                 //_onParseEntityColumn(property, result);
+                //进行完备性检查
+                if (column.UnderType == null) {
+                    column.UnderType = property.PropertyType.UnwrapNullable();
+                }
+                if (column.PropertyName == null) {
+                    column.PropertyName = property.Name;
+                }
                 result.AddColumnInfo(column);
             }
             if (this.InheritColumn) {
