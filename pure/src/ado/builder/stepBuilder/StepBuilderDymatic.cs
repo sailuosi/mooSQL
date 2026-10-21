@@ -500,7 +500,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public override DataTable query()
         {
-            return doSelect("dt", cmd => exeQuery(cmd));
+            var dt = doSelect("dt", cmd => exeQuery(cmd));
+            dealColumnName(dt);
+            return dt;
         }
 
         /// <summary>
@@ -508,13 +510,17 @@ namespace mooSQL.data
         /// </summary>
         internal DataTable queryPrepared(SQLCmd sql)
         {
-            return doSelect("dt", sql, cmd => exeQuery(cmd));
+            var dt = doSelect("dt", sql, cmd => exeQuery(cmd));
+            dealColumnName(dt);
+            return dt;
         }
 
         /// <summary>异步：使用已物化 SQLCmd 执行 query。</summary>
-        internal Task<DataTable> queryPreparedAsync(SQLCmd sql)
+        internal async Task<DataTable> queryPreparedAsync(SQLCmd sql)
         {
-            return doSelectAsync("dt", sql, cmd => exeQueryAsync(cmd));
+            var dt = await doSelectAsync("dt", sql, cmd => exeQueryAsync(cmd)).ConfigureAwait(false);
+            dealColumnName(dt);
+            return dt;
         }
 
         /// <summary>泛型：使用已物化 SQLCmd 执行 query。</summary>
@@ -564,9 +570,11 @@ namespace mooSQL.data
         /// 异步查询
         /// </summary>
         /// <returns></returns>
-        public override Task<DataTable> queryAsync()
+        public override async Task<DataTable> queryAsync()
         {
-            return doSelectAsync("dt", cmd => exeQueryAsync(cmd));
+            var dt = await doSelectAsync("dt", cmd => exeQueryAsync(cmd)).ConfigureAwait(false);
+            dealColumnName(dt);
+            return dt;
         }
         /// <summary>
         /// 分页查询，返回分页数据和总数。

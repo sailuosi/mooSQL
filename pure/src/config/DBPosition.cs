@@ -89,5 +89,11 @@ namespace mooSQL.config
         /// JSON 示例：<c>"ToInt"</c> / <c>"ToName"</c> / <c>"None"</c>。
         /// </summary>
         public EnumParaConvert? EnumConvert { get; set; }
+
+        /// <summary>
+        /// 查询结果 DataTable 列名策略。null = 未配置，回退方言 <c>DefaultResultColumnName</c>。
+        /// JSON 示例：<c>"Pre"</c>（按 select 别名保持大小写）/ <c>"None"</c>（不动）。
+        /// </summary>
+        public ResultColumnNameMode? ResultColumnName { get; set; }
     }
 }

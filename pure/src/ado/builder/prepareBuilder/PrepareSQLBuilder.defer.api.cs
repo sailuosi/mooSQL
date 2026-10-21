@@ -5,8 +5,8 @@ using System.Collections.Generic;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 自动生成：简单构造 API 的门面入队（由 tools/gen_sqlbuilder_steps.py 生成）。
-    /// 语法糖 override 已迁入 <see cref="SQLBuilder.sugar.cs"/>，经 multi_enqueue 调用下列内核 Step。
+    /// 自动生成：简单构�?API 的门面入队（�?tools/gen_sqlbuilder_steps.py 生成）�?
+    /// 语法�?override 已迁�?<see cref="SQLBuilder.sugar.cs"/>，经 multi_enqueue 调用下列内核 Step�?
     /// </summary>
     public partial class PrepareSQLBuilder
     {
@@ -60,12 +60,18 @@ namespace mooSQL.data
         public override SQLBuilder setTable(string tbName) => Enqueue(new SetTablestringStep(tbName));
 
         /// <summary>
-        /// 写入基类配置，并入队以便 materialize 时同步到 Inner。
+        /// 写入基类配置，并入队以便 materialize 时同步到 Inner�?
         /// </summary>
         public override SQLBuilder configSetNull(UpdateSetNullOption option)
         {
             base.configSetNull(option);
             return Enqueue(new ConfigSetNullUpdateSetNullOptionStep(option));
+        }
+
+        public override SQLBuilder configResultColumnName(ResultColumnNameMode option)
+        {
+            base.configResultColumnName(option);
+            return Enqueue(new ConfigResultColumnNameStep(option));
         }
 
         public override SQLBuilder set(string key, object val, bool paramed = true, Type type = null, bool updatable = true, bool insertable = true)
@@ -114,7 +120,7 @@ namespace mooSQL.data
 
         // ---- union ----
 
-        // withRecur：见 PrepareSQLBuilder.defer.b.cs（编排期展开）
+        // withRecur：见 PrepareSQLBuilder.defer.b.cs（编排期展开�?
 
         public override SQLBuilder withSelect(string name, string selectSQL) => Enqueue(new WithSelectstringstringStep(name, selectSQL));
 

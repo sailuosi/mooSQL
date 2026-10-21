@@ -43,6 +43,11 @@ namespace mooSQL.data
         public virtual bool FoldsUnquotedNames => false;
 
         /// <summary>
+        /// 连接未配置 <see cref="DataBase.ResultColumnName"/> 时的方言默认结果列名策略。
+        /// </summary>
+        public virtual ResultColumnNameMode DefaultResultColumnName => ResultColumnNameMode.None;
+
+        /// <summary>
         /// SQL语句的参数化前缀
         /// </summary>
         /// <returns></returns>
@@ -122,6 +127,17 @@ namespace mooSQL.data
                 return mode;
             var d = DefaultNameQuote;
             return d != NameQuoteMode.None ? d : NameQuoteMode.Always;
+        }
+
+        /// <summary>
+        /// 解析生效的结果列名策略：连接显式值（含 None）优先，否则方言默认。
+        /// </summary>
+        public ResultColumnNameMode ResolveResultColumnName()
+        {
+            var cfg = dialect?.db;
+            if (cfg != null && cfg.ResultColumnName.HasValue)
+                return cfg.ResultColumnName.Value;
+            return DefaultResultColumnName;
         }
 
         /// <summary>

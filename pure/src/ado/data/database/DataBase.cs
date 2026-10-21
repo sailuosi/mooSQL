@@ -83,6 +83,13 @@ namespace mooSQL.data
         /// </summary>
         public EnumParaConvert? EnumConvert { get; set; }
 
+        /// <summary>
+        /// 查询结果 DataTable 列名策略。
+        /// null = 未在本连接指定，回退方言 <see cref="SQLExpression.DefaultResultColumnName"/>；
+        /// 非 null（含 <see cref="ResultColumnNameMode.None"/>）= 本连接显式策略。
+        /// </summary>
+        public ResultColumnNameMode? ResultColumnName { get; set; }
+
         //private Dialect _lect = null;
         /// <summary>
         /// 支持 SQLSERVER/MYSQL/ORACLE/DB2
@@ -226,6 +233,14 @@ namespace mooSQL.data
         public DataBase setEnumConvert(EnumParaConvert mode)
         {
             this.EnumConvert = mode;
+            return this;
+        }
+        /// <summary>
+        /// 设置本连接查询结果列名策略（覆盖方言 <see cref="SQLExpression.DefaultResultColumnName"/>）。
+        /// </summary>
+        public DataBase setResultColumnName(ResultColumnNameMode mode)
+        {
+            this.ResultColumnName = mode;
             return this;
         }
         /// <summary>

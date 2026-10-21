@@ -93,5 +93,17 @@ namespace mooSQL.data
         IfNeeded = 4,
     }
 
+    /// <summary>
+    /// 查询结果 DataTable 列名策略（简写对齐 CSS：none / pre）。
+    /// 连接上用可空 <see cref="ResultColumnNameMode"/>?：null = 未配置，回退方言默认。
+    /// </summary>
+    public enum ResultColumnNameMode
+    {
+        /// <summary>none：不动，不改写驱动返回的列名。</summary>
+        None = 0,
+        /// <summary>pre：保持，按 select 别名/列名原文还原大小写。</summary>
+        Pre = 1,
+    }
+
 }
 

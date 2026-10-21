@@ -25,6 +25,9 @@ namespace mooSQL.data
         public override bool FoldsUnquotedNames => true;
 
         /// <inheritdoc/>
+        public override ResultColumnNameMode DefaultResultColumnName => ResultColumnNameMode.Pre;
+
+        /// <inheritdoc/>
         public override bool StrictParameterTypes => true;
 
         /// <inheritdoc/>

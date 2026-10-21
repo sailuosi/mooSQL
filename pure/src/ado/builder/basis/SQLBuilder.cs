@@ -240,6 +240,11 @@ namespace mooSQL.data
         private UpdateSetNullOption setNullOption = UpdateSetNullOption.None;
 
         /// <summary>
+        /// 单次查询结果列名策略覆盖；null = 未在本 builder 指定。
+        /// </summary>
+        private ResultColumnNameMode? resultColumnNameOption = null;
+
+        /// <summary>
         /// 解析当前 UPDATE SET 的 NULL 策略（永不为 <see cref="UpdateSetNullOption.None"/>）。
         /// 优先级：实例 <see cref="configSetNull"/> → <c>Client.builderOption</c> → <see cref="UpdateSetNullOption.IgnoreNull"/>。
         /// </summary>
@@ -258,8 +263,20 @@ namespace mooSQL.data
             }
         
         }
-        
 
+        /// <summary>
+        /// 解析结果列名策略：实例 <see cref="configResultColumnName"/> → 连接/方言 <see cref="SQLExpression.ResolveResultColumnName"/>。
+        /// </summary>
+        protected ResultColumnNameMode tableNameMode {
+            get{
+                if (resultColumnNameOption.HasValue)
+                    return resultColumnNameOption.Value;
+                var expr = Dialect != null ? Dialect.expression : null;
+                if (expr != null)
+                    return expr.ResolveResultColumnName();
+                return ResultColumnNameMode.None;
+            }
+        }
         
 
         /// <summary>
@@ -270,6 +287,29 @@ namespace mooSQL.data
         {
             this.setNullOption = option;
             return this;
+        }
+
+        /// <summary>
+        /// 设置本查询结果 DataTable 列名策略（覆盖连接/方言默认）。
+        /// </summary>
+        public virtual SQLBuilder configResultColumnName(ResultColumnNameMode option)
+        {
+            this.resultColumnNameOption = option;
+            return this;
+        }
+
+        /// <summary>
+        /// 按当前策略处理查询结果列名（仅 <see cref="ResultColumnNameMode.Pre"/> 时，委托
+        /// <see cref="mooSQL.utils.SelectResultColumnNames"/> 用 selectPart 原文还原大小写）。
+        /// </summary>
+        protected void dealColumnName(System.Data.DataTable dt)
+        {
+            if (dt == null)
+                return;
+            if (tableNameMode != ResultColumnNameMode.Pre)
+                return;
+            var parts = current != null ? current.selectPart : null;
+            mooSQL.utils.SelectResultColumnNames.TryApply(dt, parts);
         }
 
         /// <summary>
