@@ -75,6 +75,18 @@ namespace mooSQL.data.Mapping
                     entityColumn.Kind = ca.Kind;
                 else if (entityColumn.Kind == FieldKind.None)
                     entityColumn.Kind = FieldKind.Base;
+                if (ca.HasIsIdentity())
+                    entityColumn.IsIdentity = ca.IsIdentity;
+                if (ca.HasSkipOnInsert())
+                    entityColumn.IsOnlyIgnoreInsert = ca.SkipOnInsert;
+                else if (entityColumn.IsIdentity)
+                    entityColumn.IsOnlyIgnoreInsert = true;
+                if (ca.HasSkipOnUpdate())
+                    entityColumn.IsOnlyIgnoreUpdate = ca.SkipOnUpdate;
+                else if (entityColumn.IsIdentity)
+                    entityColumn.IsOnlyIgnoreUpdate = true;
+                if (!ca.IsColumn)
+                    entityColumn.IsIgnore = true;
                 if (ca.Shard && entityColumn != null)
                     ShardRegistration.MarkShardField(entityInfo, entityColumn);
             }
