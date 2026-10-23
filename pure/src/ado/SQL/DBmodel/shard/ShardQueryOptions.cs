@@ -21,7 +21,7 @@ namespace mooSQL.data
         /// </summary>
         public int? TakeRecent { get; set; }
         /// <summary>
-        /// 属性 InTables（IReadOnlyList<string>）。
+        /// 属性 InTables（IReadOnlyList&lt;string&gt;）。
         /// </summary>
         public IReadOnlyList<string> InTables { get; set; }
         /// <summary>

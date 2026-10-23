@@ -1097,7 +1097,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 构建查询条件部分，支持简单条件和in条件。不支持复杂条件（如：a=b and c>d）
+        /// 构建查询条件部分，支持简单条件和in条件。不支持复杂条件（如：a=b and c&gt;d）
         /// </summary>
         /// <param name="en"></param>
         /// <param name="kit"></param>

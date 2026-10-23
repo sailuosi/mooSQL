@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 
@@ -32,7 +32,7 @@ namespace mooSQL.utils
         /// </summary>
         public Func<T, bool> isValid;
         /// <summary>
-        /// 比较2个值的大小，如果-1，则小于，0 =，1>
+        /// 比较2个值的大小，如果-1，则小于，0 =，1&gt;
         /// </summary>
         public Func<T, T, int> compare;
         /// <summary>

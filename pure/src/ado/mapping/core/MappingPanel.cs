@@ -40,7 +40,7 @@ namespace mooSQL.data.mapping
         public MappingValue<Type, bool> TypeNullable { get; set; }
 
         /// <summary>
-        /// 属性 TypeScalar（MappingValue<Type,bool>）。
+        /// 属性 TypeScalar（MappingValue&lt;Type,bool&gt;）。
         /// </summary>
         public MappingValue<Type,bool> TypeScalar {  get; set; }
         /// <summary>

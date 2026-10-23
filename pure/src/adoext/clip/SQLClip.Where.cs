@@ -20,7 +20,7 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 构造自定义SQL语句，用于直接使用原始的SQL语句。例如：useSQL(x=>x.where("id",1)); 即 where id=1; 相当于 Builder.where("id",1); 
+        /// 构造自定义SQL语句，用于直接使用原始的SQL语句。例如：useSQL(x=&gt;x.where("id",1)); 即 where id=1; 相当于 Builder.where("id",1); 
         /// </summary>
         /// <param name="doProtoSQLBuilder"></param>
         /// <returns></returns>
@@ -133,7 +133,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 构造where语句，用于指定字段和值。例如：where(x=>x.id,1) 即 where id=1; 相当于 Builder.where("id",1); 但是前者更安全，后者更灵活。
+        /// 构造where语句，用于指定字段和值。例如：where(x=&gt;x.id,1) 即 where id=1; 相当于 Builder.where("id",1); 但是前者更安全，后者更灵活。
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -308,7 +308,7 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 构造in语句，用于指定字段和值集合。例如：whereIn(x=>x.id,new int[]{1,2}) 即 where id in (1,2)
+        /// 构造in语句，用于指定字段和值集合。例如：whereIn(x=&gt;x.id,new int[]{1,2}) 即 where id in (1,2)
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -324,7 +324,7 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 展开版的whereIn，用于指定字段和值集合。例如：whereIn(x=>x.id,new int[]{1,2}) 即 where id in (1,2)
+        /// 展开版的whereIn，用于指定字段和值集合。例如：whereIn(x=&gt;x.id,new int[]{1,2}) 即 where id in (1,2)
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -389,7 +389,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 构造not in语句，用于指定字段和值集合。例如：whereNotIn(x=>x.id,new int[]{1,2}) 即 where id not in (1,2)
+        /// 构造not in语句，用于指定字段和值集合。例如：whereNotIn(x=&gt;x.id,new int[]{1,2}) 即 where id not in (1,2)
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -405,7 +405,7 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        ///  展开版的whereNotIn，用于指定字段和值集合。例如：whereNotIn(x=>x.id,new int[]{1,2}) 即 where id not in (1,2)
+        ///  展开版的whereNotIn，用于指定字段和值集合。例如：whereNotIn(x=&gt;x.id,new int[]{1,2}) 即 where id not in (1,2)
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <param name="fieldSelector"></param>
@@ -485,7 +485,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 构造like语句，用于模糊查询字段。例如：whereLike(x=>x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。
+        /// 构造like语句，用于模糊查询字段。例如：whereLike(x=&gt;x.name,"abc") 即 where name like '%abc%' 默认是两边模糊匹配。
         /// </summary>
         /// <param name="fieldSelector"></param>
         /// <param name="searchTxt"></param>

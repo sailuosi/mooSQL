@@ -4,7 +4,7 @@ using mooSQL.utils;
 
 namespace mooSQL.data
 {
-    /// <summary>from (select鈥? as alias 鈥斺€?瀛樺瓙姝ラ锛屼笉瀛?Action銆?/summary>
+    /// <summary>from (select...) as alias — 存子步骤，不存 Action。</summary>
     public sealed class FromSubqueryStep : StepBase {
         public override int Id { get { return 524349; } }
         public override StepKind Kind { get { return StepKind.From; } }
@@ -33,7 +33,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>JOIN (select鈥? as alias</summary>
+    /// <summary>JOIN (select...) as alias。</summary>
     public sealed class JoinSubqueryStep : StepBase {
         public override int Id { get { return 524350; } }
         public override StepKind Kind { get { return StepKind.Join; } }
@@ -66,7 +66,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>select (select鈥? as alias</summary>
+    /// <summary>select (select...) as alias。</summary>
     public sealed class SelectSubqueryStep : StepBase {
         public override int Id { get { return 524351; } }
         public override StepKind Kind { get { return StepKind.Select; } }
@@ -95,7 +95,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>where key op (select鈥?</summary>
+    /// <summary>where key op (select...)。</summary>
     public sealed class WhereSubqueryStep : StepBase {
         public override int Id { get { return 524352; } }
         public override StepKind Kind { get { return StepKind.Where; } }
@@ -172,7 +172,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>whereOR锛氬厔寮?or 妯″紡鎼撴潯浠跺啀骞跺叆</summary>
+    /// <summary>whereOR：先开 or 模式拼条件再并入。</summary>
     public sealed class WhereORSubqueryStep : StepBase {
         public override int Id { get { return 524354; } }
         public override StepKind Kind { get { return StepKind.Where; } }
@@ -211,7 +211,7 @@ namespace mooSQL.data
         }
     }
 
-    /// <summary>withSelect / withAs锛氬厔寮熶笂閲嶆斁鍚庢寕鍏?CTE</summary>
+    /// <summary>withSelect / withAs：先开上重放后挂入 CTE。</summary>
     public sealed class WithSelectSubqueryStep : StepBase {
         public override int Id { get { return 524355; } }
         public override StepKind Kind { get { return StepKind.Cte; } }

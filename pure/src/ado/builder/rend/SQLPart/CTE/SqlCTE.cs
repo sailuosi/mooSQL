@@ -19,7 +19,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 字段 cteList（List<SqlCTEItem>）。
+        /// 字段 cteList（List&lt;SqlCTEItem&gt;）。
         /// </summary>
         public List<SqlCTEItem> cteList;
 

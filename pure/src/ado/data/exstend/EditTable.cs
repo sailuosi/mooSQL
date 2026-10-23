@@ -42,7 +42,7 @@ namespace mooSQL.data
         /// </summary>
         public string tableName;
         /// <summary>
-        /// 字段 updateCols（List<string>）。
+        /// 字段 updateCols（List&lt;string&gt;）。
         /// </summary>
         public List<string> updateCols = new List<string>();
         /// <summary>

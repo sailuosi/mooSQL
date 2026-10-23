@@ -45,19 +45,19 @@ namespace mooSQL.data
         /// </summary>
         protected abstract DataFam                            GetDataType   (string? dataType, string? columnType, int? length, int? precision, int? scale);
 		/// <summary>
-		/// 抽象方法 GetTables（返回 List<TableInfo>），由子类实现。
+		/// 抽象方法 GetTables（返回 List&lt;TableInfo&gt;），由子类实现。
 		/// </summary>
 		protected abstract List<TableInfo>                     GetTables     ( GetSchemaOptions options);
 		/// <summary>
-		/// 抽象方法 GetPrimaryKeys（返回 IReadOnlyCollection<PrimaryKeyInfo>），由子类实现。
+		/// 抽象方法 GetPrimaryKeys（返回 IReadOnlyCollection&lt;PrimaryKeyInfo&gt;），由子类实现。
 		/// </summary>
 		protected abstract IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options);
 		/// <summary>
-		/// 抽象方法 GetColumns（返回 List<ColumnInfo>），由子类实现。
+		/// 抽象方法 GetColumns（返回 List&lt;ColumnInfo&gt;），由子类实现。
 		/// </summary>
 		protected abstract List<ColumnInfo>                    GetColumns    ( GetSchemaOptions options);
 		/// <summary>
-		/// 抽象方法 GetForeignKeys（返回 IReadOnlyCollection<ForeignKeyInfo>），由子类实现。
+		/// 抽象方法 GetForeignKeys（返回 IReadOnlyCollection&lt;ForeignKeyInfo&gt;），由子类实现。
 		/// </summary>
 		protected abstract IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys( IEnumerable<TableSchema> tables, GetSchemaOptions options);
 		/// <summary>
@@ -75,19 +75,19 @@ namespace mooSQL.data
 		protected virtual List<ProcedureParameterInfo>? GetProcedureParameters( IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options) => null;
 
 		/// <summary>
-		/// 字段 IncludedSchemas（HashSet<string?>）。
+		/// 字段 IncludedSchemas（HashSet&lt;string?&gt;）。
 		/// </summary>
 		protected HashSet<string?>   IncludedSchemas  = null!;
 		/// <summary>
-		/// 字段 ExcludedSchemas（HashSet<string?>）。
+		/// 字段 ExcludedSchemas（HashSet&lt;string?&gt;）。
 		/// </summary>
 		protected HashSet<string?>   ExcludedSchemas  = null!;
 		/// <summary>
-		/// 字段 IncludedCatalogs（HashSet<string?>）。
+		/// 字段 IncludedCatalogs（HashSet&lt;string?&gt;）。
 		/// </summary>
 		protected HashSet<string?>   IncludedCatalogs = null!;
 		/// <summary>
-		/// 字段 ExcludedCatalogs（HashSet<string?>）。
+		/// 字段 ExcludedCatalogs（HashSet&lt;string?&gt;）。
 		/// </summary>
 		protected HashSet<string?>   ExcludedCatalogs = null!;
 		/// <summary>

@@ -21,11 +21,11 @@ namespace mooSQL.data
         /// </summary>
         public string onPart;
         /// <summary>
-        /// 字段 updateKV（List<string[]>）。
+        /// 字段 updateKV（List&lt;string[]&gt;）。
         /// </summary>
         public List<string[]> updateKV= new List<string[]>();
         /// <summary>
-        /// 字段 insertKV（List<string[]>）。
+        /// 字段 insertKV（List&lt;string[]&gt;）。
         /// </summary>
         public List<string[]> insertKV= new List<string[]>();
         /// <summary>

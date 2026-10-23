@@ -16,7 +16,7 @@ namespace mooSQL.data
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// 属性 Columns（List<DbIndexColumnInfo>）。
+        /// 属性 Columns（List&lt;DbIndexColumnInfo&gt;）。
         /// </summary>
         public List<DbIndexColumnInfo> Columns { get; } = new List<DbIndexColumnInfo>();
         /// <summary>

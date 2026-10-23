@@ -72,7 +72,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 useRepo（返回 SooRepository<T,K>）。
+        /// 泛型方法 useRepo（返回 SooRepository&lt;T,K&gt;）。
         /// </summary>
         public virtual SooRepository<T,K> useRepo<T,K>(DBInstance DB) where T : class, new()
         {

@@ -81,14 +81,14 @@ namespace mooSQL.data
         public abstract BulkCopyResult WriteToServer(IDataReader reader);
 
         /// <summary>
-        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// WriteToServerAsync 方法（返回 Task&lt;BulkCopyResult&gt;）。
         /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(DataRow[] rows,CancellationToken token) {
             var cc= WriteToServer(rows);
             return Task.FromResult(cc);
         }
         /// <summary>
-        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// WriteToServerAsync 方法（返回 Task&lt;BulkCopyResult&gt;）。
         /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(DataTable table, CancellationToken token)
         {
@@ -96,7 +96,7 @@ namespace mooSQL.data
             return Task.FromResult(cc);
         }
         /// <summary>
-        /// WriteToServerAsync 方法（返回 Task<BulkCopyResult>）。
+        /// WriteToServerAsync 方法（返回 Task&lt;BulkCopyResult&gt;）。
         /// </summary>
         public virtual Task<BulkCopyResult> WriteToServerAsync(IDataReader reader, CancellationToken token)
         {

@@ -44,7 +44,7 @@ namespace mooSQL.data.call
         public MethodInfo MethodInfo { get; set; }
 
         /// <summary>
-        /// 属性 Arguments（ReadOnlyCollection<Expression>）。
+        /// 属性 Arguments（ReadOnlyCollection&lt;Expression&gt;）。
         /// </summary>
         public ReadOnlyCollection<Expression> Arguments { get; set; }
 

@@ -323,7 +323,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 LeftJoin（返回 ClipJoin<J>）。
+        /// 泛型方法 LeftJoin（返回 ClipJoin&lt;J&gt;）。
         /// </summary>
         public ClipJoin<J> LeftJoin<J>(out J tableJ) where J : new()
         {

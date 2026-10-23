@@ -25,7 +25,7 @@ namespace mooSQL.data
         public T Sql;
 
         /// <summary>
-        /// 字段 QueryHints（IReadOnlyCollection<string>?）。
+        /// 字段 QueryHints（IReadOnlyCollection&lt;string&gt;?）。
         /// </summary>
         public IReadOnlyCollection<string>? QueryHints;
         /// <summary>

@@ -19,7 +19,7 @@ namespace mooSQL.data.slave
         public int position;
 
         /// <summary>
-        /// 字段 members（List<IEventEat>）。
+        /// 字段 members（List&lt;IEventEat&gt;）。
         /// </summary>
         public List<IEventEat> members = new List<IEventEat>();
 

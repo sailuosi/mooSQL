@@ -59,15 +59,15 @@ namespace mooSQL.data
         public Dictionary<string, DbForeignInfo> ForeignsDict { get; set; } = new Dictionary<string, DbForeignInfo>();
 
         /// <summary>
-        /// 字段 Uniques（List<DbIndexInfo>）。
+        /// 字段 Uniques（List&lt;DbIndexInfo&gt;）。
         /// </summary>
         public List<DbIndexInfo> Uniques => UniquesDict.Values.ToList();
         /// <summary>
-        /// 字段 Indexes（List<DbIndexInfo>）。
+        /// 字段 Indexes（List&lt;DbIndexInfo&gt;）。
         /// </summary>
         public List<DbIndexInfo> Indexes => IndexesDict.Values.ToList();
         /// <summary>
-        /// 字段 Foreigns（List<DbForeignInfo>）。
+        /// 字段 Foreigns（List&lt;DbForeignInfo&gt;）。
         /// </summary>
         public List<DbForeignInfo> Foreigns => ForeignsDict.Values.ToList();
     }

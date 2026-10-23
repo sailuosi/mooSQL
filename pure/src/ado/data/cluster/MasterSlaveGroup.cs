@@ -15,7 +15,7 @@ namespace mooSQL.data.cluster
         /// <summary>配置锚点（组 ID / 默认连接位），不隐含唯一写库。</summary>
         public DBInstance Master;
         /// <summary>
-        /// 字段 Slaves（List<SlaveMember>）。
+        /// 字段 Slaves（List&lt;SlaveMember&gt;）。
         /// </summary>
         public List<SlaveMember> Slaves = new List<SlaveMember>();
         /// <summary>
@@ -105,7 +105,7 @@ namespace mooSQL.data.cluster
         /// </summary>
         public Func<FailoverContext, DBInstance> CustomFailoverElector;
         /// <summary>
-        /// 字段 OnFailover（Action<FailoverContext>）。
+        /// 字段 OnFailover（Action&lt;FailoverContext&gt;）。
         /// </summary>
         public Action<FailoverContext> OnFailover;
         /// <summary>热备选举时按复制延迟升序；返回 null 表示未知延迟（排后）。</summary>

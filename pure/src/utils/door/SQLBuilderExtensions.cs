@@ -1180,7 +1180,7 @@ namespace mooSQL.data
                 .queryUnique();
         }
         /// <summary>
-        /// 快速查询某个实体，并获取自定义的结果，不唯一时返回null。注意：使用本方法时，Func请写全变量类型，则可以不用写泛型参数，如findField((SQLClip c, SysMapdata w) =>c.where(() => w.No, No).select(() => w.VSTOExcelFile));
+        /// 快速查询某个实体，并获取自定义的结果，不唯一时返回null。注意：使用本方法时，Func请写全变量类型，则可以不用写泛型参数，如findField((SQLClip c, SysMapdata w) =&gt;c.where(() =&gt; w.No, No).select(() =&gt; w.VSTOExcelFile));
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>

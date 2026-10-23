@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.utils;
 
 using System;
@@ -237,11 +237,11 @@ namespace mooSQL.excel.context
         /// </summary>
         public Action<DataRow, colInfo> onAfterLoadData;
         /// <summary>
-        /// 列值核验规则，支持function、表达式、固定函数，格式如：not null,>0等。
+        /// 列值核验规则，支持function、表达式、固定函数，格式如：not null,&gt;0等。
         /// </summary>
         public string rule;
         /// <summary>
-        /// 设置核验规则。支持function、表达式、固定函数，格式如：not null,>0等。
+        /// 设置核验规则。支持function、表达式、固定函数，格式如：not null,&gt;0等。
         /// </summary>
         /// <param name="rulestr"></param>
         /// <returns></returns>

@@ -82,7 +82,7 @@ namespace mooSQL.data
         /// </summary>
         public int NotifyAfter = default;
         /// <summary>
-        /// 字段 RowsCopiedCallback（Action<BulkCopyRowsCopied>?）。
+        /// 字段 RowsCopiedCallback（Action&lt;BulkCopyRowsCopied&gt;?）。
         /// </summary>
         public Action<BulkCopyRowsCopied>? RowsCopiedCallback = default;
         /// <summary>

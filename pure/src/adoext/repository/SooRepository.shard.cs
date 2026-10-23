@@ -40,7 +40,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// currentTableNameLoader 方法（返回 Func<string>）。
+        /// currentTableNameLoader 方法（返回 Func&lt;string&gt;）。
         /// </summary>
         protected Func<string> currentTableNameLoader(T entity)
         {

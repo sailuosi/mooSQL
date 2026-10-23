@@ -829,7 +829,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 queryPaged（返回 PageOutput<T>）。
+        /// 泛型方法 queryPaged（返回 PageOutput&lt;T&gt;）。
         /// </summary>
         public override PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther)
         {
@@ -928,7 +928,7 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 泛型方法 queryPagedAsync（返回 Task<PageOutput<T>>）。
+        /// 泛型方法 queryPagedAsync（返回 Task&lt;PageOutput&lt;T&gt;&gt;）。
         /// </summary>
         public override async Task<PageOutput<T>> queryPagedAsync<T>()
         {
@@ -1058,7 +1058,7 @@ namespace mooSQL.data
             }
         }
         /// <summary>
-        /// 泛型方法 queryUniqueAsync（返回 Task<T>）。
+        /// 泛型方法 queryUniqueAsync（返回 Task&lt;T&gt;）。
         /// </summary>
         public override Task<T> queryUniqueAsync<T>()
         {

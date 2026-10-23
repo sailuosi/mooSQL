@@ -20,11 +20,11 @@ namespace mooSQL.data
 		/// </summary>
 		public TableSchema        OtherTable    { get; set; } = null!;
 		/// <summary>
-		/// 属性 ThisColumns（List<ColumnSchema>）。
+		/// 属性 ThisColumns（List&lt;ColumnSchema&gt;）。
 		/// </summary>
 		public List<ColumnSchema> ThisColumns   { get; set; } = null!;
 		/// <summary>
-		/// 属性 OtherColumns（List<ColumnSchema>）。
+		/// 属性 OtherColumns（List&lt;ColumnSchema&gt;）。
 		/// </summary>
 		public List<ColumnSchema> OtherColumns  { get; set; } = null!;
 		/// <summary>

@@ -857,7 +857,7 @@ namespace mooSQL.data
             });
         }
         /// <summary>
-        /// 泛型方法 ExeQueryRowAsync（返回 Task<T>）。
+        /// 泛型方法 ExeQueryRowAsync（返回 Task&lt;T&gt;）。
         /// </summary>
         public async Task<T> ExeQueryRowAsync<T>(SQLCmd SQL)
         {
@@ -954,7 +954,7 @@ namespace mooSQL.data
             });
         }
         /// <summary>
-        /// 泛型方法 ExeQueryScalarAsync（返回 Task<T>）。
+        /// 泛型方法 ExeQueryScalarAsync（返回 Task&lt;T&gt;）。
         /// </summary>
         public async Task<T> ExeQueryScalarAsync<T>(SQLCmd SQL)
         {

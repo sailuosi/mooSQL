@@ -52,7 +52,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 GetTableNames（返回 IReadOnlyList<string>）。
+        /// 泛型方法 GetTableNames（返回 IReadOnlyList&lt;string&gt;）。
         /// </summary>
         public IReadOnlyList<string> GetTableNames<T>(IEnumerable<T> entities) where T : class
         {
@@ -64,7 +64,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 List（返回 Dictionary<string,）。
+        /// 泛型方法 List（返回 Dictionary&lt;string,）。
         /// </summary>
         public Dictionary<string, List<T>> GroupByTable<T>(IEnumerable<T> entities) where T : class
         {

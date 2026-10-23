@@ -302,7 +302,7 @@ namespace mooSQL.data
             return names;
         }
         /// <summary>
-        /// addListPara 方法（返回 List<string>）。
+        /// addListPara 方法（返回 List&lt;string&gt;）。
         /// </summary>
         public List<string> addListPara(IEnumerable list, string prefix)
         {
@@ -834,7 +834,7 @@ namespace mooSQL.data
             return sql.ToString();
         }
         /// <summary>
-        /// buildSetFrag 方法（返回 List<FragSetPart>）。
+        /// buildSetFrag 方法（返回 List&lt;FragSetPart&gt;）。
         /// </summary>
         public List<FragSetPart> buildSetFrag(int index)
         {
@@ -868,7 +868,7 @@ namespace mooSQL.data
             return res;
         }
         /// <summary>
-        /// buildSetFragCur 方法（返回 List<FragSetPart>）。
+        /// buildSetFragCur 方法（返回 List&lt;FragSetPart&gt;）。
         /// </summary>
         public List<FragSetPart> buildSetFragCur() { 
             return buildSetFrag(setIndex);

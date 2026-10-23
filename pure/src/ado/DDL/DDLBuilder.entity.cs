@@ -90,7 +90,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// loadTableList 方法（返回 List<DbTableInfo>）。
+        /// loadTableList 方法（返回 List&lt;DbTableInfo&gt;）。
         /// </summary>
         public virtual List<DbTableInfo> loadTableList(string name)
         {
@@ -100,7 +100,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// loadTableList 方法（返回 List<DbTableInfo>）。
+        /// loadTableList 方法（返回 List&lt;DbTableInfo&gt;）。
         /// </summary>
         public virtual List<DbTableInfo> loadTableList(Action<SQLBuilder> doFilter)
         {
@@ -944,7 +944,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// toCreateTableLogicSqls 方法（返回 IEnumerable<string>）。
+        /// toCreateTableLogicSqls 方法（返回 IEnumerable&lt;string&gt;）。
         /// </summary>
         protected virtual IEnumerable<string> toCreateTableLogicSqls(EntityInfo entityInfo)
         {
@@ -1075,7 +1075,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// toAlterPrimarykeyAndIdentitySqls 方法（返回 IEnumerable<string>）。
+        /// toAlterPrimarykeyAndIdentitySqls 方法（返回 IEnumerable&lt;string&gt;）。
         /// </summary>
         protected virtual IEnumerable<string> toAlterPrimarykeyAndIdentitySqls(List<EntityColumn> entityColumns, List<DbColumnInfo> dbColumns, string tableName)
         {
@@ -1108,7 +1108,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// toAlterTableLogicSqls 方法（返回 IEnumerable<string>）。
+        /// toAlterTableLogicSqls 方法（返回 IEnumerable&lt;string&gt;）。
         /// </summary>
         protected virtual IEnumerable<string> toAlterTableLogicSqls(EntityInfo entityInfo, bool IsDropColumn)
         {

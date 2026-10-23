@@ -105,7 +105,7 @@ namespace mooSQL.data.context
         }
 
         /// <summary>
-        /// NextResultAsync 方法（返回 Task<bool>）。
+        /// NextResultAsync 方法（返回 Task&lt;bool&gt;）。
         /// </summary>
         public override Task<bool> NextResultAsync(CancellationToken cancellationToken)
         {
@@ -282,7 +282,7 @@ namespace mooSQL.data.context
         /// </summary>
         public override Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken) => SourceDataReader.IsDBNullAsync(ordinal, cancellationToken);
         /// <summary>
-        /// ReadAsync 方法（返回 Task<bool>）。
+        /// ReadAsync 方法（返回 Task&lt;bool&gt;）。
         /// </summary>
         public override Task<bool> ReadAsync(CancellationToken cancellationToken) => SourceDataReader.ReadAsync(cancellationToken);
         /// <summary>

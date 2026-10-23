@@ -1,4 +1,4 @@
-﻿using mooSQL.data;
+using mooSQL.data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,7 +261,7 @@ namespace mooSQL.linq
         }
 
         /// <summary>
-        /// .LeftJoin((a,b)=>a.id==b.id)
+        /// .LeftJoin((a,b)=&gt;a.id==b.id)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="E"></typeparam>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace mooSQL.linq
 {
@@ -10,7 +10,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 将提供的名称转换为SQL参数名，如name =》 @name
 		/// For example:
-		///     firstName -> @firstName
+		///     firstName -&gt; @firstName
 		/// for the following query:
 		///     SELECT * FROM Person WHERE FirstName = @firstName
 		///                                            ^ here
@@ -20,7 +20,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 提供的名称转换为 Command的参数名
 		/// For example:
-		///     firstName -> @firstName
+		///     firstName -&gt; @firstName
 		/// for the following query:
 		///     db.Parameter("@firstName") = "John";
 		///                   ^ here
@@ -30,7 +30,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 提供的名称转换为存储过程参数名
 		/// For example:
-		///     firstName -> @firstName
+		///     firstName -&gt; @firstName
 		/// for the following query:
 		///     db.Parameter("@firstName") = "John";
 		///                   ^ here
@@ -40,7 +40,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 提供的名称转为查询字段名
 		/// For example:
-		///     FirstName -> [FirstName]
+		///     FirstName -&gt; [FirstName]
 		/// for the following query:
 		///     SELECT [FirstName] FROM Person WHERE ID = 1
 		///            ^   add   ^
@@ -50,7 +50,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 提供的名称转为查询字段别名
 		/// For example:
-		///     ID -> "ID"
+		///     ID -&gt; "ID"
 		/// for the following query:
 		///     SELECT "ID" as "ID" FROM Person WHERE "ID" = 1
 		///                    ^  ^ here
@@ -60,7 +60,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 转换为关联数据库服务的名称。
 		/// For example:
-		///     host name\named instance -> [host name\named instance]
+		///     host name\named instance -&gt; [host name\named instance]
 		/// for the following query:
 		///     SELECT * FROM [host name\named instance]..[Person]
 		///                   ^ add      ^
@@ -70,7 +70,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 转换为数据库 database名
 		/// For example:
-		///     MyDatabase -> [MyDatabase]
+		///     MyDatabase -&gt; [MyDatabase]
 		/// for the following query:
 		///     SELECT * FROM [MyDatabase]..[Person]
 		///                   ^ add      ^
@@ -80,7 +80,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// 转换查询策略名
 		/// For example:
-		///     dbo -> [dbo]
+		///     dbo -&gt; [dbo]
 		/// for the following query:
 		///     SELECT * FROM [ dbo ].[Person]
 		///                   ^ add ^
@@ -100,7 +100,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// Provided name should be converted to query table name.
 		/// For example:
-		///     Person -> [Person]
+		///     Person -&gt; [Person]
 		/// for the following query:
 		///     SELECT * FROM [Person]
 		///                   ^ add  ^
@@ -110,7 +110,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// Provided name should be converted to query table alias.
 		/// For example:
-		///     table1 -> [table1]
+		///     table1 -&gt; [table1]
 		/// for the following query:
 		///     SELECT * FROM [Person] [table1]
 		///                            ^ add  ^
@@ -120,7 +120,7 @@ namespace mooSQL.linq
 		/// <summary>
 		/// Provided stored procedure parameter name should be converted to name.
 		/// For example:
-		///     @firstName -> firstName
+		///     @firstName -&gt; firstName
 		/// for the following query:
 		///     db.Parameter("@firstName") = "John";
 		///                   ^ '@' has to be removed
@@ -130,16 +130,16 @@ namespace mooSQL.linq
 		/// <summary>
 		/// Gets error number from a native exception.
 		/// For example:
-		///     SqlException -> SqlException.Number,
-		///   OleDbException -> OleDbException.Errors[0].NativeError
+		///     SqlException -&gt; SqlException.Number,
+		///   OleDbException -&gt; OleDbException.Errors[0].NativeError
 		/// </summary>
 		ExceptionToErrorNumber,
 
 		/// <summary>
 		/// Gets error message from a native exception.
 		/// For example:
-		///     SqlException -> SqlException.Message,
-		///   OleDbException -> OleDbException.Errors[0].Message
+		///     SqlException -&gt; SqlException.Message,
+		///   OleDbException -&gt; OleDbException.Errors[0].Message
 		/// </summary>
 		ExceptionToErrorMessage,
 

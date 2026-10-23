@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -64,7 +64,7 @@ namespace mooSQL.excel
         /// </summary>
         public string value ="";
         /// <summary>
-        /// 列值核验规则，支持function、表达式、固定函数，格式如：not null;>0等。
+        /// 列值核验规则，支持function、表达式、固定函数，格式如：not null;&gt;0等。
         /// </summary>
         public string rule ="";
         /*excel关联列的专用属性*/

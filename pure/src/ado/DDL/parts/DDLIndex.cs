@@ -17,7 +17,7 @@ namespace mooSQL.data
         public string IndexName { get; set; }
 
         /// <summary>
-        /// 属性 MapedFields（List<string>）。
+        /// 属性 MapedFields（List&lt;string&gt;）。
         /// </summary>
         public List<string> MapedFields { get; set; }
         /// <summary>

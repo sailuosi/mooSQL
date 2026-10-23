@@ -130,7 +130,7 @@ namespace mooSQL.data
             return 0;
         }
         /// <summary>
-        /// tryTableNameLoader 方法（返回 Func<string>）。
+        /// tryTableNameLoader 方法（返回 Func&lt;string&gt;）。
         /// </summary>
         protected static Func<string> tryTableNameLoader(string tbname)
         {

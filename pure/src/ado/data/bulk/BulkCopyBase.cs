@@ -74,7 +74,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 BulkCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// 泛型方法 BulkCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
         /// </summary>
         public virtual Task<BulkCopyRowsCopied> BulkCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
@@ -88,7 +88,7 @@ namespace mooSQL.data
         }
 #if NET5_0_OR_GREATER
         /// <summary>
-        /// 泛型方法 BulkCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// 泛型方法 BulkCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
         /// </summary>
         public virtual Task<BulkCopyRowsCopied> BulkCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
 			where T: notnull
@@ -102,7 +102,7 @@ namespace mooSQL.data
 		}
 
 		/// <summary>
-		/// 泛型方法 ProviderSpecificCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+		/// 泛型方法 ProviderSpecificCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
 		/// </summary>
 		protected virtual Task<BulkCopyRowsCopied> ProviderSpecificCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
 			where T: notnull
@@ -111,7 +111,7 @@ namespace mooSQL.data
 		}
 
         /// <summary>
-        /// 泛型方法 MultipleRowsCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// 泛型方法 MultipleRowsCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
         /// </summary>
         protected virtual Task<BulkCopyRowsCopied> MultipleRowsCopyAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken)
     where T : notnull
@@ -164,7 +164,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 ProviderSpecificCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// 泛型方法 ProviderSpecificCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
         /// </summary>
         protected virtual Task<BulkCopyRowsCopied> ProviderSpecificCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull
@@ -184,7 +184,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 泛型方法 MultipleRowsCopyAsync（返回 Task<BulkCopyRowsCopied>）。
+        /// 泛型方法 MultipleRowsCopyAsync（返回 Task&lt;BulkCopyRowsCopied&gt;）。
         /// </summary>
         protected virtual Task<BulkCopyRowsCopied> MultipleRowsCopyAsync<T>(IEnumerable<T> source, CancellationToken cancellationToken)
             where T : notnull

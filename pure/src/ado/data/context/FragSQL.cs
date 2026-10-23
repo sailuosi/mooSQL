@@ -142,7 +142,7 @@ namespace mooSQL.data.builder
         public List<PivotItem> pivots;
 
         /// <summary>
-        /// 字段 unpivots（List<UnpivotItem>）。
+        /// 字段 unpivots（List&lt;UnpivotItem&gt;）。
         /// </summary>
         public List<UnpivotItem> unpivots;
         /// <summary>
@@ -203,7 +203,7 @@ namespace mooSQL.data.builder
 
 
         /// <summary>
-        /// 字段 mergeWhens（List<FragMergeWhen>）。
+        /// 字段 mergeWhens（List&lt;FragMergeWhen&gt;）。
         /// </summary>
         public List<FragMergeWhen> mergeWhens;
     }

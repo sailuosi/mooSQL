@@ -103,7 +103,7 @@ namespace mooSQL.data
         public string Edition { get; set; }
 
         /// <summary>
-        /// 属性 Editions（List<string>）。
+        /// 属性 Editions（List&lt;string&gt;）。
         /// </summary>
         public List<string> Editions
         {
@@ -253,7 +253,7 @@ namespace mooSQL.data
         /// </summary>
         public string SequenceSchema { get; set; }
         /// <summary>
-        /// 字段 more（Dictionary<string,object>）。
+        /// 字段 more（Dictionary&lt;string,object&gt;）。
         /// </summary>
         public Dictionary<string,object> more = new Dictionary<string,object>();
         /// <summary>

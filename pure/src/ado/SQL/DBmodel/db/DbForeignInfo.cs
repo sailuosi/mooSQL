@@ -12,7 +12,7 @@ namespace mooSQL.data
         /// </summary>
         public DbTableInfo Table { get; set; }
         /// <summary>
-        /// 属性 Columns（List<DbColumnInfo>）。
+        /// 属性 Columns（List&lt;DbColumnInfo&gt;）。
         /// </summary>
         public List<DbColumnInfo> Columns { get; set; } = new List<DbColumnInfo>();
         /// <summary>
@@ -20,7 +20,7 @@ namespace mooSQL.data
         /// </summary>
         public DbTableInfo ReferencedTable { get; set; }
         /// <summary>
-        /// 属性 ReferencedColumns（List<DbColumnInfo>）。
+        /// 属性 ReferencedColumns（List&lt;DbColumnInfo&gt;）。
         /// </summary>
         public List<DbColumnInfo> ReferencedColumns { get; set; } = new List<DbColumnInfo>();
 

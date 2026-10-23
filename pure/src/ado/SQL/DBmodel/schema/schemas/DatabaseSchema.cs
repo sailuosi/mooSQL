@@ -24,11 +24,11 @@ namespace mooSQL.data
 		/// </summary>
 		public string                ServerVersion                 { get; set; } = null!;
 		/// <summary>
-		/// 属性 Tables（List<TableSchema>）。
+		/// 属性 Tables（List&lt;TableSchema&gt;）。
 		/// </summary>
 		public List<TableSchema>     Tables                        { get; set; } = null!;
 		/// <summary>
-		/// 属性 Procedures（List<ProcedureSchema>）。
+		/// 属性 Procedures（List&lt;ProcedureSchema&gt;）。
 		/// </summary>
 		public List<ProcedureSchema> Procedures                    { get; set; } = null!;
 		/// <summary>
