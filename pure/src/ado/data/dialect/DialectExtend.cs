@@ -144,20 +144,21 @@ namespace mooSQL.data
                 var cols = bk.bulkTarget.Columns;
                 kit.setTable(bk.tableName);
                 int cc = 0;
+                // 多行 VALUES 约定：set… → newRow() → set…（先写当前行，再封存切下一行）
                 foreach (DataRow row in bk.bulkTarget.Rows)
                 {
-                    var k = kit.newRow();
+                    if (cc > 0)
+                        kit.newRow();
 
                     foreach (DataColumn col in cols)
                     {
                         var v = row[col.ColumnName];
                         if (v == null || v == DBNull.Value)
                         {
-                            k.set(col.ColumnName, "null", false);
+                            kit.set(col.ColumnName, "null", false);
                             continue;
                         }
-                        k.set(col.ColumnName, row[col.ColumnName]);
-
+                        kit.set(col.ColumnName, row[col.ColumnName]);
                     }
 
                     cc++;

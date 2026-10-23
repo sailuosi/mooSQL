@@ -701,25 +701,28 @@ namespace mooSQL.data
             var valueRow = new List<string>();
             foreach (SetFrag field in columns)
             {
-                var pair = field.values[rowIndex];
-                if (pair.insetable == false)
-                {
-                    continue;
-                }
-                if (pair.paramed)
-                {
-                    valueRow.Add(dbstr + pair.paramKey);
-                    addParaKV(pair.paramKey, pair.value, pair.dataFam);
-                }
-                else
-                {
-                    var val = pair.value.ToString();
-                    if (string.IsNullOrEmpty(val))
+                //由于可能没有赋值
+                if (field.values.TryGetValue(rowIndex, out var pair)) { 
+                    if (pair.insetable == false)
                     {
-                        val = "NULL";
+                        continue;
                     }
-                    valueRow.Add(val);
+                    if (pair.paramed)
+                    {
+                        valueRow.Add(dbstr + pair.paramKey);
+                        addParaKV(pair.paramKey, pair.value, pair.dataFam);
+                    }
+                    else
+                    {
+                        var val = pair.value.ToString();
+                        if (string.IsNullOrEmpty(val))
+                        {
+                            val = "NULL";
+                        }
+                        valueRow.Add(val);
+                    }                
                 }
+
             }
             if (valueRow.Count == 0) { 
                 return null;
