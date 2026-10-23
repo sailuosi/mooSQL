@@ -57,7 +57,7 @@
 		<PackageReference Include="Kdbndp_V9" Version="10.0.1.921" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="ClickHouse.Driver" Version="1.4.0" />
+		<PackageReference Include="ClickHouse.Driver" Version="0.8.1" />
 		<PackageReference Include="Microsoft.Data.Sqlite">
 		  <Version>9.0.1</Version>
 		</PackageReference>
@@ -92,7 +92,7 @@
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-		<PackageReference Include="ClickHouse.Driver" Version="1.4.0" />
+		<PackageReference Include="ClickHouse.Driver" Version="1.5.0" />
 		<PackageReference Include="Microsoft.Data.Sqlite">
 			<Version>10.0.11</Version>
 		</PackageReference>
