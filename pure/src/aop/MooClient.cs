@@ -70,6 +70,12 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// Client 默认：普通 <c>Insert</c> / insertInner 对 Identity 也取库 Id 并回填实体（返回类型仍为行数语义）。
+        /// 默认 false。Repo 实例 <c>EnableInsertReturnId</c> 为 true 时同样生效（二者任一开启即可）。
+        /// </summary>
+        public bool EnableInsertReturnId { get; set; }
+
         private readonly ConcurrentDictionary<Type, Func<DbDataReader, DBInstance, object>> _materializers = new();
 
         /// <summary>

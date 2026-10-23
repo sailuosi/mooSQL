@@ -83,6 +83,9 @@ namespace mooSQL.data
 			if (ca.HasPrecision())    Precision    = ca.Precision;
 			if (ca.HasScale())        Scale        = ca.Scale;
 			if (ca.HasOrder())        Order        = ca.Order;
+
+			AutoKey = ca.AutoKey;
+			KeyGeneratorType = ca.KeyGeneratorType;
 		}
 
 		/// <summary>

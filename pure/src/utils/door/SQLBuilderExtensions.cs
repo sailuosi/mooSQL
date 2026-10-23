@@ -175,6 +175,24 @@ namespace mooSQL.data
                 throw new InvalidOperationException(
                     "insertReturnId requires an Identity column. For application keys use insert + AutoKey.");
 
+            // SkipOnInsert=false 且已赋值：普通插入，返回实体已有 Id，不二次回填
+            if (!idCol.IsOnlyIgnoreInsert && idCol.PropertyInfo != null)
+            {
+                var existing = idCol.PropertyInfo.GetValue(entity);
+                if (existing != null)
+                {
+                    var resAssigned = builder.Client.Translator.prepareInsert(
+                        builder, entity, typeof(T), en, tryTableNameLoader(tbname));
+                    if (!resAssigned.Status)
+                    {
+                        builder.Client.Loggor.LogError(resAssigned.Message);
+                        throw new InvalidOperationException(resAssigned.Message ?? "prepareInsert failed.");
+                    }
+                    builder.doInsert();
+                    return existing;
+                }
+            }
+
             var res = builder.Client.Translator.prepareInsert(builder, entity, typeof(T), en, tryTableNameLoader(tbname));
             if (!res.Status)
             {

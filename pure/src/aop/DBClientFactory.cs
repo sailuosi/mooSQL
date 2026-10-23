@@ -58,6 +58,8 @@ namespace mooSQL.data
         public virtual SooRepository<T> useRepo<T>(DBInstance DB) where T : class, new()
         {
             var t = new SooRepository<T>(DB);
+            if (DB?.client != null && DB.client.EnableInsertReturnId)
+                t.EnableInsertReturnId = true;
             return t;
         }
 
@@ -75,6 +77,8 @@ namespace mooSQL.data
         public virtual SooRepository<T,K> useRepo<T,K>(DBInstance DB) where T : class, new()
         {
             var t = new SooRepository<T,K>(DB);
+            if (DB?.client != null && DB.client.EnableInsertReturnId)
+                t.EnableInsertReturnId = true;
             return t;
         }
         /// <summary>

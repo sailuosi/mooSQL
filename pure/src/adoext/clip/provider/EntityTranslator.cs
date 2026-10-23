@@ -184,7 +184,7 @@ namespace mooSQL.data
                     }
                     else if (col.KeyGeneratorType != null)
                     {
-                        generated = ActivateKeyGenerator(col);
+                        generated = builder.Client.ActivateKeyGenerator(col);
                     }
                     else
                     {
@@ -204,29 +204,6 @@ namespace mooSQL.data
             //触发插入解析后钩子
             this.fireReadyInsert(builder, entity, EntityType, en);
             return new StatusResult(true, "");
-        }
-        /// <summary>
-        /// 激活 <see cref="EntityColumn.KeyGeneratorType"/>（无参构造；实例可后续由 Client 缓存增强）。
-        /// </summary>
-        protected virtual object ActivateKeyGenerator(EntityColumn col)
-        {
-            if (col?.KeyGeneratorType == null)
-                return null;
-            var t = col.KeyGeneratorType;
-            if (!typeof(IKeyGenerator).IsAssignableFrom(t))
-                throw new InvalidOperationException(
-                    "KeyGeneratorType '" + t.FullName + "' must implement IKeyGenerator.");
-            var instance = Activator.CreateInstance(t) as IKeyGenerator;
-            if (instance == null)
-                throw new InvalidOperationException("Cannot create KeyGeneratorType '" + t.FullName + "'.");
-            var val = instance.Next();
-            var pt = col.PropertyInfo?.PropertyType;
-            if (pt == null || val == null)
-                return val;
-            var target = Nullable.GetUnderlyingType(pt) ?? pt;
-            if (target.IsInstanceOfType(val))
-                return val;
-            return Convert.ChangeType(val, target);
         }
 
         /// <summary>

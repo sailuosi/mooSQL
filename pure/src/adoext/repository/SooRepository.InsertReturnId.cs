@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using mooSQL.data.model;
 
 namespace mooSQL.data
@@ -9,9 +8,14 @@ namespace mooSQL.data
     public partial class SooRepository<T>
     {
         /// <summary>
-        /// 知情启用：普通 <see cref="Insert"/> / insertInner 对 Identity 也取库 Id 并回填实体（返回类型仍为行数语义）。默认 false。
+        /// 知情启用：普通 <see cref="Insert"/> / insertInner 对 Identity 也取库 Id 并回填实体（返回类型仍为行数语义）。
+        /// 默认 false。与 <see cref="MooClient.EnableInsertReturnId"/> 任一为 true 即生效。
         /// </summary>
         public bool EnableInsertReturnId { get; set; }
+
+        /// <summary>Repo 或 Client 是否开启 Insert 路径取 Id。</summary>
+        protected bool IsInsertReturnIdEnabled
+            => EnableInsertReturnId || (DBLive?.client?.EnableInsertReturnId == true);
 
         /// <summary>
         /// 查找 Identity 主键列；无则 null。
@@ -31,6 +35,24 @@ namespace mooSQL.data
                     fallback = col;
             }
             return fallback;
+        }
+
+        /// <summary>
+        /// <c>SkipOnInsert=false</c>（即非 <see cref="EntityColumn.IsOnlyIgnoreInsert"/>）且主键已非 null：
+        /// 跳过库取 Id / 二次回填，返回实体已有值。
+        /// </summary>
+        protected static bool TryGetAssignedIdentitySkipFetch(EntityColumn idCol, object entity, out object existingId)
+        {
+            existingId = null;
+            if (idCol?.PropertyInfo == null || entity == null)
+                return false;
+            if (idCol.IsOnlyIgnoreInsert)
+                return false;
+            var val = idCol.PropertyInfo.GetValue(entity);
+            if (val == null)
+                return false;
+            existingId = val;
+            return true;
         }
 
         /// <summary>
@@ -62,6 +84,20 @@ namespace mooSQL.data
 
             var kit = getKit();
             OnBeforeSave(entity);
+
+            if (TryGetAssignedIdentitySkipFetch(idCol, entity, out var existingId))
+            {
+                var resAssigned = Translator.prepareInsert(kit, entity, typeof(T), null, tryTableNameLoader(tbname));
+                if (!resAssigned.Status)
+                {
+                    kit.Client.Loggor.LogError(resAssigned.Message);
+                    throw new InvalidOperationException(resAssigned.Message ?? "prepareInsert failed.");
+                }
+                var rows = kit.doInsert();
+                OnAfterSave(entity, rows);
+                return existingId;
+            }
+
             var res = Translator.prepareInsert(kit, entity, typeof(T), null, tryTableNameLoader(tbname));
             if (!res.Status)
             {
@@ -96,6 +132,19 @@ namespace mooSQL.data
             var kit = getKit();
             var canBatch = arr.Count > 1
                 && kit.Dialect.SupportsMultiRowInsertReturnId(idCol.DbColumnName);
+
+            // 任一行已显式赋值且非 IgnoreInsert → 不能一批取 Id，逐行处理
+            if (canBatch)
+            {
+                foreach (var e in arr)
+                {
+                    if (TryGetAssignedIdentitySkipFetch(idCol, e, out _))
+                    {
+                        canBatch = false;
+                        break;
+                    }
+                }
+            }
 
             if (!canBatch)
             {
