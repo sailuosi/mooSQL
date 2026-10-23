@@ -24,6 +24,7 @@ namespace mooSQL.data
             Option.ProviderFlags.IsTakeSupported = true;
             Option.ProviderFlags.IsSkipSupported = true;
             Option.ProviderFlags.IsSkipSupportedIfTake = true;
+            Option.ProviderFlags.IsInsertReturningSupported = true;
 
             initVersions();
         }

@@ -9,7 +9,7 @@ namespace mooSQL.data
     /// <summary>
     /// 一个准备执行的SQL命令，包含SQL文本，参数等。
     /// </summary>
-    public class SQLCmd
+    public partial class SQLCmd
     {
         /// <summary>结果缓存自动键前缀（与 ScriptTemplate <c>moo.st:</c> 隔离）。</summary>
         public const string ResultCacheKeyPrefix = "RC:";

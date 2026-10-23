@@ -32,6 +32,12 @@ namespace mooSQL.data
             return _inner.toInsertWithDuplicateUpdate(duplicateUpdateKeyword);
         }
 
+        public override SQLCmd toInsertReturnId(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.toInsertReturnId(identityColumn);
+        }
+
         public override SQLCmd toUpdateFrom()
         {
             runBuild();
@@ -54,6 +60,18 @@ namespace mooSQL.data
                 return _inner.doInsert();
             }
             return _inner.exeNonQueryPrepared(toInsert());
+        }
+
+        public override object doInsertReturnId(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.doInsertReturnId(identityColumn);
+        }
+
+        public override TKey doInsertReturnKey<TKey>(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.doInsertReturnKey<TKey>(identityColumn);
         }
 
         public override Task<int> doInsertAsync()

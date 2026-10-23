@@ -13,6 +13,8 @@ namespace mooSQL.data.model
 		Update,
 		/// <summary>插入。</summary>
 		Insert,
+		/// <summary>插入并取回生成主键（RETURNING / OUTPUT / INSERT;SELECT last_id）；须走 Scalar/Reader，非 NonQuery。</summary>
+		InsertReturnId,
 		/// <summary>插入或更新（UPSERT）。</summary>
 		InsertOrUpdate,
 		/// <summary>建表。</summary>

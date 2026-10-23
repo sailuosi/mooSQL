@@ -486,14 +486,14 @@ namespace mooSQL.data
         /// where 方法（返回 SqlGoup）。
         /// </summary>
         public SqlGoup where(string key, Object val,string op,bool  paramed,Type type=null) {
-            if(val==null) return this;
+
             WhereFrag field = new WhereFrag();
             field.key = key;
             field.value = val;
             field.paramed = paramed;
             field.op = op;
             field.ShouldBeType = type;
-            if (type != null)
+            if (val != null && type != null)
             {
                 var t = Nullable.GetUnderlyingType(type) ?? type;
                 if (t == typeof(Guid)) {

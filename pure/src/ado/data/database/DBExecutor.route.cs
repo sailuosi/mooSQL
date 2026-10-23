@@ -90,6 +90,7 @@ namespace mooSQL.data
             switch (type)
             {
                 case QueryType.Insert:
+                case QueryType.InsertReturnId:
                 case QueryType.Update:
                 case QueryType.Delete:
                 case QueryType.Merge:

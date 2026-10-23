@@ -17,6 +17,7 @@ namespace mooSQL.data
             mapping = new NpgMappingPanel();
             sentence = new NpgSentence(this);
             function = new NpgSQLFunction();
+            Option.ProviderFlags.IsInsertReturningSupported = true;
         }
 
         /// <summary>PG 族默认 Bulk：多行 INSERT；原生 COPY 仅由 Npgsql 产品覆盖。</summary>

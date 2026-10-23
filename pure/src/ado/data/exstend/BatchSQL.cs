@@ -2,9 +2,10 @@
 
 
 using System.Data.Common;
-
 using System.Collections.Generic;
 using System;
+using System.Collections.ObjectModel;
+using mooSQL.data.model;
 
 namespace mooSQL.data
 {
@@ -68,6 +69,17 @@ namespace mooSQL.data
         /// 因需要保留SQL的顺序执行性，改为使用List存储待执行的SQL命令
         /// </summary>
         private List<SQLCmd> toRunCmds= new List<SQLCmd>();
+
+        private readonly List<object> _returnedIds = new List<object>();
+
+        /// <summary>
+        /// <see cref="exeWithIds"/> / <see cref="exeReturnIds"/> 执行后按序回填的主键集合；其它 exe 不保证填充。
+        /// </summary>
+        public IReadOnlyList<object> ReturnedIds
+        {
+            get { return new ReadOnlyCollection<object>(_returnedIds); }
+        }
+
         /// <summary>
         /// 已添加的SQL行数量
         /// </summary>
@@ -242,6 +254,20 @@ namespace mooSQL.data
             this.toRunCmds.Add(cmd);
             return this;
         }
+
+        /// <summary>
+        /// 入队「插入并取回主键」命令（<see cref="QueryType.InsertReturnId"/>）。须用 <see cref="exeWithIds"/> 取 Id；
+        /// <see cref="exeNonQuery"/> 不会填充 <see cref="ReturnedIds"/>。
+        /// </summary>
+        /// <param name="identityColumn">RETURNING 方言的标识列；PostSelect 可省略。</param>
+        public BatchSQL addInsertReturnId(string identityColumn = null)
+        {
+            var cmd = this.builder.toInsertReturnId(identityColumn);
+            if (cmd != null && !cmd.Empty)
+                this.toRunCmds.Add(cmd);
+            return this;
+        }
+
         /// <summary>
         /// 执行操作，执行所有积累的语句。（通过addInsert/addUpdate积累）(使用defaultPostion连接位)
         /// </summary>
@@ -249,6 +275,20 @@ namespace mooSQL.data
         public int exeNonQuery()
         {
             return exeCmd();
+        }
+
+        /// <summary>
+        /// 执行队列：InsertReturnId 走 Scalar 并写入 <see cref="ReturnedIds"/>；其它走 NonQuery。返回总影响行数（ReturnId 项计 1 若取到 Id）。
+        /// </summary>
+        public int exeWithIds()
+        {
+            return exeCmdWithIds();
+        }
+
+        /// <summary>同 <see cref="exeWithIds"/>。</summary>
+        public int exeReturnIds()
+        {
+            return exeCmdWithIds();
         }
 
         /// <summary>
@@ -286,6 +326,45 @@ namespace mooSQL.data
 
             res= runner.exeNonQuery(toRunCmds);
             toRunCmds.Clear();
+            _returnedIds.Clear();
+            return res;
+        }
+
+        private int exeCmdWithIds()
+        {
+            if (toRunCmds == null || toRunCmds.Count == 0)
+                return 0;
+
+            _returnedIds.Clear();
+            if (this.hasTrans || this.useTransaction)
+            {
+                if (this.Executor == null)
+                    runner.useTransation(tranMode.Once);
+            }
+
+            var res = 0;
+            var exec = this.Executor;
+            foreach (var cmd in toRunCmds)
+            {
+                if (this._printSQL && this.onSQLPrint != null)
+                    onSQLPrint(cmd.toRawSQL(this.DBLive.expression.paraPrefix));
+
+                if (cmd != null && cmd.type == QueryType.InsertReturnId)
+                {
+                    var id = cmd.run(this.DBLive, exec);
+                    _returnedIds.Add(id);
+                    if (id != null && !(id is DBNull))
+                        res += 1;
+                }
+                else
+                {
+                    var n = this.DBLive.ExeNonQuery(cmd, exec);
+                    if (n > 0)
+                        res += n;
+                }
+            }
+
+            toRunCmds.Clear();
             return res;
         }
 
@@ -313,6 +392,7 @@ namespace mooSQL.data
         public void clear()
         {
             this.toRunCmds.Clear();
+            this._returnedIds.Clear();
             //this.para.Clear();
             this.builder.clear();
             this.runner.clear();

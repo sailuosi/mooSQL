@@ -65,6 +65,14 @@ namespace mooSQL.data
         /// </summary>
         public bool IsIdentity { get; set; }
         /// <summary>
+        /// 应用侧发号 AutoKey（注册表字符串）；空表示未启用。
+        /// </summary>
+        public string AutoKey { get; set; }
+        /// <summary>
+        /// 强类型发号器 Type；仅当 <see cref="AutoKey"/> 为空时使用。
+        /// </summary>
+        public Type KeyGeneratorType { get; set; }
+        /// <summary>
         /// 是否主键
         /// </summary>
         public bool IsPrimarykey { get; set; }

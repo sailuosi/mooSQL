@@ -85,6 +85,16 @@ namespace mooSQL.data.Mapping
                     entityColumn.IsOnlyIgnoreUpdate = ca.SkipOnUpdate;
                 else if (entityColumn.IsIdentity)
                     entityColumn.IsOnlyIgnoreUpdate = true;
+                if (!string.IsNullOrWhiteSpace(ca.AutoKey))
+                    entityColumn.AutoKey = ca.AutoKey.Trim();
+                if (ca.KeyGeneratorType != null)
+                    entityColumn.KeyGeneratorType = ca.KeyGeneratorType;
+                if (entityColumn.IsIdentity &&
+                    (!string.IsNullOrWhiteSpace(entityColumn.AutoKey) || entityColumn.KeyGeneratorType != null))
+                {
+                    throw new InvalidOperationException(
+                        "Column '" + entityColumn.PropertyName + "' cannot be both IsIdentity and AutoKey/KeyGeneratorType.");
+                }
                 if (!ca.IsColumn)
                     entityColumn.IsIgnore = true;
                 if (ca.Shard && entityColumn != null)

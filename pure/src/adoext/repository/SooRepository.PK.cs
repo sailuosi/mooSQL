@@ -12,7 +12,7 @@ namespace mooSQL.data
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="K"></typeparam>
-    public class SooRepository<T, K> : SooRepository<T> where T : class, new()
+    public partial class SooRepository<T, K> : SooRepository<T> where T : class, new()
     {
         /// <summary>
         /// 初始化 SooRepository（构造）。

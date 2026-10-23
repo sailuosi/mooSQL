@@ -317,6 +317,32 @@ namespace mooSQL.data
             return res;
         }
 
+        /// <inheritdoc />
+        public override object doInsertReturnId(string identityColumn = null)
+        {
+            CheckDBForWrite();
+            var cmd = toInsertReturnId(identityColumn);
+            if (cmd == null || cmd.Empty)
+                throw new InvalidOperationException("doInsertReturnId: insert SQL is empty.");
+            doPrintSQL(cmd);
+            // InsertReturnId 必须走 Scalar（结果集），禁止 exeNonQuery
+            var id = DBLive.ExeQueryScalar(cmd, Executor);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
+                clear();
+            return id;
+        }
+
+        /// <inheritdoc />
+        public override TKey doInsertReturnKey<TKey>(string identityColumn = null)
+        {
+            var id = doInsertReturnId(identityColumn);
+            if (id == null || id is DBNull)
+                return default(TKey);
+            if (id is TKey direct)
+                return direct;
+            return (TKey)Convert.ChangeType(id, typeof(TKey));
+        }
+
         /// <summary>使用已物化 SQLCmd 执行非查询（门面模板缓存热路径）。</summary>
         internal int exeNonQueryPrepared(SQLCmd sql)
         {

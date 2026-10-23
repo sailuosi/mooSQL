@@ -41,6 +41,18 @@ namespace mooSQL.data
             var res = Translator.prepareInsert(kit, entity, typeof(T), null, tryTableNameLoader(tbname));
             if (res.Status)
             {
+                if (EnableInsertReturnId)
+                {
+                    var idCol = FindIdentityColumn();
+                    if (idCol != null)
+                    {
+                        var id = kit.doInsertReturnId(idCol.DbColumnName);
+                        SetEntityPkValue(idCol, entity, id);
+                        cc = id != null && !(id is DBNull) ? 1 : 0;
+                        OnAfterSave(entity, cc);
+                        return cc;
+                    }
+                }
                 cc= kit.doInsert();
                 OnAfterSave(entity, cc);
                 return cc;

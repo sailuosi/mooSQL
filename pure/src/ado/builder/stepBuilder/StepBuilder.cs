@@ -879,6 +879,17 @@ namespace mooSQL.data
             return geneCmd(sql, ps, QueryType.Insert);
         }
 
+        /// <inheritdoc />
+        public override SQLCmd toInsertReturnId(string identityColumn = null)
+        {
+            if (!EnsureWriteTableName(nameof(toInsertReturnId)))
+                return EmptyWriteCmd(QueryType.InsertReturnId);
+            var insert = toInsert();
+            if (insert == null || insert.Empty)
+                return EmptyWriteCmd(QueryType.InsertReturnId);
+            return Dialect.BuildInsertReturnIdCmd(insert, identityColumn);
+        }
+
         /// <summary>
         /// INSERT … ON DUPLICATE KEY UPDATE / UPSERT 等方言 upsert 语句。
         /// </summary>

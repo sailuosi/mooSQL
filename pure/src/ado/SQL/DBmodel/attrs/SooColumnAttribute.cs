@@ -211,6 +211,17 @@ namespace mooSQL.data
         /// </summary>
         public bool HasIsIdentity() => _isIdentity.HasValue;
 
+		/// <summary>
+		/// 应用侧主键发号注册表 key（如 <c>Guid</c>、<c>order-snowflake</c>）。与 <see cref="KeyGeneratorType"/> 同列时 <b>AutoKey 优先</b>。
+		/// Identity 列上请勿设置（将被忽略或冲突检测）。
+		/// </summary>
+		public string AutoKey { get; set; }
+
+		/// <summary>
+		/// 强类型主键生成器（实现 <c>IKeyGenerator</c>）。仅当未设 <see cref="AutoKey"/> 时生效。
+		/// </summary>
+		public Type KeyGeneratorType { get; set; }
+
 		private bool? _isPrimaryKey;
 		/// <summary>
 		/// 是否主键列。

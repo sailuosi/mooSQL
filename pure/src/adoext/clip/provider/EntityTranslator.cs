@@ -174,8 +174,28 @@ namespace mooSQL.data
                 }
                 //如果自定义了字段的设置动作，并返回true,不再执行
                 var val = col.PropertyInfo.GetValue(entity);
-                if (col.IsPrimarykey && val == null ) {
-                    val = this.loadPKValue(col);
+                if (col.IsPrimarykey && val == null && !col.IsIdentity)
+                {
+                    // L2：AutoKey 优先；否则钩子 OnLoadPKValue。结果必须写回实体（只判 null，见设计 §4.2）
+                    object generated = null;
+                    if (!string.IsNullOrWhiteSpace(col.AutoKey))
+                    {
+                        generated = builder.Client.ResolveAutoKey(col.AutoKey, col.PropertyInfo.PropertyType);
+                    }
+                    else if (col.KeyGeneratorType != null)
+                    {
+                        generated = ActivateKeyGenerator(col);
+                    }
+                    else
+                    {
+                        generated = this.loadPKValue(col);
+                    }
+
+                    if (generated != null)
+                    {
+                        col.PropertyInfo.SetValue(entity, generated);
+                        val = generated;
+                    }
                 }
                 val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 setInsertFieldValue(builder, col, val,en);
@@ -185,6 +205,30 @@ namespace mooSQL.data
             this.fireReadyInsert(builder, entity, EntityType, en);
             return new StatusResult(true, "");
         }
+        /// <summary>
+        /// 激活 <see cref="EntityColumn.KeyGeneratorType"/>（无参构造；实例可后续由 Client 缓存增强）。
+        /// </summary>
+        protected virtual object ActivateKeyGenerator(EntityColumn col)
+        {
+            if (col?.KeyGeneratorType == null)
+                return null;
+            var t = col.KeyGeneratorType;
+            if (!typeof(IKeyGenerator).IsAssignableFrom(t))
+                throw new InvalidOperationException(
+                    "KeyGeneratorType '" + t.FullName + "' must implement IKeyGenerator.");
+            var instance = Activator.CreateInstance(t) as IKeyGenerator;
+            if (instance == null)
+                throw new InvalidOperationException("Cannot create KeyGeneratorType '" + t.FullName + "'.");
+            var val = instance.Next();
+            var pt = col.PropertyInfo?.PropertyType;
+            if (pt == null || val == null)
+                return val;
+            var target = Nullable.GetUnderlyingType(pt) ?? pt;
+            if (target.IsInstanceOfType(val))
+                return val;
+            return Convert.ChangeType(val, target);
+        }
+
         /// <summary>
         /// 设置插入字段值逻辑
         /// </summary>

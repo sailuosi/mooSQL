@@ -161,6 +161,74 @@ namespace mooSQL.data
             builder.Client.Loggor.LogError(res.Message);
             return -1;
         }
+
+        /// <summary>
+        /// 实体插入并取回库生成主键（回填实体属性）。须实体含 Identity 列。
+        /// 与 <see cref="insert{T}"/> 并列；逻辑 Id（AutoKey）请用普通 insert。
+        /// </summary>
+        public static object insertReturnId<T>(this SQLBuilder kit, T entity, string tbname = null)
+        {
+            var builder = AcquireBuilderForEntityWrite(kit);
+            var en = builder.Client.EntityCash.getEntityInfo(typeof(T));
+            var idCol = FindIdentityColumn(en);
+            if (idCol == null)
+                throw new InvalidOperationException(
+                    "insertReturnId requires an Identity column. For application keys use insert + AutoKey.");
+
+            var res = builder.Client.Translator.prepareInsert(builder, entity, typeof(T), en, tryTableNameLoader(tbname));
+            if (!res.Status)
+            {
+                builder.Client.Loggor.LogError(res.Message);
+                throw new InvalidOperationException(res.Message ?? "prepareInsert failed.");
+            }
+
+            var id = builder.doInsertReturnId(idCol.DbColumnName);
+            if (idCol.PropertyInfo != null && id != null && !(id is DBNull))
+            {
+                var pt = idCol.PropertyInfo.PropertyType;
+                var target = Nullable.GetUnderlyingType(pt) ?? pt;
+                var converted = target.IsInstanceOfType(id) ? id : Convert.ChangeType(id, target);
+                idCol.PropertyInfo.SetValue(entity, converted);
+            }
+            return id;
+        }
+
+        /// <summary>强类型 <see cref="insertReturnId{T}"/>。</summary>
+        public static TKey insertReturnId<T, TKey>(this SQLBuilder kit, T entity, string tbname = null)
+        {
+            var id = insertReturnId(kit, entity, tbname);
+            if (id == null || id is DBNull)
+                throw new InvalidOperationException("insertReturnId returned no identity value.");
+            if (id is TKey direct)
+                return direct;
+            return (TKey)Convert.ChangeType(id, typeof(TKey));
+        }
+
+        static SQLBuilder AcquireBuilderForEntityWrite(SQLBuilder kit)
+        {
+            // 独立 Builder，但必须继承调用方事务，避免取 Id 跨连接
+            var builder = kit.useSQL();
+            if (kit.Executor != null)
+                builder.useTransaction(kit.Executor);
+            return builder;
+        }
+
+        static EntityColumn FindIdentityColumn(EntityInfo en)
+        {
+            if (en?.Columns == null)
+                return null;
+            EntityColumn fallback = null;
+            foreach (var col in en.Columns)
+            {
+                if (!col.IsIdentity)
+                    continue;
+                if (col.IsPrimarykey)
+                    return col;
+                if (fallback == null)
+                    fallback = col;
+            }
+            return fallback;
+        }
         /// <summary>
         /// 执行批量插入，通过BulkBase实现。注意！在启用事务时，将继承调用者的事务上下文。
         /// </summary>
