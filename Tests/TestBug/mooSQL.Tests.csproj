@@ -28,7 +28,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\ext\mooSQL.Ext.csproj" />
-    <ProjectReference Include="..\..\pure\mooSQL.Pure.Generators\mooSQL.Pure.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\generators\mooSQL.Pure.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Excel 模块未接入时排除，避免阻断 Materializer/主链路单测编译 -->
+  <ItemGroup>
+    <Compile Remove="src\TestPure\Excel\**" />
   </ItemGroup>
 
 </Project>
