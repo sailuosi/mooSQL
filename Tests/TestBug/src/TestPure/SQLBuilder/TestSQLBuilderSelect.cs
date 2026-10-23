@@ -1,4 +1,5 @@
 using mooSQL.Pure.Tests.TestHelpers;
+using mooSQL.Pure.Tests.DocDemo;
 // 基础功能说明：
 
 using HHNY.NET.Application.Entity;
@@ -153,88 +154,19 @@ public class TestSQLBuilderSelect
         var sql = cmd.toRawSQL();
         Assert.Equal("SELECT TOP 1 a.Name FROM tableA as a WHERE a.Name in  (SELECT Name FROM student WHERE id=1 )  ", sql);
     }
+    /// <summary>
+    /// 对标 wherequery.md 综合条件扩展链；严格断言见 DocWhereQuerySummaryExactSqlTests。
+    /// </summary>
     [Fact]
     public void selectWhereSimple1()
     {
-
-        var kit = DBTest.useSQL(0);
-        var cmd = kit
-            .select("a.Name")
-            .from("tableA as a")
-            //基础
-            .where("a.id>1")
-            .where("a.ID",1)
-            .where("a.Date", DateTime.Now,"<")
-            .where("a.Created", "getdate()","=",false)
-            //(a.ID=1 or a.ID is null)
-            .whereIsOrNull("a.ID", 1)
-            //(a.ID>=1 or a.ID is null)
-            .whereVsOrNull("a.ID", "1", ">=")
-            //范围条件
-            .whereIn("a.Name", (t) => {
-                t.select("Name")
-                 .from("student")
-                 .where("id=1");
-            })
-            .whereIn("a.Name","1","2","3")
-            .whereIn("a.Name",new List<string> { "1", "2", "3" })
-            .whereIn("a.Name", new string[] { "1", "2", "3" })
-
-            .whereNotIn("a.Name", new List<string> { "1", "2", "3" })
-            .whereNotIn("a.Name", "1", "2", "3")
-            .whereNotIn("a.Name", (t) => {
-                t.select("Name")
-                    .from("student")
-                    .where("id=1");
-            })
-            // (a.Name not in ('1','2','3') or a.Name is null)
-            .whereNotInOrNull("a.Name", new List<string> { "1", "2", "3" })
-            //between and
-            .whereBetween("a.Idx",1,100)
-            .whereNotBetween("a.Idx", 10, 20)
-            //like
-            .whereLike("a.Name","张三")
-            .whereNotLike("a.Name", "李四")
-            // (a.Name not like '%王四%' or a.Name is null)
-            .whereNotLikeOrNull("a.Name", "王五")
-            .whereNotLikeLeft("a.Name", "赵六")
-            // (a.Name not like '王四%' or a.Name is null)
-            .whereNotLikeLeftOrNull("a.Name", "赵六")
-            .whereLikes("a.Name",new string[] { "张","王","赵"})
-            .whereLikes("a.Name", new string[] { "张", "王", "赵" },false)
-            .whereLikes(new string[] { "a.Name" ,"a.Home","a.Father"},  "张")
-            .whereLikeLeft("a.ClassCode", "100")
-            .whereLikeLefts("a.ClassCode",new string[] {"001","002","003" })
-            .whereLikeLefts("a.ClassCode", "001", "002", "003")
-            //多字段匹配
-            .whereAllFieid(new string[] { "a.Name", "a.Home", "a.Father" }, "张","=")
-            .whereAnyFieid(new string[] { "a.Name", "a.Home", "a.Father" }, "张", "=")
-            .whereAnyFieldIs(100,"a.Score1","a.Score2", "a.Score3")
-            //判空
-            .whereIsNull("a.Note")
-            .whereIsNotNull("a.Caption")
-            //自定义列表
-            .whereList("a.Id","In",new int[] { 1,2,3,4,5,6})
-            //exist
-            .whereExist("select 1 from tableB b where b.name=a.Name")
-            .whereNotExist("select 1 from tableB b where b.Home=a.Home")
-            //自由格式化
-            .whereFormat("(a.id>{0} or a.idx<{1})",5,7)
-            // or条件
-            .sink() // and(
-            .sinkOR() // or (
-            .sinkNot() // not (
-            .sinkNotOR() // not ( .. or ..)
-            .rise() // )
-
-            .top(1)
-            .setPage(10,1)
-            .toSelect();
-        var sql = cmd.toRawSQL();
-        Assert.Contains("SELECT", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("FROM tableA", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("WHERE", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains(" IN ", sql, StringComparison.OrdinalIgnoreCase);
+        using var kit = TestDatabaseHelper.CreateSQLBuilder();
+        var cmd = DocWhereQuerySummaryExactSqlTests.BuildExtendedSummary(kit);
+        Api8UsageSqlAssert.AssertExactSql(
+            cmd,
+            "SELECT a.Name FROM tableA as a WHERE  ( a.id>1 AND a.ID = '1' AND a.Date < '"
+                + DocWhereQuerySummaryExactSqlTests.FixedDate
+                + "' AND a.Created = getdate() AND  ( a.ID = '1' OR a.ID IS NULL )  AND  ( a.ID >= '1' OR a.ID IS NULL )  AND a.Name in  (SELECT Name FROM student WHERE id=1 )  AND a.Name IN ('1','2','3') AND a.Name IN ('1','2','3') AND a.Name IN ('1','2','3') AND a.Name NOT IN ('1','2','3') AND a.Name NOT IN ('1','2','3') AND a.Name NOT IN  (SELECT Name FROM student WHERE id=1 )  AND  ( a.Name NOT IN ('1','2','3') OR a.Name IS NULL )  AND a.Idx BETWEEN '1' AND '100' AND a.Idx NOT BETWEEN '10' and '20' AND a.Name LIKE '%张三%' AND a.Name NOT LIKE '%李四%' AND  ( a.Name NOT LIKE '%王五%' OR a.Name IS NULL )  AND a.Name NOT like '赵六%' AND  ( a.Name NOT like '赵六%' OR a.Name IS NULL )  AND  ( a.Name LIKE '%张%' OR a.Name LIKE '%王%' OR a.Name LIKE '%赵%' )  AND  ( a.Name LIKE '%张%' AND a.Name LIKE '%王%' AND a.Name LIKE '%赵%' )  AND  ( a.Name LIKE '%张%' OR a.Home LIKE '%张%' OR a.Father LIKE '%张%' )  AND a.ClassCode LIKE '100%' AND  ( a.ClassCode LIKE '001%' OR a.ClassCode LIKE '002%' OR a.ClassCode LIKE '003%' )  AND  ( a.ClassCode LIKE '001%' OR a.ClassCode LIKE '002%' OR a.ClassCode LIKE '003%' )  AND  ( a.Name = '张' AND a.Home = '张' AND a.Father = '张' )  AND  ( a.Name = '张' OR a.Home = '张' OR a.Father = '张' )  AND  ( a.Score1 = '100' OR a.Score2 = '100' OR a.Score3 = '100' )  AND a.Note IS NULL AND a.Caption IS NOT NULL AND a.Id In (1,2,3,4,5,6) AND  exists  (select 1 from tableB b where b.name=a.Name)  AND  not exists (select 1 from tableB b where b.Home=a.Home) AND (a.id>'5' or a.idx<'7') )  LIMIT 10 OFFSET 0 ");
     }
 
 
