@@ -87,10 +87,15 @@ namespace mooSQL.data
 
         /// <summary>
         /// 创建「插入并取回生成主键」命令（<see cref="QueryType.InsertReturnId"/>）。
-        /// PostSelect：<c>INSERT; SELECT last_id</c>；Returning：<c>INSERT … RETURNING col</c>。
+        /// PostSelect：<c>INSERT; SELECT last_id</c>；Returning：<c>INSERT … RETURNING col</c> / OUTPUT。
         /// </summary>
         /// <param name="identityColumn">RETURNING/OUTPUT 方言的标识列名；PostSelect 可省略。</param>
         public abstract SQLCmd toInsertReturnId(string identityColumn = null);
+
+        /// <summary>
+        /// 创建多行插入取 Id 命令（与 <see cref="toInsertReturnId"/> 同形 SQL；执行端用 Reader 取列表）。
+        /// </summary>
+        public abstract SQLCmd toInsertReturnIds(string identityColumn = null);
 
         /// <summary>
         /// 创建 update 语句。
@@ -899,6 +904,16 @@ namespace mooSQL.data
         /// 插入并取回强类型主键。
         /// </summary>
         public abstract TKey doInsertReturnKey<TKey>(string identityColumn = null);
+
+        /// <summary>
+        /// 多行插入取全部生成主键。Returning/OUTPUT → Reader；PostSelect 仅单行，多行 VALUES 须逐行或抛错。
+        /// </summary>
+        public abstract List<object> doInsertReturnIds(string identityColumn = null);
+
+        /// <summary>
+        /// 多行插入取强类型主键列表。
+        /// </summary>
+        public abstract List<TKey> doInsertReturnKeys<TKey>(string identityColumn = null);
 
         /// <summary>
         /// 异步执行插入。

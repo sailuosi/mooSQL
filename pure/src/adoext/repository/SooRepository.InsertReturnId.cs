@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using mooSQL.data.model;
 
@@ -75,15 +76,63 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 批量插入取 Id：逐行 <see cref="InsertReturnId"/>（P1 降级；P4 可优化 Returning 多行）。
+        /// 批量插入取 Id。Returning/OUTPUT 方言走多行一次 Reader；否则逐行 <see cref="InsertReturnId"/>。
         /// </summary>
         public List<object> InsertReturnIds(IEnumerable<T> entities)
         {
             var list = new List<object>();
             if (entities == null)
                 return list;
-            foreach (var e in entities)
-                list.Add(InsertReturnId(e));
+
+            var arr = entities as IList<T> ?? entities.ToList();
+            if (arr.Count == 0)
+                return list;
+
+            var idCol = FindIdentityColumn();
+            if (idCol == null)
+                throw new InvalidOperationException(
+                    "InsertReturnIds requires an Identity column. For application keys use Insert + AutoKey.");
+
+            var kit = getKit();
+            var canBatch = arr.Count > 1
+                && kit.Dialect.SupportsMultiRowInsertReturnId(idCol.DbColumnName);
+
+            if (!canBatch)
+            {
+                foreach (var e in arr)
+                    list.Add(InsertReturnId(e));
+                return list;
+            }
+
+            kit.clear();
+            var first = true;
+            foreach (var e in arr)
+            {
+                if (e == null)
+                    throw new ArgumentNullException(nameof(entities));
+                OnBeforeSave(e);
+                if (!first)
+                    kit.newRow();
+                first = false;
+                var res = Translator.prepareInsert(kit, e, typeof(T), null, tryTableNameLoader(tbname));
+                if (!res.Status)
+                {
+                    kit.Client.Loggor.LogError(res.Message);
+                    throw new InvalidOperationException(res.Message ?? "prepareInsert failed.");
+                }
+            }
+
+            var ids = kit.doInsertReturnIds(idCol.DbColumnName);
+            if (ids.Count != arr.Count)
+                throw new InvalidOperationException(
+                    "InsertReturnIds: expected " + arr.Count + " ids, got " + ids.Count + ".");
+
+            for (var i = 0; i < arr.Count; i++)
+            {
+                SetEntityPkValue(idCol, arr[i], ids[i]);
+                OnAfterSave(arr[i], ids[i] != null && !(ids[i] is DBNull) ? 1 : 0);
+                list.Add(ids[i]);
+            }
             return list;
         }
     }
@@ -104,15 +153,21 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 批量插入取强类型主键列表。
+        /// 批量插入取强类型主键列表（Returning 方言可一批；否则逐行）。
         /// </summary>
         public List<K> InsertReturnIds(IEnumerable<T> insertObjs)
         {
-            var res = new List<K>();
-            if (insertObjs == null)
-                return res;
-            foreach (var obj in insertObjs)
-                res.Add(InsertReturnId(obj));
+            var raw = ((SooRepository<T>)this).InsertReturnIds(insertObjs);
+            var res = new List<K>(raw.Count);
+            foreach (var id in raw)
+            {
+                if (id == null || id is DBNull)
+                    throw new InvalidOperationException("InsertReturnIds returned no identity value.");
+                if (id is K direct)
+                    res.Add(direct);
+                else
+                    res.Add((K)Convert.ChangeType(id, typeof(K)));
+            }
             return res;
         }
     }

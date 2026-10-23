@@ -204,6 +204,91 @@ namespace mooSQL.data
             return (TKey)Convert.ChangeType(id, typeof(TKey));
         }
 
+        /// <summary>
+        /// 批量实体插入取 Id。Returning/OUTPUT → 多行一次；否则逐行 <see cref="insertReturnId{T}"/>。
+        /// </summary>
+        public static List<object> insertReturnIds<T>(this SQLBuilder kit, IEnumerable<T> entities, string tbname = null)
+        {
+            var list = new List<object>();
+            if (entities == null)
+                return list;
+
+            var arr = entities as IList<T> ?? entities.ToList();
+            if (arr.Count == 0)
+                return list;
+
+            var en = kit.Client.EntityCash.getEntityInfo(typeof(T));
+            var idCol = FindIdentityColumn(en);
+            if (idCol == null)
+                throw new InvalidOperationException(
+                    "insertReturnIds requires an Identity column. For application keys use insert + AutoKey.");
+
+            var canBatch = arr.Count > 1
+                && kit.Dialect.SupportsMultiRowInsertReturnId(idCol.DbColumnName);
+
+            if (!canBatch)
+            {
+                foreach (var e in arr)
+                    list.Add(insertReturnId(kit, e, tbname));
+                return list;
+            }
+
+            var builder = AcquireBuilderForEntityWrite(kit);
+            builder.clear();
+            var first = true;
+            foreach (var e in arr)
+            {
+                if (e == null)
+                    throw new ArgumentNullException(nameof(entities));
+                if (!first)
+                    builder.newRow();
+                first = false;
+                var res = builder.Client.Translator.prepareInsert(
+                    builder, e, typeof(T), en, tryTableNameLoader(tbname));
+                if (!res.Status)
+                {
+                    builder.Client.Loggor.LogError(res.Message);
+                    throw new InvalidOperationException(res.Message ?? "prepareInsert failed.");
+                }
+            }
+
+            var ids = builder.doInsertReturnIds(idCol.DbColumnName);
+            if (ids.Count != arr.Count)
+                throw new InvalidOperationException(
+                    "insertReturnIds: expected " + arr.Count + " ids, got " + ids.Count + ".");
+
+            for (var i = 0; i < arr.Count; i++)
+            {
+                var id = ids[i];
+                if (idCol.PropertyInfo != null && id != null && !(id is DBNull))
+                {
+                    var pt = idCol.PropertyInfo.PropertyType;
+                    var target = Nullable.GetUnderlyingType(pt) ?? pt;
+                    var converted = target.IsInstanceOfType(id) ? id : Convert.ChangeType(id, target);
+                    idCol.PropertyInfo.SetValue(arr[i], converted);
+                }
+                list.Add(id);
+            }
+            return list;
+        }
+
+        /// <summary>强类型 <see cref="insertReturnIds{T}"/>。</summary>
+        public static List<TKey> insertReturnIds<T, TKey>(this SQLBuilder kit, IEnumerable<T> entities, string tbname = null)
+        {
+            var raw = insertReturnIds(kit, entities, tbname);
+            var list = new List<TKey>(raw.Count);
+            foreach (var id in raw)
+            {
+                if (id == null || id is DBNull)
+                    throw new InvalidOperationException("insertReturnIds returned no identity value.");
+                if (id is TKey direct)
+                    list.Add(direct);
+                else
+                    list.Add((TKey)Convert.ChangeType(id, typeof(TKey)));
+            }
+            return list;
+        }
+
         static SQLBuilder AcquireBuilderForEntityWrite(SQLBuilder kit)
         {
             // 独立 Builder，但必须继承调用方事务，避免取 Id 跨连接

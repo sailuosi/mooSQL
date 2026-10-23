@@ -38,6 +38,12 @@ namespace mooSQL.data
             return _inner.toInsertReturnId(identityColumn);
         }
 
+        public override SQLCmd toInsertReturnIds(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.toInsertReturnIds(identityColumn);
+        }
+
         public override SQLCmd toUpdateFrom()
         {
             runBuild();
@@ -72,6 +78,18 @@ namespace mooSQL.data
         {
             runBuild();
             return _inner.doInsertReturnKey<TKey>(identityColumn);
+        }
+
+        public override List<object> doInsertReturnIds(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.doInsertReturnIds(identityColumn);
+        }
+
+        public override List<TKey> doInsertReturnKeys<TKey>(string identityColumn = null)
+        {
+            runBuild();
+            return _inner.doInsertReturnKeys<TKey>(identityColumn);
         }
 
         public override Task<int> doInsertAsync()

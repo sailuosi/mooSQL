@@ -90,7 +90,8 @@ namespace mooSQL.data
             return expression.wrapKeyword(identityColumn);
         }
 
-        static SQLCmd CloneAsInsertReturnId(SQLCmd insert, string sql)
+        /// <summary>克隆为 <see cref="QueryType.InsertReturnId"/> 命令。</summary>
+        protected static SQLCmd CloneAsInsertReturnId(SQLCmd insert, string sql)
         {
             var cmd = new SQLCmd(sql, insert.para);
             cmd.type = QueryType.InsertReturnId;
@@ -100,5 +101,9 @@ namespace mooSQL.data
             cmd.timeout = insert.timeout;
             return cmd;
         }
+
+        /// <summary>是否可用单语句多行取全量 Id（RETURNING / OUTPUT）。</summary>
+        public virtual bool SupportsMultiRowInsertReturnId(string identityColumn = null)
+            => GetInsertIdentityMode(identityColumn) == IdentityFetchMode.Returning;
     }
 }

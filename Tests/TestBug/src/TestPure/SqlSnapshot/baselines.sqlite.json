@@ -17,7 +17,7 @@
   "from_subquery_where_in": "SELECT x.id FROM (SELECT id FROM users WHERE id  in   (SELECT uid FROM vip )  ) as x  ",
   "ifs_skip_where": "SELECT * FROM t WHERE x = @ks_gwh_0_ms_s0 ",
   "insert_from": "INSERT INTO users_bak  SELECT  id, name  FROM users  WHERE id > @ks_gwh_0_ms_s0 ",
-  "insert_multirow": "INSERT INTO users  (name)  VALUES (@s_cl_0_ms_s1)",
+  "insert_multirow": "INSERT INTO users  (name)  VALUES (@s_cl_0_ms_s0),(@s_cl_0_ms_s1)",
   "insert_set": "INSERT INTO users  (name,age)  VALUES (@s_cl_0_ms_s0,@s_cl_0_ms_s1) ",
   "insert_setI_setU": "INSERT INTO users  (id,name,age)  VALUES (@s_cl_0_ms_s0,@s_cl_0_ms_s2) ",
   "join_inner_subquery": "SELECT u.id FROM users u  INNER JOIN (SELECT uid FROM vip ) as v  ",

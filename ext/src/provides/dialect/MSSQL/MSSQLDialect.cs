@@ -34,7 +34,60 @@ namespace mooSQL.data
             clauseTranslator = new MSSQLClauseTranslator(this);
             mapping = new MSSQLMappingPanel();
             function = new MSSQLFunction();
+            // OUTPUT INSERTED 与 PostSelect(Scope_Identity) 并存；有列名时优先 OUTPUT（支持多行）
+            Option.ProviderFlags.IsInsertReturningSupported = true;
             initDBVersion();
+        }
+
+        /// <summary>
+        /// MSSQL：在 VALUES/SELECT 之前插入 <c>OUTPUT INSERTED.col</c>（非末尾 RETURNING）。
+        /// </summary>
+        protected override SQLCmd AppendReturningIdentity(SQLCmd insert, string identityColumn)
+        {
+            var col = QuoteIdentityColumn(identityColumn);
+            var baseSql = (insert.sql ?? "").TrimEnd();
+            while (baseSql.EndsWith(";", StringComparison.Ordinal))
+                baseSql = baseSql.Substring(0, baseSql.Length - 1).TrimEnd();
+
+            var output = " OUTPUT INSERTED." + col;
+            var idx = IndexOfInsertTail(baseSql);
+            if (idx < 0)
+                throw new InvalidOperationException(
+                    "MSSQL OUTPUT: cannot locate VALUES/SELECT/DEFAULT VALUES in INSERT SQL.");
+
+            var sql = baseSql.Insert(idx, output);
+            return CloneAsInsertReturnId(insert, sql);
+        }
+
+        static int IndexOfInsertTail(string sql)
+        {
+            // 优先匹配多行 VALUES / INSERT…SELECT / DEFAULT VALUES
+            foreach (var token in new[] { " VALUES", " SELECT", " DEFAULT VALUES" })
+            {
+                var i = IndexOfKeyword(sql, token);
+                if (i >= 0)
+                    return i;
+            }
+            return -1;
+        }
+
+        static int IndexOfKeyword(string sql, string keyword)
+        {
+            if (string.IsNullOrEmpty(sql) || string.IsNullOrEmpty(keyword))
+                return -1;
+            var cmp = StringComparison.OrdinalIgnoreCase;
+            var start = 0;
+            while (start < sql.Length)
+            {
+                var i = sql.IndexOf(keyword, start, cmp);
+                if (i < 0)
+                    return -1;
+                // 简单防误伤：keyword 前一字符应为空白或语句起点
+                if (i == 0 || char.IsWhiteSpace(sql[i - 1]))
+                    return i;
+                start = i + 1;
+            }
+            return -1;
         }
         /// <inheritdoc/>
         public override DbCommand getCommand()

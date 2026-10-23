@@ -8,7 +8,7 @@ using Xunit;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// SQLBuilder 单元测试
+    /// SQLBuilder 单元测试。构建产物（toSelect/toInsert/toUpdate/toDelete）一律严格 ExactSql 全量匹配。
     /// </summary>
     public class SQLBuilderTests : IDisposable
     {
@@ -24,15 +24,15 @@ namespace mooSQL.Pure.Tests
             _builder?.Dispose();
         }
 
+        static void AssertExactSql(SQLCmd cmd, string expected) =>
+            Api8UsageSqlAssert.AssertExactSql(cmd, expected);
+
         #region 基础功能测试
 
         [Fact]
         public void CreateSQLBuilder_ShouldInitializeCorrectly()
         {
-            // Arrange & Act
             var builder = TestDatabaseHelper.CreateSQLBuilder();
-
-            // Assert
             builder.Should().NotBeNull();
             builder.DBLive.Should().NotBeNull();
             builder.Dialect.Should().NotBeNull();
@@ -41,51 +41,35 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void SetTable_ShouldSetTableName()
         {
-            // Act
             _builder.from("users");
-
-            // Assert
             _builder.FromCount.Should().BeGreaterThan(0);
         }
 
         [Fact]
         public void Select_WithSingleColumn_ShouldAddColumn()
         {
-            // Act
-            _builder.from("users")
-                .select("id");
+            _builder.from("users").select("id");
             _builder.runBuild();
-
-            // Assert
             _builder.current.selectPart.Count.Should().Be(1);
         }
 
         [Fact]
         public void Select_WithMultipleColumns_ShouldAddAllColumns()
         {
-            // Act
             _builder.from("users")
                 .select("id")
                 .select("name")
                 .select("email");
             _builder.runBuild();
-
-            // Assert
             _builder.current.selectPart.Count.Should().Be(3);
         }
 
         [Fact]
-        public void Select_WithStar_ShouldSelectAll()
+        public void Select_WithStar_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("*")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("SELECT");
-            cmd.sql.Should().Contain("users");
+            AssertExactSql(
+                _builder.from("users").select("*").toSelect(),
+                "SELECT * FROM users ");
         }
 
         #endregion
@@ -93,127 +77,129 @@ namespace mooSQL.Pure.Tests
         #region WHERE 条件测试
 
         [Fact]
-        public void Where_WithEqualCondition_ShouldBuildCorrectSQL()
+        public void Where_WithEqualCondition_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .where("id", 1)
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("WHERE");
-            cmd.sql.Should().Contain("id");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .where("id", 1)
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE id = '1' ");
         }
 
         [Fact]
-        public void Where_WithOperator_ShouldBuildCorrectSQL()
+        public void Where_WithOperator_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .where("age", 18, ">")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain(">");
-        }
-
-        [PrepareOnlyFact]
-        public void WhereIn_ShouldBuildCorrectSQL()
-        {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .whereIn("id", new[] { 1, 2, 3 })
-                .toSelect();
-
-            // Assert：列表 whereIn 走 DelayPara，toSelect 壳含 PlaceHolder；Resolve 后才出现 IN
-            cmd.Should().NotBeNull();
-            cmd.para.DelayParas.Count.Should().Be(1);
-            var resolved = cmd.para.ResolveDelayParas(cmd.sql);
-            resolved.Should().Contain("IN");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .where("age", 18, ">")
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE age > '18' ");
         }
 
         [Fact]
-        public void WhereLike_ShouldBuildCorrectSQL()
+        public void WhereIn_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .whereLike("name", "test")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("LIKE");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereIn("id", new[] { 1, 2, 3 })
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE id IN (1,2,3) ");
         }
 
         [Fact]
-        public void WhereBetween_ShouldBuildCorrectSQL()
+        public void WhereLike_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .whereBetween("age", 18, 65)
-                .toSelect();
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereLike("name", "test")
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE name LIKE '%test%' ");
+        }
 
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("BETWEEN");
+        /// <summary>
+        /// 纯数字前缀走 isPureSimpleStr → where(raw, val=null)。
+        /// 回归：SqlGoup.where 不得因 val==null 丢弃纯 SQL。
+        /// </summary>
+        [Fact]
+        public void WhereLikeLeft_PureSimple_ExactSql()
+        {
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereLikeLeft("a.code", "11615")
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE a.code LIKE '11615%' ");
         }
 
         [Fact]
-        public void WhereIsNull_ShouldBuildCorrectSQL()
+        public void WhereBetween_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .whereIsNull("email")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("IS NULL");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereBetween("age", 18, 65)
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE age BETWEEN '18' AND '65' ");
         }
 
         [Fact]
-        public void WhereIsNotNull_ShouldBuildCorrectSQL()
+        public void WhereIsNull_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .whereIsNotNull("email")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("IS NOT NULL");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereIsNull("email")
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE email IS NULL ");
         }
 
         [Fact]
-        public void MultipleWhereConditions_ShouldBeCombinedWithAnd()
+        public void WhereIsNotNull_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .where("age", 18, ">")
-                .where("is_active", true)
-                .toSelect();
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .whereIsNotNull("email")
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE email IS NOT NULL ");
+        }
 
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("AND");
+        [Fact]
+        public void MultipleWhereConditions_ExactSql()
+        {
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .where("age", 18, ">")
+                    .where("is_active", true)
+                    .toSelect(),
+                "SELECT id,name FROM users WHERE  ( age > '18' AND is_active = 'True' )  ");
+        }
+
+        [Fact]
+        public void Where_RawAndFormat_ExactSql()
+        {
+            AssertExactSql(
+                _builder.from("users").select("id").where("1=1").toSelect(),
+                "SELECT id FROM users WHERE 1=1 ");
+
+            _builder.clear();
+            AssertExactSql(
+                _builder.from("users").select("id").whereFormat("id={0} and name={1}", 1, "n").toSelect(),
+                "SELECT id FROM users WHERE id='1' and name='n' ");
         }
 
         #endregion
@@ -221,50 +207,41 @@ namespace mooSQL.Pure.Tests
         #region ORDER BY 测试
 
         [Fact]
-        public void OrderBy_ShouldAddOrderClause()
+        public void OrderBy_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .orderBy("name")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("ORDER BY");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .orderBy("name")
+                    .toSelect(),
+                "SELECT id,name FROM users ORDER BY name ");
         }
 
         [Fact]
-        public void OrderBy_WithDesc_ShouldAddDescOrder()
+        public void OrderBy_WithDesc_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .orderBy("name DESC")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("DESC");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .orderBy("name DESC")
+                    .toSelect(),
+                "SELECT id,name FROM users ORDER BY name DESC ");
         }
 
         [Fact]
-        public void OrderBy_WithMultipleColumns_ShouldAddAllOrders()
+        public void OrderBy_WithMultipleColumns_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .select("age")
-                .orderBy("age desc")
-                .orderBy("name asc")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("ORDER BY");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .select("age")
+                    .orderBy("age desc")
+                    .orderBy("name asc")
+                    .toSelect(),
+                "SELECT id,name,age FROM users ORDER BY age desc,name asc ");
         }
 
         #endregion
@@ -272,32 +249,27 @@ namespace mooSQL.Pure.Tests
         #region 分页测试
 
         [Fact]
-        public void SetPage_ShouldAddPagingClause()
+        public void SetPage_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .setPage(10, 1)
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().ContainAny("LIMIT", "TOP", "OFFSET");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .setPage(10, 1)
+                    .toSelect(),
+                "SELECT id,name FROM users LIMIT 10 OFFSET 0 ");
         }
 
         [Fact]
-        public void Top_ShouldAddTopClause()
+        public void Top_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("id")
-                .select("name")
-                .top(10)
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
+            AssertExactSql(
+                _builder.from("users")
+                    .select("id")
+                    .select("name")
+                    .top(10)
+                    .toSelect(),
+                "SELECT id,name FROM users LIMIT 10 OFFSET 0 ");
         }
 
         #endregion
@@ -305,40 +277,34 @@ namespace mooSQL.Pure.Tests
         #region INSERT 测试
 
         [Fact]
-        public void Insert_WithObject_ShouldBuildInsertSQL()
+        public void Insert_WithObject_ExactSql()
         {
-            // Arrange
+            var created = new DateTime(2020, 1, 2, 3, 4, 5);
             var user = new TestUser
             {
                 Name = "Test User",
                 Email = "test@example.com",
-                Age = 25
+                Age = 25,
+                CreatedAt = created,
+                IsActive = true
             };
 
-            // Act
-            var cmd = _builder.from("test_users")
-                .toInsert(user);
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("INSERT");
-            cmd.sql.Should().Contain("test_users");
+            AssertExactSql(
+                _builder.from("test_users").toInsert(user),
+                "INSERT INTO test_users  (id,name,email,age,created_at,is_active)  VALUES ('0','Test User','test@example.com','25','"
+                    + created + "','True') ");
         }
 
         [Fact]
-        public void Insert_WithSetMethod_ShouldBuildInsertSQL()
+        public void Insert_WithSetMethod_ExactSql()
         {
-            // Arrange - toInsert 依赖 setTable；from 仅用于 select/delete
-            // Act
-            var cmd = _builder.setTable("test_users")
-                .set("name", "Test User")
-                .set("email", "test@example.com")
-                .set("age", 25)
-                .toInsert();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("INSERT");
+            AssertExactSql(
+                _builder.setTable("test_users")
+                    .set("name", "Test User")
+                    .set("email", "test@example.com")
+                    .set("age", 25)
+                    .toInsert(),
+                "INSERT INTO test_users  (name,email,age)  VALUES ('Test User','test@example.com','25') ");
         }
 
         #endregion
@@ -346,42 +312,34 @@ namespace mooSQL.Pure.Tests
         #region UPDATE 测试
 
         [Fact]
-        public void Update_WithObject_ShouldBuildUpdateSQL()
+        public void Update_WithObject_ExactSql()
         {
-            // Arrange
+            var created = new DateTime(2020, 1, 2, 3, 4, 5);
             var user = new TestUser
             {
                 Id = 1,
                 Name = "Updated User",
-                Email = "updated@example.com"
+                Email = "updated@example.com",
+                CreatedAt = created,
+                IsActive = true
             };
 
-            // Act
-            var cmd = _builder.from("test_users")
-                .toUpdate(user);
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("UPDATE");
-            cmd.sql.Should().Contain("SET");
+            AssertExactSql(
+                _builder.from("test_users").toUpdate(user),
+                "UPDATE test_users  SET name='Updated User' ,email='updated@example.com' ,created_at='"
+                    + created + "' ,is_active='True'  WHERE id = '1'");
         }
 
         [Fact]
-        public void Update_WithSetMethod_ShouldBuildUpdateSQL()
+        public void Update_WithSetMethod_ExactSql()
         {
-            // Arrange - toUpdate 依赖 setTable
-            // Act
-            var cmd = _builder.setTable("test_users")
-                .set("name", "Updated User")
-                .set("email", "updated@example.com")
-                .where("id", 1)
-                .toUpdate();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("UPDATE");
-            cmd.sql.Should().Contain("SET");
-            cmd.sql.Should().Contain("WHERE");
+            AssertExactSql(
+                _builder.setTable("test_users")
+                    .set("name", "Updated User")
+                    .set("email", "updated@example.com")
+                    .where("id", 1)
+                    .toUpdate(),
+                "UPDATE test_users  SET name='Updated User' ,email='updated@example.com'  WHERE id = '1'");
         }
 
         #endregion
@@ -389,75 +347,57 @@ namespace mooSQL.Pure.Tests
         #region DELETE 测试
 
         [Fact]
-        public void Delete_ShouldBuildDeleteSQL()
+        public void Delete_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("test_users")
-                .where("id", 1)
-                .toDelete();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("DELETE");
-            cmd.sql.Should().Contain("FROM");
-            cmd.sql.Should().Contain("WHERE");
+            AssertExactSql(
+                _builder.from("test_users").where("id", 1).toDelete(),
+                "DELETE  FROM test_users WHERE id = '1'");
         }
 
         [Fact]
-        public void Delete_WhereGuid_ShouldBuildDeleteSQL()
+        public void Delete_WhereGuid_ExactSql()
         {
             var oid = Guid.Parse("11111111-1111-1111-1111-111111111111");
-            var cmd = _builder.setTable("ZH_PortCell")
-                .whereGuid("ZH_PortCellOID", oid)
-                .toDelete();
-
-            var sql = cmd.toRawSQL();
-            sql.Should().Contain("DELETE");
-            sql.Should().Contain("FROM ZH_PortCell");
-            sql.Should().Contain("ZH_PortCellOID");
-            sql.Should().Contain(oid.ToString());
-            sql.Should().NotContain("1=2");
+            AssertExactSql(
+                _builder.setTable("ZH_PortCell")
+                    .whereGuid("ZH_PortCellOID", oid)
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE ZH_PortCellOID = '11111111-1111-1111-1111-111111111111'");
         }
 
         [Fact]
-        public void Delete_WhereInGuid_ShouldBuildInList()
+        public void Delete_WhereInGuid_ExactSql()
         {
             var oids = new[]
             {
                 Guid.Parse("11111111-1111-1111-1111-111111111111"),
                 Guid.Parse("22222222-2222-2222-2222-222222222222")
             };
-            var cmd = _builder.setTable("ZH_PortCell")
-                .whereInGuid("ZH_PortCellOID", oids)
-                .toDelete();
-
-            var sql = cmd.toRawSQL();
-            sql.Should().Contain("DELETE");
-            sql.Should().Contain("IN");
-            sql.Should().Contain(oids[0].ToString());
-            sql.Should().Contain(oids[1].ToString());
-            sql.Should().NotContain("1=2");
+            AssertExactSql(
+                _builder.setTable("ZH_PortCell")
+                    .whereInGuid("ZH_PortCellOID", oids)
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE ZH_PortCellOID IN ('11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222')");
         }
 
         [Fact]
-        public void Delete_InvalidWhereGuid_ShouldNeverMatch()
+        public void Delete_InvalidWhereGuid_ExactSql()
         {
-            var cmd = _builder.setTable("ZH_PortCell")
-                .whereGuid("ZH_PortCellOID", "not-a-guid")
-                .toDelete();
-
-            cmd.toRawSQL().Should().Contain("1=2");
-            cmd.toRawSQL().Should().NotContain("ZH_PortCellOID");
+            AssertExactSql(
+                _builder.setTable("ZH_PortCell")
+                    .whereGuid("ZH_PortCellOID", "not-a-guid")
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE 1=2");
         }
 
         [Fact]
-        public void Delete_EmptyWhereInGuid_ShouldNeverMatch()
+        public void Delete_EmptyWhereInGuid_ExactSql()
         {
-            var cmd = _builder.setTable("ZH_PortCell")
-                .whereInGuid("ZH_PortCellOID", Array.Empty<Guid>())
-                .toDelete();
-
-            cmd.toRawSQL().Should().Contain("1=2");
+            AssertExactSql(
+                _builder.setTable("ZH_PortCell")
+                    .whereInGuid("ZH_PortCellOID", Array.Empty<Guid>())
+                    .toDelete(),
+                "DELETE FROM ZH_PortCell WHERE 1=2");
         }
 
         #endregion
@@ -467,10 +407,7 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void AddPara_ShouldAddParameter()
         {
-            // Act
             var paramName = _builder.addPara("testParam", "testValue");
-
-            // Assert
             paramName.Should().NotBeNullOrEmpty();
             _builder.ps.Should().NotBeNull();
         }
@@ -478,13 +415,8 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void AddListPara_ShouldAddListParameters()
         {
-            // Arrange
             var values = new[] { 1, 2, 3, 4, 5 };
-
-            // Act
             var paramNames = _builder.addListPara(values.Cast<object>(), "id");
-
-            // Assert
             paramNames.Should().NotBeNull();
             paramNames.Count.Should().Be(values.Length);
         }
@@ -496,31 +428,23 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Clear_ShouldResetBuilder()
         {
-            // Arrange
             _builder.from("users")
                 .select("id")
                 .select("name")
                 .where("id", 1);
 
-            // Act
             _builder.clear();
-
-            // Assert
             _builder.ColumnCount.Should().Be(0);
         }
 
         [Fact]
         public void ClearWhere_ShouldClearWhereConditions()
         {
-            // Arrange
             _builder.from("users")
                 .select("id")
                 .where("id", 1);
 
-            // Act
             _builder.clearWhere();
-
-            // Assert
             var where = _builder.buildWhere();
             where.Should().BeNullOrEmpty();
         }
@@ -528,7 +452,6 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void Reset_ShouldResetAllState()
         {
-            // Arrange
             _builder.from("users")
                 .select("id")
                 .select("name")
@@ -536,46 +459,34 @@ namespace mooSQL.Pure.Tests
                 .orderBy("name")
                 .setPage(10, 1);
 
-            // Act
             _builder.reset();
-
-            // Assert
             _builder.current.selectPart.Count.Should().Be(0);
-            _builder.FromCount.Should().Be(0); // reset 后会创建一个新组
+            _builder.FromCount.Should().Be(0);
         }
 
         [Fact]
         public void SetSeed_ShouldSetParameterSeed()
         {
-            // Act
             _builder.setSeed("test");
-
-            // Assert
             _builder.paraSeed.Should().Be("test");
         }
 
         [Fact]
         public void Ifs_ShouldConditionallyExecute()
         {
-            // Act
             _builder.ifs(true)
                 .from("users")
                 .select("id");
             _builder.runBuild();
-
-            // Assert
             _builder.current.selectPart.Count.Should().Be(1);
         }
 
         [Fact]
         public void Ifs_WithFalse_ShouldNotExecute()
         {
-            // Act
             _builder.ifs(false)
                 .from("users")
                 .select("id");
-
-            // Assert
             _builder.ColumnCount.Should().Be(0);
         }
 
@@ -584,17 +495,14 @@ namespace mooSQL.Pure.Tests
         #region DISTINCT 测试
 
         [Fact]
-        public void Distinct_ShouldAddDistinctClause()
+        public void Distinct_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .distinct()
-                .select("name")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("DISTINCT");
+            AssertExactSql(
+                _builder.from("users")
+                    .distinct()
+                    .select("name")
+                    .toSelect(),
+                "SELECT DISTINCT name FROM users ");
         }
 
         #endregion
@@ -602,54 +510,42 @@ namespace mooSQL.Pure.Tests
         #region JOIN 测试
 
         [Fact]
-        public void Join_ShouldAddJoinClause()
+        public void Join_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .from("users u")
-                .join("INNER JOIN orders o ON u.id = o.user_id")
-                .select("u.id")
-                .select("u.name")
-                .select("o.order_no")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("JOIN");
+            AssertExactSql(
+                _builder.from("users u")
+                    .join("INNER JOIN orders o ON u.id = o.user_id")
+                    .select("u.id")
+                    .select("u.name")
+                    .select("o.order_no")
+                    .toSelect(),
+                "SELECT u.id,u.name,o.order_no FROM users u INNER JOIN orders o ON u.id = o.user_id ");
         }
 
         [Fact]
-        public void LeftJoin_ShouldAddLeftJoinClause()
+        public void LeftJoin_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .from("users u")
-                .leftJoin("LEFT JOIN orders o ON u.id = o.user_id")
-                .select("u.id")
-                .select("u.name")
-                .select("o.order_no")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("LEFT JOIN");
+            AssertExactSql(
+                _builder.from("users u")
+                    .leftJoin("orders o ON u.id = o.user_id")
+                    .select("u.id")
+                    .select("u.name")
+                    .select("o.order_no")
+                    .toSelect(),
+                "SELECT u.id,u.name,o.order_no FROM users u LEFT JOIN orders o ON u.id = o.user_id ");
         }
 
         [Fact]
-        public void RightJoin_ShouldAddRightJoinClause()
+        public void RightJoin_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .from("users u")
-                .rightJoin("RIGHT JOIN orders o ON u.id = o.user_id", _ => { })
-                .select("u.id")
-                .select("u.name")
-                .select("o.order_no")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("RIGHT JOIN");
+            AssertExactSql(
+                _builder.from("users u")
+                    .rightJoin("o", t => t.select("user_id").from("orders"))
+                    .select("u.id")
+                    .select("u.name")
+                    .select("o.user_id")
+                    .toSelect(),
+                "SELECT u.id,u.name,o.user_id FROM users u  RIGHT JOIN (SELECT user_id FROM orders ) as o  ");
         }
 
         #endregion
@@ -657,18 +553,15 @@ namespace mooSQL.Pure.Tests
         #region GROUP BY 测试
 
         [Fact]
-        public void GroupBy_ShouldAddGroupByClause()
+        public void GroupBy_ExactSql()
         {
-            // Act
-            var cmd = _builder.from("users")
-                .select("age")
-                .select("COUNT(*) as count")
-                .groupBy("age")
-                .toSelect();
-
-            // Assert
-            cmd.Should().NotBeNull();
-            cmd.sql.Should().Contain("GROUP BY");
+            AssertExactSql(
+                _builder.from("users")
+                    .select("age")
+                    .select("COUNT(*) as count")
+                    .groupBy("age")
+                    .toSelect(),
+                "SELECT age,COUNT(*) as count FROM users GROUP BY age ");
         }
 
         #endregion
@@ -678,24 +571,16 @@ namespace mooSQL.Pure.Tests
         [Fact]
         public void BeginTransaction_ShouldCreateExecutor()
         {
-            // Act
             _builder.beginTransaction();
-
-            // Assert
             _builder.Executor.Should().NotBeNull();
         }
 
         [Fact]
         public void UseTransaction_ShouldSetExecutor()
         {
-            // Arrange
             var dbInstance = _builder.DBLive;
             var executor = new DBExecutor(dbInstance);
-
-            // Act
             _builder.useTransaction(executor);
-
-            // Assert
             _builder.Executor.Should().Be(executor);
         }
 

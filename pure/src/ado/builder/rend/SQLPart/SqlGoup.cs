@@ -325,15 +325,13 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 添加一个新的插入行，以继续下一组set方法
+        /// 封存当前插入行并切换到下一行（供多行 VALUES：<c>set…newRow().set…</c>）。
         /// </summary>
-        /// <returns></returns>
-        public SqlGoup newRow() {
-            //if (this.columns.Count > 0) {
-                this.setIndex++;
+        public SqlGoup newRow()
+        {
+            if (!this.rows.Contains(this.setIndex))
                 this.rows.Add(this.setIndex);
-            //}
-           
+            this.setIndex++;
             return this;
         }
         /// <summary>
@@ -738,19 +736,23 @@ namespace mooSQL.data
             var frag = new FragSQL();
             frag.insertInto = tableName;
 
-            
+
             frag.insertCols = buildInsertFields();
             if (this.rows.Count > 0)
             {
+                // newRow 已封存先前行；末行仍在 setIndex，需一并纳入
+                if (!this.rows.Contains(this.setIndex))
+                    this.rows.Add(this.setIndex);
+
                 var valus = new List<string>();
                 foreach (var index in rows)
                 {
                     var valueRow = new List<string>();
                     var valsql= buildInsertRowVal(index);
 
-                    if (valsql != null) { 
+                    if (valsql != null) {
                         //存入本行的值
-                        valus.Add(valsql);                    
+                        valus.Add(valsql);
                     }
 
                 }

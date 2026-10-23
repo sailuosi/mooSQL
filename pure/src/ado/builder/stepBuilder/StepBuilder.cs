@@ -890,6 +890,10 @@ namespace mooSQL.data
             return Dialect.BuildInsertReturnIdCmd(insert, identityColumn);
         }
 
+        /// <inheritdoc />
+        public override SQLCmd toInsertReturnIds(string identityColumn = null)
+            => toInsertReturnId(identityColumn);
+
         /// <summary>
         /// INSERT … ON DUPLICATE KEY UPDATE / UPSERT 等方言 upsert 语句。
         /// </summary>

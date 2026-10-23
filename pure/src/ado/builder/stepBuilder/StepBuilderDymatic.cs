@@ -343,6 +343,64 @@ namespace mooSQL.data
             return (TKey)Convert.ChangeType(id, typeof(TKey));
         }
 
+        /// <inheritdoc />
+        public override List<object> doInsertReturnIds(string identityColumn = null)
+        {
+            CheckDBForWrite();
+            var mode = Dialect.GetInsertIdentityMode(identityColumn);
+            var multiRow = current != null && current.rows != null && current.rows.Count > 0;
+
+            if (mode == IdentityFetchMode.PostSelect && multiRow)
+            {
+                throw new NotSupportedException(
+                    "doInsertReturnIds: PostSelect dialects cannot return all ids from a multi-row INSERT. " +
+                    "Use single-row doInsertReturnId in a loop (same connection/transaction), or a RETURNING/OUTPUT dialect.");
+            }
+
+            var cmd = toInsertReturnIds(identityColumn);
+            if (cmd == null || cmd.Empty)
+                throw new InvalidOperationException("doInsertReturnIds: insert SQL is empty.");
+            doPrintSQL(cmd);
+
+            List<object> ids;
+            if (mode == IdentityFetchMode.Returning)
+            {
+                ids = new List<object>();
+                foreach (var v in DBLive.ExeQueryFirstField<object>(cmd, Executor))
+                    ids.Add(v is DBNull ? null : v);
+            }
+            else
+            {
+                // PostSelect 单行（或未开启 Returning）
+                var id = DBLive.ExeQueryScalar(cmd, Executor);
+                ids = new List<object> { id is DBNull ? null : id };
+            }
+
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
+                clear();
+            return ids;
+        }
+
+        /// <inheritdoc />
+        public override List<TKey> doInsertReturnKeys<TKey>(string identityColumn = null)
+        {
+            var raw = doInsertReturnIds(identityColumn);
+            var list = new List<TKey>(raw.Count);
+            foreach (var id in raw)
+            {
+                if (id == null || id is DBNull)
+                {
+                    list.Add(default(TKey));
+                    continue;
+                }
+                if (id is TKey direct)
+                    list.Add(direct);
+                else
+                    list.Add((TKey)Convert.ChangeType(id, typeof(TKey)));
+            }
+            return list;
+        }
+
         /// <summary>使用已物化 SQLCmd 执行非查询（门面模板缓存热路径）。</summary>
         internal int exeNonQueryPrepared(SQLCmd sql)
         {
