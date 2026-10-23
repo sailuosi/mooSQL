@@ -5,9 +5,18 @@ namespace mooSQL.linq.builder
 	using mooSQL.linq.utils;
     using mooSQL.data;
     using mooSQL.linq.expressions;
+	/// <summary>
+	/// EvaluationHelper type.
+	/// </summary>
 
 	public static class EvaluationHelper
 	{
+		/// <summary>
+		/// EvaluateExpression
+		/// </summary>
+		/// <summary>
+		/// EvaluateExpression
+		/// </summary>
 		public static object? EvaluateExpression(Expression? expression, DBInstance dataContext, object?[]? parameterValues)
 		{
 			if (expression == null)

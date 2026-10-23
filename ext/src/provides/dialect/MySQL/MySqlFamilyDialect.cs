@@ -13,6 +13,12 @@ namespace mooSQL.data
     /// </summary>
     public abstract class MySqlFamilyDialect : ExtDialect
     {
+        /// <summary>
+        /// MySqlFamilyDialect type.
+        /// </summary>
+        /// <summary>
+        /// MySqlFamilyDialect type.
+        /// </summary>
         protected MySqlFamilyDialect()
         {
             expression = new MySQLExpress(this);
@@ -27,24 +33,52 @@ namespace mooSQL.data
             Option.ProviderFlags.IsInsertReturningSupported = false;
             Option.ProviderFlags.IsJsonNativeBinary = true;
         }
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand() => new MySqlCommand();
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
             => new MySqlConnection(db.DBConnectStr);
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter() => new MySqlDataAdapter();
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder() => new MySqlCommandBuilder();
 
         /// <summary>MySQL 族默认 Bulk：具体实现 <see cref="MySqlFamilyBulkCopyee"/>，产品可直接吃默认或 override。</summary>
         public override DbBulkCopy GetBulkCopy()
             => new MySqlFamilyBulkCopyee(this.dbInstance);
+/// <summary>
+/// Returns whether MERGE statements are supported.
+/// </summary>
+ 
 
         public override bool SupportsMerge() => false;
+/// <summary>
+/// Creates the LINQ member translator for this dialect.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMemberTranslator()
             => new MySqlMemberTranslator();
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -58,6 +92,10 @@ namespace mooSQL.data
             }
             return null;
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
@@ -75,6 +113,9 @@ namespace mooSQL.data
             int i = cmd.Parameters.Add(parameterName);
             return cmd.Parameters[i];
         }
+        /// <summary>
+        /// Maps a CLR type to a common DbType.
+        /// </summary>
 
         protected DbType GetDBTypeComm(Type theType)
         {

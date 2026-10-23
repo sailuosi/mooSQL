@@ -1,5 +1,4 @@
-// Copyright (c)  maikebing All rights reserved.
-//// Licensed under the MIT License, See License.txt in the project root for license information.
+
 
 using System;
 using System.Collections;
@@ -163,11 +162,10 @@ namespace mooSQL.data.taos
 
         private int _tags_index = 0;
         /// <summary>
-        ///     Adds a parameter to the collection.
+        /// 添加一个 Tag 参数（自动生成参数名）。
         /// </summary>
-        /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="value">The value of the parameter. Can be null.</param>
-        /// <returns>The parameter that was added.</returns>
+        /// <param name="value">参数值，可为 null。</param>
+        /// <returns>已添加的参数。</returns>
         public  TaosParameter AddTagsValue(object value)
         {
             _tags_index++;
@@ -175,6 +173,12 @@ namespace mooSQL.data.taos
             Add(parameter);
             return parameter;
         }
+
+        /// <summary>
+        /// 添加字符数组类型的 Tag 参数。
+        /// </summary>
+        /// <param name="value">Tag 值。</param>
+        /// <returns>已添加的参数。</returns>
         public TaosParameter AddTagsValue(char[] value)
         {
             _tags_index++;
@@ -183,6 +187,12 @@ namespace mooSQL.data.taos
             Add(parameter);
             return parameter;
         }
+
+        /// <summary>
+        /// 添加字符串类型的 Tag 参数。
+        /// </summary>
+        /// <param name="value">Tag 值。</param>
+        /// <returns>已添加的参数。</returns>
         public TaosParameter AddTagsValue(string value)
         {
             _tags_index++;
@@ -191,6 +201,12 @@ namespace mooSQL.data.taos
             Add(parameter);
             return parameter;
         }
+
+        /// <summary>
+        /// 添加或更新子表名称参数。
+        /// </summary>
+        /// <param name="value">子表名。</param>
+        /// <returns>已添加或更新的参数。</returns>
         public TaosParameter AddSubTableName(string value)
         {
             TaosParameter parameter;
@@ -211,11 +227,10 @@ namespace mooSQL.data.taos
         }
         private int   _param_index=0;
         /// <summary>
-        ///     Adds a parameter to the collection.
+        /// 添加一个自动命名的参数。
         /// </summary>
-        /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="value">The value of the parameter. Can be null.</param>
-        /// <returns>The parameter that was added.</returns>
+        /// <param name="value">参数值，可为 null。</param>
+        /// <returns>已添加的参数。</returns>
         public virtual TaosParameter AddWithValue( object value)
         {
             _param_index++;
@@ -223,6 +238,12 @@ namespace mooSQL.data.taos
             Add(parameter);
             return parameter;
         }
+        /// <summary>
+        /// AddWithValue
+        /// </summary>
+        /// <summary>
+        /// AddWithValue
+        /// </summary>
         public virtual TaosParameter AddWithValue(char[] value)
         {
             _param_index++;
@@ -231,6 +252,9 @@ namespace mooSQL.data.taos
             Add(parameter);
             return parameter;
         }
+        /// <summary>
+        /// AddWithValue
+        /// </summary>
     
         public virtual TaosParameter AddWithValue(string value)
         {

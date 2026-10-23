@@ -5,6 +5,12 @@ namespace mooSQL.data
     /// </summary>
     public class TiDBExpress : MySQLExpress
     {
+        /// <summary>
+        /// TiDBExpress type.
+        /// </summary>
+        /// <summary>
+        /// TiDBExpress type.
+        /// </summary>
         public TiDBExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "?";

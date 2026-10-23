@@ -13,6 +13,9 @@ namespace mooSQL.linq.utils
     using mooSQL.data;
     using mooSQL.data.mapping;
     using mooSQL.utils;
+	/// <summary>
+	/// ConvertBuilder type.
+	/// </summary>
 
 	public static class ConvertBuilder
 	{
@@ -328,6 +331,9 @@ namespace mooSQL.linq.utils
 
 			return ex;
 		}
+		/// <summary>
+		/// Gets GetConverter.
+		/// </summary>
 
 		public static Tuple<LambdaExpression,LambdaExpression?,bool> GetConverter(DBInstance? mappingSchema, Type from, Type to)
 		{
@@ -392,6 +398,9 @@ namespace mooSQL.linq.utils
 		}
 
 		#region Default Enum Mapping Type
+		/// <summary>
+		/// Gets GetDefaultMappingFromEnumType.
+		/// </summary>
 
 		public static Type? GetDefaultMappingFromEnumType(DBInstance DB, Type enumType)
 		{

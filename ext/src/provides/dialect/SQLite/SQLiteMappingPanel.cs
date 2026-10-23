@@ -10,6 +10,10 @@ namespace mooSQL.data
     /// </summary>
     public class SQLiteMappingPanel : DefaultMappingPanel
     {
+ /// <summary>
+ /// Maps a DbDataType to a dialect-specific SQL type name.
+ /// </summary>
+ 
         public override string DbDataTypeToSQL(DbDataType type)
         {
             switch (type.DataType)

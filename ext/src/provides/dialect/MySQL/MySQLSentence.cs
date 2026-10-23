@@ -9,12 +9,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace mooSQL.data;
+/// <summary>
+/// MySQLSentence type.
+/// </summary>
+/// <summary>
+/// MySQLSentence type.
+/// </summary>
 public class MySQLSentence :SQLSentence
 {
+    /// <summary>
+    /// MySQLSentence type.
+    /// </summary>
 
     public MySQLSentence(Dialect dia) : base(dia) { 
     
     }
+/// <summary>
+/// Loads column metadata for the specified table.
+/// </summary>
+ 
 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
@@ -28,9 +41,17 @@ public class MySQLSentence :SQLSentence
         
         return builder;
     }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
 
     public override string GetDataBaseSql => "SHOW DATABASES";
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
     public override string GetColumnInfosByTableNameSql => "SELECT  column_name AS Name," +
         " CASE WHEN  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1)='' THEN COLUMN_TYPE ELSE  left(COLUMN_TYPE,LOCATE('(',COLUMN_TYPE)-1) END   AS DbTypeText," +
@@ -40,15 +61,31 @@ public class MySQLSentence :SQLSentence
         " CASE WHEN EXTRA='auto_increment' THEN true ELSE false END as IsIdentity," +
         "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS `IsNullable` " +
         "FROM Information_schema.columns where TABLE_NAME='{0}' and  TABLE_SCHEMA=(select database()) ORDER BY TABLE_NAME";
+/// <summary>
+/// SQL used to list column captions for a table.
+/// </summary>
+ 
 
     public override string GetColumnCaptionsByTableNameSql => "SELECT column_name AS Name, column_comment AS Caption " +
         "FROM information_schema.columns WHERE TABLE_NAME='{0}' AND TABLE_SCHEMA=(select database()) ORDER BY ORDINAL_POSITION";
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
     public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Comment from information_schema.tables" +
         " where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables " +
         "where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
     public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
     {
@@ -76,6 +113,10 @@ public class MySQLSentence :SQLSentence
 
         return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
     }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
     protected override string GetCurrentDatabaseName()
     {
@@ -101,6 +142,10 @@ public class MySQLSentence :SQLSentence
                 && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
         return list;
     }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
     public override SQLCmd buildHasTable(string TableName)
     {
@@ -111,6 +156,10 @@ public class MySQLSentence :SQLSentence
             .toSelectCount();
         return cmd;
     }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
@@ -127,6 +176,10 @@ public class MySQLSentence :SQLSentence
         if (string.IsNullOrEmpty(t)) return false;
         return string.Equals(t, "VIEW", StringComparison.OrdinalIgnoreCase);
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -139,6 +192,10 @@ public class MySQLSentence :SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -151,6 +208,10 @@ public class MySQLSentence :SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Loads table schemas.
+/// </summary>
+ 
 
     public override List<TableInfo> GetTables(GetSchemaOptions options)
     {
@@ -188,6 +249,10 @@ SELECT
             })
             .ToList();
     }
+/// <summary>
+/// Loads primary-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -211,6 +276,10 @@ SELECT
 					c.CONSTRAINT_SCHEMA = database()", null)
         .ToList();
     }
+/// <summary>
+/// Loads column schemas.
+/// </summary>
+ 
 
     public override List<ColumnInfo> GetColumns(GetSchemaOptions options)
     {
@@ -273,6 +342,10 @@ SELECT
             })
             .ToList();
     }
+/// <summary>
+/// Loads foreign-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -315,6 +388,10 @@ SELECT
             })
             .ToList();
     }
+/// <summary>
+/// Loads procedure schemas.
+/// </summary>
+ 
 
 
     public override List<ProcedureInfo>? GetProcedures(GetSchemaOptions options)
@@ -344,6 +421,10 @@ SELECT
             })
             .ToList();
     }
+/// <summary>
+/// Loads procedure parameter schemas.
+/// </summary>
+ 
 
     public override List<ProcedureParameterInfo> GetProcedureParameters(IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options)
     {
@@ -383,6 +464,10 @@ SELECT
             })
             .ToList();
     }
+ /// <summary>
+ /// Returns the primary-key name for the specified table.
+ /// </summary>
+ 
     public override string GetTablePKName(string table)
     {
         return DBLive.useSQL()
@@ -394,6 +479,10 @@ SELECT
             .top(1)
             .queryRowString("");
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

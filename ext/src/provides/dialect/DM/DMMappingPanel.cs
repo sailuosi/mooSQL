@@ -16,6 +16,12 @@ namespace mooSQL.data
     /// </summary>
     public class DMMappingPanel : DefaultMappingPanel
     {
+        /// <summary>
+        /// DMMappingPanel type.
+        /// </summary>
+        /// <summary>
+        /// DMMappingPanel type.
+        /// </summary>
         public DMMappingPanel()
         {
             SetDataType<Guid>(DataFam.Guid);
@@ -29,6 +35,10 @@ namespace mooSQL.data
             SetValueToSql<ValueWord>((v) => ConvertDataTypeWordToSQL(v));
             SetValueConverter<decimal, TimeSpan>((v) => new TimeSpan((long)v));
         }
+/// <summary>
+/// Converts a CLR type to a provider parameter type.
+/// </summary>
+ 
 
         public override Type ConvertParameterType(Type type, DbDataType dataType)
         {
@@ -47,6 +57,10 @@ namespace mooSQL.data
 
             return base.ConvertParameterType(type, dataType);
         }
+/// <summary>
+/// Configures a DbParameter on the command.
+/// </summary>
+ 
 
         public override void SetParameter(DbCommand dataConnection, DbParameter parameter, string name, DbDataType dataType, object? value)
         {
@@ -89,6 +103,10 @@ namespace mooSQL.data
 
             base.SetParameter(dataConnection, parameter, name, dataType, value);
         }
+/// <summary>
+/// Sets the provider-specific type on a DbParameter.
+/// </summary>
+ 
 
         protected override void SetParameterType(DbCommand cmd, DbParameter parameter, DbDataType dataType)
         {
@@ -137,6 +155,10 @@ namespace mooSQL.data
                     break;
             }
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
         public override DataFam GetDataType(string? dataType, string? columnType)
         {
@@ -182,6 +204,10 @@ namespace mooSQL.data
 
             return DataFam.Undefined;
         }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
         public override string DbDataTypeToSQL(DbDataType type)
         {

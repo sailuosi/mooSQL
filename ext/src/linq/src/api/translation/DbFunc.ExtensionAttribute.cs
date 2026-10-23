@@ -13,23 +13,44 @@ namespace mooSQL.linq
 
 	public partial class DbFunc
 	{
+		/// <summary>
+		/// ExtensionAttribute
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
 		public partial class ExtensionAttribute : ExpressionAttribute
 		{
+			/// <summary>
+			/// Builds SQL for BuilderType.
+			/// </summary>
+			/// <summary>
+			/// Gets or sets BuilderType.
+			/// </summary>
 			public Type?     BuilderType     { get; set; }
+			/// <summary>
+			/// Builds SQL for BuilderValue.
+			/// </summary>
+			/// <summary>
+			/// Gets or sets BuilderValue.
+			/// </summary>
 			public object?   BuilderValue    { get; set; }
 
-			/// <summary>编译时按 <see cref="NullsPosition"/> 参数追加 NULLS FIRST/LAST（替代 OrderItemBuilder）。</summary>
+			/// <summary>编译时按 <see cref="SooFunctionExtension.NullsPosition"/> 参数追加 NULLS FIRST/LAST（替代 OrderItemBuilder）。</summary>
 			public bool      AppendNullsPositionSuffix { get; set; }
 
 			/// <summary>
 			/// Defines in which order process extensions. Items will be ordered Descending.
 			/// </summary>
 			public int       ChainPrecedence { get; set; }
+			/// <summary>
+			/// Initializes a new instance of the <see cref="DbFunc.ExtensionAttribute"/> class.
+			/// </summary>
 
 			public ExtensionAttribute(string expression): this(string.Empty, expression)
 			{
 			}
+			/// <summary>
+			/// Initializes a new instance of the <see cref="DbFunc.ExtensionAttribute"/> class.
+			/// </summary>
 
 			public ExtensionAttribute(string configuration, string expression) : base(configuration, expression)
 			{
@@ -38,15 +59,24 @@ namespace mooSQL.linq
 				PreferServerSide = true;
 				ChainPrecedence  = -1;
 			}
+			/// <summary>
+			/// Initializes a new instance of the <see cref="DbFunc.ExtensionAttribute"/> class.
+			/// </summary>
 
 			public ExtensionAttribute(Type builderType): this(string.Empty, builderType)
 			{
 			}
+			/// <summary>
+			/// Initializes a new instance of the <see cref="DbFunc.ExtensionAttribute"/> class.
+			/// </summary>
 
 			public ExtensionAttribute(string configuration, Type builderType) : this(configuration, string.Empty)
 			{
 				BuilderType = builderType;
 			}
+			/// <summary>
+			/// Gets GetExtensionAttributes.
+			/// </summary>
 
 			public static ExtensionAttribute[] GetExtensionAttributes(Expression expression, DBInstance mapping, bool forFirstConfiguration = true)
 			{
@@ -97,6 +127,9 @@ namespace mooSQL.linq
 				var defaults = attrs.Where(a => string.IsNullOrEmpty(a.Configuration)).ToArray();
 				return defaults.Length > 0 ? defaults : attrs;
 			}
+			/// <summary>
+			/// ExcludeExtensionChain
+			/// </summary>
 
 			public static Expression ExcludeExtensionChain(DBInstance mapping, Expression expr, out bool isQueryable)
 			{

@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// TypeHelper type.
+	/// </summary>
 
 	public static class TypeHelper
 	{
@@ -124,6 +127,9 @@ namespace mooSQL.linq.utils
 
 			return callMethodInfo;
 		}
+		/// <summary>
+		/// Gets GetEnumerableElementType.
+		/// </summary>
 
 		public static Type GetEnumerableElementType(Type type)
 		{

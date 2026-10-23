@@ -4,6 +4,12 @@ using System.Text;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// StringBuilderExtensions type.
+	/// </summary>
+	/// <summary>
+	/// StringBuilderExtensions type.
+	/// </summary>
 	public static class StringBuilderExtensions
 	{
 		private static readonly uint[] _lookup32 = CreateLookup32();
@@ -20,7 +26,7 @@ namespace mooSQL.linq.utils
 		}
 
 		/// <summary>
-		/// Appends an array of bytes to a <see cref="StringBuilder"/> in hex (i.e. 255->FF)
+		/// Appends an array of bytes to a <see cref="StringBuilder"/> in hex (i.e. 255-&gt;FF)
 		/// format utilizing a static lookup table to minimize allocations.
 		/// </summary>
 		/// <param name="sb">The <see cref="StringBuilder"/> to append to</param>

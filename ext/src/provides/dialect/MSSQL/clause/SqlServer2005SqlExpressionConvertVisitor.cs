@@ -3,11 +3,26 @@ namespace mooSQL.linq.provider.SqlServer
 	using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// SqlServer2005SqlExpressionConvertVisitor type.
+	/// </summary>
+	/// <summary>
+	/// SqlServer2005SqlExpressionConvertVisitor type.
+	/// </summary>
 	public class SqlServer2005SqlExpressionConvertVisitor : SqlServerSqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// SqlServer2005SqlExpressionConvertVisitor type.
+		/// </summary>
+		/// <summary>
+		/// SqlServer2005SqlExpressionConvertVisitor type.
+		/// </summary>
 		public SqlServer2005SqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 		}
+		/// <summary>
+		/// ProcessConversion
+		/// </summary>
 
 		protected virtual bool ProcessConversion(CastWord cast, out IExpWord result)
 		{
@@ -21,6 +36,10 @@ namespace mooSQL.linq.provider.SqlServer
 			result = cast;
 			return false;
 		}
+/// <summary>
+/// ConvertConversion
+/// </summary>
+	
 
 		protected override IExpWord ConvertConversion(CastWord cast)
 		{

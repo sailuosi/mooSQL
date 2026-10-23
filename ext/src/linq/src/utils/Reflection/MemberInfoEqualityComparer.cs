@@ -4,9 +4,24 @@ using System.Reflection;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// MemberInfoEqualityComparer type.
+	/// </summary>
+	/// <summary>
+	/// MemberInfoEqualityComparer type.
+	/// </summary>
 	public class MemberInfoEqualityComparer : IEqualityComparer<MemberInfo>
 	{
+		/// <summary>
+		/// Default
+		/// </summary>
+		/// <summary>
+		/// Default
+		/// </summary>
 		public static readonly MemberInfoEqualityComparer Default = new();
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(MemberInfo? x, MemberInfo? y)
 		{
@@ -37,6 +52,9 @@ namespace mooSQL.linq.utils
 
 			return x.MetadataToken == y.MetadataToken && x.Module.Equals(y.Module);
 		}
+		/// <summary>
+		/// Gets GetHashCode.
+		/// </summary>
 
 		public int GetHashCode(MemberInfo obj)
 		{

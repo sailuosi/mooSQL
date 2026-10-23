@@ -8,6 +8,9 @@ namespace mooSQL.data
 	using mooSQL.linq.clause;
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
+	/// <summary>
+	/// PostgreSQLMemberTranslator type.
+	/// </summary>
 
 	public class PostgreSQLMemberTranslator : ProviderMemberTranslatorDefault
 	{
@@ -45,9 +48,16 @@ namespace mooSQL.data
 			protected override Expression? ConvertDefaultNVarChar(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
 				=> MakeSqlTypeExpression(translationContext, memberExpression, t => t.WithDataType(DataFam.VarChar));
 		}
+		/// <summary>
+		/// DateFunctionsTranslator
+		/// </summary>
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
+	/// <summary>
+	/// Translates TranslateDateTimeDatePart for this dialect.
+	/// </summary>
+	
 			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
@@ -102,11 +112,19 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeOffsetDatePart for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}
+/// <summary>
+/// Translates TranslateDateTimeTruncationToDate for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
@@ -118,6 +136,10 @@ namespace mooSQL.data
 
 				return dateTruncExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeOffsetTruncationToDate for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeOffsetTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
@@ -133,6 +155,10 @@ namespace mooSQL.data
 
 				return dateTruncExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeDateAdd for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
@@ -167,11 +193,19 @@ namespace mooSQL.data
 				var resultExpression = factory.Add(factory.GetDbDataType(dateTimeExpression), dateTimeExpression, intervalExpr);
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeOffsetDateAdd for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
+/// <summary>
+/// Translates TranslateMakeDateTime for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateMakeDateTime(
 				ITranslationContext translationContext,
@@ -210,22 +244,38 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateOnlyDateAdd for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 			}
+/// <summary>
+/// Translates TranslateDateOnlyDatePart for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 			}
 		}
+/// <summary>
+/// Creates the SQL types translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateSqlTypesTranslator()
 		{
 			return new SqlTypesTranslation();
 		}
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateDateMemberTranslator()
 		{

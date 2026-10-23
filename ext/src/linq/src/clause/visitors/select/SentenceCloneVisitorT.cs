@@ -3,11 +3,20 @@ using System;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceCloneVisitorT type.
+	/// </summary>
+	/// <summary>
+	/// SentenceCloneVisitorT type.
+	/// </summary>
 	public class SentenceCloneVisitor<TContext> : SentenceCloneVisitorBase
 
 	{
 		TContext                            _context   = default!;
 		Func<TContext, Clause, bool> _cloneFunc = default!;
+		/// <summary>
+		/// Clone
+		/// </summary>
 
 		public Clause Clone(Clause element, TContext context, Func<TContext, Clause, bool> cloneFunc)
 		{
@@ -16,6 +25,10 @@ namespace mooSQL.linq.clause
 
 			return PerformClone(element);
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{

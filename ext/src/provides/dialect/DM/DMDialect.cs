@@ -14,6 +14,12 @@ namespace mooSQL.data
     /// </summary>
     public class DMDialect : ExtDialect
     {
+        /// <summary>
+        /// DMDialect type.
+        /// </summary>
+        /// <summary>
+        /// DMDialect type.
+        /// </summary>
         public DMDialect()
         {
             expression = new DMExpress(this);
@@ -23,26 +29,58 @@ namespace mooSQL.data
             function = new DMSQLFunction();
             initDBVersion();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
             => new DmCommandBuilder();
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
             => new DmCommand();
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
             => new DmConnection(db.DBConnectStr);
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
             => new DmDataAdapter();
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
             => new DMBulkCopyee(this.dbInstance);
+/// <summary>
+/// Returns whether MERGE statements are supported.
+/// </summary>
+ 
 
         public override bool SupportsMerge() => true;
+/// <summary>
+/// Creates the LINQ member translator for this dialect.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMemberTranslator()
             => new DMMemberTranslator();
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -50,6 +88,10 @@ namespace mooSQL.data
                 return qcmd.Parameters.Add(para.key, ResolveCmdParaValue(para.val));
             return null;
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {

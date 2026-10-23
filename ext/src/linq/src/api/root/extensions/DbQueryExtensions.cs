@@ -16,6 +16,9 @@ namespace mooSQL.linq
 	public static class DbQueryExtensions
 	{
 		#region Table Helpers
+		/// <summary>
+		/// IsTemporary&lt;T&gt;
+		/// </summary>
 
 		public static IDbQuery<T> IsTemporary<T>(this IDbQuery<T> table, [SqlQueryDependent] bool isTemporary)
 			where T : notnull
@@ -24,12 +27,18 @@ namespace mooSQL.linq
 				? table.TableOptions | data.TableOptions.IsTemporary
 				: table.TableOptions & ~data.TableOptions.IsTemporary);
 		}
+		/// <summary>
+		/// IsTemporary&lt;T&gt;
+		/// </summary>
 
 		public static IDbQuery<T> IsTemporary<T>(this IDbQuery<T> table)
 			where T : notnull
 		{
 			return ((IDbQueryMutable<T>)table).ChangeTableOptions(table.TableOptions | data.TableOptions.IsTemporary);
 		}
+		/// <summary>
+		/// TableOptions&lt;T&gt;
+		/// </summary>
 
 		public static IDbQuery<T> TableOptions<T>(this IDbQuery<T> table, [SqlQueryDependent] TableOptions options)
 			where T : notnull

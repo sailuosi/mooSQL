@@ -14,11 +14,20 @@ namespace mooSQL.linq
 	/// </summary>
 	public sealed class ExtExpressionStructuralComparer : IEqualityComparer<Expression?>
 	{
+		/// <summary>
+		/// Instance
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Instance.
+		/// </summary>
 		public static ExtExpressionStructuralComparer Instance { get; } = new();
 
 		ExtExpressionStructuralComparer()
 		{
 		}
+		/// <summary>
+		/// Gets GetHashCode.
+		/// </summary>
 
 		public int GetHashCode(Expression? obj)
 		{
@@ -27,6 +36,9 @@ namespace mooSQL.linq
 
 			return new ClipExpSameCheckor().GetHashCode(obj);
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(Expression? x, Expression? y)
 		{

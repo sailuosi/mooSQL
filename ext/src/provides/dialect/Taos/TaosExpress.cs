@@ -1,4 +1,4 @@
-﻿using mooSQL.data.builder;
+using mooSQL.data.builder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,12 @@ namespace mooSQL.data
     /// <inheritdoc/>
     public class TaosExpress : SQLExpression
     {
+        /// <summary>
+        /// TaosExpress type.
+        /// </summary>
+        /// <summary>
+        /// TaosExpress type.
+        /// </summary>
         public TaosExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "";
@@ -250,6 +256,10 @@ namespace mooSQL.data
         {
             return string.Format("ALTER TABLE {0} COMMENT='{1}';", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);

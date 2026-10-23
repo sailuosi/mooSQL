@@ -8,12 +8,28 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace mooSQL.data;
+/// <summary>
+/// OracleSentence type.
+/// </summary>
+/// <summary>
+/// OracleSentence type.
+/// </summary>
 public class OracleSentence : SQLSentence
 {
+    /// <summary>
+    /// OracleSentence type.
+    /// </summary>
+    /// <summary>
+    /// OracleSentence type.
+    /// </summary>
     public OracleSentence(Dialect dia) : base(dia) { }
 
     private string? _currentUser;
     private string? SchemasFilter { get; set; }
+ /// <summary>
+ /// Loads column metadata for the specified table.
+ /// </summary>
+ 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
         //sql = "SELECT COLUMN_NAME FName,DATA_TYPE FType,CHARACTER_MAXIMUM_LENGTH FLen,COLUMN_COMMENT FDesc FROM information_schema.columns WHERE table_name='
@@ -26,6 +42,10 @@ public class OracleSentence : SQLSentence
 
         return builder;
     }
+/// <summary>
+/// SQL used to reserve sequence values.
+/// </summary>
+ 
 
     public override string GetReserveSequenceValuesSql(int count, string sequenceName)
     {
@@ -36,6 +56,10 @@ public class OracleSentence : SQLSentence
 #endif
 
     }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
 
 
@@ -46,6 +70,10 @@ public class OracleSentence : SQLSentence
             throw new NotSupportedException();
         }
     }
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
     public override string GetColumnInfosByTableNameSql => "select  " +
         " t1.COLUMN_NAME as Name " +
@@ -64,6 +92,10 @@ public class OracleSentence : SQLSentence
         " and au.constraint_type = 'P' and au.table_name=upper('{0}') " +
         ") t3  on t3.keyname = t1.COLUMN_NAME " +
         " where t1.table_name=upper('{0}')";
+/// <summary>
+/// SQL used to list column captions for a table.
+/// </summary>
+ 
 
     public override string GetColumnCaptionsByTableNameSql => "SELECT t1.COLUMN_NAME AS Name, t2.COMMENTS AS Caption " +
         "FROM all_tab_columns t1 " +
@@ -71,6 +103,10 @@ public class OracleSentence : SQLSentence
         "WHERE t1.TABLE_NAME = UPPER('{0}') ORDER BY t1.COLUMN_ID";
 
     //user_tables 
+ /// <summary>
+ /// SQL used to list tables.
+ /// </summary>
+ 
     public override string GetTableInfoListSql => "SELECT  table_name name from user_tables where " +
         " table_name!='HELP' " +
         "  AND table_name NOT LIKE '%$%' " +
@@ -78,8 +114,16 @@ public class OracleSentence : SQLSentence
         "  AND table_name!='LOGMNRP_CTAS_PART_MAP' " +
         " AND table_name!='LOGMNR_LOGMNR_BUILDLOG' " +
         " AND table_name!='SQLPLUS_PRODUCT_PROFILE' ";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql => "select view_name name  from user_views \r\n                                                WHERE VIEW_name NOT LIKE '%$%'\r\n                                                AND VIEW_NAME !='PRODUCT_PRIVS'\r\n                        AND VIEW_NAME NOT LIKE 'MVIEW_%' ";
+/// <summary>
+/// Creates a database.
+/// </summary>
+ 
 
 
 
@@ -90,6 +134,10 @@ public class OracleSentence : SQLSentence
     {
         throw new NotImplementedException();
     }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
     public override SQLCmd buildHasTable(string TableName)
     {
@@ -100,6 +148,10 @@ public class OracleSentence : SQLSentence
             .toSelectCount();
         return cmd;
     }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
@@ -113,6 +165,10 @@ public class OracleSentence : SQLSentence
             .queryRow();
         return row != null;
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -125,6 +181,10 @@ public class OracleSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -189,6 +249,10 @@ public class OracleSentence : SQLSentence
 
         return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
     }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
     protected override string GetCurrentDatabaseName()
     {
@@ -217,6 +281,10 @@ public class OracleSentence : SQLSentence
         }
         return list;
     }
+/// <summary>
+/// Loads table schemas.
+/// </summary>
+ 
 
     public override List<TableInfo> GetTables(GetSchemaOptions options)
     {
@@ -256,6 +324,10 @@ public class OracleSentence : SQLSentence
         .ToList();
         
     }
+/// <summary>
+/// Loads primary-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -280,6 +352,10 @@ public class OracleSentence : SQLSentence
 						FKCOLS.OWNER " + SchemasFilter, null)
             .ToList();
     }
+/// <summary>
+/// Loads column schemas.
+/// </summary>
+ 
 
 
 
@@ -343,6 +419,10 @@ public class OracleSentence : SQLSentence
             };
         }).ToList();
     }
+/// <summary>
+/// Loads foreign-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -371,6 +451,10 @@ public class OracleSentence : SQLSentence
                 .ToList();
         
     }
+/// <summary>
+/// Loads procedure schemas.
+/// </summary>
+ 
 
     public override List<ProcedureInfo>? GetProcedures(GetSchemaOptions options)
     {
@@ -416,6 +500,10 @@ public class OracleSentence : SQLSentence
             };
         }).ToList();
     }
+ /// <summary>
+ /// Loads procedure parameter schemas.
+ /// </summary>
+ 
     public override List<ProcedureParameterInfo> GetProcedureParameters(IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options)
     {
 
@@ -470,6 +558,10 @@ public class OracleSentence : SQLSentence
             };
         }).ToList();
     }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
     public override string GetTablePKName(string table)
     {
@@ -483,11 +575,19 @@ public class OracleSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+/// <summary>
+/// Returns a ping/health-check SQL statement.
+/// </summary>
+ 
 
     public override string getPingSQL()
     {
         return "select 1 FROM DUAL";
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

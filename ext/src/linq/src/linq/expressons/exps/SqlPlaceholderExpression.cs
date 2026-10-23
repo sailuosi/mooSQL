@@ -10,12 +10,27 @@ namespace mooSQL.linq.expressions
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// SqlPlaceholderExpression type.
+	/// </summary>
+	/// <summary>
+	/// SqlPlaceholderExpression type.
+	/// </summary>
 	public sealed class SqlPlaceholderExpression : Expression
 	{
 #if DEBUG
 		static int _placeholderCounter;
+		/// <summary>
+		/// Id
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Id.
+		/// </summary>
 		public int Id { get; }
 #endif
+		/// <summary>
+		/// SqlPlaceholderExpression type.
+		/// </summary>
 
 		public SqlPlaceholderExpression(SelectQueryClause? selectQuery, IExpWord sql, Expression path, Type? convertType = null, string? alias = null, int? index = null, Expression? trackingPath = null)
 		{
@@ -52,19 +67,72 @@ namespace mooSQL.linq.expressions
 			}
 #endif
 		}
+		/// <summary>
+		/// Gets or sets SelectQuery.
+		/// </summary>
 
 		public SelectQueryClause?   SelectQuery  { get; }
+		/// <summary>
+		/// Path
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Path.
+		/// </summary>
 		public Expression     Path         { get; }
+		/// <summary>
+		/// TrackingPath
+		/// </summary>
+		/// <summary>
+		/// Gets or sets TrackingPath.
+		/// </summary>
 		public Expression?    TrackingPath { get; }
+		/// <summary>
+		/// Index
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Index.
+		/// </summary>
 		public int?           Index        { get; }
+		/// <summary>
+		/// Alias
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Alias.
+		/// </summary>
 		public string?        Alias        { get; set; }
+		/// <summary>
+		/// Sql
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Sql.
+		/// </summary>
 		public IExpWord Sql          { get; }
+		/// <summary>
+		/// ConvertType
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConvertType.
+		/// </summary>
 		public Type           ConvertType  { get; }
+/// <summary>
+/// NodeType
+/// </summary>
+	
 
 		public override ExpressionType NodeType => ExpressionType.Extension;
+	/// <summary>
+	/// Type
+	/// </summary>
+	
 		public override Type           Type     => ConvertType ?? Path.Type;
 
 #if DEBUG
+		/// <summary>
+		/// History
+		/// </summary>
+		/// <summary>
+		/// Gets or sets History.
+		/// </summary>
 		public List<SqlPlaceholderExpression>? History { get; private set; }
 
 		void AppendHistory(SqlPlaceholderExpression ancestor)
@@ -76,6 +144,9 @@ namespace mooSQL.linq.expressions
 			History.Add(ancestor);
 		}
 #endif
+		/// <summary>
+		/// MakeNullable
+		/// </summary>
 
 		public SqlPlaceholderExpression MakeNullable()
 		{
@@ -91,6 +162,9 @@ namespace mooSQL.linq.expressions
 
 			return this;
 		}
+		/// <summary>
+		/// MakeNotNullable
+		/// </summary>
 
 		public SqlPlaceholderExpression MakeNotNullable()
 		{
@@ -106,6 +180,9 @@ namespace mooSQL.linq.expressions
 
 			return this;
 		}
+		/// <summary>
+		/// WithPath
+		/// </summary>
 
 		public SqlPlaceholderExpression WithPath(Expression path)
 		{
@@ -118,6 +195,9 @@ namespace mooSQL.linq.expressions
 #endif
 			return newPlaceholder;
 		}
+		/// <summary>
+		/// WithSql
+		/// </summary>
 
 		public SqlPlaceholderExpression WithSql(IExpWord sqlExpression)
 		{
@@ -130,6 +210,9 @@ namespace mooSQL.linq.expressions
 #endif
 			return newPlaceholder;
 		}
+		/// <summary>
+		/// WithSelectQuery
+		/// </summary>
 
 		public SqlPlaceholderExpression WithSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -142,6 +225,9 @@ namespace mooSQL.linq.expressions
 #endif
 			return newPlaceholder;
 		}
+		/// <summary>
+		/// WithTrackingPath
+		/// </summary>
 
 		public SqlPlaceholderExpression WithTrackingPath(Expression trackingPath)
 		{
@@ -154,6 +240,9 @@ namespace mooSQL.linq.expressions
 #endif
 			return newPlaceholder;
 		}
+		/// <summary>
+		/// WithAlias
+		/// </summary>
 
 		public SqlPlaceholderExpression WithAlias(string? alias)
 		{
@@ -166,6 +255,10 @@ namespace mooSQL.linq.expressions
 #endif
 			return newPlaceholder;
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString()
 		{
@@ -203,6 +296,9 @@ namespace mooSQL.linq.expressions
 
 			return result;
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(SqlPlaceholderExpression other)
 		{
@@ -211,6 +307,10 @@ namespace mooSQL.linq.expressions
 			       Index       == other.Index                                   &&
 			       ConvertType == other.ConvertType;
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -231,6 +331,10 @@ namespace mooSQL.linq.expressions
 
 			return Equals((SqlPlaceholderExpression)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -243,6 +347,9 @@ namespace mooSQL.linq.expressions
 				return hashCode;
 			}
 		}
+		/// <summary>
+		/// WithType
+		/// </summary>
 
 		public SqlPlaceholderExpression WithType(Type type)
 		{
@@ -257,6 +364,10 @@ namespace mooSQL.linq.expressions
 
 			return this;
 		}
+/// <summary>
+/// Accept
+/// </summary>
+	
 
 		protected override Expression Accept(ExpressionVisitor visitor)
 		{

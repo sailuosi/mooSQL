@@ -1,4 +1,4 @@
-﻿
+
 
 using System;
 using System.Collections.Generic;
@@ -62,29 +62,65 @@ namespace mooSQL.data
         {
             return 1000;
         }
+/// <summary>
+/// Builds a character-index expression.
+/// </summary>
+ 
 
         public override string charIndex(string substring, string str) => $"INSTR({str}, {substring})";
+/// <summary>
+/// Builds a character-index expression.
+/// </summary>
+ 
 
         public override string charIndex(string substring, string str, string start)
             => $"INSTR({str}, {substring}, {start})";
+/// <summary>
+/// Builds an is-null-or-whitespace expression.
+/// </summary>
+ 
 
         public override string isNullOrWhiteSpace(string expr)
             => $"({expr} IS NULL OR LTRIM({expr}, ' \t\n\r\f\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u205f\u3000') IS NULL)";
+/// <summary>
+/// Builds a date-difference expression in Week.
+/// </summary>
+ 
 
         public override string dateDiffWeek(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) / 7";
+/// <summary>
+/// Builds a date-difference expression in Day.
+/// </summary>
+ 
 
         public override string dateDiffDay(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE))";
+/// <summary>
+/// Builds a date-difference expression in Hour.
+/// </summary>
+ 
 
         public override string dateDiffHour(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 24";
+/// <summary>
+/// Builds a date-difference expression in Minute.
+/// </summary>
+ 
 
         public override string dateDiffMinute(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 1440";
+/// <summary>
+/// Builds a date-difference expression in Second.
+/// </summary>
+ 
 
         public override string dateDiffSecond(string start, string end)
             => $"(CAST ({end} as DATE) - CAST ({start} as DATE)) * 86400";
+/// <summary>
+/// Builds a date-difference expression in Millisecond.
+/// </summary>
+ 
 
         public override string dateDiffMillisecond(string start, string end)
             => "1000 * (EXTRACT(SECOND FROM CAST (" + end + " as TIMESTAMP) - CAST (" + start + " as TIMESTAMP))"
@@ -289,6 +325,10 @@ namespace mooSQL.data
         }
         #endregion
         #region DDL语句
+/// <summary>
+/// Builds a primary-key constraint fragment.
+/// </summary>
+ 
 
         protected override string buildConstrainPK(string pkname, string fields)
         {
@@ -304,12 +344,20 @@ namespace mooSQL.data
 
         /// <inheritdoc/>
         protected override bool SoloCaptionsAsSeparateStatements => true;
+/// <summary>
+/// Builds a single field caption DDL fragment.
+/// </summary>
+ 
 
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
         {
             return string.Format("COMMENT ON COLUMN {0}.{1} IS '{2}';",
                 frag.Table, fie.FieldName, fie.Caption);
         }
+ /// <summary>
+ /// Builds a single table caption DDL fragment.
+ /// </summary>
+ 
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
             return string.Format("COMMENT ON TABLE {0} IS '{1}';",
@@ -330,6 +378,10 @@ namespace mooSQL.data
             sb.Append(frag.SelectSQL);
             return sb.ToString();
         }
+/// <summary>
+/// Builds a copy-table-schema statement.
+/// </summary>
+ 
 
         public override string buildCopyTableSchema(DDLFragSQL frag)
         {
@@ -344,11 +396,19 @@ namespace mooSQL.data
         {
             return string.Format("CREATE TABLE {0} AS SELECT * FROM {1} ", frag.Table, frag.SrcTable);
         }
+/// <summary>
+/// Builds a DROP INDEX statement.
+/// </summary>
+ 
 
         public override string buildDropIndex(string indexName, string tableName = null)
         {
             return string.Format("DROP INDEX {0}", indexName);
         }
+/// <summary>
+/// Builds a CREATE INDEX statement.
+/// </summary>
+ 
 
 
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unique)
@@ -373,9 +433,17 @@ namespace mooSQL.data
         {
             return string.Format("CREATE DATABASE {0}",database);
         }
+ /// <summary>
+ /// Builds an ADD PRIMARY KEY statement.
+ /// </summary>
+ 
         public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName) { 
             return string.Format("ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY({2})", tableName, indexName, columnName);
         }
+ /// <summary>
+ /// Builds an ADD COLUMN statement.
+ /// </summary>
+ 
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ADD ({1} {2}{3} {4} {5} {6})",
@@ -383,6 +451,10 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+ /// <summary>
+ /// Builds an ALTER COLUMN statement.
+ /// </summary>
+ 
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("ALTER TABLE {0} MODIFY ({1} {2}{3} {4} {5} {6}) ",
@@ -390,10 +462,18 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+ /// <summary>
+ /// Builds a CREATE TABLE statement.
+ /// </summary>
+ 
         public override string CreateTableBy(string tableName, string detail)
         { 
             return string.Format("CREATE TABLE {0}(\r\n{1})", tableName, detail);
         }
+ /// <summary>
+ /// Builds a CREATE TABLE column definition.
+ /// </summary>
+ 
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -404,60 +484,112 @@ namespace mooSQL.data
         //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
 
         //protected override string DropTableSql(){ "DROP TABLE {0}";
+/// <summary>
+/// Builds a DROP COLUMN statement.
+/// </summary>
+ 
 
         public override string DropColumnToTableBy(string tableName, string columnName)
         { 
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}", tableName, columnName);
         }
+ /// <summary>
+ /// Builds a DROP CONSTRAINT statement.
+ /// </summary>
+ 
         public override string DropConstraintBy(string tableName, string constraintName)
         { 
             return string.Format("ALTER TABLE {0} DROP CONSTRAINT  {1}", tableName, constraintName);
         }
+ /// <summary>
+ /// Builds a RENAME COLUMN statement.
+ /// </summary>
+ 
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
             return string.Format("ALTER TABLE {0} RENAME COLUMN {1} TO {2}", tableName, oldName, newName);
         }
+ /// <summary>
+ /// Builds SQL to add a column caption/comment.
+ /// </summary>
+ 
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         { 
             return string.Format("COMMENT ON COLUMN {1}.{0} IS '{2}'",
                 columnName, tableName, caption
                 );
         }
+ /// <summary>
+ /// Builds SQL to update a column caption/comment.
+ /// </summary>
+ 
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return AddColumnCaptionBy(tableName, columnName, caption);
         }
+ /// <summary>
+ /// Builds SQL to delete a column caption/comment.
+ /// </summary>
+ 
         public override string DeleteColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("COMMENT ON COLUMN {1}.{0} IS ''",
                 columnName, tableName
                 );
         }
+ /// <summary>
+ /// Builds SQL that checks whether a column caption exists.
+ /// </summary>
+ 
         public override string IsAnyColumnCaptionBy(string tableName, string columnName)
         { 
             return string.Format("SELECT * FROM user_col_comments WHERE Table_Name='{1}' AND COLUMN_NAME='{0}' ORDER BY column_name",
                 columnName, tableName
                 );
         }
+ /// <summary>
+ /// Builds SQL to add a table caption/comment.
+ /// </summary>
+ 
         public override string AddTableCaptionBy(string tableName, string caption)
         { 
             return string.Format("COMMENT ON TABLE {0} IS '{1}'", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to delete a table caption/comment.
+ /// </summary>
+ 
         public override string DeleteTableCaptionBy(string tableName)
         { 
             return string.Format("COMMENT ON TABLE {0} IS ''", tableName);
         }
+ /// <summary>
+ /// Builds SQL that checks whether a table caption exists.
+ /// </summary>
+ 
         public override string IsAnyTableCaptionBy(string tablename){ 
             return string.Format("SELECT * FROM user_tab_comments WHERE Table_Name='{0}'ORDER BY Table_Name",tablename);
         }
+ /// <summary>
+ /// Builds a RENAME TABLE statement.
+ /// </summary>
+ 
         public override string RenameTableBy(string oldTableName, string newTableName)
         { 
             return string.Format("ALTER TABLE {0} RENAME TO {1}", oldTableName, newTableName);
         }
+ /// <summary>
+ /// Builds SQL to check system-table permissions.
+ /// </summary>
+ 
         public override string CheckSystemTablePermissionsBy(){ 
             return "SELECT t.table_name FROM user_tables t  WHERE rownum=1";
         }
@@ -486,22 +618,42 @@ namespace mooSQL.data
 
 
         #region 字段类型
+ /// <summary>
+ /// Returns the dialect-specific string column type.
+ /// </summary>
+ 
         public override string getStringColumnType(int length)
         {
             return string.Format("VARCHAR2({0})",length);
         }
+ /// <summary>
+ /// Returns the dialect-specific DateTime column type.
+ /// </summary>
+ 
         public override string getDateTimeColumnType(int length)
         {
             return "TIMESTAMP";
         }
+ /// <summary>
+ /// Returns the dialect-specific numeric column type.
+ /// </summary>
+ 
         public override string getNumberColumnType(int precision, int scale)
         {
             return string.Format("NUMBER({0}, {1})", precision, scale);
         }
+ /// <summary>
+ /// Returns the dialect-specific Boolean column type.
+ /// </summary>
+ 
         public override string getBoolColumnType()
         {
             return "NUMBER(1)";
         }
+ /// <summary>
+ /// Returns the dialect-specific GUID column type.
+ /// </summary>
+ 
         public override string getGuidColumnType()
         {
             return "CHAR(36)";

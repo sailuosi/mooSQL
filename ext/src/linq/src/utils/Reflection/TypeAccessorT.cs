@@ -6,6 +6,9 @@ using System.Reflection;
 namespace mooSQL.linq.utils
 {
     using mooSQL.utils;
+    /// <summary>
+    /// TypeAccessorT type.
+    /// </summary>
 
     public class TypeAccessor<T> : TypeAccessor
 	{
@@ -125,6 +128,10 @@ namespace mooSQL.linq.utils
 				if (!member.GetMemberType().IsByRef)
 					AddMember(new MemberAccessor(this, member, null));
 		}
+/// <summary>
+/// Creates CreateInstance.
+/// </summary>
+	
 
 		public override object CreateInstance()
 		{
@@ -132,6 +139,9 @@ namespace mooSQL.linq.utils
 				return _objectFactory.CreateInstance(this);
 			return ObjectFactory<T>.CreateInstance()!;
 		}
+		/// <summary>
+		/// Creates Create.
+		/// </summary>
 
 		public T Create()
 		{
@@ -139,6 +149,10 @@ namespace mooSQL.linq.utils
 				return (T)_objectFactory.CreateInstance(this);
 			return ObjectFactory<T>.CreateInstance()!;
 		}
+/// <summary>
+/// Type
+/// </summary>
+	
 
 		public override Type Type => typeof(T);
 	}

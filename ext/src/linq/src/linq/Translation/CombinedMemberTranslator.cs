@@ -5,19 +5,40 @@ using mooSQL.linq;
 
 namespace mooSQL.linq.translator
 {
+	/// <summary>
+	/// CombinedMemberTranslator type.
+	/// </summary>
+	/// <summary>
+	/// CombinedMemberTranslator type.
+	/// </summary>
 	public sealed class CombinedMemberTranslator : IMemberTranslator
 	{
+		/// <summary>
+		/// CombinedMemberTranslator type.
+		/// </summary>
+		/// <summary>
+		/// CombinedMemberTranslator type.
+		/// </summary>
 		public CombinedMemberTranslator()
 		{
 			Translators = new ();
 		}
+		/// <summary>
+		/// CombinedMemberTranslator type.
+		/// </summary>
 
 		public CombinedMemberTranslator(IEnumerable<IMemberTranslator> translators)
 		{
 			Translators = translators.ToList();
 		}
+		/// <summary>
+		/// Gets or sets Translators.
+		/// </summary>
 
 		public List<IMemberTranslator> Translators { get; set; }
+		/// <summary>
+		/// Translates Translate for this dialect.
+		/// </summary>
 
 		public Expression? Translate(ITranslationContext translationContext, Expression memberExpression, TranslationFlags translationFlags)
 		{
@@ -30,6 +51,9 @@ namespace mooSQL.linq.translator
 
 			return null;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public void Add(IMemberTranslator memberTranslator)
 		{

@@ -16,25 +16,79 @@ namespace mooSQL.linq.provider
     using mooSQL.utils;
     using mooSQL.linq.clause;
     using static mooSQL.data.model.AffirmWord;
+    /// <summary>
+    /// SqlExpressionConvertVisitor type.
+    /// </summary>
 
     public class SqlExpressionConvertVisitor : SentenceVisitor
 	{
+		/// <summary>
+		/// IsInsideNot
+		/// </summary>
+		/// <summary>
+		/// IsInsideNot
+		/// </summary>
 		protected bool            IsInsideNot;
+		/// <summary>
+		/// IsForPredicate
+		/// </summary>
+		/// <summary>
+		/// IsForPredicate
+		/// </summary>
 		protected IExpWord? IsForPredicate;
+		/// <summary>
+		/// VisitQueries
+		/// </summary>
+		/// <summary>
+		/// VisitQueries
+		/// </summary>
 		protected bool            VisitQueries;
+		/// <summary>
+		/// OptimizationContext
+		/// </summary>
 
 		protected OptimizationContext OptimizationContext = default!;
+		/// <summary>
+		/// NullabilityContext
+		/// </summary>
+		/// <summary>
+		/// NullabilityContext
+		/// </summary>
 		protected NullabilityContext  NullabilityContext  = default!;
+		/// <summary>
+		/// EvaluationContext
+		/// </summary>
 
 		protected EvaluateContext EvaluationContext => OptimizationContext.EvaluationContext;
+		/// <summary>
+		/// SqlProviderFlags
+		/// </summary>
+		/// <summary>
+		/// SqlProviderFlags
+		/// </summary>
 		protected SQLProviderFlags? SqlProviderFlags  => OptimizationContext.SqlProviderFlags;
+		/// <summary>
+		/// SqlExpressionConvertVisitor type.
+		/// </summary>
 
 		public SqlExpressionConvertVisitor(bool allowModify) : base(allowModify ? VisitMode.Modify : VisitMode.Transform, null)
 		{
 		}
+		/// <summary>
+		/// SupportsBooleanInColumn
+		/// </summary>
 
 		protected virtual bool SupportsBooleanInColumn    => false;
+		/// <summary>
+		/// SupportsNullInColumn
+		/// </summary>
+		/// <summary>
+		/// SupportsNullInColumn
+		/// </summary>
 		protected virtual bool SupportsNullInColumn       => true;
+		/// <summary>
+		/// Convert
+		/// </summary>
 
 		public virtual ISQLNode Convert(OptimizationContext optimizationContext, NullabilityContext nullabilityContext, Clause element, bool visitQueries, bool isInsideNot)
 		{
@@ -50,6 +104,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -60,6 +118,10 @@ namespace mooSQL.linq.provider
 			IsInsideNot         = default;
 			VisitQueries        = default;
 		}
+/// <summary>
+/// VisitColumnWord
+/// </summary>
+	
 
 		public override Clause VisitColumnWord(ColumnWord column)
 		{
@@ -77,6 +139,10 @@ namespace mooSQL.linq.provider
 
 			return column.Expression as Clause;
 		}
+/// <summary>
+/// VisitOutputClause
+/// </summary>
+	
 
 		public override Clause VisitOutputClause(OutputClause element)
 		{
@@ -100,6 +166,10 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+/// <summary>
+/// VisitConditionExpression
+/// </summary>
+	
 
 		public override Clause VisitConditionExpression(ConditionWord element)
 		{
@@ -117,6 +187,9 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+        /// <summary>
+        /// VisitCaseItem
+        /// </summary>
 
         public CaseWord.CaseItem VisitCaseItem(CaseWord.CaseItem element)
 		{
@@ -126,6 +199,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// VisitCaseExpression
+/// </summary>
+	
 
 		public override Clause VisitCaseExpression(CaseWord element)
 		{
@@ -143,6 +220,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitSelectQuery
+/// </summary>
+	
 
 		public override Clause VisitSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -157,6 +238,10 @@ namespace mooSQL.linq.provider
 			IsInsideNot = saveIsInsideNot;
 			return newQuery;
 		}
+/// <summary>
+/// VisitAffirmExpr
+/// </summary>
+	
 
 		public override Clause VisitAffirmExpr(mooSQL.data.model.affirms.Expr predicate)
 		{
@@ -168,6 +253,10 @@ namespace mooSQL.linq.provider
 			IsForPredicate = saveIsForPredicate;
 			return result;
 		}
+/// <summary>
+/// VisitFieldWord
+/// </summary>
+	
 
 		public override Clause VisitFieldWord(FieldWord element)
 
@@ -201,6 +290,10 @@ namespace mooSQL.linq.provider
 
 		//	return element;
 		//}
+/// <summary>
+/// VisitAffirmNot
+/// </summary>
+	
 
 		public override Clause VisitAffirmNot(Not predicate)
 		{
@@ -213,6 +306,10 @@ namespace mooSQL.linq.provider
 
 			return newPredicate;
 		}
+/// <summary>
+/// VisitValueWord
+/// </summary>
+ 
 
         public override Clause VisitValueWord(ValueWord element)
 		{
@@ -233,12 +330,19 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+		/// <summary>
+		/// Optimize
+		/// </summary>
 
 		protected Clause Optimize(Clause element)
 		{
 			var res= OptimizationContext.OptimizerVisitor.Optimize(EvaluationContext, NullabilityContext, OptimizationContext.TransformationInfo, element, VisitQueries, IsInsideNot, reduceBinary : false);
 			return res as Clause;
 		}
+/// <summary>
+/// VisitAffirmExprExpr
+/// </summary>
+	
 
 		public override Clause VisitAffirmExprExpr(mooSQL.data.model.affirms.ExprExpr predicate)
 		{
@@ -259,6 +363,10 @@ namespace mooSQL.linq.provider
 
 			return newPredicate as Clause;
 		}
+/// <summary>
+/// VisitCompareToExpression
+/// </summary>
+	
 
 		public override Clause VisitCompareToExpression(CompareToWord element)
 		{
@@ -277,6 +385,9 @@ namespace mooSQL.linq.provider
 
 			return Visit(Optimize(caseExpression));
 		}
+		/// <summary>
+		/// ConvertExprExprPredicate
+		/// </summary>
 
 		public virtual ISQLNode ConvertExprExprPredicate(mooSQL.data.model.affirms.ExprExpr predicate)
 		{
@@ -318,6 +429,10 @@ namespace mooSQL.linq.provider
 				throw new InvalidOperationException($"Cannot retrieve underlying field for '{expr.ToDebugString()}'.");
 			return result;
 		}
+/// <summary>
+/// VisitAffirmInList
+/// </summary>
+	
 
 		public override Clause VisitAffirmInList(InList predicate)
 		{
@@ -449,6 +564,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitSearchStringPredicate
+/// </summary>
+	
 
 		public override Clause VisitSearchStringPredicate(mooSQL.data.model.affirms.SearchString predicate)
 		{
@@ -466,6 +585,9 @@ namespace mooSQL.linq.provider
 
 			return newPredicate;
 		}
+		/// <summary>
+		/// ConvertSearchStringPredicate
+		/// </summary>
 
 		public virtual IAffirmWord ConvertSearchStringPredicate(mooSQL.data.model.affirms.SearchString predicate)
 		{
@@ -489,14 +611,35 @@ namespace mooSQL.linq.provider
 		/// Default: <c>"~"</c>.
 		/// </summary>
 		public virtual string LikeEscapeCharacter         => "~";
+		/// <summary>
+		/// LikeWildcardCharacter
+		/// </summary>
+		/// <summary>
+		/// LikeWildcardCharacter
+		/// </summary>
 		public virtual string LikeWildcardCharacter       => "%";
+		/// <summary>
+		/// LikePatternParameterSupport
+		/// </summary>
+		/// <summary>
+		/// LikePatternParameterSupport
+		/// </summary>
 		public virtual bool   LikePatternParameterSupport => true;
+		/// <summary>
+		/// LikeValueParameterSupport
+		/// </summary>
+		/// <summary>
+		/// LikeValueParameterSupport
+		/// </summary>
 		public virtual bool   LikeValueParameterSupport   => true;
 		/// <summary>
 		/// Should be <c>true</c> for provider with <c>LIKE ... ESCAPE</c> modifier support.
 		/// Default: <c>true</c>.
 		/// </summary>
 		public virtual bool   LikeIsEscapeSupported       => true;
+		/// <summary>
+		/// StandardLikeCharactersToEscape
+		/// </summary>
 
 		protected static string[] StandardLikeCharactersToEscape = {"%", "_", "?", "*", "#", "[", "]"};
 
@@ -505,6 +648,9 @@ namespace mooSQL.linq.provider
 		/// Default: <c>["%", "_", "?", "*", "#", "[", "]"]</c>.
 		/// </summary>
 		public virtual string[] LikeCharactersToEscape => StandardLikeCharactersToEscape;
+		/// <summary>
+		/// EscapeLikeCharacters
+		/// </summary>
 
 		public virtual string EscapeLikeCharacters(string str, string escape)
 		{
@@ -526,6 +672,9 @@ namespace mooSQL.linq.provider
 			var result = PseudoFunctions.MakeReplace(expression, character, new BinaryWord(typeof(string), escapeCharacter, "+", character, PrecedenceLv.Additive));
 			return result;
 		}
+		/// <summary>
+		/// GenerateEscapeReplacement
+		/// </summary>
 
 		public static IExpWord GenerateEscapeReplacement(IExpWord expression, IExpWord character)
 		{
@@ -551,6 +700,9 @@ namespace mooSQL.linq.provider
 
 			return str;
 		}
+		/// <summary>
+		/// EscapeLikeCharacters
+		/// </summary>
 
 		public virtual IExpWord EscapeLikeCharacters(IExpWord expression, ref IExpWord? escape)
 		{
@@ -568,6 +720,9 @@ namespace mooSQL.linq.provider
 
 			return newExpr;
 		}
+		/// <summary>
+		/// ConvertSearchStringPredicateViaLike
+		/// </summary>
 
 		protected IAffirmWord ConvertSearchStringPredicateViaLike(mooSQL.data.model.affirms.SearchString predicate)
 		{
@@ -631,6 +786,10 @@ namespace mooSQL.linq.provider
 		#endregion
 
 		#region Visitor overrides
+/// <summary>
+/// VisitAffirmIsNull
+/// </summary>
+	
 
 		public override Clause VisitAffirmIsNull(IsNull predicate)
 		{
@@ -652,6 +811,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitFunctionWord
+/// </summary>
+	
 
 		public override Clause VisitFunctionWord(FunctionWord element)
 		{
@@ -666,6 +829,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitExpression
+/// </summary>
+	
 
 		public override Clause VisitExpression(ExpressionWord element)
 		{
@@ -682,6 +849,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmLike
+/// </summary>
+	
 
 		public override Clause VisitAffirmLike(mooSQL.data.model.affirms.Like predicate)
 		{
@@ -697,6 +868,10 @@ namespace mooSQL.linq.provider
 			}
 			return newElement;
 		}
+/// <summary>
+/// VisitBinaryExpression
+/// </summary>
+	
 
 		public override Clause VisitBinaryExpression(BinaryWord element)
 		{
@@ -712,6 +887,10 @@ namespace mooSQL.linq.provider
 			}
 			return newElement;
 		}
+/// <summary>
+/// VisitInlinedSqlExpression
+/// </summary>
+	
 
 		public override Clause VisitInlinedSqlExpression(InlinedSqlWord element)
 		{
@@ -727,6 +906,10 @@ namespace mooSQL.linq.provider
 			}
 			return newElement;
 		}
+/// <summary>
+/// VisitInlinedToSqlExpression
+/// </summary>
+ 
 
         public override Clause VisitInlinedToSqlExpression(InlinedToSqlWord element)
 		{
@@ -742,6 +925,10 @@ namespace mooSQL.linq.provider
 			}
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmBetween
+/// </summary>
+ 
 
         public override Clause VisitAffirmBetween(Between predicate)
 		{
@@ -760,6 +947,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmInSubQuery
+/// </summary>
+	
 
 		public override Clause VisitAffirmInSubQuery(InSubQuery predicate)
 		{
@@ -813,6 +1004,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitOrderByItem
+/// </summary>
+	
 
 		public override Clause VisitOrderByItem(OrderByWord element)
 		{
@@ -834,6 +1029,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// VisitSetWord
+/// </summary>
+	
 
 		public override Clause VisitSetWord(SetWord element)
 		{
@@ -855,6 +1054,9 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+		/// <summary>
+		/// VisitSqlGroupByItem
+		/// </summary>
 
 		public Clause VisitSqlGroupByItem(Clause element)
 		{
@@ -862,6 +1064,10 @@ namespace mooSQL.linq.provider
 
 			return WrapBooleanExpression(newItem as IExpWord, includeFields: false) as Clause;
 		}
+/// <summary>
+/// VisitCastExpression
+/// </summary>
+ 
 
         public override Clause VisitCastExpression(CastWord element)
 		{
@@ -880,11 +1086,17 @@ namespace mooSQL.linq.provider
 		}
 
 		#endregion Visitor overrides
+		/// <summary>
+		/// ConvertSqlExpression
+		/// </summary>
 
 		public virtual Clause ConvertSqlExpression(ExpressionWord element)
 		{
 			return element;
 		}
+		/// <summary>
+		/// ConvertSqlFunction
+		/// </summary>
 
 		public virtual Clause ConvertSqlFunction(FunctionWord func)
 		{
@@ -919,6 +1131,9 @@ namespace mooSQL.linq.provider
 
 			return func;
 		}
+		/// <summary>
+		/// ConvertLikePredicate
+		/// </summary>
 
 		public virtual Clause ConvertLikePredicate(mooSQL.data.model.affirms.Like predicate)
 		{
@@ -1019,6 +1234,9 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+		/// <summary>
+		/// ConvertBetweenPredicate
+		/// </summary>
 
 		public virtual Clause ConvertBetweenPredicate(	Between between)
 		{
@@ -1029,6 +1247,9 @@ namespace mooSQL.linq.provider
 
 			return newPredicate as Clause;
 		}
+		/// <summary>
+		/// ConvertSqlBinaryExpression
+		/// </summary>
 
 		public virtual Clause ConvertSqlBinaryExpression(BinaryWord element)
 		{
@@ -1072,6 +1293,9 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+		/// <summary>
+		/// ConvertSqlCondition
+		/// </summary>
 
 		protected virtual IExpWord ConvertSqlCondition(ConditionWord element)
 		{
@@ -1085,6 +1309,9 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+		/// <summary>
+		/// ConvertSqlCaseExpression
+		/// </summary>
 
 		protected virtual IExpWord ConvertSqlCaseExpression(CaseWord element)
 		{
@@ -1100,6 +1327,9 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+		/// <summary>
+		/// ConvertCaseItem
+		/// </summary>
 
 		protected virtual CaseWord.CaseItem ConvertCaseItem(CaseWord.CaseItem newElement)
 		{
@@ -1112,6 +1342,9 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+		/// <summary>
+		/// WrapBooleanExpression
+		/// </summary>
 
 		protected virtual IExpWord WrapBooleanExpression(IExpWord expr, bool includeFields)
 		{
@@ -1144,6 +1377,9 @@ namespace mooSQL.linq.provider
 
 			return expr;
 		}
+		/// <summary>
+		/// WrapColumnExpression
+		/// </summary>
 
 		protected virtual IExpWord WrapColumnExpression(IExpWord expr)
 		{
@@ -1156,10 +1392,31 @@ namespace mooSQL.linq.provider
 		}
 
 		#region DataTypes
+		/// <summary>
+		/// Gets GetMaxLength.
+		/// </summary>
 
 		protected virtual int? GetMaxLength(DbDataType      type) { return DataTypeWord.GetMaxLength(type.DataType); }
+		/// <summary>
+		/// Gets GetMaxPrecision.
+		/// </summary>
+		/// <summary>
+		/// Gets GetMaxPrecision.
+		/// </summary>
 		protected virtual int? GetMaxPrecision(DbDataType   type) { return DataTypeWord.GetMaxPrecision(type.DataType); }
+		/// <summary>
+		/// Gets GetMaxScale.
+		/// </summary>
+		/// <summary>
+		/// Gets GetMaxScale.
+		/// </summary>
 		protected virtual int? GetMaxScale(DbDataType       type) { return DataTypeWord.GetMaxScale(type.DataType); }
+		/// <summary>
+		/// Gets GetMaxDisplaySize.
+		/// </summary>
+		/// <summary>
+		/// Gets GetMaxDisplaySize.
+		/// </summary>
 		protected virtual int? GetMaxDisplaySize(DbDataType type) { return DataTypeWord.GetMaxDisplaySize(type.DataType); }
 
 		/// <summary>
@@ -1208,6 +1465,9 @@ namespace mooSQL.linq.provider
 		#endregion
 
 		#region SqlRow
+		/// <summary>
+		/// ConvertRowExprExpr
+		/// </summary>
 
 		protected IAffirmWord ConvertRowExprExpr(mooSQL.data.model.affirms.ExprExpr predicate, EvaluateContext context)
 		{
@@ -1278,6 +1538,9 @@ namespace mooSQL.linq.provider
 			rowIsNullFallback = null;
 			return false;
 		}
+		/// <summary>
+		/// ConvertRowInList
+		/// </summary>
 
 		protected virtual IAffirmWord ConvertRowInList(InList predicate)
 		{
@@ -1301,6 +1564,9 @@ namespace mooSQL.linq.provider
 				? predicate
 				: new InList(predicate.Expr1, withNull: null, predicate.IsNot, predicate.Values);
 		}
+		/// <summary>
+		/// RowIsNullFallback
+		/// </summary>
 
 		protected IAffirmWord RowIsNullFallback(RowWord row, bool isNot)
 		{
@@ -1311,6 +1577,9 @@ namespace mooSQL.linq.provider
 				rewrite.Predicates.Add(new IsNull(value, isNot));
 			return rewrite;
 		}
+		/// <summary>
+		/// RowComparisonFallback
+		/// </summary>
 
 		protected IAffirmWord RowComparisonFallback(Operator op, RowWord row1, RowWord row2, EvaluateContext context)
 		{
@@ -1419,76 +1688,121 @@ namespace mooSQL.linq.provider
 		#endregion
 
 		#region Helper functions
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IExpWord Add(IExpWord expr1, IExpWord expr2, Type type)
 		{
 			return new BinaryWord(type, expr1, "+", expr2, PrecedenceLv.Additive);
 		}
+		/// <summary>
+		/// Add&lt;T&gt;
+		/// </summary>
 
 		public IExpWord Add<T>(IExpWord expr1, IExpWord expr2)
 		{
 			return Add(expr1, expr2, typeof(T));
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IExpWord Add(IExpWord expr1, int value)
 		{
 			return Add<int>(expr1, new ValueWord(value));
 		}
+		/// <summary>
+		/// Inc
+		/// </summary>
 
 		public IExpWord Inc(IExpWord expr1)
 		{
 			return Add(expr1, 1);
 		}
+		/// <summary>
+		/// Sub
+		/// </summary>
 
 		public Clause Sub(IExpWord expr1, IExpWord expr2, Type type)
 		{
 			return new BinaryWord(type, expr1, "-", expr2, PrecedenceLv.Subtraction);
 		}
+		/// <summary>
+		/// Sub&lt;T&gt;
+		/// </summary>
 
 		public Clause Sub<T>(IExpWord expr1, IExpWord expr2)
 		{
 			return Sub(expr1, expr2, typeof(T));
 		}
+		/// <summary>
+		/// Sub
+		/// </summary>
 
 		public Clause Sub(IExpWord expr1, int value)
 		{
 			return Sub<int>(expr1, new ValueWord(value));
 		}
+		/// <summary>
+		/// Dec
+		/// </summary>
 
 		public Clause Dec(IExpWord expr1)
 		{
 			return Sub(expr1, 1);
 		}
+		/// <summary>
+		/// Mul
+		/// </summary>
 
 		public IExpWord Mul(IExpWord expr1, IExpWord expr2, Type type)
 		{
 			return new BinaryWord(type, expr1, "*", expr2, PrecedenceLv.Multiplicative);
 		}
+		/// <summary>
+		/// Mul&lt;T&gt;
+		/// </summary>
 
 		public IExpWord Mul<T>(IExpWord expr1, IExpWord expr2)
 		{
 			return Mul(expr1, expr2, typeof(T));
 		}
+		/// <summary>
+		/// Mul
+		/// </summary>
 
 		public IExpWord Mul(IExpWord expr1, int value)
 		{
 			return Mul<int>(expr1, new ValueWord(value));
 		}
+		/// <summary>
+		/// Div
+		/// </summary>
 
 		public Clause Div(IExpWord expr1, IExpWord expr2, Type type)
 		{
 			return new BinaryWord(type, expr1, "/", expr2, PrecedenceLv.Multiplicative);
 		}
+		/// <summary>
+		/// Div&lt;T&gt;
+		/// </summary>
 
 		public Clause Div<T>(IExpWord expr1, IExpWord expr2)
 		{
 			return Div(expr1, expr2, typeof(T));
 		}
+		/// <summary>
+		/// Div
+		/// </summary>
 
 		public Clause Div(IExpWord expr1, int value)
 		{
 			return Div<int>(expr1, new ValueWord(value));
 		}
+		/// <summary>
+		/// ConvertToBooleanSearchCondition
+		/// </summary>
 
 		protected SearchConditionWord ConvertToBooleanSearchCondition(IExpWord expression)
 		{
@@ -1509,6 +1823,9 @@ namespace mooSQL.linq.provider
 
 			return sc;
 		}
+		/// <summary>
+		/// ConvertBooleanToCase
+		/// </summary>
 
 		protected IExpWord ConvertBooleanToCase(IExpWord expr, DbDataType toType)
 		{
@@ -1522,6 +1839,9 @@ namespace mooSQL.linq.provider
 
 			return caseExpr;
 		}
+		/// <summary>
+		/// ConvertCoalesceToBinaryFunc
+		/// </summary>
 
 		protected IExpWord ConvertCoalesceToBinaryFunc(FunctionWord func, string funcName, bool supportsParameters = true)
 		{
@@ -1539,36 +1859,57 @@ namespace mooSQL.linq.provider
 			}
 			return last;
 		}
+		/// <summary>
+		/// IsDateDataType
+		/// </summary>
 
 		protected static bool IsDateDataType(DbDataType dataType, string typeName)
 		{
 			return dataType.DataType == DataFam.Date || dataType.DbType == typeName;
 		}
+		/// <summary>
+		/// IsSmallDateTimeType
+		/// </summary>
 
 		protected static bool IsSmallDateTimeType(DbDataType dataType, string typeName)
 		{
 			return dataType.DataType == DataFam.SmallDateTime || dataType.DbType == typeName;
 		}
+		/// <summary>
+		/// IsDateTime2Type
+		/// </summary>
 
 		protected static bool IsDateTime2Type(DbDataType dataType, string typeName)
 		{
 			return dataType.DataType == DataFam.DateTime2 || dataType.DbType == typeName;
 		}
+		/// <summary>
+		/// IsDateTimeType
+		/// </summary>
 
 		protected static bool IsDateTimeType(DbDataType dataType, string typeName)
 		{
 			return dataType.DataType == DataFam.DateTime2 || dataType.DbType == typeName;
 		}
+		/// <summary>
+		/// IsDateDataOffsetType
+		/// </summary>
 
 		protected static bool IsDateDataOffsetType(DbDataType dataType)
 		{
 			return dataType.DataType == DataFam.DateTimeOffset;
 		}
+		/// <summary>
+		/// IsTimeDataType
+		/// </summary>
 
 		protected static bool IsTimeDataType(DbDataType dataType)
 		{
 			return dataType.DataType == DataFam.Time || dataType.DbType == "Time";
 		}
+		/// <summary>
+		/// FloorBeforeConvert
+		/// </summary>
 
 		protected CastWord FloorBeforeConvert(CastWord cast)
 		{
@@ -1582,6 +1923,9 @@ namespace mooSQL.linq.provider
 
 			return cast;
 		}
+		/// <summary>
+		/// TryConvertToValue
+		/// </summary>
 
 		protected IExpWord TryConvertToValue(IExpWord expr, EvaluateContext context)
 		{

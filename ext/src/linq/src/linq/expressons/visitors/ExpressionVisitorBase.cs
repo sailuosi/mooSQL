@@ -6,19 +6,35 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// ExpressionVisitorBase type.
+	/// </summary>
+	/// <summary>
+	/// ExpressionVisitorBase type.
+	/// </summary>
 	public class ExpressionVisitorBase : ExpressionVisitor
 	{
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 		[DebuggerStepThrough]
 		[return: NotNullIfNotNull(nameof(node))]
 		public override Expression? Visit(Expression? node)
 		{
 			return base.Visit(node);
 		}
+		/// <summary>
+		/// VisitSqlPlaceholderExpression
+		/// </summary>
 
 		public virtual Expression VisitSqlPlaceholderExpression(SqlPlaceholderExpression node)
 		{
 			return node;
 		}
+		/// <summary>
+		/// VisitChangeTypeExpression
+		/// </summary>
 
 		public virtual Expression VisitChangeTypeExpression(ChangeTypeExpression node)
 		{
@@ -34,6 +50,9 @@ namespace mooSQL.linq.expressions
 		{
 			return node;
 		}
+		/// <summary>
+		/// VisitDefaultValueExpression
+		/// </summary>
 
 		public virtual Expression VisitDefaultValueExpression(DefaultValueExpression node)
 		{
@@ -66,6 +85,9 @@ namespace mooSQL.linq.expressions
 		{
 			return parameter.WithExpression(Visit(parameter.Expression));
 		}
+		/// <summary>
+		/// VisitSqlGenericConstructorExpression
+		/// </summary>
 
 		public virtual Expression VisitSqlGenericConstructorExpression(SqlGenericConstructorExpression node)
 		{
@@ -100,20 +122,32 @@ namespace mooSQL.linq.expressions
 		{
 			return node;
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public virtual void Cleanup()
 		{
 		}
+		/// <summary>
+		/// VisitPlaceholderExpression
+		/// </summary>
 
 		public virtual Expression VisitPlaceholderExpression(PlaceholderExpression node)
 		{
 			return node.Update(Visit(node.InnerExpression));
 		}
+		/// <summary>
+		/// VisitSqlDefaultIfEmptyExpression
+		/// </summary>
 
 		public virtual Expression VisitSqlDefaultIfEmptyExpression(SqlDefaultIfEmptyExpression node)
 		{
 			return node.Update(Visit(node.InnerExpression), VisitAndConvert(node.NotNullExpressions, nameof(VisitSqlDefaultIfEmptyExpression)));
 		}
+		/// <summary>
+		/// VisitSqlQueryRootExpression
+		/// </summary>
 
 		public virtual Expression VisitSqlQueryRootExpression(SqlQueryRootExpression node)
 		{

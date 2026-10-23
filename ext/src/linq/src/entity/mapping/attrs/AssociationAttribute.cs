@@ -31,8 +31,14 @@ namespace mooSQL.linq
 
 		/// <summary>Storage member for Includes navigation.</summary>
 		public string? Storage { get; set; }
+		/// <summary>
+		/// Gets or sets AssociationSetterExpressionMethod.
+		/// </summary>
 
 		public string? AssociationSetterExpressionMethod { get; set; }
+		/// <summary>
+		/// Gets or sets AssociationSetterExpression.
+		/// </summary>
 
 		public Expression? AssociationSetterExpression { get; set; }
 
@@ -44,12 +50,25 @@ namespace mooSQL.linq
 			get => ConfiguredCanBeNull ?? true;
 			set => ConfiguredCanBeNull = value;
 		}
+		/// <summary>
+		/// Gets or sets AliasName.
+		/// </summary>
 
 		public string? AliasName { get; set; }
+		/// <summary>
+		/// Gets GetThisKeys.
+		/// </summary>
 
 		public string[] GetThisKeys() => AssociationDescriptor.ParseKeys(ThisKey);
+		/// <summary>
+		/// Gets GetOtherKeys.
+		/// </summary>
 
 		public string[] GetOtherKeys() => AssociationDescriptor.ParseKeys(OtherKey);
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 		public override string GetObjectID()
 		{

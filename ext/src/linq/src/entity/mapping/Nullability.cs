@@ -42,6 +42,9 @@ namespace mooSQL.linq.mapping
 					"and that you don't trim nullable metadata during build (see NullabilityInfoContextSupport).");
 			}
 		}
+		/// <summary>
+		/// TryAnalyzeMember
+		/// </summary>
 
 		public static bool TryAnalyzeMember(MemberInfo member, out bool isNullable)
 		{

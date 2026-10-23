@@ -10,6 +10,12 @@ namespace mooSQL.data
     /// </summary>
     public abstract class PgFamilyDialect : ExtDialect
     {
+        /// <summary>
+        /// PgFamilyDialect type.
+        /// </summary>
+        /// <summary>
+        /// PgFamilyDialect type.
+        /// </summary>
         protected PgFamilyDialect()
         {
             expression = new NpgsqlExpress(this);
@@ -23,8 +29,16 @@ namespace mooSQL.data
         /// <summary>PG 族默认 Bulk：多行 INSERT；原生 COPY 仅由 Npgsql 产品覆盖。</summary>
         public override DbBulkCopy GetBulkCopy()
             => new DbBulkCopyFallback(this.dbInstance);
+/// <summary>
+/// Returns whether MERGE statements are supported.
+/// </summary>
+ 
 
         public override bool SupportsMerge() => true;
+/// <summary>
+/// Creates the LINQ member translator for this dialect.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMemberTranslator()
             => new NpgsqlMemberTranslator();

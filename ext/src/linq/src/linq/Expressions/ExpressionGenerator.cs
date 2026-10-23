@@ -5,22 +5,43 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// ExpressionGenerator type.
+	/// </summary>
+	/// <summary>
+	/// ExpressionGenerator type.
+	/// </summary>
 	public class ExpressionGenerator
 	{
+		/// <summary>
+		/// NoOpTypeMapper
+		/// </summary>
+		/// <summary>
+		/// NoOpTypeMapper
+		/// </summary>
 		public static TypeMapper NoOpTypeMapper = new TypeMapper();
 
 		List<ParameterExpression>? _variables;
 		List<Expression>?          _expressions;
 		readonly TypeMapper        _mapper;
+		/// <summary>
+		/// ExpressionGenerator type.
+		/// </summary>
 
 		public ExpressionGenerator(TypeMapper mapper)
 		{
 			_mapper = mapper;
 		}
+		/// <summary>
+		/// ExpressionGenerator type.
+		/// </summary>
 
 		public ExpressionGenerator() : this(NoOpTypeMapper)
 		{
 		}
+		/// <summary>
+		/// ResultExpression
+		/// </summary>
 
 		public Expression ResultExpression => Build();
 		/// <summary>
@@ -80,6 +101,9 @@ namespace mooSQL.linq.expressions
 			var block = Expression.Block(_variables, _expressions ?? Enumerable.Empty<Expression>());
 			return block;
 		}
+		/// <summary>
+		/// Builds SQL for Build.
+		/// </summary>
 
 		public static Expression Build(Action<ExpressionGenerator> buildFunc, TypeMapper? typeMapper = default)
 		{
@@ -106,6 +130,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.Assign(left, right));
 		}
+		/// <summary>
+		/// AssignToVariable
+		/// </summary>
 
 		public ParameterExpression AssignToVariable(Expression expression, string? name = default)
 		{
@@ -115,6 +142,9 @@ namespace mooSQL.linq.expressions
 			Assign(variable, expression);
 			return variable;
 		}
+		/// <summary>
+		/// Throw
+		/// </summary>
 
 		public Expression Throw(Expression expression)
 		{
@@ -122,6 +152,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.Throw(expression));
 		}
+		/// <summary>
+		/// IfThen
+		/// </summary>
 
 		public Expression IfThen(Expression test, Expression ifTrue)
 		{
@@ -130,6 +163,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.IfThen(test, ifTrue));
 		}
+		/// <summary>
+		/// IfThenElse
+		/// </summary>
 
 		public Expression IfThenElse(Expression test, Expression ifTrue, Expression ifFalse)
 		{
@@ -139,6 +175,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.IfThenElse(test, ifTrue, ifFalse));
 		}
+		/// <summary>
+		/// Condition
+		/// </summary>
 
 		public Expression Condition(Expression test, Expression ifTrue, Expression ifFalse)
 		{
@@ -148,6 +187,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.Condition(test, ifTrue, ifFalse));
 		}
+		/// <summary>
+		/// TryCatch
+		/// </summary>
 
 		public Expression TryCatch(Expression body, params CatchBlock[] catchBlocks)
 		{
@@ -156,6 +198,9 @@ namespace mooSQL.linq.expressions
 
 			return AddExpression(Expression.TryCatch(body, catchBlocks));
 		}
+		/// <summary>
+		/// MemberAccess&lt;T&gt;
+		/// </summary>
 
 		public MemberExpression MemberAccess<T>(Expression<Func<T, object>> memberExpression,
 			Expression obj)
@@ -168,21 +213,39 @@ namespace mooSQL.linq.expressions
 		}
 
 		#region MapExpression
+		/// <summary>
+		/// MapExpression&lt;TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<TR>(Expression<Func<TR>> func)
 			=> _mapper.MapExpression(func);
+		/// <summary>
+		/// MapExpression&lt;T, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T, TR>(Expression<Func<T, TR>> func, Expression p)
 			=> _mapper.MapExpression(func, p);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, TR>(Expression<Func<T1, T2, TR>> func, Expression p1, Expression p2)
 			=> _mapper.MapExpression(func, p1, p2);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, TR>(Expression<Func<T1, T2, T3, TR>> func, Expression p1, Expression p2, Expression p3)
 			=> _mapper.MapExpression(func, p1, p2, p3);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, T4, TR>(Expression<Func<T1, T2, T3, T4, TR>> func, Expression p1, Expression p2, Expression p3, Expression p4)
 			=> _mapper.MapExpression(func, p1, p2, p3, p4);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, T4, T5, TR>(Expression<Func<T1, T2, T3, T4, T5, TR>> func, Expression p1, Expression p2, Expression p3, Expression p4, Expression p5)
 			=> _mapper.MapExpression(func, p1, p2, p3, p4, p5);
@@ -190,20 +253,41 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region MapAction
+		/// <summary>
+		/// MapAction
+		/// </summary>
+		/// <summary>
+		/// MapAction
+		/// </summary>
 		public Expression MapAction(Expression<Action> action)
 			=> _mapper.MapAction(action);
+		/// <summary>
+		/// MapAction&lt;T&gt;
+		/// </summary>
 
 		public Expression MapAction<T>(Expression<Action<T>> action, Expression p)
 			=> _mapper.MapAction(action, p);
+		/// <summary>
+		/// MapAction&lt;T1, T2&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2>(Expression<Action<T1, T2>> action, Expression p1, Expression p2)
 			=> _mapper.MapAction(action, p1, p2);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3>(Expression<Action<T1, T2, T3>> action, Expression p1, Expression p2, Expression p3)
 			=> _mapper.MapAction(action, p1, p2, p3);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3, T4&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3, T4>(Expression<Action<T1, T2, T3, T4>> action, Expression p1, Expression p2, Expression p3, Expression p4)
 			=> _mapper.MapAction(action, p1, p2, p3, p4);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3, T4, T5&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3, T4, T5>(Expression<Action<T1, T2, T3, T4, T5>> action, Expression p1, Expression p2, Expression p3, Expression p4, Expression p5)
 			=> _mapper.MapAction(action, p1, p2, p3, p4, p5);

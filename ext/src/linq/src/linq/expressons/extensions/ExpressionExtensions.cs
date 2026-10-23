@@ -12,6 +12,9 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.utils;
+	/// <summary>
+	/// ExpressionExtensions type.
+	/// </summary>
 
 	public static class ExpressionExtensions
 	{
@@ -148,6 +151,9 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region Transform
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public static Expression Replace(this Expression expression, Expression toReplace, Expression replacedBy)
 		{
@@ -156,6 +162,9 @@ namespace mooSQL.linq.expressions
 				(toReplace, replacedBy),
 				static (context, e) => e == context.toReplace ? context.replacedBy : e);
 		}
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public static Expression Replace(this Expression expression, Expression toReplace, Expression replacedBy, IEqualityComparer<Expression> equalityComparer)
 		{
@@ -164,6 +173,9 @@ namespace mooSQL.linq.expressions
 				(toReplace, replacedBy, equalityComparer),
 				static (context, e) => context.equalityComparer.Equals(e, context.toReplace) ? context.replacedBy : e);
 		}
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public static Expression Replace(this Expression expression, IReadOnlyDictionary<Expression, Expression> replaceMap)
 		{
@@ -278,6 +290,9 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region Transform2
+		/// <summary>
+		/// Transform&lt;TContext&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(expr))]
 		public static Expression? Transform<TContext>(this Expression? expr, TContext context, Func<TContext, Expression, TransformInfo> func)
@@ -287,6 +302,9 @@ namespace mooSQL.linq.expressions
 
 			return new TransformInfoVisitor<TContext>(context, func).Transform(expr);
 		}
+		/// <summary>
+		/// Transform
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(expr))]
 		public static Expression? Transform(this Expression? expr, Func<Expression, TransformInfo> func)
@@ -298,6 +316,9 @@ namespace mooSQL.linq.expressions
 		}
 
 		#endregion
+		/// <summary>
+		/// Gets GetMemberGetter.
+		/// </summary>
 
 		public static Expression GetMemberGetter(MemberInfo mi, Expression obj)
 		{

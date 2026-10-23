@@ -7,6 +7,10 @@ namespace mooSQL.data;
 /// <summary>Npgsql MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/> 片段。</summary>
 public class NpgsqlMemberTranslator : DefaultMemberTranslator
 {
+ /// <summary>
+ /// Creates the date/time member translator.
+ /// </summary>
+ 
     protected override IMemberTranslator CreateDateMemberTranslator() => new DateFunctionsTranslator();
 
     sealed class DateFunctionsTranslator : DateFunctionsTranslatorBase

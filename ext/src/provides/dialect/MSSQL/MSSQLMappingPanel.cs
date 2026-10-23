@@ -13,8 +13,17 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.MSSQL
 {
+    /// <summary>
+    /// MSSQLMappingPanel type.
+    /// </summary>
+    /// <summary>
+    /// MSSQLMappingPanel type.
+    /// </summary>
     public class MSSQLMappingPanel:DefaultMappingPanel
     {
+        /// <summary>
+        /// MSSQLMappingPanel type.
+        /// </summary>
 
         public MSSQLMappingPanel() { 
         
@@ -25,6 +34,10 @@ namespace mooSQL.data.MSSQL
             SetValueToSql<Binary>( (v) => ConvertBinaryToSql(v.ToArray()));
             SetValueToSql<ValueWord>((v) => ConvertDataTypeWordToSQL(v));
         }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
 
         public override string DbDataTypeToSQL(DbDataType type)
@@ -106,6 +119,10 @@ namespace mooSQL.data.MSSQL
             }
             return base.DbDataTypeToSQL(type);
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
 
 
@@ -154,6 +171,10 @@ namespace mooSQL.data.MSSQL
 
             return DataFam.Undefined;
         }
+/// <summary>
+/// Resolves a provider-specific type from a type name.
+/// </summary>
+ 
 
         public override Type? GetProviderSpecificType(string? dataType)
         {

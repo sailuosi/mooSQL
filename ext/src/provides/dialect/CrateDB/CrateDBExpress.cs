@@ -15,6 +15,9 @@ namespace mooSQL.data
         static readonly Regex ConflictEq = new Regex(
             @"^\s*(?:(?<la>[""\w]+)\.)?(?<lc>[""\w]+)\s*=\s*(?:(?<ra>[""\w]+)\.)?(?<rc>[""\w]+)\s*$",
             RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        /// <summary>
+        /// CrateDBExpress type.
+        /// </summary>
 
         public CrateDBExpress(Dialect dia) : base(dia)
         {
@@ -91,8 +94,16 @@ namespace mooSQL.data
 
         /// <summary>Crate 通常不支持 COMMENT ON。</summary>
         public override string buildSoloTableCaption(DDLFragSQL frag) => "";
+/// <summary>
+/// Builds SQL to delete a column caption/comment.
+/// </summary>
+ 
 
         public override string DeleteColumnCaptionBy(string tableName, string columnName) => "";
+/// <summary>
+/// Builds SQL to delete a table caption/comment.
+/// </summary>
+ 
 
         public override string DeleteTableCaptionBy(string tableName) => "";
 
@@ -101,6 +112,10 @@ namespace mooSQL.data
         {
             return string.Format("CREATE TABLE {0} AS SELECT * FROM {1} LIMIT 0", frag.Table, frag.SrcTable);
         }
+/// <summary>
+/// Builds a copy-table statement.
+/// </summary>
+ 
 
         public override string buildCopyTable(DDLFragSQL frag)
         {

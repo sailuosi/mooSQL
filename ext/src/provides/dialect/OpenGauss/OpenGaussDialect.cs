@@ -17,6 +17,12 @@ namespace mooSQL.data
     /// </summary>
     public class OpenGaussDialect : PgFamilyDialect
     {
+        /// <summary>
+        /// OpenGaussDialect type.
+        /// </summary>
+        /// <summary>
+        /// OpenGaussDialect type.
+        /// </summary>
         public OpenGaussDialect()
         {
             expression = new OpenGaussExpress(this);
@@ -25,6 +31,10 @@ namespace mooSQL.data
             mapping = new OpenGaussMappingPanel();
             function = new OpenGaussSQLFunction();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
 #if NET8_0_OR_GREATER
@@ -32,6 +42,10 @@ namespace mooSQL.data
 #else
             => new NpgsqlCommandBuilder();
 #endif
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
 #if NET8_0_OR_GREATER
@@ -39,6 +53,10 @@ namespace mooSQL.data
 #else
             => new NpgsqlCommand();
 #endif
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
 #if NET8_0_OR_GREATER
@@ -46,6 +64,10 @@ namespace mooSQL.data
 #else
             => new NpgsqlConnection(db.DBConnectStr);
 #endif
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
 #if NET8_0_OR_GREATER
@@ -53,6 +75,10 @@ namespace mooSQL.data
 #else
             => new NpgsqlDataAdapter();
 #endif
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -76,6 +102,10 @@ namespace mooSQL.data
 #endif
             return null;
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {

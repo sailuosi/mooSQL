@@ -7,6 +7,12 @@ namespace mooSQL.data
     /// </summary>
     public class CrateDBDialect : NpgsqlDialect
     {
+        /// <summary>
+        /// CrateDBDialect type.
+        /// </summary>
+        /// <summary>
+        /// CrateDBDialect type.
+        /// </summary>
         public CrateDBDialect() : base()
         {
             expression = new CrateDBExpress(this);

@@ -13,11 +13,17 @@ namespace mooSQL.linq.provider
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.data;
+    /// <summary>
+    /// SqlExpressionOptimizerVisitor type.
+    /// </summary>
 
     public class SqlExpressionOptimizerVisitor : SentenceVisitor
 	{
 		EvaluateContext  _evaluationContext  = default!;
 		NullabilityContext _nullabilityContext = default!;
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 
 
@@ -27,10 +33,16 @@ namespace mooSQL.linq.provider
 		bool               _visitQueries;
 		bool               _isInsideNot;
 		bool               _reduceBinary;
+		/// <summary>
+		/// SqlExpressionOptimizerVisitor type.
+		/// </summary>
 
 		public SqlExpressionOptimizerVisitor(bool allowModify) : base(allowModify ? VisitMode.Modify : VisitMode.Transform, null)
 		{
 		}
+		/// <summary>
+		/// Optimize
+		/// </summary>
 
 		public virtual Clause Optimize(
 			EvaluateContext           evaluationContext, 
@@ -54,6 +66,10 @@ namespace mooSQL.linq.provider
 
 			return ProcessElement(element);
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -65,6 +81,10 @@ namespace mooSQL.linq.provider
 
 			_allowOptimize      = default;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)
@@ -78,6 +98,9 @@ namespace mooSQL.linq.provider
 		}
 
 		#region Helper functions
+		/// <summary>
+		/// CanBeEvaluateNoParameters
+		/// </summary>
 
 		protected bool CanBeEvaluateNoParameters(ISQLNode expr)
 		{
@@ -88,6 +111,9 @@ namespace mooSQL.linq.provider
 
 			return expr.CanBeEvaluated(_evaluationContext);
 		}
+		/// <summary>
+		/// TryEvaluateNoParameters
+		/// </summary>
 
 		protected bool TryEvaluateNoParameters(ISQLNode expr, out object? result)
 		{
@@ -99,6 +125,9 @@ namespace mooSQL.linq.provider
 
 			return TryEvaluate(expr, out result);
 		}
+		/// <summary>
+		/// TryEvaluate
+		/// </summary>
 
 		protected bool TryEvaluate(ISQLNode expr, out object? result)
 		{
@@ -109,6 +138,10 @@ namespace mooSQL.linq.provider
 		}
 
 		#endregion
+/// <summary>
+/// VisitAffirmIsTrue
+/// </summary>
+	
 
 		public override Clause VisitAffirmIsTrue(IsTrue predicate)
 		{
@@ -123,6 +156,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitConditionExpression
+/// </summary>
+	
 
 		public override Clause VisitConditionExpression(ConditionWord element)
 		{
@@ -196,6 +233,9 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+		/// <summary>
+		/// VisitCaseItem
+		/// </summary>
 
 		protected CaseWord.CaseItem VisitCaseItem(CaseWord.CaseItem element)
 		{
@@ -209,6 +249,10 @@ namespace mooSQL.linq.provider
 
 			return newElement;
 		}
+/// <summary>
+/// VisitCaseExpression
+/// </summary>
+	
 
 		public override Clause VisitCaseExpression(CaseWord element)
 		{
@@ -280,6 +324,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitSearchCondition
+/// </summary>
+	
 
 		public override Clause VisitSearchCondition(SearchConditionWord element)
 		{
@@ -461,6 +509,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitAffirmIsDistinct
+/// </summary>
+	
 
 		public override Clause VisitAffirmIsDistinct(IsDistinct predicate)
 		{
@@ -489,6 +541,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitSqlQuery
+/// </summary>
+	
 
 		public override Clause VisitSqlQuery(SelectQueryClause selectQuery)
 		{
@@ -506,6 +562,10 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+/// <summary>
+/// VisitTableSource
+/// </summary>
+	
 
 		public override Clause VisitTableSource(TableSourceWord element)
 		{
@@ -514,6 +574,10 @@ namespace mooSQL.linq.provider
 
 			return base.VisitTableSource(element);
 		}
+/// <summary>
+/// VisitAffirmNot
+/// </summary>
+	
 
 		public override Clause VisitAffirmNot(Not predicate)
 		{
@@ -548,6 +612,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitBinaryExpression
+/// </summary>
+	
 
 		public override Clause VisitBinaryExpression(BinaryWord element)
 		{
@@ -763,6 +831,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitCastExpression
+/// </summary>
+	
 
 		public override Clause VisitCastExpression(CastWord element)
 		{
@@ -794,6 +866,10 @@ namespace mooSQL.linq.provider
 
 			return base.VisitCastExpression(element);
 		}
+/// <summary>
+/// VisitAffirmFuncLike
+/// </summary>
+	
 
 		public override Clause VisitAffirmFuncLike(FuncLike element)
 		{
@@ -810,6 +886,10 @@ namespace mooSQL.linq.provider
 
 			throw new InvalidCastException($"Converted FuncLikePredicate expression expected to be a Predicate expression but got {funcElement.GetType()}.");
 		}
+/// <summary>
+/// VisitFunctionWord
+/// </summary>
+	
 
 		public override Clause VisitFunctionWord(FunctionWord element)
 		{
@@ -869,6 +949,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitAffirmIsNull
+/// </summary>
+	
 
 		public override Clause VisitAffirmIsNull(IsNull predicate)
 		{
@@ -913,6 +997,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitNullabilityExpression
+/// </summary>
+	
 
 		public override Clause VisitNullabilityExpression(NullabilityWord element)
 		{
@@ -934,6 +1022,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitAffirmExpr
+/// </summary>
+	
 
 		public override Clause VisitAffirmExpr(Expr predicate)
 		{
@@ -947,6 +1039,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitAffirmExprExpr
+/// </summary>
+	
 
 		public override Clause VisitAffirmExprExpr(ExprExpr predicate)
 		{
@@ -1031,6 +1127,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitWhereClause
+/// </summary>
+	
 
 		public override Clause VisitWhereClause(WhereClause element)
 		{
@@ -1073,6 +1173,10 @@ namespace mooSQL.linq.provider
 
 			return element;
 		}
+/// <summary>
+/// VisitAffirmInSubQuery
+/// </summary>
+	
 
 		public override Clause VisitAffirmInSubQuery(InSubQuery predicate)
 		{
@@ -1090,6 +1194,10 @@ namespace mooSQL.linq.provider
 
 			return predicate;
 		}
+/// <summary>
+/// VisitAffirmInList
+/// </summary>
+	
 
 		public override Clause VisitAffirmInList(InList predicate)
 		{

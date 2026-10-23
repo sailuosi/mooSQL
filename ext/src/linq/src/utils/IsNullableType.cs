@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace mooSQL.linq
 {
@@ -42,6 +42,12 @@ namespace mooSQL.linq
 			/// Expression could return NULL if last parameter of expression could contain NULL.
 			/// </summary>
 			SameAsLastParameter,
+			/// <summary>
+			/// IfAllParametersNullable
+			/// </summary>
+			/// <summary>
+			/// IfAllParametersNullable
+			/// </summary>
 			IfAllParametersNullable,
 		}
 	}

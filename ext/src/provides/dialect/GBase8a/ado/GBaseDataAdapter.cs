@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -26,6 +26,9 @@ namespace mooSQL.data.ado
         {
             this.command = command;
         }
+        /// <summary>
+        /// GBaseDataAdapter type.
+        /// </summary>
 
         public GBaseDataAdapter()
         {

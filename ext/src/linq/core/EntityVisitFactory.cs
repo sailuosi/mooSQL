@@ -14,6 +14,10 @@ namespace mooSQL.linq.translator
     /// </summary>
     public class EntityVisitFactory : LinqDbFactory
     {
+ /// <summary>
+ /// Gets GetQueryCompiler.
+ /// </summary>
+ 
         public override IQueryCompiler GetQueryCompiler(DBInstance DB)
         {
             return new EntityVisitCompiler(DB);

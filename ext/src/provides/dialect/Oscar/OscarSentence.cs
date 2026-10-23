@@ -7,9 +7,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace mooSQL.data;
+/// <summary>
+/// OscarSentence type.
+/// </summary>
+/// <summary>
+/// OscarSentence type.
+/// </summary>
 public class OscarSentence : SQLSentence
 {
+    /// <summary>
+    /// OscarSentence type.
+    /// </summary>
+    /// <summary>
+    /// OscarSentence type.
+    /// </summary>
     public OscarSentence(Dialect dia) : base(dia) { }
+ /// <summary>
+ /// Loads column metadata for the specified table.
+ /// </summary>
+ 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
         //sql = "SELECT COLUMN_NAME FName,DATA_TYPE FType,CHARACTER_MAXIMUM_LENGTH FLen,COLUMN_COMMENT FDesc FROM information_schema.columns WHERE table_name='
@@ -22,6 +38,10 @@ public class OscarSentence : SQLSentence
 
         return builder;
     }
+/// <summary>
+/// SQL used to reserve sequence values.
+/// </summary>
+ 
 
     public override string GetReserveSequenceValuesSql(int count, string sequenceName)
     {
@@ -32,6 +52,10 @@ public class OscarSentence : SQLSentence
 #endif
 
     }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
 
 
@@ -42,6 +66,10 @@ public class OscarSentence : SQLSentence
             throw new NotSupportedException();
         }
     }
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
     public override string GetColumnInfosByTableNameSql => "select  " +
         "  t1.COLUMN_NAME as Name " +
@@ -60,14 +88,26 @@ public class OscarSentence : SQLSentence
         "     and au.constraint_type = 'P' and au.table_name=upper('{0}') " +
         " ) t3  on t3.keyname = t1.COLUMN_NAME " +
         " where t1.table_name=upper('{0}')";
+/// <summary>
+/// SQL used to list column captions for a table.
+/// </summary>
+ 
 
     public override string GetColumnCaptionsByTableNameSql => "SELECT c.column_name AS Name, col_description(pclass.oid, c.ordinal_position) AS Caption " +
         "FROM information_schema.columns c " +
         "INNER JOIN pg_class pclass ON pclass.relname = c.table_name " +
         "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
         "ORDER BY c.ordinal_position";
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
     public override string GetTableInfoListSql => "SELECT  table_name name from user_tables where\r\n                        table_name!='HELP' \r\n                        AND table_name NOT LIKE '%$%'\r\n                        AND table_name NOT LIKE 'LOGMNRC_%'\r\n                        AND table_name!='LOGMNRP_CTAS_PART_MAP'\r\n                        AND table_name!='LOGMNR_LOGMNR_BUILDLOG'\r\n                        AND table_name!='SQLPLUS_PRODUCT_PROFILE'  \r\n                         ";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql => "select view_name name  from user_views \r\n                                                WHERE VIEW_name NOT LIKE '%$%'\r\n                                                AND VIEW_NAME !='PRODUCT_PRIVS'\r\n                        AND VIEW_NAME NOT LIKE 'MVIEW_%' ";
 
@@ -115,12 +155,20 @@ public class OscarSentence : SQLSentence
             return FinalizeDbTableListAll(list, options);
         }
     }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
     protected override string GetCurrentDatabaseName()
     {
         try { return DBLive.ExeQueryScalar<string>("select user from dual", null); }
         catch { return null; }
     }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
     public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
     {
@@ -149,11 +197,19 @@ public class OscarSentence : SQLSentence
             };
         }
     }
+/// <summary>
+/// Creates a database.
+/// </summary>
+ 
 
     public override bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
     {
         throw new NotImplementedException();
     }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
@@ -166,6 +222,10 @@ public class OscarSentence : SQLSentence
         if (string.IsNullOrEmpty(relkind)) return false;
         return relkind == "v";
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -178,6 +238,10 @@ public class OscarSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -190,6 +254,10 @@ public class OscarSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
     public override string GetTablePKName(string table)
     {
@@ -203,6 +271,10 @@ public class OscarSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

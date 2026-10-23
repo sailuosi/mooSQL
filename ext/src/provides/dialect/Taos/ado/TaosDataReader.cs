@@ -1,5 +1,4 @@
-﻿// Copyright (c)  maikebing All rights reserved.
-//// Licensed under the MIT License, See License.txt in the project root for license information.
+
 
 using mooSQL.data.taos.Protocols;
 
@@ -65,6 +64,9 @@ namespace mooSQL.data.taos
         /// <value>A value indicating whether the data reader contains any rows.</value>
         public override bool HasRows
             => _hasRows;
+        /// <summary>
+        /// LastTaosException
+        /// </summary>
 
         public TaosException LastTaosException => _context.LastException();
 
@@ -181,6 +183,10 @@ namespace mooSQL.data.taos
         /// <param name="name">The name of the column.</param>
         /// <returns>The zero-based column ordinal.</returns>
         public override int GetOrdinal(string name) => _context.GetOrdinal(name);
+/// <summary>
+/// Gets GetDataTypeName.
+/// </summary>
+ 
 
         public override string GetDataTypeName(int ordinal)
         {
@@ -193,6 +199,9 @@ namespace mooSQL.data.taos
         /// <param name="ordinal">The zero-based column ordinal.</param>
         /// <returns>The data type of the column.</returns>
         public override Type GetFieldType(int ordinal) => _context.GetFieldType(ordinal);
+        /// <summary>
+        /// Gets GetFieldSize.
+        /// </summary>
 
         public int GetFieldSize(int ordinal) => _context.GetFieldSize(ordinal);
         /// <summary>
@@ -329,8 +338,20 @@ namespace mooSQL.data.taos
         /// <returns>The value of the column.</returns>
         public override string GetString(int ordinal) => Convert.ToString(GetValue(ordinal));
 #if NET5_0_OR_GREATER
+        /// <summary>
+        /// Gets GetJsonDocument.
+        /// </summary>
+        /// <summary>
+        /// Gets GetJsonDocument.
+        /// </summary>
         public System.Text.Json.JsonDocument GetJsonDocument(int ordinal) => System.Text.Json.JsonDocument.Parse(GetString(ordinal));
 #endif 
+        /// <summary>
+        /// Gets GetJToken.
+        /// </summary>
+        /// <summary>
+        /// Gets GetJToken.
+        /// </summary>
         public Newtonsoft.Json.Linq.JToken GetJToken(int ordinal) => Newtonsoft.Json.Linq.JToken.Parse(GetString(ordinal));
 
         /// <summary>
@@ -359,12 +380,10 @@ namespace mooSQL.data.taos
            => throw new NotSupportedException();
 
         /// <summary>
-        ///     Retrieves data as a Stream. If the reader includes rowid (or any of its aliases), a
-        ///     <see cref="TaosBlob"/> is returned. Otherwise, the all of the data is read into memory and a
-        ///     <see cref="MemoryStream"/> is returned.
+        /// 以 Stream 形式读取列数据；数据会读入内存并以 <see cref="MemoryStream"/> 返回。
         /// </summary>
-        /// <param name="ordinal">The zero-based column ordinal.</param>
-        /// <returns>The returned object.</returns>
+        /// <param name="ordinal">从零开始的列序号。</param>
+        /// <returns>列数据流。</returns>
         public override Stream GetStream(int ordinal) => _context.GetStream(ordinal);
 
 

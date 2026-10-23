@@ -11,7 +11,17 @@ namespace mooSQL.data
     /// </summary>
     public class ClickHouseSentence : SQLSentence
     {
+        /// <summary>
+        /// ClickHouseSentence type.
+        /// </summary>
+        /// <summary>
+        /// ClickHouseSentence type.
+        /// </summary>
         public ClickHouseSentence(Dialect dia) : base(dia) { }
+/// <summary>
+/// Loads column metadata for the specified table.
+/// </summary>
+ 
 
         public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
         {
@@ -24,8 +34,16 @@ namespace mooSQL.data
             });
             return builder;
         }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
         public override string GetDataBaseSql => "SELECT name AS Name FROM system.databases ORDER BY name";
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
         public override string GetColumnInfosByTableNameSql =>
             "SELECT name AS Name, type AS DataType, " +
@@ -34,6 +52,10 @@ namespace mooSQL.data
             "false AS IsPrimary, false AS IsIdentity, " +
             "true AS IsNullable " +
             "FROM system.columns WHERE table = '{0}' AND database = currentDatabase() ORDER BY position";
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
         public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
         {
@@ -45,12 +67,24 @@ namespace mooSQL.data
                 .query<DbColumnCaption>()
                 .ToList();
         }
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
         public override string GetTableInfoListSql =>
             "SELECT name AS Name, comment AS Comment FROM system.tables WHERE database = currentDatabase() AND engine NOT LIKE '%View%'";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
         public override string GetViewInfoListSql =>
             "SELECT name AS Name, comment AS Description FROM system.tables WHERE database = currentDatabase() AND engine LIKE '%View%'";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
         {
@@ -77,6 +111,10 @@ namespace mooSQL.data
 
             return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
         }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
         protected override string GetCurrentDatabaseName()
         {
@@ -102,6 +140,10 @@ namespace mooSQL.data
                     && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
             return list;
         }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
         public override SQLCmd buildHasTable(string TableName)
         {
@@ -112,8 +154,16 @@ namespace mooSQL.data
                 .where("name", TableName)
                 .toSelect();
         }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
         public override string GetTablePKName(string table) => string.Empty;
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -127,6 +177,10 @@ namespace mooSQL.data
             if (string.IsNullOrEmpty(engine)) return false;
             return engine.IndexOf("View", StringComparison.OrdinalIgnoreCase) >= 0;
         }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
         public override bool? IsExitsTableCol(string table, string col)
         {
@@ -139,6 +193,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -158,6 +216,10 @@ namespace mooSQL.data
                 return false;
             }
         }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
         public override bool IsConnectionLost(Exception ex)
         {

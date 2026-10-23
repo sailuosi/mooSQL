@@ -21,6 +21,12 @@ namespace mooSQL.linq.translator;
 /// </summary>
 public static partial class SentenceExecutor
 {
+    /// <summary>
+    /// Execute&lt;TResult&gt;
+    /// </summary>
+    /// <summary>
+    /// Execute&lt;TResult&gt;
+    /// </summary>
     public static TResult Execute<TResult>(SentenceBag bag, QueryContext context, Expression expression, object?[]? parameters = null)
     {
         if (bag.Sentences == null || bag.Sentences.Count == 0)
@@ -153,6 +159,9 @@ public static partial class SentenceExecutor
 
         return builderClause;
     }
+    /// <summary>
+    /// Gets GetSqlText.
+    /// </summary>
 
     public static string GetSqlText(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
@@ -167,6 +176,9 @@ public static partial class SentenceExecutor
             return c.sql;
         }));
     }
+    /// <summary>
+    /// ExecuteObject
+    /// </summary>
 
     public static object? ExecuteObject(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
@@ -179,6 +191,9 @@ public static partial class SentenceExecutor
         var method = typeof(SentenceExecutor).GetMethod(nameof(Execute), BindingFlags.Public | BindingFlags.Static)!;
         return method.MakeGenericMethod(resultType).Invoke(null, new object[] { bag, context, expression, parameters });
     }
+    /// <summary>
+    /// ExecuteObjectAsync
+    /// </summary>
 
     public static async Task<object?> ExecuteObjectAsync(
         SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default, object?[]? parameters = null)
@@ -222,6 +237,9 @@ public static partial class SentenceExecutor
         await task.ConfigureAwait(false);
         return task.GetType().GetProperty("Result")!.GetValue(task);
     }
+    /// <summary>
+    /// ExecuteList&lt;T&gt;
+    /// </summary>
 
     public static List<T> ExecuteList<T>(SentenceBag bag, DBInstance db, Expression expression, object?[]? parameters = null)
     {
@@ -231,6 +249,9 @@ public static partial class SentenceExecutor
         NavColumnLoader.LoadNavChilds(bag, res);
         return res;
     }
+    /// <summary>
+    /// ExecuteListAsync&lt;T&gt;
+    /// </summary>
 
     public static async Task<List<T>> ExecuteListAsync<T>(
         SentenceBag bag, DBInstance db, Expression expression, CancellationToken cancellationToken = default, object?[]? parameters = null)
@@ -245,6 +266,9 @@ public static partial class SentenceExecutor
     /// <summary>测试/诊断：当前 bag 首句是否已捕获 L2 模板。</summary>
     internal static bool HasL2Template(SentenceBag bag)
         => bag.Sentences is { Count: > 0 } && bag.Sentences[0].L2Template != null;
+    /// <summary>
+    /// FinalizeBag
+    /// </summary>
 
     public static void FinalizeBag(SentenceBag bag, DBInstance db)
     {

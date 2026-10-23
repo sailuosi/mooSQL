@@ -11,11 +11,27 @@ using mooSQL.data.model;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// NpgClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// NpgClauseTranslator type.
+    /// </summary>
     public class NpgClauseTranslator: ClauseTranslateVisitor
     {
+        /// <summary>
+        /// NpgClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// NpgClauseTranslator type.
+        /// </summary>
         public NpgClauseTranslator(Dialect dia) : base(dia) { 
         
         }
+/// <summary>
+/// Returns the identity expression for a field.
+/// </summary>
+ 
 
         public override IExpWord? GetIdentityExpression(FieldWord field)
         {

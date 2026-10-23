@@ -325,10 +325,11 @@ namespace mooSQL.linq.expressions
 		}
 
 		/// <summary>
-		/// Optimizes expression context by evaluating constants and simplifying boolean operations.
+		/// 通过求值常量并简化布尔运算来优化表达式。
 		/// </summary>
-		/// <param name="expression">Expression to optimize.</param>
-		/// <returns>Optimized expression.</returns>
+		/// <param name="expression">待优化的表达式。</param>
+		/// <param name="DB">数据库实例。</param>
+		/// <returns>优化后的表达式。</returns>
 		[return: NotNullIfNotNull(nameof(expression))]
 		public static Expression? OptimizeExpression(this Expression? expression, DBInstance DB)
 		{

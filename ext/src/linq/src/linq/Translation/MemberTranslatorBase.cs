@@ -7,9 +7,27 @@ using mooSQL.linq.clause;
 
 namespace mooSQL.linq.translator
 {
+	/// <summary>
+	/// MemberTranslatorBase type.
+	/// </summary>
+	/// <summary>
+	/// MemberTranslatorBase type.
+	/// </summary>
 	public class MemberTranslatorBase : IMemberTranslator
 	{
+		/// <summary>
+		/// Registration
+		/// </summary>
+		/// <summary>
+		/// Registration
+		/// </summary>
 		protected TranslationRegistration  Registration             = new();
+		/// <summary>
+		/// CombinedMemberTranslator
+		/// </summary>
+		/// <summary>
+		/// CombinedMemberTranslator
+		/// </summary>
 		protected CombinedMemberTranslator CombinedMemberTranslator = new();
 
 		/// <summary>
@@ -25,12 +43,13 @@ namespace mooSQL.linq.translator
 		}
 
 		/// <summary>
-		/// Returns null if the expression is not required for translation
+		/// 翻译非必需表达式；若不需要翻译则返回 null。
 		/// </summary>
-		/// <param name="translationContext"></param>
-		/// <param name="objExpression"></param>
-		/// <param name="translationFlags"></param>
-		/// <returns></returns>
+		/// <param name="translationContext">翻译上下文。</param>
+		/// <param name="objExpression">待翻译表达式。</param>
+		/// <param name="translationFlags">翻译标志。</param>
+		/// <param name="skipIfParameter">若为参数表达式是否跳过。</param>
+		/// <returns>SQL 占位符，或 null。</returns>
 		protected SqlPlaceholderExpression? TranslateNoRequiredExpression(ITranslationContext translationContext, Expression? objExpression, TranslationFlags translationFlags, bool skipIfParameter = true)
 		{
 			if (objExpression == null)
@@ -46,6 +65,9 @@ namespace mooSQL.linq.translator
 
 			return objPlaceholder;
 		}
+		/// <summary>
+		/// Translates Translate for this dialect.
+		/// </summary>
 
 		public Expression? Translate(ITranslationContext translationContext, Expression memberExpression, TranslationFlags translationFlags)
 		{

@@ -13,15 +13,41 @@ namespace mooSQL.data
     /// </summary>
     public class JetSQLSentence : SQLSentence
     {
+        /// <summary>
+        /// JetSQLSentence type.
+        /// </summary>
+        /// <summary>
+        /// JetSQLSentence type.
+        /// </summary>
         public JetSQLSentence(Dialect dia) : base(dia) { }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
         public override string GetDataBaseSql => "SELECT '' AS NAME";
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
         public override string GetTableInfoListSql => null;
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
         public override string GetViewInfoListSql => null;
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
         public override string GetColumnInfosByTableNameSql => null;
+/// <summary>
+/// Loads columns for the specified table.
+/// </summary>
+ 
 
         public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
         {
@@ -61,6 +87,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
         public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
         {
@@ -155,11 +185,19 @@ namespace mooSQL.data
                 default: return "VarChar";
             }
         }
+/// <summary>
+/// Loads the database list.
+/// </summary>
+ 
 
         public override List<string> GetDataBaseList()
         {
             return new List<string>();
         }
+/// <summary>
+/// Loads the table list for the current database.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableList()
         {
@@ -188,6 +226,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
         {
@@ -199,6 +241,10 @@ namespace mooSQL.data
             }
             return FinalizeDbTableListAll(list, options);
         }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
         public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
         {
@@ -207,6 +253,10 @@ namespace mooSQL.data
                 new DbSchemaInfo { Database = "main", Name = "main", IsDefault = true }
             };
         }
+/// <summary>
+/// Loads the view list for the current database.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbViewList()
         {
@@ -235,6 +285,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -263,6 +317,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
         public override bool? IsExitsTableCol(string table, string col)
         {
@@ -291,6 +349,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -320,6 +382,10 @@ namespace mooSQL.data
                     conn.Close();
             }
         }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
         public override bool IsConnectionLost(Exception ex)
         {

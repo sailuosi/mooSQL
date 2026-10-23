@@ -11,7 +11,17 @@ namespace mooSQL.data
     /// </summary>
     public class DuckDBSentence : SQLSentence
     {
+        /// <summary>
+        /// DuckDBSentence type.
+        /// </summary>
+        /// <summary>
+        /// DuckDBSentence type.
+        /// </summary>
         public DuckDBSentence(Dialect dia) : base(dia) { }
+/// <summary>
+/// Loads column metadata for the specified table.
+/// </summary>
+ 
 
         public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
         {
@@ -23,8 +33,16 @@ namespace mooSQL.data
             });
             return builder;
         }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
         public override string GetDataBaseSql => "SELECT current_database() AS Name";
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
         public override string GetColumnInfosByTableNameSql =>
             "SELECT column_name AS Name, data_type AS DbTypeText, " +
@@ -35,6 +53,10 @@ namespace mooSQL.data
             "CASE WHEN is_nullable = 'YES' THEN true ELSE false END AS IsNullable, " +
             "ordinal_position AS Position " +
             "FROM information_schema.columns WHERE table_name = '{0}' ORDER BY ordinal_position";
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
         public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
         {
@@ -45,12 +67,24 @@ namespace mooSQL.data
                 .query<DbColumnCaption>()
                 .ToList();
         }
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
         public override string GetTableInfoListSql =>
             "SELECT table_name AS Name, '' AS Comment FROM information_schema.tables WHERE table_schema = 'main' AND table_type = 'BASE TABLE'";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
         public override string GetViewInfoListSql =>
             "SELECT table_name AS Name, '' AS Description FROM information_schema.tables WHERE table_schema = 'main' AND table_type = 'VIEW'";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
         {
@@ -75,12 +109,20 @@ namespace mooSQL.data
 
             return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
         }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
         protected override string GetCurrentDatabaseName()
         {
             try { return DBLive.ExeQueryScalar<string>("SELECT current_database()", null); }
             catch { return "main"; }
         }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
         public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
         {
@@ -102,6 +144,10 @@ namespace mooSQL.data
             }
             return list;
         }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
         public override SQLCmd buildHasTable(string TableName)
         {
@@ -112,8 +158,16 @@ namespace mooSQL.data
                 .where("table_name", TableName)
                 .toSelect();
         }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
         public override string GetTablePKName(string table) => string.Empty;
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -127,6 +181,10 @@ namespace mooSQL.data
             if (string.IsNullOrEmpty(type)) return false;
             return string.Equals(type, "VIEW", StringComparison.OrdinalIgnoreCase);
         }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
         public override bool? IsExitsTableCol(string table, string col)
         {
@@ -139,6 +197,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -157,6 +219,10 @@ namespace mooSQL.data
                 return false;
             }
         }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
         public override bool IsConnectionLost(Exception ex)
         {

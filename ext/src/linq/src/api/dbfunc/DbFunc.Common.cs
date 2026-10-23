@@ -21,6 +21,9 @@ namespace mooSQL.linq
 	using mooSQL.data.model;
 	using mooSQL.data.model.affirms;
 	using mooSQL.data;
+	/// <summary>
+	/// DbFunc.Common type.
+	/// </summary>
 
 	public static partial class DbFunc
 	{
@@ -54,6 +57,9 @@ namespace mooSQL.linq
 		{
 			return obj;
 		}
+		/// <summary>
+		/// ToSql&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, ServerSideOnly = true, InlineParameters = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -67,6 +73,9 @@ namespace mooSQL.linq
 		{
 			throw new InvalidOperationException();
 		}
+		/// <summary>
+		/// AsNullable&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, CanBeNull = true)]
@@ -74,6 +83,9 @@ namespace mooSQL.linq
 		{
 			return value;
 		}
+		/// <summary>
+		/// AsNotNull&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, CanBeNull = false)]
@@ -81,6 +93,9 @@ namespace mooSQL.linq
 		{
 			return value;
 		}
+		/// <summary>
+		/// AsNotNullable&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, CanBeNull = false)]
@@ -88,6 +103,9 @@ namespace mooSQL.linq
 		{
 			return value;
 		}
+		/// <summary>
+		/// ToNullable&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -96,6 +114,9 @@ namespace mooSQL.linq
 		{
 			return value;
 		}
+		/// <summary>
+		/// ToNotNull&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -104,6 +125,9 @@ namespace mooSQL.linq
 		{
 			return value ?? default;
 		}
+		/// <summary>
+		/// ToNotNullable&lt;T&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Expression("{0}", 0, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -112,15 +136,27 @@ namespace mooSQL.linq
 		{
 			return value ?? default;
 		}
+		/// <summary>
+		/// IsDistinctFrom&lt;T&gt;
+		/// </summary>
 
 		[Extension(typeof(IsDistinctBuilder), ServerSideOnly = false, PreferServerSide = false)]
 		public static bool IsDistinctFrom<T>(this T value, T other) => !EqualityComparer<T>.Default.Equals(value, other);
+		/// <summary>
+		/// IsDistinctFrom&lt;T&gt;
+		/// </summary>
 
 		[Extension(typeof(IsDistinctBuilder), ServerSideOnly = false, PreferServerSide = false)]
 		public static bool IsDistinctFrom<T>(this T value, T? other) where T: struct => !EqualityComparer<T?>.Default.Equals(value, other);
+		/// <summary>
+		/// IsNotDistinctFrom&lt;T&gt;
+		/// </summary>
 
 		[Extension(typeof(IsDistinctBuilder), Expression = "NOT", ServerSideOnly = false, PreferServerSide = false)]
 		public static bool IsNotDistinctFrom<T>(this T value, T other) => EqualityComparer<T>.Default.Equals(value, other);
+		/// <summary>
+		/// IsNotDistinctFrom&lt;T&gt;
+		/// </summary>
 
 		[Extension(typeof(IsDistinctBuilder), Expression= "NOT", ServerSideOnly = false, PreferServerSide = false)]
 		public static bool IsNotDistinctFrom<T>(this T value, T? other) where T: struct => EqualityComparer<T?>.Default.Equals(value, other);
@@ -167,16 +203,25 @@ namespace mooSQL.linq
 		{
 			return obj;
 		}
+		/// <summary>
+		/// NullIf&lt;T&gt;
+		/// </summary>
 
 		public static T? NullIf<T>(T? value, T? compareTo) where T : class
 		{
 			return value != null && compareTo != null && EqualityComparer<T>.Default.Equals(value, compareTo) ? null : value;
 		}
+		/// <summary>
+		/// NullIf&lt;T&gt;
+		/// </summary>
 
 		public static T? NullIf<T>(T? value, T compareTo) where T : struct
 		{
 			return value.HasValue && EqualityComparer<T>.Default.Equals(value.Value, compareTo) ? null : value;
 		}
+		/// <summary>
+		/// NullIf&lt;T&gt;
+		/// </summary>
 
 		public static T? NullIf<T>(T? value, T? compareTo) where T : struct
 		{
@@ -185,6 +230,9 @@ namespace mooSQL.linq
 
 		/// <summary>registry-first（Bootstrap <see cref="mooSQL.data.translation.DbFuncRegistry"/>）；无 <see cref="ExpressionAttribute"/>。</summary>
 		public static T? Coalesce<T>(T? a, T b) where T : class => a ?? b;
+		/// <summary>
+		/// Coalesce&lt;T&gt;
+		/// </summary>
 
 		public static T Coalesce<T>(T? a, T b) where T : struct => a ?? b;
 
@@ -218,37 +266,202 @@ namespace mooSQL.linq
 
 		#endregion
 		#region Types
+		/// <summary>
+		/// Types
+		/// </summary>
 
 		public static class Types
 		{
+			/// <summary>
+			/// Bit
+			/// </summary>
+			/// <summary>
+			/// Bit
+			/// </summary>
 			public static bool     Bit => false;
+			/// <summary>
+			/// BigInt
+			/// </summary>
+			/// <summary>
+			/// BigInt
+			/// </summary>
 			public static long     BigInt => 0;
+			/// <summary>
+			/// Int
+			/// </summary>
+			/// <summary>
+			/// Int
+			/// </summary>
 			public static int      Int => 0;
+			/// <summary>
+			/// SmallInt
+			/// </summary>
+			/// <summary>
+			/// SmallInt
+			/// </summary>
 			public static short    SmallInt => 0;
+			/// <summary>
+			/// TinyInt
+			/// </summary>
+			/// <summary>
+			/// TinyInt
+			/// </summary>
 			public static byte     TinyInt => 0;
+			/// <summary>
+			/// DefaultDecimal
+			/// </summary>
+			/// <summary>
+			/// DefaultDecimal
+			/// </summary>
 			public static decimal  DefaultDecimal => 0m;
+			/// <summary>
+			/// Decimal
+			/// </summary>
+			/// <summary>
+			/// Decimal
+			/// </summary>
 			public static decimal  Decimal(int precision) => 0m;
+			/// <summary>
+			/// Decimal
+			/// </summary>
+			/// <summary>
+			/// Decimal
+			/// </summary>
 			public static decimal  Decimal([SqlQueryDependent] int precision, [SqlQueryDependent] int scale) => 0m;
+			/// <summary>
+			/// Money
+			/// </summary>
+			/// <summary>
+			/// Money
+			/// </summary>
 			public static decimal  Money => 0m;
+			/// <summary>
+			/// SmallMoney
+			/// </summary>
+			/// <summary>
+			/// SmallMoney
+			/// </summary>
 			public static decimal  SmallMoney => 0m;
+			/// <summary>
+			/// Float
+			/// </summary>
+			/// <summary>
+			/// Float
+			/// </summary>
 			public static double   Float => 0.0;
+			/// <summary>
+			/// Real
+			/// </summary>
+			/// <summary>
+			/// Real
+			/// </summary>
 			public static float    Real => 0f;
+			/// <summary>
+			/// DateTime
+			/// </summary>
+			/// <summary>
+			/// DateTime
+			/// </summary>
 			public static DateTime DateTime => DateTime.Now;
+			/// <summary>
+			/// DateTime2
+			/// </summary>
+			/// <summary>
+			/// DateTime2
+			/// </summary>
 			public static DateTime DateTime2 => DateTime.Now;
+			/// <summary>
+			/// SmallDateTime
+			/// </summary>
+			/// <summary>
+			/// SmallDateTime
+			/// </summary>
 			public static DateTime SmallDateTime => DateTime.Now;
+			/// <summary>
+			/// Date
+			/// </summary>
+			/// <summary>
+			/// Date
+			/// </summary>
 			public static DateTime Date => DateTime.Now;
 #if NET6_0_OR_GREATER
+			/// <summary>
+			/// DateOnly
+			/// </summary>
+			/// <summary>
+			/// DateOnly
+			/// </summary>
 			public static DateOnly DateOnly => DateOnly.FromDateTime(DateTime.Now);
 #endif
+			/// <summary>
+			/// Time
+			/// </summary>
+			/// <summary>
+			/// Time
+			/// </summary>
 			public static DateTime Time => DateTime.Now;
+			/// <summary>
+			/// DateTimeOffset
+			/// </summary>
+			/// <summary>
+			/// DateTimeOffset
+			/// </summary>
 			public static DateTimeOffset DateTimeOffset => DateTimeOffset.Now;
+			/// <summary>
+			/// Char
+			/// </summary>
+			/// <summary>
+			/// Char
+			/// </summary>
 			public static string  Char(int length) => "";
+			/// <summary>
+			/// DefaultChar
+			/// </summary>
+			/// <summary>
+			/// DefaultChar
+			/// </summary>
 			public static string  DefaultChar => "";
+			/// <summary>
+			/// VarChar
+			/// </summary>
+			/// <summary>
+			/// VarChar
+			/// </summary>
 			public static string  VarChar(int length) => "";
+			/// <summary>
+			/// DefaultVarChar
+			/// </summary>
+			/// <summary>
+			/// DefaultVarChar
+			/// </summary>
 			public static string  DefaultVarChar => "";
+			/// <summary>
+			/// NChar
+			/// </summary>
+			/// <summary>
+			/// NChar
+			/// </summary>
 			public static string  NChar(int length) => "";
+			/// <summary>
+			/// DefaultNChar
+			/// </summary>
+			/// <summary>
+			/// DefaultNChar
+			/// </summary>
 			public static string  DefaultNChar => "";
+			/// <summary>
+			/// NVarChar
+			/// </summary>
+			/// <summary>
+			/// NVarChar
+			/// </summary>
 			public static string  NVarChar(int length) => "";
+			/// <summary>
+			/// DefaultNVarChar
+			/// </summary>
+			/// <summary>
+			/// DefaultNVarChar
+			/// </summary>
 			public static string  DefaultNVarChar => "";
 		}
 

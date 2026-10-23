@@ -5,6 +5,12 @@ namespace mooSQL.data
     /// </summary>
     public class TiDBDialect : MySqlFamilyDialect
     {
+        /// <summary>
+        /// TiDBDialect type.
+        /// </summary>
+        /// <summary>
+        /// TiDBDialect type.
+        /// </summary>
         public TiDBDialect()
         {
             expression = new TiDBExpress(this);

@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
@@ -15,11 +15,21 @@ namespace mooSQL.data
     /// </summary>
     public class GBase8aExpress:MySQLExpress
     {
+        /// <summary>
+        /// GBase8aExpress type.
+        /// </summary>
+        /// <summary>
+        /// GBase8aExpress type.
+        /// </summary>
         public GBase8aExpress(Dialect dia) : base(dia) {
             _paraPrefix = "?";
             _selectAutoIncrement = "SELECT Last_Insert_Id()";
             _provideType = "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data";
         }
+/// <summary>
+/// Quotes an identifier for this dialect.
+/// </summary>
+ 
 
         public override string wrapKeyword(string value)
         {
@@ -154,21 +164,37 @@ namespace mooSQL.data
 
 
         #region DDL
+/// <summary>
+/// Returns SQL for retrieving an auto-generated identity value.
+/// </summary>
+ 
 
 
         public override string getTableAutoIdSQL()
         {
             return "AUTO_INCREMENT";
         }
+/// <summary>
+/// Builds a CREATE DATABASE statement.
+/// </summary>
+ 
 
         public override string CreateDataBaseBy(string database)
         {
             return string.Format("CREATE DATABASE {0} CHARACTER SET utf8 COLLATE utf8_general_ci ", database); 
         }
+ /// <summary>
+ /// Builds an ADD PRIMARY KEY statement.
+ /// </summary>
+ 
         public override string AddPrimaryKeyBy(string tableName, string columnName, string indexName) { 
             return string.Format("ALTER TABLE {0} ADD PRIMARY KEY({2}) /*{1}*/"
                 , tableName, indexName, columnName);
         }
+ /// <summary>
+ /// Builds an ADD COLUMN statement.
+ /// </summary>
+ 
         public override string AddColumnToTableBy(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ADD {1} {2}{3} {4} {5} {6}",
@@ -176,6 +202,10 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+ /// <summary>
+ /// Builds an ALTER COLUMN statement.
+ /// </summary>
+ 
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {1} {2}{3} {4} {5} {6}",
@@ -183,10 +213,18 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+ /// <summary>
+ /// Builds a CREATE TABLE statement.
+ /// </summary>
+ 
         public override string CreateTableBy(string tableName, string detail)
         { 
             return string.Format("CREATE TABLE {0}(\r\n{1} $PrimaryKey)", tableName, detail);
         }
+ /// <summary>
+ /// Builds a CREATE TABLE column definition.
+ /// </summary>
+ 
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         { 
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -197,31 +235,63 @@ namespace mooSQL.data
         //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
 
         //protected override string DropTableSql(){ "DROP TABLE {0}";
+/// <summary>
+/// Builds a DROP COLUMN statement.
+/// </summary>
+ 
 
         public override string DropColumnToTableBy(string tableName, string columnName)
         { 
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}", tableName, columnName);
         }
+ /// <summary>
+ /// Builds a DROP CONSTRAINT statement.
+ /// </summary>
+ 
         public override string DropConstraintBy(string tableName, string constraintName)
         { 
             return string.Format("ALTER TABLE {0} DROP PRIMARY KEY", tableName, constraintName);
         }
+ /// <summary>
+ /// Builds a RENAME COLUMN statement.
+ /// </summary>
+ 
         public override string RenameColumnBy(string tableName, string oldName, string newName)
         { 
             return string.Format("ALTER TABLE {0} CHANGE COLUMN {1} {2}", tableName, oldName, newName);
         }
+ /// <summary>
+ /// Builds SQL to check system-table permissions.
+ /// </summary>
+ 
         public override string CheckSystemTablePermissionsBy(){ 
             return "SELECT 1 FROM Information_schema.columns LIMIT 0,1";
         }
+ /// <summary>
+ /// Returns the NULL column qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTableNullBy(){ return "NULL";
         }
+ /// <summary>
+ /// Returns the NOT NULL column qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTableNotNullBy(){
             return "NOT NULL";
         }
+ /// <summary>
+ /// Returns the PRIMARY KEY qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTablePirmaryKeyBy(){
             return "PRIMARY KEY";
 
         }
+/// <summary>
+/// Builds SQL to add a table caption/comment.
+/// </summary>
+ 
 
 
 
@@ -229,24 +299,44 @@ namespace mooSQL.data
         { 
             return string.Format("ALTER TABLE {0} COMMENT='{1}';", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to delete a table caption/comment.
+ /// </summary>
+ 
         public override string DeleteTableCaptionBy(string tableName)
         { 
             return string.Format("ALTER TABLE {0} COMMENT=''", tableName);
         }
+/// <summary>
+/// Builds a RENAME TABLE statement.
+/// </summary>
+ 
 
 
         public override string RenameTableBy(string oldTableName, string newTableName)
         { 
             return string.Format("ALTER TABLE {0} RENAME {1}", oldTableName, newTableName);
         }
+ /// <summary>
+ /// Builds a CREATE INDEX statement.
+ /// </summary>
+ 
         public override string CreateIndexBy(string indexName, string tableName, string columnName, string unique)
         { 
             return string.Format("CREATE {3} INDEX Index_{0}_{2} ON {0} ({1})", tableName, columnName, indexName,unique);
         }
+ /// <summary>
+ /// Builds SQL that checks whether an index exists.
+ /// </summary>
+ 
         public override string IsAnyIndexBy(string indexName)
         { 
             return string.Format("SELECT COUNT(*) FROM information_schema.statistics WHERE index_name = '{0}'", indexName);

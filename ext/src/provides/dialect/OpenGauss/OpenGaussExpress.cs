@@ -5,6 +5,12 @@ namespace mooSQL.data
     /// </summary>
     public class OpenGaussExpress : NpgsqlExpress
     {
+        /// <summary>
+        /// OpenGaussExpress type.
+        /// </summary>
+        /// <summary>
+        /// OpenGaussExpress type.
+        /// </summary>
         public OpenGaussExpress(Dialect dia) : base(dia)
         {
 #if NET8_0_OR_GREATER

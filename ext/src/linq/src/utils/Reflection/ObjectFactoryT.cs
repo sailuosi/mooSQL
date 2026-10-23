@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// ObjectFactoryT type.
+	/// </summary>
 
 	public static class ObjectFactory<T>
 	{
@@ -49,6 +52,9 @@ namespace mooSQL.linq.utils
 				}
 			}
 		}
+		/// <summary>
+		/// Creates CreateInstance.
+		/// </summary>
 
 		public static T CreateInstance()
 		{

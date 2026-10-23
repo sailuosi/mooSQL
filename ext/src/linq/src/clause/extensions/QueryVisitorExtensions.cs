@@ -7,6 +7,9 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.utils;
 
 	using mooSQL.data.model;
+	/// <summary>
+	/// QueryVisitorExtensions type.
+	/// </summary>
 
 	public static class QueryVisitorExtensions
 	{
@@ -28,23 +31,38 @@ namespace mooSQL.linq.clause
 		}
 
 		#region Visit
+		/// <summary>
+		/// Visit&lt;TContext&gt;
+		/// </summary>
+		/// <summary>
+		/// Visit&lt;TContext&gt;
+		/// </summary>
 		public static void Visit<TContext>(this Clause element, TContext context, Action<TContext, ISQLNode> action)
 		{
 			using var actionVisitor = PoolHolder<TContext>.ActionPool.Allocate();
 			actionVisitor.Value.Visit(context, element, false, action);
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
 
 		public static void Visit(this Clause element, Action<ISQLNode> action)
 		{
 			using var actionVisitor = ActionVisitorPool.Allocate();
 			actionVisitor.Value.Visit(element, false, action);
 		}
+		/// <summary>
+		/// VisitAll&lt;TContext&gt;
+		/// </summary>
 
 		public static void VisitAll<TContext>(this Clause element, TContext context, Action<TContext, ISQLNode> action)
 		{
 			using var actionVisitor = PoolHolder<TContext>.ActionPool.Allocate();
 			actionVisitor.Value.Visit(context, element, true, action);
 		}
+		/// <summary>
+		/// VisitAll
+		/// </summary>
 
 		public static void VisitAll(this Clause element, Action<ISQLNode> action)
 		{
@@ -55,23 +73,38 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region VisitParent
+		/// <summary>
+		/// VisitParentFirst&lt;TContext&gt;
+		/// </summary>
+		/// <summary>
+		/// VisitParentFirst&lt;TContext&gt;
+		/// </summary>
 		public static void VisitParentFirst<TContext>(this ISQLNode element, TContext context, Func<TContext, ISQLNode, bool> action)
 		{
 			using var actionVisitor = PoolHolder<TContext>.ParentFirstPool.Allocate();
 			actionVisitor.Value.Visit(context, element, false, action);
 		}
+		/// <summary>
+		/// VisitParentFirst
+		/// </summary>
 
 		public static void VisitParentFirst(this ISQLNode element, Func<ISQLNode, bool> action)
 		{
 			using var actionVisitor = ParentVisitorPool.Allocate();
 			actionVisitor.Value.Visit(element as Clause, false, action);
 		}
+		/// <summary>
+		/// VisitParentFirstAll&lt;TContext&gt;
+		/// </summary>
 
 		public static void VisitParentFirstAll<TContext>(this ISQLNode element, TContext context, Func<TContext, ISQLNode, bool> action)
 		{
 			using var actionVisitor = PoolHolder<TContext>.ParentFirstPool.Allocate();
 			actionVisitor.Value.Visit(context, element, true, action);
 		}
+		/// <summary>
+		/// VisitParentFirstAll
+		/// </summary>
 
 		public static void VisitParentFirstAll(this Clause element, Func<ISQLNode, bool> action)
 		{
@@ -82,6 +115,12 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region Find
+		/// <summary>
+		/// Find&lt;TContext&gt;
+		/// </summary>
+		/// <summary>
+		/// Find&lt;TContext&gt;
+		/// </summary>
 		public static ISQLNode? Find<TContext>(this ISQLNode? element, TContext context, Func<TContext, ISQLNode, bool> find)
 		{
 			if (element == null)
@@ -90,6 +129,9 @@ namespace mooSQL.linq.clause
 			using var findVisitor = PoolHolder<TContext>.FindPool.Allocate();
 			return findVisitor.Value.Find(context, element, find);
 		}
+		/// <summary>
+		/// Find
+		/// </summary>
 
 		public static ISQLNode? Find(this ISQLNode? element, Func<ISQLNode, bool> find)
 		{
@@ -99,6 +141,9 @@ namespace mooSQL.linq.clause
 			using var findVisitor = FindVisitorPool.Allocate();
 			return findVisitor.Value.Find(element, find);
 		}
+		/// <summary>
+		/// Find
+		/// </summary>
 
 		public static ISQLNode? Find(this ISQLNode? element, ClauseType type)
 		{
@@ -111,6 +156,12 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region FindExcept
+		/// <summary>
+		/// FindExcept&lt;TContext&gt;
+		/// </summary>
+		/// <summary>
+		/// FindExcept&lt;TContext&gt;
+		/// </summary>
 		public static ISQLNode? FindExcept<TContext>(this ISQLNode? element, TContext context, ISQLNode skip, Func<TContext, ISQLNode, bool> find)
 		{
 			if (element == null)
@@ -122,6 +173,9 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region Clone
+		/// <summary>
+		/// Clone&lt;T&gt;
+		/// </summary>
 		[return: NotNullIfNotNull(nameof(element))]
 		public static T? Clone<T>(this T? element, Dictionary<Clause, Clause> objectTree)
 			where T : Clause
@@ -138,6 +192,9 @@ namespace mooSQL.linq.clause
 
 			return clone;
 		}
+		/// <summary>
+		/// Clone&lt;T, TContext&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public static T? Clone<T, TContext>(this T? element, TContext context, Dictionary<Clause, Clause> objectTree, Func<TContext, ISQLNode, bool> doClone)
@@ -155,6 +212,9 @@ namespace mooSQL.linq.clause
 
 			return clone;
 		}
+		/// <summary>
+		/// Clone&lt;T, TContext&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public static T? Clone<T, TContext>(this T? element, TContext context, Func<TContext, Clause, bool> doClone)
@@ -167,6 +227,9 @@ namespace mooSQL.linq.clause
 
 			return (T)cloneVisitor.Value.Clone(element, context, doClone);
 		}
+		/// <summary>
+		/// Clone&lt;T&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public static T? Clone<T>(this T? element, Func<Clause, bool> doClone)
@@ -179,6 +242,9 @@ namespace mooSQL.linq.clause
 
 			return (T)cloneVisitor.Value.Clone(element, doClone);
 		}
+		/// <summary>
+		/// Clone&lt;T&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public static T? Clone<T>(this T? element)
@@ -194,6 +260,9 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region Replace
+		/// <summary>
+		/// Replace&lt;T&gt;
+		/// </summary>
 
 		public static T Replace<T>(this T element, IDictionary<Clause, Clause> replacements,
 			params Clause[]   toIgnore)
@@ -207,6 +276,9 @@ namespace mooSQL.linq.clause
 		#endregion
 
 		#region Convert
+		/// <summary>
+		/// Convert&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T Convert<TContext, T>(this T element, TContext context, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction, bool withStack)
 			where T : Clause
@@ -215,6 +287,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, withStack) ?? element;
 		}
+		/// <summary>
+		/// Convert&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T Convert<TContext, T>(this T element, TContext context, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction)
 			where T : Clause
@@ -223,6 +298,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// Convert&lt;T&gt;
+		/// </summary>
 
 		public static T Convert<T>(this T element, Func<SqlQueryConvertVisitor<object?>, Clause, Clause> convertAction, bool withStack)
 			where T : Clause
@@ -234,6 +312,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, null, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// Convert&lt;T&gt;
+		/// </summary>
 
 		public static T Convert<T>(this T element, Func<SqlQueryConvertVisitor<object?>, Clause, Clause> convertAction)
 			where T : Clause
@@ -242,6 +323,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, null, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// Convert&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T Convert<TContext, T>(this T element, TContext context, bool allowMutation, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction, bool withStack)
 			where T : Clause
@@ -250,6 +334,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, withStack) ?? element;
 		}
+		/// <summary>
+		/// Convert&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T Convert<TContext, T>(this T element, TContext context, bool allowMutation, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction)
 			where T : Clause
@@ -260,6 +347,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// ConvertAll&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T ConvertAll<TContext, T>(this T element, TContext context, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction)
 			where T : Clause
@@ -268,6 +358,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// ConvertAll&lt;TContext, T&gt;
+		/// </summary>
 
 		public static T ConvertAll<TContext, T>(this T element, TContext context, bool allowMutation, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertAction)
 			where T : Clause
@@ -278,6 +371,9 @@ namespace mooSQL.linq.clause
 
 			return (T?)convertVisitor.Value.Convert(element, context, convertAction, false) ?? element;
 		}
+		/// <summary>
+		/// ConvertAll&lt;T&gt;
+		/// </summary>
 
 		public static T ConvertAll<T>(this T element, bool allowMutation, Func<SqlQueryConvertVisitor<object?>, Clause, Clause> convertAction)
 			where T : Clause

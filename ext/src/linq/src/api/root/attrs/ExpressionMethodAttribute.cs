@@ -91,6 +91,10 @@ namespace mooSQL.linq
 		/// </remarks>
 		/// </summary>
 		public string? Alias { get; set; }
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 		public override string GetObjectID()
 		{

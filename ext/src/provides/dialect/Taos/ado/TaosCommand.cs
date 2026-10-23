@@ -1,5 +1,4 @@
-﻿// Copyright (c)  maikebing All rights reserved.
-//// Licensed under the MIT License, See License.txt in the project root for license information.
+﻿
 
 using mooSQL.data.taos.Driver;
 using mooSQL.data.taos.Protocols;
@@ -390,21 +389,23 @@ namespace mooSQL.data.taos
             return result;
         }
         /// <summary>
-        /// 订阅数据， 使用 TaosDataReader自行处理数据。 
+        /// 订阅数据，使用 TaosDataReader 自行处理。
         /// </summary>
-        /// <param name="subscribe"></param>
-        /// <returns></returns>
+        /// <param name="topic">订阅主题名称。</param>
+        /// <param name="subscribe">收到数据时的回调。</param>
+        /// <returns>是否成功启动订阅。</returns>
         /// <exception cref="NotImplementedException"></exception>
         public bool ExecuteSubscribe(string topic, Action<TaosDataReader> subscribe)
         {
             throw new NotImplementedException();
         }
         /// <summary>
-        /// 订阅数据， 以对象方式返回。 
+        /// 订阅数据，以对象方式返回。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="subscribe"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">结果对象类型。</typeparam>
+        /// <param name="topic">订阅主题名称。</param>
+        /// <param name="subscribe">收到数据时的回调。</param>
+        /// <returns>是否成功启动订阅。</returns>
         /// <exception cref="NotImplementedException"></exception>
         public bool ExecuteSubscribe<T>(string topic, Action<T> subscribe)
         {

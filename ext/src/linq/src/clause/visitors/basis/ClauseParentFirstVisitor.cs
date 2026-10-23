@@ -6,18 +6,33 @@ namespace mooSQL.linq.clause
 {
 	using mooSQL.linq.utils;
     using mooSQL.data.model;
+    /// <summary>
+    /// ClauseParentFirstVisitor type.
+    /// </summary>
 
     public class ClauseParentFirstVisitor : ClauseVisitor
 	{
 		Func<Clause, bool> _action = default!;
 		HashSet<Clause>?   _visited;
+		/// <summary>
+		/// VisitingMode
+		/// </summary>
 
 		public VisitMode VisitingMode;
+        /// <summary>
+        /// ClauseParentFirstVisitor type.
+        /// </summary>
+        /// <summary>
+        /// ClauseParentFirstVisitor type.
+        /// </summary>
         public ClauseParentFirstVisitor()
         {
 			VisitingMode = VisitMode.ReadOnly;
 
         }
+		/// <summary>
+		/// Visit
+		/// </summary>
 
 		public Clause Visit(Clause root, bool visitAll, Func<Clause, bool> action)
 		{
@@ -34,6 +49,10 @@ namespace mooSQL.linq.clause
 			_action  = null!;
 			_visited = null;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)

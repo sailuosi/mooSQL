@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -42,6 +42,9 @@ namespace mooSQL.utils
             }
             return res; 
         }
+        /// <summary>
+        /// ToEntity&lt;T&gt;
+        /// </summary>
 
         public static T ToEntity<T>(this DataRow row, Func<DataRow, T> doBuild)
         {
@@ -72,6 +75,9 @@ namespace mooSQL.utils
             var tuple = dataSet.ToList(typeof(List<T1>));
             return tuple[0] as List<T1>;
         }
+        /// <summary>
+        /// ToEntity&lt;T&gt;
+        /// </summary>
 
 
         public static T ToEntity<T>(this DataRow row)
@@ -302,6 +308,12 @@ namespace mooSQL.utils
 
             return list;
         }
+        /// <summary>
+        /// ToEntity
+        /// </summary>
+        /// <summary>
+        /// ToEntity
+        /// </summary>
         public static object ToEntity(this DataRow row, Type returnType)
         {
             var isGenericType = returnType.IsGenericType;

@@ -7,281 +7,264 @@ namespace mooSQL.linq
 
 	// TODO: v6: obsolete/remove all provider-specific entries as it should be used for dialects only
 	/// <summary>
-	/// Default names for providers.
+	/// 提供程序默认配置名。
 	/// </summary>
 	
 	public static class ProviderName
 	{
 		/// <summary>
-		/// Microsoft Access OleDb provider (both JET or ACE).
-		/// Used as configuration name for Access mapping schema <see cref="DataProvider.Access.AccessMappingSchema"/>.
+		/// Microsoft Access OleDb 提供程序（JET 或 ACE）。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Access        = "Access";
 
 		/// <summary>
-		/// Microsoft Access ODBC provider.
-		/// Used as configuration name for Access mapping schema <see cref="DataProvider.Access.AccessMappingSchema"/>.
+		/// Microsoft Access ODBC 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string AccessOdbc    = "Access.Odbc";
 
 		/// <summary>
-		/// IBM DB2 default provider (DB2 LUW).
-		/// Used as configuration name for both DB2 base mapping schema <see cref="DB2MappingSchema"/>.
+		/// IBM DB2 默认提供程序（DB2 LUW）。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string DB2           = "DB2";
 		/// <summary>
-		/// IBM DB2 LUW provider.
-		/// Used as configuration name for DB2 LUW mapping schema <see cref="DB2MappingSchema.DB2LUWMappingSchema"/>.
+		/// IBM DB2 LUW 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string DB2LUW        = "DB2.LUW";
 		/// <summary>
-		/// IBM DB2 for z/OS provider.
-		/// Used as configuration name for DB2 z/OS mapping schema <see cref="DB2MappingSchema.DB2zOSMappingSchema"/>.
+		/// IBM DB2 for z/OS 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string DB2zOS        = "DB2.z/OS";
 		/// <summary>
-		/// Firebird provider.
-		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema"/>.
+		/// Firebird 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Firebird      = "Firebird";
 		/// <summary>
-		/// Firebird 2.5 provider.
-		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema.Firebird25MappingSchema"/>.
+		/// Firebird 2.5 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Firebird25      = "Firebird.2.5";
 		/// <summary>
-		/// Firebird 3 provider.
-		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema.Firebird3MappingSchema"/>.
+		/// Firebird 3 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Firebird3      = "Firebird.3";
 		/// <summary>
-		/// Firebird 4 provider.
-		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema.Firebird4MappingSchema"/>.
+		/// Firebird 4 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Firebird4      = "Firebird.4";
 		/// <summary>
-		/// Firebird 5 provider.
-		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema.Firebird5MappingSchema"/>.
+		/// Firebird 5 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Firebird5      = "Firebird.5";
 		/// <summary>
-		/// Informix IBM.Data.Informix provider (including IDS provider).
-		/// Used as configuration name for Informix mapping schema <see cref="DataProvider.Informix.InformixMappingSchema"/>.
+		/// Informix IBM.Data.Informix 提供程序（含 IDS）。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Informix      = "Informix";
 		/// <summary>
-		/// Informix over IBM.Data.DB2 IDS provider.
-		/// Used as configuration name for Informix mapping schema <see cref="DataProvider.Informix.InformixMappingSchema"/>.
+		/// 基于 IBM.Data.DB2 IDS 的 Informix 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string InformixDB2   = "Informix.DB2";
 		/// <summary>
-		/// Microsoft SQL Server default provider (SQL Server 2008).
-		/// Used as configuration name for SQL Server base mapping schema <see cref="SqlServerMappingSchema"/>.
+		/// Microsoft SQL Server 默认提供程序（SQL Server 2008）。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer     = "SqlServer";
 		/// <summary>
-		/// Microsoft SQL Server 2005 provider.
-		/// Used as configuration name for SQL Server 2005 mapping schema <see cref="SqlServerMappingSchema.SqlServer2005MappingSchema"/>.
+		/// Microsoft SQL Server 2005 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2005 = "SqlServer.2005";
 		/// <summary>
-		/// Microsoft SQL Server 2008 provider.
-		/// Used as configuration name for SQL Server 2008 mapping schema <see cref="SqlServerMappingSchema.SqlServer2008MappingSchema"/>.
+		/// Microsoft SQL Server 2008 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2008 = "SqlServer.2008";
 		/// <summary>
-		/// Microsoft SQL Server 2012 provider.
-		/// Used as configuration name for SQL Server 2012 mapping schema <see cref="SqlServerMappingSchema.SqlServer2012MappingSchema"/>.
+		/// Microsoft SQL Server 2012 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2012 = "SqlServer.2012";
 		/// <summary>
-		/// Microsoft SQL Server 2012 provider.
+		/// Microsoft SQL Server 2012 提供程序。
 		/// </summary>
 		public const string SqlServer2014 = "SqlServer.2014";
 		/// <summary>
-		/// Microsoft SQL Server 2016 provider.
-		/// Used as configuration name for SQL Server 2016 mapping schema <see cref="SqlServerMappingSchema.SqlServer2016MappingSchema"/>.
+		/// Microsoft SQL Server 2016 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2016 = "SqlServer.2016";
 		/// <summary>
-		/// Microsoft SQL Server 2017 provider.
-		/// Used as configuration name for SQL Server 2017 mapping schema <see cref="SqlServerMappingSchema.SqlServer2017MappingSchema"/>.
+		/// Microsoft SQL Server 2017 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2017 = "SqlServer.2017";
 		/// <summary>
-		/// Microsoft SQL Server 2019 provider.
-		/// Used as configuration name for SQL Server 2019 mapping schema <see cref="SqlServerMappingSchema.SqlServer2019MappingSchema"/>.
+		/// Microsoft SQL Server 2019 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2019 = "SqlServer.2019";
 		/// <summary>
-		/// Microsoft SQL Server 2022 provider.
-		/// Used as configuration name for SQL Server 2022 mapping schema <see cref="SqlServerMappingSchema.SqlServer2022MappingSchema"/>.
+		/// Microsoft SQL Server 2022 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlServer2022 = "SqlServer.2022";
 		/// <summary>
-		/// MySql provider.
-
+		/// MySql 提供程序。
 		/// </summary>
 		public const string MySql         = "MySql";
 		/// <summary>
-		/// MySql 5.7.x provider.
-
+		/// MySql 5.7.x 提供程序。
 		/// </summary>
 		public const string MySql57 = "MySql.5.7";
 		/// <summary>
-		/// MySql 8.x provider.
-
+		/// MySql 8.x 提供程序。
 		/// </summary>
 		public const string MySql80 = "MySql.8.0";
 		/// <summary>
-		/// MariaDB 10+ provider.
-
+		/// MariaDB 10+ 提供程序。
 		/// </summary>
 		public const string MariaDB10 = "MariaDB.10";
 		/// <summary>
-		/// MySql 5.7.x using MySql.Data provider.
-
+		/// 使用 MySql.Data 的 MySql 5.7.x 提供程序。
 		/// </summary>
 		public const string MySql57MySqlData = "MySql.5.7.MySql.Data";
 		/// <summary>
-		/// MySql 5.7.x using MySqlConnector provider.
-
+		/// 使用 MySqlConnector 的 MySql 5.7.x 提供程序。
 		/// </summary>
 		public const string MySql57MySqlConnector = "MySql.5.7.MySqlConnector";
 		/// <summary>
-		/// MySql 8.x using MySql.Data provider.
-
+		/// 使用 MySql.Data 的 MySql 8.x 提供程序。
 		/// </summary>
 		public const string MySql80MySqlData = "MySql.8.0.MySql.Data";
 		/// <summary>
-		/// MySql 8.x using MySqlConnector provider.
-
+		/// 使用 MySqlConnector 的 MySql 8.x 提供程序。
 		/// </summary>
 		public const string MySql80MySqlConnector = "MySql.8.0.MySqlConnector";
 		/// <summary>
-		/// MariaDB 10+ using MySql.Data provider.
-
+		/// 使用 MySql.Data 的 MariaDB 10+ 提供程序。
 		/// </summary>
 		public const string MariaDB10MySqlData = "MariaDB.10.MySql.Data";
 		/// <summary>
-		/// MariaDB 10+ using MySqlConnector provider.
-
+		/// 使用 MySqlConnector 的 MariaDB 10+ 提供程序。
 		/// </summary>
 		public const string MariaDB10MySqlConnector = "MariaDB.10.MySqlConnector";
 
 		/// <summary>
-		/// Oracle ODP.NET autodetected provider (native or managed).
-
+		/// Oracle ODP.NET 自动检测提供程序（原生或托管）。
 		/// </summary>
 		public const string Oracle        = "Oracle";
 		/// <summary>
-		/// Oracle (11g dialect) ODP.NET native provider.
-
+		/// Oracle（11g 方言）ODP.NET 原生提供程序。
 		/// </summary>
 		public const string Oracle11Native = "Oracle.11.Native";
 		/// <summary>
-		/// Oracle (11g dialect) Devart provider.
-
+		/// Oracle（11g 方言）Devart 提供程序。
 		/// </summary>
 		public const string Oracle11Devart = "Oracle.11.Devart";
 		/// <summary>
-		/// Oracle (11g dialect) ODP.NET managed provider.
-
+		/// Oracle（11g 方言）ODP.NET 托管提供程序。
 		/// </summary>
 		public const string Oracle11Managed = "Oracle.11.Managed";
 		/// <summary>
-		/// Oracle ODP.NET native provider.
-
+		/// Oracle ODP.NET 原生提供程序。
 		/// </summary>
 		public const string OracleNative  = "Oracle.Native";
 		/// <summary>
-		/// Oracle ODP.NET managed provider.
-
+		/// Oracle ODP.NET 托管提供程序。
 		/// </summary>
 		public const string OracleManaged = "Oracle.Managed";
 		/// <summary>
-		/// Oracle Devart provider.
-
+		/// Oracle Devart 提供程序。
 		/// </summary>
 		public const string OracleDevart = "Oracle.Devart";
 		/// <summary>
-		/// PostgreSQL 9.2- data provider.
-		/// Used as configuration name for PostgreSQL mapping schema <see cref="DataProvider.PostgreSQL.PostgreSQLMappingSchema"/>.
+		/// PostgreSQL 9.2- 数据提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string PostgreSQL    = "PostgreSQL";
 		/// <summary>
-		/// PostgreSQL 9.2- data provider.
+		/// PostgreSQL 9.2- 数据提供程序。
 		/// </summary>
 		public const string PostgreSQL92  = "PostgreSQL.9.2";
 		/// <summary>
-		/// PostgreSQL 9.3+ data provider.
+		/// PostgreSQL 9.3+ 数据提供程序。
 		/// </summary>
 		public const string PostgreSQL93  = "PostgreSQL.9.3";
 		/// <summary>
-		/// PostgreSQL 9.5+ data provider.
+		/// PostgreSQL 9.5+ 数据提供程序。
 		/// </summary>
 		public const string PostgreSQL95  = "PostgreSQL.9.5";
 		/// <summary>
-		/// PostgreSQL 15+ data provider.
+		/// PostgreSQL 15+ 数据提供程序。
 		/// </summary>
 		public const string PostgreSQL15 = "PostgreSQL.15";
 		/// <summary>
-		/// Microsoft SQL Server Compact Edition provider.
-		/// Used as configuration name for SQL CE mapping schema <see cref="DataProvider.SqlCe.SqlCeMappingSchema"/>.
+		/// Microsoft SQL Server Compact Edition 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SqlCe         = "SqlCe";
 		/// <summary>
-		/// SQLite provider.
-		/// Used as configuration name for SQLite mapping schema <see cref="DataProvider.SQLite.SQLiteMappingSchema"/>.
+		/// SQLite 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SQLite        = "SQLite";
 		/// <summary>
-		/// System.Data.Sqlite provider.
+		/// System.Data.Sqlite 提供程序。
 		/// </summary>
 		public const string SQLiteClassic = "SQLite.Classic";
 		/// <summary>
-		/// Microsoft.Data.Sqlite provider.
+		/// Microsoft.Data.Sqlite 提供程序。
 		/// </summary>
 		public const string SQLiteMS      = "SQLite.MS";
 		/// <summary>
-		/// Native SAP/Sybase ASE provider.
-		/// Used as configuration name for Sybase ASE mapping schema <see cref="DataProvider.Sybase.SybaseMappingSchema.NativeMappingSchema"/>.
+		/// 原生 SAP/Sybase ASE 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string Sybase        = "Sybase";
 		/// <summary>
-		/// Managed Sybase/SAP ASE provider from <a href="https://github.com/DataAction/AdoNetCore.AseClient">DataAction</a>.
-		/// Used as configuration name for Sybase ASE mapping schema <see cref="DataProvider.Sybase.SybaseMappingSchema.ManagedMappingSchema"/>.
+		/// 来自 DataAction 的托管 Sybase/SAP ASE 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SybaseManaged = "Sybase.Managed";
 		/// <summary>
-		/// SAP HANA provider.
-		/// Used as configuration name for SAP HANA mapping schema <see cref="DataProvider.SapHana.SapHanaMappingSchema"/>.
+		/// SAP HANA 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SapHana       = "SapHana";
 		/// <summary>
-		/// SAP HANA provider.
-		/// Used as configuration name for SAP HANA mapping schema <see cref="DataProvider.SapHana.SapHanaMappingSchema.NativeMappingSchema"/>.
+		/// SAP HANA 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SapHanaNative = "SapHana.Native";
 		/// <summary>
-		/// SAP HANA ODBC provider.
-		/// Used as configuration name for SAP HANA mapping schema <see cref="DataProvider.SapHana.SapHanaMappingSchema.OdbcMappingSchema"/>.
+		/// SAP HANA ODBC 提供程序。
+		/// 用作对应映射架构的配置名。
 		/// </summary>
 		public const string SapHanaOdbc   = "SapHana.Odbc";
 		/// <summary>
-		/// ClickHouse provider base name.
+		/// ClickHouse 提供程序基础名。
 		/// </summary>
 		public const string ClickHouse        = "ClickHouse";
 		/// <summary>
-		/// ClickHouse provider using Octonica.ClickHouseClient ADO.NET provider.
+		/// 使用 Octonica.ClickHouseClient 的 ClickHouse 提供程序。
 		/// </summary>
 		public const string ClickHouseOctonica = "ClickHouse.Octonica";
 		/// <summary>
-		/// ClickHouse provider using ClickHouse.Client ADO.NET provider.
+		/// 使用 ClickHouse.Client 的 ClickHouse 提供程序。
 		/// </summary>
 		public const string ClickHouseClient   = "ClickHouse.Client";
 		/// <summary>
-		/// ClickHouse provider using MySqlConnector ADO.NET provider.
+		/// 使用 MySqlConnector 的 ClickHouse 提供程序。
 		/// </summary>
 		public const string ClickHouseMySql   = "ClickHouse.MySql";
 	}

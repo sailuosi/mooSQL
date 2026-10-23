@@ -9,12 +9,19 @@ using System.Threading.Tasks;
 namespace mooSQL.data
 {
     /// <summary>
-    /// DuckDB 批量写入：优先 <see cref="DuckDBConnection.CreateAppender"/>，失败时回退到多行 INSERT。
+    /// DuckDB 批量写入：优先 <see cref="DuckDBConnection.CreateAppender(string)"/>，失败时回退到多行 INSERT。
     /// </summary>
     public class DuckDBBulkCopyee : DbBulkCopy
     {
+        /// <summary>
+        /// 使用指定数据库实例初始化批量写入器。
+        /// </summary>
+        /// <param name="DB">数据库实例。</param>
         public DuckDBBulkCopyee(DBInstance DB) : base(DB) { }
 
+        /// <summary>
+        /// 将 DataRow 数组批量写入目标表。
+        /// </summary>
         public override BulkCopyResult WriteToServer(DataRow[] rows)
         {
             if (rows == null || rows.Length == 0)
@@ -22,6 +29,9 @@ namespace mooSQL.data
             return WriteViaAppender(rows[0].Table.Columns, rows.Length, i => rows[i]);
         }
 
+        /// <summary>
+        /// 将 DataTable 批量写入目标表。
+        /// </summary>
         public override BulkCopyResult WriteToServer(DataTable table)
         {
             if (table == null || table.Rows.Count == 0)
@@ -29,6 +39,9 @@ namespace mooSQL.data
             return WriteViaAppender(table.Columns, table.Rows.Count, i => table.Rows[i]);
         }
 
+        /// <summary>
+        /// 将 IDataReader 数据批量写入目标表。
+        /// </summary>
         public override BulkCopyResult WriteToServer(IDataReader reader)
         {
             if (reader == null)

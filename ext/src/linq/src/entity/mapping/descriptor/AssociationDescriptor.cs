@@ -151,6 +151,9 @@ namespace mooSQL.linq.mapping
 
 			return string.Empty;
 		}
+		/// <summary>
+		/// IsList
+		/// </summary>
 
 		public bool IsList
 		{
@@ -160,12 +163,18 @@ namespace mooSQL.linq.mapping
 				return typeof(IEnumerable).IsSameOrParentOf(type);
 			}
 		}
+		/// <summary>
+		/// Gets GetElementType.
+		/// </summary>
 
 		public Type GetElementType(DBInstance mappingSchema)
 		{
 			var type = MemberInfo.GetMemberType();
 			return EagerLoading.GetEnumerableElementType(type, mappingSchema);
 		}
+		/// <summary>
+		/// Gets GetParentElementType.
+		/// </summary>
 
 		public Type GetParentElementType()
 		{
@@ -278,6 +287,9 @@ namespace mooSQL.linq.mapping
 
 			return lambda;
 		}
+		/// <summary>
+		/// HasQueryMethod
+		/// </summary>
 
 		public bool HasQueryMethod()
 		{
@@ -447,6 +459,10 @@ namespace mooSQL.linq.mapping
 
 			return storageMember.GetMemberType();
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString()
 		{

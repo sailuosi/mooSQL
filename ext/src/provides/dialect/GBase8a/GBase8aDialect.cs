@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,8 +12,20 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// GBase8aDialect type.
+    /// </summary>
+    /// <summary>
+    /// GBase8aDialect type.
+    /// </summary>
     public class GBase8aDialect : ExtDialect
     {
+        /// <summary>
+        /// GBase8aDialect type.
+        /// </summary>
+        /// <summary>
+        /// GBase8aDialect type.
+        /// </summary>
         public GBase8aDialect()
         {
             expression = new GBase8aExpress(this);
@@ -22,30 +34,54 @@ namespace mooSQL.data
 
             this.InitDBVersions();
         }
+ /// <summary>
+ /// Creates a new database command for this dialect.
+ /// </summary>
+ 
         public override DbCommand getCommand()
         {
             return new OdbcCommand();
         }
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
         {
             return new OdbcConnection(db.DBConnectStr);
         }
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
         {
             return new OdbcDataAdapter();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
         {
             return new OdbcCommandBuilder();
         }
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
         {
             return new DbBulkCopyFallback(this.dbInstance);
         }
+ /// <summary>
+ /// Adds a parameter to the command.
+ /// </summary>
+ 
         public override string addCmdPara(DbCommand cmd, Paras para)
         {
             string msg = string.Empty;
@@ -66,6 +102,10 @@ namespace mooSQL.data
 
             return msg;
         }
+ /// <summary>
+ /// Adds a parameter to the command.
+ /// </summary>
+ 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
             if (cmd is OdbcCommand)
@@ -82,6 +122,10 @@ namespace mooSQL.data
             }
             return null;
         }
+ /// <summary>
+ /// Adds a parameter to the command.
+ /// </summary>
+ 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
             if (cmd is OdbcCommand)

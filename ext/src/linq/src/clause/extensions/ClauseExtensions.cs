@@ -14,12 +14,24 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.clause
 {
+    /// <summary>
+    /// ClauseExtensions type.
+    /// </summary>
+    /// <summary>
+    /// ClauseExtensions type.
+    /// </summary>
     public static class ClauseExtensions
     {
+        /// <summary>
+        /// FindTables
+        /// </summary>
 
         public static List<TableSourceWord> FindTables(this ITableNode table) { 
             throw new NotImplementedException();    
         }
+        /// <summary>
+        /// Gets GetJoins.
+        /// </summary>
 
 
         public static List<JoinTableWord> GetJoins(this ITableNode table) { 
@@ -27,6 +39,9 @@ namespace mooSQL.linq.clause
             var joins = new List<JoinTableWord>();
             return joins;
         }
+        /// <summary>
+        /// FindSrc
+        /// </summary>
 
         public static TableSourceWord FindSrc(this ITableNode table) {
             if (table is TableSourceWord srcTable) {
@@ -34,6 +49,12 @@ namespace mooSQL.linq.clause
             }
             return null;
         }
+        /// <summary>
+        /// FindISrc
+        /// </summary>
+        /// <summary>
+        /// FindISrc
+        /// </summary>
         public static ITableNode FindISrc(this ITableNode table)
         {
             if (table is TableSourceWord srcTable)
@@ -42,11 +63,17 @@ namespace mooSQL.linq.clause
             }
             return null;
         }
+        /// <summary>
+        /// FindTableSrc
+        /// </summary>
 
 
         public static TableSourceWord FindTableSrc(this FromClause fromClause, ITableNode table) { 
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// CanBeNullable
+        /// </summary>
 
         public static bool CanBeNullable(this IExpWord expWord,NullabilityContext context) {
             if (expWord is FieldWord field) {
@@ -59,27 +86,51 @@ namespace mooSQL.linq.clause
                 return true;
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// HasUniqueKeys
+        /// </summary>
 
         public static bool HasUniqueKeys(this ITableNode tableNode) { 
             throw new NotImplementedException(); 
         }
+        /// <summary>
+        /// FindUniqueKeys
+        /// </summary>
 
         public static List<IExpWord[]> FindUniqueKeys(this ITableNode tableNode)
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// IsSimple
+        /// </summary>
 
         public static bool IsSimple(this SelectQueryClause selectQuery) {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// IsSimpleOrSet
+        /// </summary>
+        /// <summary>
+        /// IsSimpleOrSet
+        /// </summary>
         public static bool IsSimpleOrSet(this SelectQueryClause selectQuery)
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// FindIdentityFields
+        /// </summary>
+        /// <summary>
+        /// FindIdentityFields
+        /// </summary>
         public static IReadOnlyList<FieldWord> FindIdentityFields(this ITableNode selectQuery)
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// FindAlias
+        /// </summary>
 
 
         public static string? FindAlias(this ITableNode selectQuery)
@@ -92,6 +143,12 @@ namespace mooSQL.linq.clause
                 _ => null
             };
         }
+        /// <summary>
+        /// setAlias
+        /// </summary>
+        /// <summary>
+        /// setAlias
+        /// </summary>
         public static string setAlias(this ITableNode selectQuery,string alias)
         {
             switch (selectQuery)
@@ -106,21 +163,36 @@ namespace mooSQL.linq.clause
                     throw new NotImplementedException($"setAlias not supported for {selectQuery?.GetType().Name}");
             }
         }
+        /// <summary>
+        /// FindSystemType
+        /// </summary>
 
 
         public static Type FindSystemType(this ITableNode sentence)
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// CanInvert
+        /// </summary>
         
 
         public static bool CanInvert(this IAffirmWord affirmWord, NullabilityContext nullability) {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// Invert
+        /// </summary>
+        /// <summary>
+        /// Invert
+        /// </summary>
         public static IAffirmWord Invert(this IAffirmWord affirmWord, NullabilityContext nullability)
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// Reduce
+        /// </summary>
 
 
 
@@ -155,6 +227,9 @@ namespace mooSQL.linq.clause
             return search;
 
         }
+        /// <summary>
+        /// Reduce
+        /// </summary>
 
         public static IAffirmWord Reduce(this ExprExpr expr, NullabilityContext nullability, EvaluateContext context, bool insideNot)
         {
@@ -246,12 +321,18 @@ namespace mooSQL.linq.clause
                 }
             }
         }
+        /// <summary>
+        /// CloneQuery
+        /// </summary>
 
 
         public static SelectQueryClause CloneQuery(this SelectQueryClause clause)
         {
             return clause.Clone(e => ReferenceEquals(e, clause));
         }
+        /// <summary>
+        /// IsComplex
+        /// </summary>
 
         public static bool IsComplex(this PropertyInfo propertyInfo) {
             if (propertyInfo.Name.Contains("."))
@@ -263,6 +344,9 @@ namespace mooSQL.linq.clause
             }
             //throw new NotImplementedException();
         }
+        /// <summary>
+        /// MakeBool
+        /// </summary>
 
 
         public static Clause MakeBool(bool isTrue)

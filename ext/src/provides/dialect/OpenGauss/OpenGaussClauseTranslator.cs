@@ -5,6 +5,12 @@ namespace mooSQL.data
     /// </summary>
     public class OpenGaussClauseTranslator : NpgClauseTranslator
     {
+        /// <summary>
+        /// OpenGaussClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// OpenGaussClauseTranslator type.
+        /// </summary>
         public OpenGaussClauseTranslator(Dialect dia) : base(dia)
         {
         }

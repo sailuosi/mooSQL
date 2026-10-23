@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.linq;
 using System;
 using System.Collections.Generic;
@@ -8,11 +8,27 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// OracleClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// OracleClauseTranslator type.
+    /// </summary>
     public class OracleClauseTranslator:ClauseTranslateVisitor
     {
+        /// <summary>
+        /// OracleClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// OracleClauseTranslator type.
+        /// </summary>
         public OracleClauseTranslator(Dialect dialect):base(dialect) { 
         
         }
+/// <summary>
+/// Returns the identity expression for a field.
+/// </summary>
+ 
 
         public override IExpWord? GetIdentityExpression(FieldWord field)
         {

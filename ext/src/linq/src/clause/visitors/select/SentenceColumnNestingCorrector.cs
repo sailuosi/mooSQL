@@ -5,6 +5,12 @@ using System.Diagnostics;
 namespace mooSQL.linq.clause
 {
     using mooSQL.data.model;
+	/// <summary>
+	/// SentenceColumnNestingCorrector type.
+	/// </summary>
+	/// <summary>
+	/// SentenceColumnNestingCorrector type.
+	/// </summary>
 	public class SentenceColumnNestingCorrector : SentenceVisitor
 	{
 		[DebuggerDisplay("QN(S:{TableSource.SourceID})")]
@@ -77,12 +83,22 @@ namespace mooSQL.linq.clause
 		}
 
 		QueryNesting?      _parentQueryNesting;
+		/// <summary>
+		/// Gets or sets HasSelectQuery.
+		/// </summary>
 
 		public bool HasSelectQuery { get; private set; }
+		/// <summary>
+		/// SentenceColumnNestingCorrector type.
+		/// </summary>
 
 		public SentenceColumnNestingCorrector() : base(VisitMode.Modify, null)
 		{
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -90,6 +106,9 @@ namespace mooSQL.linq.clause
 
 			_parentQueryNesting = null;
 		}
+		/// <summary>
+		/// CorrectColumnNesting
+		/// </summary>
 
 		public Clause CorrectColumnNesting(Clause element)
 		{
@@ -128,6 +147,10 @@ namespace mooSQL.linq.clause
 
 			return element;
 		}
+/// <summary>
+/// VisitFieldWord
+/// </summary>
+ 
 
         public override Clause VisitFieldWord(FieldWord element)
 		{
@@ -143,6 +166,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitColumnWord
+/// </summary>
+	
 
 		public override Clause VisitColumnWord(ColumnWord element)
 		{
@@ -158,6 +185,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitSelectQuery
+/// </summary>
+ 
 
         public override Clause VisitSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -173,6 +204,10 @@ namespace mooSQL.linq.clause
 
 			return newQuery;
 		}
+/// <summary>
+/// VisitTableSource
+/// </summary>
+ 
 
         public override Clause VisitTableSource(TableSourceWord element)
 		{

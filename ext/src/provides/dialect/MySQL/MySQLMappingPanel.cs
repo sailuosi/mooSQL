@@ -10,8 +10,20 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// MySQLMappingPanel type.
+    /// </summary>
+    /// <summary>
+    /// MySQLMappingPanel type.
+    /// </summary>
     public class MySQLMappingPanel:DefaultMappingPanel
     {
+        /// <summary>
+        /// MySQLMappingPanel type.
+        /// </summary>
+        /// <summary>
+        /// MySQLMappingPanel type.
+        /// </summary>
         public MySQLMappingPanel()
         {
 
@@ -59,6 +71,10 @@ namespace mooSQL.data
             stringBuilder.AppendByteArrayAsHexViaLookup32(value);
             return stringBuilder.ToString();
         }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
         public override string DbDataTypeToSQL(DbDataType type)
         {
@@ -135,6 +151,10 @@ namespace mooSQL.data
             }
             return base.DbDataTypeToSQL(type);
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
         public override DataFam GetDataType(string? dataType, string? columnType=null)
         {

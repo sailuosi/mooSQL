@@ -15,8 +15,20 @@ using mooSQL.linq;
 
 namespace mooSQL.data
 {
+     /// <summary>
+     /// OracleDialect type.
+     /// </summary>
+     /// <summary>
+     /// OracleDialect type.
+     /// </summary>
      public class OracleDialect : ExtDialect
     {
+        /// <summary>
+        /// OracleDialect type.
+        /// </summary>
+        /// <summary>
+        /// OracleDialect type.
+        /// </summary>
         public OracleDialect()
         {
             expression = new OracleExpress(this);
@@ -30,6 +42,12 @@ namespace mooSQL.data
 
 
         // 判断是否为12c及以上版本
+        /// <summary>
+        /// Returns whether the Oracle version is 12c or higher.
+        /// </summary>
+        /// <summary>
+        /// Returns whether the Oracle version is 12c or higher.
+        /// </summary>
         public  bool Is12cOrHigher()
         {
             var ver = this.CurVersion;
@@ -57,36 +75,68 @@ namespace mooSQL.data
 
             return false;
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
         {
             return new OracleCommandBuilder();
         }
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
         {
             return new OracleCommand();
         }
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
         {
             return new OracleConnection(db.DBConnectStr);
         }
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
         {
             return new OracleDataAdapter();
         }
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
         {
             return new OracleBulkCopyee(this.dbInstance);
         }
+/// <summary>
+/// Returns whether MERGE statements are supported.
+/// </summary>
+ 
 
         public override bool SupportsMerge() => true;
+/// <summary>
+/// Creates the LINQ member translator for this dialect.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMemberTranslator()
             => new OracleMemberTranslator();
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -97,6 +147,10 @@ namespace mooSQL.data
             }
             return null;
         }
+ /// <summary>
+ /// Adds a parameter to the command.
+ /// </summary>
+ 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
             if (cmd is OracleCommand)

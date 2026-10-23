@@ -102,147 +102,288 @@ namespace mooSQL.linq
 		#endregion
 
 		#region API Interfaces
+		/// <summary>
+		/// IReadyToFunction&lt;TR&gt;
+		/// </summary>
+		/// <summary>
+		/// IReadyToFunction&lt;TR&gt;
+		/// </summary>
 		public interface IReadyToFunction<out TR>
 		{
+			/// <summary>
+			/// ToValue
+			/// </summary>
 			[DbFunc.Extension("", ChainPrecedence = 0)]
 			TR ToValue();
 		}
+		/// <summary>
+		/// IReadyToFunctionOrOverWithPartition&lt;TR&gt;
+		/// </summary>
 
 		public interface IReadyToFunctionOrOverWithPartition<out TR> : IReadyToFunction<TR>
 		{
+			/// <summary>
+			/// Over
+			/// </summary>
 			[DbFunc.Extension("OVER({query_partition_clause?})", TokenName = "over")]
 			IOverMayHavePartition<TR> Over();
 		}
+		/// <summary>
+		/// IOverWithPartitionNeeded&lt;TR&gt;
+		/// </summary>
 
 		public interface IOverWithPartitionNeeded<out TR>
 		{
+			/// <summary>
+			/// Over
+			/// </summary>
 			[DbFunc.Extension("OVER({query_partition_clause?})", TokenName = "over")]
 			IOverMayHavePartition<TR> Over();
 		}
+		/// <summary>
+		/// INeedOrderByAndMaybeOverWithPartition&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedOrderByAndMaybeOverWithPartition<out TR>
 		{
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
 		}
+		/// <summary>
+		/// INeedSingleOrderByAndMaybeOverWithPartition&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedSingleOrderByAndMaybeOverWithPartition<out TR>
 		{
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IReadyToFunctionOrOverWithPartition<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IReadyToFunctionOrOverWithPartition<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
 		}
+		/// <summary>
+		/// IOrderedAcceptOverReadyToFunction&lt;TR&gt;
+		/// </summary>
 
 		public interface IOrderedAcceptOverReadyToFunction<out TR> : IReadyToFunctionOrOverWithPartition<TR>
 		{
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedAcceptOverReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedAcceptOverReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
 		}
+		/// <summary>
+		/// IOverMayHavePartition&lt;TR&gt;
+		/// </summary>
 
 		public interface IOverMayHavePartition<out TR> : IReadyToFunction<TR>
 		{
+			/// <summary>
+			/// PartitionBy
+			/// </summary>
 			[DbFunc.Extension("PARTITION BY {partition_expr, ', '}", TokenName = "query_partition_clause")]
 			IReadyToFunction<TR> PartitionBy([ExprParameter("partition_expr")] params object?[] expressions);
 		}
+		/// <summary>
+		/// IPartitionedMayHaveOrder&lt;TR&gt;
+		/// </summary>
 
 		public interface IPartitionedMayHaveOrder<out TR> : IReadyToFunction<TR>, INeedsOrderByOnly<TR>
 		{
 		}
+		/// <summary>
+		/// IOverMayHavePartitionAndOrder&lt;TR&gt;
+		/// </summary>
 
 		public interface IOverMayHavePartitionAndOrder<out TR> : IReadyToFunction<TR>, INeedsOrderByOnly<TR>
 		{
+			/// <summary>
+			/// PartitionBy
+			/// </summary>
 			[DbFunc.Extension("PARTITION BY {partition_expr, ', '}", TokenName = "query_partition_clause")]
 			IPartitionedMayHaveOrder<TR> PartitionBy([ExprParameter("partition_expr")] params object?[] expressions);
 		}
+		/// <summary>
+		/// IAnalyticFunction&lt;TR&gt;
+		/// </summary>
 
 		public interface IAnalyticFunction<out TR>
 		{
+			/// <summary>
+			/// Over
+			/// </summary>
 			[DbFunc.Extension("{function} OVER({query_partition_clause?}{_}{order_by_clause?}{_}{windowing_clause?})",
 				TokenName = "over", ChainPrecedence = 10, IsWindowFunction = true)]
 			IReadyForFullAnalyticClause<TR> Over();
 		}
+		/// <summary>
+		/// IAnalyticFunctionWithoutWindow&lt;TR&gt;
+		/// </summary>
 
 		public interface IAnalyticFunctionWithoutWindow<out TR>
 		{
+			/// <summary>
+			/// Over
+			/// </summary>
 			[DbFunc.Extension("{function} OVER({query_partition_clause?}{_}{order_by_clause?})", TokenName = "over", ChainPrecedence = 10, IsWindowFunction = true)]
 			IOverMayHavePartitionAndOrder<TR> Over();
 		}
+		/// <summary>
+		/// IAggregateFunction&lt;TR&gt;
+		/// </summary>
 
 		public interface IAggregateFunction<out TR> : IAnalyticFunction<TR> {}
+		/// <summary>
+		/// IAggregateFunctionSelfContained&lt;TR&gt;
+		/// </summary>
 		public interface IAggregateFunctionSelfContained<out TR> : IAggregateFunction<TR>, IReadyToFunction<TR> {}
+		/// <summary>
+		/// IOrderedReadyToFunction&lt;TR&gt;
+		/// </summary>
 
 		public interface IOrderedReadyToFunction<out TR> : IReadyToFunction<TR>
 		{
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
 		}
+		/// <summary>
+		/// INeedsWithinGroupWithOrderOnly&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedsWithinGroupWithOrderOnly<out TR>
 		{
+			/// <summary>
+			/// Gets or sets WithinGroup.
+			/// </summary>
 			[DbFunc.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "within_group")]
 			INeedsOrderByOnly<TR> WithinGroup { get; }
 		}
+		/// <summary>
+		/// INeedsWithinGroupWithOrderAndMaybePartition&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedsWithinGroupWithOrderAndMaybePartition<out TR>
 		{
+			/// <summary>
+			/// Gets or sets WithinGroup.
+			/// </summary>
 			[DbFunc.Extension("WITHIN GROUP ({order_by_clause}){_}{over?}", TokenName = "within_group")]
 			INeedOrderByAndMaybeOverWithPartition<TR> WithinGroup { get; }
 		}
+		/// <summary>
+		/// INeedsWithinGroupWithSingleOrderAndMaybePartition&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedsWithinGroupWithSingleOrderAndMaybePartition<out TR>
 		{
+			/// <summary>
+			/// Gets or sets WithinGroup.
+			/// </summary>
 			[DbFunc.Extension("WITHIN GROUP ({order_by_clause}){_}{over?}", TokenName = "within_group")]
 			INeedSingleOrderByAndMaybeOverWithPartition<TR> WithinGroup { get; }
 		}
+		/// <summary>
+		/// INeedsOrderByOnly&lt;TR&gt;
+		/// </summary>
 
 		public interface INeedsOrderByOnly<out TR>
 		{
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToFunction<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToFunction<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
@@ -250,101 +391,194 @@ namespace mooSQL.linq
 		}
 
 		#region Full Support
+		/// <summary>
+		/// IReadyForSortingWithWindow&lt;TR&gt;
+		/// </summary>
 
 		public interface IReadyForSortingWithWindow<out TR>
 		{
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> OrderBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// OrderByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("ORDER BY {order_item, ', '}", TokenName = "order_by_clause")]
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> OrderByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
 		}
+		/// <summary>
+		/// IReadyForFullAnalyticClause&lt;TR&gt;
+		/// </summary>
 
 		public interface IReadyForFullAnalyticClause<out TR> : IReadyToFunction<TR>, IReadyForSortingWithWindow<TR>
 		{
+			/// <summary>
+			/// PartitionBy
+			/// </summary>
 			[DbFunc.Extension("PARTITION BY {partition_expr, ', '}", TokenName = "query_partition_clause")]
 			IPartitionDefinedReadyForSortingWithWindow<TR> PartitionBy([ExprParameter("partition_expr")] params object?[] expressions);
 		}
+		/// <summary>
+		/// IPartitionDefinedReadyForSortingWithWindow&lt;TR&gt;
+		/// </summary>
 
 		public interface IPartitionDefinedReadyForSortingWithWindow<out TR> : IReadyForSortingWithWindow<TR>, IReadyToFunction<TR>
 		{
 		}
+		/// <summary>
+		/// IOrderedReadyToWindowing&lt;TR&gt;
+		/// </summary>
 
 		public interface IOrderedReadyToWindowing<out TR> : IReadyToFunction<TR>
 		{
+			/// <summary>
+			/// Gets or sets Rows.
+			/// </summary>
 			[DbFunc.Extension("ROWS {boundary_clause}", TokenName = "windowing_clause")]
 			IBoundaryExpected<TR> Rows { get; }
+			/// <summary>
+			/// Gets or sets Range.
+			/// </summary>
 
 			[DbFunc.Extension("RANGE {boundary_clause}", TokenName = "windowing_clause")]
 			IBoundaryExpected<TR> Range { get; }
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenBy&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr}", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> ThenBy<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item")]
 			IOrderedReadyToWindowing<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr);
+			/// <summary>
+			/// ThenByDesc&lt;TKey&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{order_expr} DESC", TokenName = "order_item", AppendNullsPositionSuffix = true)]
 			IOrderedReadyToWindowing<TR> ThenByDesc<TKey>([ExprParameter("order_expr")] TKey expr, [SqlQueryDependent] SooFunctionExtension.NullsPosition nulls);
 		}
+		/// <summary>
+		/// IBoundaryExpected&lt;TR&gt;
+		/// </summary>
 
 		public interface IBoundaryExpected<out TR>
 		{
+			/// <summary>
+			/// Gets or sets UnboundedPreceding.
+			/// </summary>
 			[DbFunc.Extension("UNBOUNDED PRECEDING", TokenName = "boundary_clause")]
 			IReadyToFunction<TR> UnboundedPreceding { get; }
+			/// <summary>
+			/// Gets or sets CurrentRow.
+			/// </summary>
 
 			[DbFunc.Extension("CURRENT ROW", TokenName = "boundary_clause")]
 			IReadyToFunction<TR> CurrentRow { get; }
+			/// <summary>
+			/// ValuePreceding&lt;T&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{value_expr} PRECEDING", TokenName = "boundary_clause")]
 			IReadyToFunction<TR> ValuePreceding<T>([ExprParameter("value_expr")] T value);
+			/// <summary>
+			/// Gets or sets Between.
+			/// </summary>
 
 			[DbFunc.Extension("BETWEEN {start_boundary} AND {end_boundary}", TokenName = "boundary_clause")]
 			IBetweenStartExpected<TR> Between { get; }
 		}
+		/// <summary>
+		/// IBetweenStartExpected&lt;TR&gt;
+		/// </summary>
 
 		public interface IBetweenStartExpected<out TR>
 		{
+			/// <summary>
+			/// Gets or sets UnboundedPreceding.
+			/// </summary>
 			[DbFunc.Extension("UNBOUNDED PRECEDING", TokenName = "start_boundary")]
 			IAndExpected<TR> UnboundedPreceding { get; }
+			/// <summary>
+			/// Gets or sets CurrentRow.
+			/// </summary>
 
 			[DbFunc.Extension("CURRENT ROW", TokenName = "start_boundary")]
 			IAndExpected<TR> CurrentRow { get; }
+			/// <summary>
+			/// ValuePreceding&lt;T&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{value_expr} PRECEDING", TokenName = "start_boundary")]
 			IAndExpected<TR> ValuePreceding<T>([ExprParameter("value_expr")] T value);
 		}
+		/// <summary>
+		/// IAndExpected&lt;TR&gt;
+		/// </summary>
 
 		public interface IAndExpected<out TR>
 		{
 			// TokenName used only for chain continuation
+			/// <summary>
+			/// Gets or sets And.
+			/// </summary>
 			[DbFunc.Extension("", TokenName = "and_connector")]
 			ISecondBoundaryExpected<TR> And { get; }
 		}
+		/// <summary>
+		/// ISecondBoundaryExpected&lt;TR&gt;
+		/// </summary>
 
 		public interface ISecondBoundaryExpected<out TR>
 		{
+			/// <summary>
+			/// Gets or sets UnboundedFollowing.
+			/// </summary>
 			[DbFunc.Extension("UNBOUNDED FOLLOWING", TokenName = "end_boundary")]
 			IReadyToFunction<TR> UnboundedFollowing { get; }
+			/// <summary>
+			/// Gets or sets CurrentRow.
+			/// </summary>
 
 			[DbFunc.Extension("CURRENT ROW", TokenName = "end_boundary")]
 			IReadyToFunction<TR> CurrentRow { get; }
+			/// <summary>
+			/// ValuePreceding&lt;T&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{value_expr} PRECEDING", TokenName = "end_boundary")]
 			IReadyToFunction<TR> ValuePreceding<T>([ExprParameter("value_expr")] T value);
+			/// <summary>
+			/// ValueFollowing&lt;T&gt;
+			/// </summary>
 
 			[DbFunc.Extension("{value_expr} FOLLOWING", TokenName = "end_boundary")]
 			IReadyToFunction<TR> ValueFollowing<T>([ExprParameter("value_expr")] T value);
@@ -355,6 +589,9 @@ namespace mooSQL.linq
 		#endregion API Interfaces
 
 		#region Extensions
+		/// <summary>
+		/// Filter&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("{function} FILTER (WHERE {filter})", TokenName = FunctionToken, ChainPrecedence = 2, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Filter<T>(this IAnalyticFunctionWithoutWindow<T> func,
@@ -368,12 +605,18 @@ namespace mooSQL.linq
 		#region Analytic functions
 
 		#region Average
+		/// <summary>
+		/// Average&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("AVG({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static double Average<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(Average)}' is server-side method.");
 		}
+		/// <summary>
+		/// Average&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("AVG({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static double Average<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -390,12 +633,18 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)
 				));
 		}
+		/// <summary>
+		/// Average&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("AVG({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Average<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
 		{
 			throw new LinqException($"'{nameof(Average)}' is server-side method.");
 		}
+		/// <summary>
+		/// Average&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("AVG({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Average<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -406,12 +655,18 @@ namespace mooSQL.linq
 		#endregion Average
 
 		#region Corr
+		/// <summary>
+		/// Corr&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("CORR({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? Corr<T>(this IEnumerable<T> source, [ExprParameter] Expression<Func<T, object?>> expr1, [ExprParameter] Expression<Func<T, object?>> expr2)
 		{
 			throw new LinqException($"'{nameof(Corr)}' is server-side method.");
 		}
+		/// <summary>
+		/// Corr&lt;TEntity&gt;
+		/// </summary>
 
 		[DbFunc.Extension("CORR({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? Corr<TEntity>(
@@ -432,6 +687,9 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr1), Expression.Quote(expr2)
 				));
 		}
+		/// <summary>
+		/// Corr&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("CORR({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Corr<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
@@ -442,18 +700,27 @@ namespace mooSQL.linq
 		#endregion Corr
 
 		#region Count
+		/// <summary>
+		/// CountExt&lt;TEntity&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({expr})", IsAggregate = true, ChainPrecedence = 0, CanBeNull = false)]
 		public static int CountExt<TEntity>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, object?> expr)
 		{
 			throw new LinqException($"'{nameof(CountExt)}' is server-side method.");
 		}
+		/// <summary>
+		/// CountExt&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsAggregate = true, ChainPrecedence = 0, CanBeNull = false)]
 		public static int CountExt<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(CountExt)}' is server-side method.");
 		}
+		/// <summary>
+		/// CountExt&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", IsAggregate = true, ChainPrecedence = 0, CanBeNull = false)]
 		public static int CountExt<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -470,6 +737,9 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr))
 				);
 		}
+		/// <summary>
+		/// CountExt&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsAggregate = true, ChainPrecedence = 0, CanBeNull = false)]
 		public static int CountExt<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier = SooFunctionExtension.AggregateModifier.None)
@@ -486,18 +756,27 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)
 				));
 		}
+		/// <summary>
+		/// Count
+		/// </summary>
 
 		[DbFunc.Extension("COUNT(*)", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true, CanBeNull = false)]
 		public static IAggregateFunctionSelfContained<int> Count(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(Count)}' is server-side method.");
 		}
+		/// <summary>
+		/// Count&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true, CanBeNull = false)]
 		public static IAggregateFunctionSelfContained<int> Count<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Count)}' is server-side method.");
 		}
+		/// <summary>
+		/// Count
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true, IsAggregate = true, CanBeNull = false)]
 		public static IAggregateFunctionSelfContained<int> Count(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -508,18 +787,27 @@ namespace mooSQL.linq
 		#endregion
 
 		#region LongCount
+		/// <summary>
+		/// LongCountExt&lt;TEntity&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({expr})", IsAggregate = true, ChainPrecedence = 0)]
 		public static long LongCountExt<TEntity>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, object?> expr)
 		{
 			throw new LinqException($"'{nameof(LongCountExt)}' is server-side method.");
 		}
+		/// <summary>
+		/// LongCountExt&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsAggregate = true, ChainPrecedence = 0)]
 		public static long LongCountExt<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(LongCountExt)}' is server-side method.");
 		}
+		/// <summary>
+		/// LongCountExt&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsAggregate = true, ChainPrecedence = 0)]
 		public static long LongCountExt<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier = SooFunctionExtension.AggregateModifier.None)
@@ -536,18 +824,27 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)
 				));
 		}
+		/// <summary>
+		/// LongCount
+		/// </summary>
 
 		[DbFunc.Extension("COUNT(*)", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<long> LongCount(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(LongCount)}' is server-side method.");
 		}
+		/// <summary>
+		/// LongCount&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<long> LongCount<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(LongCount)}' is server-side method.");
 		}
+		/// <summary>
+		/// LongCount
+		/// </summary>
 
 		[DbFunc.Extension("COUNT({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<long> LongCount(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -558,12 +855,18 @@ namespace mooSQL.linq
 		#endregion
 
 		#region CovarPop
+		/// <summary>
+		/// CovarPop&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_POP({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal CovarPop<T>(this IEnumerable<T> source, [ExprParameter] Expression<Func<T, object?>> expr1, [ExprParameter] Expression<Func<T, object?>> expr2)
 		{
 			throw new LinqException($"'{nameof(CovarPop)}' is server-side method.");
 		}
+		/// <summary>
+		/// CovarPop&lt;TEntity&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_POP({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal CovarPop<TEntity>(
@@ -584,6 +887,9 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr1), Expression.Quote(expr2)
 				));
 		}
+		/// <summary>
+		/// CovarPop&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_POP({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> CovarPop<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr1, [ExprParameter]T expr2)
@@ -594,12 +900,18 @@ namespace mooSQL.linq
 		#endregion CovarPop
 
 		#region CovarSamp
+		/// <summary>
+		/// CovarSamp&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_SAMP({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? CovarSamp<T>(this IEnumerable<T> source, [ExprParameter] Expression<Func<T, object?>> expr1, [ExprParameter] Expression<Func<T, object?>> expr2)
 		{
 			throw new LinqException($"'{nameof(CovarSamp)}' is server-side method.");
 		}
+		/// <summary>
+		/// CovarSamp&lt;TEntity&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_SAMP({expr1}, {expr2})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? CovarSamp<TEntity>(
@@ -620,6 +932,9 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr1), Expression.Quote(expr2)
 				));
 		}
+		/// <summary>
+		/// CovarSamp&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("COVAR_SAMP({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> CovarSamp<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr1, [ExprParameter]T expr2)
@@ -628,30 +943,45 @@ namespace mooSQL.linq
 		}
 
 		#endregion CovarSamp
+		/// <summary>
+		/// CumeDist&lt;TR&gt;
+		/// </summary>
 
 		[DbFunc.Extension("CUME_DIST({expr, ', '}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderOnly<TR> CumeDist<TR>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] params object?[] expr)
 		{
 			throw new LinqException($"'{nameof(CumeDist)}' is server-side method.");
 		}
+		/// <summary>
+		/// CumeDist&lt;TR&gt;
+		/// </summary>
 
 		[DbFunc.Extension("CUME_DIST()", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<TR> CumeDist<TR>(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(CumeDist)}' is server-side method.");
 		}
+		/// <summary>
+		/// DenseRank
+		/// </summary>
 
 		[DbFunc.Extension("DENSE_RANK({expr1}, {expr2}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderOnly<long> DenseRank(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(DenseRank)}' is server-side method.");
 		}
+		/// <summary>
+		/// DenseRank
+		/// </summary>
 
 		[DbFunc.Extension("DENSE_RANK()", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<long> DenseRank(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(DenseRank)}' is server-side method.");
 		}
+		/// <summary>
+		/// FirstValue&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("FIRST_VALUE({expr}){_}{modifier?}", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true, Configuration = ProviderName.SqlServer2022)]
 		[DbFunc.Extension("FIRST_VALUE({expr}{_}{modifier?})", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
@@ -659,36 +989,54 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(FirstValue)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lag&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAG({expr}{_}{modifier?})", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lag<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.Nulls nulls)
 		{
 			throw new LinqException($"'{nameof(Lag)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lag&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAG({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lag<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Lag)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lag&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAG({expr}, {offset})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lag<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] int offset)
 		{
 			throw new LinqException($"'{nameof(Lag)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lag&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAG({expr}, {offset}, {default})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lag<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] int offset, [ExprParameter] T @default)
 		{
 			throw new LinqException($"'{nameof(Lag)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lag&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAG({expr}{_}{modifier?}, {offset}, {default})", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lag<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.Nulls nulls, [ExprParameter] int offset, [ExprParameter] T @default)
 		{
 			throw new LinqException($"'{nameof(Lag)}' is server-side method.");
 		}
+		/// <summary>
+		/// LastValue&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LAST_VALUE({expr}){_}{modifier?}", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true, Configuration = ProviderName.SqlServer2022)]
 		[DbFunc.Extension("LAST_VALUE({expr}{_}{modifier?})", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
@@ -696,42 +1044,63 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(LastValue)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lead&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LEAD({expr}{_}{modifier?})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lead<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.Nulls nulls)
 		{
 			throw new LinqException($"'{nameof(Lead)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lead&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LEAD({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lead<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Lead)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lead&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LEAD({expr}, {offset})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lead<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] int offset)
 		{
 			throw new LinqException($"'{nameof(Lead)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lead&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LEAD({expr}, {offset}, {default})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lead<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] int offset, [ExprParameter] T @default)
 		{
 			throw new LinqException($"'{nameof(Lead)}' is server-side method.");
 		}
+		/// <summary>
+		/// Lead&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LEAD({expr}{_}{modifier?}, {offset}, {default})", TokenName = FunctionToken, BuilderType = typeof(ApplyNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> Lead<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.Nulls nulls, [ExprParameter] int offset, [ExprParameter] T @default)
 		{
 			throw new LinqException($"'{nameof(Lead)}' is server-side method.");
 		}
+		/// <summary>
+		/// ListAgg&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LISTAGG({expr}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderAndMaybePartition<string> ListAgg<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(ListAgg)}' is server-side method.");
 		}
+		/// <summary>
+		/// ListAgg&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("LISTAGG({expr}, {delimiter}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderAndMaybePartition<string> ListAgg<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] string delimiter)
@@ -740,12 +1109,18 @@ namespace mooSQL.linq
 		}
 
 		#region Max
+		/// <summary>
+		/// Max&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MAX({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Max<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(Max)}' is server-side method.");
 		}
+		/// <summary>
+		/// Max&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MAX({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Max<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -762,12 +1137,18 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)
 				));
 		}
+		/// <summary>
+		/// Max&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MAX({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Max<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Max)}' is server-side method.");
 		}
+		/// <summary>
+		/// Max&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MAX({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Max<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -778,12 +1159,18 @@ namespace mooSQL.linq
 		#endregion Max
 
 		#region Median
+		/// <summary>
+		/// Median&lt;TEntity, T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MEDIAN({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static long Median<TEntity, T>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, T> expr)
 		{
 			throw new LinqException($"'{nameof(Median)}' is server-side method.");
 		}
+		/// <summary>
+		/// Median&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MEDIAN({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static long Median<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -800,6 +1187,9 @@ namespace mooSQL.linq
 					currentSource.Expression, Expression.Quote(expr)
 				));
 		}
+		/// <summary>
+		/// Median&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MEDIAN({expr}) {over}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IReadyToFunctionOrOverWithPartition<T> Median<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
@@ -810,12 +1200,18 @@ namespace mooSQL.linq
 		#endregion Median
 
 		#region Min
+		/// <summary>
+		/// Min&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MIN({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Min<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(Min)}' is server-side method.");
 		}
+		/// <summary>
+		/// Min&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MIN({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Min<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -831,12 +1227,18 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(Min, source, expr, modifier),
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)));
 		}
+		/// <summary>
+		/// Min&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MIN({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Min<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Min)}' is server-side method.");
 		}
+		/// <summary>
+		/// Min&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("MIN({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Min<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -845,36 +1247,54 @@ namespace mooSQL.linq
 		}
 
 		#endregion Min
+		/// <summary>
+		/// NthValue&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("NTH_VALUE({expr}, {n})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> NthValue<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] long n)
 		{
 			throw new LinqException($"'{nameof(NthValue)}' is server-side method.");
 		}
+		/// <summary>
+		/// NthValue&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("NTH_VALUE({expr}, {n}){_}{from?}{_}{nulls?}", TokenName = FunctionToken, BuilderType = typeof(ApplyFromAndNullsModifier), ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> NthValue<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [ExprParameter] long n, [SqlQueryDependent] SooFunctionExtension.From from, [SqlQueryDependent] SooFunctionExtension.Nulls nulls)
 		{
 			throw new LinqException($"'{nameof(NthValue)}' is server-side method.");
 		}
+		/// <summary>
+		/// NTile&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("NTILE({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> NTile<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(NTile)}' is server-side method.");
 		}
+		/// <summary>
+		/// PercentRank&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("PERCENT_RANK({expr, ', '}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderOnly<T> PercentRank<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] params object?[] expr)
 		{
 			throw new LinqException($"'{nameof(PercentRank)}' is server-side method.");
 		}
+		/// <summary>
+		/// PercentRank&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("PERCENT_RANK()", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<T> PercentRank<T>(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(PercentRank)}' is server-side method.");
 		}
+		/// <summary>
+		/// PercentileCont&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("PERCENTILE_CONT({expr}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithSingleOrderAndMaybePartition<T> PercentileCont<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -883,23 +1303,35 @@ namespace mooSQL.linq
 		}
 
 		//TODO: check nulls support when ordering
+		/// <summary>
+		/// PercentileDisc&lt;T&gt;
+		/// </summary>
 		[DbFunc.Extension("PERCENTILE_DISC({expr}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithSingleOrderAndMaybePartition<T> PercentileDisc<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
 		{
 			throw new LinqException($"'{nameof(PercentileDisc)}' is server-side method.");
 		}
+		/// <summary>
+		/// Rank
+		/// </summary>
 
 		[DbFunc.Extension("RANK({expr, ', '}) {within_group}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static INeedsWithinGroupWithOrderOnly<long> Rank(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] params object?[] expr)
 		{
 			throw new LinqException($"'{nameof(Rank)}' is server-side method.");
 		}
+		/// <summary>
+		/// Rank
+		/// </summary>
 
 		[DbFunc.Extension("RANK()", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAnalyticFunctionWithoutWindow<long> Rank(this SooFunctionExtension.ISqlExtension? ext)
 		{
 			throw new LinqException($"'{nameof(Rank)}' is server-side method.");
 		}
+		/// <summary>
+		/// RatioToReport&lt;TR&gt;
+		/// </summary>
 
 		[DbFunc.Extension("RATIO_TO_REPORT({expr}) {over}", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IOverWithPartitionNeeded<TR> RatioToReport<TR>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -908,36 +1340,54 @@ namespace mooSQL.linq
 		}
 
 		#region REGR_ function
+		/// <summary>
+		/// RegrSlope&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("REGR_SLOPE({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrSlope<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(RegrSlope)}' is server-side method.");
 		}
+		/// <summary>
+		/// RegrIntercept&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("REGR_INTERCEPT({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrIntercept<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(RegrIntercept)}' is server-side method.");
 		}
+		/// <summary>
+		/// RegrCount
+		/// </summary>
 
 		[DbFunc.Extension("REGR_COUNT({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<long> RegrCount(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(RegrCount)}' is server-side method.");
 		}
+		/// <summary>
+		/// RegrR2&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("REGR_R2({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrR2<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(RegrR2)}' is server-side method.");
 		}
+		/// <summary>
+		/// RegrAvgX&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("REGR_AVGX({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrAvgX<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
 			throw new LinqException($"'{nameof(RegrAvgX)}' is server-side method.");
 		}
+		/// <summary>
+		/// RegrAvgY&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("REGR_AVGY({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrAvgY<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
@@ -946,6 +1396,9 @@ namespace mooSQL.linq
 		}
 
 		// ReSharper disable once InconsistentNaming
+		/// <summary>
+		/// RegrSXX&lt;T&gt;
+		/// </summary>
 		[DbFunc.Extension("REGR_SXX({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrSXX<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
@@ -953,6 +1406,9 @@ namespace mooSQL.linq
 		}
 
 		// ReSharper disable once InconsistentNaming
+		/// <summary>
+		/// RegrSYY&lt;T&gt;
+		/// </summary>
 		[DbFunc.Extension("REGR_SYY({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrSYY<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
@@ -960,6 +1416,9 @@ namespace mooSQL.linq
 		}
 
 		// ReSharper disable once InconsistentNaming
+		/// <summary>
+		/// RegrSXY&lt;T&gt;
+		/// </summary>
 		[DbFunc.Extension("REGR_SXY({expr1}, {expr2})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> RegrSXY<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr1, [ExprParameter] object? expr2)
 		{
@@ -967,6 +1426,9 @@ namespace mooSQL.linq
 		}
 
 		#endregion
+		/// <summary>
+		/// RowNumber
+		/// </summary>
 
 		[DbFunc.Extension("ROW_NUMBER()", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true, CanBeNull = false)]
 		public static IAnalyticFunctionWithoutWindow<long> RowNumber(this SooFunctionExtension.ISqlExtension? ext)
@@ -975,6 +1437,9 @@ namespace mooSQL.linq
 		}
 
 		#region StdDev
+		/// <summary>
+		/// StdDev&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension(              "STDEV({expr})",  TokenName = FunctionToken, ChainPrecedence = 0, IsWindowFunction = true)]
 		[DbFunc.Extension(PN.Oracle,    "STDDEV({expr})", TokenName = FunctionToken, ChainPrecedence = 0, IsWindowFunction = true)]
@@ -982,6 +1447,9 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(StdDev)}' is server-side method.");
 		}
+		/// <summary>
+		/// StdDev&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension(              "STDEV({modifier?}{_}{expr})",  TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 0, IsWindowFunction = true)]
 		[DbFunc.Extension(PN.Oracle,    "STDDEV({modifier?}{_}{expr})", TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 0, IsWindowFunction = true)]
@@ -989,6 +1457,9 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(StdDev)}' is server-side method.");
 		}
+		/// <summary>
+		/// StdDev&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension(              "STDEV({modifier?}{_}{expr})",  TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 0, IsWindowFunction = true)]
 		[DbFunc.Extension(PN.Oracle,    "STDDEV({modifier?}{_}{expr})", TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 0, IsWindowFunction = true)]
@@ -1005,6 +1476,9 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(StdDev, source, expr, modifier),
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)));
 		}
+		/// <summary>
+		/// StdDev&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension(              "STDEV({expr})",  TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		[DbFunc.Extension(PN.Oracle,    "STDDEV({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
@@ -1012,6 +1486,9 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(StdDev)}' is server-side method.");
 		}
+		/// <summary>
+		/// StdDev&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension(              "STDEV({modifier?}{_}{expr})",  TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 1, IsWindowFunction = true)]
 		[DbFunc.Extension(PN.Oracle,    "STDDEV({modifier?}{_}{expr})", TokenName = FunctionToken, BuilderType = typeof(ApplyAggregateModifier), ChainPrecedence = 1, IsWindowFunction = true)]
@@ -1023,12 +1500,18 @@ namespace mooSQL.linq
 		#endregion StdDev
 
 		#region StdDevPop
+		/// <summary>
+		/// StdDevPop&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_POP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal StdDevPop<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr)
 		{
 			throw new LinqException($"'{nameof(StdDevPop)}' is server-side method.");
 		}
+		/// <summary>
+		/// StdDevPop&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_POP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal StdDevPop<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -1044,6 +1527,9 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(StdDevPop, source, expr),
 					currentSource.Expression, Expression.Quote(expr)));
 		}
+		/// <summary>
+		/// StdDevPop&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_POP({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> StdDevPop<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -1054,12 +1540,18 @@ namespace mooSQL.linq
 		#endregion StdDevPop
 
 		#region StdDevSamp
+		/// <summary>
+		/// StdDevSamp&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_SAMP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? StdDevSamp<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr)
 		{
 			throw new LinqException($"'{nameof(StdDevSamp)}' is server-side method.");
 		}
+		/// <summary>
+		/// StdDevSamp&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_SAMP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? StdDevSamp<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -1075,6 +1567,9 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(StdDevSamp, source, expr),
 					currentSource.Expression, Expression.Quote(expr)));
 		}
+		/// <summary>
+		/// StdDevSamp&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("STDDEV_SAMP({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> StdDevSamp<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -1083,12 +1578,18 @@ namespace mooSQL.linq
 		}
 
 		#endregion StdDevSamp
+		/// <summary>
+		/// Sum&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("SUM({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Sum<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr)
 		{
 			throw new LinqException($"'{nameof(Sum)}' is server-side method.");
 		}
+		/// <summary>
+		/// Sum&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("SUM({modifier?}{_}{expr})" , BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Sum<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] T expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -1097,12 +1598,18 @@ namespace mooSQL.linq
 		}
 
 		#region VarPop
+		/// <summary>
+		/// VarPop&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_POP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal VarPop<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr)
 		{
 			throw new LinqException($"'{nameof(VarPop)}' is server-side method.");
 		}
+		/// <summary>
+		/// VarPop&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_POP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal VarPop<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -1118,6 +1625,9 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(VarPop, source, expr),
 					currentSource.Expression, Expression.Quote(expr)));
 		}
+		/// <summary>
+		/// VarPop&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_POP({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> VarPop<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -1128,12 +1638,18 @@ namespace mooSQL.linq
 		#endregion VarPop
 
 		#region VarSamp
+		/// <summary>
+		/// VarSamp&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_SAMP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? VarSamp<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr)
 		{
 			throw new LinqException($"'{nameof(VarSamp)}' is server-side method.");
 		}
+		/// <summary>
+		/// VarSamp&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_SAMP({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static decimal? VarSamp<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr)
@@ -1149,6 +1665,9 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(VarSamp, source, expr),
 					currentSource.Expression, Expression.Quote(expr)));
 		}
+		/// <summary>
+		/// VarSamp&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VAR_SAMP({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> VarSamp<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
@@ -1159,18 +1678,27 @@ namespace mooSQL.linq
 		#endregion VarSamp
 
 		#region Variance
+		/// <summary>
+		/// Variance&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VARIANCE({expr})", IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Variance<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr)
 		{
 			throw new LinqException($"'{nameof(Variance)}' is server-side method.");
 		}
+		/// <summary>
+		/// Variance&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VARIANCE({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Variance<TEntity, TV>(this IEnumerable<TEntity> source, [ExprParameter] Func<TEntity, TV> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
 		{
 			throw new LinqException($"'{nameof(Variance)}' is server-side method.");
 		}
+		/// <summary>
+		/// Variance&lt;TEntity, TV&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VARIANCE({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), IsWindowFunction = true, ChainPrecedence = 0)]
 		public static TV Variance<TEntity, TV>(this IQueryable<TEntity> source, [ExprParameter] Expression<Func<TEntity, TV>> expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier = SooFunctionExtension.AggregateModifier.None)
@@ -1186,12 +1714,18 @@ namespace mooSQL.linq
 					MethodHelper.GetMethodInfo(Variance, source, expr, modifier),
 					currentSource.Expression, Expression.Quote(expr), Expression.Constant(modifier)));
 		}
+		/// <summary>
+		/// Variance&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VARIANCE({expr})", TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Variance<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr)
 		{
 			throw new LinqException($"'{nameof(Variance)}' is server-side method.");
 		}
+		/// <summary>
+		/// Variance&lt;T&gt;
+		/// </summary>
 
 		[DbFunc.Extension("VARIANCE({modifier?}{_}{expr})", BuilderType = typeof(ApplyAggregateModifier), TokenName = FunctionToken, ChainPrecedence = 1, IsWindowFunction = true)]
 		public static IAggregateFunctionSelfContained<T> Variance<T>(this SooFunctionExtension.ISqlExtension? ext, [ExprParameter] object? expr, [SqlQueryDependent] SooFunctionExtension.AggregateModifier modifier)
@@ -1200,12 +1734,18 @@ namespace mooSQL.linq
 		}
 
 		#endregion
+		/// <summary>
+		/// KeepFirst&lt;TR&gt;
+		/// </summary>
 
 		[DbFunc.Extension("{function} KEEP (DENSE_RANK FIRST {order_by_clause}){_}{over?}", ChainPrecedence = 10, IsWindowFunction = true)]
 		public static INeedOrderByAndMaybeOverWithPartition<TR> KeepFirst<TR>(this IAggregateFunction<TR> ext)
 		{
 			throw new LinqException($"'{nameof(KeepFirst)}' is server-side method.");
 		}
+		/// <summary>
+		/// KeepLast&lt;TR&gt;
+		/// </summary>
 
 		[DbFunc.Extension("{function} KEEP (DENSE_RANK LAST {order_by_clause}){_}{over?}", ChainPrecedence = 10, IsWindowFunction = true)]
 		public static INeedOrderByAndMaybeOverWithPartition<TR> KeepLast<TR>(this IAggregateFunction<TR> ext)

@@ -9,6 +9,12 @@ namespace mooSQL.linq.clause
     using mooSQL.data.model;
 
 	using mooSQL.linq.provider;
+	/// <summary>
+	/// ClauseValidatorVisitor type.
+	/// </summary>
+	/// <summary>
+	/// ClauseValidatorVisitor type.
+	/// </summary>
 	public class ClauseValidatorVisitor : ClauseVisitor
 	{
         SelectQueryClause?     _parentQuery;
@@ -19,11 +25,17 @@ namespace mooSQL.linq.clause
 
 		bool    _isValid;
 		string? _errorMessage;
+		/// <summary>
+		/// IsValid
+		/// </summary>
 
 		public bool IsValid
 		{
 			get => _isValid;
 		}
+		/// <summary>
+		/// ErrorMessage
+		/// </summary>
 
 		public string? ErrorMessage
 		{
@@ -31,12 +43,18 @@ namespace mooSQL.linq.clause
 		}
 
 		private VisitMode VisitingMode;
+		/// <summary>
+		/// ClauseValidatorVisitor type.
+		/// </summary>
 
 		public ClauseValidatorVisitor() 
 		{
 			this.VisitingMode = VisitMode.ReadOnly;
 
         }
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
@@ -47,6 +65,9 @@ namespace mooSQL.linq.clause
 			_columnSubqueryLevel = default;
 			_errorMessage        = default!;
 		}
+		/// <summary>
+		/// SetInvalid
+		/// </summary>
 
 		public void SetInvalid(string errorMessage)
 		{
@@ -63,6 +84,9 @@ namespace mooSQL.linq.clause
 
 			return true;
 		}
+		/// <summary>
+		/// IsValidQuery
+		/// </summary>
 
 		public bool IsValidQuery(Clause element,
             SelectQueryClause?                       parentQuery,
@@ -84,6 +108,9 @@ namespace mooSQL.linq.clause
 
 			return IsValid;
 		}
+		/// <summary>
+		/// IsValidSubQuery
+		/// </summary>
 
 		public bool IsValidSubQuery(SelectQueryClause selectQuery, [NotNullWhen(false)] out string? errorMessage)
 		{
@@ -270,6 +297,10 @@ namespace mooSQL.linq.clause
 				return base.VisitAffirmIsNull(predicate);
 			}
 		}
+/// <summary>
+/// VisitSearchCondition
+/// </summary>
+	
 
 		public override Clause VisitSearchCondition(SearchConditionWord element)
 		{
@@ -281,6 +312,10 @@ namespace mooSQL.linq.clause
 			_columnSubqueryLevel = saveColumnSubqueryLevel;
 			return result;
 		}
+/// <summary>
+/// Visit
+/// </summary>
+	
 
 		public override Clause? Visit(Clause? element)
 		{
@@ -289,6 +324,10 @@ namespace mooSQL.linq.clause
 
 			return base.Visit(element);
 		}
+/// <summary>
+/// VisitJoinedTable
+/// </summary>
+	
 
 		public override Clause VisitJoinedTable(JoinTableWord element)
 		{
@@ -338,6 +377,10 @@ namespace mooSQL.linq.clause
 
 			return result;
 		}
+/// <summary>
+/// VisitTableSource
+/// </summary>
+	
 
 		public override Clause VisitTableSource(TableSourceWord element)
 		{
@@ -345,6 +388,10 @@ namespace mooSQL.linq.clause
 
 			return element;
 		}
+/// <summary>
+/// VisitSelectQuery
+/// </summary>
+ 
 
         public override Clause VisitSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -374,6 +421,10 @@ namespace mooSQL.linq.clause
 
 			return selectQuery;
 		}
+/// <summary>
+/// VisitFromClause
+/// </summary>
+	
 
 		public override Clause VisitFromClause(FromClause element)
 		{
@@ -387,6 +438,9 @@ namespace mooSQL.linq.clause
 
 			return element;
 		}
+		/// <summary>
+		/// VisitSqlColumnExpression
+		/// </summary>
 
 		protected  IExpWord VisitSqlColumnExpression(ColumnWord column, IExpWord expression)
 		{

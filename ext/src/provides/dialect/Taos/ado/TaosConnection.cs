@@ -1,5 +1,4 @@
-﻿// Copyright (c)  maikebing All rights reserved.
-//// Licensed under the MIT License, See License.txt in the project root for license information.
+
 
 using Newtonsoft.Json.Linq;
 using System;
@@ -38,16 +37,31 @@ namespace mooSQL.data.taos
         private ConnectionState _state;
         internal ITaosProtocol taos;
         private bool disposed = false;
+        /// <summary>
+        /// TaosConnection type.
+        /// </summary>
 
 
         public TaosConnection() : this(string.Empty)
         {
 
         }
+        /// <summary>
+        /// TaosConnection type.
+        /// </summary>
+        /// <summary>
+        /// TaosConnection type.
+        /// </summary>
         public TaosConnection(string connectionString) : this(connectionString, string.Empty)
         {
 
         }
+        /// <summary>
+        /// TaosConnection type.
+        /// </summary>
+        /// <summary>
+        /// TaosConnection type.
+        /// </summary>
         public TaosConnection(string connectionString, string configdir) : this(connectionString, configdir, 60, string.Empty, string.Empty, string.Empty)
         {
 
@@ -57,7 +71,7 @@ namespace mooSQL.data.taos
         /// 初始化链接
         /// </summary>
         /// <param name="connectionString">连接字符串</param>
-        /// <param name="configdir">配置目录 顺序 configdir > BaseDirectory > CurrentDirectory > "/etc/taos" || "C:/TDengine/cfg" </param>
+        /// <param name="configdir">配置目录 顺序 configdir &gt; BaseDirectory &gt; CurrentDirectory &gt; "/etc/taos" || "C:/TDengine/cfg" </param>
         /// <param name="shell_activity_timer">Shell 活动定时器</param>
         /// <param name="locale">区域 'en_US.UTF-8'</param>
         /// <param name="charset">字符集 'UTF-8'</param>
@@ -102,6 +116,10 @@ namespace mooSQL.data.taos
         }
 
         internal TaosConnectionStringBuilder ConnectionStringBuilder { get; set; }
+/// <summary>
+/// ConnectionTimeout
+/// </summary>
+ 
 
         public override int ConnectionTimeout => ConnectionStringBuilder?.ConnectionTimeout ?? 0;
 
@@ -146,6 +164,12 @@ namespace mooSQL.data.taos
             }
         }
         string _client_version = string.Empty;
+        /// <summary>
+        /// ClientVersion
+        /// </summary>
+        /// <summary>
+        /// ClientVersion
+        /// </summary>
         public string ClientVersion
         {
             get
@@ -176,8 +200,18 @@ namespace mooSQL.data.taos
         /// </summary>
         /// <value>The transaction currently being used by the connection.</value>
         protected internal virtual TaosTransaction Transaction { get; set; }
+/// <summary>
+/// Database
+/// </summary>
+ 
 
         public override string Database => ConnectionStringBuilder?.DataBase;
+        /// <summary>
+        /// PoolSize
+        /// </summary>
+        /// <summary>
+        /// PoolSize
+        /// </summary>
         public int PoolSize => ConnectionStringBuilder?.PoolSize ?? 0;
 
 
@@ -274,6 +308,12 @@ namespace mooSQL.data.taos
         /// </remarks>
         public new virtual TaosCommand CreateCommand()
             => new() { Connection = this, CommandTimeout = DefaultTimeout, Transaction = Transaction };
+        /// <summary>
+        /// Creates CreateCommand.
+        /// </summary>
+        /// <summary>
+        /// Creates CreateCommand.
+        /// </summary>
         public virtual TaosCommand CreateCommand(string commandtext)
           => new() { Connection = this, CommandText = commandtext, CommandTimeout = DefaultTimeout, Transaction = Transaction };
 
@@ -427,6 +467,7 @@ namespace mooSQL.data.taos
         /// 使用Schemales的 TSDB_SML_LINE_PROTOCOL 将 <paramref name="data"/>插入TDengine
         /// </summary>
         /// <param name="data">使用InfluxDB的RecordData方式合成数据</param>
+        /// <param name="settings">RecordSettings 配置，用法参考 InfluxDB。</param>
         /// <returns>返回数量</returns>
         public int ExecuteBulkInsert(IEnumerable<RecordData> data, RecordSettings settings)
         {

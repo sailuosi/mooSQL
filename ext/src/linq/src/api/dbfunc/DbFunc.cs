@@ -75,6 +75,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = sqlExpr as IExpWord;
 			}
 		}
+		/// <summary>
+		/// NoConvert&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(NoConvertBuilder), ServerSideOnly = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static T NoConvert<T>(T expr)
@@ -86,7 +89,7 @@ namespace mooSQL.linq
 
 		#region Guid Functions
 
-		/// <summary>客户端执行（<see cref="ProviderMemberTranslatorDefault"/> 翻译为常量）；非 server-side SQL 函数。</summary>
+		/// <summary>客户端执行（由 <see cref="mooSQL.linq.translator.ProviderMemberTranslatorDefault"/> 翻译为常量）；非服务端 SQL 函数。</summary>
 		public static Guid NewGuid()
 		{
 			return Guid.NewGuid();
@@ -114,6 +117,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = new	CastWord(from, toDataType, null, true);
 			}
 		}
+		/// <summary>
+		/// Convert&lt;TTo, TFrom&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Extension("", BuilderType = typeof(ConvertBuilder))]
@@ -121,6 +127,9 @@ namespace mooSQL.linq
 		{
 			return mooSQL.linq.utils.ConvertTo<TTo>.From(from);
 		}
+		/// <summary>
+		/// Convert&lt;TTo, TFrom&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Function(PseudoFunctions.CONVERT_FORMAT, 0, 3, 1, 2, ServerSideOnly = true, IsNullable = IsNullableType.SameAsSecondParameter)]
@@ -141,6 +150,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = new CastWord(obj, toDataType, null, true);
 			}
 		}
+		/// <summary>
+		/// Convert&lt;TTo, TFrom&gt;
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[Extension("", BuilderType = typeof(ConvertBuilderSimple))]
@@ -161,9 +173,15 @@ namespace mooSQL.linq
 				builder.ResultExpression = new CastWord(obj, toDataType, null, false);
 			}
 		}
+		/// <summary>
+		/// ConvertTo&lt;TTo&gt;
+		/// </summary>
 
 		public static class ConvertTo<TTo>
 		{
+			/// <summary>
+			/// From&lt;TFrom&gt;
+			/// </summary>
 			[CLSCompliant(false)]
 			[Extension("", BuilderType = typeof(ConvertBuilderInner))]
 			public static TTo From<TFrom>(TFrom obj)
@@ -171,6 +189,9 @@ namespace mooSQL.linq
 				return mooSQL.linq.utils.ConvertTo<TTo>.From(obj);
 			}
 		}
+		/// <summary>
+		/// DateToTime
+		/// </summary>
 
 		[Expression("{0}", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static TimeSpan? DateToTime(DateTime? date)
@@ -280,6 +301,9 @@ namespace mooSQL.linq
 		{
 			return str?.Trim();
 		}
+		/// <summary>
+		/// TrimLeft
+		/// </summary>
 
 		[Expression(ProviderName.Firebird, "TRIM(LEADING FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function("LTrim"                                , IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -287,6 +311,9 @@ namespace mooSQL.linq
 		{
 			return str?.TrimStart();
 		}
+		/// <summary>
+		/// TrimRight
+		/// </summary>
 
 		[Expression(ProviderName.Firebird, "TRIM(TRAILING FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function("RTrim"                                 , IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -294,6 +321,9 @@ namespace mooSQL.linq
 		{
 			return str?.TrimEnd();
 		}
+		/// <summary>
+		/// Trim
+		/// </summary>
 
 		[Function(                                            IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, B, {1})",      IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -301,6 +331,9 @@ namespace mooSQL.linq
 		{
 			return str == null || ch == null ? null : str.Trim(ch.Value);
 		}
+		/// <summary>
+		/// TrimLeft
+		/// </summary>
 
 		[Expression(ProviderName.Firebird,   "TRIM(LEADING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, L, {1})",         IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -309,6 +342,9 @@ namespace mooSQL.linq
 		{
 			return str == null || ch == null ? null : str.TrimStart(ch.Value);
 		}
+		/// <summary>
+		/// TrimRight
+		/// </summary>
 
 		[Expression(ProviderName.Firebird,   "TRIM(TRAILING {1} FROM {0})", IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Expression(ProviderName.DB2,        "Strip({0}, T, {1})",          IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -329,6 +365,9 @@ namespace mooSQL.linq
 		{
 			return str?.ToUpper(CultureInfo.CurrentCulture);
 		}
+		/// <summary>
+		/// ZeroPad
+		/// </summary>
 
 		[Expression("Lpad({0},{1},'0')",                                                                            IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Expression(ProviderName.Access, "Format({0}, String('0', {1}))",                                                     IsNullable = IsNullableType.SameAsFirstParameter)]
@@ -359,6 +398,9 @@ namespace mooSQL.linq
 		#endregion
 
 		#region Binary Functions
+		/// <summary>
+		/// Length
+		/// </summary>
 
 		[Function(                              PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Function(ProviderName.Access,    "Len",          PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
@@ -374,6 +416,9 @@ namespace mooSQL.linq
 		#endregion
 
 		#region Byte[] Functions
+		/// <summary>
+		/// Length
+		/// </summary>
 
 		[Function(                              PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
 		[Function(ProviderName.Access,    "Len",          PreferServerSide = true, IsNullable = IsNullableType.SameAsFirstParameter)]
@@ -389,6 +434,9 @@ namespace mooSQL.linq
 		#endregion
 
 		#region DateTime Functions
+		/// <summary>
+		/// Gets GetDate.
+		/// </summary>
 
 		[Property(               "CURRENT_TIMESTAMP", CanBeNull = false)]
 		[Property(ProviderName.Informix,   "CURRENT",           CanBeNull = false)]
@@ -397,6 +445,9 @@ namespace mooSQL.linq
 		{
 			return DateTime.Now;
 		}
+		/// <summary>
+		/// CurrentTimestamp
+		/// </summary>
 
 		[Property(               "CURRENT_TIMESTAMP", ServerSideOnly = true, CanBeNull = false)]
 		[Property(ProviderName.Firebird,   "LOCALTIMESTAMP",    ServerSideOnly = true, CanBeNull = false)]
@@ -405,6 +456,9 @@ namespace mooSQL.linq
 		[Function(ProviderName.SqlCe,      "GetDate",           ServerSideOnly = true, CanBeNull = false)]
 		[Function(ProviderName.Sybase,     "GetDate",           ServerSideOnly = true, CanBeNull = false)]
 		public static DateTime CurrentTimestamp => throw new LinqException("'CurrentTimestamp' is server side only property.");
+		/// <summary>
+		/// CurrentTimestampUtc
+		/// </summary>
 
 		[Function  (ProviderName.SqlServer , "SYSUTCDATETIME"                      , ServerSideOnly = true, CanBeNull = false)]
 		[Function  (ProviderName.Sybase    , "GETUTCDATE"                          , ServerSideOnly = true, CanBeNull = false)]
@@ -415,6 +469,9 @@ namespace mooSQL.linq
 		[Expression(ProviderName.Oracle    , "SYS_EXTRACT_UTC(SYSTIMESTAMP)"       , ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
 		[Expression(ProviderName.Informix  , "datetime(1970-01-01 00:00:00) year to second + (dbinfo('utc_current')/86400)::int::char(9)::interval day(9) to day + (mod(dbinfo('utc_current'), 86400))::char(5)::interval second(5) to second", ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
 		public static DateTime CurrentTimestampUtc => DateTime.UtcNow;
+		/// <summary>
+		/// CurrentTimestamp2
+		/// </summary>
 
 		[Property(               "CURRENT_TIMESTAMP", CanBeNull = false)]
 		[Property(ProviderName.Informix,   "CURRENT",           CanBeNull = false)]
@@ -422,11 +479,17 @@ namespace mooSQL.linq
 		[Function(ProviderName.SqlCe,      "GetDate",           CanBeNull = false)]
 		[Function(ProviderName.Sybase,     "GetDate",           CanBeNull = false)]
 		public static DateTime CurrentTimestamp2 => DateTime.Now;
+		/// <summary>
+		/// CurrentTzTimestamp
+		/// </summary>
 
 		[Function(ProviderName.SqlServer , "SYSDATETIMEOFFSET", ServerSideOnly = true, CanBeNull = false)]
 		[Function(ProviderName.PostgreSQL, "now"              , ServerSideOnly = true, CanBeNull = false)]
 		[Property(ProviderName.Oracle    , "SYSTIMESTAMP"     , ServerSideOnly = true, CanBeNull = false, Precedence = PrecedenceLv.Additive)]
 		public static DateTimeOffset CurrentTzTimestamp => DateTimeOffset.Now;
+		/// <summary>
+		/// ToDate
+		/// </summary>
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static DateTime? ToDate(int? year, int? month, int? day, int? hour, int? minute, int? second, int? millisecond)
@@ -435,6 +498,9 @@ namespace mooSQL.linq
 				null :
 				new DateTime(year.Value, month.Value, day.Value, hour.Value, minute.Value, second.Value, millisecond.Value);
 		}
+		/// <summary>
+		/// ToDate
+		/// </summary>
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static DateTime? ToDate(int? year, int? month, int? day, int? hour, int? minute, int? second)
@@ -443,6 +509,9 @@ namespace mooSQL.linq
 				null :
 				new DateTime(year.Value, month.Value, day.Value, hour.Value, minute.Value, second.Value);
 		}
+		/// <summary>
+		/// ToDate
+		/// </summary>
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static DateTime? ToDate(int? year, int? month, int? day)
@@ -451,11 +520,20 @@ namespace mooSQL.linq
 				null :
 				new DateTime(year.Value, month.Value, day.Value);
 		}
+		/// <summary>
+		/// DateFirst
+		/// </summary>
 
 		[Property("@@DATEFIRST", CanBeNull = false)]
 		public static int DateFirst => 7;
 
 #if NET6_0_OR_GREATER
+		/// <summary>
+		/// MakeDateOnly
+		/// </summary>
+		/// <summary>
+		/// MakeDateOnly
+		/// </summary>
 		public static DateOnly? MakeDateOnly(int? year, int? month, int? day)
 		{
 			return year == null || month == null || day == null ?
@@ -463,6 +541,9 @@ namespace mooSQL.linq
 				new DateOnly(year.Value, month.Value, day.Value);
 		}
 #endif
+		/// <summary>
+		/// MakeDateTime
+		/// </summary>
 
 		public static DateTime? MakeDateTime(int? year, int? month, int? day)
 		{
@@ -470,6 +551,9 @@ namespace mooSQL.linq
 				null :
 				new DateTime(year.Value, month.Value, day.Value);
 		}
+		/// <summary>
+		/// MakeDateTime
+		/// </summary>
 
 		public static DateTime? MakeDateTime(int? year, int? month, int? day, int? hour, int? minute, int? second)
 		{

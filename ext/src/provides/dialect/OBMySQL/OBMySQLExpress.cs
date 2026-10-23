@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
@@ -15,6 +15,12 @@ namespace mooSQL.data
     /// </summary>
     public class OBMySQLExpress : MySQLExpress
     {
+        /// <summary>
+        /// OBMySQLExpress type.
+        /// </summary>
+        /// <summary>
+        /// OBMySQLExpress type.
+        /// </summary>
         public OBMySQLExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "?";
@@ -53,6 +59,10 @@ namespace mooSQL.data
 
             return sb.ToString();
         }
+/// <summary>
+/// Builds a paged SELECT statement.
+/// </summary>
+ 
 
         public override string buildPagedSelect(FragSQL frag)
         {

@@ -3,18 +3,49 @@ using System.Collections.Generic;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceConvertVisitorBase type.
+	/// </summary>
+	/// <summary>
+	/// SentenceConvertVisitorBase type.
+	/// </summary>
 	public abstract class SentenceConvertVisitorBase : SentenceVisitor
 	{
+		/// <summary>
+		/// SentenceConvertVisitorBase type.
+		/// </summary>
+		/// <summary>
+		/// SentenceConvertVisitorBase type.
+		/// </summary>
 		protected SentenceConvertVisitorBase(bool allowMutation, IVisitorTransformationInfo? transformationInfo) : base(allowMutation ? VisitMode.Modify : VisitMode.Transform, transformationInfo)
 		{
 		}
+		/// <summary>
+		/// AllowMutation
+		/// </summary>
 
 		public bool AllowMutation => VisitingMode == VisitMode.Modify;
+		/// <summary>
+		/// Gets or sets WithStack.
+		/// </summary>
 
 		public bool WithStack { get; protected set; }
+		/// <summary>
+		/// Gets or sets Stack.
+		/// </summary>
 
 		public List<ISQLNode>? Stack         { get; protected set; }
+		/// <summary>
+		/// ParentElement
+		/// </summary>
+		/// <summary>
+		/// ParentElement
+		/// </summary>
 		public ISQLNode?       ParentElement => Stack?.Count > 0 ? Stack[Stack.Count-1] : null;
+/// <summary>
+/// Visit
+/// </summary>
+	
 
 		public override Clause? Visit(Clause? element)
 		{
@@ -54,8 +85,14 @@ namespace mooSQL.linq.clause
 
 			return convertedElement;
 		}
+		/// <summary>
+		/// ConvertElement
+		/// </summary>
 
 		public abstract Clause ConvertElement(Clause element);
+		/// <summary>
+		/// PerformConvert
+		/// </summary>
 
 		public Clause PerformConvert(Clause element)
 		{

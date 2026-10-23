@@ -10,7 +10,17 @@ namespace mooSQL.data
     /// </summary>
     public class JetSQLMappingPanel : DefaultMappingPanel
     {
+        /// <summary>
+        /// JetSQLMappingPanel type.
+        /// </summary>
+        /// <summary>
+        /// JetSQLMappingPanel type.
+        /// </summary>
         public JetSQLMappingPanel() { }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
         public override string DbDataTypeToSQL(DbDataType type)
         {
@@ -73,6 +83,10 @@ namespace mooSQL.data
             }
             return base.DbDataTypeToSQL(type);
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
         public override DataFam GetDataType(string dataType, string columnType = null)
         {

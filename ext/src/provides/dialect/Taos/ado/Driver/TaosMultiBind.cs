@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -7,9 +7,18 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// TaosMultiBind type.
+    /// </summary>
 
     public class TaosMultiBind
     {
+        /// <summary>
+        /// MultiBindBool
+        /// </summary>
+        /// <summary>
+        /// MultiBindBool
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindBool(bool?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -46,6 +55,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindTinyInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindTinyInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindTinyInt(sbyte?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -85,6 +100,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindSmallInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindSmallInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindSmallInt(short?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -122,6 +143,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindInt(int?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -157,6 +184,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindBigint
+        /// </summary>
+        /// <summary>
+        /// MultiBindBigint
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindBigint(long?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -193,6 +226,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindFloat
+        /// </summary>
+        /// <summary>
+        /// MultiBindFloat
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindFloat(float?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -232,6 +271,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindDouble
+        /// </summary>
+        /// <summary>
+        /// MultiBindDouble
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindDouble(double?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -271,6 +316,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindUTinyInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindUTinyInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindUTinyInt(byte?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -309,6 +360,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindUSmallInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindUSmallInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindUSmallInt(ushort?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -351,6 +408,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindUInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindUInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindUInt(uint?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -393,6 +456,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindUBigInt
+        /// </summary>
+        /// <summary>
+        /// MultiBindUBigInt
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindUBigInt(ulong?[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -435,6 +504,12 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindBinary
+        /// </summary>
+        /// <summary>
+        /// MultiBindBinary
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindBinary(string[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -486,11 +561,20 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindVarchar
+        /// </summary>
 
         public static TAOS_MULTI_BIND MultiBindVarchar(string[] arr)
         {
             return MultiBindBinary(arr);
         }
+        /// <summary>
+        /// MultiBindNchar
+        /// </summary>
+        /// <summary>
+        /// MultiBindNchar
+        /// </summary>
         public static TAOS_MULTI_BIND MultiBindNchar(string[] arr)
         {
             TAOS_MULTI_BIND multiBind = new TAOS_MULTI_BIND();
@@ -541,6 +625,9 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// MultiBindJson
+        /// </summary>
 
         public static TAOS_MULTI_BIND MultiBindJson(string[] jsonStr)
         {
@@ -594,6 +681,9 @@ namespace mooSQL.data.taos
             return multiBind;
 
         }
+        /// <summary>
+        /// MultiBindTimestamp
+        /// </summary>
 
 
         public static TAOS_MULTI_BIND MultiBindTimestamp(long[] arr)
@@ -630,6 +720,9 @@ namespace mooSQL.data.taos
 
             return multiBind;
         }
+        /// <summary>
+        /// FreeTaosBind
+        /// </summary>
 
         public static void FreeTaosBind(TAOS_MULTI_BIND[] mBinds)
         {

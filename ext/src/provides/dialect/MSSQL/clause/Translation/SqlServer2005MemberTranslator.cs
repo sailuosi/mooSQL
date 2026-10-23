@@ -7,6 +7,9 @@ namespace mooSQL.data
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
 	using mooSQL.linq.clause;
+	/// <summary>
+	/// SqlServer2005MemberTranslator type.
+	/// </summary>
 
 	public class SqlServer2005MemberTranslator : SqlServerMemberTranslator
 	{
@@ -34,11 +37,19 @@ namespace mooSQL.data
 				return dateAdd;
 			}
 		}
+/// <summary>
+/// Creates the SQL types translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateSqlTypesTranslator()
 		{
 			return new SqlTypes2005Translation();
 		}
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateDateMemberTranslator()
 		{

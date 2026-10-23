@@ -7,6 +7,12 @@ namespace mooSQL.linq.provider
     using mooSQL.data;
     using mooSQL.data.model;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// ISqlOptimizer type.
+	/// </summary>
+	/// <summary>
+	/// ISqlOptimizer interface.
+	/// </summary>
 	public interface ISqlOptimizer
 	{
 		/// <summary>
@@ -14,6 +20,9 @@ namespace mooSQL.linq.provider
 		/// </summary>
 		/// <returns>Query which is ready for optimization.</returns>
 		BaseSentence Finalize(DBInstance mappingSchema, BaseSentence statement);
+		/// <summary>
+		/// Creates CreateConvertVisitor.
+		/// </summary>
 
 
 

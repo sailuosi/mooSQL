@@ -8,9 +8,19 @@ namespace mooSQL.data
     /// </summary>
     public class DMClauseTranslator : ClauseTranslateVisitor
     {
+        /// <summary>
+        /// DMClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// DMClauseTranslator type.
+        /// </summary>
         public DMClauseTranslator(Dialect dialect) : base(dialect)
         {
         }
+/// <summary>
+/// Returns the identity expression for a field.
+/// </summary>
+ 
 
         public override IExpWord? GetIdentityExpression(FieldWord field)
         {

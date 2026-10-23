@@ -8,11 +8,26 @@ namespace mooSQL.linq
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public sealed class DbFuncExpressionAttribute : DbFunc.ExpressionAttribute
     {
+        /// <summary>
+        /// DbFuncExpressionAttribute type.
+        /// </summary>
+        /// <summary>
+        /// DbFuncExpressionAttribute type.
+        /// </summary>
         public DbFuncExpressionAttribute(string? expression) : base(expression) { }
+        /// <summary>
+        /// DbFuncExpressionAttribute type.
+        /// </summary>
 
         public DbFuncExpressionAttribute(string expression, params int[] argIndices) : base(expression, argIndices) { }
+        /// <summary>
+        /// DbFuncExpressionAttribute type.
+        /// </summary>
 
         public DbFuncExpressionAttribute(string configuration, string expression) : base(configuration, expression) { }
+        /// <summary>
+        /// DbFuncExpressionAttribute type.
+        /// </summary>
 
         public DbFuncExpressionAttribute(string configuration, string expression, params int[] argIndices)
             : base(configuration, expression, argIndices) { }

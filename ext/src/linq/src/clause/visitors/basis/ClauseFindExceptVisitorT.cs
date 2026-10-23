@@ -14,12 +14,24 @@ namespace mooSQL.linq.clause
 		Func<TContext, ISQLNode, bool> _findFunc = default!;
 		ISQLNode                       _skip     = default!;
 		ISQLNode?                      _found;
+        /// <summary>
+        /// VisitingMode
+        /// </summary>
 
         public VisitMode VisitingMode;
+        /// <summary>
+        /// ClauseFindExceptVisitor
+        /// </summary>
+        /// <summary>
+        /// ClauseFindExceptVisitor
+        /// </summary>
         public ClauseFindExceptVisitor() 
 		{
             VisitingMode = VisitMode.ReadOnly;
         }
+		/// <summary>
+		/// Find
+		/// </summary>
 
 		public ISQLNode? Find(TContext context, ISQLNode root, ISQLNode skip, Func<TContext, ISQLNode, bool> findFunc)
 		{
@@ -32,6 +44,9 @@ namespace mooSQL.linq.clause
 
 			return _found;
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
@@ -40,6 +55,10 @@ namespace mooSQL.linq.clause
 			_skip     = null!;
 			_found    = null;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)

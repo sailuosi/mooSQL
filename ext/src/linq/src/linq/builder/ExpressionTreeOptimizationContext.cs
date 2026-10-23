@@ -16,10 +16,22 @@ namespace mooSQL.linq.builder
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;
+    /// <summary>
+    /// ExpressionTreeOptimizationContext type.
+    /// </summary>
 
     public class ExpressionTreeOptimizationContext
 	{
+		/// <summary>
+		/// DBLive
+		/// </summary>
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 		public DBInstance DBLive {  get; }
+		/// <summary>
+		/// ExpressionTreeOptimizationContext type.
+		/// </summary>
 
 		public ExpressionTreeOptimizationContext(DBInstance dataContext)
 		{
@@ -56,6 +68,9 @@ namespace mooSQL.linq.builder
 				return _equalsToContextFalse;
 			}
 		}
+		/// <summary>
+		/// AggregateExpression
+		/// </summary>
 
 		public Expression AggregateExpression(Expression expression)
 		{
@@ -146,6 +161,9 @@ namespace mooSQL.linq.builder
 
 			return result;
 		}
+		/// <summary>
+		/// ExpandQueryableMethods
+		/// </summary>
 
 		public Expression ExpandQueryableMethods(Expression expression)
 		{
@@ -175,6 +193,9 @@ namespace mooSQL.linq.builder
 
 			return new TransformInfo(expr);
 		}
+		/// <summary>
+		/// OptimizeExpressionTree
+		/// </summary>
 
 		public Expression OptimizeExpressionTree(Expression expression, bool inProjection)
 		{
@@ -196,6 +217,9 @@ namespace mooSQL.linq.builder
 
 		TransformInfoVisitor<ExpressionTreeOptimizationContext> _optimizeExpressionTreeTransformer;
 		TransformInfoVisitor<ExpressionTreeOptimizationContext> _optimizeExpressionTreeTransformerInProjection;
+		/// <summary>
+		/// OptimizeExpressionTreeTransformer
+		/// </summary>
 
 		public TransformInfo OptimizeExpressionTreeTransformer(Expression expr, bool inProjection)
 		{
@@ -457,6 +481,9 @@ namespace mooSQL.linq.builder
 		static ObjectPool<CanBeCompiledCheckVisitor> _canBeCompiledCheckVisitorPool = new(() => new CanBeCompiledCheckVisitor(), v => v.Cleanup(), 100);
 
 		Dictionary<Expression, bool>? _isServerSideOnlyCache;
+		/// <summary>
+		/// IsServerSideOnly
+		/// </summary>
 
 		public bool IsServerSideOnly(Expression expr, bool inProjection)
 		{
@@ -689,6 +716,9 @@ namespace mooSQL.linq.builder
 				return node;
 			}
 		}
+		/// <summary>
+		/// CanBeCompiled
+		/// </summary>
 
 		public bool CanBeCompiled(Expression expr, bool inProjection)
 		{
@@ -707,6 +737,12 @@ namespace mooSQL.linq.builder
 		bool        _lastResult1;
 
 		private FindVisitor<ExpressionTreeOptimizationContext>? _canBeConstantVisitor;
+		/// <summary>
+		/// CanBeConstant
+		/// </summary>
+		/// <summary>
+		/// CanBeConstant
+		/// </summary>
 		public bool CanBeConstant(Expression expr)
 		{
 			if (_lastExpr1 == expr)
@@ -807,6 +843,9 @@ namespace mooSQL.linq.builder
 			else
 				return _enforceServerSideVisitorFalse ??= FindVisitor<ExpressionTreeOptimizationContext>.Create(this, static (ctx, e) => ctx.PreferServerSide(e, false));
 		}
+		/// <summary>
+		/// PreferServerSide
+		/// </summary>
 
 		public bool PreferServerSide(Expression expr, bool enforceServerSide)
 		{

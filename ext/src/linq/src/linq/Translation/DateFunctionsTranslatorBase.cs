@@ -10,8 +10,20 @@ using mooSQL.utils;
 
 namespace mooSQL.linq.translator
 {
+	/// <summary>
+	/// DateFunctionsTranslatorBase type.
+	/// </summary>
+	/// <summary>
+	/// DateFunctionsTranslatorBase type.
+	/// </summary>
 	public class DateFunctionsTranslatorBase : MemberTranslatorBase
 	{
+		/// <summary>
+		/// DateFunctionsTranslatorBase type.
+		/// </summary>
+		/// <summary>
+		/// DateFunctionsTranslatorBase type.
+		/// </summary>
 		public DateFunctionsTranslatorBase()
 		{
 			RegisterDateTime();
@@ -620,46 +632,73 @@ namespace mooSQL.linq.translator
 #endif
 
 		#region Methods to override
+		/// <summary>
+		/// Translates TranslateDateTimeDatePart for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeOffsetDatePart for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeOffsetDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateOnlyDatePart for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateOnlyDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 		{
 			return TranslateDateTimeDatePart(translationContext, translationFlag, dateTimeExpression, datepart);
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeDateAdd for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeOffsetDateAdd for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeOffsetDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateOnlyDateAdd for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateOnlyDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment, DbFunc.DateParts datepart)
 		{
 			return TranslateDateTimeDateAdd(translationContext, translationFlag, dateTimeExpression, increment, datepart);
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeTruncationToDate for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeOffsetTruncationToDate for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeOffsetTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeTruncationToTime for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeTruncationToTime(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 		{
@@ -668,6 +707,9 @@ namespace mooSQL.linq.translator
 
 			return cast;
 		}
+		/// <summary>
+		/// Translates TranslateDateTimeOffsetTruncationToTime for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateDateTimeOffsetTruncationToTime(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 		{
@@ -676,6 +718,9 @@ namespace mooSQL.linq.translator
 
 			return cast;
 		}
+		/// <summary>
+		/// Translates TranslateSqlCurrentTimestamp for this dialect.
+		/// </summary>
 
 		protected virtual Expression? TranslateSqlCurrentTimestamp(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
 		{
@@ -684,6 +729,9 @@ namespace mooSQL.linq.translator
 				return null;
 			return translationContext.CreatePlaceholder(translated, memberExpression);
 		}
+		/// <summary>
+		/// Translates TranslateSqlCurrentTimestampUtc for this dialect.
+		/// </summary>
 
 		protected virtual Expression? TranslateSqlCurrentTimestampUtc(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
 		{
@@ -692,6 +740,9 @@ namespace mooSQL.linq.translator
 				return null;
 			return translationContext.CreatePlaceholder(translated, memberExpression);
 		}
+		/// <summary>
+		/// Translates TranslateSqlGetDate for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateSqlGetDate(ITranslationContext translationContext, TranslationFlags translationFlags)
 		{
@@ -699,11 +750,17 @@ namespace mooSQL.linq.translator
 			var currentTimeStamp = factory.Fragment(factory.GetDbDataType(typeof(DateTime)), "CURRENT_TIMESTAMP");
 			return currentTimeStamp;
 		}
+		/// <summary>
+		/// Translates TranslateSqlCurrentTimestampUtc for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateSqlCurrentTimestampUtc(ITranslationContext translationContext, TranslationFlags translationFlags)
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateMakeDateTime for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateMakeDateTime(
 			ITranslationContext translationContext,
@@ -718,6 +775,9 @@ namespace mooSQL.linq.translator
 		{
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateMakeDateOnly for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateMakeDateOnly(
 			ITranslationContext translationContext,

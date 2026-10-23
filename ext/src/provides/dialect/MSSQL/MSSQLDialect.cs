@@ -27,6 +27,12 @@ namespace mooSQL.data
     /// <inheritdoc/>
     public class MSSQLDialect : ExtDialect
     {
+        /// <summary>
+        /// MSSQLDialect type.
+        /// </summary>
+        /// <summary>
+        /// MSSQLDialect type.
+        /// </summary>
         public MSSQLDialect()
         {
             expression = new MSSQLExpress(this);
@@ -172,6 +178,10 @@ namespace mooSQL.data
             }
             return p1.SqlDbType;
         }
+ /// <summary>
+ /// Performs a bulk insert operation.
+ /// </summary>
+ 
         public override int BulkInsert(BulkBase bk)
         {
             int cc = 0;

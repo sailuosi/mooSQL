@@ -6,19 +6,34 @@ using System.Reflection;
 
 namespace mooSQL.linq
 {
+	/// <summary>
+	/// AccessorMember type.
+	/// </summary>
 	[DebuggerDisplay("Member: {MemberInfo.Name}")]
 	public class AccessorMember
 	{
+		/// <summary>
+		/// AccessorMember type.
+		/// </summary>
+		/// <summary>
+		/// AccessorMember type.
+		/// </summary>
 		public AccessorMember(MemberInfo memberInfo)
 		{
 			MemberInfo = memberInfo;
 		}
+		/// <summary>
+		/// AccessorMember type.
+		/// </summary>
 
 		public AccessorMember(MemberInfo memberInfo, ReadOnlyCollection<Expression>? arguments)
 		{
 			MemberInfo = memberInfo;
 			Arguments  = arguments;
 		}
+		/// <summary>
+		/// AccessorMember type.
+		/// </summary>
 
 		public AccessorMember(Expression expression)
 		{
@@ -36,9 +51,21 @@ namespace mooSQL.linq
 				throw new InvalidOperationException($"Expression '{expression}' cannot be used in association.");
 			}
 		}
+		/// <summary>
+		/// Gets or sets MemberInfo.
+		/// </summary>
 
 		public MemberInfo MemberInfo { get; }
+		/// <summary>
+		/// Arguments
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Arguments.
+		/// </summary>
 		public ReadOnlyCollection<Expression>? Arguments { get; }
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		protected bool Equals(AccessorMember other)
 		{
@@ -59,6 +86,10 @@ namespace mooSQL.linq
 
 			return true;
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -67,6 +98,10 @@ namespace mooSQL.linq
 			if (obj.GetType() != GetType()) return false;
 			return Equals((AccessorMember)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{

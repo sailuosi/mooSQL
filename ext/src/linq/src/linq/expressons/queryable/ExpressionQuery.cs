@@ -12,6 +12,9 @@ namespace mooSQL.linq
 	using mooSQL.linq.utils;
     using mooSQL.data;
     using mooSQL.linq.translator;
+    /// <summary>
+    /// ExpressionQuery type.
+    /// </summary>
 
     public abstract class ExpressionQuery<T> : IExpressionQuery<T>
 #if NET5_0_OR_GREATER
@@ -19,6 +22,9 @@ namespace mooSQL.linq
 #endif
 	{
 		#region Init
+		/// <summary>
+		/// Init
+		/// </summary>
 
 		protected void Init(DBInstance dataContext, Expression? expression)
 		{
@@ -29,8 +35,14 @@ namespace mooSQL.linq
 
             //}
 		}
+		/// <summary>
+		/// Gets or sets Expression.
+		/// </summary>
 
 		public Expression   Expression  { get; set; } = null!;
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 		public DBInstance DBLive { get; set; }
 		internal SentenceBag<T>? Info;
@@ -48,8 +60,17 @@ namespace mooSQL.linq
 		//
 
 		// ReSharper disable once InconsistentNaming
+		/// <summary>
+		/// _sqlText
+		/// </summary>
+		/// <summary>
+		/// _sqlText
+		/// </summary>
 		public string _sqlText => SqlText;
 #endif
+		/// <summary>
+		/// SqlText
+		/// </summary>
 
 		public string SqlText
 		{
@@ -85,6 +106,9 @@ namespace mooSQL.linq
 
 			return info;
 		}
+		/// <summary>
+		/// ExecuteAsync&lt;TResult&gt;
+		/// </summary>
 
 		public async Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
@@ -97,6 +121,12 @@ namespace mooSQL.linq
 		}
 
 #if NET6_0_OR_GREATER
+        /// <summary>
+        /// ExecuteAsyncEnumerable&lt;TResult&gt;
+        /// </summary>
+        /// <summary>
+        /// ExecuteAsyncEnumerable&lt;TResult&gt;
+        /// </summary>
         public async Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
 			var query = GetQuery(ref expression, false, out _);
@@ -110,6 +140,9 @@ namespace mooSQL.linq
 			// Do not start implicit transaction if there is no preambles
 			return null;
 		}
+        /// <summary>
+        /// Gets GetForEachAsync.
+        /// </summary>
 
         public async Task GetForEachAsync(Action<T> action, CancellationToken cancellationToken)
 		{
@@ -143,6 +176,9 @@ namespace mooSQL.linq
             }
 #endif
         }
+        /// <summary>
+        /// Gets GetForEachUntilAsync.
+        /// </summary>
 
         public async Task GetForEachUntilAsync(Func<T,bool> func, CancellationToken cancellationToken)
 		{
@@ -177,10 +213,19 @@ namespace mooSQL.linq
         }
 
 #if NET5_0_OR_GREATER
+        /// <summary>
+        /// Gets GetAsyncEnumerable.
+        /// </summary>
+        /// <summary>
+        /// Gets GetAsyncEnumerable.
+        /// </summary>
         public IAsyncEnumerable<T> GetAsyncEnumerable()
 		{
 			return this;
 		}
+		/// <summary>
+		/// Gets GetAsyncEnumerator.
+		/// </summary>
 
 		public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
 		{

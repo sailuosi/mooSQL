@@ -22,6 +22,9 @@ namespace mooSQL.data.Npgsql
     /// </summary>
     public class NpgMappingPanel: DefaultMappingPanel
     {
+        /// <summary>
+        /// NpgMappingPanel type.
+        /// </summary>
 
         public NpgMappingPanel() {
             initStringDbTypeMap();
@@ -176,6 +179,10 @@ namespace mooSQL.data.Npgsql
                 return sb.ToString();
             });
         }
+ /// <summary>
+ /// Resolves a provider-specific type from a type name.
+ /// </summary>
+ 
         public override Type? GetProviderSpecificType(string? dataType)
         {
             switch (dataType)
@@ -200,6 +207,10 @@ namespace mooSQL.data.Npgsql
 
             return base.GetProviderSpecificType(dataType);
         }
+/// <summary>
+/// Sets the provider-specific type on a DbParameter.
+/// </summary>
+ 
 
         protected override void SetParameterType(DbCommand dataConnection, DbParameter parameter, DbDataType dataType)
         {
@@ -275,6 +286,10 @@ namespace mooSQL.data.Npgsql
 
             base.SetParameterType(dataConnection, parameter, dataType);
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
 
         public override DataFam GetDataType(string? dataType, string? columnType=null)
@@ -344,6 +359,10 @@ namespace mooSQL.data.Npgsql
 
             return DataFam.Undefined;
         }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
         public override string DbDataTypeToSQL(DbDataType type)
         {

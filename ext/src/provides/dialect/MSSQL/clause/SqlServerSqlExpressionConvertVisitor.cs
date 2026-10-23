@@ -8,14 +8,27 @@ namespace mooSQL.linq.provider.SqlServer
     using mooSQL.utils;
     using mooSQL.linq.provider;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// SqlServerSqlExpressionConvertVisitor type.
+	/// </summary>
+	/// <summary>
+	/// SqlServerSqlExpressionConvertVisitor type.
+	/// </summary>
 	public class SqlServerSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// SqlServerSqlExpressionConvertVisitor type.
+		/// </summary>
 
 
 		public SqlServerSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 			
 		}
+/// <summary>
+/// ConvertSearchStringPredicate
+/// </summary>
+	
 
 		public override IAffirmWord ConvertSearchStringPredicate(SearchString predicate)
 		{
@@ -85,6 +98,10 @@ namespace mooSQL.linq.provider.SqlServer
 
 			return like;
 		}
+/// <summary>
+/// ConvertSqlBinaryExpression
+/// </summary>
+	
 
 		public override Clause ConvertSqlBinaryExpression(BinaryWord element)
 		{
@@ -109,6 +126,10 @@ namespace mooSQL.linq.provider.SqlServer
 
 			return base.ConvertSqlBinaryExpression(element);
 		}
+/// <summary>
+/// ConvertConversion
+/// </summary>
+	
 
 		protected override IExpWord ConvertConversion(CastWord cast)
 		{

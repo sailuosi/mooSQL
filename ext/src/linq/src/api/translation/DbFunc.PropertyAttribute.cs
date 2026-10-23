@@ -59,6 +59,10 @@ namespace mooSQL.linq
 				get => Expression;
 				set => Expression = value;
 			}
+/// <summary>
+/// Gets GetExpression&lt;TContext&gt;.
+/// </summary>
+	
 
 			public override Expression GetExpression<TContext>(
 				TContext              context,
@@ -86,6 +90,10 @@ namespace mooSQL.linq
 
 				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpr, expression);
 			}
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 			public override string GetObjectID()
 			{

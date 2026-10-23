@@ -8,36 +8,87 @@ namespace mooSQL.linq.provider
 {
     using mooSQL.data;
     using mooSQL.data.model;
+	/// <summary>
+	/// OptimizationContext type.
+	/// </summary>
 
 	public class OptimizationContext
 	{
 		private Dictionary<ParameterWord, ParameterWord>?          _parametersMap;
 		private List<ParameterWord>?                              _actualParameters;
 		private Dictionary<(DbDataType, object?), ParameterWord>? _dynamicParameters;
+		/// <summary>
+		/// Gets or sets SqlProviderFlags.
+		/// </summary>
 
 		public SQLProviderFlags?             SqlProviderFlags { get; }
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 		public DBInstance DBLive { get; }
+		/// <summary>
+		/// ConvertVisitor
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConvertVisitor.
+		/// </summary>
 		public SqlExpressionConvertVisitor   ConvertVisitor   { get; }
+		/// <summary>
+		/// OptimizerVisitor
+		/// </summary>
+		/// <summary>
+		/// Gets or sets OptimizerVisitor.
+		/// </summary>
 		public SqlExpressionOptimizerVisitor OptimizerVisitor { get; }
+		/// <summary>
+		/// TransformationInfo
+		/// </summary>
 
 		public SentenceVisitor.IVisitorTransformationInfo TransformationInfo => 
 			_transformationInfo ??= new SentenceVisitor.VisitorTransformationInfo();
 
 		SentenceVisitor.IVisitorTransformationInfo? _transformationInfo;
+		/// <summary>
+		/// TransformationInfoConvert
+		/// </summary>
 
 		public SentenceVisitor.IVisitorTransformationInfo TransformationInfoConvert => 
 			_transformationInfoConvert ??= new SentenceVisitor.VisitorTransformationInfo();
 
 		SentenceVisitor.IVisitorTransformationInfo? _transformationInfoConvert;
+		/// <summary>
+		/// Gets or sets EvaluationContext.
+		/// </summary>
 
 		public EvaluateContext EvaluationContext              { get; }
+		/// <summary>
+		/// IsParameterOrderDependent
+		/// </summary>
+		/// <summary>
+		/// Gets or sets IsParameterOrderDependent.
+		/// </summary>
 		public bool              IsParameterOrderDependent      { get; }
+		/// <summary>
+		/// IsAlreadyOptimizedAndConverted
+		/// </summary>
+		/// <summary>
+		/// Gets or sets IsAlreadyOptimizedAndConverted.
+		/// </summary>
 		public bool              IsAlreadyOptimizedAndConverted { get; }
+		/// <summary>
+		/// HasParameters
+		/// </summary>
 
 		public bool HasParameters() => _actualParameters?.Count > 0;
+		/// <summary>
+		/// Gets GetParameters.
+		/// </summary>
 
 		public IReadOnlyList<ParameterWord> GetParameters() => _actualParameters ?? new List<ParameterWord>();
+		/// <summary>
+		/// AddParameter
+		/// </summary>
 
 		public ParameterWord AddParameter(ParameterWord parameter)
 		{
@@ -57,6 +108,9 @@ namespace mooSQL.linq.provider
 
 			return returnValue;
 		}
+		/// <summary>
+		/// SuggestDynamicParameter
+		/// </summary>
 
 		public ParameterWord SuggestDynamicParameter(DbDataType dbDataType, object? value)
 		{
@@ -72,11 +126,17 @@ namespace mooSQL.linq.provider
 
 			return param;
 		}
+		/// <summary>
+		/// ClearParameters
+		/// </summary>
 
 		public void ClearParameters()
 		{
 			_actualParameters = null;
 		}
+		/// <summary>
+		/// OptimizeAndConvertAll&lt;T&gt;
+		/// </summary>
 
 		[return : NotNullIfNotNull(nameof(element))]
 		public T OptimizeAndConvertAll<T>(T element, NullabilityContext nullabilityContext)
@@ -87,6 +147,9 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+		/// <summary>
+		/// OptimizeAndConvert&lt;T&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public T? OptimizeAndConvert<T>(T? element, NullabilityContext nullabilityContext, bool isInsideNot)
@@ -103,6 +166,9 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+		/// <summary>
+		/// Optimize&lt;T&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public T? Optimize<T>(T? element, NullabilityContext nullabilityContext, bool isInsideNot, bool reduceBinary)

@@ -24,6 +24,12 @@ namespace mooSQL.linq
     /// </summary>
     public class QueryMate
     {
+        /// <summary>
+        /// Gets GetQuery&lt;T&gt;.
+        /// </summary>
+        /// <summary>
+        /// Gets GetQuery&lt;T&gt;.
+        /// </summary>
         public static SentenceBag<T> GetQuery<T>(DBInstance DB, ref Expression expr, out bool dependsOnParameters)
         {
             using var mt = ActivityService.Start(ActivityID.GetQueryTotal);
@@ -110,13 +116,15 @@ namespace mooSQL.linq
             return query;
         }
         /// <summary>
-        /// 创建
+        /// 创建查询。
         /// </summary>
-        /// <param name="optimizationContext"></param>
-        /// <param name="parametersContext"></param>
-        /// <param name="dataContext"></param>
-        /// <param name="expr"></param>
-        /// <returns></returns>
+        /// <param name="optimizationContext">表达式树优化上下文。</param>
+        /// <param name="parametersContext">参数上下文。</param>
+        /// <param name="DB">数据库实例。</param>
+        /// <param name="expr">查询表达式。</param>
+        /// <param name="compiledParameters">已编译的参数表达式。</param>
+        /// <param name="parameterValues">参数值。</param>
+        /// <returns>查询句柄。</returns>
         internal static SentenceBag<T> CreateQuery<T>(ExpressionTreeOptimizationContext optimizationContext, ParametersContext parametersContext, DBInstance DB, Expression expr, ParameterExpression[]? compiledParameters,
             object?[]? parameterValues)
         {

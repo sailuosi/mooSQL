@@ -13,7 +13,17 @@ namespace mooSQL.data
     /// </summary>
     public class ClickHouseBulkCopyee : DbBulkCopy
     {
+        /// <summary>
+        /// ClickHouseBulkCopyee type.
+        /// </summary>
+        /// <summary>
+        /// ClickHouseBulkCopyee type.
+        /// </summary>
         public ClickHouseBulkCopyee(DBInstance db) : base(db) { }
+/// <summary>
+/// Writes data to the server using bulk copy.
+/// </summary>
+ 
 
         public override BulkCopyResult WriteToServer(DataTable table)
         {
@@ -22,6 +32,10 @@ namespace mooSQL.data
             using var reader = table.CreateDataReader();
             return WriteReader(reader, table.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray());
         }
+/// <summary>
+/// Writes data to the server using bulk copy.
+/// </summary>
+ 
 
         public override BulkCopyResult WriteToServer(DataRow[] rows)
         {
@@ -32,6 +46,10 @@ namespace mooSQL.data
                 table.ImportRow(r);
             return WriteToServer(table);
         }
+/// <summary>
+/// Writes data to the server using bulk copy.
+/// </summary>
+ 
 
         public override BulkCopyResult WriteToServer(IDataReader reader)
         {

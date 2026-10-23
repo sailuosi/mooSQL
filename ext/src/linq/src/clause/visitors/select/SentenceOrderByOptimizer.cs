@@ -7,18 +7,34 @@ using mooSQL.linq.provider;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceOrderByOptimizer type.
+	/// </summary>
+	/// <summary>
+	/// SentenceOrderByOptimizer type.
+	/// </summary>
 	public class SentenceOrderByOptimizer : SentenceVisitor
 	{
 		SQLProviderFlags _providerFlags = default!;
 		bool             _disableOrderBy;
 		bool             _insideSetOperator;
 		bool             _optimized;
+		/// <summary>
+		/// IsOptimized
+		/// </summary>
 
 		public bool IsOptimized => _optimized;
+		/// <summary>
+		/// SentenceOrderByOptimizer type.
+		/// </summary>
 
 		public SentenceOrderByOptimizer() : base(VisitMode.Modify, null)
 		{
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -29,6 +45,9 @@ namespace mooSQL.linq.clause
 			_optimized         = false;
 			_providerFlags       = default!;
 		}
+		/// <summary>
+		/// OptimizeOrderBy
+		/// </summary>
 
 		public void OptimizeOrderBy(Clause element, SQLProviderFlags providerFlags)
 		{
@@ -62,6 +81,10 @@ namespace mooSQL.linq.clause
 			}
 		
 		}
+/// <summary>
+/// VisitSetOperator
+/// </summary>
+	
 
 		public override Clause VisitSetOperator(SetOperatorWord element)
 		{
@@ -83,6 +106,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmFuncLike
+/// </summary>
+	
 
 		public override Clause VisitAffirmFuncLike(FuncLike element)
 		{
@@ -96,6 +123,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitJoinedTable
+/// </summary>
+ 
 
         public override Clause VisitJoinedTable(JoinTableWord element)
 		{
@@ -109,6 +140,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitSelectQuery
+/// </summary>
+	
 
 		public override Clause VisitSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -157,6 +192,10 @@ namespace mooSQL.linq.clause
 
 			return selectQuery;
 		}
+/// <summary>
+/// VisitTableSource
+/// </summary>
+ 
 
         public override Clause VisitTableSource(TableSourceWord element)
 		{
@@ -173,6 +212,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitWhereClause
+/// </summary>
+	
 
 		public override Clause VisitWhereClause(WhereClause element)
 		{
@@ -185,6 +228,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitGroupByClause
+/// </summary>
+ 
 
         public override Clause VisitGroupByClause(GroupByClause element)
 		{
@@ -209,6 +256,10 @@ namespace mooSQL.linq.clause
 
 		//	return expression;
 		//}
+/// <summary>
+/// VisitCteClause
+/// </summary>
+ 
 
         public override Clause VisitCteClause(CTEClause element)
 		{
@@ -222,6 +273,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmInSubQuery
+/// </summary>
+ 
 
         public override Clause VisitAffirmInSubQuery(InSubQuery predicate)
 		{

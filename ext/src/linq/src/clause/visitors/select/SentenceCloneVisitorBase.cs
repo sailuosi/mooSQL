@@ -4,11 +4,26 @@ using mooSQL.data.model;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceCloneVisitorBase type.
+	/// </summary>
+	/// <summary>
+	/// SentenceCloneVisitorBase type.
+	/// </summary>
 	public class SentenceCloneVisitorBase : SentenceVisitor
 	{
+		/// <summary>
+		/// SentenceCloneVisitorBase type.
+		/// </summary>
+		/// <summary>
+		/// SentenceCloneVisitorBase type.
+		/// </summary>
 		public SentenceCloneVisitorBase() : base(VisitMode.Transform, null)
 		{
 		}
+		/// <summary>
+		/// RegisterReplacements
+		/// </summary>
 
 		public void RegisterReplacements(IReadOnlyDictionary<Clause, Clause> replacements)
 		{
@@ -25,6 +40,9 @@ namespace mooSQL.linq.clause
 
 		//	return true;
 		//}
+		/// <summary>
+		/// PerformClone
+		/// </summary>
 
 		public Clause PerformClone(Clause element)
 		{

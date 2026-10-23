@@ -173,6 +173,9 @@ namespace mooSQL.linq
 
 			const  string MatchParamPattern = @"{([0-9a-z_A-Z?]*)(,\s'(.*)')?}";
 			static Regex  _matchParamRegEx  = new (MatchParamPattern, RegexOptions.Compiled);
+			/// <summary>
+			/// ResolveExpressionValues&lt;TContext&gt;
+			/// </summary>
 
 			public static string ResolveExpressionValues<TContext>(TContext context, string expression, Func<TContext, string, string?, string?> valueProvider, out Expression? error)
 			{
@@ -232,8 +235,14 @@ namespace mooSQL.linq
 
 				return str;
 			}
+			/// <summary>
+			/// UnknownExpression
+			/// </summary>
 
 			public static readonly ExpressionWord UnknownExpression = new ("!!!");
+			/// <summary>
+			/// PrepareParameterValues&lt;TContext&gt;
+			/// </summary>
 
 			public static void PrepareParameterValues<TContext>(
 				TContext                                                              context,
@@ -360,8 +369,14 @@ namespace mooSQL.linq
 						knownExpressions.Add((me.Expression, null));
 				}
 			}
+			/// <summary>
+			/// ConvertFunc&lt;TContext&gt;
+			/// </summary>
 
 			public delegate Expression ConvertFunc<TContext>(TContext context, Expression expression, EntityColumn? columnDescriptor, bool? inlineParameters);
+			/// <summary>
+			/// PrepareArguments&lt;TContext&gt;
+			/// </summary>
 
 			public static IExpWord?[] PrepareArguments<TContext>(TContext   context,
 				string                                                            expressionStr,
@@ -528,6 +543,9 @@ namespace mooSQL.linq
 
 				return parms.Select(static p => p ?? UnknownExpression).ToArray();
 			}
+			/// <summary>
+			/// Gets GetExpression&lt;TContext&gt;.
+			/// </summary>
 
 			public virtual Expression GetExpression<TContext>(
 				TContext              context,
@@ -563,13 +581,23 @@ namespace mooSQL.linq
 				// placeholder will be updated later by concrete path
 				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpression, expression);
 			}
+			/// <summary>
+			/// ToParametersNullabilityType
+			/// </summary>
 
 			public static ParametersNullabilityType ToParametersNullabilityType(IsNullableType nullableType)
 			{
 				return (ParametersNullabilityType)nullableType;
 			}
+			/// <summary>
+			/// Gets GetIsPredicate.
+			/// </summary>
 
 			public virtual bool GetIsPredicate(Expression expression) => IsPredicate;
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 			public override string GetObjectID()
 			{

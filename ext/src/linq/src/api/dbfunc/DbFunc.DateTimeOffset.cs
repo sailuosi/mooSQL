@@ -9,6 +9,9 @@ namespace mooSQL.linq
 	public partial class DbFunc
 	{
 		#region DatePart
+		/// <summary>
+		/// Builds a date-part expression for .
+		/// </summary>
 
 		public static int? DatePart([SqlQueryDependent] DateParts part, [ExprParameter] DateTimeOffset? date)
 		{
@@ -35,6 +38,9 @@ namespace mooSQL.linq
 		#endregion
 
 		#region DateAdd
+		/// <summary>
+		/// Builds a date-add expression for .
+		/// </summary>
 
 		public static DateTimeOffset? DateAdd([SqlQueryDependent] DateParts part, double? number, DateTimeOffset? date)
 		{

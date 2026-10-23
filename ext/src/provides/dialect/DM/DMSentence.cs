@@ -11,9 +11,19 @@ namespace mooSQL.data;
 /// </summary>
 public class DMSentence : SQLSentence
 {
+    /// <summary>
+    /// DMSentence type.
+    /// </summary>
+    /// <summary>
+    /// DMSentence type.
+    /// </summary>
     public DMSentence(Dialect dia) : base(dia) { }
 
     private string? SchemasFilter { get; set; }
+/// <summary>
+/// Loads column metadata for the specified table.
+/// </summary>
+ 
 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
@@ -25,6 +35,10 @@ public class DMSentence : SQLSentence
         });
         return builder;
     }
+/// <summary>
+/// SQL used to reserve sequence values.
+/// </summary>
+ 
 
     public override string GetReserveSequenceValuesSql(int count, string sequenceName)
     {
@@ -34,8 +48,16 @@ public class DMSentence : SQLSentence
         return $"SELECT {dialect.clauseTranslator.TranslateValue(sequenceName, ConvertType.SequenceName)}.nextval ID from DUAL connect by level <= {count}";
 #endif
     }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
     public override string GetDataBaseSql => throw new NotSupportedException();
+/// <summary>
+/// SQL used to list column info for a table.
+/// </summary>
+ 
 
     public override string GetColumnInfosByTableNameSql => "select  " +
         " t1.COLUMN_NAME as Name " +
@@ -54,11 +76,19 @@ public class DMSentence : SQLSentence
         " and au.constraint_type = 'P' and au.table_name=upper('{0}') " +
         ") t3  on t3.keyname = t1.COLUMN_NAME " +
         " where t1.table_name=upper('{0}')";
+/// <summary>
+/// SQL used to list column captions for a table.
+/// </summary>
+ 
 
     public override string GetColumnCaptionsByTableNameSql => "SELECT t1.COLUMN_NAME AS Name, t2.COMMENTS AS Caption " +
         "FROM all_tab_columns t1 " +
         "LEFT JOIN all_col_comments t2 ON t1.TABLE_NAME = t2.TABLE_NAME AND t1.COLUMN_NAME = t2.COLUMN_NAME " +
         "WHERE t1.TABLE_NAME = UPPER('{0}') ORDER BY t1.COLUMN_ID";
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
     public override string GetTableInfoListSql => "SELECT  table_name name from user_tables where " +
         " table_name!='HELP' " +
@@ -67,6 +97,10 @@ public class DMSentence : SQLSentence
         "  AND table_name!='LOGMNRP_CTAS_PART_MAP' " +
         " AND table_name!='LOGMNR_LOGMNR_BUILDLOG' " +
         " AND table_name!='SQLPLUS_PRODUCT_PROFILE' ";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql => "select view_name name  from user_views " +
         "WHERE VIEW_name NOT LIKE '%$%' " +
@@ -118,12 +152,20 @@ public class DMSentence : SQLSentence
             return FinalizeDbTableListAll(list, options);
         }
     }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
     protected override string GetCurrentDatabaseName()
     {
         try { return DBLive.ExeQueryScalar<string>("select user from dual", null); }
         catch { return null; }
     }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
     public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
     {
@@ -152,9 +194,17 @@ public class DMSentence : SQLSentence
             };
         }
     }
+/// <summary>
+/// Creates a database.
+/// </summary>
+ 
 
     public override bool CreateDatabase(string DatabaseName, string databaseDirectory = null)
         => throw new NotImplementedException();
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
     public override SQLCmd buildHasTable(string TableName)
     {
@@ -163,6 +213,10 @@ public class DMSentence : SQLSentence
             .where("table_name", TableName.ToUpperInvariant())
             .toSelect();
     }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
@@ -174,6 +228,10 @@ public class DMSentence : SQLSentence
             .queryRowString(null);
         return !string.IsNullOrEmpty(name);
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -185,6 +243,10 @@ public class DMSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -196,6 +258,10 @@ public class DMSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
     public override string GetTablePKName(string table)
     {
@@ -208,6 +274,10 @@ public class DMSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+/// <summary>
+/// Loads column schemas.
+/// </summary>
+ 
 
     public override List<ColumnInfo> GetColumns(GetSchemaOptions options)
     {
@@ -256,6 +326,10 @@ public class DMSentence : SQLSentence
             };
         }).ToList();
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

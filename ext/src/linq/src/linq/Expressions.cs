@@ -27,6 +27,9 @@ namespace mooSQL.linq
     using mooSQL.data.model;
     using mooSQL.utils;
     using mooSQL.data;
+    /// <summary>
+    /// Expressions type.
+    /// </summary>
 
     public static class Expressions
 	{
@@ -63,6 +66,9 @@ namespace mooSQL.linq
 		#region Public Members
 
 		static bool _checkUserNamespace = true;
+		/// <summary>
+		/// ConvertMember
+		/// </summary>
 
 		public static LambdaExpression? ConvertMember(DBInstance mappingSchema, Type? objectType, MemberInfo mi)
 		{
@@ -226,38 +232,104 @@ namespace mooSQL.linq
 				default         : return true;
 			}
 		}
+		/// <summary>
+		/// M&lt;T&gt;
+		/// </summary>
 
 		public static MemberHelper.MemberInfoWithType M<T>(Expression<Func<T,object?>> func)
 		{
 			return NormalizeMemeberInfo(MemberHelper.GetMemberInfoWithType(func));
 		}
+		/// <summary>
+		/// M&lt;T&gt;
+		/// </summary>
 
 		public static MemberHelper.MemberInfoWithType M<T>(Expression<Func<T>> func)
 		{
 			return NormalizeMemeberInfo(MemberHelper.GetMemberInfoWithType(func));
 		}
+		/// <summary>
+		/// L&lt;TR&gt;
+		/// </summary>
 
 		public static LambdaExpression L<TR>                   (Expression<Func<TR>>                   func) { return func; }
+		/// <summary>
+		/// L&lt;T1, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,TR>                (Expression<Func<T1,TR>>                func) { return func; }
+		/// <summary>
+		/// L&lt;T1, T2, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, T2, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,T2,TR>             (Expression<Func<T1,T2,TR>>             func) { return func; }
+		/// <summary>
+		/// L&lt;T1, T2, T3, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, T2, T3, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,T2,T3,TR>          (Expression<Func<T1,T2,T3,TR>>          func) { return func; }
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,T2,T3,T4,TR>       (Expression<Func<T1,T2,T3,T4,TR>>       func) { return func; }
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,T2,T3,T4,T5,TR>    (Expression<Func<T1,T2,T3,T4,T5,TR>>    func) { return func; }
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, T5, T6, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// L&lt;T1, T2, T3, T4, T5, T6, TR&gt;
+		/// </summary>
 		public static LambdaExpression L<T1,T2,T3,T4,T5,T6,TR> (Expression<Func<T1,T2,T3,T4,T5,T6,TR>> func) { return func; }
+		/// <summary>
+		/// N
+		/// </summary>
+		/// <summary>
+		/// N
+		/// </summary>
 		public static LazyExpressionInfo N (Func<LambdaExpression> func) { return new LazyExpressionInfo { Lambda = func }; }
 
 		#endregion
+		/// <summary>
+		/// LazyExpressionInfo
+		/// </summary>
 
 		public class LazyExpressionInfo : IExpressionInfo
 		{
+			/// <summary>
+			/// Lambda
+			/// </summary>
+			/// <summary>
+			/// Lambda
+			/// </summary>
 			public Func<LambdaExpression>? Lambda;
 
 			LambdaExpression? _expression;
+			/// <summary>
+			/// Gets GetExpression.
+			/// </summary>
 
 			public LambdaExpression GetExpression(DBInstance mappingSchema)
 			{
 				return _expression ??= Lambda!();
 			}
+			/// <summary>
+			/// SetExpression
+			/// </summary>
 
 			public void SetExpression(LambdaExpression expression)
 			{
@@ -860,6 +932,9 @@ namespace mooSQL.linq
 
 		// Missing support for trimChars: Access, SqlCe, SybaseASE
 		// Firebird/MySQL - chars parameter treated as string, not as set of characters
+		/// <summary>
+		/// TrimRight
+		/// </summary>
 		[CLSCompliant(false)]
 		[DbFunc.Extension(ProviderName.Firebird      , "TRIM(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(TrailingRTrimCharactersBuilder))]
 		[DbFunc.Extension(ProviderName.ClickHouse    , "trim(TRAILING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(RTrimCharactersBuilder))]
@@ -882,6 +957,9 @@ namespace mooSQL.linq
 
 		// Missing support for trimChars: Access, SqlCe, SybaseASE
 		// Firebird/MySQL - chars parameter treated as string, not as set of characters
+		/// <summary>
+		/// TrimLeft
+		/// </summary>
 		[CLSCompliant(false)]
 		[DbFunc.Expression(ProviderName.Firebird     , "TRIM(LEADING FROM {0})"    , ServerSideOnly = false, PreferServerSide = false)]
 		[DbFunc.Extension(ProviderName.ClickHouse    , "trim(LEADING {1} FROM {0})", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(LTrimCharactersBuilder))]
@@ -1016,6 +1094,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = new CompareToWord(str, value);
 			}
 		}
+		/// <summary>
+		/// ConvertToCaseCompareTo
+		/// </summary>
 
 		[DbFunc.Extension(builderType: typeof(ConvertToCaseCompareToBuilder))]
 		public static int? ConvertToCaseCompareTo(string? str, string? value)
@@ -1025,6 +1106,9 @@ namespace mooSQL.linq
 
 		// Access, DB2, Firebird, Informix, MySql, Oracle, PostgreSQL, SQLite
 		//
+		/// <summary>
+		/// AltStuff
+		/// </summary>
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? AltStuff(string? str, int? startLocation, int? length, string? value)
 		{
@@ -1033,6 +1117,9 @@ namespace mooSQL.linq
 
 		// DB2
 		//
+		/// <summary>
+		/// VarChar
+		/// </summary>
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static string? VarChar(object? obj, int? size)
 		{
@@ -1041,6 +1128,9 @@ namespace mooSQL.linq
 
 		// DB2
 		//
+		/// <summary>
+		/// Hex
+		/// </summary>
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static string? Hex(Guid? guid)
 		{
@@ -1049,6 +1139,9 @@ namespace mooSQL.linq
 
 		// DB2, PostgreSQL, Access, MS SQL, SqlCe
 		//
+		/// <summary>
+		/// Replicate
+		/// </summary>
 		[CLSCompliant(false)]
 		[DbFunc.Function(                                         IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		[DbFunc.Function(ProviderName.DB2,        "Repeat",       IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
@@ -1066,6 +1159,9 @@ namespace mooSQL.linq
 
 			return sb.Value.ToString();
 		}
+		/// <summary>
+		/// Replicate
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[DbFunc.Function(                                         IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
@@ -1085,8 +1181,14 @@ namespace mooSQL.linq
 
 		// MSSQL
 		//
+		/// <summary>
+		/// Builds a round expression.
+		/// </summary>
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static decimal? Round(decimal? value, int precision, int mode) => 0;
+		/// <summary>
+		/// Builds a round expression.
+		/// </summary>
 
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.SameAsFirstParameter)]
 		public static double?  Round(double?  value, int precision, int mode) => 0;
@@ -1096,6 +1198,9 @@ namespace mooSQL.linq
 
 		// Access
 		//
+		/// <summary>
+		/// AccessInt&lt;T&gt;
+		/// </summary>
 		[CLSCompliant(false)]
 		[DbFunc.Function("Int", 0)]
 		public static T AccessInt<T>(T value)
@@ -1105,6 +1210,9 @@ namespace mooSQL.linq
 
 		// Access
 		//
+		/// <summary>
+		/// AccessRound
+		/// </summary>
 		[CLSCompliant(false)]
 		[DbFunc.Function("Round", 0, 1)]
 		public static double? AccessRound(double? value, int? precision)
@@ -1116,6 +1224,9 @@ namespace mooSQL.linq
 
 			return (double?)Math.Round((decimal)value.Value, precision.Value);
 		}
+		/// <summary>
+		/// AccessRound
+		/// </summary>
 
 		[CLSCompliant(false)]
 		[DbFunc.Function("Round", 0, 1)]
@@ -1131,13 +1242,22 @@ namespace mooSQL.linq
 
 		// Firebird
 		//
+		/// <summary>
+		/// DecimalPI
+		/// </summary>
 		[DbFunc.Function("PI", ServerSideOnly = true, CanBeNull = false)]
 		public static decimal DecimalPI() { return (decimal)Math.PI; }
+		/// <summary>
+		/// DoublePI
+		/// </summary>
 		[DbFunc.Function("PI", ServerSideOnly = true, CanBeNull = false)]
 		public static double  DoublePI () { return          Math.PI; }
 
 		// Informix
 		//
+		/// <summary>
+		/// Mdy
+		/// </summary>
 		[DbFunc.Function(IsNullable = DbFunc.IsNullableType.IfAnyParameterNullable)]
 		public static DateTime? Mdy(int? month, int? day, int? year)
 		{

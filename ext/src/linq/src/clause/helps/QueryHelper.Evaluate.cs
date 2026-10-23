@@ -9,6 +9,12 @@ namespace mooSQL.linq.clause
 {
 	partial class QueryHelper
 	{
+		/// <summary>
+		/// Gets GetParameterValue.
+		/// </summary>
+		/// <summary>
+		/// Gets GetParameterValue.
+		/// </summary>
 		public static SQLParameterValue GetParameterValue(this ParameterWord parameter, IReadOnlyParaValues? parameterValues)
 		{
 			if (parameterValues != null && parameterValues.TryGetValue(parameter, out var value))
@@ -17,6 +23,9 @@ namespace mooSQL.linq.clause
 			}
 			return new SQLParameterValue(parameter.Value, parameter.Type);
 		}
+		/// <summary>
+		/// TryEvaluateExpression
+		/// </summary>
 
 		public static bool TryEvaluateExpression(this ISQLNode expr, EvaluateContext context, out object? result)
 		{
@@ -24,6 +33,9 @@ namespace mooSQL.linq.clause
 			result=res.value;
 			return res.success;
 		}
+		/// <summary>
+		/// IsMutable
+		/// </summary>
 
 		public static bool IsMutable(this ISQLNode expr)
 		{
@@ -53,11 +65,17 @@ namespace mooSQL.linq.clause
 
 			return isMutable;
 		}
+		/// <summary>
+		/// CanBeEvaluated
+		/// </summary>
 
 		public static bool CanBeEvaluated(this ISQLNode expr, bool withParameters)
 		{
 			return expr.TryEvaluateExpression(new EvaluateContext(withParameters ? SqlParameterValues.Empty : null), out _);
 		}
+		/// <summary>
+		/// CanBeEvaluated
+		/// </summary>
 
 		public static bool CanBeEvaluated(this ISQLNode expr, EvaluateContext context)
 		{
@@ -586,6 +604,9 @@ namespace mooSQL.linq.clause
 				}
 			}
 		}
+		/// <summary>
+		/// EvaluateExpression
+		/// </summary>
 
 		public static object? EvaluateExpression(this ISQLNode expr, EvaluateContext context)
 		{
@@ -595,6 +616,9 @@ namespace mooSQL.linq.clause
 
 			return etar.value;
 		}
+		/// <summary>
+		/// EvaluateBoolExpression
+		/// </summary>
 
 		public static bool? EvaluateBoolExpression(this ISQLNode expr, EvaluateContext context, bool? defaultValue = null)
 		{
@@ -605,6 +629,9 @@ namespace mooSQL.linq.clause
 
 			return defaultValue;
 		}
+		/// <summary>
+		/// ExtractPredicate
+		/// </summary>
 
 		public static void ExtractPredicate(IAffirmWord predicate, out IAffirmWord underlying, out bool isNot)
 		{

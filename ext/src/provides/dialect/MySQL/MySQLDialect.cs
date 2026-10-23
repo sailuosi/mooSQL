@@ -11,10 +11,20 @@ namespace mooSQL.data
     /// <summary>MySQL 产品方言：继承 MySQL Family，保留版本表与 BulkLoader 辅助路径。</summary>
     public class MySQLDialect : MySqlFamilyDialect
     {
+        /// <summary>
+        /// MySQLDialect type.
+        /// </summary>
+        /// <summary>
+        /// MySQLDialect type.
+        /// </summary>
         public MySQLDialect()
         {
             this.initDBVersion();
         }
+/// <summary>
+/// Performs a bulk insert operation.
+/// </summary>
+ 
 
         public override int BulkInsert(BulkBase bk)
         {
@@ -22,9 +32,24 @@ namespace mooSQL.data
             cc = this.BulkInsertByInsertValues(bk);
             return cc;
         }
+        /// <summary>
+        /// Gets or sets SecureFilePriv.
+        /// </summary>
 
         public String SecureFilePriv { get; set; }
+        /// <summary>
+        /// Gets or sets the DateTime format string.
+        /// </summary>
+        /// <summary>
+        /// Gets or sets DateTimeFormat.
+        /// </summary>
         public String DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
+        /// <summary>
+        /// Gets dialect expression helpers.
+        /// </summary>
+        /// <summary>
+        /// Gets or sets Expressions.
+        /// </summary>
         public List<string> Expressions { get; } = new List<string>();
         private string _fieldTerminator = ",";
         private char _fieldQuotationCharacter = '"';

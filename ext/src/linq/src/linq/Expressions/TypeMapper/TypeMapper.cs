@@ -39,11 +39,17 @@ namespace mooSQL.linq.expressions
 		readonly Dictionary<Type, ICustomMapper>                _typeMapperInstancesCache = new ();
 
 		private bool _finalized;
+		/// <summary>
+		/// RegisterTypeWrapper&lt;TWrapper&gt;
+		/// </summary>
 
 		public void RegisterTypeWrapper<TWrapper>(Type originalType)
 		{
 			RegisterTypeWrapper(typeof(TWrapper), originalType);
 		}
+		/// <summary>
+		/// RegisterTypeWrapper
+		/// </summary>
 
 		public void RegisterTypeWrapper(Type wrapperType, Type originalType)
 		{
@@ -192,6 +198,9 @@ namespace mooSQL.linq.expressions
 			// https://stackoverflow.com/questions/1189144
 			return dictionary.TryGetValue(value, out var res) ? res : (TR)(object)value;
 		}
+		/// <summary>
+		/// FinalizeMappings
+		/// </summary>
 
 		public void FinalizeMappings()
 		{
@@ -879,21 +888,39 @@ namespace mooSQL.linq.expressions
 		}
 
 		#region MapExpression
+		/// <summary>
+		/// MapExpression&lt;TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<TR>(Expression<Func<TR>> func)
 			=> MapExpressionInternal(func);
+		/// <summary>
+		/// MapExpression&lt;T, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T, TR>(Expression<Func<T, TR>> func, Expression p)
 			=> MapExpressionInternal(func, p);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, TR>(Expression<Func<T1, T2, TR>> func, Expression p1, Expression p2)
 			=> MapExpressionInternal(func, p1, p2);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, TR>(Expression<Func<T1, T2, T3, TR>> func, Expression p1, Expression p2, Expression p3)
 			=> MapExpressionInternal(func, p1, p2, p3);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, T4, TR>(Expression<Func<T1, T2, T3, T4, TR>> func, Expression p1, Expression p2, Expression p3, Expression p4)
 			=> MapExpressionInternal(func, p1, p2, p3, p4);
+		/// <summary>
+		/// MapExpression&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
 
 		public Expression MapExpression<T1, T2, T3, T4, T5, TR>(Expression<Func<T1, T2, T3, T4, T5, TR>> func, Expression p1, Expression p2, Expression p3, Expression p4, Expression p5)
 			=> MapExpressionInternal(func, p1, p2, p3, p4, p5);
@@ -901,92 +928,224 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region MapAction
+		/// <summary>
+		/// MapAction
+		/// </summary>
 
 		public Expression MapAction(Expression<Action> action)
 			=> MapExpressionInternal(action);
+		/// <summary>
+		/// MapAction&lt;T&gt;
+		/// </summary>
 
 		public Expression MapAction<T>(Expression<Action<T>> action, Expression p)
 			=> MapExpressionInternal(action, p);
+		/// <summary>
+		/// MapAction&lt;T1, T2&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2>(Expression<Action<T1, T2>> action, Expression p1, Expression p2)
 			=> MapExpressionInternal(action, p1, p2);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3>(Expression<Action<T1, T2, T3>> action, Expression p1, Expression p2, Expression p3)
 			=> MapExpressionInternal(action, p1, p2, p3);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3, T4&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3, T4>(Expression<Action<T1, T2, T3, T4>> action, Expression p1, Expression p2, Expression p3, Expression p4)
 			=> MapExpressionInternal(action, p1, p2, p3, p4);
+		/// <summary>
+		/// MapAction&lt;T1, T2, T3, T4, T5&gt;
+		/// </summary>
 
 		public Expression MapAction<T1, T2, T3, T4, T5>(Expression<Action<T1, T2, T3, T4, T5>> action, Expression p1, Expression p2, Expression p3, Expression p4, Expression p5)
 			=> MapExpressionInternal(action, p1, p2, p3, p4, p5);
 		#endregion
 
 		#region MapLambda
+		/// <summary>
+		/// MapLambda&lt;T, TR&gt;
+		/// </summary>
 
 		public LambdaExpression MapLambda<T, TR>(Expression<Func<T, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, TR>(Expression<Func<T1, T2, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, T3, TR>(Expression<Func<T1, T2, T3, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, T3, T4, TR>(Expression<Func<T1, T2, T3, T4, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, T3, T4, T5, TR>(Expression<Func<T1, T2, T3, T4, T5, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, T6, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, T6, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, T3, T4, T5, T6, TR>(Expression<Func<T1, T2, T3, T4, T5, T6, TR>> func) => MapLambdaInternal(func, true)!;
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, T6, T7, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// MapLambda&lt;T1, T2, T3, T4, T5, T6, T7, TR&gt;
+		/// </summary>
 		public LambdaExpression MapLambda<T1, T2, T3, T4, T5, T6, T7, TR>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TR>> func) => MapLambdaInternal(func, true)!;
 
 		#endregion
 
 		#region MapActionLambda
+		/// <summary>
+		/// MapActionLambda
+		/// </summary>
 
 		public LambdaExpression MapActionLambda(Expression<Action> action) => MapLambdaInternal(action, true)!;
+		/// <summary>
+		/// MapActionLambda&lt;T&gt;
+		/// </summary>
+		/// <summary>
+		/// MapActionLambda&lt;T&gt;
+		/// </summary>
 		public LambdaExpression MapActionLambda<T>(Expression<Action<T>> action) => MapLambdaInternal(action, true)!;
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2&gt;
+		/// </summary>
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2&gt;
+		/// </summary>
 		public LambdaExpression MapActionLambda<T1, T2>(Expression<Action<T1, T2>> action) => MapLambdaInternal(action, true)!;
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3&gt;
+		/// </summary>
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3&gt;
+		/// </summary>
 		public LambdaExpression MapActionLambda<T1, T2, T3>(Expression<Action<T1, T2, T3>> action) => MapLambdaInternal(action, true)!;
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3, T4&gt;
+		/// </summary>
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3, T4&gt;
+		/// </summary>
 		public LambdaExpression MapActionLambda<T1, T2, T3, T4>(Expression<Action<T1, T2, T3, T4>> action) => MapLambdaInternal(action, true)!;
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3, T4, T5&gt;
+		/// </summary>
+		/// <summary>
+		/// MapActionLambda&lt;T1, T2, T3, T4, T5&gt;
+		/// </summary>
 		public LambdaExpression MapActionLambda<T1, T2, T3, T4, T5>(Expression<Action<T1, T2, T3, T4, T5>> action) => MapLambdaInternal(action, true)!;
 
 		#endregion
 
 		#region BuildFunc
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;TR&gt;.
+		/// </summary>
 
 		public Func<TR> BuildFunc<TR>(LambdaExpression lambda) =>
 			(Func<TR>)CorrectLambdaParameters(lambda, typeof(TR)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T, TR&gt;.
+		/// </summary>
 
 		public Func<T, TR> BuildFunc<T, TR>(LambdaExpression lambda) =>
 			(Func<T, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, TR> BuildFunc<T1, T2, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, T3, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, TR> BuildFunc<T1, T2, T3, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, T3, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2), typeof(T3)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, T3, T4, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, TR> BuildFunc<T1, T2, T3, T4, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, T3, T4, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2), typeof(T3), typeof(T4)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, T3, T4, T5, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, T5, TR> BuildFunc<T1, T2, T3, T4, T5, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, T3, T4, T5, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, T3, T4, T5, T6, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, T5, T6, TR> BuildFunc<T1, T2, T3, T4, T5, T6, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, T3, T4, T5, T6, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildFunc&lt;T1, T2, T3, T4, T5, T6, T7, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, T5, T6, T7, TR> BuildFunc<T1, T2, T3, T4, T5, T6, T7, TR>(LambdaExpression lambda) =>
 			(Func<T1, T2, T3, T4, T5, T6, T7, TR>)CorrectLambdaParameters(lambda, typeof(TR), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7)).CompileExpression();
 		#endregion
 
 		#region BuildAction
+		/// <summary>
+		/// Builds SQL for BuildAction.
+		/// </summary>
 
 		public Action BuildAction(LambdaExpression lambda) =>
 			(Action)CorrectLambdaParameters(lambda, null).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildAction&lt;T&gt;.
+		/// </summary>
 
 		public Action<T> BuildAction<T>(LambdaExpression lambda) =>
 			(Action<T>)CorrectLambdaParameters(lambda, null, typeof(T)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildAction&lt;T1, T2&gt;.
+		/// </summary>
 
 		public Action<T1, T2> BuildAction<T1, T2>(LambdaExpression lambda) =>
 			(Action<T1, T2>)CorrectLambdaParameters(lambda, null, typeof(T1), typeof(T2)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildAction&lt;T1, T2, T3&gt;.
+		/// </summary>
 
 		public Action<T1, T2, T3> BuildAction<T1, T2, T3>(LambdaExpression lambda) =>
 			(Action<T1, T2, T3>)CorrectLambdaParameters(lambda, null, typeof(T1), typeof(T2), typeof(T3)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildAction&lt;T1, T2, T3, T4&gt;.
+		/// </summary>
 
 		public Action<T1, T2, T3, T4> BuildAction<T1, T2, T3, T4>(LambdaExpression lambda) =>
 			(Action<T1, T2, T3, T4>)CorrectLambdaParameters(lambda, null, typeof(T1), typeof(T2), typeof(T3), typeof(T4)).CompileExpression();
+		/// <summary>
+		/// Builds SQL for BuildAction&lt;T1, T2, T3, T4, T5&gt;.
+		/// </summary>
 
 		public Action<T1, T2, T3, T4, T5> BuildAction<T1, T2, T3, T4, T5>(LambdaExpression lambda) =>
 			(Action<T1, T2, T3, T4, T5>)CorrectLambdaParameters(lambda, null, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5)).CompileExpression();
@@ -994,6 +1153,9 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region Setters
+		/// <summary>
+		/// MemberBuilder&lt;T, TV&gt;
+		/// </summary>
 
 		public class MemberBuilder<T, TV>
 		{
@@ -1058,6 +1220,9 @@ namespace mooSQL.linq.expressions
 
 				return resultLambda;
 			}
+			/// <summary>
+			/// Builds SQL for BuildSetter&lt;TBase&gt;.
+			/// </summary>
 
 			public Action<TBase, TV> BuildSetter<TBase>()
 			{
@@ -1065,6 +1230,9 @@ namespace mooSQL.linq.expressions
 
 				return resultLambda.CompileExpression();
 			}
+			/// <summary>
+			/// Builds SQL for BuildGetter&lt;TBase&gt;.
+			/// </summary>
 
 			public Func<TBase, TV> BuildGetter<TBase>()
 			{
@@ -1073,6 +1241,9 @@ namespace mooSQL.linq.expressions
 				return resultLambda.CompileExpression();
 			}
 		}
+		/// <summary>
+		/// TypeBuilder&lt;T&gt;
+		/// </summary>
 
 		public class TypeBuilder<T>
 		{
@@ -1082,12 +1253,18 @@ namespace mooSQL.linq.expressions
 			{
 				_mapper = mapper;
 			}
+			/// <summary>
+			/// Member&lt;TV&gt;
+			/// </summary>
 
 			public MemberBuilder<T, TV> Member<TV>(Expression<Func<T, TV>> memberExpression)
 			{
 				return new MemberBuilder<T, TV>(_mapper, memberExpression);
 			}
 		}
+		/// <summary>
+		/// Type&lt;T&gt;
+		/// </summary>
 
 		public TypeBuilder<T> Type<T>()
 		{
@@ -1097,83 +1274,128 @@ namespace mooSQL.linq.expressions
 		#endregion
 
 		#region Wrapper factories
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;TR&gt;.
+		/// </summary>
 
 		public Func<TR> BuildWrappedFactory<TR>(Expression<Func<TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T, TR&gt;.
+		/// </summary>
 
 		public Func<T, TR> BuildWrappedFactory<T, TR>(Expression<Func<T, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T1, T2, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, TR> BuildWrappedFactory<T1, T2, TR>(Expression<Func<T1, T2, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T1, T2, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T1, T2, T3, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, TR> BuildWrappedFactory<T1, T2, T3, TR>(Expression<Func<T1, T2, T3, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T1, T2, T3, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T1, T2, T3, T4, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, TR> BuildWrappedFactory<T1, T2, T3, T4, TR>(Expression<Func<T1, T2, T3, T4, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T1, T2, T3, T4, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T1, T2, T3, T4, T5, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, T5, TR> BuildWrappedFactory<T1, T2, T3, T4, T5, TR>(Expression<Func<T1, T2, T3, T4, T5, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T1, T2, T3, T4, T5, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildWrappedFactory&lt;T1, T2, T3, T4, T5, T6, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, T4, T5, T6, TR> BuildWrappedFactory<T1, T2, T3, T4, T5, T6, TR>(Expression<Func<T1, T2, T3, T4, T5, T6, TR>> newFunc)
 			where TR : TypeWrapper
 		{
 			return (Func<T1, T2, T3, T4, T5, T6, TR>)BuildFactoryImpl<TR>(newFunc, true);
 		}
+		/// <summary>
+		/// Builds SQL for BuildFactory&lt;TR&gt;.
+		/// </summary>
 
 		public Func<object> BuildFactory<TR>(Expression<Func<TR>> newFunc)
 		{
 			return (Func<object>)BuildFactoryImpl<TR>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildFactory&lt;T, TR&gt;.
+		/// </summary>
 
 		public Func<T, object> BuildFactory<T, TR>(Expression<Func<T, TR>> newFunc)
 		{
 			return (Func<T, object>)BuildFactoryImpl<TR>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildFactory&lt;T1, T2, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, object> BuildFactory<T1, T2, TR>(Expression<Func<T1, T2, TR>> newFunc)
 		{
 			return (Func<T1, T2, object>)BuildFactoryImpl<TR>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildFactory&lt;T1, T2, T3, TR&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, object> BuildFactory<T1, T2, T3, TR>(Expression<Func<T1, T2, T3, TR>> newFunc)
 		{
 			return (Func<T1, T2, T3, object>)BuildFactoryImpl<TR>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildTypedFactory&lt;TR, TRes&gt;.
+		/// </summary>
 
 		public Func<TRes> BuildTypedFactory<TR, TRes>(Expression<Func<TR>> newFunc)
 		{
 			return (Func<TRes>)BuildFactoryImpl<TR, TRes>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildTypedFactory&lt;T, TR, TRes&gt;.
+		/// </summary>
 
 		public Func<T, TRes> BuildTypedFactory<T, TR, TRes>(Expression<Func<T, TR>> newFunc)
 		{
 			return (Func<T, TRes>)BuildFactoryImpl<TR, TRes>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildTypedFactory&lt;T1, T2, TR, TRes&gt;.
+		/// </summary>
 
 		public Func<T1, T2, TRes> BuildTypedFactory<T1, T2, TR, TRes>(Expression<Func<T1, T2, TR>> newFunc)
 		{
 			return (Func<T1, T2, TRes>)BuildFactoryImpl<TR, TRes>(newFunc, false);
 		}
+		/// <summary>
+		/// Builds SQL for BuildTypedFactory&lt;T1, T2, T3, TR, TRes&gt;.
+		/// </summary>
 
 		public Func<T1, T2, T3, TRes> BuildTypedFactory<T1, T2, T3, TR, TRes>(Expression<Func<T1, T2, T3, TR>> newFunc)
 		{
@@ -1277,6 +1499,9 @@ namespace mooSQL.linq.expressions
 		}
 
 		#endregion
+		/// <summary>
+		/// Wrap&lt;TR&gt;
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(instance))]
 		public TR? Wrap<TR>(object? instance)
@@ -1299,6 +1524,9 @@ namespace mooSQL.linq.expressions
 
 			return factory(instance);
 		}
+		/// <summary>
+		/// WrapTask&lt;TR&gt;
+		/// </summary>
 
 		public async Task<TR?> WrapTask<TR>(Task instanceTask, Type instanceType, CancellationToken cancellationToken)
 			where TR : TypeWrapper

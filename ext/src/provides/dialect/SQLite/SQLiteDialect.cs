@@ -19,8 +19,20 @@ using mooSQL.linq;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// SQLiteDialect type.
+    /// </summary>
+    /// <summary>
+    /// SQLiteDialect type.
+    /// </summary>
     public class SQLiteDialect : ExtDialect
     {
+        /// <summary>
+        /// SQLiteDialect type.
+        /// </summary>
+        /// <summary>
+        /// SQLiteDialect type.
+        /// </summary>
         public SQLiteDialect()
         {
             expression = new SQLiteExpress(this);
@@ -35,34 +47,62 @@ namespace mooSQL.data
 
             this.initVersions();
         }
+/// <summary>
+/// Creates the LINQ member translator for this dialect.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMemberTranslator()
             => new SQLiteMemberTranslator();
 
 #if NET5_0_OR_GREATER
+ /// <summary>
+ /// Creates a new database command for this dialect.
+ /// </summary>
+ 
         public override DbCommand getCommand()
         {
             return new SqliteCommand();
         }
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
         {
             return new SqliteConnection(db.DBConnectStr);
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
         {
             return new SooSQLiteCommandBuilder();
         }
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
         {
             return new SooSQLiteDataAdapter();
         }
+ /// <summary>
+ /// Creates a bulk-copy helper for this dialect.
+ /// </summary>
+ 
         public override DbBulkCopy GetBulkCopy()
         {
             return new DbBulkCopyFallback(this.dbInstance);
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -72,6 +112,10 @@ namespace mooSQL.data
             }
             return null;
         }
+ /// <summary>
+ /// Adds a parameter to the command.
+ /// </summary>
+ 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {
             if (cmd is SqliteCommand scmd)

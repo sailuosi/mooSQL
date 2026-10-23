@@ -7,10 +7,16 @@ using System.Linq.Expressions;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// SqlExtensions type.
+	/// </summary>
 	
 	public static class SqlExtensions
 	{
 		#region In/NotIn
+		/// <summary>
+		/// In&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(InImpl1))]
 		public static bool In<T>(this T value, IEnumerable<T> sequence)
@@ -22,6 +28,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => sequence.Contains(value);
 		}
+		/// <summary>
+		/// In&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(InImpl2))]
 		public static bool In<T>(this T value, IQueryable<T> sequence)
@@ -33,6 +42,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => sequence.Contains(value);
 		}
+		/// <summary>
+		/// In&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(InImpl3))]
 		public static bool In<T>(this T value, params T[] sequence)
@@ -44,6 +56,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => sequence.Contains(value);
 		}
+		/// <summary>
+		/// In&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(InImpl4))]
 		public static bool In<T>(this T value, T cmp1, T cmp2)
@@ -56,6 +71,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,cmp1,cmp2) => value.In(new[] { cmp1, cmp2 });
 		}
+		/// <summary>
+		/// In&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(InImpl5))]
 		public static bool In<T>(this T value, T cmp1, T cmp2, T cmp3)
@@ -68,6 +86,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,cmp1,cmp2,cmp3) => value.In(new[] { cmp1, cmp2, cmp3 });
 		}
+		/// <summary>
+		/// NotIn&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(NotInImpl1))]
 		public static bool NotIn<T>(this T value, IEnumerable<T> sequence)
@@ -79,6 +100,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => !sequence.Contains(value);
 		}
+		/// <summary>
+		/// NotIn&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(NotInImpl2))]
 		public static bool NotIn<T>(this T value, IQueryable<T> sequence)
@@ -90,6 +114,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => !sequence.Contains(value);
 		}
+		/// <summary>
+		/// NotIn&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(NotInImpl3))]
 		public static bool NotIn<T>(this T value, params T[] sequence)
@@ -101,6 +128,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,sequence) => !sequence.Contains(value);
 		}
+		/// <summary>
+		/// NotIn&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(NotInImpl4))]
 		public static bool NotIn<T>(this T value, T cmp1, T cmp2)
@@ -113,6 +143,9 @@ namespace mooSQL.linq.utils
 		{
 			return (value,cmp1,cmp2) => value.NotIn(new[] { cmp1, cmp2 });
 		}
+		/// <summary>
+		/// NotIn&lt;T&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(NotInImpl5))]
 		public static bool NotIn<T>(this T value, T cmp1, T cmp2, T cmp3)

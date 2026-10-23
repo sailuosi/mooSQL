@@ -9,6 +9,9 @@ namespace mooSQL.data
 	using mooSQL.linq.clause;
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
+	/// <summary>
+	/// MySqlMemberTranslator type.
+	/// </summary>
 
 	public class MySqlMemberTranslator : DefaultMemberTranslator
 	{
@@ -66,9 +69,16 @@ namespace mooSQL.data
 				return translationContext.CreatePlaceholder(translationContext.CurrentSelectQuery, new ValueWord(dbDataType, ""), memberExpression);
 			}
 		}
+		/// <summary>
+		/// DateFunctionsTranslator
+		/// </summary>
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
+	/// <summary>
+	/// Translates TranslateDateTimeDatePart for this dialect.
+	/// </summary>
+	
 			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory = translationContext.ExpressionFactory;
@@ -79,6 +89,10 @@ namespace mooSQL.data
 
 				return factory.Fragment(intDataType, template, dateTimeExpression);
 			}
+/// <summary>
+/// Translates TranslateDateTimeDateAdd for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
 				DbFunc.DateParts datepart)
@@ -91,6 +105,10 @@ namespace mooSQL.data
 
 				return factory.Fragment(dateType, template, increment, dateTimeExpression);
 			}
+/// <summary>
+/// Translates TranslateMakeDateTime for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateMakeDateTime(
 				ITranslationContext translationContext,
@@ -147,6 +165,10 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeTruncationToDate for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
@@ -155,16 +177,28 @@ namespace mooSQL.data
 				return factory.Function(factory.GetDbDataType(dateExpression), "Date", dateExpression);
 			}
 		}
+/// <summary>
+/// Creates the SQL types translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateSqlTypesTranslator()
 		{
 			return new SqlTypesTranslation();
 		}
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateDateMemberTranslator()
 		{
 			return new DateFunctionsTranslator();
 		}
+/// <summary>
+/// Translates Guid.NewGuid() to dialect SQL.
+/// </summary>
+	
 
 		protected override IExpWord? TranslateNewGuidMethod(ITranslationContext translationContext, TranslationFlags translationFlags)
 		{

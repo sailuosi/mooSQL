@@ -7,6 +7,12 @@ namespace mooSQL.linq.utils
 	/// </summary>
 	public interface IConfigurationID
 	{
+		/// <summary>
+		/// ConfigurationID
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConfigurationID.
+		/// </summary>
 		int ConfigurationID { get; }
 	}
 }

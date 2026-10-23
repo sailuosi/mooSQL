@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -8,6 +8,12 @@ using mooSQL.utils;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// SQLBuilderExtension type.
+    /// </summary>
+    /// <summary>
+    /// SQLBuilderExtension type.
+    /// </summary>
     public static class SQLBuilderExtension
     {
         /* 废弃转换器，改由核心引擎下的泛型方法处理。

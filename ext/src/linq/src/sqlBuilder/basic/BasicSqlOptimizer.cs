@@ -14,28 +14,49 @@ namespace mooSQL.linq.provider
     using mooSQL.data.model;
     using mooSQL.data.model.affirms;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// BasicSqlOptimizer type.
+	/// </summary>
+	/// <summary>
+	/// BasicSqlOptimizer type.
+	/// </summary>
 	public class BasicSqlOptimizer : ISqlOptimizer
 	{
 		#region Init
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 		public DBInstance DBLive {  get; set; }
+		/// <summary>
+		/// BasicSqlOptimizer type.
+		/// </summary>
 
 		protected BasicSqlOptimizer(SQLProviderFlags sqlProviderFlags)
 		{
 			SqlProviderFlags = sqlProviderFlags;
 		}
+		/// <summary>
+		/// Gets or sets SqlProviderFlags.
+		/// </summary>
 
 		protected SQLProviderFlags SqlProviderFlags { get; }
 
 		#endregion
 
 		#region ISqlOptimizer Members
+		/// <summary>
+		/// Creates CreateConvertVisitor.
+		/// </summary>
 
 
 		public virtual SqlExpressionConvertVisitor CreateConvertVisitor(bool allowModify)
 		{
 			return new SqlExpressionConvertVisitor(allowModify);
 		}
+		/// <summary>
+		/// Finalize
+		/// </summary>
 
 		public virtual BaseSentence Finalize(DBInstance mappingSchema, BaseSentence statement)
 		{
@@ -113,6 +134,9 @@ namespace mooSQL.linq.provider
 		}
 
 		#endregion
+		/// <summary>
+		/// FinalizeInsert
+		/// </summary>
 
 		protected virtual BaseSentence FinalizeInsert(BaseSentence statement)
 		{
@@ -210,6 +234,9 @@ namespace mooSQL.linq.provider
 
 			return result;
 		}
+		/// <summary>
+		/// IsCompatibleForUpdate
+		/// </summary>
 
 		protected static bool IsCompatibleForUpdate(SelectQueryClause query, TableWord updateTable, int level = 0)
 		{
@@ -259,6 +286,9 @@ namespace mooSQL.linq.provider
 
 			return current;
 		}
+		/// <summary>
+		/// ApplyUpdateTableComparison
+		/// </summary>
 
 		protected void ApplyUpdateTableComparison(SearchConditionWord searchCondition, SelectQueryClause updateQuery,
             UpdateClause updateClause, TableWord inQueryTable)
@@ -282,11 +312,17 @@ namespace mooSQL.linq.provider
 			if (!found)
 				throw new SooQueryException("Could not generate update statement.");
 		}
+		/// <summary>
+		/// ApplyUpdateTableComparison
+		/// </summary>
 
 		protected void ApplyUpdateTableComparison(SelectQueryClause updateQuery, UpdateClause updateClause, TableWord inQueryTable)
 		{
 			ApplyUpdateTableComparison(updateQuery.Where.EnsureConjunction(), updateQuery, updateClause, inQueryTable);
 		}
+		/// <summary>
+		/// BasicCorrectUpdate
+		/// </summary>
 
 		protected virtual UpdateSentence BasicCorrectUpdate(UpdateSentence statement,bool wrapForOutput)
 		{
@@ -417,6 +453,9 @@ namespace mooSQL.linq.provider
 
 			return statement;
 		}
+		/// <summary>
+		/// FinalizeUpdate
+		/// </summary>
 
 		protected virtual BaseSentence FinalizeUpdate(BaseSentence statement)
 		{
@@ -433,6 +472,9 @@ namespace mooSQL.linq.provider
 
 			return statement;
 		}
+		/// <summary>
+		/// FinalizeSelect
+		/// </summary>
 
 		protected virtual BaseSentence FinalizeSelect(BaseSentence statement)
 		{
@@ -502,6 +544,9 @@ namespace mooSQL.linq.provider
 				return result;
 			}
 		}
+		/// <summary>
+		/// CorrectUnionOrderBy
+		/// </summary>
 
 		protected virtual BaseSentence CorrectUnionOrderBy(BaseSentence statement)
 		{
@@ -582,6 +627,9 @@ namespace mooSQL.linq.provider
 				}
 			}
 		}
+		/// <summary>
+		/// FixSetOperationNulls
+		/// </summary>
 
 		protected virtual BaseSentence FixSetOperationNulls(BaseSentence statement)
 		{
@@ -618,6 +666,9 @@ namespace mooSQL.linq.provider
 
 			return statement;
 		}
+		/// <summary>
+		/// FixEmptySelect
+		/// </summary>
 
 		protected virtual void FixEmptySelect(BaseSentence statement)
 		{
@@ -628,12 +679,10 @@ namespace mooSQL.linq.provider
 		}
 
 		/// <summary>
-		/// Used for correcting statement and should return new statement if changes were made.
+		/// 用于校正语句；若有变更则返回新语句。
 		/// </summary>
-		/// <param name="statement"></param>
-		/// <param name="dataOptions"></param>
-		/// <param name="mappingSchema"></param>
-		/// <returns></returns>
+		/// <param name="statement">待校正的语句。</param>
+		/// <returns>校正后的语句。</returns>
 		public virtual BaseSentence TransformStatement(BaseSentence statement)
 		{
 			return statement;
@@ -737,6 +786,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				}
 			}
 		}
+		/// <summary>
+		/// HasParameters
+		/// </summary>
 
 		protected static bool HasParameters(IExpWord expr)
 		{
@@ -802,6 +854,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 		}
 
 		#region Alternative Builders
+		/// <summary>
+		/// Gets GetAlternativeDelete.
+		/// </summary>
 
 		protected DeleteSentence GetAlternativeDelete(DeleteSentence deleteStatement)
 		{
@@ -853,6 +908,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return false;
 		}
+		/// <summary>
+		/// NeedsEnvelopingForUpdate
+		/// </summary>
 
 		protected bool NeedsEnvelopingForUpdate(SelectQueryClause query)
 		{
@@ -930,6 +988,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return true;
 		}
+		/// <summary>
+		/// RemoveUpdateTableIfPossible
+		/// </summary>
 
 		protected bool RemoveUpdateTableIfPossible(SelectQueryClause query, TableWord table, out TableSourceWord? source)
 		{
@@ -1016,6 +1077,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return clonedQuery;
 		}
+		/// <summary>
+		/// CloneTable
+		/// </summary>
 
 		protected static TableWord CloneTable(
 			TableWord                                     tableToClone,
@@ -1045,6 +1109,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return replaceTree;
 		}
+		/// <summary>
+		/// RemapCloned&lt;TElement&gt;
+		/// </summary>
 
 		protected static TElement RemapCloned<TElement>(
 			TElement                                  element,
@@ -1144,6 +1211,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				yield return (target, columnExpr);
 			}
 		}
+		/// <summary>
+		/// Gets GetAlternativeUpdate.
+		/// </summary>
 
 		protected UpdateSentence GetAlternativeUpdate(UpdateSentence updateStatement)
 		{
@@ -1340,6 +1410,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return updateStatement;
 		}
+		/// <summary>
+		/// CorrectUpdateSetters
+		/// </summary>
 
 		protected void CorrectUpdateSetters(UpdateSentence updateStatement)
 		{
@@ -1402,6 +1475,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				}
 			}
 		}
+		/// <summary>
+		/// DetachUpdateTableFromUpdateQuery
+		/// </summary>
 
 		protected UpdateSentence DetachUpdateTableFromUpdateQuery(UpdateSentence updateStatement,  bool moveToJoin, bool addNewSource, out TableSourceWord newSource)
 		{
@@ -1464,6 +1540,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				}
 			}
 		}
+		/// <summary>
+		/// Gets GetAlternativeUpdatePostgreSqlite.
+		/// </summary>
 
 		protected BaseSentence GetAlternativeUpdatePostgreSqlite(UpdateSentence statement)
 		{
@@ -1509,11 +1588,11 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 		}
 
 		/// <summary>
-		/// Corrects situation when update table is located in JOIN clause.
-		/// Usually it is generated by associations.
+		/// 校正更新表位于 JOIN 子句中的情况（通常由关联生成）。
 		/// </summary>
-		/// <param name="statement">Statement to examine.</param>
-		/// <returns>Corrected statement.</returns>
+		/// <param name="statement">待检查的更新语句。</param>
+		/// <param name="leaveUpdateTableInQuery">是否在查询中保留更新表。</param>
+		/// <returns>校正后的语句。</returns>
 		protected UpdateSentence CorrectUpdateTable(UpdateSentence statement, bool leaveUpdateTableInQuery)
 		{
 			statement = BasicCorrectUpdate(statement, false);
@@ -1561,6 +1640,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 		}
 
 		#endregion
+		/// <summary>
+		/// IsParameterDependedQuery
+		/// </summary>
 
 		public virtual bool IsParameterDependedQuery(SelectQueryClause query)
 		{
@@ -1597,6 +1679,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return false;
 		}
+		/// <summary>
+		/// IsParameterDependedElement
+		/// </summary>
 
 		public virtual bool IsParameterDependedElement(NullabilityContext nullability, Clause element)
 		{
@@ -1735,6 +1820,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 
 			return false;
 		}
+		/// <summary>
+		/// FinalizeStatement
+		/// </summary>
 
 
 		public virtual BaseSentence FinalizeStatement(BaseSentence statement, EvaluateContext context )
@@ -1868,6 +1956,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				allowMutation: true,
 				withStack: false);
 		}
+		/// <summary>
+		/// OptimizeQueries
+		/// </summary>
 
 		protected Clause OptimizeQueries(Clause startFrom, Clause root, EvaluateContext evaluationContext)
 		{
@@ -1970,6 +2061,9 @@ c => string.IsNullOrEmpty(c.Name) ? "CTE_1" : c.Name, StringComparer.OrdinalIgno
 				allowMutation: true,
 				withStack: false);
 		}
+		/// <summary>
+		/// CorrectMultiTableQueries
+		/// </summary>
 
 		protected BaseSentence CorrectMultiTableQueries(BaseSentence statement)
 		{

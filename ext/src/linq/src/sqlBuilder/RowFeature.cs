@@ -11,6 +11,12 @@ namespace mooSQL.linq.provider
 	[Flags]
 	public enum RowFeature
 	{
+		/// <summary>
+		/// None
+		/// </summary>
+		/// <summary>
+		/// None
+		/// </summary>
 		None            = 0,
 		/// <summary>
 		/// Provider supports for IS NULL operator: <c>(1, 2) IS NULL</c>.

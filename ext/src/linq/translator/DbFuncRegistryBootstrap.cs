@@ -12,9 +12,15 @@ namespace mooSQL.linq.translator;
 public static class DbFuncRegistryBootstrap
 {
     static readonly HashSet<DbFuncRegistry> Registered = new();
+    /// <summary>
+    /// EnsureRegistered
+    /// </summary>
 
     public static void EnsureRegistered(DBInstance db)
         => EnsureRegistered(db.dialect);
+    /// <summary>
+    /// EnsureRegistered
+    /// </summary>
 
     public static void EnsureRegistered(Dialect dialect)
     {

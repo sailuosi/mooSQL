@@ -5,8 +5,20 @@ using System.Runtime.CompilerServices;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// Utils type.
+	/// </summary>
+	/// <summary>
+	/// Utils type.
+	/// </summary>
 	public static class Utils
 	{
+		/// <summary>
+		/// MakeUniqueNames&lt;T&gt;
+		/// </summary>
+		/// <summary>
+		/// MakeUniqueNames&lt;T&gt;
+		/// </summary>
 		public static void MakeUniqueNames<T>(
 			IEnumerable<T>                   items,
 			IEnumerable<string>?             staticNames,
@@ -25,6 +37,9 @@ namespace mooSQL.linq.utils
 				return string.IsNullOrEmpty(name) ? defaultName : name!;
 			}, comparer);
 		}
+		/// <summary>
+		/// MakeUniqueNames&lt;T&gt;
+		/// </summary>
 
 		public static void MakeUniqueNames<T>(
 			IEnumerable<T>                   items,
@@ -44,6 +59,9 @@ namespace mooSQL.linq.utils
 				MakeUniqueNames(items, null, (n, a) => true, nameFunc, nameSetter, defaultName, comparer);
 			}
 		}
+		/// <summary>
+		/// MakeUniqueNames&lt;T&gt;
+		/// </summary>
 
 		public static void MakeUniqueNames<T>(
 			IEnumerable<T>                    items,
@@ -117,6 +135,9 @@ namespace mooSQL.linq.utils
 				currentCounters.Add(name, startDigit);
 			}
 		}
+		/// <summary>
+		/// RemoveDuplicatesFromTail&lt;T&gt;
+		/// </summary>
 
 
 		public static void RemoveDuplicatesFromTail<T>(this IList<T> list, Func<T, T, bool> compareFunc)
@@ -138,17 +159,32 @@ namespace mooSQL.linq.utils
 				}
 			}
 		}
+		/// <summary>
+		/// ObjectReferenceEqualityComparer&lt;T&gt;
+		/// </summary>
 
 		public class ObjectReferenceEqualityComparer<T> : IEqualityComparer<T>
 		{
+			/// <summary>
+			/// Default
+			/// </summary>
+			/// <summary>
+			/// Default
+			/// </summary>
 			public static IEqualityComparer<T> Default = new ObjectReferenceEqualityComparer<T>();
 
 			#region IEqualityComparer<T> Members
+			/// <summary>
+			/// Equals
+			/// </summary>
 
 			public bool Equals(T? x, T? y)
 			{
 				return ReferenceEquals(x, y);
 			}
+			/// <summary>
+			/// Gets GetHashCode.
+			/// </summary>
 
 			public int GetHashCode(T obj)
 			{
@@ -160,6 +196,9 @@ namespace mooSQL.linq.utils
 
 			#endregion
 		}
+		/// <summary>
+		/// RemoveDuplicates&lt;T, TKey&gt;
+		/// </summary>
 
 		public static void RemoveDuplicates<T, TKey>(this IList<T> list, Func<T, TKey> keySelector, IEqualityComparer<TKey>? comparer = null)
 		{

@@ -48,6 +48,9 @@ namespace mooSQL.linq.utils
 		/// Gets <see cref="None"/> value for option.
 		/// </summary>
 		public static readonly Option<T> None;
+		/// <summary>
+		/// implicit operator Option&lt;T&gt;
+		/// </summary>
 
 		public static implicit operator Option<T>(T value) => new (value);
 	}

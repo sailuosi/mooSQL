@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.taos.Driver
 {
+    /// <summary>
+    /// DatabaseSchema type.
+    /// </summary>
+    /// <summary>
+    /// DatabaseSchema type.
+    /// </summary>
     public class DatabaseSchema
     {
         /// <summary>
@@ -40,6 +46,9 @@ namespace mooSQL.data.taos.Driver
         /// 
         /// </summary>
         public string keep { get; set; }
+        /// <summary>
+        /// Gets or sets cache.
+        /// </summary>
      
         [JsonProperty("cache(MB)")]
         public int cache  { get; set; }

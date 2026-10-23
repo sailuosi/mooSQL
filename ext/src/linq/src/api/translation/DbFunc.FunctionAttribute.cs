@@ -87,6 +87,10 @@ namespace mooSQL.linq
 				get => Expression;
 				set => Expression = value;
 			}
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 
 

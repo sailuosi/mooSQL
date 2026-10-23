@@ -10,6 +10,12 @@ namespace mooSQL.data
     /// </summary>
     public class CrateDBSentence : NpgSentence
     {
+        /// <summary>
+        /// CrateDBSentence type.
+        /// </summary>
+        /// <summary>
+        /// CrateDBSentence type.
+        /// </summary>
         public CrateDBSentence(Dialect dialect) : base(dialect)
         {
         }
@@ -83,18 +89,30 @@ namespace mooSQL.data
             "FROM information_schema.columns c " +
             "WHERE c.table_name = '{0}' AND c.table_schema = CURRENT_SCHEMA() " +
             "ORDER BY c.ordinal_position";
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
         public override string GetTableInfoListSql =>
             "SELECT table_name AS Name, CAST(NULL AS varchar) AS Comment " +
             "FROM information_schema.tables " +
             "WHERE table_schema = CURRENT_SCHEMA() AND table_type = 'BASE TABLE' " +
             "ORDER BY table_name";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
         public override string GetViewInfoListSql =>
             "SELECT table_name AS Name, CAST(NULL AS varchar) AS Description " +
             "FROM information_schema.views " +
             "WHERE table_schema = CURRENT_SCHEMA() " +
             "ORDER BY table_name";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
         {
@@ -119,12 +137,20 @@ namespace mooSQL.data
 
             return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
         }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
         protected override string GetCurrentDatabaseName()
         {
             try { return DBLive.ExeQueryScalar<string>("SELECT current_schema()", null); }
             catch { return null; }
         }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
         public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
         {
@@ -143,6 +169,10 @@ namespace mooSQL.data
                     && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
             return list;
         }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -154,6 +184,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -168,6 +202,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
         public override string GetTablePKName(string table)
         {

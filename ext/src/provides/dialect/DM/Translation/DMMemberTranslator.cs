@@ -32,9 +32,16 @@ namespace mooSQL.data
                         .WithDbType($"VarChar({length.ToString(CultureInfo.InvariantCulture)})"));
             }
         }
+        /// <summary>
+        /// DateFunctionsTranslator
+        /// </summary>
 
         public class DateFunctionsTranslator : DateFunctionsTranslatorBase
         {
+ /// <summary>
+ /// Translates TranslateDateTimeDatePart for this dialect.
+ /// </summary>
+ 
             protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
             {
                 var factory = translationContext.ExpressionFactory;
@@ -89,6 +96,10 @@ namespace mooSQL.data
 
                 return resultExpression;
             }
+/// <summary>
+/// Translates TranslateDateTimeDateAdd for this dialect.
+/// </summary>
+ 
 
             protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
                 DbFunc.DateParts datepart)
@@ -118,6 +129,10 @@ namespace mooSQL.data
                 var intervalExpression = factory.Multiply(intervalType, increment, factory.Fragment(intervalType, expStr));
                 return factory.Add(dateType, dateTimeExpression, intervalExpression);
             }
+/// <summary>
+/// Translates TranslateMakeDateTime for this dialect.
+/// </summary>
+ 
 
             protected override IExpWord? TranslateMakeDateTime(
                 ITranslationContext translationContext,
@@ -168,6 +183,10 @@ namespace mooSQL.data
 
                 return factory.Function(resulType, "TO_TIMESTAMP", resultExpression, factory.Value(stringDataType, "YYYY-MM-DD HH24:MI:SS.FF3"));
             }
+/// <summary>
+/// Translates TranslateDateTimeTruncationToTime for this dialect.
+/// </summary>
+ 
 
             protected override IExpWord? TranslateDateTimeTruncationToTime(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
             {
@@ -175,18 +194,33 @@ namespace mooSQL.data
                 var dateType = factory.GetDbDataType(dateExpression);
                 return factory.Function(dateType.WithDataType(DataFam.Time), "TO_CHAR", dateExpression, factory.Value("HH24:MI:SS"));
             }
+/// <summary>
+/// Translates TranslateDateTimeTruncationToDate for this dialect.
+/// </summary>
+ 
 
             protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
                 => translationContext.ExpressionFactory.Function(translationContext.GetDbDataType(dateExpression), "TRUNC", dateExpression);
         }
+        /// <summary>
+        /// DMMathMemberTranslator
+        /// </summary>
 
         protected class DMMathMemberTranslator : MathMemberTranslatorBase
         {
+ /// <summary>
+ /// Translates TranslateMaxMethod for this dialect.
+ /// </summary>
+ 
             protected override IExpWord? TranslateMaxMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
             {
                 var factory = translationContext.ExpressionFactory;
                 return factory.Function(factory.GetDbDataType(xValue), "GREATEST", xValue, yValue);
             }
+/// <summary>
+/// Translates TranslateMinMethod for this dialect.
+/// </summary>
+ 
 
             protected override IExpWord? TranslateMinMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
             {
@@ -194,15 +228,31 @@ namespace mooSQL.data
                 return factory.Function(factory.GetDbDataType(xValue), "LEAST", xValue, yValue);
             }
         }
+/// <summary>
+/// Creates the SQL types translator.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateSqlTypesTranslator()
             => new SqlTypesTranslation();
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateDateMemberTranslator()
             => new DateFunctionsTranslator();
+/// <summary>
+/// Creates the math member translator.
+/// </summary>
+ 
 
         protected override IMemberTranslator CreateMathMemberTranslator()
             => new DMMathMemberTranslator();
+/// <summary>
+/// Translates Guid.NewGuid() to dialect SQL.
+/// </summary>
+ 
 
         protected override IExpWord? TranslateNewGuidMethod(ITranslationContext translationContext, TranslationFlags translationFlags)
         {

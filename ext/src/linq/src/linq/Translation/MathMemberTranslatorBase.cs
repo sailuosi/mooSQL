@@ -5,8 +5,20 @@ namespace mooSQL.linq.translator
 {
     using mooSQL.data.model;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// MathMemberTranslatorBase type.
+	/// </summary>
+	/// <summary>
+	/// MathMemberTranslatorBase type.
+	/// </summary>
 	public class MathMemberTranslatorBase : MemberTranslatorBase
 	{
+		/// <summary>
+		/// MathMemberTranslatorBase type.
+		/// </summary>
+		/// <summary>
+		/// MathMemberTranslatorBase type.
+		/// </summary>
 		public MathMemberTranslatorBase()
 		{
 			RegisterMax();
@@ -74,6 +86,9 @@ namespace mooSQL.linq.translator
 
 			return translationContext.CreatePlaceholder(translationContext.CurrentSelectQuery, translated, methodCall);
 		}
+		/// <summary>
+		/// Translates TranslateMaxMethod for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateMaxMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
 		{
@@ -91,6 +106,9 @@ namespace mooSQL.linq.translator
 			var result = factory.Condition(factory.GreaterOrEqual(xValue, yValue), xValue, yValueResult);
 			return result;
 		}
+		/// <summary>
+		/// Translates TranslateMinMethod for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateMinMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
 		{

@@ -4,12 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace mooSQL.data;
+/// <summary>
+/// SQLiteSentence type.
+/// </summary>
 
 public class SQLiteSentence : SQLSentence
 {
+    /// <summary>
+    /// SQLiteSentence type.
+    /// </summary>
+    /// <summary>
+    /// SQLiteSentence type.
+    /// </summary>
     public SQLiteSentence(Dialect dia) : base(dia)
     {
     }
+/// <summary>
+/// Loads column metadata for the specified table.
+/// </summary>
+ 
 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
@@ -87,6 +100,10 @@ public class SQLiteSentence : SQLSentence
 
         return tar;
     }
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
     public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
     {
@@ -98,12 +115,24 @@ public class SQLiteSentence : SQLSentence
             .query<DbColumnCaption>()
             .ToList();
     }
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
     public override string GetTableInfoListSql =>
         "select name as Name, '' as Comment from sqlite_master where type='table' and name not like 'sqlite_%'";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql =>
         "select name as Name, '' as Comment from sqlite_master where type='view'";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
     public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
     {
@@ -115,6 +144,10 @@ public class SQLiteSentence : SQLSentence
         }
         return FinalizeDbTableListAll(list, options);
     }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
     public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
     {
@@ -123,6 +156,10 @@ public class SQLiteSentence : SQLSentence
             new DbSchemaInfo { Database = "main", Name = "main", IsDefault = true }
         };
     }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
     public override SQLCmd buildHasTable(string TableName)
     {
@@ -134,12 +171,20 @@ public class SQLiteSentence : SQLSentence
             .where("name", TableName)
             .toSelect();
     }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
     public override string GetTablePKName(string table)
     {
         // SQLite 简单主键通常无约束名，返回空；若有命名 CONSTRAINT name PRIMARY KEY 可从 sqlite_master 解析，此处统一返回空
         return string.Empty;
     }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
@@ -152,6 +197,10 @@ public class SQLiteSentence : SQLSentence
             .queryRowString(null);
         return !string.IsNullOrEmpty(type);
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -161,6 +210,10 @@ public class SQLiteSentence : SQLSentence
         var c = kit.from("pragma_table_info(#{Tab})").where("name", col).count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -170,6 +223,10 @@ public class SQLiteSentence : SQLSentence
         var row = kit.from("pragma_index_list(#{Tab})").where("name", indexName).queryRow();
         return row != null;
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

@@ -16,6 +16,9 @@ namespace mooSQL.linq.utils
 	 * - results are cached and reused (runtime always create new attribute instances), so we cannot modify them to avoid cache poisoning
 	 * - empty attribute lists explicitly replaced with cached empty array instances. Runtime methods at least in .net framework don't use cached empty array instances
 	 */
+	/// <summary>
+	/// AttributesExtensions type.
+	/// </summary>
 	
 	public static class AttributesExtensions
 	{

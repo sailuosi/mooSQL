@@ -11,6 +11,9 @@ namespace mooSQL.linq.utils
 	using mooSQL.linq.mapping;
     using mooSQL.utils;
     using mooSQL.data;
+    /// <summary>
+    /// MemberAccessor type.
+    /// </summary>
 
     public class MemberAccessor
 	{
@@ -169,6 +172,9 @@ namespace mooSQL.linq.utils
 
 			SetExpressions();
 		}
+		/// <summary>
+		/// MemberAccessor type.
+		/// </summary>
 
 		public MemberAccessor(TypeAccessor typeAccessor, MemberInfo memberInfo, EntityInfo? ed)
 		{
@@ -277,13 +283,49 @@ namespace mooSQL.linq.utils
 		}
 
 		#region Public Properties
+		/// <summary>
+		/// Gets or sets MemberInfo.
+		/// </summary>
 
 		public MemberInfo              MemberInfo       { get; private set; }
+		/// <summary>
+		/// TypeAccessor
+		/// </summary>
+		/// <summary>
+		/// Gets or sets TypeAccessor.
+		/// </summary>
 		public TypeAccessor            TypeAccessor     { get; private set; }
+		/// <summary>
+		/// HasGetter
+		/// </summary>
+		/// <summary>
+		/// Gets or sets HasGetter.
+		/// </summary>
 		public bool                    HasGetter        { get; private set; }
+		/// <summary>
+		/// HasSetter
+		/// </summary>
+		/// <summary>
+		/// Gets or sets HasSetter.
+		/// </summary>
 		public bool                    HasSetter        { get; private set; }
+		/// <summary>
+		/// Type
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Type.
+		/// </summary>
 		public Type                    Type             { get; private set; }
+		/// <summary>
+		/// IsComplex
+		/// </summary>
+		/// <summary>
+		/// Gets or sets IsComplex.
+		/// </summary>
 		public bool                    IsComplex        { get; private set; }
+		/// <summary>
+		/// Name
+		/// </summary>
 
 		public string Name
 		{
@@ -303,6 +345,9 @@ namespace mooSQL.linq.utils
 
 		private Expression            _setterExpression;
 		private ParameterExpression[] _setterArguments;
+		/// <summary>
+		/// Gets GetGetterExpression.
+		/// </summary>
 
 		public Expression GetGetterExpression(Expression instance)
 		{
@@ -310,6 +355,9 @@ namespace mooSQL.linq.utils
 				(parameters: _getterArguments, instance),
 				static (context, e) => e == context.parameters[0] ? context.instance : e);
 		}
+		/// <summary>
+		/// Gets GetSetterExpression.
+		/// </summary>
 
 		public Expression GetSetterExpression(Expression instance, Expression value)
 		{
@@ -319,11 +367,17 @@ namespace mooSQL.linq.utils
 					e == context.parameters[0] ? context.instance :
 					e == context.parameters[1] ? context.value : e);
 		}
+		/// <summary>
+		/// Gets GetValue.
+		/// </summary>
 
 		public virtual object? GetValue(object o)
 		{
 			return _getter!.Value(o);
 		}
+		/// <summary>
+		/// SetValue
+		/// </summary>
 
 		public virtual void SetValue(object o, object? value)
 		{

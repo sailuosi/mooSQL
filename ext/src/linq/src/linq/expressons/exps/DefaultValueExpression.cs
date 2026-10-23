@@ -6,14 +6,29 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.data;
+    /// <summary>
+    /// DefaultValueExpression type.
+    /// </summary>
 
     public class DefaultValueExpression : Expression
 	{
+        /// <summary>
+        /// DefaultValueExpression type.
+        /// </summary>
+        /// <summary>
+        /// DefaultValueExpression type.
+        /// </summary>
         public DefaultValueExpression(DBInstance? mappingSchema, Type type)
         {
             DBLive = mappingSchema;
             _type = type;
         }
+        /// <summary>
+        /// DefaultValueExpression type.
+        /// </summary>
+        /// <summary>
+        /// DefaultValueExpression type.
+        /// </summary>
         public DefaultValueExpression( Type type)
         {
             _type = type;
@@ -21,10 +36,26 @@ namespace mooSQL.linq.expressions
 
 		readonly DBInstance DBLive;
 		readonly Type           _type;
+/// <summary>
+/// Type
+/// </summary>
+	
 
 		public override Type           Type      => _type;
+	/// <summary>
+	/// NodeType
+	/// </summary>
+	
 		public override ExpressionType NodeType  => ExpressionType.Extension;
+	/// <summary>
+	/// CanReduce
+	/// </summary>
+	
 		public override bool           CanReduce => true;
+/// <summary>
+/// Reduce
+/// </summary>
+	
 
 		public override Expression Reduce()
 		{
@@ -34,16 +65,27 @@ namespace mooSQL.linq.expressions
 					DBLive.dialect.mapping.GetDefaultValue(Type),
 				Type);
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString()
 		{
 			return $"Default({Type.Name})";
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		protected bool Equals(DefaultValueExpression other)
 		{
 			return Equals(DBLive, other.DBLive) && _type.Equals(other._type);
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -64,6 +106,10 @@ namespace mooSQL.linq.expressions
 
 			return Equals((DefaultValueExpression)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -74,6 +120,10 @@ namespace mooSQL.linq.expressions
 				return hashCode;
 			}
 		}
+/// <summary>
+/// Accept
+/// </summary>
+	
 
 		protected override Expression Accept(ExpressionVisitor visitor)
 		{

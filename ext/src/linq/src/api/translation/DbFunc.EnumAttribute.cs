@@ -9,9 +9,16 @@ namespace mooSQL.linq
 
     partial class DbFunc
 	{
+		/// <summary>
+		/// EnumAttribute
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
 		public class EnumAttribute : MappingAttribute
 		{
+	/// <summary>
+	/// Gets GetObjectID.
+	/// </summary>
+	
 			public override string GetObjectID() => "..";
 		}
 	}

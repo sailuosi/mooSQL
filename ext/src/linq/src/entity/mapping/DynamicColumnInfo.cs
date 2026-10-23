@@ -17,18 +17,46 @@ namespace mooSQL.linq.mapping
 		private static readonly MethodInfo _dummySetter = typeof(DynamicColumnInfo).GetMethod(nameof(DummySetter), BindingFlags.Instance | BindingFlags.NonPublic)!;
 		private readonly MethodInfo _typedDummyGetter;
 		private readonly MethodInfo _typedDummySetter;
+/// <summary>
+/// Name
+/// </summary>
+	
 
 		public override string Name { get; }
+/// <summary>
+/// DeclaringType
+/// </summary>
+	
 
 		public override Type DeclaringType { get; }
+/// <summary>
+/// ReflectedType
+/// </summary>
+	
 
 		public override Type ReflectedType => DeclaringType;
+/// <summary>
+/// PropertyType
+/// </summary>
+	
 
 		public override Type PropertyType { get; }
+/// <summary>
+/// Attributes
+/// </summary>
+	
 
 		public override PropertyAttributes Attributes => PropertyAttributes.None;
+/// <summary>
+/// CanRead
+/// </summary>
+	
 
 		public override bool CanRead => true;
+/// <summary>
+/// CanWrite
+/// </summary>
+	
 
 		public override bool CanWrite => true;
 
@@ -48,6 +76,9 @@ namespace mooSQL.linq.mapping
 			_typedDummyGetter = _dummyGetter.MakeGenericMethod(declaringType);
 			_typedDummySetter = _dummySetter.MakeGenericMethod(declaringType);
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(DynamicColumnInfo? other)
 		{
@@ -56,6 +87,10 @@ namespace mooSQL.linq.mapping
 
 			return ReferenceEquals(this, other) || Name.Equals(other.Name, StringComparison.Ordinal) && other.DeclaringType == DeclaringType;
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -64,6 +99,10 @@ namespace mooSQL.linq.mapping
 
 			return false;
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 			=> unchecked ((Name.GetHashCode() * 397) ^ DeclaringType.GetHashCode());
@@ -91,34 +130,74 @@ namespace mooSQL.linq.mapping
 			=> !a?.Equals(b) ?? !ReferenceEquals(b, null);
 
 #pragma warning disable RS0030 // Do not used banned APIs
+	/// <summary>
+	/// Gets GetCustomAttributes.
+	/// </summary>
+	
 		public override object[] GetCustomAttributes(bool inherit) => new object[] { };
 #pragma warning restore RS0030 // Do not used banned APIs
 
 #pragma warning disable RS0030 // Do not used banned APIs
 		// must return Attibute[] as some runtimes doesn't follow their own contract
+	/// <summary>
+	/// Gets GetCustomAttributes.
+	/// </summary>
+	
 		public override object[] GetCustomAttributes(Type attributeType, bool inherit) => new Attribute[0];
 #pragma warning restore RS0030 // Do not used banned APIs
+/// <summary>
+/// Gets GetCustomAttributesData.
+/// </summary>
+	
 
 		public override IList<CustomAttributeData> GetCustomAttributesData() => new List<CustomAttributeData>();
+/// <summary>
+/// IsDefined
+/// </summary>
+	
 
 		public override bool IsDefined(Type attributeType, bool inherit)
 			=> false;
+/// <summary>
+/// SetValue
+/// </summary>
+	
 
 		public override void SetValue(object? obj, object? value, BindingFlags invokeAttr, Binder? binder, object?[]? index, CultureInfo? culture)
 			=> throw new InvalidOperationException("SetValue on dynamic column is not to be called.");
+/// <summary>
+/// Gets GetAccessors.
+/// </summary>
+	
 
 		public override MethodInfo[] GetAccessors(bool nonPublic)
 			=> new[] {_typedDummyGetter, _typedDummyGetter};
+/// <summary>
+/// Gets GetGetMethod.
+/// </summary>
+	
 
 		public override MethodInfo GetGetMethod(bool nonPublic)
 			// we're returning dummy method, so the rest of the stack can inspect it and correctly build expressions
 			=> _typedDummyGetter;
+/// <summary>
+/// Gets GetSetMethod.
+/// </summary>
+	
 
 		public override MethodInfo GetSetMethod(bool nonPublic)
 			// we're returning dummy method, so the rest of the stack can inspect it and correctly build expressions
 			=> _typedDummySetter;
+/// <summary>
+/// Gets GetIndexParameters.
+/// </summary>
+	
 
 		public override ParameterInfo[] GetIndexParameters() => new ParameterInfo[] { };
+/// <summary>
+/// Gets GetValue.
+/// </summary>
+	
 
 		public override object GetValue(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? index, CultureInfo? culture)
 			=> throw new InvalidOperationException("SetValue on dynamic column is not to be called.");

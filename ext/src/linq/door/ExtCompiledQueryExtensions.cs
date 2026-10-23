@@ -13,7 +13,7 @@ namespace mooSQL.data
     public static class ExtCompiledQueryExtensions
     {
         /// <summary>
-        /// 编译 <paramref name="factory"/> 产生的 IQueryable 形状，返回 <c>(db, arg) => List&lt;T&gt;</c>。
+        /// 编译 <paramref name="factory"/> 产生的 IQueryable 形状，返回 <c>(db, arg) =&gt; List&lt;T&gt;</c>。
         /// 每次执行仍构建表达式树以供参数访问，但跳过 <see cref="QueryMate.CreateQuery"/> 全量编译（复用 SentenceBag）。
         /// </summary>
         public static Func<DBInstance, TParam, List<T>> CompileQuery<T, TParam>(

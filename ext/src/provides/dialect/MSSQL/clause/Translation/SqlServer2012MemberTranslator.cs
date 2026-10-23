@@ -5,11 +5,24 @@ namespace mooSQL.data
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
 	using mooSQL.linq.clause;
+	/// <summary>
+	/// SqlServer2012MemberTranslator type.
+	/// </summary>
 
 	public class SqlServer2012MemberTranslator : SqlServerMemberTranslator
 	{
+		/// <summary>
+		/// SqlServer2012DateFunctionsTranslator
+		/// </summary>
+		/// <summary>
+		/// SqlServer2012DateFunctionsTranslator
+		/// </summary>
 		public class SqlServer2012DateFunctionsTranslator : SqlServerDateFunctionsTranslator
 		{
+	/// <summary>
+	/// Translates TranslateMakeDateTime for this dialect.
+	/// </summary>
+	
 			protected override IExpWord? TranslateMakeDateTime(
 				ITranslationContext translationContext,
 				DbDataType          resulType,
@@ -34,6 +47,10 @@ namespace mooSQL.data
 				return resultExpression;
 			}
 		}
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateDateMemberTranslator()
 		{

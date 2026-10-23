@@ -166,7 +166,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TEntity">Type of entity being queried.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
 		
@@ -253,7 +253,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TEntity">Type of entity being queried.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
@@ -342,7 +342,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TEntity">Type of entity being queried.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
@@ -401,7 +401,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
 		
@@ -458,7 +458,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
 		
@@ -524,7 +524,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
@@ -590,7 +590,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
@@ -658,7 +658,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		
@@ -726,7 +726,7 @@ namespace mooSQL.linq
 		/// <typeparam name="TPreviousProperty">Type of parent association.</typeparam>
 		/// <typeparam name="TProperty">Type of the related entity to be included.</typeparam>
 		/// <param name="source">The source query.</param>
-		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t => t.Property1</c>).</param>
+		/// <param name="selector">A lambda expression representing navigation property to be included (<c>t =&gt; t.Property1</c>).</param>
 		/// <param name="loadFunc">Defines additional logic for association load query.</param>
 		/// <returns>Returns new query with related data included.</returns>
 		

@@ -3,17 +3,35 @@ using System;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceConvertVisitorT type.
+	/// </summary>
+	/// <summary>
+	/// SentenceConvertVisitorT type.
+	/// </summary>
 	public class SqlQueryConvertVisitor<TContext> : SentenceConvertVisitorBase
 	{
 		Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> _convertFunc = default!;
+		/// <summary>
+		/// Gets or sets Context.
+		/// </summary>
 
 		public TContext Context { get; private set; } = default!;
+		/// <summary>
+		/// SqlQueryConvertVisitor
+		/// </summary>
 
 		public SqlQueryConvertVisitor(bool allowMutation) : base(allowMutation, null)
 		{
 		}
+		/// <summary>
+		/// Gets or sets ColumnExpression.
+		/// </summary>
 
 		public IExpWord? ColumnExpression { get; private set; }
+		/// <summary>
+		/// Convert
+		/// </summary>
 
 		public Clause Convert(Clause element, TContext context, Func<SqlQueryConvertVisitor<TContext>, Clause, Clause> convertFunc, bool withStack)
 		{
@@ -25,6 +43,10 @@ namespace mooSQL.linq.clause
 
 			return PerformConvert(element);
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -35,6 +57,10 @@ namespace mooSQL.linq.clause
 			WithStack    = false;
 			Stack?.Clear();
 		}
+/// <summary>
+/// ConvertElement
+/// </summary>
+	
 
 		public override Clause ConvertElement(Clause element)
 		{
@@ -42,6 +68,9 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+		/// <summary>
+		/// VisitColumnWord
+		/// </summary>
 
 		protected  Clause VisitColumnWord(ColumnWord column, Clause expression)
 		{

@@ -12,19 +12,37 @@ namespace mooSQL.linq.translator
     using mooSQL.linq.expressions;
     using mooSQL.utils;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// 提供程序成员翻译器基类。
+	/// </summary>
 	public abstract class ProviderMemberTranslatorDefault : MemberTranslatorBase
 	{
+		/// <summary>
+		/// Creates the SQL types translator.
+		/// </summary>
+		/// <summary>
+		/// Creates the SQL types translator.
+		/// </summary>
 		protected virtual IMemberTranslator CreateSqlTypesTranslator()
 		{
 			return new SqlTypesTranslationDefault();
 		}
+		/// <summary>
+		/// Creates the date/time member translator.
+		/// </summary>
 
 		protected abstract IMemberTranslator CreateDateMemberTranslator();
+		/// <summary>
+		/// Creates the math member translator.
+		/// </summary>
 
 		protected virtual IMemberTranslator CreateMathMemberTranslator()
 		{
 			return new MathMemberTranslatorBase();
 		}
+		/// <summary>
+		/// ProviderMemberTranslatorDefault type.
+		/// </summary>
 
 		protected ProviderMemberTranslatorDefault()
 		{
@@ -49,6 +67,9 @@ namespace mooSQL.linq.translator
 			CombinedMemberTranslator.Add(CreateDateMemberTranslator());
 			CombinedMemberTranslator.Add(CreateMathMemberTranslator());
 		}
+		/// <summary>
+		/// Translates TranslateNoRequiredObjectExpression for this dialect.
+		/// </summary>
 
 		protected SqlPlaceholderExpression? TranslateNoRequiredObjectExpression(ITranslationContext translationContext, Expression? objExpression, TranslationFlags translationFlags)
 		{
@@ -65,6 +86,9 @@ namespace mooSQL.linq.translator
 
 			return objPlaceholder;
 		}
+		/// <summary>
+		/// ConvertToString
+		/// </summary>
 
 		protected virtual Expression? ConvertToString(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 		{
@@ -94,6 +118,9 @@ namespace mooSQL.linq.translator
 				new CastWord(objPlaceholder.Sql, toType, null), 
 				methodCall);
 		}
+		/// <summary>
+		/// ProcessToString
+		/// </summary>
 
 		protected bool ProcessToString(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags, out Expression? translated)
 		{
@@ -136,6 +163,9 @@ namespace mooSQL.linq.translator
 
 			return false;
 		}
+		/// <summary>
+		/// ProcessSqlConvert
+		/// </summary>
 
 		protected bool ProcessSqlConvert(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags, out Expression? translated)
 		{
@@ -153,6 +183,9 @@ namespace mooSQL.linq.translator
 			//TODO: Implement conversion
 			return true;
 		}
+		/// <summary>
+		/// ProcessConvertToBoolean
+		/// </summary>
 
 		protected bool ProcessConvertToBoolean(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags, out Expression? translated)
 		{
@@ -181,6 +214,9 @@ namespace mooSQL.linq.translator
 
 			return true;
 		}
+		/// <summary>
+		/// ProcessGetValueOrDefault
+		/// </summary>
 
 		protected bool ProcessGetValueOrDefault(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags, out Expression? translated)
 		{
@@ -224,6 +260,9 @@ namespace mooSQL.linq.translator
 
 			return true;
 		}
+		/// <summary>
+		/// Translates TranslateConvertToBoolean for this dialect.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateConvertToBoolean(ITranslationContext translationContext, IExpWord sqlExpression, TranslationFlags translationFlags)
 		{
@@ -235,6 +274,9 @@ namespace mooSQL.linq.translator
 
 			return sc;
 		}
+		/// <summary>
+		/// Translates TranslateMethodCall for this dialect.
+		/// </summary>
 
 		public virtual Expression? TranslateMethodCall(ITranslationContext translationContext, MethodCallExpression methodCall, TranslationFlags translationFlags)
 		{
@@ -254,11 +296,18 @@ namespace mooSQL.linq.translator
 
 			return null;
 		}
+		/// <summary>
+		/// Translates TranslateMemberExpression for this dialect.
+		/// </summary>
 
 		protected virtual Expression? TranslateMemberExpression(ITranslationContext translationContext, MemberExpression memberExpression, TranslationFlags translationFlags)
 		{
 			return null;
 		}
+/// <summary>
+/// Translates TranslateOverrideHandler for this dialect.
+/// </summary>
+	
 
 		protected override Expression? TranslateOverrideHandler(ITranslationContext translationContext, Expression memberExpression, TranslationFlags translationFlags)
 		{
@@ -280,6 +329,9 @@ namespace mooSQL.linq.translator
 		}
 
 		#region Methods to override
+		/// <summary>
+		/// Translates Guid.NewGuid() to dialect SQL.
+		/// </summary>
 
 		protected virtual IExpWord? TranslateNewGuidMethod(ITranslationContext translationContext, TranslationFlags translationFlags)
 		{

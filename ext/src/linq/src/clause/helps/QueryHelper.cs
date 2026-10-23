@@ -13,6 +13,9 @@ namespace mooSQL.linq.clause
 	using mooSQL.data.model;
 	using mooSQL.data;
     using mooSQL.data.model.affirms;
+    /// <summary>
+    /// QueryHelper type.
+    /// </summary>
 
     public static partial class QueryHelper
 	{
@@ -32,11 +35,17 @@ namespace mooSQL.linq.clause
 
 			public          bool                     DependencyFound;
 		}
+		/// <summary>
+		/// IsDependsOnSource
+		/// </summary>
 
 		public static bool IsDependsOnSource(ISQLNode testedRoot, ITableNode onSource, IReadOnlyCollection<ISQLNode>? elementsToIgnore = null)
 		{
 			return IsDependsOnSources(testedRoot, new [] { onSource }, elementsToIgnore);
 		}
+		/// <summary>
+		/// IsDependsOnSources
+		/// </summary>
 
 		public static bool IsDependsOnSources(ISQLNode testedRoot, IReadOnlyCollection<ITableNode> onSources, IReadOnlyCollection<ISQLNode>? elementsToIgnore = null)
 		{
@@ -79,6 +88,9 @@ namespace mooSQL.linq.clause
 
 			return ctx.DependencyFound;
 		}
+		/// <summary>
+		/// IsDependsOnOuterSources
+		/// </summary>
 
 		public static bool IsDependsOnOuterSources(
 			ISQLNode                         testedRoot,
@@ -122,11 +134,17 @@ namespace mooSQL.linq.clause
 			var result = excepted.Any();
 			return result;
 		}
+		/// <summary>
+		/// HasTableInQuery
+		/// </summary>
 
 		public static bool HasTableInQuery(SelectQueryClause query, TableWord table)
 		{
 			return EnumerateAccessibleTables(query).Any(t => t == table);
 		}
+		/// <summary>
+		/// IsSingleTableInQuery
+		/// </summary>
 
 		public static bool IsSingleTableInQuery(SelectQueryClause query, TableWord table)
 		{
@@ -158,7 +176,7 @@ namespace mooSQL.linq.clause
 
 
 		/// <summary>
-		/// Returns <see ="ColumnDescriptor"/> for <paramref name="expr"/>.
+		/// 返回表达式 <paramref name="expr"/> 对应的列描述符。
 		/// </summary>
 		/// <param name="expr">Tested SQL Expression.</param>
 		/// <returns>Associated column descriptor or <c>null</c>.</returns>
@@ -240,6 +258,9 @@ namespace mooSQL.linq.clause
 			}
 			return null;
 		}
+		/// <summary>
+		/// SuggestDbDataType
+		/// </summary>
 
 		public static DbDataType? SuggestDbDataType(IExpWord expr)
 		{
@@ -298,6 +319,9 @@ namespace mooSQL.linq.clause
 
 			return null;
 		}
+		/// <summary>
+		/// Gets GetDbDataType.
+		/// </summary>
 
 		public static DbDataType GetDbDataType(IExpWord expr, DBInstance mappingSchema)
 		{
@@ -370,6 +394,9 @@ namespace mooSQL.linq.clause
 				return GetDbDataType(sqlCondition.FalseValue);
 			}
 		}
+		/// <summary>
+		/// CollectDependencies
+		/// </summary>
 
 		public static void CollectDependencies(ISQLNode root, IEnumerable<ITableNode> sources, HashSet<IExpWord> found, IEnumerable<ISQLNode>? ignore = null, bool singleColumnLevel = false)
 		{
@@ -403,6 +430,9 @@ namespace mooSQL.linq.clause
 				return true;
 			});
 		}
+		/// <summary>
+		/// CollectUsedSources
+		/// </summary>
 
 		public static void CollectUsedSources(ISQLNode root, HashSet<ITableNode> found, IEnumerable<ISQLNode>? ignore = null)
 		{
@@ -450,6 +480,9 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+		/// <summary>
+		/// IsTransitivePredicate
+		/// </summary>
 
 		public static bool IsTransitivePredicate(ExpressionWord sqlExpression)
 		{
@@ -463,6 +496,9 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+		/// <summary>
+		/// UnwrapExpression
+		/// </summary>
 
 		public static IExpWord UnwrapExpression(IExpWord expr, bool checkNullability)
 		{
@@ -488,6 +524,9 @@ namespace mooSQL.linq.clause
 
 			return sqlExpression.Parameters[0];
 		}
+		/// <summary>
+		/// IsConstantFast
+		/// </summary>
 
 		public static bool IsConstantFast(IExpWord expr)
 		{
@@ -546,6 +585,9 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+		/// <summary>
+		/// IsNullValue
+		/// </summary>
 
 		public static bool IsNullValue(this IExpWord expr)
 		{
@@ -553,6 +595,9 @@ namespace mooSQL.linq.clause
 				return true;
 			return false;
 		}
+		/// <summary>
+		/// ConcatSearchCondition
+		/// </summary>
 
 		public static void ConcatSearchCondition(this WhereClause where, SearchConditionWord search)
 		{
@@ -567,6 +612,9 @@ namespace mooSQL.linq.clause
 				sc.Predicates.AddRange(search.Predicates);
 			}
 		}
+		/// <summary>
+		/// ConcatSearchCondition
+		/// </summary>
 
 		public static void ConcatSearchCondition(this HavingClause where, SearchConditionWord search)
 		{
@@ -611,6 +659,9 @@ namespace mooSQL.linq.clause
 			}
 			return whereClause.SearchCondition;
 		}
+		/// <summary>
+		/// IsEqualTables
+		/// </summary>
 
 
 
@@ -633,6 +684,9 @@ namespace mooSQL.linq.clause
 
 			return result;
 		}
+		/// <summary>
+		/// EnumerateAccessibleSources
+		/// </summary>
 
 		public static IEnumerable<ITableNode> EnumerateAccessibleSources(TableSourceWord tableSource)
 		{
@@ -683,6 +737,9 @@ namespace mooSQL.linq.clause
 					yield return source;
 			}
 		}
+		/// <summary>
+		/// EnumerateAccessibleTables
+		/// </summary>
 
 		public static IEnumerable<TableWord> EnumerateAccessibleTables(SelectQueryClause selectQuery)
 		{
@@ -702,6 +759,9 @@ namespace mooSQL.linq.clause
 				}
 			}
 		}
+		/// <summary>
+		/// EnumerateLevelSources
+		/// </summary>
 
 		public static IEnumerable<TableSourceWord> EnumerateLevelSources(SelectQueryClause selectQuery)
 		{
@@ -715,11 +775,17 @@ namespace mooSQL.linq.clause
 				}
 			}
 		}
+		/// <summary>
+		/// EnumerateJoins
+		/// </summary>
 
 		public static IEnumerable<JoinTableWord> EnumerateJoins(SelectQueryClause selectQuery)
 		{
 			return selectQuery.Select.From.Tables.SelectMany( t => EnumerateJoins(t as SelectQueryClause));
 		}
+		/// <summary>
+		/// SuggestTableSourceAlias
+		/// </summary>
 
 
 
@@ -967,6 +1033,9 @@ namespace mooSQL.linq.clause
 		static Regex _paramsRegex = new (@"(?<open>{+)(?<key>\w+)(?<format>:[^}]+)?(?<close>}+)", RegexOptions.Compiled);
 		static Regex ParamsRegex() => _paramsRegex;
 #endif
+		/// <summary>
+		/// TransformExpressionIndexes&lt;TContext&gt;
+		/// </summary>
 
 		public static string TransformExpressionIndexes<TContext>(TContext context, string expression, Func<TContext, int, int> transformFunc)
 		{
@@ -994,6 +1063,9 @@ namespace mooSQL.linq.clause
 
 			return str;
 		}
+		/// <summary>
+		/// ConvertFormatToConcatenation
+		/// </summary>
 
 		public static IExpWord ConvertFormatToConcatenation(string format, IList<IExpWord> parameters)
 		{
@@ -1054,11 +1126,17 @@ namespace mooSQL.linq.clause
 
 			return result;
 		}
+		/// <summary>
+		/// IsAggregationOrWindowFunction
+		/// </summary>
 
 		public static bool IsAggregationOrWindowFunction(ISQLNode expr)
 		{
 			return IsAggregationFunction(expr) || IsWindowFunction(expr);
 		}
+		/// <summary>
+		/// IsAggregationFunction
+		/// </summary>
 
 		public static bool IsAggregationFunction(ISQLNode expr)
 		{
@@ -1069,6 +1147,9 @@ namespace mooSQL.linq.clause
 				_                        => false,
 			};
 		}
+		/// <summary>
+		/// IsWindowFunction
+		/// </summary>
 
 		public static bool IsWindowFunction(ISQLNode expr)
 		{
@@ -1077,16 +1158,25 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+		/// <summary>
+		/// ContainsAggregationOrWindowFunction
+		/// </summary>
 
 		public static bool ContainsAggregationOrWindowFunction(ISQLNode expr)
 		{
 			return ContainsExpressionInSameLevel(expr, e => IsWindowFunction(e) || IsAggregationFunction(e));
 		}
+		/// <summary>
+		/// ContainsWindowFunction
+		/// </summary>
 
 		public static bool ContainsWindowFunction(ISQLNode expr)
 		{
 			return ContainsExpressionInSameLevel(expr, IsWindowFunction);
 		}
+		/// <summary>
+		/// ContainsAggregationFunction
+		/// </summary>
 
 		public static bool ContainsAggregationFunction(ISQLNode expr)
 		{
@@ -1180,6 +1270,9 @@ namespace mooSQL.linq.clause
 			public bool HasParameter;
 			public bool IsQueryParameter;
 		}
+		/// <summary>
+		/// NeedParameterInlining
+		/// </summary>
 
 		public static bool NeedParameterInlining(IExpWord expression)
 		{
@@ -1199,6 +1292,9 @@ namespace mooSQL.linq.clause
 
 			return ctx.HasParameter;
 		}
+		/// <summary>
+		/// ShouldCheckForNull
+		/// </summary>
 
 		public static bool ShouldCheckForNull(this IExpWord expr, NullabilityContext nullability)
 		{
@@ -1222,6 +1318,9 @@ namespace mooSQL.linq.clause
 
 			return true;
 		}
+		/// <summary>
+		/// Gets GetInnerQuery.
+		/// </summary>
 
 		public static SelectQueryClause GetInnerQuery(this SelectQueryClause selectQuery)
 		{
@@ -1237,6 +1336,9 @@ namespace mooSQL.linq.clause
 
 			return selectQuery;
 		}
+		/// <summary>
+		/// SimplifyColumnExpression
+		/// </summary>
 
 
 		[return: NotNullIfNotNull(nameof(sqlExpression))]
@@ -1249,6 +1351,9 @@ namespace mooSQL.linq.clause
 			return sqlExpression;
 
 		}
+		/// <summary>
+		/// CorrectComparisonForJoin
+		/// </summary>
 
 		public static SearchConditionWord CorrectComparisonForJoin(SearchConditionWord sc)
 		{
@@ -1275,6 +1380,9 @@ namespace mooSQL.linq.clause
 
 			return newSc;
 		}
+		/// <summary>
+		/// Creates CreateSqlValue.
+		/// </summary>
 
 
 
@@ -1282,6 +1390,9 @@ namespace mooSQL.linq.clause
 		{
 			return CreateSqlValue(value, GetDbDataType(be, mappingSchema), be.Expr1, be.Expr2);
 		}
+		/// <summary>
+		/// Creates CreateSqlValue.
+		/// </summary>
 
 		public static IExpWord CreateSqlValue(object? value, DbDataType dbDataType, params IExpWord[] basedOn)
 		{
@@ -1314,6 +1425,9 @@ namespace mooSQL.linq.clause
 
 			return new ValueWord(dbDataType, value);
 		}
+		/// <summary>
+		/// UnwrapNullablity
+		/// </summary>
 
 		public static IExpWord UnwrapNullablity(IExpWord expr)
 		{
@@ -1322,6 +1436,9 @@ namespace mooSQL.linq.clause
 
 			return expr;
 		}
+		/// <summary>
+		/// UnwrapCastAndNullability
+		/// </summary>
 
 		public static IExpWord UnwrapCastAndNullability(IExpWord expr)
 		{
@@ -1341,6 +1458,9 @@ namespace mooSQL.linq.clause
 
 			return expr;
 		}
+		/// <summary>
+		/// SameWithoutNullablity
+		/// </summary>
 
 		public static bool SameWithoutNullablity(IExpWord expr1, IExpWord expr2)
 		{
@@ -1352,12 +1472,18 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+		/// <summary>
+		/// HasElement
+		/// </summary>
 
 
 		public static bool HasElement(this ISQLNode root, ISQLNode element)
 		{
 			return null != root.Find(element, static (tf, e) => ReferenceEquals(tf, e));
 		}
+		/// <summary>
+		/// HasQueryParameter
+		/// </summary>
 
 		public static bool HasQueryParameter(this ISQLNode root)
 		{
@@ -1372,6 +1498,9 @@ namespace mooSQL.linq.clause
 				return false;
 			}));
 		}
+		/// <summary>
+		/// DebugCheckNesting
+		/// </summary>
 
 
 
@@ -1382,6 +1511,9 @@ namespace mooSQL.linq.clause
 			// var checkVisitor = new SqlQueryNestingValidationVisitor(isSubQuery, statement);
 			// checkVisitor.Visit(statement);
 		}
+		/// <summary>
+		/// Gets GetBoolValue.
+		/// </summary>
 
 		public static bool? GetBoolValue(ISQLNode element, EvaluateContext evaluationContext)
 		{

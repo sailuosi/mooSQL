@@ -7,6 +7,12 @@ using System.Linq;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// ReservedWords type.
+	/// </summary>
+	/// <summary>
+	/// ReservedWords type.
+	/// </summary>
 	public partial class ReservedWords
 	{
 		 ReservedWords()
@@ -95,6 +101,12 @@ namespace mooSQL.linq.clause
 		 readonly ConcurrentDictionary<string,HashSet<string>> _reservedWords = new (StringComparer.OrdinalIgnoreCase);
 
 		private static ReservedWords Instance;
+		/// <summary>
+		/// IsReserved
+		/// </summary>
+		/// <summary>
+		/// IsReserved
+		/// </summary>
 		public static  bool IsReserved(string word, string? providerName = null)
 		{
 			if (Instance == null) {
@@ -109,6 +121,9 @@ namespace mooSQL.linq.clause
 
 			//return words.Contains(word);
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public  void Add(string word, string? providerName = null)
 		{

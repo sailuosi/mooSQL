@@ -4,8 +4,7 @@ using System.Globalization;
 namespace mooSQL.linq.utils
 {
 	/// <summary>
-	///     A string representing a raw SQL query. This type enables overload resolution between
-	///     the regular and interpolated <see ="DataExtensions.FromSql{TEntity}(IDataContext,RawSqlString,object[])" />.
+	/// 表示原始 SQL 查询字符串；用于与插值 SQL 重载区分。
 	/// </summary>
 	public readonly struct RawSqlString
 	{

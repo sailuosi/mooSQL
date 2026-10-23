@@ -4,9 +4,25 @@ using mooSQL.linq;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// ClickHouseClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// ClickHouseClauseTranslator type.
+    /// </summary>
     public class ClickHouseClauseTranslator : ClauseTranslateVisitor
     {
+        /// <summary>
+        /// ClickHouseClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// ClickHouseClauseTranslator type.
+        /// </summary>
         public ClickHouseClauseTranslator(Dialect dia) : base(dia) { }
+/// <summary>
+/// Translates an object name into dialect-specific SQL.
+/// </summary>
+ 
 
         public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
         {

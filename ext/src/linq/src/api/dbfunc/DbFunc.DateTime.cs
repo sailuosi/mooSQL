@@ -10,13 +10,46 @@ namespace mooSQL.linq
 
     public partial class DbFunc
 	{
+		/// <summary>
+		/// Builds a date-part expression for s.
+		/// </summary>
 		[Enum]
 		public enum DateParts
 		{
+			/// <summary>
+			/// Builds a year-part expression.
+			/// </summary>
+			/// <summary>
+			/// Builds a year-part expression.
+			/// </summary>
 			Year        =  0,
+			/// <summary>
+			/// Quarter
+			/// </summary>
+			/// <summary>
+			/// Quarter
+			/// </summary>
 			Quarter     =  1,
+			/// <summary>
+			/// Builds a month-part expression.
+			/// </summary>
+			/// <summary>
+			/// Builds a month-part expression.
+			/// </summary>
 			Month       =  2,
+			/// <summary>
+			/// DayOfYear
+			/// </summary>
+			/// <summary>
+			/// DayOfYear
+			/// </summary>
 			DayOfYear   =  3,
+			/// <summary>
+			/// Builds a day-part expression.
+			/// </summary>
+			/// <summary>
+			/// Builds a day-part expression.
+			/// </summary>
 			Day         =  4,
 			/// <summary>
 			/// This date part behavior depends on used database and also depends on where if calculated - in C# code or in database.
@@ -57,14 +90,47 @@ namespace mooSQL.linq
 			/// </list>
 			/// </summary>
 			Week        =  5,
+			/// <summary>
+			/// WeekDay
+			/// </summary>
+			/// <summary>
+			/// WeekDay
+			/// </summary>
 			WeekDay     =  6,
+			/// <summary>
+			/// Hour
+			/// </summary>
+			/// <summary>
+			/// Hour
+			/// </summary>
 			Hour        =  7,
+			/// <summary>
+			/// Minute
+			/// </summary>
+			/// <summary>
+			/// Minute
+			/// </summary>
 			Minute      =  8,
+			/// <summary>
+			/// Second
+			/// </summary>
+			/// <summary>
+			/// Second
+			/// </summary>
 			Second      =  9,
+			/// <summary>
+			/// Millisecond
+			/// </summary>
+			/// <summary>
+			/// Millisecond
+			/// </summary>
 			Millisecond = 10,
 		}
 
 		#region DatePart
+		/// <summary>
+		/// Builds a date-part expression for .
+		/// </summary>
 
 		public static int? DatePart([SqlQueryDependent] DateParts part, [ExprParameter] DateTime? date)
 		{
@@ -91,6 +157,9 @@ namespace mooSQL.linq
 		#endregion DatePart
 
 		#region DateAdd
+		/// <summary>
+		/// Builds a date-add expression for .
+		/// </summary>
 
 		public static DateTime? DateAdd([SqlQueryDependent] DateParts part, double? number, DateTime? date)
 		{

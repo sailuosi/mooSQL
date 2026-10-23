@@ -161,20 +161,23 @@ namespace mooSQL.linq
 		/// Enables tracing of object materialization activity. It can significantly break performance if tracing consumer performs slow, so it is disabled by default.
 		/// </summary>
 		public static bool TraceMaterializationActivity { get; set; }
+		/// <summary>
+		/// Data
+		/// </summary>
 
 		public static class Data
 		{
 			/// <summary>
-			/// Enables throwing of <see cref="ObjectDisposedException"/> when access disposed <see cref="DataConnection"/> instance.
-			/// Default value: <c>true</c>.
+			/// 访问已释放的数据连接时是否抛出 <see cref="ObjectDisposedException"/>。
+			/// 默认值：<c>true</c>。
 			/// </summary>
 			public static bool ThrowOnDisposed = true;
 
 			/// <summary>
-			/// Controls behavior of bulk copy timeout if <see cref="BulkCopyOptions.BulkCopyTimeout"/> is not provided.
-			/// - if <c>true</c> - the current timeout on the <see cref="DataConnection"/> is used
-			/// - if <c>false</c> - command timeout is infinite.
-			/// Default value: <c>false</c>.
+			/// 未提供批量复制超时选项时的行为控制。
+			/// - <c>true</c>：使用当前连接上的命令超时；
+			/// - <c>false</c>：命令超时为无限。
+			/// 默认值：<c>false</c>。
 			/// </summary>
 			public static bool BulkCopyUseConnectionCommandTimeout;
 		}

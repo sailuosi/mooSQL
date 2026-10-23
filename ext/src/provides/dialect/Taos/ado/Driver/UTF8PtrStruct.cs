@@ -1,14 +1,35 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
 
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// UTF8PtrStruct type.
+    /// </summary>
+    /// <summary>
+    /// UTF8PtrStruct struct.
+    /// </summary>
     public struct UTF8PtrStruct
     {
+        /// <summary>
+        /// utf8Ptr
+        /// </summary>
+        /// <summary>
+        /// Gets or sets utf8Ptr.
+        /// </summary>
         public IntPtr utf8Ptr { get; set; }
+        /// <summary>
+        /// utf8StrLength
+        /// </summary>
+        /// <summary>
+        /// Gets or sets utf8StrLength.
+        /// </summary>
         public int utf8StrLength { get; set; }
+        /// <summary>
+        /// UTF8PtrStruct type.
+        /// </summary>
 
         public UTF8PtrStruct(string str)
         {
@@ -27,6 +48,12 @@ namespace mooSQL.data.taos
             Marshal.Copy(targetUtf8Bytes, 0, utf8Ptr, utf8StrLength + 1);
 #endif
         }
+        /// <summary>
+        /// UTF8FreePtr
+        /// </summary>
+        /// <summary>
+        /// UTF8FreePtr
+        /// </summary>
         public void UTF8FreePtr()
         {
 #if NETSTANDARD2_1_OR_GREATER ||NET5_0_OR_GREATER||NETCOREAPP1_1_OR_GREATER

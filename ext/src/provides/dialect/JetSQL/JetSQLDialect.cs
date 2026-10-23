@@ -14,6 +14,12 @@ namespace mooSQL.data
     /// </summary>
     public class JetSQLDialect : ExtDialect
     {
+        /// <summary>
+        /// JetSQLDialect type.
+        /// </summary>
+        /// <summary>
+        /// JetSQLDialect type.
+        /// </summary>
         public JetSQLDialect()
         {
             expression = new JetSQLExpress(this);
@@ -21,26 +27,46 @@ namespace mooSQL.data
             mapping = new JetSQLMappingPanel();
             function = new JetSQLFunction();
         }
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
         {
             return new OleDbCommand();
         }
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
         {
             return new OleDbConnection(db.DBConnectStr);
         }
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
         {
             return new OleDbDataAdapter();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
         {
             return new OleDbCommandBuilder();
         }
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
         {
@@ -147,6 +173,10 @@ namespace mooSQL.data
         {
             return BulkInsertByInsertValues(bk);
         }
+/// <summary>
+/// Applies pending changes for the edit table.
+/// </summary>
+ 
 
         public override int Update(EditTable tar)
         {

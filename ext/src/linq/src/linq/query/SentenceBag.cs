@@ -17,22 +17,37 @@ namespace mooSQL.linq
     /// </summary>
     public class SentenceBag
     {
+        /// <summary>
+        /// DBLive
+        /// </summary>
 
         public DBInstance DBLive;
         /// <summary>
         /// 待执行语句集
         /// </summary>
         public List<SentenceItem> Sentences;
+        /// <summary>
+        /// srcExp
+        /// </summary>
 
         public Expression srcExp;
+        /// <summary>
+        /// EntityType
+        /// </summary>
 
         public Type EntityType;
+        /// <summary>
+        /// ErrorExpression
+        /// </summary>
 
 
         public Expression ErrorExpression;
 
         /// <summary>导航属性列，执行阶段二次查询加载。</summary>
         public Dictionary<Type, List<EntityColumn>> NavColumns { get; } = new();
+        /// <summary>
+        /// AddNavColumn
+        /// </summary>
 
         public void AddNavColumn(Type entityType, EntityColumn column)
         {
@@ -43,6 +58,9 @@ namespace mooSQL.linq
             }
             list.AddNotRepeat(column);
         }
+        /// <summary>
+        /// IsFinalized
+        /// </summary>
 
         public bool IsFinalized=false;
 
@@ -67,6 +85,9 @@ namespace mooSQL.linq
                 return runner; 
             }
         }
+        /// <summary>
+        /// add
+        /// </summary>
 
 
         public void add(SentenceItem sentence) {

@@ -1,4 +1,4 @@
-﻿// 基础功能说明：
+// 基础功能说明：
 
 using NPOI.SS.UserModel;
 using System;
@@ -36,14 +36,15 @@ namespace mooSQL.excel {
             return this;
         }
         /// <summary>
-        /// 添加一个导出列
+        /// 添加一个导出列。
         /// </summary>
-        /// <param name="columnName"></param>
-        /// <param name="caption"></param>
-        /// <param name="width"></param>
-        /// <param name="codeTableID"></param>
-        /// <param name="style"></param>
-        /// <returns></returns>
+        /// <param name="columnName">数据列名。</param>
+        /// <param name="caption">表头显示名。</param>
+        /// <param name="width">列宽；大于 0 时固定宽度。</param>
+        /// <param name="codeTableID">码表 ID（可选）。</param>
+        /// <param name="style">单元格样式（可选）。</param>
+        /// <param name="valueMap">值映射字典（可选）。</param>
+        /// <returns>当前构建器，便于链式调用。</returns>
         public ExportBuilder add(string columnName,string caption,int width=0,string codeTableID="", ICellStyle style=null, Dictionary<string, string> valueMap=null)
         {
             var col = new ExportCol(columnName, caption);
@@ -152,12 +153,18 @@ namespace mooSQL.excel {
             
             return buildContext.toStream();
         }
+        /// <summary>
+        /// toBytes
+        /// </summary>
 
         public byte[] toBytes()
         {
 
             return buildContext.toBytes();
         }
+        /// <summary>
+        /// writeToFile
+        /// </summary>
 
         public string writeToFile(string path, string fileName) { 
         

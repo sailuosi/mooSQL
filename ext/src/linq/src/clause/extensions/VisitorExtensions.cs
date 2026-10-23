@@ -7,8 +7,20 @@ using System.Threading.Tasks;
 
 namespace mooSQL.linq.clause
 {
+    /// <summary>
+    /// VisitorExtensions type.
+    /// </summary>
+    /// <summary>
+    /// VisitorExtensions type.
+    /// </summary>
     public static class VisitorExtensions
     {
+        /// <summary>
+        /// VisitElements&lt;T&gt;
+        /// </summary>
+        /// <summary>
+        /// VisitElements&lt;T&gt;
+        /// </summary>
         public static T[]? VisitElements<T>(this T[]? arr1, VisitMode mode, Func<T, Clause> Visit)
     where T : class, ISQLNode
         {
@@ -68,6 +80,9 @@ namespace mooSQL.linq.clause
                     throw new InvalidDataException();
             }
         }
+        /// <summary>
+        /// VisitElements&lt;T&gt;
+        /// </summary>
 
         public static List<T>? VisitElements<T>(this List<T>? list1, VisitMode mode,Func<T, Clause> Visit)
     where T : class, ISQLNode
@@ -129,6 +144,9 @@ namespace mooSQL.linq.clause
                     throw new InvalidDataException();
             }
         }
+        /// <summary>
+        /// VisitElements&lt;T&gt;
+        /// </summary>
 
         public static List<T>? VisitElements<T>(this List<T>? list1, VisitMode mode, Func<T, T> transformFunc)
     where T : class
@@ -190,6 +208,9 @@ namespace mooSQL.linq.clause
                     throw new InvalidDataException();
             }
         }
+        /// <summary>
+        /// VisitListOfArrays&lt;T&gt;
+        /// </summary>
 
         public static List<T[]>? VisitListOfArrays<T>(this List<T[]>? list1, VisitMode mode, Func<T, Clause> Visit)
     where T : class, ISQLNode

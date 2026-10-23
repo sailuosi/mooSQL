@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -11,9 +11,15 @@ using Newtonsoft.Json.Linq;
 
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// DataReaderExtensions type.
+    /// </summary>
 
     public static class DataReaderExtensions
     {
+        /// <summary>
+        /// ToObject&lt;T&gt;
+        /// </summary>
        
         public static List<T> ToObject<T>(this IDataReader dataReader)
         {
@@ -60,6 +66,9 @@ namespace mooSQL.data.taos
         //{
         //    return (p.IsDefined(typeof(ColumnAttribute), true) && (p.GetCustomAttributes(typeof(ColumnAttribute), true) as ColumnAttribute[])?.FirstOrDefault().Name == strKey);
         //}
+        /// <summary>
+        /// ToJson
+        /// </summary>
  
     
         public static JArray ToJson(this IDataReader dataReader)
@@ -96,6 +105,9 @@ namespace mooSQL.data.taos
             }
             return jArray;
         }
+        /// <summary>
+        /// ToDataTable
+        /// </summary>
 
 
         public static DataTable ToDataTable(this IDataReader reader)
@@ -136,11 +148,20 @@ namespace mooSQL.data.taos
             }
             return datatable;
         }
+        /// <summary>
+        /// RemoveNull
+        /// </summary>
+        /// <summary>
+        /// RemoveNull
+        /// </summary>
         public static string RemoveNull(this string str)
         {
             var _first_zero = string.IsNullOrEmpty(str)?-1: str.IndexOf('\0');
             return  _first_zero>=0 ? str.Substring(0, _first_zero) : str;
         }
+        /// <summary>
+        /// ToIntPtr
+        /// </summary>
 
         public static IntPtr  ToIntPtr(this long val)
         {
@@ -148,6 +169,12 @@ namespace mooSQL.data.taos
             Marshal.WriteInt64(lenPtr, val);
             return lenPtr;
         }
+        /// <summary>
+        /// ToIntPtr
+        /// </summary>
+        /// <summary>
+        /// ToIntPtr
+        /// </summary>
         public static IntPtr ToIntPtr(this int  val)
         {
             IntPtr lenPtr = Marshal.AllocHGlobal(sizeof(int ));
@@ -176,6 +203,9 @@ namespace mooSQL.data.taos
             result.len = bufferlen;
             return result;
         }
+        /// <summary>
+        /// FreeUtf8IntPtr
+        /// </summary>
 
         public static void FreeUtf8IntPtr(this IntPtr ptr)
         {

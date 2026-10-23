@@ -8,16 +8,36 @@ namespace mooSQL.linq.provider.Oracle
 
 	using mooSQL.linq.provider;
 	using mooSQL.linq.clause;
+	/// <summary>
+	/// Oracle11SqlOptimizer type.
+	/// </summary>
+	/// <summary>
+	/// Oracle11SqlOptimizer type.
+	/// </summary>
 	public class Oracle11SqlOptimizer : BasicSqlOptimizer
 	{
+		/// <summary>
+		/// Oracle11SqlOptimizer type.
+		/// </summary>
+		/// <summary>
+		/// Oracle11SqlOptimizer type.
+		/// </summary>
 		public Oracle11SqlOptimizer(SQLProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{
 		}
+/// <summary>
+/// Creates CreateConvertVisitor.
+/// </summary>
+	
 
 		public override SqlExpressionConvertVisitor CreateConvertVisitor(bool allowModify)
 		{
 			return new OracleSqlExpressionConvertVisitor(allowModify);
 		}
+/// <summary>
+/// TransformStatement
+/// </summary>
+	
 
 		public override BaseSentence TransformStatement(BaseSentence statement)
 		{
@@ -31,6 +51,10 @@ namespace mooSQL.linq.provider.Oracle
 
 			return statement;
 		}
+/// <summary>
+/// IsParameterDependedElement
+/// </summary>
+	
 
 		public override bool IsParameterDependedElement(NullabilityContext nullability, Clause element)
 		{

@@ -5,10 +5,16 @@ using System.Diagnostics;
 
 namespace mooSQL.linq.utils
 {
+	/// <summary>
+	/// TypeAccessor type.
+	/// </summary>
 	[DebuggerDisplay("Type = {" + nameof(Type) + "}")]
 	public abstract class TypeAccessor
 	{
 		#region Protected Emit Helpers
+		/// <summary>
+		/// AddMember
+		/// </summary>
 
 		protected void AddMember(MemberAccessor member)
 		{
@@ -21,12 +27,18 @@ namespace mooSQL.linq.utils
 		#endregion
 
 		#region CreateInstance
+		/// <summary>
+		/// Creates CreateInstance.
+		/// </summary>
 
 		[DebuggerStepThrough]
 		public virtual object CreateInstance()
 		{
 			throw new SooQueryException($"The '{Type.Name}' type must have public default or init constructor.");
 		}
+		/// <summary>
+		/// Creates CreateInstanceEx.
+		/// </summary>
 
 		[DebuggerStepThrough]
 		public object CreateInstanceEx()
@@ -37,17 +49,32 @@ namespace mooSQL.linq.utils
 		#endregion
 
 		#region Public Members
+		/// <summary>
+		/// Gets or sets ObjectFactory.
+		/// </summary>
 
 		public IObjectFactory?         ObjectFactory { get; set; }
+		/// <summary>
+		/// Type
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Type.
+		/// </summary>
 		public abstract Type           Type          { get; }
 
 		#endregion
 
 		#region Items
+		/// <summary>
+		/// Gets or sets Members.
+		/// </summary>
 
 		public List<MemberAccessor>    Members       { get; } = new();
 
 		readonly ConcurrentDictionary<string,MemberAccessor> _membersByName = new();
+		/// <summary>
+		/// this[string]
+		/// </summary>
 
 		public MemberAccessor this[string memberName] =>
 			_membersByName.GetOrAdd(memberName, name =>
@@ -56,11 +83,17 @@ namespace mooSQL.linq.utils
 				Members.Add(ma);
 				return ma;
 			});
+		/// <summary>
+		/// Gets GetMemberByName.
+		/// </summary>
 
 		public MemberAccessor? GetMemberByName(string memberName)
 		{
 			return _membersByName.TryGetValue(memberName, out var accessor) ? accessor : null;
 		}
+		/// <summary>
+		/// this[int]
+		/// </summary>
 
 		public MemberAccessor this[int index] => Members[index];
 
@@ -69,6 +102,9 @@ namespace mooSQL.linq.utils
 		#region Static Members
 
 		static readonly ConcurrentDictionary<Type,TypeAccessor> _accessors = new();
+		/// <summary>
+		/// Gets GetAccessor.
+		/// </summary>
 
 		public static TypeAccessor GetAccessor(Type type)
 		{
@@ -85,6 +121,9 @@ namespace mooSQL.linq.utils
 
 			return accessor;
 		}
+		/// <summary>
+		/// Gets GetAccessor&lt;T&gt;.
+		/// </summary>
 
 		public static TypeAccessor<T> GetAccessor<T>()
 		{

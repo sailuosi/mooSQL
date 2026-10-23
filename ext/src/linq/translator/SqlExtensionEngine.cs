@@ -24,13 +24,22 @@ namespace mooSQL.linq
 		public partial class ExtensionAttribute
 		{
 			private static readonly ConcurrentDictionary<Type, IExtensionCallBuilder> _builders = new ();
+			/// <summary>
+			/// Gets or sets TokenName.
+			/// </summary>
 
 			public string? TokenName { get; set; }
+			/// <summary>
+			/// ExtensionBuilder&lt;TContext&gt;
+			/// </summary>
 
 			protected class ExtensionBuilder<TContext>: ISqExtensionBuilder
 			{
 				readonly TContext              _context;
 				readonly ConvertFunc<TContext> _convert;
+				/// <summary>
+				/// ExtensionBuilder
+				/// </summary>
 
 				public ExtensionBuilder(
 					TContext              context,
@@ -59,8 +68,14 @@ namespace mooSQL.linq
 					IsNullable    = isNullable;
 					CanBeNull     = canBeNull;
 				}
+				/// <summary>
+				/// Gets or sets Method.
+				/// </summary>
 
 				public MethodInfo?  Method { get; }
+				/// <summary>
+				/// ConvertExpression
+				/// </summary>
 
 				public IExpWord? ConvertExpression(Expression expr, bool unwrap, EntityColumn? columnDescriptor, bool? inlineParameters)
 				{
@@ -75,32 +90,107 @@ namespace mooSQL.linq
 				}
 
 				#region ISqExtensionBuilder Members
+				/// <summary>
+				/// Gets or sets Evaluator.
+				/// </summary>
 
 				public IExpressionEvaluator Evaluator        { get; }
+				/// <summary>
+				/// Configuration
+				/// </summary>
+				/// <summary>
+				/// Gets or sets Configuration.
+				/// </summary>
 				public string?              Configuration    { get; }
+				/// <summary>
+				/// Builds SQL for BuilderValue.
+				/// </summary>
+				/// <summary>
+				/// Gets or sets BuilderValue.
+				/// </summary>
 				public object?              BuilderValue     { get; }
+                /// <summary>
+                /// Gets or sets DBLive.
+                /// </summary>
 
                 public DBInstance DBLive { get; }
+				/// <summary>
+				/// Query
+				/// </summary>
+				/// <summary>
+				/// Gets or sets Query.
+				/// </summary>
 				public SelectQueryClause          Query            { get; }
+				/// <summary>
+				/// Member
+				/// </summary>
+				/// <summary>
+				/// Gets or sets Member.
+				/// </summary>
 				public MemberInfo           Member           { get; }
+				/// <summary>
+				/// Extension
+				/// </summary>
+				/// <summary>
+				/// Gets or sets Extension.
+				/// </summary>
 				public SqlExtension         Extension        { get; }
+				/// <summary>
+				/// ResultExpression
+				/// </summary>
+				/// <summary>
+				/// Gets or sets ResultExpression.
+				/// </summary>
 				public IExpWord?      ResultExpression { get; set; }
+				/// <summary>
+				/// IsConvertible
+				/// </summary>
+				/// <summary>
+				/// Gets or sets IsConvertible.
+				/// </summary>
 				public bool                 IsConvertible    { get; set; } = true;
+				/// <summary>
+				/// Arguments
+				/// </summary>
+				/// <summary>
+				/// Gets or sets Arguments.
+				/// </summary>
 				public Expression[]         Arguments        { get; }
+				/// <summary>
+				/// IsNullable
+				/// </summary>
+				/// <summary>
+				/// Gets or sets IsNullable.
+				/// </summary>
 				public IsNullableType       IsNullable       { get; }
+				/// <summary>
+				/// CanBeNull
+				/// </summary>
+				/// <summary>
+				/// Gets or sets CanBeNull.
+				/// </summary>
 				public bool?                CanBeNull        { get; }
+				/// <summary>
+				/// Expression
+				/// </summary>
 
 				public string Expression
 				{
 					get => Extension.Expr;
 					set => Extension.Expr = value;
 				}
+				/// <summary>
+				/// Gets GetValue&lt;T&gt;.
+				/// </summary>
 
 				public T GetValue<T>(int index)
 				{
 					var value = (T)Evaluator.Evaluate(Arguments[index])!;
 					return value;
 				}
+				/// <summary>
+				/// Gets GetValue&lt;T&gt;.
+				/// </summary>
 
 				public T GetValue<T>(string argName)
 				{
@@ -115,12 +205,18 @@ namespace mooSQL.linq
 
 					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
 				}
+				/// <summary>
+				/// Gets GetObjectValue.
+				/// </summary>
 
 				public object GetObjectValue(int index)
 				{
 					var value = Evaluator.Evaluate(Arguments[index])!;
 					return value;
 				}
+				/// <summary>
+				/// Gets GetObjectValue.
+				/// </summary>
 
 				public object GetObjectValue(string argName)
 				{
@@ -135,11 +231,17 @@ namespace mooSQL.linq
 
 					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
 				}
+				/// <summary>
+				/// Gets GetExpression.
+				/// </summary>
 
 				public IExpWord? GetExpression(int index, bool unwrap, bool? inlineParameters = null)
 				{
 					return ConvertExpression(Arguments[index], unwrap, null, inlineParameters);
 				}
+				/// <summary>
+				/// Gets GetExpression.
+				/// </summary>
 
 				public IExpWord? GetExpression(string argName, bool unwrap, bool? inlineParameters = null)
 				{
@@ -157,11 +259,17 @@ namespace mooSQL.linq
 
 					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' not found", argName));
 				}
+				/// <summary>
+				/// ConvertToSqlExpression
+				/// </summary>
 
 				public IExpWord? ConvertToSqlExpression()
 				{
 					return ConvertToSqlExpression(Extension.Precedence);
 				}
+				/// <summary>
+				/// ConvertToSqlExpression
+				/// </summary>
 
 				public IExpWord? ConvertToSqlExpression(int precedence)
 				{
@@ -177,11 +285,17 @@ namespace mooSQL.linq
 
 					return null;
 				}
+				/// <summary>
+				/// ConvertExpressionToSql
+				/// </summary>
 
 				public IExpWord? ConvertExpressionToSql(Expression expression, bool unwrap, bool? inlineParameters = null)
 				{
 					return ConvertExpression(expression, unwrap, null, inlineParameters);
 				}
+				/// <summary>
+				/// EvaluateExpression
+				/// </summary>
 
 				public object? EvaluateExpression(Expression expression)
 				{
@@ -190,6 +304,9 @@ namespace mooSQL.linq
 
 					return Evaluator.Evaluate(expression);
 				}
+				/// <summary>
+				/// AddParameter
+				/// </summary>
 
 				public SqlExtensionParam AddParameter(string name, IExpWord expr)
 				{
@@ -199,6 +316,9 @@ namespace mooSQL.linq
 				#endregion
 
 			}
+			/// <summary>
+			/// Builds SQL for BuildFunctionsChain&lt;TContext&gt;.
+			/// </summary>
 
 			protected List<SqlExtensionParam>? BuildFunctionsChain<TContext>(TContext context, DBInstance DB, IExpressionEvaluator evaluator, SelectQueryClause query, Expression expr, ConvertFunc<TContext> converter, out Expression? error)
 			{
@@ -488,6 +608,9 @@ namespace mooSQL.linq
 				var array = (NewArrayExpression) expression;
 				return array.Expressions;
 			}
+			/// <summary>
+			/// Builds SQL for BuildSqlExpression.
+			/// </summary>
 
 			public static Expression BuildSqlExpression(SelectQueryClause query, SqlExtension root, Type systemType, int precedence,
 				SqlFlags flags, bool? canBeNull, IsNullableType isNullable)
@@ -568,6 +691,10 @@ namespace mooSQL.linq
 				// Placeholder path will be set later
 				return ClauseSqlTranslator.CreatePlaceholder(query, sqlExpression, System.Linq.Expressions.Expression.Default(systemType));
 			}
+/// <summary>
+/// Gets GetExpression&lt;TContext&gt;.
+/// </summary>
+	
 
 			public override Expression GetExpression<TContext>(TContext context, DBInstance DB, IExpressionEvaluator evaluator, SelectQueryClause query, Expression expression, ConvertFunc<TContext> converter)
 			{
@@ -682,6 +809,10 @@ namespace mooSQL.linq
 
 				return res;
 			}
+/// <summary>
+/// Gets GetObjectID.
+/// </summary>
+	
 
 			public override string GetObjectID()
 			{

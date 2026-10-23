@@ -12,11 +12,27 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// NpgSentence type.
+    /// </summary>
+    /// <summary>
+    /// NpgSentence type.
+    /// </summary>
     public class NpgSentence:SQLSentence
     {
+        /// <summary>
+        /// NpgSentence type.
+        /// </summary>
+        /// <summary>
+        /// NpgSentence type.
+        /// </summary>
         public NpgSentence(Dialect dialect):base(dialect) { 
         
         }
+ /// <summary>
+ /// SQL used to reserve sequence values.
+ /// </summary>
+ 
         public override string GetReserveSequenceValuesSql(int count, string sequenceName)
         {
 #if NET6_0_OR_GREATER
@@ -26,6 +42,10 @@ namespace mooSQL.data
 #endif
 
         }
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
 
 
@@ -57,6 +77,10 @@ namespace mooSQL.data
             ") pk ON pk.attname = c.column_name AND pk.relname = c.table_name AND pk.nspname = c.table_schema " +
             "WHERE c.table_name = '{0}' AND c.table_schema = current_schema() " +
             "ORDER BY c.ordinal_position";
+/// <summary>
+/// SQL used to list column captions for a table.
+/// </summary>
+ 
 
         public override string GetColumnCaptionsByTableNameSql => "SELECT c.column_name AS Name, col_description(pclass.oid, c.ordinal_position) AS Caption " +
             "FROM information_schema.columns c " +
@@ -111,6 +135,10 @@ namespace mooSQL.data
             }
             return tar;
         }
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
         public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
         {
@@ -133,6 +161,10 @@ namespace mooSQL.data
             }
             return "CASE WHEN c.column_default LIKE 'nextval%' THEN true ELSE false END";
         }
+/// <summary>
+/// SQL used to list tables.
+/// </summary>
+ 
 
         public override string GetTableInfoListSql =>
             "select cast(c.relname as varchar) as Name, cast(obj_description(c.oid, 'pg_class') as varchar) as Comment " +
@@ -140,6 +172,10 @@ namespace mooSQL.data
             "where c.relkind = 'r' and n.nspname = current_schema() " +
             "and c.relname not like 'pg_%' and c.relname not like 'sql_%' " +
             "order by c.relname";
+ /// <summary>
+ /// Loads the table list for the current database.
+ /// </summary>
+ 
         public override List<DbTableInfo> GetDbTableList()
         {
             var dt = this.DBLive.ExeQuery<DbTableInfo>(GetTableInfoListSql);
@@ -240,12 +276,20 @@ namespace mooSQL.data
             }
             return FinalizeDbTableListAll(result, options);
         }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
         protected override string GetCurrentDatabaseName()
         {
             try { return DBLive.ExeQueryScalar<string>("SELECT current_database()", null); }
             catch { return null; }
         }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
         public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
         {
@@ -331,12 +375,20 @@ namespace mooSQL.data
         {
             return new NpgsqlConnection(connectionString);
         }
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
         public override string GetViewInfoListSql =>
             "select cast(c.relname as varchar) as Name, cast(obj_description(c.oid, 'pg_class') as varchar) as Comment " +
             "from pg_class c join pg_namespace n on n.oid = c.relnamespace " +
             "where c.relkind = 'v' and n.nspname = current_schema() " +
             "order by c.relname";
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
 
         public override SQLCmd buildHasTable(string TableName)
@@ -362,6 +414,10 @@ namespace mooSQL.data
                 return trimmed.Substring(1, trimmed.Length - 2);
             return trimmed.ToLowerInvariant();
         }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -374,6 +430,10 @@ namespace mooSQL.data
             if (string.IsNullOrEmpty(relkind)) return false;
             return relkind == "v";
         }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
         public override bool? IsExitsTableCol(string table, string col)
         {
@@ -386,6 +446,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -398,6 +462,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
         public override string GetTablePKName(string table)
         {
@@ -411,6 +479,10 @@ namespace mooSQL.data
                 .top(1)
                 .queryRowString("");
         }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
         public override bool IsConnectionLost(Exception ex)
         {

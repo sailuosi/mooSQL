@@ -6,29 +6,51 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
     using mooSQL.data;
+    /// <summary>
+    /// SqlQueryRootExpression type.
+    /// </summary>
 
     public class SqlQueryRootExpression : Expression, IEquatable<SqlQueryRootExpression>
 	{
+		/// <summary>
+		/// Gets or sets ContextType.
+		/// </summary>
 
 		public Type          ContextType   { get; }
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 		public DBInstance DBLive {  get; }
+		/// <summary>
+		/// SqlQueryRootExpression type.
+		/// </summary>
 
 		public SqlQueryRootExpression(DBInstance mappingSchema, Type contextType)
 		{
 			DBLive = mappingSchema;
 			ContextType   = contextType;
 		}
+		/// <summary>
+		/// Creates Create.
+		/// </summary>
 
 		public static SqlQueryRootExpression Create(DBInstance dataContext)
 		{
 			return new SqlQueryRootExpression(dataContext, dataContext.GetType());
 		}
+		/// <summary>
+		/// Creates Create.
+		/// </summary>
 
 		public static SqlQueryRootExpression Create(DBInstance dataContext, Type contextType)
 		{
 			return new SqlQueryRootExpression(dataContext, contextType);
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 
 
@@ -36,9 +58,20 @@ namespace mooSQL.linq.expressions
 		{
 			return $"Context<{ContextType.Name}>(MS:)";
 		}
+/// <summary>
+/// NodeType
+/// </summary>
+	
 
 		public override ExpressionType NodeType => ExpressionType.Extension;
+	/// <summary>
+	/// Type
+	/// </summary>
+	
 		public override Type           Type     => ContextType;
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(SqlQueryRootExpression? other)
 		{
@@ -54,6 +87,10 @@ namespace mooSQL.linq.expressions
 
 			return  ContextType == other.ContextType;
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -74,6 +111,10 @@ namespace mooSQL.linq.expressions
 
 			return Equals((SqlQueryRootExpression)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -82,18 +123,32 @@ namespace mooSQL.linq.expressions
 				return  ContextType.GetHashCode();
 			}
 		}
+		/// <summary>
+		/// operator ==
+		/// </summary>
 
 		public static bool operator ==(SqlQueryRootExpression? left, SqlQueryRootExpression? right)
 		{
 			return Equals(left, right);
 		}
+		/// <summary>
+		/// operator !=
+		/// </summary>
 
 		public static bool operator !=(SqlQueryRootExpression? left, SqlQueryRootExpression? right)
 		{
 			return !Equals(left, right);
 		}
+/// <summary>
+/// VisitChildren
+/// </summary>
+	
 
 		protected override Expression VisitChildren(ExpressionVisitor visitor) => this;
+/// <summary>
+/// Accept
+/// </summary>
+	
 
 		protected override Expression Accept(ExpressionVisitor visitor)
 		{

@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
@@ -15,6 +15,9 @@ namespace mooSQL.data
     /// </summary>
     public class MySQLExpress:SQLExpression
     {
+        /// <summary>
+        /// 初始化 <see cref="MySQLExpress"/> 实例。
+        /// </summary>
         public MySQLExpress(Dialect dia) : base(dia) {
             _paraPrefix = "?";
             _selectAutoIncrement = "SELECT Last_Insert_Id()";
@@ -24,6 +27,10 @@ namespace mooSQL.data
         /// <inheritdoc/>
         protected override System.Collections.Generic.HashSet<string> GetReservedWords()
             => SqlReservedWords.MySql;
+/// <summary>
+/// Quotes an identifier for this dialect.
+/// </summary>
+ 
 
         public override string wrapKeyword(string value)
         {
@@ -41,83 +48,219 @@ namespace mooSQL.data
             var pathLit = "'" + item.jsonPath.Replace("'", "''") + "'";
             return item.field + "=JSON_SET(" + item.field + ", " + pathLit + ", " + item.value + ")";
         }
+/// <summary>
+/// Builds a date-difference expression in Day.
+/// </summary>
+ 
 
         public override string dateDiffDay(string start, string end)
             => $"TIMESTAMPDIFF(DAY, {start}, {end})";
+/// <summary>
+/// Builds a character-index expression.
+/// </summary>
+ 
 
         public override string charIndex(string substring, string str) => $"LOCATE({substring}, {str})";
+/// <summary>
+/// Builds a character-index expression.
+/// </summary>
+ 
 
         public override string charIndex(string substring, string str, string start)
             => $"LOCATE({substring}, {str}, {start})";
+/// <summary>
+/// Builds an is-null-or-whitespace expression.
+/// </summary>
+ 
 
         public override string isNullOrWhiteSpace(string expr)
             => $"({expr} IS NULL OR TRIM({expr}) = '')";
+/// <summary>
+/// Builds a date-difference expression in Hour.
+/// </summary>
+ 
 
         public override string dateDiffHour(string start, string end)
             => $"TIMESTAMPDIFF(HOUR, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Minute.
+/// </summary>
+ 
 
         public override string dateDiffMinute(string start, string end)
             => $"TIMESTAMPDIFF(MINUTE, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Second.
+/// </summary>
+ 
 
         public override string dateDiffSecond(string start, string end)
             => $"TIMESTAMPDIFF(SECOND, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Millisecond.
+/// </summary>
+ 
 
         public override string dateDiffMillisecond(string start, string end)
             => $"TIMESTAMPDIFF(MICROSECOND, {start}, {end}) DIV 1000";
+/// <summary>
+/// Builds a date-difference expression in Year.
+/// </summary>
+ 
 
         public override string dateDiffYear(string start, string end)
             => $"TIMESTAMPDIFF(YEAR, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Month.
+/// </summary>
+ 
 
         public override string dateDiffMonth(string start, string end)
             => $"TIMESTAMPDIFF(MONTH, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Week.
+/// </summary>
+ 
 
         public override string dateDiffWeek(string start, string end)
             => $"TIMESTAMPDIFF(WEEK, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Quarter.
+/// </summary>
+ 
 
         public override string dateDiffQuarter(string start, string end)
             => $"TIMESTAMPDIFF(QUARTER, {start}, {end})";
+/// <summary>
+/// Builds a date-part expression for Year.
+/// </summary>
+ 
 
         public override string? datePartYear(string date) => $"EXTRACT(YEAR FROM {date})";
+/// <summary>
+/// Builds a date-part expression for Quarter.
+/// </summary>
+ 
 
         public override string? datePartQuarter(string date) => $"QUARTER({date})";
+/// <summary>
+/// Builds a date-part expression for Month.
+/// </summary>
+ 
 
         public override string? datePartMonth(string date) => $"EXTRACT(MONTH FROM {date})";
+/// <summary>
+/// Builds a date-part expression for Day.
+/// </summary>
+ 
 
         public override string? datePartDay(string date) => $"EXTRACT(DAY FROM {date})";
+/// <summary>
+/// Builds a date-part expression for DayOfYear.
+/// </summary>
+ 
 
         public override string? datePartDayOfYear(string date) => $"DAYOFYEAR({date})";
+/// <summary>
+/// Builds a date-part expression for Week.
+/// </summary>
+ 
 
         public override string? datePartWeek(string date) => $"WEEK({date})";
+/// <summary>
+/// Builds a date-part expression for WeekDay.
+/// </summary>
+ 
 
         public override string? datePartWeekDay(string date) => $"(WEEKDAY({date}) + 1)";
+/// <summary>
+/// Builds a date-part expression for Hour.
+/// </summary>
+ 
 
         public override string? datePartHour(string date) => $"EXTRACT(HOUR FROM {date})";
+/// <summary>
+/// Builds a date-part expression for Minute.
+/// </summary>
+ 
 
         public override string? datePartMinute(string date) => $"EXTRACT(MINUTE FROM {date})";
+/// <summary>
+/// Builds a date-part expression for Second.
+/// </summary>
+ 
 
         public override string? datePartSecond(string date) => $"EXTRACT(SECOND FROM {date})";
+/// <summary>
+/// Builds a date-part expression for Millisecond.
+/// </summary>
+ 
 
         public override string? datePartMillisecond(string date) => $"(MICROSECOND({date}) DIV 1000)";
+/// <summary>
+/// Builds a date-add expression for Day.
+/// </summary>
+ 
 
         public override string? dateAddDay(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} DAY)";
+/// <summary>
+/// Builds a date-add expression for Month.
+/// </summary>
+ 
 
         public override string? dateAddMonth(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MONTH)";
+/// <summary>
+/// Builds a date-add expression for Year.
+/// </summary>
+ 
 
         public override string? dateAddYear(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} YEAR)";
+/// <summary>
+/// Builds a date-add expression for Hour.
+/// </summary>
+ 
 
         public override string? dateAddHour(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} HOUR)";
+/// <summary>
+/// Builds a date-add expression for Minute.
+/// </summary>
+ 
 
         public override string? dateAddMinute(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MINUTE)";
+/// <summary>
+/// Builds a date-add expression for Second.
+/// </summary>
+ 
 
         public override string? dateAddSecond(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} SECOND)";
+/// <summary>
+/// Builds a date-add expression for Week.
+/// </summary>
+ 
 
         public override string? dateAddWeek(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} WEEK)";
+/// <summary>
+/// Builds a date-add expression for Quarter.
+/// </summary>
+ 
 
         public override string? dateAddQuarter(string amount, string date) => $"DATE_ADD({date}, INTERVAL ({amount}) * 3 MONTH)";
+/// <summary>
+/// Builds a date-add expression for DayOfYear.
+/// </summary>
+ 
 
         public override string? dateAddDayOfYear(string amount, string date) => dateAddDay(amount, date);
+/// <summary>
+/// Builds a date-add expression for WeekDay.
+/// </summary>
+ 
 
         public override string? dateAddWeekDay(string amount, string date) => dateAddDay(amount, date);
+/// <summary>
+/// Builds a date-add expression for Millisecond.
+/// </summary>
+ 
 
         public override string? dateAddMillisecond(string amount, string date) => $"DATE_ADD({date}, INTERVAL {amount} MICROSECOND)";
 
@@ -159,6 +302,10 @@ namespace mooSQL.data
             }
             return false;
         }
+/// <summary>
+/// Builds a paged SELECT statement.
+/// </summary>
+ 
 
         public override string buildPagedSelect(FragSQL frag)
         {
@@ -270,9 +417,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string buildUpdateFrom(FragSQL frag)
         {
-            /**
+            /*
              * 创建MYSQL下的update from 必须使用inner join
-             * @return update tablename inner join a on a.pid=tablename.id set ... where ...
+             * 形如：update tablename inner join a on a.pid=tablename.id set ... where ...
              */
             var sb = new StringBuilder();
             // update a set a=b from ... where ...
@@ -331,6 +478,10 @@ namespace mooSQL.data
         {
             return this.buildMergeIntoFallBack(frag);
         }
+ /// <summary>
+ /// Builds the SET clause.
+ /// </summary>
+ 
         protected override string buildSetPart(FragSQL frag) { 
             return buildSetPart(frag.setPart, frag.updateTo);
         }
@@ -790,14 +941,26 @@ namespace mooSQL.data
         { 
             return string.Format("ALTER TABLE {0} COMMENT='{1}';", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to add a column caption/comment.
+ /// </summary>
+ 
         public override string AddColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return UpdateColumnCaptionBy(tableName, columnName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a column caption/comment.
+ /// </summary>
+ 
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             var createTableSql = getShowCreateTableSql(tableName);

@@ -7,15 +7,24 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.utils;
     using mooSQL.data.model;
     using System.Xml.Linq;
+    /// <summary>
+    /// ClauseActionVisitor type.
+    /// </summary>
 
     public class ClauseActionVisitor : ClauseVisitor
 	{
 		Action<ISQLNode>   _visitAction = default!;
 		HashSet<ISQLNode>? _visited;
+		/// <summary>
+		/// ClauseActionVisitor type.
+		/// </summary>
 
 		public ClauseActionVisitor() 
 		{
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
 
 		public ISQLNode Visit(ISQLNode root, bool visitAll, Action<ISQLNode> visitAction)
 		{
@@ -24,12 +33,19 @@ namespace mooSQL.linq.clause
 
 			return Visit(root as Clause);
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
 			_visitAction = null!;
 			_visited     = null;
 		}
+/// <summary>
+/// Visit
+/// </summary>
+ 
 
         public override Clause Visit(Clause element)
         {

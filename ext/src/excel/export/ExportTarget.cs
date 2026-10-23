@@ -1,4 +1,4 @@
-﻿using mooSQL.utils;
+using mooSQL.utils;
 using NPOI.HPSF;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
@@ -38,32 +38,131 @@ namespace mooSQL.excel
         /// 创建程序信息
         /// </summary>
         public string ApplicationName = "创建程序信息"; //填加xls文件创建程序信息
+        /// <summary>
+        /// LastAuthor
+        /// </summary>
+        /// <summary>
+        /// LastAuthor
+        /// </summary>
         public string LastAuthor = "最后保存者信息"; //填加xls文件最后保存者信息
+        /// <summary>
+        /// AuthorInfo
+        /// </summary>
+        /// <summary>
+        /// AuthorInfo
+        /// </summary>
         public string AuthorInfo = "作者信息"; //填加xls文件作者信息
+        /// <summary>
+        /// Title
+        /// </summary>
+        /// <summary>
+        /// Title
+        /// </summary>
         public string Title = "标题信息"; //填加xls文件标题信息
+        /// <summary>
+        /// Theme
+        /// </summary>
 
         public string Theme = "主题信息";//填加文件主题信息
+        /// <summary>
+        /// Creates CreateDateTime.
+        /// </summary>
+        /// <summary>
+        /// Creates CreateDateTime.
+        /// </summary>
         public DateTime CreateDateTime = DateTime.Now;
+        /// <summary>
+        /// savePath
+        /// </summary>
 
         public string savePath;
+        /// <summary>
+        /// hasTitle
+        /// </summary>
+        /// <summary>
+        /// hasTitle
+        /// </summary>
         public bool hasTitle = false;
+        /// <summary>
+        /// contentTitle
+        /// </summary>
+        /// <summary>
+        /// contentTitle
+        /// </summary>
         public string contentTitle;
         //格式设置的部分信息
+        /// <summary>
+        /// colInfos
+        /// </summary>
+        /// <summary>
+        /// colInfos
+        /// </summary>
         public List<ExportCol> colInfos;
+        /// <summary>
+        /// isInited
+        /// </summary>
 
         public bool isInited = false;
+        /// <summary>
+        /// titleHeight
+        /// </summary>
 
         public int titleHeight = 28;
+        /// <summary>
+        /// colnameHeight
+        /// </summary>
+        /// <summary>
+        /// colnameHeight
+        /// </summary>
         public int colnameHeight = 23;
+        /// <summary>
+        /// colvalueHeight
+        /// </summary>
+        /// <summary>
+        /// colvalueHeight
+        /// </summary>
         public int colvalueHeight = 20;
 
 
         //样式自定义部分，分为标题、列名、列值3个。
+        /// <summary>
+        /// book
+        /// </summary>
+        /// <summary>
+        /// Gets or sets book.
+        /// </summary>
         public IWorkbook book { get; set; }
+        /// <summary>
+        /// titleStyle
+        /// </summary>
+        /// <summary>
+        /// titleStyle
+        /// </summary>
         public ICellStyle titleStyle;
+        /// <summary>
+        /// colNameStyle
+        /// </summary>
+        /// <summary>
+        /// colNameStyle
+        /// </summary>
         public ICellStyle colNameStyle;
+        /// <summary>
+        /// colValueStyle
+        /// </summary>
+        /// <summary>
+        /// colValueStyle
+        /// </summary>
         public ICellStyle colValueStyle;
+        /// <summary>
+        /// format
+        /// </summary>
+        /// <summary>
+        /// format
+        /// </summary>
         public IDataFormat format;
+        /// <summary>
+        /// ExportTarget type.
+        /// </summary>
 
         public ExportTarget() {
             colInfos= new List<ExportCol>();
@@ -196,9 +295,24 @@ namespace mooSQL.excel
 
             return this;
         }
+        /// <summary>
+        /// sheets
+        /// </summary>
 
         public List<ISheet> sheets = new List<ISheet>();
+        /// <summary>
+        /// currentSheet
+        /// </summary>
+        /// <summary>
+        /// currentSheet
+        /// </summary>
         public ISheet currentSheet;
+        /// <summary>
+        /// currentRowIndex
+        /// </summary>
+        /// <summary>
+        /// currentRowIndex
+        /// </summary>
         public int currentRowIndex = 0;
         /// <summary>
         /// 初始化Excel文件的基础信息
@@ -499,6 +613,9 @@ namespace mooSQL.excel
             }
             return this;
         }
+        /// <summary>
+        /// toStream
+        /// </summary>
 
 
         public MemoryStream toStream()
@@ -508,6 +625,9 @@ namespace mooSQL.excel
             return ms;
             
         }
+        /// <summary>
+        /// toBytes
+        /// </summary>
 
         public byte[] toBytes()
         {

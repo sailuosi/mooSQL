@@ -65,7 +65,7 @@ internal partial class ClauseMethodVisitor
     static bool IsFullEntityProjection(Expression body)
         => body.UnwrapConvert() is ContextRefExpression;
 
-    /// <summary>MethodCall / 匿名类型 / MemberInit 根投影需显式 <see cref="ClauseSqlTranslator.ToColumns"/>。</summary>
+    /// <summary>MethodCall / 匿名类型 / MemberInit 根投影需显式 <see cref="mooSQL.linq.builder.ClauseSqlTranslator.ToColumns(mooSQL.linq.builder.IClauseContext, System.Linq.Expressions.Expression)"/>。</summary>
     static bool ShouldProjectBodyToColumns(Expression body)
     {
         body = body.UnwrapConvert();

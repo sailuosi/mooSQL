@@ -14,6 +14,12 @@ namespace mooSQL.linq.clause
 		/// Function to convert text parameter to lowercased form: <c>TO_LOWER(string)</c>
 		/// </summary>
 		public const string TO_LOWER = "$ToLower$";
+		/// <summary>
+		/// MakeToLower
+		/// </summary>
+		/// <summary>
+		/// MakeToLower
+		/// </summary>
 		public static FunctionWord MakeToLower(IExpWord value)
 		{
 			return new FunctionWord(typeof(string), TO_LOWER, false, true, PrecedenceLv.Primary,
@@ -24,6 +30,12 @@ namespace mooSQL.linq.clause
 		/// Function to convert text parameter to uppercased form: <c>TO_UPPER(string)</c>
 		/// </summary>
 		public const string TO_UPPER = "$ToUpper$";
+		/// <summary>
+		/// MakeToUpper
+		/// </summary>
+		/// <summary>
+		/// MakeToUpper
+		/// </summary>
 		public static FunctionWord MakeToUpper(IExpWord value)
 		{
 			return new FunctionWord(typeof(string), TO_UPPER, false, true, PrecedenceLv.Primary,
@@ -56,6 +68,12 @@ namespace mooSQL.linq.clause
 		/// Returns NULL on conversion failure.
 		/// </summary>
 		public const string TRY_CONVERT = "$TryConvert$";
+		/// <summary>
+		/// MakeTryConvert
+		/// </summary>
+		/// <summary>
+		/// MakeTryConvert
+		/// </summary>
 		public static FunctionWord MakeTryConvert(DataTypeWord toType, DataTypeWord fromType, IExpWord value)
 		{
 			return new FunctionWord(toType.SystemType, TRY_CONVERT, false, true, toType, fromType, value)
@@ -69,6 +87,12 @@ namespace mooSQL.linq.clause
 		/// Returns provided default value on conversion failure.
 		/// </summary>
 		public const string TRY_CONVERT_OR_DEFAULT = "$TryConvertOrDefault$";
+		/// <summary>
+		/// MakeTryConvertOrDefault
+		/// </summary>
+		/// <summary>
+		/// MakeTryConvertOrDefault
+		/// </summary>
 		public static FunctionWord MakeTryConvertOrDefault(DataTypeWord toType, DataTypeWord fromType, IExpWord value, IExpWord defaultValue)
 		{
 			return new FunctionWord(toType.SystemType, TRY_CONVERT_OR_DEFAULT, false, true, PrecedenceLv.Primary,
@@ -79,6 +103,12 @@ namespace mooSQL.linq.clause
 		/// Function to replace one text fragment with another in string: <c>REPLACE(value, oldSubstring, newSubstring)</c>
 		/// </summary>
 		public const string REPLACE = "$Replace$";
+		/// <summary>
+		/// MakeReplace
+		/// </summary>
+		/// <summary>
+		/// MakeReplace
+		/// </summary>
 		public static FunctionWord MakeReplace(IExpWord value, IExpWord oldSubstring, IExpWord newSubstring)
 		{
 			return new FunctionWord(typeof(string), REPLACE, false, true, PrecedenceLv.Primary,
@@ -89,6 +119,12 @@ namespace mooSQL.linq.clause
 		/// Function to suppress conversion SQL generation for provided value: <c>REMOVE_CONVERT(value, resultType)</c>
 		/// </summary>
 		public const string REMOVE_CONVERT = "$Convert_Remover$";
+		/// <summary>
+		/// MakeRemoveConvert
+		/// </summary>
+		/// <summary>
+		/// MakeRemoveConvert
+		/// </summary>
 		public static FunctionWord MakeRemoveConvert(IExpWord value, DataTypeWord resultType)
 		{
 			return new FunctionWord(resultType.SystemType, REMOVE_CONVERT, false, true, PrecedenceLv.Primary,
@@ -99,6 +135,12 @@ namespace mooSQL.linq.clause
 		/// Function to return first non-null argument: <c>COALESCE(values...)</c>
 		/// </summary>
 		public const string COALESCE = "$Coalesce$";
+		/// <summary>
+		/// MakeCoalesce
+		/// </summary>
+		/// <summary>
+		/// MakeCoalesce
+		/// </summary>
 		public static FunctionWord MakeCoalesce(Type systemType, params IExpWord[] values)
 		{
 			return new FunctionWord(systemType, COALESCE, false, true, PrecedenceLv.Primary,

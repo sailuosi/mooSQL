@@ -2,12 +2,25 @@ namespace mooSQL.linq.provider.Oracle
 {
     using mooSQL.data.model;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// Oracle12SqlExpressionConvertVisitor type.
+	/// </summary>
 
 	public class Oracle12SqlExpressionConvertVisitor : OracleSqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// Oracle12SqlExpressionConvertVisitor type.
+		/// </summary>
+		/// <summary>
+		/// Oracle12SqlExpressionConvertVisitor type.
+		/// </summary>
 		public Oracle12SqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 		}
+/// <summary>
+/// ConvertSqlFunction
+/// </summary>
+	
 
 		public override Clause ConvertSqlFunction(FunctionWord func)
 		{

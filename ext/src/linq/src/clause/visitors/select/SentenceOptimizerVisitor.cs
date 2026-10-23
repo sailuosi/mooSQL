@@ -15,10 +15,19 @@ namespace mooSQL.linq.clause
     using mooSQL.data.model.affirms;
     using mooSQL.utils;
     using mooSQL.data;
+    /// <summary>
+    /// SentenceOptimizerVisitor type.
+    /// </summary>
 
     public class SentenceOptimizerVisitor : SentenceVisitor
 	{
 		SQLProviderFlags  _providerFlags     = default!;
+		/// <summary>
+		/// DBLive
+		/// </summary>
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 		public DBInstance DBLive {  get; set; }
 
 		EvaluateContext _evaluationContext = default!;
@@ -44,10 +53,16 @@ namespace mooSQL.linq.clause
 		MovingComplexityVisitor        _movingComplexityVisitor     = new();
 		SqlExpressionOptimizerVisitor  _expressionOptimizerVisitor  = new(true);
 		MovingOuterPredicateVisitor    _movingOuterPredicateVisitor = new();
+		/// <summary>
+		/// SentenceOptimizerVisitor type.
+		/// </summary>
 
 		public SentenceOptimizerVisitor() : base(VisitMode.Modify, null)
 		{
 		}
+		/// <summary>
+		/// Optimize
+		/// </summary>
 
 		public Clause Optimize(
 			Clause          root,
@@ -152,6 +167,10 @@ namespace mooSQL.linq.clause
 				}
 			});
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -175,12 +194,20 @@ namespace mooSQL.linq.clause
 			_expressionOptimizerVisitor.Cleanup();
 			_movingOuterPredicateVisitor.Cleanup();
 		}
+/// <summary>
+/// NotifyReplaced
+/// </summary>
+	
 
 		public override Clause NotifyReplaced(Clause newElement, Clause oldElement)
 		{
 			++_version;
 			return base.NotifyReplaced(newElement, oldElement);
 		}
+/// <summary>
+/// VisitJoinedTable
+/// </summary>
+ 
 
         public override Clause VisitJoinedTable(JoinTableWord element)
 		{
@@ -197,6 +224,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitSelectQuery
+/// </summary>
+	
 
 		public override Clause VisitSelectQuery(SelectQueryClause selectQuery)
 		{
@@ -318,6 +349,10 @@ namespace mooSQL.linq.clause
 
 			return newQuery;
 		}
+/// <summary>
+/// VisitSetOperator
+/// </summary>
+ 
 
         public override Clause VisitSetOperator(SetOperatorWord element)
 		{
@@ -331,6 +366,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitTableSource
+/// </summary>
+ 
 
         public override Clause VisitTableSource(TableSourceWord element)
 		{
@@ -344,6 +383,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmInSubQuery
+/// </summary>
+ 
 
         public override Clause VisitAffirmInSubQuery(InSubQuery predicate)
 		{
@@ -355,6 +398,10 @@ namespace mooSQL.linq.clause
 
 			return newNode;
 		}
+/// <summary>
+/// VisitOrderByClause
+/// </summary>
+ 
 
         public override Clause VisitOrderByClause(OrderByClause element)
 		{
@@ -369,6 +416,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitUpdateSentence
+/// </summary>
+	
 
 		public override Clause VisitUpdateSentence(UpdateSentence element)
 		{
@@ -1912,6 +1963,10 @@ namespace mooSQL.linq.clause
 
 			return true;
 		}
+/// <summary>
+/// VisitFromClause
+/// </summary>
+	
 
 		public override Clause VisitFromClause(FromClause element)
 		{
@@ -2531,6 +2586,10 @@ namespace mooSQL.linq.clause
 
 			return false;
 		}
+/// <summary>
+/// VisitCteClause
+/// </summary>
+	
 
 		public override Clause VisitCteClause(CTEClause element)
 		{
@@ -2549,6 +2608,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitAffirmFuncLike
+/// </summary>
+	
 
 		public override Clause VisitAffirmFuncLike(FuncLike element)
 		{

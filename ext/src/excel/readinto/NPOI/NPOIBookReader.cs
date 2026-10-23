@@ -1,4 +1,4 @@
-﻿
+
 
 using NPOI.SS.UserModel;
 using System;
@@ -27,6 +27,9 @@ namespace mooSQL.excel
         public NPOIBookReader() { 
             xbook = new XWorkBook();
         }
+        /// <summary>
+        /// useStream
+        /// </summary>
 
 
         public IBookReader useStream(Stream stream)

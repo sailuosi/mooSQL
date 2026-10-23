@@ -11,19 +11,70 @@ namespace mooSQL.linq.expressions
 	using mooSQL.linq.mapping;
     using mooSQL.data;
     using mooSQL.utils;
+	/// <summary>
+	/// SqlGenericConstructorExpression type.
+	/// </summary>
 
 	public class SqlGenericConstructorExpression : Expression, IEquatable<SqlGenericConstructorExpression>
 	{
+		/// <summary>
+		/// NewExpression
+		/// </summary>
+		/// <summary>
+		/// Gets or sets NewExpression.
+		/// </summary>
 		public Expression?      NewExpression     { get; private set; }
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Constructor.
+		/// </summary>
 		public ConstructorInfo? Constructor       { get; private set; }
+		/// <summary>
+		/// ConstructorMethod
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConstructorMethod.
+		/// </summary>
 		public MethodInfo?      ConstructorMethod { get; private set; }
+		/// <summary>
+		/// ConstructionRoot
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConstructionRoot.
+		/// </summary>
 		public Expression?      ConstructionRoot  { get; private set; }
+		/// <summary>
+		/// ConstructType
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ConstructType.
+		/// </summary>
 		public CreateType       ConstructType     { get; private set; }
+		/// <summary>
+		/// ObjectType
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ObjectType.
+		/// </summary>
 		public Type             ObjectType        { get; private set; }
+		/// <summary>
+		/// Gets or sets DBLive.
+		/// </summary>
 
 		public DBInstance DBLive {  get; private set; }
+		/// <summary>
+		/// Gets or sets Parameters.
+		/// </summary>
 
 		public ReadOnlyCollection<Parameter>  Parameters  { get; private set; }
+		/// <summary>
+		/// Assignments
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Assignments.
+		/// </summary>
 		public ReadOnlyCollection<Assignment> Assignments { get; private set; }
 
 		SqlGenericConstructorExpression()
@@ -32,6 +83,9 @@ namespace mooSQL.linq.expressions
 			Assignments = null!;
 			ObjectType  = null!;
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(CreateType createType, Type objectType, ReadOnlyCollection<Parameter>? parameters, ReadOnlyCollection<Assignment>? assignments, DBInstance? mappingSchema, Expression? constructionRoot) : this()
 		{
@@ -42,6 +96,9 @@ namespace mooSQL.linq.expressions
 			ConstructionRoot = constructionRoot;
 			DBLive    = mappingSchema;
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(SqlGenericConstructorExpression basedOn) : this()
 		{
@@ -53,6 +110,9 @@ namespace mooSQL.linq.expressions
 			Assignments       = basedOn.Assignments;
 			ConstructionRoot  = basedOn.ConstructionRoot;
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(Type objectType, ReadOnlyCollection<MemberBinding> bindings) : this()
 		{
@@ -63,6 +123,9 @@ namespace mooSQL.linq.expressions
 			var assignments = GetBindingsAssignments(bindings);
 			Assignments = new ReadOnlyCollection<Assignment>(assignments);
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(NewExpression newExpression) : this()
 		{
@@ -88,6 +151,9 @@ namespace mooSQL.linq.expressions
 			ObjectType    = newExpression.Type;
 			Assignments   = items.AsReadOnly();
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(MethodCallExpression methodCall) : this()
 		{
@@ -97,12 +163,18 @@ namespace mooSQL.linq.expressions
 			Parameters        = GetMethodParameters(methodCall.Method, methodCall.Arguments);
 			Assignments       = Assignment.EmptyCollection;
 		}
+		/// <summary>
+		/// FindMember
+		/// </summary>
 
 		public static MemberInfo? FindMember(Type inType, ParameterInfo parameter)
 		{
 			var found = FindMember(TypeAccessor.GetAccessor(inType).Members, parameter);
 			return found;
 		}
+		/// <summary>
+		/// FindMember
+		/// </summary>
 
 		public static MemberInfo? FindMember(IReadOnlyCollection<MemberAccessor> members, ParameterInfo parameter)
 		{
@@ -130,6 +202,9 @@ namespace mooSQL.linq.expressions
 
 			return exactMatch ?? nonCaseMatch;
 		}
+		/// <summary>
+		/// SqlGenericConstructorExpression type.
+		/// </summary>
 
 		public SqlGenericConstructorExpression(MemberInitExpression memberInitExpression)
 		{
@@ -197,10 +272,26 @@ namespace mooSQL.linq.expressions
 
 			return items;
 		}
+/// <summary>
+/// NodeType
+/// </summary>
+	
 
 		public override ExpressionType NodeType  => ExpressionType.Extension;
+	/// <summary>
+	/// Type
+	/// </summary>
+	
 		public override Type           Type      => ObjectType;
+	/// <summary>
+	/// CanReduce
+	/// </summary>
+	
 		public override bool           CanReduce => false;
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString()
 		{
@@ -257,6 +348,9 @@ namespace mooSQL.linq.expressions
 			/// </summary>
 			MethodCall
 		}
+		/// <summary>
+		/// AppendAssignment
+		/// </summary>
 
 		public SqlGenericConstructorExpression AppendAssignment(Assignment assignment)
 		{
@@ -266,6 +360,9 @@ namespace mooSQL.linq.expressions
 
 			return ReplaceAssignments(newAssignments);
 		}
+		/// <summary>
+		/// ReplaceAssignments
+		/// </summary>
 
 		public SqlGenericConstructorExpression ReplaceAssignments(List<Assignment> assignment)
 		{
@@ -286,6 +383,9 @@ namespace mooSQL.linq.expressions
 
 			return result;
 		}
+		/// <summary>
+		/// ReplaceParameters
+		/// </summary>
 
 		public SqlGenericConstructorExpression ReplaceParameters(List<Parameter> parameters)
 		{
@@ -306,6 +406,9 @@ namespace mooSQL.linq.expressions
 
 			return result;
 		}
+		/// <summary>
+		/// WithConstructionRoot
+		/// </summary>
 
 		public SqlGenericConstructorExpression WithConstructionRoot(Expression constructionRoot)
 		{
@@ -348,6 +451,9 @@ namespace mooSQL.linq.expressions
 
 			return true;
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(SqlGenericConstructorExpression? other)
 		{
@@ -375,6 +481,10 @@ namespace mooSQL.linq.expressions
 
 			return result;
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -395,6 +505,10 @@ namespace mooSQL.linq.expressions
 
 			return Equals((SqlGenericConstructorExpression)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -409,16 +523,26 @@ namespace mooSQL.linq.expressions
 				return hashCode;
 			}
 		}
+		/// <summary>
+		/// operator ==
+		/// </summary>
 
 		public static bool operator ==(SqlGenericConstructorExpression? left, SqlGenericConstructorExpression? right)
 		{
 			return Equals(left, right);
 		}
+		/// <summary>
+		/// operator !=
+		/// </summary>
 
 		public static bool operator !=(SqlGenericConstructorExpression? left, SqlGenericConstructorExpression? right)
 		{
 			return !Equals(left, right);
 		}
+/// <summary>
+/// Accept
+/// </summary>
+	
 
 		protected override Expression Accept(ExpressionVisitor visitor)
 		{
@@ -428,10 +552,22 @@ namespace mooSQL.linq.expressions
 		}
 
 		#region Sub classes
+		/// <summary>
+		/// Assignment
+		/// </summary>
 
 		public class Assignment
 		{
+			/// <summary>
+			/// EmptyCollection
+			/// </summary>
+			/// <summary>
+			/// EmptyCollection
+			/// </summary>
 			public static ReadOnlyCollection<Assignment> EmptyCollection = new (new List<Assignment>());
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SqlGenericConstructorExpression"/> class.
+			/// </summary>
 
 			public Assignment(MemberInfo memberInfo, Expression expression, bool isMandatory, bool isLoaded)
 			{
@@ -443,11 +579,35 @@ namespace mooSQL.linq.expressions
 				IsMandatory = isMandatory;
 				IsLoaded    = isLoaded;
 			}
+			/// <summary>
+			/// Gets or sets MemberInfo.
+			/// </summary>
 
 			public MemberInfo MemberInfo  { get;  }
+			/// <summary>
+			/// Expression
+			/// </summary>
+			/// <summary>
+			/// Gets or sets Expression.
+			/// </summary>
 			public Expression Expression  { get; }
+			/// <summary>
+			/// IsMandatory
+			/// </summary>
+			/// <summary>
+			/// Gets or sets IsMandatory.
+			/// </summary>
 			public bool       IsMandatory { get; }
+			/// <summary>
+			/// IsLoaded
+			/// </summary>
+			/// <summary>
+			/// Gets or sets IsLoaded.
+			/// </summary>
 			public bool       IsLoaded    { get; }
+			/// <summary>
+			/// WithExpression
+			/// </summary>
 
 			public Assignment WithExpression(Expression expression)
 			{
@@ -455,6 +615,9 @@ namespace mooSQL.linq.expressions
 					return this;
 				return new Assignment(MemberInfo, expression, IsMandatory, IsLoaded);
 			}
+			/// <summary>
+			/// WithMember
+			/// </summary>
 
 			public Assignment WithMember(MemberInfo member)
 			{
@@ -463,6 +626,10 @@ namespace mooSQL.linq.expressions
 
 				return new Assignment(member, Expression, IsMandatory, IsLoaded);
 			}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 			public override string ToString()
 			{
@@ -510,13 +677,28 @@ namespace mooSQL.linq.expressions
 					}
 				}
 			}
+			/// <summary>
+			/// Gets or sets AssignmentComparer.
+			/// </summary>
 
 			public static IEqualityComparer<Assignment> AssignmentComparer { get; } = new AssignmentEqualityComparer();
 		}
+		/// <summary>
+		/// Parameter
+		/// </summary>
 
 		public new class Parameter
 		{
+			/// <summary>
+			/// EmptyCollection
+			/// </summary>
+			/// <summary>
+			/// EmptyCollection
+			/// </summary>
 			public static ReadOnlyCollection<Parameter> EmptyCollection = new (new List<Parameter>());
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SqlGenericConstructorExpression"/> class.
+			/// </summary>
 
 			public Parameter(Expression expression, ParameterInfo parameterInfo, MemberInfo? memberInfo)
 			{
@@ -524,11 +706,35 @@ namespace mooSQL.linq.expressions
 				Expression    = expression;
 				ParameterInfo = parameterInfo;
 			}
+			/// <summary>
+			/// Gets or sets MemberInfo.
+			/// </summary>
 
 			public MemberInfo?   MemberInfo    { get; }
+			/// <summary>
+			/// Expression
+			/// </summary>
+			/// <summary>
+			/// Gets or sets Expression.
+			/// </summary>
 			public Expression    Expression    { get; }
+			/// <summary>
+			/// ParameterInfo
+			/// </summary>
+			/// <summary>
+			/// Gets or sets ParameterInfo.
+			/// </summary>
 			public ParameterInfo ParameterInfo { get; }
+			/// <summary>
+			/// ParameterType
+			/// </summary>
+			/// <summary>
+			/// ParameterType
+			/// </summary>
 			public Type          ParameterType => ParameterInfo.ParameterType;
+			/// <summary>
+			/// WithExpression
+			/// </summary>
 
 			public Parameter WithExpression(Expression expression)
 			{
@@ -536,6 +742,10 @@ namespace mooSQL.linq.expressions
 					return this;
 				return new Parameter(expression, ParameterInfo, MemberInfo);
 			}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 			public override string ToString()
 			{
@@ -583,6 +793,9 @@ namespace mooSQL.linq.expressions
 					}
 				}
 			}
+			/// <summary>
+			/// Gets or sets ParameterComparer.
+			/// </summary>
 
 			public static IEqualityComparer<Parameter> ParameterComparer { get; } = new MemberInfoExpressionParamTypeEqualityComparer();
 		}

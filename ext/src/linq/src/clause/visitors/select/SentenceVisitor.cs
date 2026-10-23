@@ -18,18 +18,54 @@ namespace mooSQL.linq.clause
 	public abstract class SentenceVisitor : ClauseVisitor
 	{
 		IVisitorTransformationInfo? _transformationInfo;
+		/// <summary>
+		/// IVisitorTransformationInfo
+		/// </summary>
 
 		public interface IVisitorTransformationInfo
 		{
+			/// <summary>
+			/// Gets GetReplacement.
+			/// </summary>
+			/// <summary>
+			/// Gets GetReplacement.
+			/// </summary>
 			bool GetReplacement(Clause element, [NotNullWhen(true)] out Clause? replacement);
+			/// <summary>
+			/// IsReplaced
+			/// </summary>
+			/// <summary>
+			/// IsReplaced
+			/// </summary>
 			bool IsReplaced(Clause element);
+			/// <summary>
+			/// RegisterReplaced
+			/// </summary>
+			/// <summary>
+			/// RegisterReplaced
+			/// </summary>
 			void RegisterReplaced(Clause newElement, Clause oldElement);
+			/// <summary>
+			/// Gets or sets Version.
+			/// </summary>
 
 			int         Version { get; }
+			/// <summary>
+			/// Gets GetReplacements.
+			/// </summary>
+			/// <summary>
+			/// Gets GetReplacements.
+			/// </summary>
 			public void GetReplacements(Dictionary<Clause, Clause> objectTree);
 		}
+		/// <summary>
+		/// VisitingMode
+		/// </summary>
 
 		public VisitMode VisitingMode;
+        /// <summary>
+        /// SentenceVisitor type.
+        /// </summary>
 
         protected SentenceVisitor(VisitMode visitMode, IVisitorTransformationInfo? transformationInfo)
 		{
@@ -44,11 +80,18 @@ namespace mooSQL.linq.clause
 		{
 			_transformationInfo = null;
 		}
+		/// <summary>
+		/// SetTransformationInfo
+		/// </summary>
 
 		protected void SetTransformationInfo(IVisitorTransformationInfo? transformationInfo)
 		{
 			_transformationInfo = transformationInfo;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)
@@ -60,6 +103,9 @@ namespace mooSQL.linq.clause
 
 			return base.Visit(element);
 		}
+		/// <summary>
+		/// Gets GetVisitMode.
+		/// </summary>
 
 		public VisitMode GetVisitMode(Clause element)
 		{
@@ -105,6 +151,10 @@ namespace mooSQL.linq.clause
 
 			return newElement;
 		}
+/// <summary>
+/// VisitCteClause
+/// </summary>
+ 
 
 
 
@@ -215,12 +265,18 @@ namespace mooSQL.linq.clause
 				return base.VisitCteClause(element);
 			}
 		}
+		/// <summary>
+		/// VisitorTransformationInfo
+		/// </summary>
 
 		public class VisitorTransformationInfo : IVisitorTransformationInfo
 		{
 			Dictionary<Clause, Clause>? _replacements;
 			HashSet<Clause>?                   _replaced;
 			int                                       _version;
+			/// <summary>
+			/// Gets GetReplacement.
+			/// </summary>
 
 			public bool GetReplacement(Clause element, [NotNullWhen(true)] out Clause? replacement)
 			{
@@ -239,11 +295,17 @@ namespace mooSQL.linq.clause
 
 				return replacement != null;
 			}
+			/// <summary>
+			/// IsReplaced
+			/// </summary>
 
 			public bool IsReplaced(Clause element)
 			{
 				return _replaced?.Contains(element) == true;
 			}
+			/// <summary>
+			/// RegisterReplaced
+			/// </summary>
 
 			public void RegisterReplaced(Clause newElement, Clause oldElement)
 			{
@@ -254,8 +316,17 @@ namespace mooSQL.linq.clause
 				_replaced.Add(newElement);
 				_version++;
 			}
+			/// <summary>
+			/// Version
+			/// </summary>
 
 			public int Version => _version;
+			/// <summary>
+			/// Gets GetReplacements.
+			/// </summary>
+			/// <summary>
+			/// Gets GetReplacements.
+			/// </summary>
 			public void GetReplacements(Dictionary<Clause, Clause> objectTree)
 			{
 				if (_replacements != null)

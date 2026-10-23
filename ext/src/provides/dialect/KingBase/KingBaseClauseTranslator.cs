@@ -6,6 +6,12 @@ namespace mooSQL.data
     /// </summary>
     public class KingBaseClauseTranslator : NpgClauseTranslator
     {
+        /// <summary>
+        /// KingBaseClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// KingBaseClauseTranslator type.
+        /// </summary>
         public KingBaseClauseTranslator(Dialect dia) : base(dia)
         {
         }

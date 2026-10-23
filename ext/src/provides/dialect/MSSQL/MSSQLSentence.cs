@@ -10,10 +10,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace mooSQL.data;
+/// <summary>
+/// MSSQLSentence type.
+/// </summary>
 
 public class MSSQLSentence : SQLSentence
 {
     private int? _CompatibilityLevel;
+    /// <summary>
+    /// Gets or sets the SQL Server compatibility level.
+    /// </summary>
 
     public int CompatibilityLevel
     {
@@ -24,10 +30,17 @@ public class MSSQLSentence : SQLSentence
             return _CompatibilityLevel.Value;
         }
     }
+    /// <summary>
+    /// MSSQLSentence type.
+    /// </summary>
 
     public MSSQLSentence(Dialect dia) : base(dia) { 
     
     }
+ /// <summary>
+ /// Loads column metadata for the specified table.
+ /// </summary>
+ 
     public override SQLBuilder getTableColumns(string tableName, SQLBuilder builder)
     {
         // sql = "SELECT column_name as FName, data_type as FType, CHARACTER_MAXIMUM_LENGTH as FLen , column_name as
@@ -44,6 +57,10 @@ public class MSSQLSentence : SQLSentence
 
         return builder;
     }
+/// <summary>
+/// Creates a database.
+/// </summary>
+ 
 
 
 
@@ -100,6 +117,10 @@ public class MSSQLSentence : SQLSentence
     //{
     //    return ec.DbType.IsSame(dc.DbType);
     //}
+/// <summary>
+/// SQL used to list databases.
+/// </summary>
+ 
 
     public override string GetDataBaseSql => "SELECT NAME FROM MASTER.DBO.SYSDATABASES ORDER BY NAME";
     /*
@@ -115,9 +136,21 @@ public class MSSQLSentence : SQLSentence
         " AND systypes.name<>'geography'" +
         " ORDER BY syscolumns.colid";
     */
+ /// <summary>
+ /// SQL used to list tables.
+ /// </summary>
+ 
     public override string GetTableInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment   FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0 AND (tbp.Name='MS_Description' OR tbp.Name is null)  WHERE s.xtype IN('U') order by s.Name";
+/// <summary>
+/// SQL used to list views.
+/// </summary>
+ 
 
     public override string GetViewInfoListSql => "SELECT s.Name,Convert(varchar(max),tbp.value) as Comment FROM sysobjects s LEFT JOIN sys.extended_properties as tbp ON s.id=tbp.major_id and tbp.minor_id=0  AND (tbp.Name='MS_Description' OR tbp.Name is null) WHERE s.xtype IN('V')  ";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
     public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
     {
@@ -184,12 +217,20 @@ public class MSSQLSentence : SQLSentence
         }
         return FinalizeDbTableListAll(result, options);
     }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
     protected override string GetCurrentDatabaseName()
     {
         try { return DBLive.ExeQueryScalar<string>("SELECT DB_NAME()", null); }
         catch { return null; }
     }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
     public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
     {
@@ -222,6 +263,10 @@ public class MSSQLSentence : SQLSentence
         }
         return result;
     }
+/// <summary>
+/// Loads columns for the specified table.
+/// </summary>
+ 
 
     public override List<DbColumnInfo> GetDbColumnsByTableName(string tableName)
     {
@@ -255,6 +300,10 @@ public class MSSQLSentence : SQLSentence
         }
         return tar;
     }
+/// <summary>
+/// Loads column captions for the specified table.
+/// </summary>
+ 
 
     public override List<DbColumnCaption> GetDbColumnCaptionsByTableName(string tableName)
     {
@@ -269,6 +318,10 @@ public class MSSQLSentence : SQLSentence
             .query<DbColumnCaption>()
             .ToList();
     }
+ /// <summary>
+ /// Returns whether the specified object is a view.
+ /// </summary>
+ 
     public override bool? IsView(string tabelOrViewName, string dbName = null)
     {
         if (string.IsNullOrWhiteSpace(tabelOrViewName)) return null;
@@ -283,6 +336,10 @@ public class MSSQLSentence : SQLSentence
         var row = kit.queryRow();
         return row != null;
     }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
     public override bool? IsExitsTableCol(string table, string col)
     {
@@ -296,6 +353,10 @@ public class MSSQLSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
     public override bool IsExitsTableIndex(string table, string indexName)
     {
@@ -309,6 +370,10 @@ public class MSSQLSentence : SQLSentence
             .count();
         return c > 0;
     }
+/// <summary>
+/// Builds SQL that checks whether a table exists.
+/// </summary>
+ 
 
     public override SQLCmd buildHasTable(string TableName)
     {
@@ -318,6 +383,10 @@ public class MSSQLSentence : SQLSentence
             .toSelectCount();
         return cmd;
     }
+/// <summary>
+/// Loads table schemas.
+/// </summary>
+ 
 
 
     public override List<TableInfo> GetTables(GetSchemaOptions options)
@@ -366,6 +435,10 @@ public class MSSQLSentence : SQLSentence
 					) IS NULL" + temporalFilterEnd, null)
             .ToList();
     }
+/// <summary>
+/// Loads primary-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<PrimaryKeyInfo> GetPrimaryKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -388,6 +461,10 @@ public class MSSQLSentence : SQLSentence
 					c.CONSTRAINT_TYPE='PRIMARY KEY'", null)
             .ToList();
     }
+/// <summary>
+/// Loads column schemas.
+/// </summary>
+ 
 
     public override List<ColumnInfo> GetColumns(GetSchemaOptions options)
     {
@@ -448,6 +525,10 @@ public class MSSQLSentence : SQLSentence
             })
             .ToList();
     }
+/// <summary>
+/// Loads foreign-key schemas.
+/// </summary>
+ 
 
     public override IReadOnlyCollection<ForeignKeyInfo> GetForeignKeys(IEnumerable<TableSchema> tables, GetSchemaOptions options)
     {
@@ -470,6 +551,10 @@ public class MSSQLSentence : SQLSentence
 					Ordinal")
             .ToList();
     }
+/// <summary>
+/// Loads procedure schemas.
+/// </summary>
+ 
 
     public override List<ProcedureInfo>? GetProcedures(GetSchemaOptions options)
     {
@@ -493,6 +578,10 @@ public class MSSQLSentence : SQLSentence
 				ORDER BY SPECIFIC_CATALOG, SPECIFIC_SCHEMA, SPECIFIC_NAME")
             .ToList();
     }
+/// <summary>
+/// Loads procedure parameter schemas.
+/// </summary>
+ 
 
     public override List<ProcedureParameterInfo> GetProcedureParameters(IEnumerable<ProcedureInfo> procedures, GetSchemaOptions options)
     {
@@ -522,6 +611,10 @@ public class MSSQLSentence : SQLSentence
 							x.name = 'MS_Description' AND x.class = 2")
             .ToList();
     }
+/// <summary>
+/// Returns the primary-key name for the specified table.
+/// </summary>
+ 
 
     public override string GetTablePKName(string table)
     {
@@ -533,6 +626,10 @@ public class MSSQLSentence : SQLSentence
             .top(1)
             .queryRowString("");
     }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
     public override bool IsConnectionLost(Exception ex)
     {

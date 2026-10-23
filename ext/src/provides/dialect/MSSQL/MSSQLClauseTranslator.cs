@@ -6,9 +6,19 @@ namespace mooSQL.data;
 /// <summary>SQL Server Clause → SQL 翻译（Ext LINQ compile 链）。</summary>
 public class MSSQLClauseTranslator : ClauseTranslateVisitor
 {
+    /// <summary>
+    /// MSSQLClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// MSSQLClauseTranslator type.
+    /// </summary>
     public MSSQLClauseTranslator(Dialect dia) : base(dia)
     {
     }
+/// <summary>
+/// Translates an object name into dialect-specific SQL.
+/// </summary>
+ 
 
     public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
     {

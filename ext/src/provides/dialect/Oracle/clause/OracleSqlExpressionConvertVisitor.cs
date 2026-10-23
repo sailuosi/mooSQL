@@ -8,19 +8,42 @@ namespace mooSQL.linq.provider.Oracle
     using mooSQL.utils;
     using mooSQL.linq.provider;
     using mooSQL.linq.clause;
+	/// <summary>
+	/// OracleSqlExpressionConvertVisitor type.
+	/// </summary>
+	/// <summary>
+	/// OracleSqlExpressionConvertVisitor type.
+	/// </summary>
 	public class OracleSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// OracleSqlExpressionConvertVisitor type.
+		/// </summary>
+		/// <summary>
+		/// OracleSqlExpressionConvertVisitor type.
+		/// </summary>
 		public OracleSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 		}
 
 		#region LIKE
+		/// <summary>
+		/// OracleLikeCharactersToEscape
+		/// </summary>
 
 		protected static string[] OracleLikeCharactersToEscape = {"%", "_"};
+/// <summary>
+/// LikeCharactersToEscape
+/// </summary>
+	
 
 		public override string[] LikeCharactersToEscape => OracleLikeCharactersToEscape;
 
 		#endregion
+/// <summary>
+/// ConvertExprExprPredicate
+/// </summary>
+	
 
 		public override ISQLNode ConvertExprExprPredicate(ExprExpr predicate)
 		{
@@ -94,6 +117,10 @@ namespace mooSQL.linq.provider.Oracle
 
 			return base.ConvertExprExprPredicate(predicate);
 		}
+/// <summary>
+/// ConvertSqlBinaryExpression
+/// </summary>
+	
 
 		public override Clause ConvertSqlBinaryExpression(BinaryWord element)
 		{
@@ -117,6 +144,10 @@ namespace mooSQL.linq.provider.Oracle
 
 			return base.ConvertSqlBinaryExpression(element);
 		}
+/// <summary>
+/// ConvertSqlExpression
+/// </summary>
+	
 
 		public override Clause ConvertSqlExpression(ExpressionWord element)
 		{
@@ -125,6 +156,10 @@ namespace mooSQL.linq.provider.Oracle
 
 			return base.ConvertSqlExpression(element);
 		}
+/// <summary>
+/// VisitFunctionWord
+/// </summary>
+	
 
 		public override Clause VisitFunctionWord(FunctionWord func)
 		{
@@ -150,6 +185,10 @@ namespace mooSQL.linq.provider.Oracle
 				return base.VisitFunctionWord(func);
 			}
 		}
+/// <summary>
+/// ConvertConversion
+/// </summary>
+	
 
 		protected override IExpWord ConvertConversion(CastWord cast)
 		{

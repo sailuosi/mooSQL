@@ -69,6 +69,10 @@ namespace mooSQL.data.Oracle
 
             SetValueConverter<decimal, TimeSpan>((v) => new TimeSpan((long)v));
         }
+/// <summary>
+/// Maps a DbDataType to a dialect-specific SQL type name.
+/// </summary>
+ 
 
         public override string DbDataTypeToSQL(DbDataType type)
         {
@@ -141,6 +145,10 @@ namespace mooSQL.data.Oracle
 
             return base.DbDataTypeToSQL(type);
         }
+/// <summary>
+/// Converts a CLR type to a provider parameter type.
+/// </summary>
+ 
 
         public override Type ConvertParameterType(Type type, DbDataType dataType)
         {
@@ -157,6 +165,10 @@ namespace mooSQL.data.Oracle
 
             return base.ConvertParameterType(type, dataType);
         }
+ /// <summary>
+ /// Configures a DbParameter on the command.
+ /// </summary>
+ 
         public override void SetParameter(DbCommand dataConnection, DbParameter parameter, string name, DbDataType dataType, object? value)
         {
             switch (dataType.DataType)
@@ -224,6 +236,10 @@ namespace mooSQL.data.Oracle
 
             base.SetParameter(dataConnection, parameter, name, dataType, value);
         }
+/// <summary>
+/// Sets the provider-specific type on a DbParameter.
+/// </summary>
+ 
 
         protected override void SetParameterType(DbCommand cmd, DbParameter parameter, DbDataType dataType)
         {
@@ -255,6 +271,10 @@ namespace mooSQL.data.Oracle
                 default: base.SetParameterType(cmd, parameter, dataType); break;
             }
         }
+/// <summary>
+/// Resolves a provider-specific type from a type name.
+/// </summary>
+ 
 
         public override Type GetProviderSpecificType(string dataType)
         {
@@ -284,6 +304,10 @@ namespace mooSQL.data.Oracle
             
             return base.GetProviderSpecificType(dataType);
         }
+/// <summary>
+/// Resolves a CLR type from a database type name.
+/// </summary>
+ 
 
         public override DataFam GetDataType(string? dataType, string? columnType)
         {

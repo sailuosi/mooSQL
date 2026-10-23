@@ -4,21 +4,65 @@ using System.Reflection;
 
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// SqlGenericParamAccessExpression type.
+	/// </summary>
+	/// <summary>
+	/// SqlGenericParamAccessExpression type.
+	/// </summary>
 	public class SqlGenericParamAccessExpression : Expression, IEquatable<SqlGenericParamAccessExpression>
 	{
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Constructor.
+		/// </summary>
 		public Expression    Constructor   { get; }
+		/// <summary>
+		/// ParameterInfo
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ParameterInfo.
+		/// </summary>
 		public ParameterInfo ParameterInfo { get; }
+		/// <summary>
+		/// ParamIndex
+		/// </summary>
+		/// <summary>
+		/// ParamIndex
+		/// </summary>
 		public int           ParamIndex    => ParameterInfo.Position;
+		/// <summary>
+		/// ParamType
+		/// </summary>
+		/// <summary>
+		/// ParamType
+		/// </summary>
 		public Type          ParamType     => ParameterInfo.ParameterType;
+		/// <summary>
+		/// SqlGenericParamAccessExpression type.
+		/// </summary>
 
 		public SqlGenericParamAccessExpression(Expression constructor, ParameterInfo parameterInfo)
 		{
 			Constructor        = constructor;
 			ParameterInfo = parameterInfo;
 		}
+/// <summary>
+/// NodeType
+/// </summary>
+	
 
 		public override ExpressionType NodeType => ExpressionType.Extension;
+	/// <summary>
+	/// Type
+	/// </summary>
+	
 		public override Type           Type     => ParamType;
+		/// <summary>
+		/// Applies pending changes for the edit table.
+		/// </summary>
 
 		public SqlGenericParamAccessExpression Update(Expression constructor)
 		{
@@ -26,11 +70,18 @@ namespace mooSQL.linq.expressions
 				return this;
 			return new SqlGenericParamAccessExpression(constructor, ParameterInfo);
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString()
 		{
 			return $"{Constructor}[[{ParamIndex}]]";
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(SqlGenericParamAccessExpression? other)
 		{
@@ -46,6 +97,10 @@ namespace mooSQL.linq.expressions
 
 			return ExpressionEqualityComparer.Instance.Equals(Constructor, other.Constructor) && ParameterInfo.Equals(other.ParameterInfo);
 		}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj)
 		{
@@ -66,6 +121,10 @@ namespace mooSQL.linq.expressions
 
 			return Equals((SqlGenericParamAccessExpression)obj);
 		}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -76,16 +135,26 @@ namespace mooSQL.linq.expressions
 				return hashCode;
 			}
 		}
+		/// <summary>
+		/// operator ==
+		/// </summary>
 
 		public static bool operator ==(SqlGenericParamAccessExpression? left, SqlGenericParamAccessExpression? right)
 		{
 			return Equals(left, right);
 		}
+		/// <summary>
+		/// operator !=
+		/// </summary>
 
 		public static bool operator !=(SqlGenericParamAccessExpression? left, SqlGenericParamAccessExpression? right)
 		{
 			return !Equals(left, right);
 		}
+/// <summary>
+/// Accept
+/// </summary>
+	
 
 		protected override Expression Accept(ExpressionVisitor visitor)
 		{

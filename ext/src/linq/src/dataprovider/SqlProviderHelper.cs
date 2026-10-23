@@ -4,10 +4,16 @@ namespace mooSQL.linq.provider
 	using mooSQL.linq.clause;
     using mooSQL.data.model;
     using mooSQL.data;
+    /// <summary>
+    /// SqlProviderHelper type.
+    /// </summary>
 
     public static class SqlProviderHelper
 	{
 		internal static readonly ObjectPool<ClauseValidatorVisitor> ValidationVisitorPool = new(() => new ClauseValidatorVisitor(), v => v.Cleanup(), 100);
+		/// <summary>
+		/// IsValidQuery
+		/// </summary>
 
 		public static bool IsValidQuery(SelectQueryClause selectQuery, SelectQueryClause? parentQuery, JoinTableWord? fakeJoin, bool forColumn, SQLProviderFlags providerFlags, out string? errorMessage)
 		{

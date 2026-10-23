@@ -13,8 +13,20 @@ namespace mooSQL.linq.utils
 	
 	public abstract class ActivityBase : IActivity
 	{
+		/// <summary>
+		/// Dispose
+		/// </summary>
+		/// <summary>
+		/// Dispose
+		/// </summary>
 		public abstract void Dispose();
 #if NET5_0_OR_GREATER
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
         public virtual ValueTask DisposeAsync()
 		{
 			Dispose();

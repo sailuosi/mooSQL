@@ -4,16 +4,34 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// ClauseFindVisitor type.
+	/// </summary>
+	/// <summary>
+	/// ClauseFindVisitor type.
+	/// </summary>
 	public class ClauseFindVisitor : ClauseVisitor
 	{
 		Func<ISQLNode, bool> _findFunc = default!;
 		ISQLNode?            _found;
+        /// <summary>
+        /// VisitingMode
+        /// </summary>
 
         public VisitMode VisitingMode;
+        /// <summary>
+        /// ClauseFindVisitor type.
+        /// </summary>
+        /// <summary>
+        /// ClauseFindVisitor type.
+        /// </summary>
         public ClauseFindVisitor()
 		{
             VisitingMode = VisitMode.ReadOnly;
         }
+		/// <summary>
+		/// Find
+		/// </summary>
 
 		public ISQLNode? Find(ISQLNode root, Func<ISQLNode, bool> findFunc)
 		{
@@ -24,12 +42,19 @@ namespace mooSQL.linq.clause
 
 			return _found;
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
 			_found    = null;
 			_findFunc = null!;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)

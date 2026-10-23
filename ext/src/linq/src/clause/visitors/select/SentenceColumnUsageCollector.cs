@@ -6,14 +6,27 @@ namespace mooSQL.linq.clause
 	using mooSQL.linq.utils;
 	using mooSQL.data.model;
     using mooSQL.data.model.affirms;
+	/// <summary>
+	/// SentenceColumnUsageCollector type.
+	/// </summary>
+	/// <summary>
+	/// SentenceColumnUsageCollector type.
+	/// </summary>
 	public class SentenceColumnUsageCollector : SentenceVisitor
 	{
 		SelectQueryClause?                _parentSelectQuery;
 		readonly HashSet<ColumnWord> _usedColumns = new(Utils.ObjectReferenceEqualityComparer<ColumnWord>.Default);
+		/// <summary>
+		/// SentenceColumnUsageCollector type.
+		/// </summary>
 
 		public SentenceColumnUsageCollector() : base(VisitMode.ReadOnly, null)
 		{
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{
@@ -22,8 +35,14 @@ namespace mooSQL.linq.clause
 			_parentSelectQuery = null;
 			_usedColumns.Clear();
 		}
+		/// <summary>
+		/// UsedColumns
+		/// </summary>
 
 		public ICollection<ColumnWord> UsedColumns => _usedColumns;
+		/// <summary>
+		/// CollectUsedColumns
+		/// </summary>
 
 		public Clause CollectUsedColumns(Clause element)
 		{
@@ -57,6 +76,10 @@ namespace mooSQL.linq.clause
 				return true;
 			});
 		}
+/// <summary>
+/// VisitColumnWord
+/// </summary>
+	
 
 		public override Clause VisitColumnWord(ColumnWord element)
 		{
@@ -64,6 +87,10 @@ namespace mooSQL.linq.clause
 
 			return base.VisitColumnWord(element);
 		}
+/// <summary>
+/// VisitGroupByClause
+/// </summary>
+ 
 
         public override Clause VisitGroupByClause(GroupByClause element)
 		{
@@ -75,6 +102,10 @@ namespace mooSQL.linq.clause
 			_parentSelectQuery = saveParentQuery;
 			return result;
 		}
+/// <summary>
+/// VisitOrderByClause
+/// </summary>
+ 
 
         public override Clause VisitOrderByClause(OrderByClause element)
 		{
@@ -86,6 +117,10 @@ namespace mooSQL.linq.clause
 			_parentSelectQuery = saveParentQuery;
 			return result;
 		}
+/// <summary>
+/// VisitSearchCondition
+/// </summary>
+ 
 
         public override Clause VisitSearchCondition(SearchConditionWord element)
 		{
@@ -97,6 +132,9 @@ namespace mooSQL.linq.clause
 			_parentSelectQuery = saveParentQuery;
 			return result;
 		}
+		/// <summary>
+		/// VisitSqlColumnExpression
+		/// </summary>
 
 		protected  IExpWord VisitSqlColumnExpression(ColumnWord column, IExpWord expression)
 		{
@@ -115,6 +153,10 @@ namespace mooSQL.linq.clause
 
 			return newExpression as IExpWord;
 		}
+/// <summary>
+/// VisitAffirmExprExpr
+/// </summary>
+	
 
 		public override Clause VisitAffirmExprExpr(ExprExpr predicate)
 		{
@@ -138,6 +180,10 @@ namespace mooSQL.linq.clause
 
 			return predicate;
 		}
+/// <summary>
+/// VisitSqlQuery
+/// </summary>
+	
 
 		public override Clause VisitSqlQuery(SelectQueryClause selectQuery)
 		{

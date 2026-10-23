@@ -21,63 +21,324 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// TDengineDriver enum.
+    /// </summary>
 
     public enum TDengineDataType
     {
+        /// <summary>
+        /// TSDB_DATA_TYPE_NULL
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_NULL
+        /// </summary>
         TSDB_DATA_TYPE_NULL = 0,     // 1 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_BOOL
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_BOOL
+        /// </summary>
         TSDB_DATA_TYPE_BOOL = 1,     // 1 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_TINYINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_TINYINT
+        /// </summary>
         TSDB_DATA_TYPE_TINYINT = 2,  // 1 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_SMALLINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_SMALLINT
+        /// </summary>
         TSDB_DATA_TYPE_SMALLINT = 3, // 2 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_INT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_INT
+        /// </summary>
         TSDB_DATA_TYPE_INT = 4,      // 4 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_BIGINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_BIGINT
+        /// </summary>
         TSDB_DATA_TYPE_BIGINT = 5,   // 8 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_FLOAT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_FLOAT
+        /// </summary>
         TSDB_DATA_TYPE_FLOAT = 6,    // 4 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_DOUBLE
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_DOUBLE
+        /// </summary>
         TSDB_DATA_TYPE_DOUBLE = 7,   // 8 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_VARCHAR
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_VARCHAR
+        /// </summary>
         TSDB_DATA_TYPE_VARCHAR = 8,   // string
+        /// <summary>
+        /// TSDB_DATA_TYPE_TIMESTAMP
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_TIMESTAMP
+        /// </summary>
         TSDB_DATA_TYPE_TIMESTAMP = 9,// 8 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_NCHAR
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_NCHAR
+        /// </summary>
         TSDB_DATA_TYPE_NCHAR = 10,   // unicode string
+        /// <summary>
+        /// TSDB_DATA_TYPE_UTINYINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_UTINYINT
+        /// </summary>
         TSDB_DATA_TYPE_UTINYINT = 11,// 1 byte
+        /// <summary>
+        /// TSDB_DATA_TYPE_USMALLINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_USMALLINT
+        /// </summary>
         TSDB_DATA_TYPE_USMALLINT = 12,// 2 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_UINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_UINT
+        /// </summary>
         TSDB_DATA_TYPE_UINT = 13,    // 4 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_UBIGINT
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_UBIGINT
+        /// </summary>
         TSDB_DATA_TYPE_UBIGINT = 14,   // 8 bytes
+        /// <summary>
+        /// TSDB_DATA_TYPE_JSON
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_JSON
+        /// </summary>
         TSDB_DATA_TYPE_JSON = 15,  //4096 bytes 
+        /// <summary>
+        /// TSDB_DATA_TYPE_VARBINARY
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_VARBINARY
+        /// </summary>
         TSDB_DATA_TYPE_VARBINARY = 16, // binary
+        /// <summary>
+        /// TSDB_DATA_TYPE_DECIMAL
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_DECIMAL
+        /// </summary>
         TSDB_DATA_TYPE_DECIMAL = 17, // decimal
+        /// <summary>
+        /// TSDB_DATA_TYPE_BLOB
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_BLOB
+        /// </summary>
         TSDB_DATA_TYPE_BLOB = 18, // binary
+        /// <summary>
+        /// TSDB_DATA_TYPE_MEDIUMBLOB
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_MEDIUMBLOB
+        /// </summary>
         TSDB_DATA_TYPE_MEDIUMBLOB = 19,
+        /// <summary>
+        /// TSDB_DATA_TYPE_MAX
+        /// </summary>
+        /// <summary>
+        /// TSDB_DATA_TYPE_MAX
+        /// </summary>
         TSDB_DATA_TYPE_MAX = 20
     }
+    /// <summary>
+    /// TDengineDriver enum.
+    /// </summary>
 
     public enum TSDB_TIME_PRECISION : int
     {
+        /// <summary>
+        /// TSDB_TIME_PRECISION_MILLI
+        /// </summary>
+        /// <summary>
+        /// TSDB_TIME_PRECISION_MILLI
+        /// </summary>
         TSDB_TIME_PRECISION_MILLI = 0,
+        /// <summary>
+        /// TSDB_TIME_PRECISION_MICRO
+        /// </summary>
+        /// <summary>
+        /// TSDB_TIME_PRECISION_MICRO
+        /// </summary>
         TSDB_TIME_PRECISION_MICRO = 1,
+        /// <summary>
+        /// TSDB_TIME_PRECISION_NANO
+        /// </summary>
+        /// <summary>
+        /// TSDB_TIME_PRECISION_NANO
+        /// </summary>
         TSDB_TIME_PRECISION_NANO = 2
     }
+    /// <summary>
+    /// TDengineDriver enum.
+    /// </summary>
 
     public enum TDengineInitOption : int
     {
+        /// <summary>
+        /// TSDB_OPTION_LOCALE
+        /// </summary>
+        /// <summary>
+        /// TSDB_OPTION_LOCALE
+        /// </summary>
         TSDB_OPTION_LOCALE = 0,
+        /// <summary>
+        /// TSDB_OPTION_CHARSET
+        /// </summary>
+        /// <summary>
+        /// TSDB_OPTION_CHARSET
+        /// </summary>
         TSDB_OPTION_CHARSET = 1,
+        /// <summary>
+        /// TSDB_OPTION_TIMEZONE
+        /// </summary>
+        /// <summary>
+        /// TSDB_OPTION_TIMEZONE
+        /// </summary>
         TSDB_OPTION_TIMEZONE = 2,
+        /// <summary>
+        /// TSDB_OPTION_CONFIGDIR
+        /// </summary>
+        /// <summary>
+        /// TSDB_OPTION_CONFIGDIR
+        /// </summary>
         TSDB_OPTION_CONFIGDIR = 3,
+        /// <summary>
+        /// TSDB_OPTION_SHELL_ACTIVITY_TIMER
+        /// </summary>
+        /// <summary>
+        /// TSDB_OPTION_SHELL_ACTIVITY_TIMER
+        /// </summary>
         TSDB_OPTION_SHELL_ACTIVITY_TIMER = 4
     }
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
+    /// <summary>
+    /// TDengineDriver enum.
+    /// </summary>
     public enum TDengineSchemalessProtocol
     {
+        /// <summary>
+        /// TSDB_SML_UNKNOWN_PROTOCOL
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_UNKNOWN_PROTOCOL
+        /// </summary>
         TSDB_SML_UNKNOWN_PROTOCOL = 0,
+        /// <summary>
+        /// TSDB_SML_LINE_PROTOCOL
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_LINE_PROTOCOL
+        /// </summary>
         TSDB_SML_LINE_PROTOCOL = 1,
+        /// <summary>
+        /// TSDB_SML_TELNET_PROTOCOL
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TELNET_PROTOCOL
+        /// </summary>
         TSDB_SML_TELNET_PROTOCOL = 2,
+        /// <summary>
+        /// TSDB_SML_JSON_PROTOCOL
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_JSON_PROTOCOL
+        /// </summary>
         TSDB_SML_JSON_PROTOCOL = 3
 
     }
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
+    /// <summary>
+    /// TDengineDriver enum.
+    /// </summary>
     public enum TDengineSchemalessPrecision
     {
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_NOT_CONFIGURED
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_NOT_CONFIGURED
+        /// </summary>
         TSDB_SML_TIMESTAMP_NOT_CONFIGURED = 0,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_HOURS
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_HOURS
+        /// </summary>
         TSDB_SML_TIMESTAMP_HOURS = 1,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MINUTES
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MINUTES
+        /// </summary>
         TSDB_SML_TIMESTAMP_MINUTES = 2,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_SECONDS
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_SECONDS
+        /// </summary>
         TSDB_SML_TIMESTAMP_SECONDS = 3,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MILLI_SECONDS
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MILLI_SECONDS
+        /// </summary>
         TSDB_SML_TIMESTAMP_MILLI_SECONDS = 4,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MICRO_SECONDS
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_MICRO_SECONDS
+        /// </summary>
         TSDB_SML_TIMESTAMP_MICRO_SECONDS = 5,
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_NANO_SECONDS
+        /// </summary>
+        /// <summary>
+        /// TSDB_SML_TIMESTAMP_NANO_SECONDS
+        /// </summary>
         TSDB_SML_TIMESTAMP_NANO_SECONDS = 6
     }
     enum TaosField : int
@@ -88,48 +349,144 @@ namespace mooSQL.data.taos
         BYTES_OFFSET = 66,
 
     }
+    /// <summary>
+    /// TDengineDriver struct.
+    /// </summary>
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 4)]
     public struct TAOS_BIND
     {
         // column type
+        /// <summary>
+        /// buffer_type
+        /// </summary>
+        /// <summary>
+        /// buffer_type
+        /// </summary>
         public int buffer_type;
         // one column value           
+        /// <summary>
+        /// buffer
+        /// </summary>
+        /// <summary>
+        /// buffer
+        /// </summary>
         public IntPtr buffer;
         // unused               
+        /// <summary>
+        /// buffer_length
+        /// </summary>
+        /// <summary>
+        /// buffer_length
+        /// </summary>
         public Int32 buffer_length;
         // actual value length in buffer   
+        /// <summary>
+        /// length
+        /// </summary>
+        /// <summary>
+        /// length
+        /// </summary>
         public IntPtr length;
         // indicates the column value is null or not      
+        /// <summary>
+        /// is_null
+        /// </summary>
+        /// <summary>
+        /// is_null
+        /// </summary>
         public IntPtr is_null;
         // unused            
+        /// <summary>
+        /// is_unsigned
+        /// </summary>
+        /// <summary>
+        /// is_unsigned
+        /// </summary>
         public int is_unsigned;
         // unused           
+        /// <summary>
+        /// error
+        /// </summary>
+        /// <summary>
+        /// error
+        /// </summary>
         public IntPtr error;
+        /// <summary>
+        /// u
+        /// </summary>
+        /// <summary>
+        /// u
+        /// </summary>
         public Int64 u;
+        /// <summary>
+        /// allocated
+        /// </summary>
+        /// <summary>
+        /// allocated
+        /// </summary>
         public uint allocated;
     }
+    /// <summary>
+    /// TDengineDriver struct.
+    /// </summary>
 
 
     [StructLayout(LayoutKind.Sequential)]
     public struct TAOS_MULTI_BIND
     {
         // column type
+        /// <summary>
+        /// buffer_type
+        /// </summary>
+        /// <summary>
+        /// buffer_type
+        /// </summary>
         public int buffer_type;
 
         // array, one or more lines column value
+        /// <summary>
+        /// buffer
+        /// </summary>
+        /// <summary>
+        /// buffer
+        /// </summary>
         public IntPtr buffer;
 
         //length of element in TAOS_MULTI_BIND.buffer (for binary and nchar it is the longest element's length)
+        /// <summary>
+        /// buffer_length
+        /// </summary>
+        /// <summary>
+        /// buffer_length
+        /// </summary>
         public ulong buffer_length;
 
         //array, actual data length for each value
+        /// <summary>
+        /// length
+        /// </summary>
+        /// <summary>
+        /// length
+        /// </summary>
         public IntPtr length;
 
         //array, indicates each column value is null or not
+        /// <summary>
+        /// is_null
+        /// </summary>
+        /// <summary>
+        /// is_null
+        /// </summary>
         public IntPtr is_null;
 
         // line number, or the values number in buffer 
+        /// <summary>
+        /// num
+        /// </summary>
+        /// <summary>
+        /// num
+        /// </summary>
         public int num;
     }
 
@@ -147,44 +504,70 @@ namespace mooSQL.data.taos
     public delegate void QueryAsyncCallback(IntPtr param, IntPtr taoRes, int code);
 
     /// <summary>
-    /// User defined callback function for interface "FetchRowAsync()"
-    /// ,actually is a delegate in .Net.
-    /// This callback allow applications to get each row of the
-    /// batch records by calling FetchRowAsync() forward iteration.
-    /// After reading all the records in a block, the application needs to continue calling 
-    /// FetchRowAsync() in this callback function to obtain the next batch of records for 
-    /// processing until the number of records
+    /// <see cref="TDengine.FetchRowAsync"/> 的用户回调委托。
+    /// 应用可在回调中继续调用 FetchRowAsync 向前迭代，直到本批行数为 0（结束）或负数（失败）。
     /// </summary>
-    /// <param name="param">The parameter passed by <see cref="FetchRowAsync"/></param>
-    /// <param name="taoRes">Query status</param>
-    /// <param name="numOfRows"> The number of rows of data obtained (not a function of
-    /// the entire query result set). When the number is zero (the result is returned) 
-    /// or the number of records is negative (the query fails).</param>
+    /// <param name="param">由 <see cref="TDengine.FetchRowAsync"/> 传入的自定义参数。</param>
+    /// <param name="taoRes">查询结果句柄。</param>
+    /// <param name="numOfRows">本批获得的行数（非整个结果集）；0 表示结束，负数表示失败。</param>
     public delegate void FetchRowAsyncCallback(IntPtr param, IntPtr taoRes, int numOfRows);
 
     /// <summary>
-    /// In asynchronous mode, the prototype of the callback function.
+    /// 异步订阅模式下的回调委托原型。
     /// </summary>
-    /// <param name="subscribe">Subscription object return by <see cref = "Subscribe"> </param>
-    /// <param name="tasRes"> Query retrieve result set. (Note there may be no record in the result set.)</param>
-    /// <param name="param"> Additional parameters supplied by the client when taos_subscribe is called.</param>
-    /// <param name="code"> Error code.</param>
+    /// <param name="subscribe">由 Subscribe 返回的订阅对象。</param>
+    /// <param name="tasRes">查询结果集句柄（可能无记录）。</param>
+    /// <param name="param">客户端调用 taos_subscribe 时传入的附加参数。</param>
+    /// <param name="code">错误码。</param>
     public delegate void SubscribeCallback(IntPtr subscribe, IntPtr tasRes, IntPtr param, int code);
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
     public delegate void StreamOpenCallback(IntPtr param, IntPtr taosRes, IntPtr taosRow);
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
     public delegate void StreamOpenCallback2(IntPtr ptr);
+    /// <summary>
+    /// TDengineDriver type.
+    /// </summary>
 
     public class TDengine
     {
+        /// <summary>
+        /// TSDB_CODE_SUCCESS
+        /// </summary>
+        /// <summary>
+        /// TSDB_CODE_SUCCESS
+        /// </summary>
         public const int TSDB_CODE_SUCCESS = 0;
+        /// <summary>
+        /// Init
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_init", CallingConvention = CallingConvention.Cdecl)]
         static extern public void Init();
+        /// <summary>
+        /// Cleanup
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_cleanup", CallingConvention = CallingConvention.Cdecl)]
         static extern public void Cleanup();
+        /// <summary>
+        /// _taos_options
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_options", CallingConvention = CallingConvention.Cdecl)]
         static extern public void _taos_options(int option, IntPtr value);
+        /// <summary>
+        /// Options
+        /// </summary>
 
         static  public void Options(int option, string value)
         {
@@ -192,26 +575,47 @@ namespace mooSQL.data.taos
              _taos_options(option, var.ptr);
             var.ptr.FreeUtf8IntPtr();
         }
+        /// <summary>
+        /// Connect
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_connect", CallingConvention = CallingConvention.Cdecl)]
         static extern public IntPtr Connect(string ip, string user, string password, string db, short port);
 
         [DllImport("taos", EntryPoint = "taos_errstr", CallingConvention = CallingConvention.Cdecl)]
         static extern private IntPtr taos_errstr(IntPtr res);
+        /// <summary>
+        /// Error
+        /// </summary>
+        /// <summary>
+        /// Error
+        /// </summary>
         static public string Error(IntPtr res)
         {
             IntPtr errPtr = taos_errstr(res);
             return Marshal.PtrToStringAnsi(errPtr);
         }
+        /// <summary>
+        /// ErrorNo
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_errno", CallingConvention = CallingConvention.Cdecl)]
         static extern public int ErrorNo(IntPtr res);
+        /// <summary>
+        /// Query
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_query", CallingConvention = CallingConvention.Cdecl)]
         static extern public IntPtr Query(IntPtr conn, IntPtr byteArr);
+        /// <summary>
+        /// StopQuery
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_stop_query", CallingConvention = CallingConvention.Cdecl)]
         public static extern void StopQuery(IntPtr taos);
+        /// <summary>
+        /// Query
+        /// </summary>
 
         static public IntPtr Query(IntPtr conn, string command)
         {
@@ -220,12 +624,18 @@ namespace mooSQL.data.taos
              var.ptr.FreeUtf8IntPtr();
             return res;
         }
+        /// <summary>
+        /// AffectRows
+        /// </summary>
 
 
 
 
         [DllImport("taos", EntryPoint = "taos_affected_rows", CallingConvention = CallingConvention.Cdecl)]
         static extern public int AffectRows(IntPtr res);
+        /// <summary>
+        /// FieldCount
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_field_count", CallingConvention = CallingConvention.Cdecl)]
         static extern public int FieldCount(IntPtr res);
@@ -233,6 +643,9 @@ namespace mooSQL.data.taos
 
         [DllImport("taos", EntryPoint = "taos_fetch_fields", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr taos_fetch_fields(IntPtr res);
+        /// <summary>
+        /// FetchFields
+        /// </summary>
 
         public static taosField[] FetchFields(IntPtr res)
         {
@@ -248,6 +661,12 @@ namespace mooSQL.data.taos
             }
             return taosField;
         }
+        /// <summary>
+        /// MarshalUnmananagedArray2Struct&lt;T&gt;
+        /// </summary>
+        /// <summary>
+        /// MarshalUnmananagedArray2Struct&lt;T&gt;
+        /// </summary>
         public static   T[] MarshalUnmananagedArray2Struct<T>(IntPtr unmanagedArray, int length) where T : struct
         {
             var size = Marshal.SizeOf(typeof(T));
@@ -265,26 +684,47 @@ namespace mooSQL.data.taos
             }
             return mangagedArray;
         }
+        /// <summary>
+        /// FetchRows
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_fetch_row", CallingConvention = CallingConvention.Cdecl)]
         static extern public IntPtr FetchRows(IntPtr res);
+        /// <summary>
+        /// FreeResult
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_free_result", CallingConvention = CallingConvention.Cdecl)]
         static extern public void FreeResult(IntPtr res);
+        /// <summary>
+        /// Close
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_close", CallingConvention = CallingConvention.Cdecl)]
         static extern public void Close(IntPtr taos);
 
         //get precision of restultset
+        /// <summary>
+        /// Gets GetClientInfo.
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_get_client_info", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GetClientInfo();
+        /// <summary>
+        /// ResultPrecision
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_result_precision", CallingConvention = CallingConvention.Cdecl)]
         static extern public int ResultPrecision(IntPtr taos);
+        /// <summary>
+        /// Gets GetServerInfo.
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_get_server_info", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GetServerInfo(IntPtr taos);
 
         [DllImport("taos", EntryPoint = "taos_select_db", CallingConvention = CallingConvention.Cdecl)]
         private static extern int taos_select_db(IntPtr taos, IntPtr db);
+        /// <summary>
+        /// SelectDatabase
+        /// </summary>
 
         public static int SelectDatabase(IntPtr taos, string db)
         {
@@ -314,6 +754,9 @@ namespace mooSQL.data.taos
         /// <returns>0 for success, non-zero for failure.</returns>
         [DllImport("taos", EntryPoint = "taos_stmt_prepare", CallingConvention = CallingConvention.Cdecl)]
         static extern private int _StmtPrepare(IntPtr stmt, IntPtr sql, ulong length);
+        /// <summary>
+        /// StmtPrepare
+        /// </summary>
 
         static public int StmtPrepare(IntPtr stmt, string sql)
         {
@@ -359,6 +802,12 @@ namespace mooSQL.data.taos
         [DllImport("taos", EntryPoint = "taos_stmt_set_tbname_tags", CallingConvention = CallingConvention.Cdecl)]
         static extern private int StmtSetTbnameTags(IntPtr stmt, IntPtr name, TAOS_MULTI_BIND[] tags);
         //int taos_stmt_set_tbname_tags(TAOS_STMT* stmt, const char* name, TAOS_MULTI_BIND *tags);
+        /// <summary>
+        /// StmtSetTbnameTags
+        /// </summary>
+        /// <summary>
+        /// StmtSetTbnameTags
+        /// </summary>
         static public int StmtSetTbnameTags(IntPtr stmt, string name, TAOS_MULTI_BIND[] tags)
         {
             UTF8PtrStruct utf8PtrStruct = new UTF8PtrStruct(name);
@@ -419,6 +868,9 @@ namespace mooSQL.data.taos
 
         [DllImport("taos", EntryPoint = "taos_stmt_is_insert", CallingConvention = CallingConvention.Cdecl)]
         static extern private int StmtIsInsert(IntPtr stmt, IntPtr insert);
+        /// <summary>
+        /// StmtIsInsert
+        /// </summary>
 
         public static bool StmtIsInsert(IntPtr stmt)
         {
@@ -432,14 +884,29 @@ namespace mooSQL.data.taos
             Marshal.FreeHGlobal(ptr);
             return result;
         }
+        /// <summary>
+        /// IsUpdateQuery
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_is_update_query", CallingConvention = CallingConvention.Cdecl)]
         static extern public bool IsUpdateQuery(IntPtr res);
+        /// <summary>
+        /// ValidateSQL
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_validate_sql", CallingConvention = CallingConvention.Cdecl)]
         static extern public int ValidateSQL(IntPtr taos, string sql);
+        /// <summary>
+        /// StmtAffected_rows
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_stmt_affected_rows", CallingConvention = CallingConvention.Cdecl)]
         static extern public int StmtAffected_rows(IntPtr stmt);
+        /// <summary>
+        /// ResetCurrentDatabase
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_reset_current_db", CallingConvention = CallingConvention.Cdecl)]
         static extern public void ResetCurrentDatabase(IntPtr taos);
+        /// <summary>
+        /// StmtAffetcedRowsOnce
+        /// </summary>
         [DllImport("taos", EntryPoint = "taos_stmt_affected_rows_once", CallingConvention = CallingConvention.Cdecl)]
         static extern public int StmtAffetcedRowsOnce(IntPtr stmt);
         /// <summary>
@@ -467,13 +934,13 @@ namespace mooSQL.data.taos
         [DllImport("taos", EntryPoint = "taos_stmt_close", CallingConvention = CallingConvention.Cdecl)]
         static extern public int StmtClose(IntPtr stmt);
 
-        [DllImport("taos", EntryPoint = "taos_load_table_info", CallingConvention = CallingConvention.Cdecl)]
         /// <summary>
         /// user application must call this API to  load all tables meta,
         /// </summary>
         /// <param name="taos">taos connection</param>
         /// <param name="tableList">tablelist</param>
         /// <returns></returns>
+        [DllImport("taos", EntryPoint = "taos_load_table_info", CallingConvention = CallingConvention.Cdecl)]
         static extern private int LoadTableInfoDll(IntPtr taos, string tableList);
 
         /// <summary>
@@ -512,6 +979,9 @@ namespace mooSQL.data.taos
            // Marshal.FreeHGlobal(stmtErrPrt);
             return result;
         }
+        /// <summary>
+        /// FetchLengths
+        /// </summary>
 
         [DllImport("taos", EntryPoint = "taos_fetch_lengths", CallingConvention = CallingConvention.Cdecl)]
         static extern public IntPtr FetchLengths(IntPtr taos);
@@ -529,11 +999,35 @@ namespace mooSQL.data.taos
         /// <param name="param">the parameter for callback</param>       
         [DllImport("taos", EntryPoint = "taos_query_a", CallingConvention = CallingConvention.Cdecl)]
         static extern private void QueryAsync(IntPtr taos, IntPtr sql, QueryAsyncCallback fq, IntPtr param);
+        /// <summary>
+        /// _TaosRes
+        /// </summary>
+        /// <summary>
+        /// _TaosRes
+        /// </summary>
         public struct _TaosRes
         {
+            /// <summary>
+            /// taoRes
+            /// </summary>
+            /// <summary>
+            /// taoRes
+            /// </summary>
             public IntPtr taoRes;
+            /// <summary>
+            /// code
+            /// </summary>
+            /// <summary>
+            /// code
+            /// </summary>
             public int code;
         }
+        /// <summary>
+        /// QueryAsync
+        /// </summary>
+        /// <summary>
+        /// QueryAsync
+        /// </summary>
         public static Task<_TaosRes>  QueryAsync(IntPtr taos, string sql, IntPtr param)
         {
             Semaphore sema = new Semaphore(1, 1);
@@ -553,37 +1047,35 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Get the result set of asynchronous queries in batch, 
-        /// which can only be used with QueryAsync().<c>FetchRowAsyncCallback<c>
+        /// 异步批量获取查询结果集，仅可与 QueryAsync 配合使用（回调类型为 FetchRowAsyncCallback）。
         /// </summary>
-        /// <param name="taoRes"> The result set returned when backcall QueryAsyncCallback </param>
-        /// <param name="fq"> Callback function.<see cref="FetchRowAsyncCallback"/></param>
-        /// <param name="param"> The parameter for callback FetchRowAsyncCallback </param>
+        /// <param name="taoRes">QueryAsync 回调返回的结果集句柄。</param>
+        /// <param name="fq">回调函数。</param>
+        /// <param name="param">传给回调的自定义参数。</param>
         [DllImport("taos", EntryPoint = "taos_fetch_rows_a", CallingConvention = CallingConvention.Cdecl)]
         static extern public void FetchRowAsync(IntPtr taoRes, FetchRowAsyncCallback fq, IntPtr param);
 
         // Subscribe
 
         /// <summary>
-        /// This function is used for start subscription service.
+        /// 启动订阅服务。
         /// </summary>
-        /// <param name="taos"> taos connection return by <see cref = "Connect"></param>
-        /// <param name="restart">If the subscription is already exists, to decide whether to
-        /// start over or continue with previous subscription.</param>
-        /// <param name="topic"> The name of the subscription.(This is the unique identification of the subscription).</param>
-        /// <param name="sql">The subscribe statement(select only).Only query original data and in positive time sequence.</param>
-        /// <param name="fq">The callback function when the query result is received.</param>
-        /// <param name="param"> Additional parameter when calling callback function. System API will pass it to
-        /// callback function without any operations.It is only used when calling asynchronously,
-        /// and this parameter should be passed to NULL when calling synchronously</param>
-        /// <param name="interval">Polling period in milliseconds. During asynchronous call, the callback function will be
-        /// called periodically according to this parameter; In order to avoid affecting system
-        /// performance, it is not recommended to set this parameter too small; When calling synchronously,
-        /// if the interval between two calls to taos_consume is less than this period, the API will block
-        /// until the interval exceeds this period.</param>
-        /// <returns>Return null for failure, return subscribe object for success.</returns>
+        /// <param name="taos">由 Connect 返回的连接句柄。</param>
+        /// <param name="restart">订阅已存在时是否重新开始。</param>
+        /// <param name="topic">订阅名称（唯一标识）。</param>
+        /// <param name="sql">订阅语句（仅 select；原始数据且时间正序）。</param>
+        /// <param name="fq">收到查询结果时的回调。</param>
+        /// <param name="param">回调附加参数；同步调用时应传 NULL。</param>
+        /// <param name="interval">轮询周期（毫秒）。</param>
+        /// <returns>失败返回 null，成功返回订阅对象。</returns>
         [DllImport("taos", EntryPoint = "taos_subscribe", CallingConvention = CallingConvention.Cdecl)]
         static extern private IntPtr Subscribe(IntPtr taos, int restart, string topic, string sql, SubscribeCallback fq, IntPtr param, int interval);
+        /// <summary>
+        /// Subscribe
+        /// </summary>
+        /// <summary>
+        /// Subscribe
+        /// </summary>
         static public IntPtr Subscribe(IntPtr taos, bool restart, string topic, string sql, SubscribeCallback fq, IntPtr param, int interval)
         {
             if (taos == IntPtr.Zero)
@@ -606,10 +1098,16 @@ namespace mooSQL.data.taos
         /// record, otherwise it will return an empty result set with no records.
         /// If the return value is NULL, it indicates a system error.
         /// </summary>
-        /// <param name="subscribe"> Subscription object return by <see cref = "Subscribe">. </param>
-        /// <returns></returns>
+        /// <param name="subscribe">由订阅接口返回的订阅对象。</param>
+        /// <returns>结果集句柄；失败为 NULL。</returns>
         [DllImport("taos", EntryPoint = "taos_consume", CallingConvention = CallingConvention.Cdecl)]
         static extern private IntPtr TaosConsume(IntPtr subscribe);
+        /// <summary>
+        /// Consume
+        /// </summary>
+        /// <summary>
+        /// Consume
+        /// </summary>
         static public IntPtr Consume(IntPtr subscribe)
         {
             IntPtr res = IntPtr.Zero;
@@ -628,14 +1126,16 @@ namespace mooSQL.data.taos
         /// <summary>
         /// Unsubscribe.
         /// </summary>
-        /// <param name="subscribe"> Subscription object return by <see cref = "Subscribe">.</param>
-        /// <param name="keep"> If it is not 0, the API will keep the progress of subscription,
-        /// and the  and the subsequent call to taos_subscribe can continue
-        /// based on this progress; otherwise, the progress information will
-        /// be deleted and the data can only be read again.
-        ///  </param>
+        /// <param name="subscribe">由订阅接口返回的订阅对象。</param>
+        /// <param name="keep">非 0 时保留订阅进度，后续可继续；为 0 则删除进度，只能重新读取。</param>
         [DllImport("taos", EntryPoint = "taos_unsubscribe", CallingConvention = CallingConvention.Cdecl)]
         static extern private void Unsubscribe(IntPtr subscribe, int keep);
+        /// <summary>
+        /// Unsubscribe
+        /// </summary>
+        /// <summary>
+        /// Unsubscribe
+        /// </summary>
         static public void Unsubscribe(IntPtr subscribe, bool keep)
         {
             if (subscribe == IntPtr.Zero)
@@ -655,7 +1155,7 @@ namespace mooSQL.data.taos
         /// <summary>
         /// Used to open an stream, which can do continuous query.
         /// </summary>
-        /// <param name="taos"> taos connection return by <see cref = "Connect"></param>
+        /// <param name="taos"> taos connection return by <see cref="Connect"/></param>
         /// <param name="sql"> Query statement( query only)</param>
         /// <param name="fp"> User defined callback.</param>
         /// <param name="stime"> The time when stream computing starts. If it is 0, it means starting from now.
@@ -675,7 +1175,7 @@ namespace mooSQL.data.taos
         /// Used too stop data flow.
         /// Remember to stop data flow when you stopped steam computing.
         /// </summary>
-        /// <param name="stream"> Value returned by <see cref = "OpenStream"></param>
+        /// <param name="stream"> Value returned by <see cref="OpenStream"/></param>
         [DllImport("taos", EntryPoint = "taos_close_stream", CallingConvention = CallingConvention.Cdecl)]
         static extern public void CloseStream(IntPtr stream);
 

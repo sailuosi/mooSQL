@@ -1,4 +1,4 @@
-﻿
+
 
 using NPOI.SS.UserModel;
 using System;
@@ -82,6 +82,12 @@ namespace mooSQL.excel
                 default: return string.Empty;
             }
         }
+        /// <summary>
+        /// CellToXCell
+        /// </summary>
+        /// <summary>
+        /// CellToXCell
+        /// </summary>
         public static XCell CellToXCell(ICell cell, IFormulaEvaluator evaluator)
         {
             var xcell = new XCell();
@@ -146,6 +152,12 @@ namespace mooSQL.excel
             }
             return xcell;
         }
+        /// <summary>
+        /// IsMergeCell
+        /// </summary>
+        /// <summary>
+        /// IsMergeCell
+        /// </summary>
         public static bool IsMergeCell(ISheet sheet, int rowIndex, int colIndex, out ICell cell)
         { //out Point start, out Point end
             bool result = false;

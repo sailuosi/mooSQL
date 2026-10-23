@@ -11,6 +11,10 @@ namespace mooSQL.linq.expressions
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class SqlQueryDependentParamsAttribute : SqlQueryDependentAttribute
 	{
+	/// <summary>
+	/// ExpressionsEqual&lt;TContext&gt;
+	/// </summary>
+	
 		public override bool ExpressionsEqual<TContext>(TContext context, Expression expr1, Expression expr2, Func<TContext, Expression, Expression, bool> comparer)
 		{
 			if (expr1 is ConstantExpression c1 && expr2 is ConstantExpression c2)
@@ -18,6 +22,10 @@ namespace mooSQL.linq.expressions
 
 			return base.ExpressionsEqual(context, expr1, expr2, comparer);
 		}
+/// <summary>
+/// SplitExpression
+/// </summary>
+	
 
 		public override IEnumerable<Expression> SplitExpression(Expression expression)
 		{

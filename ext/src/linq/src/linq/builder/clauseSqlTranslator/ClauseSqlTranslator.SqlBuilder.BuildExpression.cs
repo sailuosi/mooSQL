@@ -245,16 +245,17 @@ namespace mooSQL.linq.builder
 		}
 
 		/// <summary>
-		/// Converts to Expression which may contain SQL or convert error.
+		/// 转换为可能包含 SQL 或转换错误的表达式。
 		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="expression"></param>
-		/// <param name="flags"></param>
-		/// <param name="unwrap"></param>
-		/// <param name="columnDescriptor"></param>
-		/// <param name="isPureExpression"></param>
-		/// <param name="alias"></param>
-		/// <returns></returns>
+		/// <param name="context">子句上下文。</param>
+		/// <param name="expression">待转换表达式。</param>
+		/// <param name="flags">投影标志。</param>
+		/// <param name="unwrap">是否解包。</param>
+		/// <param name="columnDescriptor">列描述符。</param>
+		/// <param name="isPureExpression">是否为纯表达式。</param>
+		/// <param name="forceParameter">是否强制参数化。</param>
+		/// <param name="alias">别名。</param>
+		/// <returns>转换后的表达式。</returns>
 		public Expression ConvertToSqlExpr(IClauseContext? context, Expression expression,
 			ProjectFlags flags = ProjectFlags.SQL,
 			bool unwrap = false, EntityColumn? columnDescriptor = null, bool isPureExpression = false, bool forceParameter = false,

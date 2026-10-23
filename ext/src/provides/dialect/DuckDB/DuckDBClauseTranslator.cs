@@ -4,9 +4,25 @@ using mooSQL.linq;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// DuckDBClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// DuckDBClauseTranslator type.
+    /// </summary>
     public class DuckDBClauseTranslator : ClauseTranslateVisitor
     {
+        /// <summary>
+        /// DuckDBClauseTranslator type.
+        /// </summary>
+        /// <summary>
+        /// DuckDBClauseTranslator type.
+        /// </summary>
         public DuckDBClauseTranslator(Dialect dia) : base(dia) { }
+/// <summary>
+/// Translates an object name into dialect-specific SQL.
+/// </summary>
+ 
 
         public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
         {

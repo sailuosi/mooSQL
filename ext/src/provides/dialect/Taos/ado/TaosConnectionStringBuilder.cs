@@ -29,8 +29,26 @@ namespace mooSQL.data.taos
         private const string TimeOutKeyword = "TimeOut";
         private const string ProtocolKeyword = "Protocol";
         private const string TimeZoneKeyword = "TimeZone";
+        /// <summary>
+        /// Protocol_RESTful
+        /// </summary>
+        /// <summary>
+        /// Protocol_RESTful
+        /// </summary>
         public const string Protocol_RESTful = "RESTful";
+        /// <summary>
+        /// Protocol_Native
+        /// </summary>
+        /// <summary>
+        /// Protocol_Native
+        /// </summary>
         public const string Protocol_Native = "Native";
+        /// <summary>
+        /// Protocol_WebSocket
+        /// </summary>
+        /// <summary>
+        /// Protocol_WebSocket
+        /// </summary>
         public const string Protocol_WebSocket = "WebSocket";
         private const string TokenKeyword = "Token";
         private enum Keywords
@@ -114,9 +132,9 @@ namespace mooSQL.data.taos
             => ConnectionString = connectionString;
 
         /// <summary>
-        ///   Êý¾Ý¿â·þÎñÆ÷µØÖ·
+        ///   ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
         /// </summary>
-        /// <value>Êý¾Ý¿â·þÎñÆ÷µØÖ·</value>
+        /// <value>ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·</value>
         public virtual string DataSource
         {
             get => _dataSource;
@@ -124,7 +142,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// ÓÃ»§Ãû
+        /// ï¿½Ã»ï¿½ï¿½ï¿½
         /// </summary>
         public virtual string Username
         {
@@ -133,7 +151,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// ×Ö·û±àÂë
+        /// ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public virtual string Charset
         {
@@ -142,13 +160,16 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Êý¾Ý¿âÃÜÂë
+        /// ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public virtual string Password
         {
             get => _password;
             set => base[PasswordKeyword] = _password = value;
         }
+        /// <summary>
+        /// Port
+        /// </summary>
 
         public virtual int Port
         {
@@ -157,7 +178,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ïß³Ì³Ø´óÐ¡ Ä¿Ç°½ö¶Ô libtaos ¶¯Ì¬¿âÓÐÐ§¡£
+        /// ï¿½ß³Ì³Ø´ï¿½Ð¡ Ä¿Ç°ï¿½ï¿½ï¿½ï¿½ libtaos ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½
         /// </summary>
         public virtual int PoolSize
         {
@@ -166,7 +187,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ð­ÒéÀàÐÍ£¬ Ä¬ÈÏÎª¿ÕÊ±Îª Native
+        /// Ð­ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ Ä¬ï¿½ï¿½Îªï¿½ï¿½Ê±Îª Native
         /// </summary>
         public virtual string Protocol
         {
@@ -175,13 +196,16 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ä¬ÈÏÎª¿ÕÊ±Îª Asia/Shanghai
+        /// Ä¬ï¿½ï¿½Îªï¿½ï¿½Ê±Îª Asia/Shanghai
         /// </summary>
         public virtual string TimeZone
         {
             get => _timezone;
             set => base[TimeZoneKeyword] = _timezone = value;
         }
+        /// <summary>
+        /// Token
+        /// </summary>
 
         public virtual string Token
         {
@@ -214,7 +238,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ö¸¶¨Òª·ÃÎÊµÄÊý¾Ý¿â¡£
+        /// Ö¸ï¿½ï¿½Òªï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Ý¿â¡£
         /// </summary>
         public virtual string DataBase
         {
@@ -225,7 +249,7 @@ namespace mooSQL.data.taos
         internal bool ForceDatabaseName { get; set; } = false;
 
         /// <summary>
-        /// Á¬½Ó³¬Ê±Ê±³¤
+        /// ï¿½ï¿½ï¿½Ó³ï¿½Ê±Ê±ï¿½ï¿½
         /// </summary>
         public int ConnectionTimeout
         {
@@ -499,7 +523,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ê¹ÓÃRESTful·ÃÎÊÊý¾Ý¿â
+        /// Ê¹ï¿½ï¿½RESTfulï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
         /// </summary>
         /// <returns></returns>
         public TaosConnectionStringBuilder UseRESTful()
@@ -510,7 +534,7 @@ namespace mooSQL.data.taos
         }
 
         /// <summary>
-        /// Ê¹ÓÃWebSocket·ÃÎÊÊý¾Ý¿â
+        /// Ê¹ï¿½ï¿½WebSocketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
         /// </summary>
         public TaosConnectionStringBuilder UseWebSocket()
         {
@@ -518,7 +542,16 @@ namespace mooSQL.data.taos
             Protocol = Protocol_WebSocket;
             return this;
         }
+        /// <summary>
+        /// UseCloud_DSN
+        /// </summary>
+        /// <summary>
+        /// UseCloud_DSN
+        /// </summary>
         public TaosConnectionStringBuilder UseCloud_DSN() => UseCloud_DSN(string.Empty);
+        /// <summary>
+        /// UseCloud_DSN
+        /// </summary>
 
         public TaosConnectionStringBuilder UseCloud_DSN(string _token)
         {
@@ -528,7 +561,7 @@ namespace mooSQL.data.taos
             return this;
         }
         /// <summary>
-        /// Ê¹ÓÃlibtaos¶¯Ì¬¿â·ÃÎÊÊý¾Ý¿â
+        /// Ê¹ï¿½ï¿½libtaosï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
         /// </summary>
         /// <returns></returns>
         public TaosConnectionStringBuilder UseNative()

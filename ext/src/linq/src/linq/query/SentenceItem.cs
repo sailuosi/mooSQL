@@ -14,11 +14,32 @@ namespace mooSQL.linq
     /// </summary>
     public class SentenceItem
     {
+        /// <summary>
+        /// Gets or sets Statement.
+        /// </summary>
 
 
         public BaseSentence Statement { get; set; } = null!;
+        /// <summary>
+        /// Context
+        /// </summary>
+        /// <summary>
+        /// Gets or sets Context.
+        /// </summary>
         public object? Context { get; set; }
+        /// <summary>
+        /// IsContinuousRun
+        /// </summary>
+        /// <summary>
+        /// Gets or sets IsContinuousRun.
+        /// </summary>
         public bool IsContinuousRun { get; set; }
+        /// <summary>
+        /// Aliases
+        /// </summary>
+        /// <summary>
+        /// Gets or sets Aliases.
+        /// </summary>
         public AliasContext? Aliases { get; set; }
 
         internal List<ParameterAccessor> ParameterAccessors = new();

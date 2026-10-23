@@ -3,9 +3,18 @@ using System;
 
 namespace mooSQL.linq.clause
 {
+	/// <summary>
+	/// SentenceCloneVisitor type.
+	/// </summary>
+	/// <summary>
+	/// SentenceCloneVisitor type.
+	/// </summary>
 	public class SentenceCloneVisitor : SentenceCloneVisitorBase
 	{
 		Func<Clause, bool>? _cloneFunc;
+		/// <summary>
+		/// Clone
+		/// </summary>
 
 		public Clause Clone(Clause element, Func<Clause, bool>? cloneFunc)
 		{
@@ -13,6 +22,10 @@ namespace mooSQL.linq.clause
 
 			return PerformClone(element);
 		}
+/// <summary>
+/// Cleanup
+/// </summary>
+	
 
 		public override void Cleanup()
 		{

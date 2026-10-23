@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.Npgsql;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,12 @@ namespace mooSQL.data
     /// <inheritdoc/>
     public class OscarDialect : ExtDialect
     {
+        /// <summary>
+        /// OscarDialect type.
+        /// </summary>
+        /// <summary>
+        /// OscarDialect type.
+        /// </summary>
         public OscarDialect()
         {
             expression = new OscarExpress(this);

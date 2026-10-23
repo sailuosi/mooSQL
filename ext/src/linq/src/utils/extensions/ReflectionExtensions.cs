@@ -16,11 +16,17 @@ using System.Xml;
 namespace mooSQL.linq.utils
 {
     using mooSQL.utils;
+	/// <summary>
+	/// ReflectionExtensions type.
+	/// </summary>
 
 	
 	public static class ReflectionExtensions
 	{
 		#region Type extensions
+		/// <summary>
+		/// Gets GetPublicInstanceValueMembers.
+		/// </summary>
 
 
 		public static MemberInfo[] GetPublicInstanceValueMembers(this Type type)
@@ -90,6 +96,9 @@ namespace mooSQL.linq.utils
 				return results.ToArray();
 			}
 		}
+		/// <summary>
+		/// Gets GetStaticMembersEx.
+		/// </summary>
 
 		public static MemberInfo[] GetStaticMembersEx(this Type type, string name)
 		{
@@ -142,6 +151,9 @@ namespace mooSQL.linq.utils
 				return null;
 			});
 		}
+		/// <summary>
+		/// Gets GetMethodEx.
+		/// </summary>
 
 		public static MethodInfo? GetMethodEx(this Type type, string name)
 		{
@@ -212,11 +224,17 @@ namespace mooSQL.linq.utils
 
 			return null;
 		}
+		/// <summary>
+		/// Gets GetMethodEx.
+		/// </summary>
 
 		public static MethodInfo? GetMethodEx(this Type type, string name, params Type[] types)
 		{
 			return type.GetMethod(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, types, null);
 		}
+		/// <summary>
+		/// Gets GetDefaultConstructorEx.
+		/// </summary>
 
 
 		public static ConstructorInfo? GetDefaultConstructorEx(this Type type)
@@ -227,6 +245,9 @@ namespace mooSQL.linq.utils
 				Type.EmptyTypes,
 				null);
 		}
+		/// <summary>
+		/// Gets GetTypeCodeEx.
+		/// </summary>
 
 		public static TypeCode GetTypeCodeEx(this Type type)
 		{
@@ -272,6 +293,9 @@ namespace mooSQL.linq.utils
 		{
 			return memberInfo.MemberType == MemberTypes.Property && memberInfo is mooSQL.linq.mapping.DynamicColumnInfo;
 		}
+		/// <summary>
+		/// Gets GetPropertiesEx.
+		/// </summary>
 
 		public static PropertyInfo[] GetPropertiesEx(this Type type)
 		{
@@ -284,16 +308,25 @@ namespace mooSQL.linq.utils
 				if (pi.DeclaringType == type && pi.GetIndexParameters().Length == 0)
 					yield return pi;
 		}
+		/// <summary>
+		/// Gets GetNonPublicPropertiesEx.
+		/// </summary>
 
 		public static PropertyInfo[] GetNonPublicPropertiesEx(this Type type)
 		{
 			return type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
 		}
+		/// <summary>
+		/// Gets GetInstanceMemberEx.
+		/// </summary>
 
 		public static MemberInfo[] GetInstanceMemberEx(this Type type, string name)
 		{
 			return type.GetMember(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		}
+		/// <summary>
+		/// Gets GetPublicMemberEx.
+		/// </summary>
 
 		public static MemberInfo[] GetPublicMemberEx(this Type type, string name)
 		{
@@ -304,6 +337,12 @@ namespace mooSQL.linq.utils
 		// - CoreRT runtime could miss this method implementation
 		// - NativeAOT builds at least up to .NET 8 doesn't support interfaces with statics or/and default implementations
 		// for such cases we return empty stub
+		/// <summary>
+		/// Gets GetInterfaceMapEx.
+		/// </summary>
+		/// <summary>
+		/// Gets GetInterfaceMapEx.
+		/// </summary>
 		public static InterfaceMapping GetInterfaceMapEx(this Type type, Type interfaceType)
 		{
 			try
@@ -334,21 +373,14 @@ namespace mooSQL.linq.utils
 		//	return Nullable.GetUnderlyingType(type) ?? type;
 		//}
 
+		// AsNullable：将值类型包装为 Nullable&lt;T&gt;（方法已注释，文档一并移除以免 CS1572）。
+
 		/// <summary>
-		/// Wraps type into <see cref="Nullable{T}"/> class.
+		/// 获取定义指定成员的类型（含接口）。
 		/// </summary>
-		/// <param name="type">Value type to wrap. Must be value type (except <see cref="Nullable{T}"/> itself).</param>
-		/// <returns>Type, wrapped by <see cref="Nullable{T}"/>.</returns>
-		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		//public static Type AsNullable(this Type type)
-		//{
-		//	if (type == null)      throw new ArgumentNullException(nameof(type));
-		//	if (!type.IsValueType) throw new ArgumentException($"{type} is not a value type");
-		//	if (type.IsNullable()) throw new ArgumentException($"{type} is nullable type already");
-
-		//	return typeof(Nullable<>).MakeGenericType(type);
-		//}
-
+		/// <param name="child">子类型。</param>
+		/// <param name="member">成员信息。</param>
+		/// <returns>定义该成员的类型序列。</returns>
 		public static IEnumerable<Type> GetDefiningTypes(this Type child, MemberInfo member)
 		{
 			if (member.IsPropertyEx())
@@ -374,6 +406,9 @@ namespace mooSQL.linq.utils
 		}
 
 		static readonly ConcurrentDictionary<(Type parent, Type child), bool> _isSameOrParentOf = new ();
+		/// <summary>
+		/// Gets GetGenericType.
+		/// </summary>
 
 
 
@@ -405,6 +440,9 @@ namespace mooSQL.linq.utils
 
 			return null;
 		}
+		/// <summary>
+		/// Gets GetGenericTypes.
+		/// </summary>
 
 		public static IEnumerable<Type> GetGenericTypes(this Type genericType, Type type)
 		{
@@ -526,12 +564,18 @@ namespace mooSQL.linq.utils
 
 			return typeof(object);
 		}
+		/// <summary>
+		/// IsEnumerableType
+		/// </summary>
 
 		public static bool IsEnumerableType(this Type type, Type elementType)
 		{
 			return typeof(IEnumerable<>).GetGenericTypes(type)
 				.Any(t => t.GetGenericArguments()[0].IsSameOrParentOf(elementType));
 		}
+		/// <summary>
+		/// IsGenericEnumerableType
+		/// </summary>
 
 		public static bool IsGenericEnumerableType(this Type type)
 		{
@@ -542,6 +586,9 @@ namespace mooSQL.linq.utils
 		}
 
 		static readonly ConcurrentDictionary<Type,Type?> _getItemTypeCache = new ();
+		/// <summary>
+		/// Gets GetItemType.
+		/// </summary>
 
 		public static Type? GetItemType(this Type? type)
 		{
@@ -666,6 +713,9 @@ namespace mooSQL.linq.utils
 
 		//	return false;
 		//}
+		/// <summary>
+		/// IsIntegerType
+		/// </summary>
 
 		public static bool IsIntegerType(this Type type)
 		{
@@ -699,6 +749,9 @@ namespace mooSQL.linq.utils
 				return default(T)!;
 			}
 		}
+		/// <summary>
+		/// Gets GetDefaultValue.
+		/// </summary>
 
 		public static object? GetDefaultValue(this Type type)
 		{
@@ -714,6 +767,9 @@ namespace mooSQL.linq.utils
 			return helper.GetDefaultValue();
 #endif
 		}
+		/// <summary>
+		/// Gets GetEventEx.
+		/// </summary>
 
 		public static EventInfo? GetEventEx(this Type type, string eventName)
 		{
@@ -723,6 +779,9 @@ namespace mooSQL.linq.utils
 #endregion
 
 		#region MethodInfo extensions
+		/// <summary>
+		/// Gets GetPropertyInfo.
+		/// </summary>
 
 		[return: NotNullIfNotNull(nameof(method))]
 		public static PropertyInfo? GetPropertyInfo(this MethodInfo? method)
@@ -793,6 +852,9 @@ namespace mooSQL.linq.utils
 			{ typeof(ushort),  new HashSet<Type> { typeof(byte),  typeof(char)                                                                                                                       } },
 			{ typeof(short),   new HashSet<Type> { typeof(byte)                                                                                                                                      } }
 		};
+		/// <summary>
+		/// CanConvertTo
+		/// </summary>
 
 		public static bool CanConvertTo(this Type fromType, Type toType)
 		{
@@ -813,6 +875,9 @@ namespace mooSQL.linq.utils
 
 			return false;
 		}
+		/// <summary>
+		/// EqualsTo
+		/// </summary>
 
 		public static bool EqualsTo(this MemberInfo? member1, MemberInfo? member2, Type? declaringType = null)
 		{

@@ -24,7 +24,7 @@ internal sealed partial class ClauseExpressionVisitor : ExpressionVisitor
         set => _methodVisitor.Context = value;
     }
 
-    /// <summary>供 <see cref="ClauseSqlTranslator.IsSequence"/> 快速判断能否构建序列（不构建）。</summary>
+    /// <summary>供 <see cref="mooSQL.linq.builder.ClauseSqlTranslator.IsSequence(mooSQL.linq.builder.BuildInfo)"/> 快速判断能否构建序列（不构建）。</summary>
     internal static bool CanBuildSequence(BuildInfo info, ClauseSqlTranslator builder, out bool isSequence)
     {
         info.Expression = info.Expression.Unwrap();

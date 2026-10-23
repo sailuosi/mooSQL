@@ -9,6 +9,9 @@ namespace mooSQL.data
 	using mooSQL.linq.clause;
 	using mooSQL.linq.translator;
 	using mooSQL.data.model;
+	/// <summary>
+	/// OracleMemberTranslator type.
+	/// </summary>
 
 	public class OracleMemberTranslator : ProviderMemberTranslatorDefault
 	{
@@ -28,9 +31,16 @@ namespace mooSQL.data
 				return MakeSqlTypeExpression(translationContext, methodCall, typeof(string), t => t.WithLength(length).WithDataType(DataFam.VarChar).WithDbType($"VarChar2({length.ToString(CultureInfo.InvariantCulture)})"));
 			}
 		}
+		/// <summary>
+		/// DateFunctionsTranslator
+		/// </summary>
 
 		public class DateFunctionsTranslator : DateFunctionsTranslatorBase
 		{
+	/// <summary>
+	/// Translates TranslateDateTimeDatePart for this dialect.
+	/// </summary>
+	
 			protected override IExpWord? TranslateDateTimeDatePart(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, DbFunc.DateParts datepart)
 			{
 				var factory      = translationContext.ExpressionFactory;
@@ -91,6 +101,10 @@ namespace mooSQL.data
 					
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeDateAdd for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeDateAdd(ITranslationContext translationContext, TranslationFlags translationFlag, IExpWord dateTimeExpression, IExpWord increment,
 				DbFunc.DateParts                                                       datepart)
@@ -122,6 +136,10 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateMakeDateTime for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateMakeDateTime(
 				ITranslationContext translationContext,
@@ -178,6 +196,10 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeTruncationToTime for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeTruncationToTime(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
@@ -190,6 +212,10 @@ namespace mooSQL.data
 
 				return resultExpression;
 			}
+/// <summary>
+/// Translates TranslateDateTimeTruncationToDate for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateDateTimeTruncationToDate(ITranslationContext translationContext, IExpWord dateExpression, TranslationFlags translationFlags)
 			{
@@ -200,9 +226,16 @@ namespace mooSQL.data
 				return dateFunc;
 			}
 		}
+		/// <summary>
+		/// OracleMathMemberTranslator
+		/// </summary>
 
 		protected class OracleMathMemberTranslator : MathMemberTranslatorBase
 		{
+	/// <summary>
+	/// Translates TranslateMaxMethod for this dialect.
+	/// </summary>
+	
 			protected override IExpWord? TranslateMaxMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
 			{
 				var factory = translationContext.ExpressionFactory;
@@ -211,6 +244,10 @@ namespace mooSQL.data
 
 				return factory.Function(dbType, "GREATEST", xValue, yValue);
 			}
+/// <summary>
+/// Translates TranslateMinMethod for this dialect.
+/// </summary>
+	
 
 			protected override IExpWord? TranslateMinMethod(ITranslationContext translationContext, MethodCallExpression methodCall, IExpWord xValue, IExpWord yValue)
 			{
@@ -221,21 +258,37 @@ namespace mooSQL.data
 				return factory.Function(dbType, "LEAST", xValue, yValue);
 			}
 		}
+/// <summary>
+/// Creates the SQL types translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateSqlTypesTranslator()
 		{
 			return new SqlTypesTranslation();
 		}
+/// <summary>
+/// Creates the date/time member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateDateMemberTranslator()
 		{
 			return new DateFunctionsTranslator();
 		}
+/// <summary>
+/// Creates the math member translator.
+/// </summary>
+	
 
 		protected override IMemberTranslator CreateMathMemberTranslator()
 		{
 			return new OracleMathMemberTranslator();
 		}
+/// <summary>
+/// Translates Guid.NewGuid() to dialect SQL.
+/// </summary>
+	
 
 		protected override IExpWord? TranslateNewGuidMethod(ITranslationContext translationContext, TranslationFlags translationFlags)
 		{

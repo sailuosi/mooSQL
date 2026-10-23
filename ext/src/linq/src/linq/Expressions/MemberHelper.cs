@@ -8,30 +8,62 @@ namespace mooSQL.linq.expressions
 {
 	using mooSQL.linq.utils;
 	using mooSQL.linq.mapping;
+	/// <summary>
+	/// MemberHelper type.
+	/// </summary>
 
 	public static class MemberHelper
 	{
+		/// <summary>
+		/// MemberInfoWithType
+		/// </summary>
 		[DebuggerDisplay("{Type.Name}.{MemberInfo.Name}")]
 		public struct MemberInfoWithType : IEquatable<MemberInfoWithType>
 		{
+			/// <summary>
+			/// Initializes a new instance of the <see cref="MemberHelper"/> class.
+			/// </summary>
+			/// <summary>
+			/// Initializes a new instance of the <see cref="MemberHelper"/> class.
+			/// </summary>
 			public MemberInfoWithType(Type? type, MemberInfo memberInfo)
 			{
 				Type       = type;
 				MemberInfo = memberInfo;
 			}
+			/// <summary>
+			/// Type
+			/// </summary>
 
 			public Type?      Type;
+			/// <summary>
+			/// MemberInfo
+			/// </summary>
+			/// <summary>
+			/// MemberInfo
+			/// </summary>
 			public MemberInfo MemberInfo;
+			/// <summary>
+			/// Equals
+			/// </summary>
 
 			public readonly bool Equals(MemberInfoWithType other)
 			{
 				return Equals(Type, other.Type) && MemberInfo.Equals(other.MemberInfo);
 			}
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 			public override bool Equals(object? obj)
 			{
 				return obj is MemberInfoWithType other && Equals(other);
 			}
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 			public readonly override int GetHashCode()
 			{
@@ -138,67 +170,103 @@ namespace mooSQL.linq.expressions
 						? new MemberInfoWithType(mce.Object?.Type ?? mce.Method.ReflectedType, mce.Method)
 						: new MemberInfoWithType(expr.Type, (MemberInfo)((NewExpression)expr).Constructor!);
 		}
+		/// <summary>
+		/// MemberOf&lt;T&gt;
+		/// </summary>
 
 		public static MemberInfo MemberOf<T>(Expression<Func<T,object?>> func)
 		{
 			return GetMemberInfo(func);
 		}
+		/// <summary>
+		/// MemberOf&lt;T, TMember&gt;
+		/// </summary>
 
 		public static MemberInfo MemberOf<T, TMember>(Expression<Func<T,TMember>> func)
 		{
 			return GetMemberInfo(func);
 		}
+		/// <summary>
+		/// FieldOf&lt;T&gt;
+		/// </summary>
 
 		public static FieldInfo FieldOf<T>(Expression<Func<T,object?>> func)
 		{
 			return (FieldInfo)GetMemberInfo(func);
 		}
+		/// <summary>
+		/// PropertyOf&lt;T&gt;
+		/// </summary>
 
 		public static PropertyInfo PropertyOf<T>(Expression<Func<T,object?>> func)
 		{
 			return (PropertyInfo)GetMemberInfo(func);
 		}
+		/// <summary>
+		/// PropertyOf
+		/// </summary>
 
 		public static PropertyInfo PropertyOf(Expression<Func<object?>> func)
 		{
 			return (PropertyInfo)GetMemberInfo(func);
 		}
+		/// <summary>
+		/// MethodOf&lt;T&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOf<T>(Expression<Func<T,object?>> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOf&lt;T1, T2&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOf<T1, T2>(Expression<Func<T1, T2,object?>> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOf&lt;T1, T2, T3&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOf<T1, T2, T3>(Expression<Func<T1, T2, T3, object?>> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOf&lt;T1, T2, T3, T4&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOf<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, object?>> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOf
+		/// </summary>
 
 		public static MethodInfo MethodOf(Expression<Func<object?>> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOf
+		/// </summary>
 
 		public static MethodInfo MethodOf(Expression<Action> func)
 		{
 			var mi = GetMemberInfo(func);
 			return mi is PropertyInfo info ? info.GetGetMethod()! : (MethodInfo)mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric&lt;T&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric<T>(Expression<Func<T,object?>> func)
 		{
@@ -207,6 +275,9 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric&lt;T1, T2&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric<T1, T2>(Expression<Func<T1, T2, object?>> func)
 		{
@@ -215,6 +286,9 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric&lt;T1, T2, T3&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric<T1, T2, T3>(Expression<Func<T1, T2, T3, object?>> func)
 		{
@@ -223,6 +297,9 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric&lt;T1, T2, T3, T4&gt;
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, object?>> func)
 		{
@@ -231,6 +308,9 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric(Expression<Func<object?>> func)
 		{
@@ -239,6 +319,9 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// MethodOfGeneric
+		/// </summary>
 
 		public static MethodInfo MethodOfGeneric(Expression<Action> func)
 		{
@@ -247,11 +330,17 @@ namespace mooSQL.linq.expressions
 				mi = mi.GetGenericMethodDefinition();
 			return mi;
 		}
+		/// <summary>
+		/// ConstructorOf&lt;T&gt;
+		/// </summary>
 
 		public static ConstructorInfo ConstructorOf<T>(Expression<Func<T,object>> func)
 		{
 			return (ConstructorInfo)GetMemberInfo(func);
 		}
+		/// <summary>
+		/// ConstructorOf
+		/// </summary>
 
 		public static ConstructorInfo ConstructorOf(Expression<Func<object>> func)
 		{

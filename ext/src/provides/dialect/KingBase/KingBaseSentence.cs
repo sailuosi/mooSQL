@@ -9,9 +9,19 @@ namespace mooSQL.data
     /// </summary>
     public class KingBaseSentence : NpgSentence
     {
+        /// <summary>
+        /// KingBaseSentence type.
+        /// </summary>
+        /// <summary>
+        /// KingBaseSentence type.
+        /// </summary>
         public KingBaseSentence(Dialect dialect) : base(dialect)
         {
         }
+/// <summary>
+/// Builds a connection string targeting the specified database.
+/// </summary>
+ 
 
         protected override string BuildConnectionStringForDatabase(string dbName)
         {
@@ -21,6 +31,10 @@ namespace mooSQL.data
             };
             return builder.ConnectionString;
         }
+/// <summary>
+/// Creates a side connection for DDL/admin operations.
+/// </summary>
+ 
 
         protected override DbConnection CreateSideConnection(string connectionString)
         {

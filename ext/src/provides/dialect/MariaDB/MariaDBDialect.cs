@@ -5,6 +5,12 @@ namespace mooSQL.data
     /// </summary>
     public class MariaDBDialect : MySqlFamilyDialect
     {
+        /// <summary>
+        /// MariaDBDialect type.
+        /// </summary>
+        /// <summary>
+        /// MariaDBDialect type.
+        /// </summary>
         public MariaDBDialect()
         {
             // 保守默认：覆盖常见 10.11 / 11.x LTS（Arrow 需 13.1+）

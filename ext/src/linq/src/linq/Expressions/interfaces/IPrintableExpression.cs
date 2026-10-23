@@ -1,5 +1,11 @@
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// IPrintableExpression type.
+	/// </summary>
+	/// <summary>
+	/// IPrintableExpression interface.
+	/// </summary>
 	public interface IPrintableExpression
 	{
 		/// <summary>

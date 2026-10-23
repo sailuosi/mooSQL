@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.linq;
 using System;
 using System.Collections.Generic;
@@ -8,14 +8,31 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// MySQLClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// MySQLClauseTranslator type.
+    /// </summary>
     public class MySQLClauseTranslator:ClauseTranslateVisitor
     {
+        /// <summary>
+        /// MySQLClauseTranslator type.
+        /// </summary>
 
         public MySQLClauseTranslator(Dialect dia) : base(dia) { 
         
         }
+/// <summary>
+/// Returns the INSERT ON DUPLICATE KEY suffix.
+/// </summary>
+ 
 
         protected override string? GetInsertOrUpdateDuplicateSuffix() => "ON DUPLICATE KEY UPDATE";
+ /// <summary>
+ /// Translates an object name into dialect-specific SQL.
+ /// </summary>
+ 
         public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
         {
             var res = "";

@@ -10,6 +10,12 @@ namespace mooSQL.linq;
 /// </summary>
 public static class RunnerContextFactory
 {
+    /// <summary>
+    /// Creates Create.
+    /// </summary>
+    /// <summary>
+    /// Creates Create.
+    /// </summary>
     public static RunnerContext Create(
         SentenceBag bag,
         DBInstance db,
@@ -24,6 +30,9 @@ public static class RunnerContextFactory
             paras = parameters,
             cancellationToken = cancellationToken
         };
+    /// <summary>
+    /// ResolveExpression
+    /// </summary>
 
     public static Expression ResolveExpression(RunnerContext context)
     {
@@ -35,6 +44,9 @@ public static class RunnerContextFactory
 
         throw new InvalidOperationException("RunnerContext requires expression or sentenceBag.srcExp.");
     }
+    /// <summary>
+    /// ResolveExecutionArgs
+    /// </summary>
 
     public static (Expression expression, object?[]? parameters) ResolveExecutionArgs(RunnerContext context)
         => (ResolveExpression(context), context.paras);

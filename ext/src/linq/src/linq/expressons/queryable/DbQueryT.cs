@@ -9,10 +9,19 @@ namespace mooSQL.linq
 	using mooSQL.linq.clause;
 	using mooSQL.data;
 	using mooSQL.data.model;
+	/// <summary>
+	/// DbQueryT type.
+	/// </summary>
 
 	public sealed class DbQuery<T> : ExpressionQuery<T>, IDbQuery<T>, IDbQueryMutable<T>, IDbQuery
 		where T : notnull
 	{
+		/// <summary>
+		/// DbQuery
+		/// </summary>
+		/// <summary>
+		/// DbQuery
+		/// </summary>
 		public DbQuery(DBInstance dataContext)
 		{
 			var expression = Expression.Call(
@@ -29,6 +38,9 @@ namespace mooSQL.linq
 			_tableID = basedOn.TableID;
 			_name = basedOn._name;
 		}
+		/// <summary>
+		/// DbQuery
+		/// </summary>
 
 
 		public DbQuery(DBInstance dataContext, Expression expression)
@@ -109,6 +121,9 @@ namespace mooSQL.linq
 		}
 
 		private SqlObjectName _name;
+		/// <summary>
+		/// ServerName
+		/// </summary>
 
 		public  string?  ServerName
 		{
@@ -123,6 +138,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// DatabaseName
+		/// </summary>
 
 		public  string?  DatabaseName
 		{
@@ -137,6 +155,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// SchemaName
+		/// </summary>
 
 		public  string?  SchemaName
 		{
@@ -153,6 +174,12 @@ namespace mooSQL.linq
 		}
 
 		private TableOptions _tableOptions;
+		/// <summary>
+		/// TableOptions
+		/// </summary>
+		/// <summary>
+		/// TableOptions
+		/// </summary>
 		public  TableOptions  TableOptions
 		{
 			get => _tableOptions;
@@ -166,6 +193,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// TableName
+		/// </summary>
 
 		public  string  TableName
 		{
@@ -182,6 +212,12 @@ namespace mooSQL.linq
 		}
 
 		private string? _tableID;
+		/// <summary>
+		/// TableID
+		/// </summary>
+		/// <summary>
+		/// TableID
+		/// </summary>
 		public string?   TableID
 		{
 			get => _tableID;
@@ -195,6 +231,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// ChangeServerName
+		/// </summary>
 
 		public IDbQuery<T> ChangeServerName(string? serverName)
 		{
@@ -203,6 +242,9 @@ namespace mooSQL.linq
 				ServerName = serverName
 			};
 		}
+		/// <summary>
+		/// ChangeDatabaseName
+		/// </summary>
 
 		public IDbQuery<T> ChangeDatabaseName(string? databaseName)
 		{
@@ -211,6 +253,9 @@ namespace mooSQL.linq
 				DatabaseName = databaseName
 			};
 		}
+		/// <summary>
+		/// ChangeSchemaName
+		/// </summary>
 
 		public IDbQuery<T> ChangeSchemaName(string? schemaName)
 		{
@@ -219,6 +264,9 @@ namespace mooSQL.linq
 				SchemaName = schemaName
 			};
 		}
+		/// <summary>
+		/// ChangeTableName
+		/// </summary>
 
 		public IDbQuery<T> ChangeTableName(string tableName)
 		{
@@ -227,6 +275,9 @@ namespace mooSQL.linq
 				TableName = tableName
 			};
 		}
+		/// <summary>
+		/// ChangeTableOptions
+		/// </summary>
 
 		public IDbQuery<T> ChangeTableOptions(TableOptions options)
 		{
@@ -235,6 +286,9 @@ namespace mooSQL.linq
 				TableOptions = options
 			};
 		}
+		/// <summary>
+		/// ChangeTableID
+		/// </summary>
 
 		public IDbQuery<T> ChangeTableID(string? tableID)
 		{

@@ -1,4 +1,4 @@
-﻿
+
 
 using mooSQL.data.builder;
 using System;
@@ -12,6 +12,12 @@ namespace mooSQL.data
     /// <inheritdoc/>
     public class OscarExpress:SQLExpression
     {
+        /// <summary>
+        /// OscarExpress type.
+        /// </summary>
+        /// <summary>
+        /// OscarExpress type.
+        /// </summary>
         public OscarExpress(Dialect dia):base(dia) {
             _paraPrefix = ":";
             _selectAutoIncrement = "";
@@ -231,6 +237,10 @@ namespace mooSQL.data
                 columnName, tableName, caption
                 );
         }
+ /// <summary>
+ /// Builds SQL to update a column caption/comment.
+ /// </summary>
+ 
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return AddColumnCaptionBy(tableName, columnName, caption);
@@ -254,6 +264,10 @@ namespace mooSQL.data
         { 
             return string.Format("COMMENT ON TABLE {0} IS '{1}'", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return AddTableCaptionBy(tableName, caption);

@@ -9,11 +9,27 @@ namespace mooSQL.linq.provider.MySql
     using NPOI.SS.Formula.Functions;
     using mooSQL.linq.provider;
 	using mooSQL.linq.clause;
+	/// <summary>
+	/// MySqlSqlExpressionConvertVisitor type.
+	/// </summary>
+	/// <summary>
+	/// MySqlSqlExpressionConvertVisitor type.
+	/// </summary>
 	public class MySqlSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// MySqlSqlExpressionConvertVisitor type.
+		/// </summary>
+		/// <summary>
+		/// MySqlSqlExpressionConvertVisitor type.
+		/// </summary>
 		public MySqlSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 		}
+/// <summary>
+/// ConvertConversion
+/// </summary>
+	
 
 		protected override IExpWord ConvertConversion(CastWord cast)
 		{
@@ -26,6 +42,10 @@ namespace mooSQL.linq.provider.MySql
 
 			return base.ConvertConversion(cast);
 		}
+/// <summary>
+/// ConvertSqlBinaryExpression
+/// </summary>
+	
 
 		public override Clause ConvertSqlBinaryExpression(BinaryWord element)
 		{
@@ -67,6 +87,10 @@ namespace mooSQL.linq.provider.MySql
 
 			return base.ConvertSqlBinaryExpression(element);
 		}
+/// <summary>
+/// ConvertSearchStringPredicate
+/// </summary>
+	
 
 		public override IAffirmWord ConvertSearchStringPredicate(SearchString predicate)
 		{

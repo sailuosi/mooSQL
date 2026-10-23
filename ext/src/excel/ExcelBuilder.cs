@@ -21,10 +21,16 @@ using mooSQL.data;
 namespace mooSQL.excel
 {
     /// <summary>
-    /// Excelµ¼³ö±í¸ñµÄ´´½¨ Àà¡£
+    /// Excelï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ ï¿½à¡£
     /// </summary>
     public partial class ExcelBuilder
     {
+        /// <summary>
+        /// ExcelBuilder type.
+        /// </summary>
+        /// <summary>
+        /// ExcelBuilder type.
+        /// </summary>
         public ExcelBuilder()
         {
 
@@ -33,7 +39,7 @@ namespace mooSQL.excel
         /*
         private void getCellFormatByDataType(string str)
         {
-            //ÏÂÃæÁÐ³öÁË³£ÓÃµÄ×Ö¶ÎÀàÐÍ  
+            //ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½ï¿½Ë³ï¿½ï¿½Ãµï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½  
             switch (str)
             {
                 
@@ -41,48 +47,57 @@ namespace mooSQL.excel
                     // cellStyle.FillPattern = FillPatternType.LEAST_DOTS;  
                     cellStyle.SetFont(font12);
                     break;
-                case stylexls.Ê±¼ä:
+                case stylexls.Ê±ï¿½ï¿½:
                     IDataFormat datastyle = wb.CreateDataFormat();
 
                     cellStyle.DataFormat = datastyle.GetFormat("yyyy/mm/dd");
                     cellStyle.SetFont(font);
                     break;
-                case stylexls.Êý×Ö:
+                case stylexls.ï¿½ï¿½ï¿½ï¿½:
                     cellStyle.DataFormat = HSSFDataFormat.GetBuiltinFormat("0.00");
                     cellStyle.SetFont(font);
                     break;
                 case stylexls.Ç®:
                     IDataFormat format = wb.CreateDataFormat();
-                    cellStyle.DataFormat = format.GetFormat("£¤#,##0");
+                    cellStyle.DataFormat = format.GetFormat("ï¿½ï¿½#,##0");
                     cellStyle.SetFont(font);
                     break;
                 case stylexls.url:
                     fontcolorblue.Underline = 1;
                     cellStyle.SetFont(fontcolorblue);
                     break;
-                case stylexls.°Ù·Ö±È:
+                case stylexls.ï¿½Ù·Ö±ï¿½:
                     cellStyle.DataFormat = HSSFDataFormat.GetBuiltinFormat("0.00%");
                     cellStyle.SetFont(font);
                     break;
-                case stylexls.ÖÐÎÄ´óÐ´:
+                case stylexls.ï¿½ï¿½ï¿½Ä´ï¿½Ð´:
                     IDataFormat format1 = wb.CreateDataFormat();
                     cellStyle.DataFormat = format1.GetFormat("[DbNum2][$-804]0");
                     cellStyle.SetFont(font);
                     break;
-                case stylexls.¿ÆÑ§¼ÆÊý·¨:
+                case stylexls.ï¿½ï¿½Ñ§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:
                     cellStyle.DataFormat = HSSFDataFormat.GetBuiltinFormat("0.00E+00");
                     cellStyle.SetFont(font);
                     break;
-                case stylexls.Ä¬ÈÏ:
+                case stylexls.Ä¬ï¿½ï¿½:
                     cellStyle.SetFont(font);
                     break;
             }
             //return cellStyle;
         }*/
+        /// <summary>
+        /// colInfo
+        /// </summary>
+        /// <summary>
+        /// colInfo
+        /// </summary>
         public class colInfo
         {
  
         }
+        /// <summary>
+        /// Gets getTargetByCols.
+        /// </summary>
 
         public ExportTarget getTargetByCols(string excelVersion, List<ExportCol> cols, string fromPart, int position, DBInstance db)
         {
@@ -114,7 +129,7 @@ namespace mooSQL.excel
             return res;
         }
         /// <summary>
-        /// DataTableµ¼³öµ½ExcelÎÄ¼þ
+        /// DataTableï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Excelï¿½Ä¼ï¿½
         /// </summary>
         public void saveToFile(ExportTarget tar)
         {
@@ -130,10 +145,9 @@ namespace mooSQL.excel
         }
 
         /// <summary>
-        /// DataTableµ¼³öµ½ExcelµÄMemoryStream
+        /// å°†å¯¼å‡ºç›®æ ‡å†™å…¥ Excel å¹¶è¿”å›ž MemoryStreamã€‚
         /// </summary>
-        /// <param name="dtSource">Ô´DataTable</param>
-        /// <param name="strHeaderText">±íÍ·ÎÄ±¾</param>
+        /// <param name="tar">å¯¼å‡ºç›®æ ‡ã€‚</param>
         public MemoryStream getExportStream(ExportTarget tar)
         {
             if (tar.book == null || !tar.isInited)
@@ -143,7 +157,7 @@ namespace mooSQL.excel
             var workbook = tar.book;
             var sheet = workbook.CreateSheet();
 
-            #region ÓÒ»÷ÎÄ¼þ ÊôÐÔÐÅÏ¢
+            #region ï¿½Ò»ï¿½ï¿½Ä¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
             if (tar.excelVersion != "2007")
             {
                 var realbook = workbook as HSSFWorkbook;
@@ -154,13 +168,13 @@ namespace mooSQL.excel
                     realbook.DocumentSummaryInformation = dsi;
 
                     SummaryInformation si = PropertySetFactory.CreateSummaryInformation();
-                    si.Author = tar.Author; //Ìî¼ÓxlsÎÄ¼þ×÷ÕßÐÅÏ¢
-                    si.ApplicationName = tar.ApplicationName; //Ìî¼ÓxlsÎÄ¼þ´´½¨³ÌÐòÐÅÏ¢
-                    si.LastAuthor = tar.LastAuthor; //Ìî¼ÓxlsÎÄ¼þ×îºó±£´æÕßÐÅÏ¢
-                    si.Comments = tar.AuthorInfo; //Ìî¼ÓxlsÎÄ¼þ×÷ÕßÐÅÏ¢
-                    si.Title = tar.Title; //Ìî¼ÓxlsÎÄ¼þ±êÌâÐÅÏ¢
+                    si.Author = tar.Author; //ï¿½ï¿½ï¿½xlsï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+                    si.ApplicationName = tar.ApplicationName; //ï¿½ï¿½ï¿½xlsï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+                    si.LastAuthor = tar.LastAuthor; //ï¿½ï¿½ï¿½xlsï¿½Ä¼ï¿½ï¿½ï¿½ó±£´ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+                    si.Comments = tar.AuthorInfo; //ï¿½ï¿½ï¿½xlsï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+                    si.Title = tar.Title; //ï¿½ï¿½ï¿½xlsï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 
-                    si.Subject = tar.Theme;//Ìî¼ÓÎÄ¼þÖ÷ÌâÐÅÏ¢
+                    si.Subject = tar.Theme;//ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
                     si.CreateDateTime = DateTime.Now;
                     realbook.SummaryInformation = si;
                     workbook = realbook;
@@ -182,7 +196,7 @@ namespace mooSQL.excel
             int rowIndex = 0;
             foreach (DataRow row in dtSource.Rows)
             {
-                #region ÐÂ½¨±í£¬Ìî³ä±íÍ·£¬Ìî³äÁÐÍ·£¬ÑùÊ½
+                #region ï¿½Â½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ê½
                 if ((rowIndex == 65535 && tar.excelVersion != "2007") || rowIndex == 0)
                 {
                     if (rowIndex != 0)
@@ -191,7 +205,7 @@ namespace mooSQL.excel
                         rowIndex = 0;
                     }
 
-                    #region ±íÍ·¼°ÑùÊ½
+                    #region ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ê½
                     if (tar.hasTitle)
                     {
                         var headerRow = sheet.CreateRow(rowIndex);
@@ -206,7 +220,7 @@ namespace mooSQL.excel
                     #endregion
 
 
-                    #region ÁÐÍ·¼°ÑùÊ½
+                    #region ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ê½
                     {
                         var headerRow = sheet.CreateRow(rowIndex);
                         headerRow.HeightInPoints = tar.colnameHeight;
@@ -217,7 +231,7 @@ namespace mooSQL.excel
                             cell.SetCellValue(col.caption);
                             cell.CellStyle = tar.colNameStyle;
 
-                            //ÉèÖÃÁÐ¿í
+                            //ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿ï¿½
                             int widtd = 250;
                             if (col.width < widtd)
                             {
@@ -239,7 +253,7 @@ namespace mooSQL.excel
                 #endregion
 
 
-                #region Ìî³äÄÚÈÝ
+                #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 var dataRow = sheet.CreateRow(rowIndex);
                 dataRow.HeightInPoints = tar.colvalueHeight;
                 //foreach (DataColumn column in dtSource.Columns)
@@ -262,11 +276,11 @@ namespace mooSQL.excel
                     switch (typename)
                     {
                         case "Guid":
-                        case "String"://×Ö·û´®ÀàÐÍ
+                        case "String"://ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                             //newCell.SetCellValue(drValue);
                             newCell.SetCellType(CellType.String);
                             break;
-                        case "DateTime"://ÈÕÆÚÀàÐÍ
+                        case "DateTime"://ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                             DateTime dateV;
                             if (DateTime.TryParse(drValue, out dateV))
                             {
@@ -274,13 +288,13 @@ namespace mooSQL.excel
                             }
                             newCell.CellStyle.DataFormat = format.GetFormat("yyyy-mm-dd");
                             break;
-                        case "Boolean"://²¼¶ûÐÍ
+                        case "Boolean"://ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                             bool boolV = false;
                             bool.TryParse(drValue, out boolV);
                             newCell.SetCellValue(boolV);
                             newCell.SetCellType(CellType.Boolean);
                             break;
-                        case "Int16"://ÕûÐÍ
+                        case "Int16"://ï¿½ï¿½ï¿½ï¿½
                         case "Int32":
                         case "Int64":
                         case "Byte":
@@ -292,7 +306,7 @@ namespace mooSQL.excel
                             //newCell.CellStyle.DataFormat = 0;
                             newCell.SetCellType(CellType.String);
                             break;
-                        case "Decimal"://¸¡µãÐÍ
+                        case "Decimal"://ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                         case "Double":
                             double doubV = 0;
                             double.TryParse(drValue, out doubV);
@@ -301,7 +315,7 @@ namespace mooSQL.excel
                             //newCell.CellStyle.DataFormat = format.GetFormat("0.00");
                             newCell.SetCellType(CellType.String);
                             break;
-                        case "DBNull"://¿ÕÖµ´¦Àí
+                        case "DBNull"://ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
                             newCell.SetCellValue("");
 
                             break;
@@ -320,7 +334,7 @@ namespace mooSQL.excel
          HSSFCellStyle lo_Style = (HSSFCellStyle)lo_workbook.CreateCellStyle();
          lo_Style.DataFormat = HSSFDataFormat.GetBuiltinFormat("@");
 
-         ÁíÍâ¸½ÏÂÔ´ÂëÖÐµÄ×¢ÊÍ²¿·Ö£¬¹ØÓÚHSSFDataFormat²ÎÊýµÄ
+         ï¿½ï¿½ï¿½â¸½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ðµï¿½×¢ï¿½Í²ï¿½ï¿½Ö£ï¿½ï¿½ï¿½ï¿½ï¿½HSSFDataFormatï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
           0, "General"
            1, "0"
@@ -373,19 +387,35 @@ namespace mooSQL.excel
                 ms.AllowClose = true;
 
                 //sheet.Dispose();
-                //workbook.Dispose();//Ò»°ãÖ»ÓÃÐ´ÕâÒ»¸ö¾ÍOKÁË£¬Ëû»á±éÀú²¢ÊÍ·ÅËùÓÐ×ÊÔ´£¬µ«µ±Ç°°æ±¾ÓÐÎÊÌâËùÒÔÖ»ÊÍ·Åsheet
+                //workbook.Dispose();//Ò»ï¿½ï¿½Ö»ï¿½ï¿½Ð´ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½OKï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½æ±¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½Í·ï¿½sheet
                 return ms;
             }
         }
+        /// <summary>
+        /// NpoiMemoryStream
+        /// </summary>
 
         public class NpoiMemoryStream : MemoryStream
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ExcelBuilder"/> class.
+            /// </summary>
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ExcelBuilder"/> class.
+            /// </summary>
             public NpoiMemoryStream()
             {
                 AllowClose = true;
             }
+            /// <summary>
+            /// Gets or sets AllowClose.
+            /// </summary>
 
             public bool AllowClose { get; set; }
+/// <summary>
+/// Close
+/// </summary>
+ 
 
             public override void Close()
             {
@@ -395,10 +425,10 @@ namespace mooSQL.excel
         }
 
 
-        /// <summary>¶ÁÈ¡excel
-        /// Ä¬ÈÏµÚÒ»ÐÐÎª±êÍ·
+        /// <summary>ï¿½ï¿½È¡excel
+        /// Ä¬ï¿½Ïµï¿½Ò»ï¿½ï¿½Îªï¿½ï¿½Í·
         /// </summary>
-        /// <param name="strFileName">excelÎÄµµÂ·¾¶</param>
+        /// <param name="strFileName">excelï¿½Äµï¿½Â·ï¿½ï¿½</param>
         /// <returns></returns>
         public static DataTable Import(string strFileName)
         {

@@ -24,35 +24,68 @@ namespace mooSQL.linq
 	/// </summary>
 	public static partial class LinqExtensions
 	{
+		/// <summary>
+		/// IsSet
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool IsSet(this TableOptions tableOptions) => tableOptions != TableOptions.NotSet;
+		/// <summary>
+		/// IsTemporaryOptionSet
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool IsTemporaryOptionSet(this TableOptions tableOptions) => (tableOptions & TableOptions.IsTemporaryOptionSet) != 0;
+		/// <summary>
+		/// HasCreateIfNotExists
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasCreateIfNotExists(this TableOptions tableOptions) => (tableOptions & TableOptions.CreateIfNotExists) != 0;
+		/// <summary>
+		/// HasDropIfExists
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasDropIfExists(this TableOptions tableOptions) => (tableOptions & TableOptions.DropIfExists) != 0;
+		/// <summary>
+		/// HasIsTemporary
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsTemporary(this TableOptions tableOptions) => (tableOptions & TableOptions.IsTemporary) != 0;
+		/// <summary>
+		/// HasIsLocalTemporaryStructure
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsLocalTemporaryStructure(this TableOptions tableOptions) => (tableOptions & TableOptions.IsLocalTemporaryStructure) != 0;
+		/// <summary>
+		/// HasIsGlobalTemporaryStructure
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsGlobalTemporaryStructure(this TableOptions tableOptions) => (tableOptions & TableOptions.IsGlobalTemporaryStructure) != 0;
+		/// <summary>
+		/// HasIsLocalTemporaryData
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsLocalTemporaryData(this TableOptions tableOptions) => (tableOptions & TableOptions.IsLocalTemporaryData) != 0;
+		/// <summary>
+		/// HasIsGlobalTemporaryData
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsGlobalTemporaryData(this TableOptions tableOptions) => (tableOptions & TableOptions.IsGlobalTemporaryData) != 0;
+		/// <summary>
+		/// HasIsTransactionTemporaryData
+		/// </summary>
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasIsTransactionTemporaryData(this TableOptions tableOptions) => (tableOptions & TableOptions.IsTransactionTemporaryData) != 0;
+		/// <summary>
+		/// Or
+		/// </summary>
 
 		public static TableOptions Or(this TableOptions tableOptions, TableOptions additionalOptions)
 		{
@@ -242,17 +275,6 @@ namespace mooSQL.linq
 			return new Updatable<T>(query);
 		}
 
-		/// <summary>
-		/// Adds update field expression to query.
-		/// </summary>
-		/// <typeparam name="T">Updated record type.</typeparam>
-		/// <typeparam name="TV">Updated field type.</typeparam>
-		/// <param name="source">Source query with records to update.</param>
-		/// <param name="extract">Updated field selector expression.</param>
-		/// <param name="value">Value, assigned to updated field.</param>
-		/// <returns><see cref="IUpdatable{T}"/> query.</returns>
-		
-		
 		//public static IUpdatable<T> Set<T,TV>(
 		//	                 this IQueryable<T>     source,
 		//	                          Expression<Func<T,TV>> extract,

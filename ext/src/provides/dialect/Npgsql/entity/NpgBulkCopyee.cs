@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -23,11 +23,17 @@ namespace mooSQL.data
         {
 
         }
+        /// <summary>
+        /// conn
+        /// </summary>
 
         public NpgsqlConnection conn;
         private readonly string[] _columnNames;
         private NpgsqlBinaryImporter _importer;
         private NpgsqlTransaction _transaction;
+        /// <summary>
+        /// prepareRun
+        /// </summary>
 
         public void prepareRun() {
             if (conn == null) { 
@@ -43,6 +49,9 @@ namespace mooSQL.data
             }
 
         }
+        /// <summary>
+        /// DoRun
+        /// </summary>
 
         protected ulong DoRun(Func<NpgsqlBinaryImporter,ulong> runner)
         {
@@ -78,6 +87,9 @@ namespace mooSQL.data
             }
 
         }
+        /// <summary>
+        /// DoRunAsync
+        /// </summary>
 
         protected async Task<BulkCopyResult> DoRunAsync(CancellationToken token,Func<NpgsqlBinaryImporter,Task< ulong>> runner)
         {
@@ -119,6 +131,10 @@ namespace mooSQL.data
             }
 
         }
+/// <summary>
+/// Dispose
+/// </summary>
+ 
 
         public override void Dispose()
         {
@@ -330,10 +346,11 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 
+        /// 异步将 DataRow 数组批量写入服务器。
         /// </summary>
-        /// <param name="rows"></param>
-        /// <returns></returns>
+        /// <param name="rows">要写入的行。</param>
+        /// <param name="token">取消令牌。</param>
+        /// <returns>批量写入结果。</returns>
         public override async Task<BulkCopyResult> WriteToServerAsync(DataRow[] rows, CancellationToken token)
         {
             if (rows == null)
@@ -376,10 +393,11 @@ namespace mooSQL.data
 
 
         /// <summary>
-        /// 
+        /// 异步将 DataTable 批量写入服务器。
         /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
+        /// <param name="table">要写入的表。</param>
+        /// <param name="token">取消令牌。</param>
+        /// <returns>批量写入结果。</returns>
         public override async Task<BulkCopyResult> WriteToServerAsync(DataTable table, CancellationToken token)
         {
             if (table == null)
@@ -416,10 +434,11 @@ namespace mooSQL.data
             return total;
         }
         /// <summary>
-        /// 
+        /// 异步将 IDataReader 数据批量写入服务器。
         /// </summary>
-        /// <param name="reader"></param>
-        /// <returns></returns>
+        /// <param name="reader">数据读取器。</param>
+        /// <param name="token">取消令牌。</param>
+        /// <returns>批量写入结果。</returns>
         public override async Task<BulkCopyResult> WriteToServerAsync(IDataReader reader, CancellationToken token)
         {
             if (reader == null)

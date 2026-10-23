@@ -53,6 +53,9 @@ namespace mooSQL.linq
 					parameter.IsQueryParameter = false;
 			}
 		}
+		/// <summary>
+		/// StringAggregate
+		/// </summary>
 
 		[Extension(PN.SqlServer2022, "STRING_AGG({source}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
 		[Extension(PN.SqlServer2019, "STRING_AGG({source}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
@@ -84,6 +87,9 @@ namespace mooSQL.linq
 
 			return new AggregateFunctionNotOrderedImpl<string?, string>(query);
 		}
+		/// <summary>
+		/// StringAggregate&lt;T&gt;
+		/// </summary>
 
 		[Extension(PN.SqlServer2022, "STRING_AGG({selector}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
 		[Extension(PN.SqlServer2019, "STRING_AGG({selector}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
@@ -106,6 +112,9 @@ namespace mooSQL.linq
 		{
 			throw new LinqException($"'{nameof(StringAggregate)}' is server-side method.");
 		}
+		/// <summary>
+		/// StringAggregate&lt;T&gt;
+		/// </summary>
 
 		[Extension(PN.SqlServer2022, "STRING_AGG({selector}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
 		[Extension(PN.SqlServer2019, "STRING_AGG({selector}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
@@ -138,6 +147,9 @@ namespace mooSQL.linq
 
 			return new AggregateFunctionNotOrderedImpl<T, string>(query);
 		}
+		/// <summary>
+		/// StringAggregate
+		/// </summary>
 
 		[Extension(PN.SqlServer2022, "STRING_AGG({source}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]
 		[Extension(PN.SqlServer2019, "STRING_AGG({source}, {separator}){_}{aggregation_ordering?}",       IsAggregate = true, ChainPrecedence = 10, BuilderType = typeof(StringAggSql2017Builder))]

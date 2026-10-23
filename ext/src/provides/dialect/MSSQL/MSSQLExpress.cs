@@ -1,4 +1,4 @@
-﻿
+
 using mooSQL.data.builder;
 using mooSQL.utils;
 using System;
@@ -9,8 +9,20 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// MSSQLExpress type.
+    /// </summary>
+    /// <summary>
+    /// MSSQLExpress type.
+    /// </summary>
     public class MSSQLExpress:SQLExpression
     {
+        /// <summary>
+        /// MSSQLExpress type.
+        /// </summary>
+        /// <summary>
+        /// MSSQLExpress type.
+        /// </summary>
         public MSSQLExpress(Dialect dia) : base(dia)
         {
             _paraPrefix = "@";
@@ -21,6 +33,10 @@ namespace mooSQL.data
         /// <inheritdoc/>
         protected override System.Collections.Generic.HashSet<string> GetReservedWords()
             => SqlReservedWords.SqlServer;
+/// <summary>
+/// Quotes an identifier for this dialect.
+/// </summary>
+ 
 
         public override string wrapKeyword(string value)
         {
@@ -38,58 +54,142 @@ namespace mooSQL.data
             var pathLit = "'" + item.jsonPath.Replace("'", "''") + "'";
             return item.field + "=JSON_MODIFY(" + item.field + ", " + pathLit + ", " + item.value + ")";
         }
+/// <summary>
+/// Builds a date-difference expression in Day.
+/// </summary>
+ 
 
         public override string dateDiffDay(string start, string end)
             => $"DATEDIFF(day, {start}, {end})";
+/// <summary>
+/// Builds an is-null-or-whitespace expression.
+/// </summary>
+ 
 
         public override string isNullOrWhiteSpace(string expr)
             => $"({expr} IS NULL OR TRIM({expr}) = N'')";
+/// <summary>
+/// Builds a date-difference expression in Hour.
+/// </summary>
+ 
 
         public override string dateDiffHour(string start, string end)
             => $"DATEDIFF(hour, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Minute.
+/// </summary>
+ 
 
         public override string dateDiffMinute(string start, string end)
             => $"DATEDIFF(minute, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Second.
+/// </summary>
+ 
 
         public override string dateDiffSecond(string start, string end)
             => $"DATEDIFF(second, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Millisecond.
+/// </summary>
+ 
 
         public override string dateDiffMillisecond(string start, string end)
             => $"DATEDIFF(millisecond, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Year.
+/// </summary>
+ 
 
         public override string dateDiffYear(string start, string end)
             => $"DATEDIFF(year, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Month.
+/// </summary>
+ 
 
         public override string dateDiffMonth(string start, string end)
             => $"DATEDIFF(month, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Week.
+/// </summary>
+ 
 
         public override string dateDiffWeek(string start, string end)
             => $"DATEDIFF(week, {start}, {end})";
+/// <summary>
+/// Builds a date-difference expression in Quarter.
+/// </summary>
+ 
 
         public override string dateDiffQuarter(string start, string end)
             => $"DATEDIFF(quarter, {start}, {end})";
 
         static string SqlDatePart(string part, string date) => $"DATEPART({part}, {date})";
+/// <summary>
+/// Builds a date-part expression for Year.
+/// </summary>
+ 
 
         public override string? datePartYear(string date) => SqlDatePart("year", date);
+/// <summary>
+/// Builds a date-part expression for Quarter.
+/// </summary>
+ 
 
         public override string? datePartQuarter(string date) => SqlDatePart("quarter", date);
+/// <summary>
+/// Builds a date-part expression for Month.
+/// </summary>
+ 
 
         public override string? datePartMonth(string date) => SqlDatePart("month", date);
+/// <summary>
+/// Builds a date-part expression for Day.
+/// </summary>
+ 
 
         public override string? datePartDay(string date) => SqlDatePart("day", date);
+/// <summary>
+/// Builds a date-part expression for DayOfYear.
+/// </summary>
+ 
 
         public override string? datePartDayOfYear(string date) => SqlDatePart("dayofyear", date);
+/// <summary>
+/// Builds a date-part expression for Week.
+/// </summary>
+ 
 
         public override string? datePartWeek(string date) => SqlDatePart("week", date);
+/// <summary>
+/// Builds a date-part expression for WeekDay.
+/// </summary>
+ 
 
         public override string? datePartWeekDay(string date) => SqlDatePart("weekday", date);
+/// <summary>
+/// Builds a date-part expression for Hour.
+/// </summary>
+ 
 
         public override string? datePartHour(string date) => SqlDatePart("hour", date);
+/// <summary>
+/// Builds a date-part expression for Minute.
+/// </summary>
+ 
 
         public override string? datePartMinute(string date) => SqlDatePart("minute", date);
+/// <summary>
+/// Builds a date-part expression for Second.
+/// </summary>
+ 
 
         public override string? datePartSecond(string date) => SqlDatePart("second", date);
+/// <summary>
+/// Builds a date-part expression for Millisecond.
+/// </summary>
+ 
 
         public override string? datePartMillisecond(string date) => SqlDatePart("millisecond", date);
 
@@ -121,6 +221,10 @@ namespace mooSQL.data
             }
             return res.ToString();
         }
+/// <summary>
+/// Builds a SELECT statement.
+/// </summary>
+ 
 
         public override string buildSelect(FragSQL frag)
         {
@@ -244,6 +348,10 @@ namespace mooSQL.data
         /*
          * 
          */
+ /// <summary>
+ /// Builds a paged SELECT statement.
+ /// </summary>
+ 
         public override string buildPagedSelect(FragSQL frag)
         {
             if (!HasSkipTakePaging(frag))
@@ -263,6 +371,10 @@ namespace mooSQL.data
 
             return buildPagedByRowNumber(frag);
         }
+/// <summary>
+/// Builds an INSERT statement.
+/// </summary>
+ 
 
         public override string buildInsert(FragSQL frag)
         {
@@ -328,6 +440,10 @@ namespace mooSQL.data
             }
             throw new Exception("SQL语句不完整！无法构造！");
         }
+/// <summary>
+/// Builds an UPDATE FROM statement.
+/// </summary>
+ 
 
         public override string buildUpdateFrom(FragSQL frag)
         {
@@ -340,6 +456,10 @@ namespace mooSQL.data
             }
             return sb.ToString() ;
         }
+/// <summary>
+/// Builds a MERGE INTO statement.
+/// </summary>
+ 
 
         public override string buildMergeInto(FragMergeInto frag)
         {
@@ -363,6 +483,10 @@ namespace mooSQL.data
             }
             return "dbo";
         }
+ /// <summary>
+ /// Builds a primary-key constraint fragment.
+ /// </summary>
+ 
         protected override string buildConstrainPK(string pkname, string fields)
         {
             return string.Format("CONSTRAINT {0} PRIMARY KEY ({1})",pkname,fields);
@@ -408,33 +532,61 @@ namespace mooSQL.data
         {
             return string.Format("SELECT * INTO {0} FROM {1} WHERE 1=2", frag.Table, frag.SrcTable);
         }
+/// <summary>
+/// Builds a copy-table statement.
+/// </summary>
+ 
 
         public override string buildCopyTable(DDLFragSQL frag)
         {
             return string.Format("SELECT * INTO {0} FROM {1}", frag.Table, frag.SrcTable);
         }
+ /// <summary>
+ /// Builds a DROP INDEX statement.
+ /// </summary>
+ 
         public override string buildDropIndex(string indexName, string tableName = null)
         {
             return string.Format("DROP INDEX {0}.{1}", tableName, indexName);
         }
+/// <summary>
+/// Returns SQL for retrieving an auto-generated identity value.
+/// </summary>
+ 
 
         public override string getTableAutoIdSQL()
         {
             return "IDENTITY(1,1)";
         }
+ /// <summary>
+ /// Builds a CREATE DATABASE statement.
+ /// </summary>
+ 
         public override string CreateDataBaseBy(string database){ 
             return string.Format("CREATE DATABASE {0}  ",database);
         }
+ /// <summary>
+ /// Builds an ADD PRIMARY KEY statement.
+ /// </summary>
+ 
         public override string AddPrimaryKeyBy(string tableName, string columnName,string indexName) {
             return string.Format("ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY({2})"
                 ,tableName,indexName,columnName);
         }
+ /// <summary>
+ /// Builds an ADD COLUMN statement.
+ /// </summary>
+ 
         public override string AddColumnToTableBy(string tableName, string columnName,string dataType,string defval,string nullable,string p2,string p3){
             return string.Format("ALTER TABLE {0} ADD {1} {2}{3} {4} {5} {6}",
                 tableName,columnName,dataType,
                 defval,nullable,p2,p3
                 );
         }
+ /// <summary>
+ /// Builds an ALTER COLUMN statement.
+ /// </summary>
+ 
         public override string AlterColumnToTableby(string tableName, string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("ALTER TABLE {0} ALTER COLUMN {1} {2}{3} {4} {5} {6}",
@@ -442,9 +594,17 @@ namespace mooSQL.data
                 defval, nullable, p2, p3
                 );
         }
+ /// <summary>
+ /// Builds a CREATE TABLE statement.
+ /// </summary>
+ 
         public override string CreateTableBy(string tableName,string detail){
             return string.Format("CREATE TABLE {0}({1})",tableName,detail);
         }
+ /// <summary>
+ /// Builds a CREATE TABLE column definition.
+ /// </summary>
+ 
         public override string CreateTableColumnBy(string columnName, string dataType, string defval, string nullable, string p2, string p3)
         {
             return string.Format("{0} {1}{2} {3} {4} {5}",
@@ -455,46 +615,90 @@ namespace mooSQL.data
         //protected override string TruncateTableSql(){ "TRUNCATE TABLE {0}";
 
         //protected override string DropTableSql(){ "DROP TABLE {0}";
+/// <summary>
+/// Builds a DROP COLUMN statement.
+/// </summary>
+ 
 
         public override string DropColumnToTableBy(string tableName, string columnName){
             return string.Format("ALTER TABLE {0} DROP COLUMN {1}",tableName,columnName);
         }
+ /// <summary>
+ /// Builds a DROP CONSTRAINT statement.
+ /// </summary>
+ 
         public override string DropConstraintBy(string tableName, string constraintName){
             return string.Format("ALTER TABLE {0} DROP CONSTRAINT  {1}",tableName,constraintName);
         }
+ /// <summary>
+ /// Builds a RENAME COLUMN statement.
+ /// </summary>
+ 
         public override string RenameColumnBy(string tableName,string oldName,string newName){
             return string.Format("exec sp_rename '{0}.{1}','{2}','column'",tableName,oldName,newName);
         }
+ /// <summary>
+ /// Builds SQL to add a column caption/comment.
+ /// </summary>
+ 
         public override string AddColumnCaptionBy(string tableName, string columnName,string caption){
             return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{2}', N'user', N'dbo', N'table', N'{1}', N'column', N'{0}'",
                 columnName,tableName,caption
                 );
         }
+ /// <summary>
+ /// Builds SQL to update a column caption/comment.
+ /// </summary>
+ 
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{2}', N'user', N'dbo', N'table', N'{1}', N'column', N'{0}'",
                 columnName, tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to delete a column caption/comment.
+ /// </summary>
+ 
         public override string DeleteColumnCaptionBy(string tableName, string columnName){
             return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{1}','column','{0}'",
                 columnName,tableName
                 );
         }
+ /// <summary>
+ /// Builds SQL that checks whether a column caption exists.
+ /// </summary>
+ 
         public override string IsAnyColumnCaptionBy(string columnName, string tableName){
             return string.Format("SELECT A.name AS table_name, B.name AS column_name, C.value AS column_description FROM sys.tables A LEFT JOIN sys.extended_properties C ON C.major_id = A.object_id LEFT JOIN sys.columns B ON B.object_id = A.object_id AND C.minor_id = B.column_id INNER JOIN sys.schemas SC ON SC.schema_id = A.schema_id AND SC.name = 'dbo' WHERE A.name = '{1}' AND b.name = '{0}'",
                 columnName,tableName
                 );
         }
+ /// <summary>
+ /// Builds SQL to add a table caption/comment.
+ /// </summary>
+ 
         public override string AddTableCaptionBy(string tableName, string caption){
             return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL",tableName,caption);
         }
+ /// <summary>
+ /// Builds SQL to update a table caption/comment.
+ /// </summary>
+ 
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
             return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL", tableName, caption);
         }
+ /// <summary>
+ /// Builds SQL to delete a table caption/comment.
+ /// </summary>
+ 
         public override string DeleteTableCaptionBy(string tableName){
             return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{0}' ",tableName);
         }
+ /// <summary>
+ /// Builds SQL that checks whether a table caption exists.
+ /// </summary>
+ 
         public override string IsAnyTableCaptionBy(string tableName){
             return string.Format("SELECT C.class_desc" +
                 " FROM sys.tables A " +
@@ -502,38 +706,78 @@ namespace mooSQL.data
                 "INNER JOIN sys.schemas SC ON  SC.schema_id=A.schema_id AND SC.name='dbo'" +
                 " WHERE A.name = '{0}'  AND minor_id=0",tableName);
         }
+ /// <summary>
+ /// Builds a RENAME TABLE statement.
+ /// </summary>
+ 
         public override string RenameTableBy(string oldTableName, string newTableName){
             return string.Format("EXEC sp_rename '{0}','{1}'",oldTableName,newTableName);
         }
+ /// <summary>
+ /// Builds a CREATE INDEX statement.
+ /// </summary>
+ 
         public override string CreateIndexBy(string indexName,string tableName,string columnName, string unique){
             return string.Format("CREATE {3} NONCLUSTERED INDEX Index_{0}_{2} ON {0}({1})",tableName,columnName,indexName,unique);
         }
+ /// <summary>
+ /// Builds SQL that checks whether an index exists.
+ /// </summary>
+ 
         public override string IsAnyIndexBy(string indexName){
             return string.Format("SELECT COUNT(*) FROM sys.indexes WHERE name='{0}'",indexName);
         }
+ /// <summary>
+ /// Builds SQL to check system-table permissions.
+ /// </summary>
+ 
         public override string CheckSystemTablePermissionsBy(){
             return "SELECT TOP 1 id FROM sysobjects";
         }
+ /// <summary>
+ /// Returns the NULL column qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTableNullBy(){
             return "NULL";
         }
+ /// <summary>
+ /// Returns the NOT NULL column qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTableNotNullBy(){ 
             return "NOT NULL";
         }
+ /// <summary>
+ /// Returns the PRIMARY KEY qualifier for CREATE TABLE.
+ /// </summary>
+ 
         public override string CreateTablePirmaryKeyBy(){ 
             return "PRIMARY KEY";
         }
         #endregion
 
         #region 字段类型
+ /// <summary>
+ /// Returns the dialect-specific DateTime column type.
+ /// </summary>
+ 
         public override string getDateTimeColumnType(int length)
         {
             return "DATETIME";
         }
+ /// <summary>
+ /// Returns the dialect-specific Boolean column type.
+ /// </summary>
+ 
         public override string getBoolColumnType()
         {
             return "BIT";
         }
+ /// <summary>
+ /// Returns the dialect-specific GUID column type.
+ /// </summary>
+ 
         public override string getGuidColumnType()
         {
             return "UNIQUEIDENTIFIER";

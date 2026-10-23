@@ -154,10 +154,12 @@ namespace mooSQL.linq.builder
 		#region SubQueryToSql
 
 		/// <summary>
-		/// Checks that provider can handle limitation inside subquery. This function is tightly coupled with <see cref="SentenceOptimizerVisitor.OptimizeApply"/>
+		/// 检查提供程序能否处理子查询中的限制；与 <see cref="SentenceOptimizerVisitor.OptimizeApply"/> 紧密相关。
 		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
+		/// <param name="parent">父级子句上下文。</param>
+		/// <param name="context">当前子句上下文。</param>
+		/// <param name="errorMessage">不支持时的错误信息。</param>
+		/// <returns>是否支持该子查询。</returns>
 		public bool IsSupportedSubquery(IClauseContext parent, IClauseContext context, out string? errorMessage)
 		{
 			errorMessage = null;

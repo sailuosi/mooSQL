@@ -6,6 +6,12 @@ namespace mooSQL.data
     /// </summary>
     public class KingBaseExpress : NpgsqlExpress
     {
+        /// <summary>
+        /// KingBaseExpress type.
+        /// </summary>
+        /// <summary>
+        /// KingBaseExpress type.
+        /// </summary>
         public KingBaseExpress(Dialect dia) : base(dia)
         {
             _provideType = "Kdbndp.KdbndpFactory,Kdbndp";

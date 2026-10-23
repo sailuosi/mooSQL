@@ -12,25 +12,55 @@ namespace mooSQL.data
     /// <summary>PostgreSQL 产品方言：stock Npgsql + COPY BINARY Bulk。</summary>
     public class NpgsqlDialect : PgFamilyDialect
     {
+        /// <summary>
+        /// NpgsqlDialect type.
+        /// </summary>
+        /// <summary>
+        /// NpgsqlDialect type.
+        /// </summary>
         public NpgsqlDialect()
         {
             initVersions();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
             => new NpgsqlCommandBuilder();
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
             => new NpgsqlCommand();
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
             => new NpgsqlConnection(db.DBConnectStr);
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
             => new NpgsqlDataAdapter();
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
             => new NpgBulkCopyee(this.dbInstance);
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -53,6 +83,10 @@ namespace mooSQL.data
             }
             return null;
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {

@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP
+#if NETCOREAPP
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -14,12 +14,18 @@ using System.Collections.Immutable;
 
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// RecordData type.
+    /// </summary>
 
     public partial class RecordSettings
     {
         private readonly SortedDictionary<string, string> _defaultTags = new SortedDictionary<string, string>(StringComparer.Ordinal);
 
         private static Regex EnvVariableRegex = new Regex("^(\\${env.)(?<Value>.+)(})$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.RightToLeft | RegexOptions.CultureInvariant);
+        /// <summary>
+        /// AddDefaultTag
+        /// </summary>
 
 
         public RecordSettings AddDefaultTag(string key, string expression)
@@ -60,20 +66,47 @@ namespace mooSQL.data.taos
 
 
     }
+    /// <summary>
+    /// RecordData enum.
+    /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TimePrecision
     {
+        /// <summary>
+        /// Ms
+        /// </summary>
         [EnumMember(Value = "ms")]
         Ms = 1,
+        /// <summary>
+        /// S
+        /// </summary>
         [EnumMember(Value = "s")]
         S,
+        /// <summary>
+        /// Us
+        /// </summary>
         [EnumMember(Value = "us")]
         Us,
+        /// <summary>
+        /// Ns
+        /// </summary>
         [EnumMember(Value = "ns")]
         Ns
     }
+    /// <summary>
+    /// RecordData type.
+    /// </summary>
+    /// <summary>
+    /// RecordData type.
+    /// </summary>
     public class RecordData : IEquatable<RecordData>
     {
+        /// <summary>
+        /// Builds SQL for Builder.
+        /// </summary>
+        /// <summary>
+        /// Builds SQL for Builder.
+        /// </summary>
         public sealed class Builder
         {
             private readonly string _tableName;
@@ -92,11 +125,17 @@ namespace mooSQL.data.taos
                 _tableName = tableName;
                 _precision = TimePrecision.Ns;
             }
+            /// <summary>
+            /// table
+            /// </summary>
 
             public static Builder table(string tableName)
             {
                 return new Builder(tableName);
             }
+            /// <summary>
+            /// Tag
+            /// </summary>
 
             public Builder Tag(string name, string value)
             {
@@ -119,56 +158,89 @@ namespace mooSQL.data.taos
 
                 return this;
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, byte value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, float value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, double value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, decimal value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, long value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, ulong value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, uint value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, string value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, bool value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Field
+            /// </summary>
 
             public Builder Field(string name, object value)
             {
                 return PutField(name, value);
             }
+            /// <summary>
+            /// Timestamp
+            /// </summary>
 
             public Builder Timestamp(long timestamp, TimePrecision timeUnit)
             {
@@ -176,6 +248,9 @@ namespace mooSQL.data.taos
                 _time = timestamp;
                 return this;
             }
+            /// <summary>
+            /// Timestamp
+            /// </summary>
 
             public Builder Timestamp(TimeSpan timestamp, TimePrecision timeUnit)
             {
@@ -183,23 +258,35 @@ namespace mooSQL.data.taos
                 _precision = timeUnit;
                 return this;
             }
+            /// <summary>
+            /// Timestamp
+            /// </summary>
 
             public Builder Timestamp(DateTime timestamp, TimePrecision timeUnit)
             {
                 TimeSpan timestamp2 = timestamp.Subtract(EpochStart);
                 return Timestamp(timestamp2, timeUnit);
             }
+            /// <summary>
+            /// Timestamp
+            /// </summary>
 
             public Builder Timestamp(DateTimeOffset timestamp, TimePrecision timeUnit)
             {
                 return Timestamp(timestamp.UtcDateTime, timeUnit);
             }
+            /// <summary>
+            /// HasFields
+            /// </summary>
 
 
             public bool HasFields()
             {
                 return _fields.Count > 0;
             }
+            /// <summary>
+            /// ToPointData
+            /// </summary>
 
             public RecordData ToPointData()
             {
@@ -221,6 +308,9 @@ namespace mooSQL.data.taos
         private readonly ImmutableSortedDictionary<string, string> _tags = ImmutableSortedDictionary<string, string>.Empty;
 
         private readonly ImmutableSortedDictionary<string, object> _fields = ImmutableSortedDictionary<string, object>.Empty;
+        /// <summary>
+        /// Precision
+        /// </summary>
 
         public readonly TimePrecision Precision;
 
@@ -232,6 +322,9 @@ namespace mooSQL.data.taos
             _tableName = tableName;
             Precision = TimePrecision.Ns;
         }
+        /// <summary>
+        /// table
+        /// </summary>
 
         public static RecordData table(string tableName)
         {
@@ -246,6 +339,9 @@ namespace mooSQL.data.taos
             _tags = tags;
             _fields = fields;
         }
+        /// <summary>
+        /// Tag
+        /// </summary>
 
         public RecordData Tag(string name, string value)
         {
@@ -274,67 +370,106 @@ namespace mooSQL.data.taos
 
             return new RecordData(_tableName, Precision, _time, immutableSortedDictionary, _fields);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, byte value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, float value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, double value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, decimal value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, long value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, ulong value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, uint value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, string value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, bool value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Field
+        /// </summary>
 
         public RecordData Field(string name, object value)
         {
             return PutField(name, value);
         }
+        /// <summary>
+        /// Timestamp
+        /// </summary>
 
         public RecordData Timestamp(long timestamp, TimePrecision timeUnit)
         {
             return new RecordData(_tableName, timeUnit, timestamp, _tags, _fields);
         }
+        /// <summary>
+        /// Timestamp
+        /// </summary>
 
         public RecordData Timestamp(TimeSpan timestamp, TimePrecision timeUnit)
         {
             BigInteger value = TimeSpanToBigInteger(timestamp, timeUnit);
             return new RecordData(_tableName, timeUnit, value, _tags, _fields);
         }
+        /// <summary>
+        /// Timestamp
+        /// </summary>
 
         public RecordData Timestamp(DateTime timestamp, TimePrecision timeUnit)
         {
@@ -346,11 +481,17 @@ namespace mooSQL.data.taos
             TimeSpan timestamp2 = timestamp.Subtract(EpochStart);
             return Timestamp(timestamp2, timeUnit);
         }
+        /// <summary>
+        /// Timestamp
+        /// </summary>
 
         public RecordData Timestamp(DateTimeOffset timestamp, TimePrecision timeUnit)
         {
             return Timestamp(timestamp.UtcDateTime, timeUnit);
         }
+        /// <summary>
+        /// HasFields
+        /// </summary>
 
    
 
@@ -358,6 +499,9 @@ namespace mooSQL.data.taos
         {
             return _fields.Count > 0;
         }
+        /// <summary>
+        /// ToLineProtocol
+        /// </summary>
 
         public string ToLineProtocol(RecordSettings pointSettings = null)
         {
@@ -621,11 +765,18 @@ namespace mooSQL.data.taos
             }
             return result;
         }
+/// <summary>
+/// Equals
+/// </summary>
+ 
 
         public override bool Equals(object obj)
         {
             return Equals(obj as RecordData);
         }
+        /// <summary>
+        /// Equals
+        /// </summary>
 
         public bool Equals(RecordData other)
         {
@@ -654,6 +805,10 @@ namespace mooSQL.data.taos
 
             return false;
         }
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+ 
 
         public override int GetHashCode()
         {
@@ -677,11 +832,17 @@ namespace mooSQL.data.taos
 
             return num;
         }
+        /// <summary>
+        /// operator ==
+        /// </summary>
 
         public static bool operator ==(RecordData left, RecordData right)
         {
             return EqualityComparer<RecordData>.Default.Equals(left, right);
         }
+        /// <summary>
+        /// operator !=
+        /// </summary>
 
         public static bool operator !=(RecordData left, RecordData right)
         {

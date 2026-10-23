@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,19 +9,40 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data.taos
 {
+    /// <summary>
+    /// ConcurrentTaosQueue type.
+    /// </summary>
+    /// <summary>
+    /// ConcurrentTaosQueue type.
+    /// </summary>
     public class ConcurrentTaosQueue
     {
+        /// <summary>
+        /// TaosQueue
+        /// </summary>
+        /// <summary>
+        /// Gets or sets TaosQueue.
+        /// </summary>
         public ConcurrentQueue<IntPtr> TaosQueue { get; }
+        /// <summary>
+        /// ConcurrentTaosQueue type.
+        /// </summary>
 
         public ConcurrentTaosQueue(List<IntPtr> clients)
         {
             TaosQueue = new ConcurrentQueue<IntPtr>(clients);
         }
+        /// <summary>
+        /// ConcurrentTaosQueue type.
+        /// </summary>
 
         public ConcurrentTaosQueue()
         {
             TaosQueue = new ConcurrentQueue<IntPtr>();
         }
+        /// <summary>
+        /// Return
+        /// </summary>
 
         public void Return(IntPtr client)
         {
@@ -33,6 +54,12 @@ namespace mooSQL.data.taos
             Thread.Sleep(0);
         }
         int _ref = 0;
+        /// <summary>
+        /// AddRef
+        /// </summary>
+        /// <summary>
+        /// AddRef
+        /// </summary>
         public void AddRef()
         {
             lock (this)
@@ -40,10 +67,22 @@ namespace mooSQL.data.taos
                 _ref++;
             }
         }
+        /// <summary>
+        /// Gets GetRef.
+        /// </summary>
+        /// <summary>
+        /// Gets GetRef.
+        /// </summary>
         public int GetRef()
         {
             return _ref;
         }
+        /// <summary>
+        /// RemoveRef
+        /// </summary>
+        /// <summary>
+        /// RemoveRef
+        /// </summary>
         public void RemoveRef()
         {
             lock (this)
@@ -51,7 +90,19 @@ namespace mooSQL.data.taos
                 _ref--;
             }
         }
+        /// <summary>
+        /// Timeout
+        /// </summary>
+        /// <summary>
+        /// Gets or sets Timeout.
+        /// </summary>
         public int Timeout { get; set; }
+        /// <summary>
+        /// Take
+        /// </summary>
+        /// <summary>
+        /// Take
+        /// </summary>
         public IntPtr Take()
         {
             IntPtr client = IntPtr.Zero;

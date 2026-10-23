@@ -13,6 +13,12 @@ namespace mooSQL.data
     /// </summary>
     public class KingBaseDialect : PgFamilyDialect
     {
+        /// <summary>
+        /// KingBaseDialect type.
+        /// </summary>
+        /// <summary>
+        /// KingBaseDialect type.
+        /// </summary>
         public KingBaseDialect()
         {
             expression = new KingBaseExpress(this);
@@ -21,18 +27,38 @@ namespace mooSQL.data
             mapping = new KingBaseMappingPanel();
             function = new KingBaseSQLFunction();
         }
+/// <summary>
+/// Creates a command builder for this dialect.
+/// </summary>
+ 
 
         public override DbCommandBuilder getCmdBuilder()
             => new KdbndpCommandBuilder();
+/// <summary>
+/// Creates a new database command for this dialect.
+/// </summary>
+ 
 
         public override DbCommand getCommand()
             => new KdbndpCommand();
+/// <summary>
+/// Creates a new database connection for this dialect.
+/// </summary>
+ 
 
         public override DbConnection getConnection()
             => new KdbndpConnection(db.DBConnectStr);
+/// <summary>
+/// Creates a data adapter for this dialect.
+/// </summary>
+ 
 
         public override DbDataAdapter getDataAdapter()
             => new KdbndpDataAdapter();
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, Parameter para)
         {
@@ -43,6 +69,10 @@ namespace mooSQL.data
             }
             return null;
         }
+/// <summary>
+/// Adds a parameter to the command.
+/// </summary>
+ 
 
         public override DbParameter AddCmdPara(DbCommand cmd, string parameterName, Type type, int size, string sourceColumn)
         {

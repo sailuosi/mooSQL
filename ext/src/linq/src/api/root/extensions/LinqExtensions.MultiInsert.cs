@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 namespace mooSQL.linq
 {
 	using Methods = mooSQL.linq.utils.Methods.SooQuery.MultiInsert;
+	/// <summary>
+	/// LinqExtensions.MultiInsert type.
+	/// </summary>
 
 	public static class MultiInsertExtensions
 	{
@@ -271,17 +274,29 @@ namespace mooSQL.linq
 		#endregion
 
 		#region Fluent state
+		/// <summary>
+		/// IMultiInsertSource&lt;TSource&gt;
+		/// </summary>
 
 		public interface IMultiInsertSource<TSource>
 			: IMultiInsertInto<TSource>
 			, IMultiInsertWhen<TSource>
 		{ }
+		/// <summary>
+		/// IMultiInsertInto&lt;TSource&gt;
+		/// </summary>
 
 		public interface IMultiInsertInto<TSource>
 		{ }
+		/// <summary>
+		/// IMultiInsertWhen&lt;TSource&gt;
+		/// </summary>
 
 		public interface IMultiInsertWhen<TSource> : IMultiInsertElse<TSource>
 		{ }
+		/// <summary>
+		/// IMultiInsertElse&lt;TSource&gt;
+		/// </summary>
 
 		public interface IMultiInsertElse<TSource>
 		{ }

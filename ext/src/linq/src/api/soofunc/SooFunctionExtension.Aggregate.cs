@@ -8,6 +8,9 @@ namespace mooSQL.linq
 {
 	public static partial class SooFunctionExtension
 	{
+		/// <summary>
+		/// OrderBy&lt;T, TR, TKey&gt;
+		/// </summary>
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]
 		[SooFunctionExtension.Extension("ORDER BY {order_item, ', '}",      TokenName = "order_by_clause")]
 		[SooFunctionExtension.Extension("{expr}",                           TokenName = "order_item")]
@@ -26,6 +29,9 @@ namespace mooSQL.linq
 
 			return new SooFunctionExtension.AggregateFunctionNotOrderedImpl<T, TR>(query);
 		}
+		/// <summary>
+		/// OrderBy&lt;T, TR&gt;
+		/// </summary>
 
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]
 		[SooFunctionExtension.Extension("ORDER BY {order_item, ', '}",      TokenName = "order_by_clause")]
@@ -43,6 +49,9 @@ namespace mooSQL.linq
 
 			return new SooFunctionExtension.AggregateFunctionNotOrderedImpl<T, TR>(query);
 		}
+		/// <summary>
+		/// OrderByDescending&lt;T, TR, TKey&gt;
+		/// </summary>
 
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]
 		[SooFunctionExtension.Extension("ORDER BY {order_item, ', '}",      TokenName = "order_by_clause")]
@@ -62,6 +71,9 @@ namespace mooSQL.linq
 
 			return new SooFunctionExtension.AggregateFunctionNotOrderedImpl<T, TR>(query);
 		}
+		/// <summary>
+		/// OrderByDescending&lt;T, TR&gt;
+		/// </summary>
 
 		[SooFunctionExtension.Extension("WITHIN GROUP ({order_by_clause})", TokenName = "aggregation_ordering", ChainPrecedence = 2)]
 		[SooFunctionExtension.Extension("ORDER BY {order_item, ', '}",      TokenName = "order_by_clause")]
@@ -80,6 +92,9 @@ namespace mooSQL.linq
 
 			return new SooFunctionExtension.AggregateFunctionNotOrderedImpl<T, TR>(query);
 		}
+		/// <summary>
+		/// ThenBy&lt;T, TR, TKey&gt;
+		/// </summary>
 
 		[SooFunctionExtension.Extension("{expr}", TokenName = "order_item")]
 		public static SooFunctionExtension.IAggregateFunctionOrdered<T, TR> ThenBy<T, TR, TKey>(
@@ -97,6 +112,9 @@ namespace mooSQL.linq
 
 			return new SooFunctionExtension.AggregateFunctionNotOrderedImpl<T, TR>(query);
 		}
+		/// <summary>
+		/// ThenByDescending&lt;T, TR, TKey&gt;
+		/// </summary>
 
 		[SooFunctionExtension.Extension("{expr} DESC", TokenName = "order_item")]
 		public static SooFunctionExtension.IAggregateFunctionOrdered<T, TR> ThenByDescending<T, TR, TKey>(
@@ -116,6 +134,9 @@ namespace mooSQL.linq
 		}
 
 		// For Oracle we always define at least one ordering by rownum. If ordering defined explicitly, this definition will be replaced.
+		/// <summary>
+		/// ToValue&lt;T, TR&gt;
+		/// </summary>
 		[SooFunctionExtension.Extension(PN.Oracle,       "WITHIN GROUP (ORDER BY ROWNUM)", TokenName = "aggregation_ordering", ChainPrecedence = 0, IsAggregate = true)]
 		[SooFunctionExtension.Extension(PN.OracleNative, "WITHIN GROUP (ORDER BY ROWNUM)", TokenName = "aggregation_ordering", ChainPrecedence = 0, IsAggregate = true)]
 		[SooFunctionExtension.Extension(                  "",                                                                  ChainPrecedence = 0, IsAggregate = true)]
@@ -144,25 +165,49 @@ namespace mooSQL.linq
 
 	public static partial class SooFunctionExtension
 	{
+		/// <summary>
+		/// IAggregateFunction&lt;T, TR&gt;
+		/// </summary>
+		/// <summary>
+		/// IAggregateFunction&lt;T, TR&gt;
+		/// </summary>
 		public interface IAggregateFunction<out T, out TR> : DbFunc.IQueryableContainer
 		{
 
 		}
+		/// <summary>
+		/// IAggregateFunctionNotOrdered&lt;T, TR&gt;
+		/// </summary>
 
 		public interface IAggregateFunctionNotOrdered<out T, out TR> : IAggregateFunction<T, TR>
 		{
 		}
+		/// <summary>
+		/// IAggregateFunctionOrdered&lt;T, TR&gt;
+		/// </summary>
 
 		public interface IAggregateFunctionOrdered<out T, out TR> : IAggregateFunction<T, TR>
 		{
 		}
+		/// <summary>
+		/// AggregateFunctionNotOrderedImpl&lt;T, TR&gt;
+		/// </summary>
 
 		public class AggregateFunctionNotOrderedImpl<T, TR> : IAggregateFunctionNotOrdered<T, TR>, IAggregateFunctionOrdered<T, TR>
 		{
+			/// <summary>
+			/// AggregateFunctionNotOrderedImpl
+			/// </summary>
+			/// <summary>
+			/// AggregateFunctionNotOrderedImpl
+			/// </summary>
 			public AggregateFunctionNotOrderedImpl(IQueryable<TR> query)
 			{
 				Query = query ?? throw new ArgumentNullException(nameof(query));
 			}
+			/// <summary>
+			/// Gets or sets Query.
+			/// </summary>
 
 			public IQueryable Query { get; }
 		}

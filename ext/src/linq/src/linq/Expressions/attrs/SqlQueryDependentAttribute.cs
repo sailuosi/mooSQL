@@ -72,10 +72,11 @@ namespace mooSQL.linq.expressions
 		}
 
 		/// <summary>
-		/// Used for preparation method argument to cached expression value.
+		/// 将方法参数准备为可缓存的表达式值。
 		/// </summary>
-		/// <param name="expression">Expression for caching.</param>
-		/// <returns>Ready to cache expression.</returns>
+		/// <param name="expression">待缓存的表达式。</param>
+		/// <param name="evaluator">表达式求值器。</param>
+		/// <returns>可缓存的表达式。</returns>
 		public virtual Expression PrepareForCache(Expression expression, IExpressionEvaluator evaluator)
 		{
 			if (expression.NodeType == ExpressionType.Constant)

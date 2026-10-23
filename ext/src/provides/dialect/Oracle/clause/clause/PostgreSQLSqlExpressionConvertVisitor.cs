@@ -6,13 +6,33 @@ namespace mooSQL.linq.provider.PostgreSQL
     using mooSQL.utils;
     using mooSQL.linq.provider;
 	using mooSQL.linq.clause;
+	/// <summary>
+	/// PostgreSQLSqlExpressionConvertVisitor type.
+	/// </summary>
+	/// <summary>
+	/// PostgreSQLSqlExpressionConvertVisitor type.
+	/// </summary>
 	public class PostgreSQLSqlExpressionConvertVisitor : SqlExpressionConvertVisitor
 	{
+		/// <summary>
+		/// PostgreSQLSqlExpressionConvertVisitor type.
+		/// </summary>
+		/// <summary>
+		/// PostgreSQLSqlExpressionConvertVisitor type.
+		/// </summary>
 		public PostgreSQLSqlExpressionConvertVisitor(bool allowModify) : base(allowModify)
 		{
 		}
+/// <summary>
+/// SupportsNullInColumn
+/// </summary>
+	
 
 		protected override bool SupportsNullInColumn       => false;
+/// <summary>
+/// ConvertSearchStringPredicate
+/// </summary>
+	
 
 		public override IAffirmWord ConvertSearchStringPredicate(SearchString predicate)
 		{
@@ -25,6 +45,10 @@ namespace mooSQL.linq.provider.PostgreSQL
 
 			return searchPredicate;
 		}
+/// <summary>
+/// ConvertSqlBinaryExpression
+/// </summary>
+	
 
 		public override Clause ConvertSqlBinaryExpression(BinaryWord element)
 		{
@@ -54,6 +78,10 @@ namespace mooSQL.linq.provider.PostgreSQL
 
 			return base.ConvertSqlBinaryExpression(element);
 		}
+/// <summary>
+/// ConvertSqlFunction
+/// </summary>
+	
 
 		public override Clause ConvertSqlFunction(FunctionWord func)
 		{
@@ -84,6 +112,10 @@ namespace mooSQL.linq.provider.PostgreSQL
 			};
             return base.ConvertSqlFunction(func);
         }
+/// <summary>
+/// ConvertConversion
+/// </summary>
+	
 
 		protected override IExpWord ConvertConversion(CastWord cast)
 		{

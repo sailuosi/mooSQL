@@ -6,16 +6,25 @@ namespace mooSQL.linq.clause
 {
 	using mooSQL.linq.utils;
     using mooSQL.data.model;
+    /// <summary>
+    /// ClauseActionVisitorT type.
+    /// </summary>
 
     public class ClauseActionVisitor<TContext> : ClauseVisitor
 	{
 		TContext                        _context     = default!;
 		Action<TContext, ISQLNode> _visitAction = default!;
 		HashSet<ISQLNode>?         _visited;
+		/// <summary>
+		/// ClauseActionVisitor
+		/// </summary>
 
 		public ClauseActionVisitor()
 		{
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
 
 		public ISQLNode Visit(TContext context, ISQLNode root, bool visitAll, Action<TContext, ISQLNode> visitAction)
 		{
@@ -29,6 +38,9 @@ namespace mooSQL.linq.clause
 			}
 			return root;
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
@@ -36,6 +48,10 @@ namespace mooSQL.linq.clause
 			_visited     = null;
 			_context     = default!;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+ 
 
 		[return: NotNullIfNotNull(nameof(element))]
 		[return: NotNullIfNotNull(nameof(element))]

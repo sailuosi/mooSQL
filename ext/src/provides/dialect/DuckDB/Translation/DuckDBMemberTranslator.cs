@@ -8,6 +8,10 @@ namespace mooSQL.data;
 /// <summary>DuckDB MemberTranslator：DatePart/DateAdd 走 Pure <see cref="SQLExpression"/>。</summary>
 public class DuckDBMemberTranslator : DefaultMemberTranslator
 {
+ /// <summary>
+ /// Creates the date/time member translator.
+ /// </summary>
+ 
     protected override IMemberTranslator CreateDateMemberTranslator() => new DateFunctionsTranslator();
 
     sealed class DateFunctionsTranslator : DateFunctionsTranslatorBase

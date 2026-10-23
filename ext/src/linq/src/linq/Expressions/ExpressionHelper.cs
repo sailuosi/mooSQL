@@ -5,6 +5,12 @@ using System.Reflection;
 
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// ExpressionHelper type.
+	/// </summary>
+	/// <summary>
+	/// ExpressionHelper type.
+	/// </summary>
 	public static class ExpressionHelper
 	{
 		/// <summary>

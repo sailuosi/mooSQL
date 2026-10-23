@@ -4,6 +4,12 @@ using mooSQL.linq.utils;
 
 namespace mooSQL.linq
 {
+	/// <summary>
+	/// QueryRunner.Cache type.
+	/// </summary>
+	/// <summary>
+	/// QueryRunner.Cache type.
+	/// </summary>
 	public static partial class QueryRunner
 	{
 		internal static readonly ConcurrentQueue<Action> CacheCleaners = new();

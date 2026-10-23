@@ -21,11 +21,17 @@ namespace mooSQL.linq.utils
 	public readonly struct IdentifierBuilder : IDisposable
 	{
 		readonly ObjectPool<StringBuilder>.RentedElement _sb;
+		/// <summary>
+		/// IdentifierBuilder type.
+		/// </summary>
 
 		public IdentifierBuilder()
 		{
 			_sb = Pools.StringBuilder.Allocate();
 		}
+		/// <summary>
+		/// IdentifierBuilder type.
+		/// </summary>
 
 		public IdentifierBuilder(object? data)
 		{
@@ -46,6 +52,9 @@ namespace mooSQL.linq.utils
 			_identifiers.Clear();
 			_objects.    Clear();
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(IConfigurationID? data)
 		{
@@ -53,6 +62,9 @@ namespace mooSQL.linq.utils
 
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(string? data)
 		{
@@ -62,6 +74,9 @@ namespace mooSQL.linq.utils
 				;
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(bool data)
 		{
@@ -71,6 +86,9 @@ namespace mooSQL.linq.utils
 				;
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(object? data)
 		{
@@ -80,6 +98,9 @@ namespace mooSQL.linq.utils
 				;
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(Delegate? data)
 		{
@@ -87,6 +108,9 @@ namespace mooSQL.linq.utils
 
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(int? data)
 		{
@@ -96,6 +120,9 @@ namespace mooSQL.linq.utils
 				;
 			return this;
 		}
+		/// <summary>
+		/// Add
+		/// </summary>
 
 		public IdentifierBuilder Add(string format, object? data)
 		{
@@ -105,6 +132,9 @@ namespace mooSQL.linq.utils
 				;
 			return this;
 		}
+		/// <summary>
+		/// AddRange
+		/// </summary>
 
 		public IdentifierBuilder AddRange(IEnumerable? items)
 		{
@@ -117,6 +147,9 @@ namespace mooSQL.linq.utils
 			}
 			return this;
 		}
+		/// <summary>
+		/// AddTypes
+		/// </summary>
 
 		public IdentifierBuilder AddTypes(IEnumerable? items)
 		{
@@ -131,6 +164,9 @@ namespace mooSQL.linq.utils
 
 		static          int                              _identifierCounter;
 		static readonly ConcurrentDictionary<string,int> _identifiers = new ();
+		/// <summary>
+		/// Creates CreateID.
+		/// </summary>
 
 		public int CreateID()
 		{
@@ -143,11 +179,17 @@ namespace mooSQL.linq.utils
 
 			return id;
 		}
+		/// <summary>
+		/// Creates CreateNextID.
+		/// </summary>
 
 		public static int CreateNextID() => Interlocked.Increment(ref _identifierCounter);
 
 		static          int                               _typeCounter;
 		static readonly ConcurrentDictionary<Type,string> _types = new ();
+		/// <summary>
+		/// Gets GetObjectID.
+		/// </summary>
 
 		public static string GetObjectID(Type? obj)
 		{
@@ -156,6 +198,9 @@ namespace mooSQL.linq.utils
 
 		static          int                              _expressionCounter;
 		static readonly ConcurrentDictionary<string,int> _expressions = new ();
+		/// <summary>
+		/// Gets GetObjectID.
+		/// </summary>
 
 		public static int GetObjectID(Expression? ex)
 		{
@@ -169,6 +214,9 @@ namespace mooSQL.linq.utils
 
 		static          int                                  _methodCounter;
 		static readonly ConcurrentDictionary<MethodInfo,int> _methods = new ();
+		/// <summary>
+		/// Gets GetObjectID.
+		/// </summary>
 
 		public static string GetObjectID(MethodInfo? m)
 		{
@@ -177,6 +225,9 @@ namespace mooSQL.linq.utils
 
 		static          int                                 _objectCounter;
 		static readonly ConcurrentDictionary<object,string> _objects = new ();
+		/// <summary>
+		/// Gets GetObjectID.
+		/// </summary>
 
 		public static string GetObjectID(object? obj)
 		{
@@ -236,6 +287,9 @@ namespace mooSQL.linq.utils
 
 			return id.ToString(NumberFormatInfo.InvariantInfo);
 		}
+		/// <summary>
+		/// Dispose
+		/// </summary>
 
 		public void Dispose()
 		{

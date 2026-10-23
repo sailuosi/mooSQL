@@ -98,6 +98,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// FieldName&lt;T&gt;
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
@@ -106,6 +109,9 @@ namespace mooSQL.linq
 		{
 			return FieldName(table, fieldExpr, true);
 		}
+		/// <summary>
+		/// FieldName&lt;T&gt;
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
@@ -122,19 +128,64 @@ namespace mooSQL.linq
 
 			return result;
 		}
+		/// <summary>
+		/// TableQualification
+		/// </summary>
 
 		[Flags]
 		public enum TableQualification
 		{
+			/// <summary>
+			/// None
+			/// </summary>
+			/// <summary>
+			/// None
+			/// </summary>
 			None         = 0b00000000,
+			/// <summary>
+			/// TableName
+			/// </summary>
+			/// <summary>
+			/// TableName
+			/// </summary>
 			TableName    = 0b00000001,
+			/// <summary>
+			/// DatabaseName
+			/// </summary>
+			/// <summary>
+			/// DatabaseName
+			/// </summary>
 			DatabaseName = 0b00000010,
+			/// <summary>
+			/// SchemaName
+			/// </summary>
+			/// <summary>
+			/// SchemaName
+			/// </summary>
 			SchemaName   = 0b00000100,
+			/// <summary>
+			/// ServerName
+			/// </summary>
+			/// <summary>
+			/// ServerName
+			/// </summary>
 			ServerName   = 0b00001000,
+			/// <summary>
+			/// TableOptions
+			/// </summary>
+			/// <summary>
+			/// TableOptions
+			/// </summary>
 			TableOptions = 0b00010000,
+			/// <summary>
+			/// Full
+			/// </summary>
 
 			Full         = TableName | DatabaseName | SchemaName | ServerName | TableOptions
 		}
+		/// <summary>
+		/// FieldExpr&lt;T, TV&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
 		public static IExpWord FieldExpr<T, TV>( IDbQuery<T> table, Expression<Func<T, TV>> fieldExpr)
@@ -142,6 +193,9 @@ namespace mooSQL.linq
 		{
 			return FieldExpr(table, fieldExpr, true);
 		}
+		/// <summary>
+		/// FieldExpr&lt;T, TV&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(FieldNameBuilderDirect), ServerSideOnly = true)]
 		public static IExpWord FieldExpr<T, TV>( IDbQuery<T> table, Expression<Func<T, TV>> fieldExpr, bool qualified)
@@ -217,6 +271,9 @@ namespace mooSQL.linq
 				throw new SooQueryException($"Cannot find column for member {entityType.Name}.{memberInfo.Name}");
 			return column;
 		}
+		/// <summary>
+		/// FieldName
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
@@ -224,6 +281,9 @@ namespace mooSQL.linq
 		{
 			throw new SooQueryException("'DbFunc.FieldName' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// FieldName
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
@@ -231,6 +291,9 @@ namespace mooSQL.linq
 		{
 			throw new SooQueryException("'DbFunc.FieldName' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// FieldExpr
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
@@ -238,6 +301,9 @@ namespace mooSQL.linq
 		{
 			throw new SooQueryException("'DbFunc.FieldExpr' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// FieldExpr
+		/// </summary>
 
 		
 		[Extension("", BuilderType = typeof(FieldNameBuilder), ServerSideOnly = true)]
@@ -400,6 +466,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = anchor;
 			}
 		}
+		/// <summary>
+		/// TableField&lt;TEntity, TColumn&gt;
+		/// </summary>
 
 		[ExpressionMethod(nameof(TableFieldIml))]
 		public static TColumn TableField<TEntity, TColumn>( TEntity entity, string fieldName)
@@ -423,6 +492,9 @@ namespace mooSQL.linq
 		{
 			throw new SooQueryException("'DbFunc.TableAsField' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// TableName&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
 		public static string TableName<T>( IDbQuery<T> table)
@@ -430,6 +502,9 @@ namespace mooSQL.linq
 		{
 			return TableName(table, TableQualification.Full);
 		}
+		/// <summary>
+		/// TableName&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
 		public static string TableName<T>( IDbQuery<T> table, [SqlQueryDependent] TableQualification qualification)
@@ -456,18 +531,27 @@ namespace mooSQL.linq
 
 			return result;
 		}
+		/// <summary>
+		/// TableName
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static string TableName(object tableExpr)
 		{
 			throw new SooQueryException("'DbFunc.TableName' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// TableName
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static string TableName(object tableExpr, [SqlQueryDependent] TableQualification qualification)
 		{
 			throw new SooQueryException("'DbFunc.TableName' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// TableExpr&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
 		public static IExpWord TableExpr<T>( IDbQuery<T> table)
@@ -475,6 +559,9 @@ namespace mooSQL.linq
 		{
 			return TableExpr(table, TableQualification.Full);
 		}
+		/// <summary>
+		/// TableExpr&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilderDirect))]
 		public static IExpWord TableExpr<T>( IDbQuery<T> table, [SqlQueryDependent] TableQualification qualification)
@@ -502,12 +589,18 @@ namespace mooSQL.linq
 
 			return new ExpressionWord(name, PrecedenceLv.Primary);
 		}
+		/// <summary>
+		/// TableExpr
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static IExpWord TableExpr(object tableExpr)
 		{
 			throw new SooQueryException("'DbFunc.TableExpr' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// TableExpr
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(TableNameBuilder), ServerSideOnly = true)]
 		public static IExpWord TableExpr(object tableExpr, [SqlQueryDependent] TableQualification qualification)
@@ -524,15 +617,14 @@ namespace mooSQL.linq
 		}
 
 		/// <summary>
-		/// Useful for specifying place of alias when using <see ="DataExtensions.FromSql{TEntity}(IDataContext, RawSqlString, object?[])"/> method.
+		/// 在 FromSql 中指定别名占位位置。
 		/// </summary>
 		/// <remarks>
-		///		If <see ="DataExtensions.FromSql{TEntity}(IDataContext, RawSqlString, object?[])"/> contains at least one <see cref="AliasExpr"/>,
-		///		automatic alias for the query will be not generated.
+		/// 若 FromSql 中至少包含一个 <see cref="AliasExpr"/>，则不会自动生成查询别名。
 		/// </remarks>
-		/// <returns>ISqlExpression which is Alias Placeholder.</returns>
+		/// <returns>别名占位的 SQL 表达式。</returns>
 		/// <example>
-		/// The following <see ="DataExtensions.FromSql{TEntity}(IDataContext, RawSqlString, object?[])"/> calls are equivalent.
+		/// 以下 FromSql 调用等价：
 		/// <code>
 		/// db.FromSql&lt;int&gt;($"select 1 as value from TableA {DbFunc.AliasExpr()}")
 		/// db.FromSql&lt;int&gt;($"select 1 as value from TableA")
@@ -568,6 +660,9 @@ namespace mooSQL.linq
 				}
 			}
 		}
+		/// <summary>
+		/// Expr&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(ExprBuilder), ServerSideOnly = true)]
 		
@@ -575,6 +670,9 @@ namespace mooSQL.linq
 		{
 			throw new SooQueryException("'DbFunc.Expr' is server side only method and used only for generating custom SQL parts");
 		}
+		/// <summary>
+		/// Expr&lt;T&gt;
+		/// </summary>
 
 		[Extension("", BuilderType = typeof(ExprBuilder), ServerSideOnly = true)]
 		

@@ -11,6 +11,9 @@ namespace mooSQL.data
     /// </summary>
     public class TaosSentence : SQLSentence
     {
+        /// <summary>
+        /// TaosSentence type.
+        /// </summary>
 
         public TaosSentence(Dialect dia) : base(dia) { 
         
@@ -39,6 +42,10 @@ namespace mooSQL.data
         public override string GetTableInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Comment from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database())  AND TABLE_TYPE='BASE TABLE'";
         /// <inheritdoc/>
         public override string GetViewInfoListSql => "select TABLE_NAME as Name,TABLE_COMMENT as Description from information_schema.tables\r\n                         where  TABLE_SCHEMA=(select database()) AND TABLE_TYPE='VIEW'\r\n                         ";
+/// <summary>
+/// Loads all tables matching the given options.
+/// </summary>
+ 
 
         public override List<DbTableInfo> GetDbTableListAll(GetDbTableListOptions options = null)
         {
@@ -65,12 +72,20 @@ namespace mooSQL.data
 
             return FinalizeDbTableListAll(kit.query<DbTableInfo>().ToList(), options);
         }
+/// <summary>
+/// Returns the current database name.
+/// </summary>
+ 
 
         protected override string GetCurrentDatabaseName()
         {
             try { return DBLive.ExeQueryScalar<string>("SELECT DATABASE()", null); }
             catch { return null; }
         }
+/// <summary>
+/// Loads schemas matching the given options.
+/// </summary>
+ 
 
         public override List<DbSchemaInfo> GetDbSchemaList(GetDbSchemaListOptions options = null)
         {
@@ -89,6 +104,10 @@ namespace mooSQL.data
                     && string.Equals(s.Name, current, StringComparison.OrdinalIgnoreCase);
             return list;
         }
+/// <summary>
+/// Returns whether the specified object is a view.
+/// </summary>
+ 
 
         public override bool? IsView(string tabelOrViewName, string dbName = null)
         {
@@ -105,6 +124,10 @@ namespace mooSQL.data
             if (string.IsNullOrEmpty(t)) return false;
             return string.Equals(t, "VIEW", StringComparison.OrdinalIgnoreCase);
         }
+/// <summary>
+/// Returns whether the specified column exists.
+/// </summary>
+ 
 
         public override bool? IsExitsTableCol(string table, string col)
         {
@@ -117,6 +140,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the specified index exists.
+/// </summary>
+ 
 
         public override bool IsExitsTableIndex(string table, string indexName)
         {
@@ -129,6 +156,10 @@ namespace mooSQL.data
                 .count();
             return c > 0;
         }
+/// <summary>
+/// Returns whether the exception indicates a lost connection.
+/// </summary>
+ 
 
         public override bool IsConnectionLost(Exception ex)
         {

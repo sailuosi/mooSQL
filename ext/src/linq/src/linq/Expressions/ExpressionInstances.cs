@@ -9,19 +9,73 @@ namespace mooSQL.linq.expressions
 	/// </summary>
 	public static class ExpressionInstances
 	{
+		/// <summary>
+		/// NullIDataContext
+		/// </summary>
+		/// <summary>
+		/// NullIDataContext
+		/// </summary>
 		public static readonly Expression NullIDataContext = Expression.Constant(null, typeof(DBInstance));
+		/// <summary>
+		/// HashMultiplier
+		/// </summary>
+		/// <summary>
+		/// HashMultiplier
+		/// </summary>
 		public static readonly Expression HashMultiplier   = Expression.Constant(-1521134295);
+		/// <summary>
+		/// EmptyTypes
+		/// </summary>
+		/// <summary>
+		/// EmptyTypes
+		/// </summary>
 		public static readonly Expression EmptyTypes       = Expression.Constant(Type.EmptyTypes);
+		/// <summary>
+		/// True
+		/// </summary>
 		
 		public static readonly ConstantExpression True        = Expression.Constant(true);
+		/// <summary>
+		/// False
+		/// </summary>
+		/// <summary>
+		/// False
+		/// </summary>
 		public static readonly ConstantExpression False       = Expression.Constant(false);
+		/// <summary>
+		/// UntypedNull
+		/// </summary>
+		/// <summary>
+		/// UntypedNull
+		/// </summary>
 		public static readonly ConstantExpression UntypedNull = Expression.Constant(null);
+		/// <summary>
+		/// Constant0
+		/// </summary>
 
 		public static readonly ConstantExpression Constant0  = Expression.Constant(0);
+		/// <summary>
+		/// Constant1
+		/// </summary>
+		/// <summary>
+		/// Constant1
+		/// </summary>
 		public static readonly ConstantExpression Constant1  = Expression.Constant(1);
 
 		// constants not covered by _int32Constants array
+		/// <summary>
+		/// Constant26
+		/// </summary>
+		/// <summary>
+		/// Constant26
+		/// </summary>
 		public static readonly ConstantExpression Constant26  = Expression.Constant(26);
+		/// <summary>
+		/// Constant29
+		/// </summary>
+		/// <summary>
+		/// Constant29
+		/// </summary>
 		public static readonly ConstantExpression Constant29  = Expression.Constant(29);
 
 		static readonly Expression[] _int32Constants =

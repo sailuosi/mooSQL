@@ -10,11 +10,35 @@ namespace mooSQL.linq;
 /// </summary>
 public class RunnerContext
 {
+    /// <summary>
+    /// dataContext
+    /// </summary>
+    /// <summary>
+    /// dataContext
+    /// </summary>
     public DBInstance dataContext = default!;
+    /// <summary>
+    /// expression
+    /// </summary>
+    /// <summary>
+    /// expression
+    /// </summary>
     public Expression? expression;
+    /// <summary>
+    /// sentenceBag
+    /// </summary>
 
     public SentenceBag? sentenceBag;
+    /// <summary>
+    /// paras
+    /// </summary>
 
     public object?[]? paras;
+    /// <summary>
+    /// cancellationToken
+    /// </summary>
+    /// <summary>
+    /// cancellationToken
+    /// </summary>
     public CancellationToken cancellationToken;
 }

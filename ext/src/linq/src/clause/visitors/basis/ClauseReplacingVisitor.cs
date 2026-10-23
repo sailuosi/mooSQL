@@ -12,12 +12,24 @@ namespace mooSQL.linq.clause
 	{
 		IDictionary<Clause, Clause> _replacements = default!;
         Clause[]                           _toIgnore     = default!;
+		/// <summary>
+		/// Gets or sets VisitingMode.
+		/// </summary>
 
 		public VisitMode VisitingMode { get; set; }
+        /// <summary>
+        /// ClauseReplacingVisitor type.
+        /// </summary>
+        /// <summary>
+        /// ClauseReplacingVisitor type.
+        /// </summary>
         public ClauseReplacingVisitor() 
 		{
 			this.VisitingMode = VisitMode.Modify;
 		}
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public Clause Replace(
             Clause element, 
@@ -29,12 +41,19 @@ namespace mooSQL.linq.clause
 
 			return Visit(element);
 		}
+		/// <summary>
+		/// Cleanup
+		/// </summary>
 
 		public void Cleanup()
 		{
 			_replacements = default!;
 			_toIgnore     = default!;
 		}
+		/// <summary>
+		/// Visit
+		/// </summary>
+	
 
 		[return: NotNullIfNotNull(nameof(element))]
 		public override Clause? Visit(Clause? element)
@@ -52,6 +71,10 @@ namespace mooSQL.linq.clause
 		}
 
 		// CteClause reference not visited by main dispatcher
+	/// <summary>
+	/// VisitCteClause
+	/// </summary>
+	
 		public override Clause VisitCteClause(CTEClause element)
 		{
 			if (_replacements.TryGetValue(element, out var replacement))

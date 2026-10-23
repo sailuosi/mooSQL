@@ -25,11 +25,20 @@ namespace mooSQL.linq.expressions
 	/// </summary>
 	public sealed class ExpressionEqualityComparer : IEqualityComparer<Expression>
 	{
+		/// <summary>
+		/// Instance
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Instance.
+		/// </summary>
 		public static ExpressionEqualityComparer Instance { get; } = new ExpressionEqualityComparer();
 
 		ExpressionEqualityComparer()
 		{
 		}
+		/// <summary>
+		/// Gets GetHashCode.
+		/// </summary>
 
 		public int GetHashCode(Expression? obj)
 		{
@@ -357,6 +366,9 @@ namespace mooSQL.linq.expressions
 
 			return hashCode;
 		}
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(Expression? x, Expression? y) => new ExpressionComparer().Compare(x, y);
 

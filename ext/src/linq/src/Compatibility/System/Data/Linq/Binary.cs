@@ -4,6 +4,9 @@ using System.Runtime.Serialization;
 namespace System.Data.Linq
 {
 	using mooSQL.linq.utils;
+	/// <summary>
+	/// Binary type.
+	/// </summary>
 
 	[DataContract]
 	[Serializable]
@@ -12,6 +15,9 @@ namespace System.Data.Linq
 		[DataMember(Name = "Bytes")]
 		private byte[] _bytes;
 		private int?   _hashCode;
+		/// <summary>
+		/// Binary type.
+		/// </summary>
 
 		public Binary(byte[]? value)
 		{
@@ -25,6 +31,9 @@ namespace System.Data.Linq
 				Array.Copy(value, _bytes, value.Length);
 			}
 		}
+		/// <summary>
+		/// ToArray
+		/// </summary>
 
 		public byte[] ToArray()
 		{
@@ -32,12 +41,24 @@ namespace System.Data.Linq
 			Array.Copy(_bytes, copy, copy.Length);
 			return copy;
 		}
+		/// <summary>
+		/// Length
+		/// </summary>
 
 		public int Length => _bytes.Length;
+		/// <summary>
+		/// implicit operator Binary
+		/// </summary>
 
 		public static implicit operator Binary(byte[]? value) => new Binary(value);
+		/// <summary>
+		/// Equals
+		/// </summary>
 
 		public bool Equals(Binary? other) => EqualsTo(other);
+		/// <summary>
+		/// operator ==
+		/// </summary>
 
 		public static bool operator ==(Binary? binary1, Binary? binary2)
 		{
@@ -48,10 +69,21 @@ namespace System.Data.Linq
 
 			return binary1.Equals(binary2);
 		}
+		/// <summary>
+		/// operator !=
+		/// </summary>
 
 		public static bool operator !=(Binary? binary1, Binary? binary2) => !(binary1 == binary2);
+/// <summary>
+/// Equals
+/// </summary>
+	
 
 		public override bool Equals(object? obj) => EqualsTo(obj as Binary);
+/// <summary>
+/// Gets GetHashCode.
+/// </summary>
+	
 
 		public override int GetHashCode()
 		{
@@ -61,6 +93,10 @@ namespace System.Data.Linq
 			}
 			return _hashCode!.Value;
 		}
+/// <summary>
+/// ToString
+/// </summary>
+	
 
 		public override string ToString() => $"\"{Convert.ToBase64String(_bytes, 0, _bytes.Length)}\"";
 

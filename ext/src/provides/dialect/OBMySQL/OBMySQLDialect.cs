@@ -13,14 +13,28 @@ namespace mooSQL.data
     /// </summary>
     public class OBMySQLDialect : MySqlFamilyDialect
     {
+        /// <summary>
+        /// OBMySQLDialect type.
+        /// </summary>
+        /// <summary>
+        /// OBMySQLDialect type.
+        /// </summary>
         public OBMySQLDialect()
         {
             expression = new OBMySQLExpress(this);
             this.initVersions();
         }
+/// <summary>
+/// Creates a bulk-copy helper for this dialect.
+/// </summary>
+ 
 
         public override DbBulkCopy GetBulkCopy()
             => new DbBulkCopyFallback(this.dbInstance);
+/// <summary>
+/// Performs a bulk insert operation.
+/// </summary>
+ 
 
         public override int BulkInsert(BulkBase bk)
         {
@@ -106,9 +120,24 @@ namespace mooSQL.data
 
             return cc;
         }
+        /// <summary>
+        /// Gets or sets SecureFilePriv.
+        /// </summary>
 
         public String SecureFilePriv { get; set; }
+        /// <summary>
+        /// Gets or sets the DateTime format string.
+        /// </summary>
+        /// <summary>
+        /// Gets or sets DateTimeFormat.
+        /// </summary>
         public String DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
+        /// <summary>
+        /// Gets dialect expression helpers.
+        /// </summary>
+        /// <summary>
+        /// Gets or sets Expressions.
+        /// </summary>
         public List<string> Expressions { get; } = new List<string>();
         private string _fieldTerminator = ",";
         private char _fieldQuotationCharacter = '"';

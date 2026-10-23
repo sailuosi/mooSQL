@@ -6,9 +6,18 @@ using mooSQL.linq.utils;
 
 namespace mooSQL.linq.expressions
 {
+	/// <summary>
+	/// SqlQueryDependentAttributeHelper type.
+	/// </summary>
+	/// <summary>
+	/// SqlQueryDependentAttributeHelper type.
+	/// </summary>
 	public static class SqlQueryDependentAttributeHelper
 	{
 		static readonly ConcurrentDictionary<MethodInfo,IList<SqlQueryDependentAttribute?>?> _queryDependentMethods = new ();
+		/// <summary>
+		/// Gets GetQueryDependentAttributes.
+		/// </summary>
 
 		public static IList<SqlQueryDependentAttribute?>? GetQueryDependentAttributes(MethodInfo method)
 		{

@@ -26,8 +26,8 @@ namespace mooSQL.linq
 	{
 		#region String Functions (Legacy)
 
+		/// <summary>registry-first（Bootstrap）；各方言 SQLExpression.charIndex 覆盖实现。</summary>
 		[CLSCompliant(false)]
-		/// <summary>registry-first（Bootstrap）；方言 <see cref="mooSQL.data.dialect.SQLExpression.charIndex"/> override。</summary>
 		public static int? CharIndex(string? substring, string? str)
 		{
 			if (str == null || substring == null) return null;
@@ -43,6 +43,9 @@ namespace mooSQL.linq
 
 			return substring.Length == 0 ? 0 : str.IndexOf(substring) + 1;
 		}
+		/// <summary>
+		/// Builds a character-index expression.
+		/// </summary>
 
 		public static int? CharIndex(string? substring, string? str, int? start)
 		{
@@ -51,6 +54,9 @@ namespace mooSQL.linq
 			var index = start.Value < 1 ? 0 : start.Value > str.Length ? str.Length - 1 : start.Value - 1;
 			return substring.Length == 0 ? 0 : str.IndexOf(substring, index) + 1;
 		}
+		/// <summary>
+		/// Builds a character-index expression.
+		/// </summary>
 
 		public static int? CharIndex(char? value, string? str)
 		{
@@ -58,6 +64,9 @@ namespace mooSQL.linq
 
 			return str.IndexOf(value.Value) + 1;
 		}
+		/// <summary>
+		/// Builds a character-index expression.
+		/// </summary>
 
 		public static int? CharIndex(char? value, string? str, int? start)
 		{
@@ -66,6 +75,9 @@ namespace mooSQL.linq
 			var index = start.Value < 1 ? 0 : start.Value > str.Length ? str.Length - 1 : start.Value - 1;
 			return str.IndexOf(value.Value, index) + 1;
 		}
+		/// <summary>
+		/// Reverse
+		/// </summary>
 
 		[Function(                              IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Reverse(string? str)
@@ -76,6 +88,9 @@ namespace mooSQL.linq
 			Array.Reverse(chars);
 			return new string(chars);
 		}
+		/// <summary>
+		/// Left
+		/// </summary>
 
 		[Function(                           PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.SQLite,     "LeftStr",  PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -130,6 +145,9 @@ namespace mooSQL.linq
 				builder.ResultExpression = new FunctionWord(stringExpr.SystemType!, "SUBSTRING", false, true, stringExpr, startExpr, lengthExpr);
 			}
 		}
+		/// <summary>
+		/// Right
+		/// </summary>
 
 		[Function("RIGHT",                    PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		[Function(ProviderName.SQLite,     "RightStr",  PreferServerSide = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
@@ -143,6 +161,9 @@ namespace mooSQL.linq
 
 			return str.Substring(str.Length - length.Value);
 		}
+		/// <summary>
+		/// Stuff
+		/// </summary>
 
 		[Function(IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Stuff(string? str, int? start, int? length, string? newString)
@@ -156,18 +177,27 @@ namespace mooSQL.linq
 
 			return str.Remove(index, maxAllowedLength).Insert(index, newString);
 		}
+		/// <summary>
+		/// Stuff
+		/// </summary>
 
 		[Function(ServerSideOnly = true, IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string Stuff(IEnumerable<string> characterExpression, int? start, int? length, string replaceWithExpression)
 		{
 			throw new NotImplementedException();
 		}
+		/// <summary>
+		/// Space
+		/// </summary>
 
 		[Function(                                                        IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? Space(int? length)
 		{
 			return length == null || length.Value < 0 ? null : "".PadRight(length.Value);
 		}
+		/// <summary>
+		/// PadLeft
+		/// </summary>
 
 		[Function(               Name = "LPad",                            IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? PadLeft(string? str, int? length, char? paddingChar)
@@ -178,6 +208,9 @@ namespace mooSQL.linq
 
 			return str.PadLeft(length.Value, paddingChar.Value);
 		}
+		/// <summary>
+		/// PadRight
+		/// </summary>
 
 		[Function(               Name = "RPad",         IsNullable = IsNullableType.IfAnyParameterNullable)]
 		public static string? PadRight(string? str, int? length, char? paddingChar)
@@ -188,6 +221,9 @@ namespace mooSQL.linq
 
 			return str.PadRight(length.Value, paddingChar.Value);
 		}
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public static string? Replace(string? str, string? oldValue, string? newValue)
 		{
@@ -197,6 +233,9 @@ namespace mooSQL.linq
 
 			return str.Replace(oldValue, newValue);
 		}
+		/// <summary>
+		/// Replace
+		/// </summary>
 
 		public static string? Replace(string? str, char? oldValue, char? newValue)
 		{

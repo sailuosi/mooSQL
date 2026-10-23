@@ -30,6 +30,9 @@ namespace mooSQL.linq
 
 			return true;
 		}
+		/// <summary>
+		/// IsScalarNonNull
+		/// </summary>
 
 		public static bool IsScalarNonNull(object? value)
 		{
@@ -45,6 +48,9 @@ namespace mooSQL.linq
 
 			return true;
 		}
+		/// <summary>
+		/// TryBuild
+		/// </summary>
 
 		public static bool TryBuild(
 			SentenceItem sentence,
@@ -98,6 +104,9 @@ namespace mooSQL.linq
 			};
 			return true;
 		}
+		/// <summary>
+		/// TryCapture
+		/// </summary>
 
 		public static void TryCapture(
 			SentenceItem sentence,
@@ -143,6 +152,9 @@ namespace mooSQL.linq
 
 		static bool IsPagingParameter(IExpWord? word)
 			=> word is ParameterWord;
+		/// <summary>
+		/// TryBuildCmds
+		/// </summary>
 
 		public static SentenceCmds? TryBuildCmds(SentenceItem sentence, SqlParameterValues values)
 		{
@@ -153,6 +165,9 @@ namespace mooSQL.linq
 			cmds.Add(cmd);
 			return cmds;
 		}
+		/// <summary>
+		/// TryCaptureCmds
+		/// </summary>
 
 		public static void TryCaptureCmds(SentenceItem sentence, SentenceCmds cmds, SqlParameterValues values)
 		{
@@ -198,6 +213,12 @@ namespace mooSQL.linq
 	/// <summary>挂在 <see cref="SentenceItem"/> 上的 SQL 文本模板（随 L1 bag 复用）。</summary>
 	public sealed class ExtSqlCmdTemplate
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ExtSqlCmdL2"/> class.
+		/// </summary>
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ExtSqlCmdL2"/> class.
+		/// </summary>
 		public ExtSqlCmdTemplate(string sql, string[] paraKeys, QueryType type, string? targetTable)
 		{
 			Sql = sql;
@@ -205,10 +226,31 @@ namespace mooSQL.linq
 			Type = type;
 			TargetTable = targetTable;
 		}
+		/// <summary>
+		/// Gets or sets Sql.
+		/// </summary>
 
 		public string Sql { get; }
+		/// <summary>
+		/// ParaKeys
+		/// </summary>
+		/// <summary>
+		/// Gets or sets ParaKeys.
+		/// </summary>
 		public string[] ParaKeys { get; }
+		/// <summary>
+		/// Type
+		/// </summary>
+		/// <summary>
+		/// Gets or sets Type.
+		/// </summary>
 		public QueryType Type { get; }
+		/// <summary>
+		/// TargetTable
+		/// </summary>
+		/// <summary>
+		/// Gets or sets TargetTable.
+		/// </summary>
 		public string? TargetTable { get; }
 	}
 }

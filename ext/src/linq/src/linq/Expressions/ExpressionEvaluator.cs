@@ -14,6 +14,9 @@ namespace mooSQL.linq.expressions
     /// </summary>
     public static class ExpressionEvaluator
 	{
+		/// <summary>
+		/// EvaluateExpression&lt;T&gt;
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static T? EvaluateExpression<T>(this Expression? expr)
 			where T : class
@@ -108,6 +111,9 @@ namespace mooSQL.linq.expressions
 
 			throw new InvalidOperationException($"Expression '{expr}' cannot be evaluated");
 		}
+		/// <summary>
+		/// EvaluateExpression
+		/// </summary>
 
 		public static object? EvaluateExpression(this Expression? expr)
 		{

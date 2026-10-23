@@ -1,4 +1,4 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using mooSQL.linq;
 using System;
 using System.Collections.Generic;
@@ -8,12 +8,25 @@ using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
+    /// <summary>
+    /// SQLiteClauseTranslator type.
+    /// </summary>
+    /// <summary>
+    /// SQLiteClauseTranslator type.
+    /// </summary>
     public class SQLiteClauseTranslator:ClauseTranslateVisitor
     {
+        /// <summary>
+        /// SQLiteClauseTranslator type.
+        /// </summary>
 
         public SQLiteClauseTranslator(Dialect dia) : base(dia) { 
         
         }
+ /// <summary>
+ /// Translates an object name into dialect-specific SQL.
+ /// </summary>
+ 
         public override string TranslateObjectName(SqlObjectName name, ConvertType objectType, bool escape, TableOptions tableOptions, bool withoutSuffix = false)
         {
             var res = "";
