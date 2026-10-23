@@ -110,6 +110,9 @@ namespace mooSQL.data.Mapping
                 var col=result.GetColumn(property.Name);
                 EntityColumn column = this.ParseColumn(entity,property,result, col);
                 //_onParseEntityColumn(property, result);
+                // 无列特性（如纯导航属性）时 ParseColumn 返回 null，跳过
+                if (column == null)
+                    continue;
                 //进行完备性检查
                 if (column.UnderType == null) {
                     column.UnderType = property.PropertyType.UnwrapNullable();
