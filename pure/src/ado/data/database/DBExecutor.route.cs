@@ -9,7 +9,7 @@ namespace mooSQL.data
 
         private bool HasActiveTransaction => session != null;
 
-        internal DBInstance ResolveTargetInstance(SQLCmd sql)
+        public  DBInstance ResolveTargetInstance(SQLCmd sql)
         {
             var anchor = DBLive;
             if (anchor == null) return null;
