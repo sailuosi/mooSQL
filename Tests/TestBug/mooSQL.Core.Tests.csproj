@@ -10,8 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\TestPure\Excel\**" />
+    <EmbeddedResource Remove="src\TestPure\Excel\**" />
+    <None Remove="src\TestPure\Excel\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="mooSQL.Ext.Core" Version="1.2.0" />
     <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
@@ -28,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ext\mooSQL.Ext.Core.csproj" />
     <ProjectReference Include="..\..\generators\mooSQL.Pure.Generators.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
