@@ -159,6 +159,7 @@ namespace mooSQL.data
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
+                if (!CanPersistColumn(col, forUpdate: false)) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 //配置为忽略时，则忽略执行
@@ -223,6 +224,26 @@ namespace mooSQL.data
             {
                 kit.set(col.DbColumnName, val);
             }
+        }
+
+        /// <summary>
+        /// insert/update 前校验：空列名跳过；无公开 getter 则带属性名抛错，避免 Property Get method was not found。
+        /// </summary>
+        protected virtual bool CanPersistColumn(EntityColumn col, bool forUpdate)
+        {
+            if (col?.PropertyInfo == null)
+                return false;
+            if (string.IsNullOrWhiteSpace(col.DbColumnName))
+                return false;
+            if (col.PropertyInfo.GetGetMethod(nonPublic: false) == null
+                && col.PropertyInfo.GetGetMethod(nonPublic: true) == null)
+            {
+                throw new InvalidOperationException(
+                    "实体属性 '" + (col.PropertyName ?? col.PropertyInfo.Name)
+                    + "'（列 '" + col.DbColumnName + "'）没有可用的 get 访问器，无法"
+                    + (forUpdate ? "更新" : "插入") + "。请为该属性添加 getter，或使用 [SooColumn(IsColumn=false)] 忽略。");
+            }
+            return true;
         }
         /// <summary>
         /// 设置增删改的目标数据库表名解析部分
@@ -302,6 +323,7 @@ namespace mooSQL.data
             foreach (var col in en.Columns)
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
+                if (!CanPersistColumn(col, forUpdate: true)) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind== FieldKind.Base || col.Kind== FieldKind.None)==false) continue;
                 if (CheckEdition(builder.DBLive, col) == false)

@@ -1,9 +1,9 @@
 using mooSQL.data.model;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mooSQL.data.Mapping
 {
@@ -55,7 +55,12 @@ namespace mooSQL.data.Mapping
 
             foreach (SooColumnAttribute ca in columnAttributes)
             {
-                entityColumn.DbColumnName= ca.Name??propertyInfo.Name;
+                // Name 为 null/空白时回退属性名（"" ?? PropName 仍是 ""，会导致 INSERT 空列名）
+                var hasExplicitName = !string.IsNullOrWhiteSpace(ca.Name);
+                entityColumn.DbColumnName = hasExplicitName ? ca.Name.Trim() : propertyInfo.Name;
+                if (string.IsNullOrWhiteSpace(entityColumn.DbColumnName))
+                    entityColumn.IsIgnore = true;
+
                 entityColumn.PropertyName = propertyInfo.Name;
                 entityColumn.PropertyInfo = propertyInfo;
                 if (ca.HasLength()) { 
@@ -97,11 +102,40 @@ namespace mooSQL.data.Mapping
                 }
                 if (!ca.IsColumn)
                     entityColumn.IsIgnore = true;
+
+                // 字典/集合非标量：未显式指定列名时默认忽略，避免误进 INSERT（空列 + Dictionary.ToString）
+                // 显式 Name（如 JSON 列）仍可映射
+                if (!hasExplicitName && IsNonScalarCollection(propertyInfo.PropertyType))
+                    entityColumn.IsIgnore = true;
+
                 if (ca.Shard && entityColumn != null)
                     ShardRegistration.MarkShardField(entityInfo, entityColumn);
             }
 
             return entityColumn;
+        }
+
+        /// <summary>
+        /// 非标量集合/字典（string、byte[] 除外）。无显式列名时不应当普通列插入。
+        /// </summary>
+        public static bool IsNonScalarCollection(Type type)
+        {
+            if (type == null)
+                return false;
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            if (type == typeof(string) || type == typeof(byte[]))
+                return false;
+            if (typeof(IDictionary).IsAssignableFrom(type))
+                return true;
+            if (type.IsGenericType)
+            {
+                var def = type.GetGenericTypeDefinition();
+                if (def == typeof(IDictionary<,>)
+                    || def == typeof(Dictionary<,>)
+                    || def == typeof(IReadOnlyDictionary<,>))
+                    return true;
+            }
+            return typeof(IEnumerable).IsAssignableFrom(type);
         }
     }
 }

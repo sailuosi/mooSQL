@@ -60,6 +60,44 @@ namespace mooSQL.Pure.Tests
             id.IsOnlyIgnoreUpdate.Should().BeTrue();
         }
 
+        [Fact]
+        public void EmptyName_FallsBackToPropertyName()
+        {
+            var en = CreateClient().EntityCash.getEntityInfo<FlagEmptyNameEntity>();
+            var col = en.GetColumn(nameof(FlagEmptyNameEntity.Title));
+            col.Should().NotBeNull();
+            col.DbColumnName.Should().Be(nameof(FlagEmptyNameEntity.Title));
+            col.IsIgnore.Should().BeFalse();
+        }
+
+        [Fact]
+        public void Dictionary_WithoutExplicitName_IsIgnored()
+        {
+            var en = CreateClient().EntityCash.getEntityInfo<FlagDictEntity>();
+            var bag = en.GetColumn(nameof(FlagDictEntity.Bag));
+            bag.Should().NotBeNull();
+            bag.IsIgnore.Should().BeTrue();
+        }
+
+        [Fact]
+        public void Dictionary_WithExplicitName_IsNotAutoIgnored()
+        {
+            var en = CreateClient().EntityCash.getEntityInfo<FlagDictNamedEntity>();
+            var bag = en.GetColumn(nameof(FlagDictNamedEntity.Bag));
+            bag.Should().NotBeNull();
+            bag.DbColumnName.Should().Be("BAG_");
+            bag.IsIgnore.Should().BeFalse();
+        }
+
+        [Fact]
+        public void String_IsNotTreatedAsNonScalarCollection()
+        {
+            MooEntityAnalyser.IsNonScalarCollection(typeof(string)).Should().BeFalse();
+            MooEntityAnalyser.IsNonScalarCollection(typeof(byte[])).Should().BeFalse();
+            MooEntityAnalyser.IsNonScalarCollection(typeof(System.Collections.Generic.Dictionary<string, object>)).Should().BeTrue();
+            MooEntityAnalyser.IsNonScalarCollection(typeof(System.Collections.Generic.List<int>)).Should().BeTrue();
+        }
+
         [SooTable("flag_identity")]
         class FlagIdentityEntity
         {
@@ -68,6 +106,36 @@ namespace mooSQL.Pure.Tests
 
             [SooColumn("name")]
             public string Name { get; set; }
+        }
+
+        [SooTable("flag_empty_name")]
+        class FlagEmptyNameEntity
+        {
+            [SooColumn("id", IsPrimaryKey = true)]
+            public int Id { get; set; }
+
+            [SooColumn(Name = "")]
+            public string Title { get; set; }
+        }
+
+        [SooTable("flag_dict")]
+        class FlagDictEntity
+        {
+            [SooColumn("id", IsPrimaryKey = true)]
+            public int Id { get; set; }
+
+            [SooColumn]
+            public System.Collections.Generic.Dictionary<string, object> Bag { get; set; }
+        }
+
+        [SooTable("flag_dict_named")]
+        class FlagDictNamedEntity
+        {
+            [SooColumn("id", IsPrimaryKey = true)]
+            public int Id { get; set; }
+
+            [SooColumn("BAG_")]
+            public System.Collections.Generic.Dictionary<string, object> Bag { get; set; }
         }
 
         [SooTable("flag_skip_insert")]
