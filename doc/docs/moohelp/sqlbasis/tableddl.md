@@ -218,8 +218,8 @@ db.useSQL().useDBInit()
 | 模式 | 表不存在 | 表已存在 |
 |------|----------|----------|
 | `autoMode()` | 创建整表 | **跳过**（兼容旧行为） |
-| `upsertMode()` | 创建整表 | **只补缺失列**，已有列跳过 |
-| `coverMode()` | 创建整表 | 补缺失列，并对**已有列 ALTER** 对齐实体 |
+| `upsertMode()` | 创建整表 | 补缺失列；已有列在**类型 / 长度 / 精度**变化时 ALTER |
+| `coverMode()` | 创建整表 | 补缺失列，并对**全部已有列强制 ALTER** 对齐实体 |
 | `preview()` | 仅生成建表 SQL，不访问库 | — |
 
 缺列补齐也可继续用 SchemaEnsure / `doInitTable`。
@@ -227,12 +227,12 @@ db.useSQL().useDBInit()
 也可用 `new DBTableCreator { DBLive = db, CreateMode = "upsert" }.createTable<SysUser>()`（`CreateMode`：`createAuto` / `upsert` / `cover` / `preview`）。
 
 ```csharp
-// 缺列补齐（推荐日常增量）
+// 缺列补齐 + 类型/长度/精度变化时改列（推荐日常增量）
 db.useSQL().useDBInit()
     .upsertMode()
     .createTable<SysUser>();
 
-// 强制按实体改已有列定义（慎用，可能影响数据/约束）
+// 强制按实体改全部已有列定义（慎用，可能影响数据/约束）
 db.useSQL().useDBInit()
     .coverMode()
     .createTable<SysUser>();

@@ -26,7 +26,7 @@ namespace mooSQL.data
 
         /// <summary>
         /// 自动建表模式：表不存在则创建；表已存在则跳过（保持兼容，不做增量）。
-        /// 需要缺列补齐请用 <see cref="upsertMode"/>；需要强制改列请用 <see cref="coverMode"/>。
+        /// 需要缺列补齐及类型/长度/精度对齐请用 <see cref="upsertMode"/>；需要强制改全部已有列请用 <see cref="coverMode"/>。
         /// </summary>
         public DBTableCreator autoMode() {
             this.CreateMode = "createAuto";
@@ -36,7 +36,8 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Upsert 模式：表不存在则创建；表已存在则只补齐缺失列，已有列跳过。
+        /// Upsert 模式：表不存在则创建；表已存在则补齐缺失列，
+        /// 并对类型 / 长度 / 精度（含小数位）变化的已有列执行 ALTER。
         /// </summary>
         public DBTableCreator upsertMode()
         {
@@ -47,7 +48,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// Cover 模式：表不存在则创建；表已存在则补齐缺失列，并对已有列执行 ALTER 对齐实体定义。
+        /// Cover 模式：表不存在则创建；表已存在则补齐缺失列，并对<strong>全部</strong>已有列强制 ALTER 对齐实体定义。
         /// </summary>
         public DBTableCreator coverMode()
         {
@@ -217,21 +218,26 @@ namespace mooSQL.data
             }
             else if (isUpsert || isCover)
             {
-                return SyncExistingTable(ddl, en, tbname, isCover, isPreview: false);
+                return SyncExistingTable(ddl, en, tbname, forceAlterAll: isCover, isPreview: false);
             }
 
             return string.Format("{0}未执行处理；", en.EntityName);
         }
 
         /// <summary>
-        /// 表已存在时：补齐缺失列；cover 模式下再 ALTER 已有列。
+        /// 表已存在时：补齐缺失列；
+        /// cover 强制 ALTER 全部已有列；upsert 仅在类型/长度/精度变化时 ALTER。
         /// </summary>
-        string SyncExistingTable(DDLBuilder ddl, EntityInfo en, string tbname, bool alterExisting, bool isPreview)
+        string SyncExistingTable(DDLBuilder ddl, EntityInfo en, string tbname, bool forceAlterAll, bool isPreview)
         {
             var exFields = ddl.loadColumns(tbname) ?? new List<DbColumnInfo>();
-            var exNames = new HashSet<string>(
-                exFields.Where(x => !string.IsNullOrWhiteSpace(x?.Name)).Select(x => x.Name),
-                StringComparer.OrdinalIgnoreCase);
+            var exByName = new Dictionary<string, DbColumnInfo>(StringComparer.OrdinalIgnoreCase);
+            foreach (var col in exFields)
+            {
+                if (col == null || string.IsNullOrWhiteSpace(col.Name)) continue;
+                if (!exByName.ContainsKey(col.Name))
+                    exByName[col.Name] = col;
+            }
 
             var toAdd = new List<EntityColumn>();
             var toAlter = new List<EntityColumn>();
@@ -240,11 +246,11 @@ namespace mooSQL.data
                 if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
                 if (field.Kind != FieldKind.Base && field.Kind != FieldKind.None) continue;
 
-                if (!exNames.Contains(field.DbColumnName))
+                if (!exByName.TryGetValue(field.DbColumnName, out var existing))
                 {
                     toAdd.Add(field);
                 }
-                else if (alterExisting)
+                else if (forceAlterAll || NeedsColumnUpdate(field, existing))
                 {
                     toAlter.Add(field);
                 }
@@ -301,13 +307,124 @@ namespace mooSQL.data
             return string.Format("更新{0}成功；{1}", en.EntityName, progress);
         }
         private void setDDLField(EntityColumn field, DDLBuilder ddl) {
-            var dt = transDtype(field);
-            if ((dt.DataType == DataFam.VarChar || dt.DataType ==DataFam.NVarChar) && (dt.Length == 0|| dt.Length == 50)) {
-                dt.Length = this.defaultFieldLength; 
-            }
+            var dt = ResolveDesiredType(field);
             ddl.set(LandIdent(field.DbColumnName), dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey);
             if (!string.IsNullOrWhiteSpace(field.ColumnDescription)) { 
                 
+            }
+        }
+
+        /// <summary>
+        /// 解析实体列期望的数据库类型（含默认长度补齐，与建表/加列一致）。
+        /// </summary>
+        DbDataType ResolveDesiredType(EntityColumn field)
+        {
+            var dt = transDtype(field);
+            if ((dt.DataType == DataFam.VarChar || dt.DataType == DataFam.NVarChar)
+                && (dt.Length.GetValueOrDefault() == 0 || dt.Length.GetValueOrDefault() == 50))
+            {
+                dt.Length = this.defaultFieldLength;
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// upsert：已有列在类型 / 长度 / 精度（含小数位）与实体定义不一致时需要 ALTER。
+        /// </summary>
+        bool NeedsColumnUpdate(EntityColumn field, DbColumnInfo existing)
+        {
+            if (field == null || existing == null) return false;
+
+            var desired = ResolveDesiredType(field);
+            var existingFam = existing.FieldType;
+            if (existingFam == DataFam.Undefined && !string.IsNullOrWhiteSpace(existing.DbTypeText))
+            {
+                try
+                {
+                    existingFam = DBLive?.dialect?.mapping?.GetDataType(existing.DbTypeText) ?? DataFam.Undefined;
+                }
+                catch
+                {
+                    existingFam = DataFam.Undefined;
+                }
+            }
+
+            // 类型变化
+            if (desired.DataType != DataFam.Undefined
+                && existingFam != DataFam.Undefined
+                && !IsCompatibleDataFam(desired.DataType, existingFam))
+            {
+                return true;
+            }
+
+            // 长度变化（字符 / 二进制 / 向量等）
+            if (IsLengthBearing(desired.DataType))
+            {
+                var wantLen = desired.Length.GetValueOrDefault();
+                var haveLen = existing.MaxLength;
+                if (wantLen > 0 && haveLen > 0 && wantLen != haveLen)
+                {
+                    return true;
+                }
+            }
+
+            // 精度 / 小数位变化（decimal 等）
+            if (IsPrecisionBearing(desired.DataType))
+            {
+                var wantPrec = desired.Precision.GetValueOrDefault();
+                if (wantPrec <= 0)
+                    wantPrec = desired.Length.GetValueOrDefault();
+                // 部分方言把 numeric 精度放在 MaxLength
+                var havePrec = existing.Precision > 0 ? existing.Precision : existing.MaxLength;
+                var wantScale = desired.Scale.GetValueOrDefault();
+                var haveScale = existing.Scale;
+
+                if (wantPrec > 0 && havePrec > 0 && wantPrec != havePrec)
+                    return true;
+                if (wantPrec > 0 && wantScale != haveScale)
+                    return true;
+            }
+
+            return false;
+        }
+
+        static bool IsCompatibleDataFam(DataFam desired, DataFam existing)
+        {
+            if (desired == existing) return true;
+            // Long / Int64 同族
+            if ((desired == DataFam.Long || desired == DataFam.Int64)
+                && (existing == DataFam.Long || existing == DataFam.Int64))
+                return true;
+            return false;
+        }
+
+        static bool IsLengthBearing(DataFam fam)
+        {
+            switch (fam)
+            {
+                case DataFam.Char:
+                case DataFam.NChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                case DataFam.Binary:
+                case DataFam.VarBinary:
+                case DataFam.Vector:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        static bool IsPrecisionBearing(DataFam fam)
+        {
+            switch (fam)
+            {
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    return true;
+                default:
+                    return false;
             }
         }
 
