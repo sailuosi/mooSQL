@@ -313,60 +313,113 @@ namespace mooSQL.data
 
         private DbDataType transDtype(EntityColumn field)
         {
-            if (field.DbType != DbDataType.Undefined && field.DbType.DataType != DataFam.Undefined) { 
+            if (field.DbType != DbDataType.Undefined && field.DbType.DataType != DataFam.Undefined)
+            {
                 return field.DbType;
             }
-            if (field.DataType == DataFam.Undefined) {
-                var valType = field.PropertyInfo.PropertyType.UnwrapNullable();
-                if (valType == typeof(string)) {
-                    if (field.Length == 0 || field.Length == null) {
-                        field.Length = this.defaultFieldLength;
-                    }
-                    return new DbDataType(DataFam.VarChar, field.Length);
-                }
-                else if (valType == typeof(Guid))
-                {
-                    return new DbDataType(DataFam.Guid);
-                }
-                else if (valType == typeof(DateTime))
-                {
-                    return new DbDataType(DataFam.DateTime);
-                }
-                else if (valType == typeof(bool))
-                {
-                    return new DbDataType(DataFam.Boolean);
-                }
-                else if (valType == typeof(int))
-                {
-                    return new DbDataType(DataFam.Int32);
-                }
-                else if (valType == typeof(long))
-                {
-                    return new DbDataType(DataFam.Long);
-                }
-                else if (valType == typeof(short))
-                {
-                    return new DbDataType(DataFam.Int16);
-                }
-                else if (valType == typeof(byte[]))
-                {
-                    return new DbDataType(DataFam.Binary);
-                }
-                else if (valType == typeof(double)|| valType == typeof(decimal) || valType == typeof(float))
-                {
-                    return new DbDataType(DataFam.Decimal, field.Length, field.Precision, field.Scale);
-                }
-                var enumFam = EnumColumnMapping.TryMapClrTypeToDataFam(valType);
-                if (enumFam != DataFam.Undefined)
-                {
-                    return new DbDataType(enumFam);
-                }
-                if (field.Length == 0)
-                {
-                    field.Length = this.defaultFieldLength;
-                }
-                return getDefaultField(field);
+
+            // 实体已标注 DataFam：按字段声明构造尺度
+            if (field.DataType != DataFam.Undefined)
+            {
+                return transDtypeFromDataFam(field);
             }
+
+            // CLR → 方言 MappingPanel（优先）；失败则走本地保底
+            Type valType = null;
+            if (field.PropertyInfo != null)
+            {
+                valType = field.PropertyInfo.PropertyType.UnwrapNullable();
+                var fromDialect = tryMapFromDialect(valType, field);
+                if (fromDialect.DataType != DataFam.Undefined)
+                {
+                    return fromDialect;
+                }
+            }
+
+            return transDtypeFallback(field, valType);
+        }
+
+        /// <summary>
+        /// 优先使用方言 <c>mapping.GetDbDataType</c>，并补齐实体上的 Length/Precision/Scale。
+        /// </summary>
+        DbDataType tryMapFromDialect(Type valType, EntityColumn field)
+        {
+            var mapping = DBLive?.dialect?.mapping;
+            if (mapping == null)
+            {
+                return DbDataType.Undefined;
+            }
+
+            try
+            {
+                if (!mapping.SharpToDataType.TryGet(valType, out var mapped)
+                    || mapped.DataType == DataFam.Undefined)
+                {
+                    return DbDataType.Undefined;
+                }
+
+                return enrichMappedType(mapped, valType, field);
+            }
+            catch
+            {
+                return DbDataType.Undefined;
+            }
+        }
+
+        /// <summary>
+        /// 将 MappingPanel 得到的类型与实体列上的长度/精度合并。
+        /// </summary>
+        DbDataType enrichMappedType(DbDataType mapped, Type valType, EntityColumn field)
+        {
+            var fam = mapped.DataType;
+            switch (fam)
+            {
+                case DataFam.Char:
+                case DataFam.NChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                {
+                    var mappedLen = mapped.Length.GetValueOrDefault();
+                    var len = field.Length > 0
+                        ? field.Length
+                        : (mappedLen > 0 ? mappedLen : this.defaultFieldLength);
+                    if (field.Length == 0)
+                    {
+                        field.Length = len;
+                    }
+                    return new DbDataType(valType, fam, mapped.DbType, len);
+                }
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    return new DbDataType(valType, fam, mapped.DbType,
+                        field.Length > 0 ? field.Length : mapped.Length,
+                        field.Precision > 0 ? field.Precision : mapped.Precision,
+                        field.Scale != 0 ? field.Scale : mapped.Scale);
+                case DataFam.Vector:
+                {
+                    var mappedLen = mapped.Length.GetValueOrDefault();
+                    var len = field.Length > 0
+                        ? field.Length
+                        : (mappedLen > 0 ? mappedLen : 1536);
+                    return new DbDataType(valType, fam, mapped.DbType, len);
+                }
+                default:
+                    if (!string.IsNullOrEmpty(mapped.DbType)
+                        || mapped.Length.GetValueOrDefault() > 0
+                        || mapped.Precision.GetValueOrDefault() > 0)
+                    {
+                        return new DbDataType(valType, fam, mapped.DbType, mapped.Length, mapped.Precision, mapped.Scale);
+                    }
+                    return new DbDataType(valType, fam);
+            }
+        }
+
+        /// <summary>
+        /// 实体列已声明 <see cref="EntityColumn.DataType"/> 时的尺度构造。
+        /// </summary>
+        DbDataType transDtypeFromDataFam(EntityColumn field)
+        {
             switch (field.DataType)
             {
                 case DataFam.Char:
@@ -409,6 +462,74 @@ namespace mooSQL.data
                     return new DbDataType(field.DataType);
             }
 
+            return getDefaultField(field);
+        }
+
+        /// <summary>
+        /// 方言未命中时的本地 CLR→DbDataType 保底（原 transDtype 逻辑）。
+        /// </summary>
+        DbDataType transDtypeFallback(EntityColumn field, Type? valType)
+        {
+            if (valType == null && field.PropertyInfo != null)
+            {
+                valType = field.PropertyInfo.PropertyType.UnwrapNullable();
+            }
+            if (valType == null)
+            {
+                return getDefaultField(field);
+            }
+
+            if (valType == typeof(string))
+            {
+                if (field.Length == 0)
+                {
+                    field.Length = this.defaultFieldLength;
+                }
+                return new DbDataType(DataFam.VarChar, field.Length);
+            }
+            if (valType == typeof(Guid))
+            {
+                return new DbDataType(DataFam.Guid);
+            }
+            if (valType == typeof(DateTime))
+            {
+                return new DbDataType(DataFam.DateTime);
+            }
+            if (valType == typeof(bool))
+            {
+                return new DbDataType(DataFam.Boolean);
+            }
+            if (valType == typeof(int))
+            {
+                return new DbDataType(DataFam.Int32);
+            }
+            if (valType == typeof(long))
+            {
+                return new DbDataType(DataFam.Long);
+            }
+            if (valType == typeof(short))
+            {
+                return new DbDataType(DataFam.Int16);
+            }
+            if (valType == typeof(byte[]))
+            {
+                return new DbDataType(DataFam.Binary);
+            }
+            if (valType == typeof(double) || valType == typeof(decimal) || valType == typeof(float))
+            {
+                return new DbDataType(DataFam.Decimal, field.Length, field.Precision, field.Scale);
+            }
+
+            var enumFam = EnumColumnMapping.TryMapClrTypeToDataFam(valType);
+            if (enumFam != DataFam.Undefined)
+            {
+                return new DbDataType(enumFam);
+            }
+
+            if (field.Length == 0)
+            {
+                field.Length = this.defaultFieldLength;
+            }
             return getDefaultField(field);
         }
         private DbDataType getDefaultField(EntityColumn field) {
