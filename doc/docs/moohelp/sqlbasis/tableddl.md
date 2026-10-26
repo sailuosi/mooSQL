@@ -213,9 +213,30 @@ db.useSQL().useDBInit()
     .createTable<SysUser>("HH_SysUser_202610");
 ```
 
-`autoMode`：按实体生成 `CREATE TABLE`；表已存在时当前实现以跳过为主。需要「缺列补齐」请用下面的 SchemaEnsure / `doInitTable`。
+模式说明：
 
-也可用 `new DBTableCreator { DBLive = db, CreateMode = "createAuto" }.createTable<SysUser>()`。
+| 模式 | 表不存在 | 表已存在 |
+|------|----------|----------|
+| `autoMode()` | 创建整表 | **跳过**（兼容旧行为） |
+| `upsertMode()` | 创建整表 | **只补缺失列**，已有列跳过 |
+| `coverMode()` | 创建整表 | 补缺失列，并对**已有列 ALTER** 对齐实体 |
+| `preview()` | 仅生成建表 SQL，不访问库 | — |
+
+缺列补齐也可继续用 SchemaEnsure / `doInitTable`。
+
+也可用 `new DBTableCreator { DBLive = db, CreateMode = "upsert" }.createTable<SysUser>()`（`CreateMode`：`createAuto` / `upsert` / `cover` / `preview`）。
+
+```csharp
+// 缺列补齐（推荐日常增量）
+db.useSQL().useDBInit()
+    .upsertMode()
+    .createTable<SysUser>();
+
+// 强制按实体改已有列定义（慎用，可能影响数据/约束）
+db.useSQL().useDBInit()
+    .coverMode()
+    .createTable<SysUser>();
+```
 
 ---
 
@@ -234,16 +255,15 @@ public static class DbSchemaBootstrap
     /// </summary>
     public static void InitByEntities(DBInstance db)
     {
-        var init = db.useSQL().useDBInit().autoMode();
-
-        // 1) 核心业务表（不存在则创建）
+        // 1) 核心业务表：不存在则创建，已存在则补缺失列
+        var init = db.useSQL().useDBInit().upsertMode();
         init.createTable<SysUser>()
             .createTable<SysRole>()
             .createTable<SysOrg>();
 
-        // 2) 已存在的库：按实体补缺失列（默认不删多余列）
-        db.ensureSchema<SysUser>(SyncMode.AddMissingColumns);
-        db.ensureSchema<SysRole>(SyncMode.AddMissingColumns);
+        // 2) 也可继续用 SchemaEnsure（默认不删多余列）
+        // db.ensureSchema<SysUser>(SyncMode.AddMissingColumns);
+        // db.ensureSchema<SysRole>(SyncMode.AddMissingColumns);
 
         // 3) 独立补注释（可选；实体 Caption 未写入或需修正时）
         var ddl = db.useDDL();
@@ -344,7 +364,9 @@ public static class DbSchemaBootstrap
 | API | 说明 |
 |-----|------|
 | `useDBInit().preview().createTable<T>()` | 预览建表 SQL |
-| `useDBInit().autoMode().createTable<T>()` | 不存在则建表 |
+| `useDBInit().autoMode().createTable<T>()` | 不存在则建表；已存在则跳过 |
+| `useDBInit().upsertMode().createTable<T>()` | 不存在则建表；已存在则补缺失列 |
+| `useDBInit().coverMode().createTable<T>()` | 不存在则建表；已存在则补列并对已有列 ALTER |
 | `doInitTable(option, types…)` | 创建或按选项变更 |
 | `ensure<T>()` / `ensureSchema<T>()` | 按 SyncMode 对齐结构 |
 

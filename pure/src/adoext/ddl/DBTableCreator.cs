@@ -25,11 +25,33 @@ namespace mooSQL.data
         public string CreateMode { get; set; }
 
         /// <summary>
-        /// 自动建表模式，如果表不存在则创建，如果存在则新增字段
+        /// 自动建表模式：表不存在则创建；表已存在则跳过（保持兼容，不做增量）。
+        /// 需要缺列补齐请用 <see cref="upsertMode"/>；需要强制改列请用 <see cref="coverMode"/>。
         /// </summary>
-        /// <returns></returns>
         public DBTableCreator autoMode() {
             this.CreateMode = "createAuto";
+            EnsureProgress();
+            this.WorkingProgress.Clear();
+            return this;
+        }
+
+        /// <summary>
+        /// Upsert 模式：表不存在则创建；表已存在则只补齐缺失列，已有列跳过。
+        /// </summary>
+        public DBTableCreator upsertMode()
+        {
+            this.CreateMode = "upsert";
+            EnsureProgress();
+            this.WorkingProgress.Clear();
+            return this;
+        }
+
+        /// <summary>
+        /// Cover 模式：表不存在则创建；表已存在则补齐缺失列，并对已有列执行 ALTER 对齐实体定义。
+        /// </summary>
+        public DBTableCreator coverMode()
+        {
+            this.CreateMode = "cover";
             EnsureProgress();
             this.WorkingProgress.Clear();
             return this;
@@ -147,20 +169,27 @@ namespace mooSQL.data
                 throw new Exception("未知表名");
             }
 
-            // preview 不访问真实库，始终按建表脚本生成
+            mode = string.IsNullOrWhiteSpace(mode) ? (CreateMode ?? "createAuto") : mode;
             var isPreview = string.Equals(mode, "preview", StringComparison.OrdinalIgnoreCase);
+            var isUpsert = string.Equals(mode, "upsert", StringComparison.OrdinalIgnoreCase);
+            var isCover = string.Equals(mode, "cover", StringComparison.OrdinalIgnoreCase);
+            var isCreateOnly = string.Equals(mode, "create", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mode, "createAuto", StringComparison.OrdinalIgnoreCase);
+
+            // preview 不访问真实库，始终按建表脚本生成
             var isExist = false;
             if (!isPreview)
             {
                 // 元数据探测用物理名（不加引号）
                 isExist = ddl.hasTable(tbname);
-                if (isExist)
+                // autoMode / create：表已存在则跳过（兼容旧行为）
+                if (isExist && isCreateOnly)
                 {
                     return string.Format("", en.EntityName);
                 }
             }
 
-            if (isExist == false)
+            if (!isExist)
             {
                 // NameCase/NameQuote 在实体→DDLBuilder 落点规范化；DDLBuilder 本身原样拼接
                 ddl.setTable(LandIdent(tbname), en.TableDescription);
@@ -169,7 +198,8 @@ namespace mooSQL.data
                 {
                     if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
                     // None 与 Base 同为可落库列（与 EntityTranslator 一致）
-                    if (field.Kind == FieldKind.Base || field.Kind == FieldKind.None) {
+                    if (field.Kind == FieldKind.Base || field.Kind == FieldKind.None)
+                    {
                         setDDLField(field, ddl);
                     }
                 }
@@ -177,50 +207,98 @@ namespace mooSQL.data
                 if (isPreview)
                 {
                     var sql = ddl.toCreateTable();
-                    var txt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
-                    return txt;
+                    return sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
                 }
-                else if (mode == "create" || mode == "createAuto")
+                if (isCreateOnly || isUpsert || isCover)
                 {
-                    var cc = ddl.doCreateTable();
-                    return string.Format("初始化{0}成功；",en.EntityName);
-                }
-            }
-            else
-            {
-                var exFields = ddl.loadColumns(tbname);
-
-                var exFNames = exFields.map(x => x.Name);
-                ddl.setTable(LandIdent(tbname), en.TableDescription);
-
-                foreach (var field in en.Columns)
-                {
-                    if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
-                    if (exFNames.Contains(field.DbColumnName))
-                    {
-                        continue;
-                    }
-                    if (field.Kind == FieldKind.Base || field.Kind == FieldKind.None)
-                    {
-                        setDDLField(field, ddl);
-                    }
-                }
-
-                if (mode == "preview")
-                {
-                    var sql = ddl.toAddColumn();
-                    var txt = sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
-                    return txt;
-                }
-                else if (mode == "create" || mode == "createAuto")
-                {
-                    var cc = ddl.doAddColumn();
+                    ddl.doCreateTable();
                     return string.Format("初始化{0}成功；", en.EntityName);
                 }
-
+            }
+            else if (isUpsert || isCover)
+            {
+                return SyncExistingTable(ddl, en, tbname, isCover, isPreview: false);
             }
 
             return string.Format("{0}未执行处理；", en.EntityName);
+        }
+
+        /// <summary>
+        /// 表已存在时：补齐缺失列；cover 模式下再 ALTER 已有列。
+        /// </summary>
+        string SyncExistingTable(DDLBuilder ddl, EntityInfo en, string tbname, bool alterExisting, bool isPreview)
+        {
+            var exFields = ddl.loadColumns(tbname) ?? new List<DbColumnInfo>();
+            var exNames = new HashSet<string>(
+                exFields.Where(x => !string.IsNullOrWhiteSpace(x?.Name)).Select(x => x.Name),
+                StringComparer.OrdinalIgnoreCase);
+
+            var toAdd = new List<EntityColumn>();
+            var toAlter = new List<EntityColumn>();
+            foreach (var field in en.Columns)
+            {
+                if (string.IsNullOrWhiteSpace(field.DbColumnName)) continue;
+                if (field.Kind != FieldKind.Base && field.Kind != FieldKind.None) continue;
+
+                if (!exNames.Contains(field.DbColumnName))
+                {
+                    toAdd.Add(field);
+                }
+                else if (alterExisting)
+                {
+                    toAlter.Add(field);
+                }
+            }
+
+            var progress = new StringBuilder();
+            var previewSql = new StringBuilder();
+
+            if (toAdd.Count > 0)
+            {
+                ddl.clear().setTable(LandIdent(tbname), en.TableDescription);
+                foreach (var field in toAdd)
+                {
+                    setDDLField(field, ddl);
+                }
+                if (isPreview)
+                {
+                    previewSql.Append(ddl.toAddColumn().toRawSQL(DBLive.dialect.expression.paraPrefix));
+                }
+                else
+                {
+                    ddl.doAddColumn();
+                    progress.AppendFormat("补齐{0}列；", toAdd.Count);
+                }
+            }
+
+            if (toAlter.Count > 0)
+            {
+                ddl.clear().setTable(LandIdent(tbname), en.TableDescription);
+                foreach (var field in toAlter)
+                {
+                    setDDLField(field, ddl);
+                }
+                if (isPreview)
+                {
+                    if (previewSql.Length > 0) previewSql.AppendLine();
+                    previewSql.Append(ddl.toAlterColumn().toRawSQL(DBLive.dialect.expression.paraPrefix));
+                }
+                else
+                {
+                    ddl.doAlterColumn();
+                    progress.AppendFormat("更新{0}列；", toAlter.Count);
+                }
+            }
+
+            if (isPreview)
+            {
+                return previewSql.Length > 0 ? previewSql.ToString() : string.Empty;
+            }
+            if (progress.Length == 0)
+            {
+                return string.Format("表{0}已对齐，无需变更；", en.EntityName);
+            }
+            return string.Format("更新{0}成功；{1}", en.EntityName, progress);
         }
         private void setDDLField(EntityColumn field, DDLBuilder ddl) {
             var dt = transDtype(field);
