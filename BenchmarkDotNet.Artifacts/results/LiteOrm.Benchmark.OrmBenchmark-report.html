@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>LiteOrm.Benchmark.OrmBenchmark-20261027-211501</title>
+<title>LiteOrm.Benchmark.OrmBenchmark-20261027-211718</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -19,17 +19,109 @@ BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9711/25H2/2025Update/HudsonValle
   [Host]    : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
   MediumRun : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
 </code></pre>
-<pre><code>Job=MediumRun  IterationCount=1  LaunchCount=1  
-RunStrategy=ColdStart  UnrollFactor=1  WarmupCount=0  
+<pre><code>Job=MediumRun  IterationCount=15  LaunchCount=2  
+WarmupCount=10  
 </code></pre>
 
 <table>
-<thead><tr><th>Method       </th><th>BatchCount</th><th>Mean  </th><th>Error</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
+<thead><tr><th>Method            </th><th>BatchCount</th><th>Mean    </th><th>Error  </th><th>StdDev </th><th>Median  </th><th>Gen0 </th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>MooSql_Insert_Async</td><td>10</td><td>8.412 ms</td><td>NA</td><td>-</td><td>-</td><td>-</td><td>213.99 KB</td>
-</tr><tr><td>MooSql_Insert_Async</td><td>100</td><td>19.610 ms</td><td>NA</td><td>-</td><td>-</td><td>-</td><td>2080.91 KB</td>
-</tr><tr><td>MooSql_Insert_Async</td><td>1000</td><td>142.176 ms</td><td>NA</td><td>1000.0000</td><td>-</td><td>-</td><td>20741.87 KB</td>
-</tr><tr><td>MooSql_Insert_Async</td><td>10000</td><td>1,028.201 ms</td><td>NA</td><td>14000.0000</td><td>7000.0000</td><td>1000.0000</td><td>207321.72 KB</td>
+</thead><tbody><tr><td>EFCore_Insert_Async</td><td>10</td><td>6,390.0 &mu;s</td><td>340.57 &mu;s</td><td>466.18 &mu;s</td><td>6,331.8 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>464.17 KB</td>
+</tr><tr><td>SqlSugar_Insert_Async</td><td>10</td><td>4,770.6 &mu;s</td><td>268.92 &mu;s</td><td>402.50 &mu;s</td><td>4,911.8 &mu;s</td><td>-</td><td>-</td><td>-</td><td>104.12 KB</td>
+</tr><tr><td>LiteOrm_Insert_Async</td><td>10</td><td>4,692.5 &mu;s</td><td>304.40 &mu;s</td><td>446.19 &mu;s</td><td>4,820.0 &mu;s</td><td>-</td><td>-</td><td>-</td><td>84.26 KB</td>
+</tr><tr><td>Dapper_Insert_Async</td><td>10</td><td>4,628.9 &mu;s</td><td>289.95 &mu;s</td><td>433.98 &mu;s</td><td>4,625.7 &mu;s</td><td>-</td><td>-</td><td>-</td><td>61.64 KB</td>
+</tr><tr><td>FreeSql_Insert_Async</td><td>10</td><td>4,730.2 &mu;s</td><td>297.50 &mu;s</td><td>445.28 &mu;s</td><td>4,840.9 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>123.41 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>10</td><td>5,009.8 &mu;s</td><td>261.45 &mu;s</td><td>383.23 &mu;s</td><td>5,085.4 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>213.7 KB</td>
+</tr><tr><td>EFCore_Update_Async</td><td>10</td><td>7,640.3 &mu;s</td><td>514.25 &mu;s</td><td>737.53 &mu;s</td><td>7,663.8 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>405.01 KB</td>
+</tr><tr><td>SqlSugar_Update_Async</td><td>10</td><td>6,245.7 &mu;s</td><td>400.42 &mu;s</td><td>574.27 &mu;s</td><td>6,365.2 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>213.12 KB</td>
+</tr><tr><td>LiteOrm_Update_Async</td><td>10</td><td>5,800.9 &mu;s</td><td>510.12 &mu;s</td><td>763.53 &mu;s</td><td>6,076.0 &mu;s</td><td>-</td><td>-</td><td>-</td><td>102.76 KB</td>
+</tr><tr><td>Dapper_Update_Async</td><td>10</td><td>5,517.5 &mu;s</td><td>513.35 &mu;s</td><td>768.36 &mu;s</td><td>5,767.8 &mu;s</td><td>-</td><td>-</td><td>-</td><td>79.95 KB</td>
+</tr><tr><td>FreeSql_Update_Async</td><td>10</td><td>6,049.3 &mu;s</td><td>563.77 &mu;s</td><td>843.82 &mu;s</td><td>6,241.2 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>179.34 KB</td>
+</tr><tr><td>MooSql_Update_Async</td><td>10</td><td>6,956.3 &mu;s</td><td>794.15 &mu;s</td><td>1,188.65 &mu;s</td><td>7,134.9 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>263.55 KB</td>
+</tr><tr><td>EFCore_Upsert_Async</td><td>10</td><td>9,104.2 &mu;s</td><td>1,209.12 &mu;s</td><td>1,809.75 &mu;s</td><td>8,628.6 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>437.92 KB</td>
+</tr><tr><td>SqlSugar_Upsert_Async</td><td>10</td><td>8,010.1 &mu;s</td><td>1,330.94 &mu;s</td><td>1,908.80 &mu;s</td><td>7,587.6 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>300.15 KB</td>
+</tr><tr><td>LiteOrm_Upsert_Async</td><td>10</td><td>8,008.9 &mu;s</td><td>1,446.43 &mu;s</td><td>2,164.94 &mu;s</td><td>8,038.9 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>129.16 KB</td>
+</tr><tr><td>Dapper_Upsert_Async</td><td>10</td><td>7,669.3 &mu;s</td><td>1,239.79 &mu;s</td><td>1,855.65 &mu;s</td><td>7,542.4 &mu;s</td><td>-</td><td>-</td><td>-</td><td>75.24 KB</td>
+</tr><tr><td>FreeSql_Upsert_Async</td><td>10</td><td>7,961.5 &mu;s</td><td>1,388.07 &mu;s</td><td>2,077.59 &mu;s</td><td>7,946.0 &mu;s</td><td>-</td><td>-</td><td>-</td><td>84.66 KB</td>
+</tr><tr><td>MooSql_Upsert_Async</td><td>10</td><td>8,192.3 &mu;s</td><td>898.42 &mu;s</td><td>1,344.71 &mu;s</td><td>8,219.4 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>244.3 KB</td>
+</tr><tr><td>EFCore_JoinQuery_Async</td><td>10</td><td>681.5 &mu;s</td><td>13.90 &mu;s</td><td>19.48 &mu;s</td><td>677.5 &mu;s</td><td>13.6719</td><td>5.8594</td><td>-</td><td>238.88 KB</td>
+</tr><tr><td>SqlSugar_JoinQuery_Async</td><td>10</td><td>493.4 &mu;s</td><td>14.26 &mu;s</td><td>20.00 &mu;s</td><td>483.8 &mu;s</td><td>10.7422</td><td>-</td><td>-</td><td>170.09 KB</td>
+</tr><tr><td>LiteOrm_JoinQuery_Async</td><td>10</td><td>225.6 &mu;s</td><td>5.03 &mu;s</td><td>7.21 &mu;s</td><td>223.5 &mu;s</td><td>1.4648</td><td>0.4883</td><td>-</td><td>28.84 KB</td>
+</tr><tr><td>Dapper_JoinQuery_Async</td><td>10</td><td>284.9 &mu;s</td><td>6.95 &mu;s</td><td>9.75 &mu;s</td><td>281.7 &mu;s</td><td>0.9766</td><td>-</td><td>-</td><td>19.39 KB</td>
+</tr><tr><td>FreeSql_JoinQuery_Async</td><td>10</td><td>433.0 &mu;s</td><td>6.13 &mu;s</td><td>9.18 &mu;s</td><td>431.9 &mu;s</td><td>2.9297</td><td>0.9766</td><td>-</td><td>46.06 KB</td>
+</tr><tr><td>MooSql_JoinQuery_Async</td><td>10</td><td>211.6 &mu;s</td><td>7.10 &mu;s</td><td>10.19 &mu;s</td><td>209.1 &mu;s</td><td>0.4883</td><td>-</td><td>-</td><td>14.46 KB</td>
+</tr><tr><td>EFCore_Insert_Async</td><td>100</td><td>17,422.0 &mu;s</td><td>411.84 &mu;s</td><td>603.67 &mu;s</td><td>17,491.9 &mu;s</td><td>218.7500</td><td>187.5000</td><td>-</td><td>3379.56 KB</td>
+</tr><tr><td>SqlSugar_Insert_Async</td><td>100</td><td>7,447.7 &mu;s</td><td>775.60 &mu;s</td><td>1,136.86 &mu;s</td><td>7,415.6 &mu;s</td><td>54.6875</td><td>15.6250</td><td>-</td><td>896.93 KB</td>
+</tr><tr><td>LiteOrm_Insert_Async</td><td>100</td><td>6,519.5 &mu;s</td><td>437.73 &mu;s</td><td>641.63 &mu;s</td><td>6,681.1 &mu;s</td><td>7.8125</td><td>-</td><td>-</td><td>179.21 KB</td>
+</tr><tr><td>Dapper_Insert_Async</td><td>100</td><td>6,882.2 &mu;s</td><td>373.77 &mu;s</td><td>547.86 &mu;s</td><td>6,954.3 &mu;s</td><td>31.2500</td><td>15.6250</td><td>-</td><td>548.85 KB</td>
+</tr><tr><td>FreeSql_Insert_Async</td><td>100</td><td>7,972.2 &mu;s</td><td>657.67 &mu;s</td><td>984.37 &mu;s</td><td>7,798.2 &mu;s</td><td>62.5000</td><td>15.6250</td><td>-</td><td>1161.9 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>100</td><td>14,740.1 &mu;s</td><td>537.16 &mu;s</td><td>803.99 &mu;s</td><td>14,827.5 &mu;s</td><td>125.0000</td><td>31.2500</td><td>-</td><td>2078.51 KB</td>
+</tr><tr><td>EFCore_Update_Async</td><td>100</td><td>16,690.1 &mu;s</td><td>754.26 &mu;s</td><td>1,128.94 &mu;s</td><td>16,500.2 &mu;s</td><td>156.2500</td><td>62.5000</td><td>-</td><td>2560.15 KB</td>
+</tr><tr><td>SqlSugar_Update_Async</td><td>100</td><td>8,966.3 &mu;s</td><td>555.53 &mu;s</td><td>831.49 &mu;s</td><td>8,894.6 &mu;s</td><td>93.7500</td><td>46.8750</td><td>-</td><td>1544.31 KB</td>
+</tr><tr><td>LiteOrm_Update_Async</td><td>100</td><td>7,445.1 &mu;s</td><td>633.15 &mu;s</td><td>947.67 &mu;s</td><td>7,523.6 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>255.5 KB</td>
+</tr><tr><td>Dapper_Update_Async</td><td>100</td><td>7,691.7 &mu;s</td><td>710.97 &mu;s</td><td>1,019.65 &mu;s</td><td>7,532.9 &mu;s</td><td>31.2500</td><td>15.6250</td><td>-</td><td>674.92 KB</td>
+</tr><tr><td>FreeSql_Update_Async</td><td>100</td><td>9,031.7 &mu;s</td><td>677.88 &mu;s</td><td>1,014.61 &mu;s</td><td>9,162.2 &mu;s</td><td>93.7500</td><td>31.2500</td><td>-</td><td>1635 KB</td>
+</tr><tr><td>MooSql_Update_Async</td><td>100</td><td>17,356.7 &mu;s</td><td>906.77 &mu;s</td><td>1,357.21 &mu;s</td><td>17,299.6 &mu;s</td><td>156.2500</td><td>62.5000</td><td>-</td><td>2481.04 KB</td>
+</tr><tr><td>EFCore_Upsert_Async</td><td>100</td><td>17,877.9 &mu;s</td><td>1,294.59 &mu;s</td><td>1,897.60 &mu;s</td><td>17,176.8 &mu;s</td><td>125.0000</td><td>62.5000</td><td>-</td><td>2834.76 KB</td>
+</tr><tr><td>SqlSugar_Upsert_Async</td><td>100</td><td>11,696.8 &mu;s</td><td>1,643.75 &mu;s</td><td>2,460.29 &mu;s</td><td>11,341.3 &mu;s</td><td>125.0000</td><td>31.2500</td><td>-</td><td>2076.23 KB</td>
+</tr><tr><td>LiteOrm_Upsert_Async</td><td>100</td><td>9,947.7 &mu;s</td><td>1,429.10 &mu;s</td><td>2,139.02 &mu;s</td><td>9,700.5 &mu;s</td><td>46.8750</td><td>-</td><td>-</td><td>761.77 KB</td>
+</tr><tr><td>Dapper_Upsert_Async</td><td>100</td><td>9,731.6 &mu;s</td><td>1,762.84 &mu;s</td><td>2,638.53 &mu;s</td><td>8,860.3 &mu;s</td><td>31.2500</td><td>-</td><td>-</td><td>625.74 KB</td>
+</tr><tr><td>FreeSql_Upsert_Async</td><td>100</td><td>9,346.9 &mu;s</td><td>1,358.69 &mu;s</td><td>1,904.70 &mu;s</td><td>9,464.4 &mu;s</td><td>31.2500</td><td>-</td><td>-</td><td>534.68 KB</td>
+</tr><tr><td>MooSql_Upsert_Async</td><td>100</td><td>16,841.0 &mu;s</td><td>1,146.67 &mu;s</td><td>1,716.29 &mu;s</td><td>16,655.9 &mu;s</td><td>125.0000</td><td>31.2500</td><td>-</td><td>2272.1 KB</td>
+</tr><tr><td>EFCore_JoinQuery_Async</td><td>100</td><td>1,610.4 &mu;s</td><td>33.62 &mu;s</td><td>49.28 &mu;s</td><td>1,589.4 &mu;s</td><td>66.4063</td><td>19.5313</td><td>-</td><td>1072.37 KB</td>
+</tr><tr><td>SqlSugar_JoinQuery_Async</td><td>100</td><td>1,326.5 &mu;s</td><td>29.37 &mu;s</td><td>39.21 &mu;s</td><td>1,311.3 &mu;s</td><td>62.5000</td><td>3.9063</td><td>-</td><td>991.73 KB</td>
+</tr><tr><td>LiteOrm_JoinQuery_Async</td><td>100</td><td>748.7 &mu;s</td><td>43.55 &mu;s</td><td>63.83 &mu;s</td><td>767.7 &mu;s</td><td>1.9531</td><td>-</td><td>-</td><td>46.32 KB</td>
+</tr><tr><td>Dapper_JoinQuery_Async</td><td>100</td><td>869.4 &mu;s</td><td>18.65 &mu;s</td><td>26.14 &mu;s</td><td>860.5 &mu;s</td><td>3.9063</td><td>-</td><td>-</td><td>78.01 KB</td>
+</tr><tr><td>FreeSql_JoinQuery_Async</td><td>100</td><td>1,079.1 &mu;s</td><td>11.20 &mu;s</td><td>16.77 &mu;s</td><td>1,081.7 &mu;s</td><td>9.7656</td><td>1.9531</td><td>-</td><td>160.99 KB</td>
+</tr><tr><td>MooSql_JoinQuery_Async</td><td>100</td><td>788.4 &mu;s</td><td>26.38 &mu;s</td><td>38.67 &mu;s</td><td>800.8 &mu;s</td><td>1.9531</td><td>-</td><td>-</td><td>38.94 KB</td>
+</tr><tr><td>EFCore_Insert_Async</td><td>1000</td><td>182,411.6 &mu;s</td><td>6,251.40 &mu;s</td><td>8,965.58 &mu;s</td><td>181,399.0 &mu;s</td><td>2000.0000</td><td>500.0000</td><td>-</td><td>32569.65 KB</td>
+</tr><tr><td>SqlSugar_Insert_Async</td><td>1000</td><td>28,683.8 &mu;s</td><td>2,282.65 &mu;s</td><td>3,416.56 &mu;s</td><td>28,112.9 &mu;s</td><td>625.0000</td><td>375.0000</td><td>125.0000</td><td>8833.47 KB</td>
+</tr><tr><td>LiteOrm_Insert_Async</td><td>1000</td><td>19,022.8 &mu;s</td><td>1,909.27 &mu;s</td><td>2,857.71 &mu;s</td><td>18,726.7 &mu;s</td><td>93.7500</td><td>31.2500</td><td>-</td><td>1678.13 KB</td>
+</tr><tr><td>Dapper_Insert_Async</td><td>1000</td><td>23,565.6 &mu;s</td><td>796.45 &mu;s</td><td>1,142.25 &mu;s</td><td>23,777.5 &mu;s</td><td>562.5000</td><td>531.2500</td><td>343.7500</td><td>5371.7 KB</td>
+</tr><tr><td>FreeSql_Insert_Async</td><td>1000</td><td>28,716.4 &mu;s</td><td>1,433.46 &mu;s</td><td>2,145.54 &mu;s</td><td>28,746.1 &mu;s</td><td>714.2857</td><td>500.0000</td><td>71.4286</td><td>11455.52 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>1000</td><td>96,905.3 &mu;s</td><td>1,844.30 &mu;s</td><td>2,760.46 &mu;s</td><td>96,716.2 &mu;s</td><td>1250.0000</td><td>750.0000</td><td>-</td><td>20718.37 KB</td>
+</tr><tr><td>EFCore_Update_Async</td><td>1000</td><td>118,153.3 &mu;s</td><td>10,084.63 &mu;s</td><td>14,781.92 &mu;s</td><td>111,545.5 &mu;s</td><td>1500.0000</td><td>750.0000</td><td>-</td><td>24227.7 KB</td>
+</tr><tr><td>SqlSugar_Update_Async</td><td>1000</td><td>40,761.4 &mu;s</td><td>499.29 &mu;s</td><td>649.22 &mu;s</td><td>40,657.5 &mu;s</td><td>1000.0000</td><td>625.0000</td><td>250.0000</td><td>14922.23 KB</td>
+</tr><tr><td>LiteOrm_Update_Async</td><td>1000</td><td>24,259.5 &mu;s</td><td>2,507.94 &mu;s</td><td>3,753.77 &mu;s</td><td>22,849.3 &mu;s</td><td>125.0000</td><td>62.5000</td><td>-</td><td>2305.82 KB</td>
+</tr><tr><td>Dapper_Update_Async</td><td>1000</td><td>29,037.2 &mu;s</td><td>1,557.86 &mu;s</td><td>2,283.49 &mu;s</td><td>28,668.0 &mu;s</td><td>562.5000</td><td>500.0000</td><td>312.5000</td><td>6415.21 KB</td>
+</tr><tr><td>FreeSql_Update_Async</td><td>1000</td><td>40,017.3 &mu;s</td><td>988.91 &mu;s</td><td>1,386.32 &mu;s</td><td>39,873.0 &mu;s</td><td>1100.0000</td><td>900.0000</td><td>200.0000</td><td>15173.41 KB</td>
+</tr><tr><td>MooSql_Update_Async</td><td>1000</td><td>143,770.2 &mu;s</td><td>8,139.14 &mu;s</td><td>11,672.92 &mu;s</td><td>139,324.1 &mu;s</td><td>1500.0000</td><td>500.0000</td><td>-</td><td>24665.48 KB</td>
+</tr><tr><td>EFCore_Upsert_Async</td><td>1000</td><td>289,271.2 &mu;s</td><td>99,834.86 &mu;s</td><td>139,954.54 &mu;s</td><td>238,389.7 &mu;s</td><td>1000.0000</td><td>-</td><td>-</td><td>27017.2 KB</td>
+</tr><tr><td>SqlSugar_Upsert_Async</td><td>1000</td><td>117,173.8 &mu;s</td><td>30,090.18 &mu;s</td><td>41,187.78 &mu;s</td><td>96,303.0 &mu;s</td><td>2500.0000</td><td>750.0000</td><td>-</td><td>41944.55 KB</td>
+</tr><tr><td>LiteOrm_Upsert_Async</td><td>1000</td><td>30,291.3 &mu;s</td><td>3,368.47 &mu;s</td><td>4,937.46 &mu;s</td><td>30,079.6 &mu;s</td><td>133.3333</td><td>66.6667</td><td>-</td><td>2326.21 KB</td>
+</tr><tr><td>Dapper_Upsert_Async</td><td>1000</td><td>32,206.0 &mu;s</td><td>3,031.82 &mu;s</td><td>4,348.15 &mu;s</td><td>30,366.6 &mu;s</td><td>615.3846</td><td>538.4615</td><td>384.6154</td><td>5918.49 KB</td>
+</tr><tr><td>FreeSql_Upsert_Async</td><td>1000</td><td>29,198.0 &mu;s</td><td>2,830.31 &mu;s</td><td>4,236.28 &mu;s</td><td>28,103.1 &mu;s</td><td>400.0000</td><td>333.3333</td><td>200.0000</td><td>4584.7 KB</td>
+</tr><tr><td>MooSql_Upsert_Async</td><td>1000</td><td>226,132.7 &mu;s</td><td>5,361.80 &mu;s</td><td>8,025.29 &mu;s</td><td>226,720.9 &mu;s</td><td>1000.0000</td><td>500.0000</td><td>-</td><td>22533.52 KB</td>
+</tr><tr><td>EFCore_JoinQuery_Async</td><td>1000</td><td>15,619.0 &mu;s</td><td>510.61 &mu;s</td><td>764.26 &mu;s</td><td>15,520.2 &mu;s</td><td>571.4286</td><td>214.2857</td><td>-</td><td>9467.43 KB</td>
+</tr><tr><td>SqlSugar_JoinQuery_Async</td><td>1000</td><td>13,914.3 &mu;s</td><td>660.86 &mu;s</td><td>989.15 &mu;s</td><td>13,847.0 &mu;s</td><td>593.7500</td><td>187.5000</td><td>-</td><td>9221.28 KB</td>
+</tr><tr><td>LiteOrm_JoinQuery_Async</td><td>1000</td><td>9,739.8 &mu;s</td><td>159.53 &mu;s</td><td>233.84 &mu;s</td><td>9,734.6 &mu;s</td><td>-</td><td>-</td><td>-</td><td>224.61 KB</td>
+</tr><tr><td>Dapper_JoinQuery_Async</td><td>1000</td><td>13,318.3 &mu;s</td><td>394.93 &mu;s</td><td>591.11 &mu;s</td><td>13,473.7 &mu;s</td><td>31.2500</td><td>15.6250</td><td>-</td><td>668.64 KB</td>
+</tr><tr><td>FreeSql_JoinQuery_Async</td><td>1000</td><td>14,597.1 &mu;s</td><td>315.29 &mu;s</td><td>471.91 &mu;s</td><td>14,517.5 &mu;s</td><td>62.5000</td><td>-</td><td>-</td><td>1326.67 KB</td>
+</tr><tr><td>MooSql_JoinQuery_Async</td><td>1000</td><td>10,166.7 &mu;s</td><td>227.52 &mu;s</td><td>340.54 &mu;s</td><td>10,188.9 &mu;s</td><td>15.6250</td><td>-</td><td>-</td><td>285.05 KB</td>
+</tr><tr><td>EFCore_Insert_Async</td><td>10000</td><td>3,727,553.7 &mu;s</td><td>77,490.40 &mu;s</td><td>115,983.99 &mu;s</td><td>3,721,303.6 &mu;s</td><td>21000.0000</td><td>8000.0000</td><td>1000.0000</td><td>324700.26 KB</td>
+</tr><tr><td>SqlSugar_Insert_Async</td><td>10000</td><td>376,846.0 &mu;s</td><td>8,936.59 &mu;s</td><td>12,232.50 &mu;s</td><td>376,131.0 &mu;s</td><td>6000.0000</td><td>4000.0000</td><td>1000.0000</td><td>89311.06 KB</td>
+</tr><tr><td>LiteOrm_Insert_Async</td><td>10000</td><td>199,573.8 &mu;s</td><td>11,052.39 &mu;s</td><td>16,542.69 &mu;s</td><td>202,288.1 &mu;s</td><td>1000.0000</td><td>666.6667</td><td>-</td><td>16697.82 KB</td>
+</tr><tr><td>Dapper_Insert_Async</td><td>10000</td><td>250,820.9 &mu;s</td><td>10,901.20 &mu;s</td><td>16,316.40 &mu;s</td><td>253,404.7 &mu;s</td><td>4000.0000</td><td>3666.6667</td><td>2000.0000</td><td>55432.94 KB</td>
+</tr><tr><td>FreeSql_Insert_Async</td><td>10000</td><td>367,485.8 &mu;s</td><td>15,751.80 &mu;s</td><td>22,590.76 &mu;s</td><td>367,726.5 &mu;s</td><td>7000.0000</td><td>1000.0000</td><td>-</td><td>115231.81 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>10000</td><td>2,115,173.5 &mu;s</td><td>54,661.80 &mu;s</td><td>81,815.21 &mu;s</td><td>2,106,795.0 &mu;s</td><td>14000.0000</td><td>7000.0000</td><td>1000.0000</td><td>207321.8 KB</td>
+</tr><tr><td>EFCore_Update_Async</td><td>10000</td><td>2,433,313.4 &mu;s</td><td>180,840.07 &mu;s</td><td>253,512.54 &mu;s</td><td>2,291,082.9 &mu;s</td><td>16000.0000</td><td>6000.0000</td><td>1000.0000</td><td>240388.98 KB</td>
+</tr><tr><td>SqlSugar_Update_Async</td><td>10000</td><td>608,288.8 &mu;s</td><td>10,497.54 &mu;s</td><td>15,387.15 &mu;s</td><td>607,891.4 &mu;s</td><td>9000.0000</td><td>5000.0000</td><td>1000.0000</td><td>150995.33 KB</td>
+</tr><tr><td>LiteOrm_Update_Async</td><td>10000</td><td>342,740.2 &mu;s</td><td>24,287.63 &mu;s</td><td>34,832.60 &mu;s</td><td>348,153.1 &mu;s</td><td>1000.0000</td><td>-</td><td>-</td><td>22977.48 KB</td>
+</tr><tr><td>Dapper_Update_Async</td><td>10000</td><td>381,903.8 &mu;s</td><td>16,138.96 &mu;s</td><td>24,156.04 &mu;s</td><td>381,192.7 &mu;s</td><td>3000.0000</td><td>2000.0000</td><td>1000.0000</td><td>65619.61 KB</td>
+</tr><tr><td>FreeSql_Update_Async</td><td>10000</td><td>626,916.5 &mu;s</td><td>23,052.01 &mu;s</td><td>34,503.17 &mu;s</td><td>616,617.9 &mu;s</td><td>10000.0000</td><td>2000.0000</td><td>1000.0000</td><td>152162.37 KB</td>
+</tr><tr><td>MooSql_Update_Async</td><td>10000</td><td>2,453,932.0 &mu;s</td><td>91,171.22 &mu;s</td><td>127,809.32 &mu;s</td><td>2,412,625.8 &mu;s</td><td>17000.0000</td><td>8000.0000</td><td>1000.0000</td><td>246946.43 KB</td>
+</tr><tr><td>EFCore_Upsert_Async</td><td>10000</td><td>2,727,675.9 &mu;s</td><td>57,606.78 &mu;s</td><td>82,617.93 &mu;s</td><td>2,737,894.3 &mu;s</td><td>18000.0000</td><td>6000.0000</td><td>1000.0000</td><td>267765.7 KB</td>
+</tr><tr><td>SqlSugar_Upsert_Async</td><td>10000</td><td>3,202,046.1 &mu;s</td><td>80,100.29 &mu;s</td><td>119,890.35 &mu;s</td><td>3,249,733.1 &mu;s</td><td>222000.0000</td><td>5000.0000</td><td>1000.0000</td><td>3413735.73 KB</td>
+</tr><tr><td>LiteOrm_Upsert_Async</td><td>10000</td><td>211,620.5 &mu;s</td><td>26,277.97 &mu;s</td><td>39,331.64 &mu;s</td><td>207,785.6 &mu;s</td><td>1333.3333</td><td>666.6667</td><td>-</td><td>23057.66 KB</td>
+</tr><tr><td>Dapper_Upsert_Async</td><td>10000</td><td>244,258.4 &mu;s</td><td>10,025.28 &mu;s</td><td>15,005.37 &mu;s</td><td>249,471.3 &mu;s</td><td>3333.3333</td><td>3000.0000</td><td>1000.0000</td><td>60601.34 KB</td>
+</tr><tr><td>FreeSql_Upsert_Async</td><td>10000</td><td>221,488.5 &mu;s</td><td>14,527.52 &mu;s</td><td>20,834.94 &mu;s</td><td>219,469.7 &mu;s</td><td>2666.6667</td><td>1333.3333</td><td>333.3333</td><td>45792.43 KB</td>
+</tr><tr><td>MooSql_Upsert_Async</td><td>10000</td><td>1,113,832.4 &mu;s</td><td>37,214.22 &mu;s</td><td>54,548.12 &mu;s</td><td>1,092,221.7 &mu;s</td><td>15000.0000</td><td>8000.0000</td><td>1000.0000</td><td>225686.59 KB</td>
+</tr><tr><td>EFCore_JoinQuery_Async</td><td>10000</td><td>135,445.0 &mu;s</td><td>7,722.94 &mu;s</td><td>11,559.33 &mu;s</td><td>132,328.7 &mu;s</td><td>6750.0000</td><td>2500.0000</td><td>1000.0000</td><td>94337.68 KB</td>
+</tr><tr><td>SqlSugar_JoinQuery_Async</td><td>10000</td><td>138,562.5 &mu;s</td><td>4,839.91 &mu;s</td><td>7,244.15 &mu;s</td><td>138,345.2 &mu;s</td><td>6000.0000</td><td>1500.0000</td><td>250.0000</td><td>91430.79 KB</td>
+</tr><tr><td>LiteOrm_JoinQuery_Async</td><td>10000</td><td>102,431.3 &mu;s</td><td>6,377.27 &mu;s</td><td>9,545.20 &mu;s</td><td>102,018.8 &mu;s</td><td>-</td><td>-</td><td>-</td><td>2112.14 KB</td>
+</tr><tr><td>Dapper_JoinQuery_Async</td><td>10000</td><td>135,447.5 &mu;s</td><td>13,381.48 &mu;s</td><td>20,028.77 &mu;s</td><td>130,861.9 &mu;s</td><td>333.3333</td><td>-</td><td>-</td><td>6744.67 KB</td>
+</tr><tr><td>FreeSql_JoinQuery_Async</td><td>10000</td><td>133,481.6 &mu;s</td><td>9,359.77 &mu;s</td><td>14,009.26 &mu;s</td><td>134,942.5 &mu;s</td><td>750.0000</td><td>250.0000</td><td>-</td><td>13145 KB</td>
+</tr><tr><td>MooSql_JoinQuery_Async</td><td>10000</td><td>112,897.7 &mu;s</td><td>11,016.93 &mu;s</td><td>16,489.62 &mu;s</td><td>106,913.8 &mu;s</td><td>-</td><td>-</td><td>-</td><td>2845.45 KB</td>
 </tr></tbody></table>
 </body>
 </html>

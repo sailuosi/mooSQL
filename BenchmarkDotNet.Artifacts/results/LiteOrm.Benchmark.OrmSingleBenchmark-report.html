@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>LiteOrm.Benchmark.OrmSingleBenchmark-20261027-224629</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9711/25H2/2025Update/HudsonValley2)
+12th Gen Intel Core i9-12900KF 3.19GHz, 1 CPU, 24 logical and 16 physical cores
+.NET SDK 10.0.302
+  [Host]    : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
+  MediumRun : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>Job=MediumRun  IterationCount=15  LaunchCount=2  
+WarmupCount=10  
+</code></pre>
+
+<table>
+<thead><tr><th>Method               </th><th>Mean </th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Gen1</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>EFCore_SingleInsert_Async</td><td>4,463.20 ms</td><td>46.658 ms</td><td>68.390 ms</td><td>3000.0000</td><td>2000.0000</td><td>58.62 MB</td>
+</tr><tr><td>SqlSugar_SingleInsert_Async</td><td>4,086.30 ms</td><td>35.392 ms</td><td>48.445 ms</td><td>1000.0000</td><td>-</td><td>25.28 MB</td>
+</tr><tr><td>LiteOrm_SingleInsert_Async</td><td>3,927.04 ms</td><td>50.083 ms</td><td>71.827 ms</td><td>-</td><td>-</td><td>5.27 MB</td>
+</tr><tr><td>Dapper_SingleInsert_Async</td><td>4,024.62 ms</td><td>133.036 ms</td><td>186.498 ms</td><td>-</td><td>-</td><td>5.47 MB</td>
+</tr><tr><td>FreeSql_SingleInsert_Async</td><td>4,179.67 ms</td><td>63.002 ms</td><td>92.347 ms</td><td>1000.0000</td><td>-</td><td>20.26 MB</td>
+</tr><tr><td>MooSql_SingleInsert_Async</td><td>4,131.13 ms</td><td>51.958 ms</td><td>76.159 ms</td><td>1000.0000</td><td>-</td><td>23.34 MB</td>
+</tr><tr><td>EFCore_SingleUpdate_Async</td><td>5,517.94 ms</td><td>157.455 ms</td><td>215.527 ms</td><td>3000.0000</td><td>2000.0000</td><td>46.71 MB</td>
+</tr><tr><td>SqlSugar_SingleUpdate_Async</td><td>5,430.72 ms</td><td>174.037 ms</td><td>260.491 ms</td><td>2000.0000</td><td>1000.0000</td><td>30.67 MB</td>
+</tr><tr><td>LiteOrm_SingleUpdate_Async</td><td>5,471.73 ms</td><td>160.576 ms</td><td>235.370 ms</td><td>-</td><td>-</td><td>5.01 MB</td>
+</tr><tr><td>Dapper_SingleUpdate_Async</td><td>5,385.08 ms</td><td>124.718 ms</td><td>182.810 ms</td><td>-</td><td>-</td><td>4.3 MB</td>
+</tr><tr><td>FreeSql_SingleUpdate_Async</td><td>5,309.53 ms</td><td>137.730 ms</td><td>193.078 ms</td><td>1000.0000</td><td>-</td><td>22.83 MB</td>
+</tr><tr><td>MooSql_SingleUpdate_Async</td><td>5,447.49 ms</td><td>169.438 ms</td><td>248.360 ms</td><td>1000.0000</td><td>-</td><td>27.12 MB</td>
+</tr><tr><td>EFCore_SingleUpsert_Async</td><td>5,326.32 ms</td><td>81.770 ms</td><td>122.389 ms</td><td>3000.0000</td><td>1000.0000</td><td>55.35 MB</td>
+</tr><tr><td>SqlSugar_SingleUpsert_Async</td><td>5,471.14 ms</td><td>98.189 ms</td><td>140.819 ms</td><td>5000.0000</td><td>1000.0000</td><td>88.28 MB</td>
+</tr><tr><td>LiteOrm_SingleUpsert_Async</td><td>5,201.77 ms</td><td>97.542 ms</td><td>139.893 ms</td><td>-</td><td>-</td><td>7.4 MB</td>
+</tr><tr><td>Dapper_SingleUpsert_Async</td><td>4,754.07 ms</td><td>61.510 ms</td><td>88.216 ms</td><td>-</td><td>-</td><td>6.09 MB</td>
+</tr><tr><td>FreeSql_SingleUpsert_Async</td><td>5,068.09 ms</td><td>96.227 ms</td><td>144.029 ms</td><td>1000.0000</td><td>-</td><td>20.3 MB</td>
+</tr><tr><td>MooSql_SingleUpsert_Async</td><td>5,065.26 ms</td><td>92.407 ms</td><td>135.449 ms</td><td>2000.0000</td><td>1000.0000</td><td>38.85 MB</td>
+</tr><tr><td>EFCore_SingleGet_Async</td><td>351.86 ms</td><td>17.178 ms</td><td>24.636 ms</td><td>3000.0000</td><td>1000.0000</td><td>47.61 MB</td>
+</tr><tr><td>SqlSugar_SingleGet_Async</td><td>282.73 ms</td><td>7.343 ms</td><td>9.803 ms</td><td>3000.0000</td><td>-</td><td>50.89 MB</td>
+</tr><tr><td>LiteOrm_SingleGet_Async</td><td>105.49 ms</td><td>2.609 ms</td><td>3.824 ms</td><td>250.0000</td><td>-</td><td>3.82 MB</td>
+</tr><tr><td>Dapper_SingleGet_Async</td><td>97.02 ms</td><td>2.194 ms</td><td>3.283 ms</td><td>250.0000</td><td>-</td><td>6.08 MB</td>
+</tr><tr><td>FreeSql_SingleGet_Async</td><td>248.32 ms</td><td>7.618 ms</td><td>11.402 ms</td><td>1000.0000</td><td>-</td><td>18.62 MB</td>
+</tr><tr><td>MooSql_SingleGet_Async</td><td>164.24 ms</td><td>3.168 ms</td><td>4.742 ms</td><td>666.6667</td><td>-</td><td>12.4 MB</td>
+</tr></tbody></table>
+</body>
+</html>
