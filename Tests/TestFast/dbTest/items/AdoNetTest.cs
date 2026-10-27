@@ -163,5 +163,149 @@ namespace dbTest.items
 
             public static AnonymousOrdinals Capture(SqliteDataReader r) => new AnonymousOrdinals(r);
         }
+
+        public override void testBatchInsert(int count)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+            SqliteWriteSql.BatchInsert(conn, TestEntityFactory.NewList("Ado", count), tx);
+            tx.Commit();
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            var users = LoadTake(conn, count);
+            using var tx = conn.BeginTransaction();
+            foreach (var u in users)
+                TestEntityFactory.Mutate(u, "Ado", writeRandom);
+            SqliteWriteSql.BatchUpsert(conn, users, tx);
+            tx.Commit();
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            var half = count / 2;
+            var existing = LoadTake(conn, half);
+            foreach (var u in existing)
+                TestEntityFactory.Mutate(u, "A_Up", writeRandom);
+            var neu = TestEntityFactory.NewList("A_In", count - half);
+            using var tx = conn.BeginTransaction();
+            if (existing.Count > 0)
+                SqliteWriteSql.BatchUpsert(conn, existing, tx);
+            SqliteWriteSql.BatchInsert(conn, neu, tx);
+            tx.Commit();
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            for (int i = 0; i < loops; i++)
+            {
+                var e = TestEntityFactory.New("A_SI", i);
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = SqliteWriteSql.SingleInsertSql;
+                BindEntity(cmd, e, withId: false);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            var users = LoadTake(conn, loops);
+            if (users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
+            {
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "A_SU", writeRandom);
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = SqliteWriteSql.SingleUpdateSql;
+                cmd.Parameters.AddWithValue("@F_String", (object)u.F_String ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@F_Int32", (object)u.F_Int32 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@F_Decimal", (object)u.F_Decimal ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Id", u.Id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            var existing = LoadTake(conn, loops);
+            for (int i = 0; i < loops; i++)
+            {
+                using var cmd = conn.CreateCommand();
+                if (i % 2 == 0 && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "A_SX", writeRandom);
+                    cmd.CommandText = SqliteWriteSql.SingleUpsertSql;
+                    BindEntity(cmd, u, withId: true);
+                }
+                else
+                {
+                    cmd.CommandText = SqliteWriteSql.SingleInsertSql;
+                    BindEntity(cmd, TestEntityFactory.New("A_SX_I", i), withId: false);
+                }
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            using var conn = new SqliteConnection(sqlLiteDb);
+            conn.Open();
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT * FROM TestEntity WHERE Id=@id";
+                cmd.Parameters.AddWithValue("@id", id);
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    var ord = EntityOrdinals.Capture(reader);
+                    _ = MapEntity(reader, ord);
+                }
+            }
+        }
+
+        static List<TestEntity> LoadTake(SqliteConnection conn, int count)
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT * FROM TestEntity LIMIT {count}";
+            using var reader = cmd.ExecuteReader();
+            var list = new List<TestEntity>();
+            if (!reader.Read()) return list;
+            var ord = EntityOrdinals.Capture(reader);
+            list.Add(MapEntity(reader, ord));
+            while (reader.Read())
+                list.Add(MapEntity(reader, ord));
+            return list;
+        }
+
+        static void BindEntity(SqliteCommand cmd, TestEntity e, bool withId)
+        {
+            if (withId)
+                cmd.Parameters.AddWithValue("@Id", e.Id);
+            cmd.Parameters.AddWithValue("@F_Byte", (object)e.F_Byte ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Int16", (object)e.F_Int16 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Int32", (object)e.F_Int32 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Int64", (object)e.F_Int64 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Double", (object)e.F_Double ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Float", (object)e.F_Float ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Decimal", (object)e.F_Decimal ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_Bool", e.F_Bool);
+            cmd.Parameters.AddWithValue("@F_DateTime", (object)e.F_DateTime ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@F_String", (object)e.F_String ?? DBNull.Value);
+        }
     }
 }

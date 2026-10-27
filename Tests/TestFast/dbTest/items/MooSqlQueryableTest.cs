@@ -80,6 +80,14 @@ namespace dbTest.items
             _ = GetSqlText(step2);
         }
 
+        public override void testBatchInsert(int count) => MooSqlWriteOps.BatchInsert(count, "MooQ");
+        public override void testBatchUpdate(int count) => MooSqlWriteOps.BatchUpdate(count, "MooQ", writeRandom);
+        public override void testBatchUpsert(int count) => MooSqlWriteOps.BatchUpsert(count, "MooQ_U", "MooQ_I", writeRandom);
+        public override void testSingleInsert(int loops) => MooSqlWriteOps.SingleInsert(loops, "MooQ_SI");
+        public override void testSingleUpdate(int loops) => MooSqlWriteOps.SingleUpdate(loops, "MooQ_SU", writeRandom);
+        public override void testSingleUpsert(int loops) => MooSqlWriteOps.SingleUpsert(loops, "MooQ_SX", writeRandom);
+        public override void testSingleGet(int loops) => MooSqlWriteOps.SingleGet(loops);
+
         private static string GetSqlText<T>(IQueryable<T> query)
         {
             if (query is IExpressionQuery expr)

@@ -49,6 +49,11 @@ public class Program
                 throw new Exception("LiteOrmTest smoke failed: empty or unexpected SQL");
             return;
         }
+        if (args != null && args.Length > 0 && string.Equals(args[0], "writesmoke", StringComparison.OrdinalIgnoreCase))
+        {
+            testWriteSmoke();
+            return;
+        }
 
         DbTestConfig.PromptScope(skipIfExplicit: scopeExplicit);
         DbTestConfig.PersistCurrent();
@@ -108,6 +113,18 @@ public class Program
     public static void testCustomTest()
     {
         Run<CustomTest>();
+    }
+
+    /// <summary>批量写基准（自 LiteOrm.Benchmark 适配）。</summary>
+    public static void testBatchWrite()
+    {
+        Run<BatchWriteTest>();
+    }
+
+    /// <summary>单条写/读基准（自 LiteOrm.Benchmark OrmSingleBenchmark 适配）。</summary>
+    public static void testSingleWrite()
+    {
+        Run<SingleWriteTest>();
     }
 
     public static void testMooSqlSmoke()
@@ -244,6 +261,33 @@ public class Program
         smokeOrm("LiteOrm", new LiteOrmTest(), expectCondSql: true);
 
         Console.WriteLine("moosmoke passed");
+    }
+
+    public static void testWriteSmoke()
+    {
+        ITest[] adapters =
+        {
+            new MooSqlBuilderTest(),
+            new AdoNetTest(),
+            new DapperTest(),
+            new CrlTest(),
+            new ChloeTest(),
+            new LiteOrmTest(),
+        };
+        const int n = 5;
+        foreach (var a in adapters)
+        {
+            var name = a.GetType().Name;
+            a.testBatchInsert(n);
+            a.testBatchUpdate(n);
+            a.testBatchUpsert(n);
+            a.testSingleInsert(n);
+            a.testSingleUpdate(n);
+            a.testSingleUpsert(n);
+            a.testSingleGet(n);
+            Console.WriteLine($"[ok] write smoke {name}");
+        }
+        Console.WriteLine("writesmoke passed");
     }
 
     public static void testMethod()

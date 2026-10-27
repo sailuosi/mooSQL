@@ -77,6 +77,10 @@ set DBTEST_SCOPE=Full
 2. 对查询返回结果进行数据映射测试 testQueryResult
 3. 自定义数据映射测试 testQueryAnonymousResult
 4. 循环读取指定数据测试 testQueryLoop
+5. 批量写操作 testBatchWrite（自 LiteOrm.Benchmark 适配：Insert/Update/Upsert，`BatchCount=10/100/1000`）
+6. 单条写/读 testSingleWrite（自 LiteOrm.Benchmark OrmSingleBenchmark：Insert/Update/Upsert/Get，循环 200 次）
+
+写操作适配器见 `DbTestConfig.WriteProviders`；对比组默认仅跑 Compare ∩ Write。冒烟：`dotnet run -c Release --project Tests/TestFast/dbTest/dbTest2.csproj -- writesmoke`
 
 ## 测试代码明细
 

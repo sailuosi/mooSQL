@@ -113,5 +113,13 @@ namespace dbTest.items
                 .sql;
             _ = sql;
         }
+
+        public override void testBatchInsert(int count) => MooSqlWriteOps.BatchInsert(count, "MooB");
+        public override void testBatchUpdate(int count) => MooSqlWriteOps.BatchUpdate(count, "MooB", writeRandom);
+        public override void testBatchUpsert(int count) => MooSqlWriteOps.BatchUpsert(count, "MooB_U", "MooB_I", writeRandom);
+        public override void testSingleInsert(int loops) => MooSqlWriteOps.SingleInsert(loops, "MooB_SI");
+        public override void testSingleUpdate(int loops) => MooSqlWriteOps.SingleUpdate(loops, "MooB_SU", writeRandom);
+        public override void testSingleUpsert(int loops) => MooSqlWriteOps.SingleUpsert(loops, "MooB_SX", writeRandom);
+        public override void testSingleGet(int loops) => MooSqlWriteOps.SingleGet(loops);
     }
 }

@@ -98,24 +98,98 @@ namespace dbTest.items
             }
         }
 
-        public override void testInsert()
+        static LiteOrmTestEntity NewLite(string tag, int i = 0)
+        {
+            return new LiteOrmTestEntity
+            {
+                F_Bool = true,
+                F_Byte = 1,
+                F_DateTime = DateTime.Now,
+                F_Decimal = 100.23M + i,
+                F_Double = 23.22,
+                F_Float = 1.22F,
+                F_Int16 = 22,
+                F_Int32 = 333 + i,
+                F_Int64 = 333,
+                F_String = tag + i
+            };
+        }
+
+        void MutateLite(LiteOrmTestEntity e, string tag)
+        {
+            e.F_String = tag + Guid.NewGuid().ToString("N").Substring(0, 8);
+            e.F_Int32 = writeRandom.Next(20, 60);
+            e.F_Decimal = writeRandom.Next(1, 999);
+        }
+
+        public override void testBatchInsert(int count)
+        {
+            var list = Enumerable.Range(0, count).Select(i => NewLite("Lite", i)).ToList();
+            Write().BatchInsert(list);
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            var users = View().Search(q => q.Take(count)).ToList();
+            foreach (var u in users)
+                MutateLite(u, "Lite");
+            Write().BatchUpdate(users);
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            var half = count / 2;
+            var existing = View().Search(q => q.Take(half)).ToList();
+            foreach (var u in existing)
+                MutateLite(u, "L_Up");
+            var neu = Enumerable.Range(0, count - half).Select(i => NewLite("L_In", i)).ToList();
+            Write().BatchUpdateOrInsert(existing.Concat(neu).ToList());
+        }
+
+        public override void testSingleInsert(int loops)
         {
             var write = Write();
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < loops; i++)
+                write.Insert(NewLite("L_SI", i));
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            var users = View().Search(q => q.Take(loops)).ToList();
+            if (users.Count == 0) return;
+            var write = Write();
+            for (int i = 0; i < loops; i++)
             {
-                write.Insert(new LiteOrmTestEntity
+                var u = users[i % users.Count];
+                MutateLite(u, "L_SU");
+                write.Update(u);
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            var existing = View().Search(q => q.Take(loops)).ToList();
+            var write = Write();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
                 {
-                    F_Bool = true,
-                    F_Byte = 1,
-                    F_DateTime = DateTime.Now,
-                    F_Decimal = 100.23M,
-                    F_Double = 23.22,
-                    F_Float = 1.22F,
-                    F_Int16 = 22,
-                    F_Int32 = 333,
-                    F_Int64 = 333,
-                    F_String = "string" + i
-                });
+                    var u = existing[i % existing.Count];
+                    MutateLite(u, "L_SX_U");
+                    write.UpdateOrInsert(u);
+                }
+                else
+                    write.UpdateOrInsert(NewLite("L_SX_I", i));
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            var view = View();
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = view.GetObject(id);
             }
         }
     }

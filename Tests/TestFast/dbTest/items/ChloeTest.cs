@@ -87,12 +87,80 @@ namespace dbTest.items
             //var result = query.ToList();
             var result2 = query.Select(b => new { url = b.Url, b.Id, post = b.Posts, user = b.BlogUser }).ToString();//异常 NotSupportedException:“b.Posts”
         }
-        public override void testInsert()
+        public override void testBatchInsert(int count)
         {
-            for (int i = 0; i < 30; i++)
+            var db = getContext();
+            db.InsertRange(TestEntityFactory.NewList("Chloe", count));
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            var db = getContext();
+            var users = db.Query<TestEntity>().Take(count).ToList();
+            foreach (var u in users)
             {
-                var db = getContext();
-                db.Insert(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "string" + i });
+                TestEntityFactory.Mutate(u, "Chloe", writeRandom);
+                db.Update(u);
+            }
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            var db = getContext();
+            var half = count / 2;
+            var existing = db.Query<TestEntity>().Take(half).ToList();
+            foreach (var u in existing)
+            {
+                TestEntityFactory.Mutate(u, "Ch_U", writeRandom);
+                db.Update(u);
+            }
+            db.InsertRange(TestEntityFactory.NewList("Ch_I", count - half));
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            var db = getContext();
+            for (int i = 0; i < loops; i++)
+                db.Insert(TestEntityFactory.New("Ch_SI", i));
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            var db = getContext();
+            var users = db.Query<TestEntity>().Take(loops).ToList();
+            if (users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
+            {
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "Ch_SU", writeRandom);
+                db.Update(u);
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            var db = getContext();
+            var existing = db.Query<TestEntity>().Take(loops).ToList();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "Ch_SX", writeRandom);
+                    db.Update(u);
+                }
+                else
+                    db.Insert(TestEntityFactory.New("Ch_SX_I", i));
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            var db = getContext();
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = db.Query<TestEntity>().Where(x => x.Id == id).FirstOrDefault();
             }
         }
     }

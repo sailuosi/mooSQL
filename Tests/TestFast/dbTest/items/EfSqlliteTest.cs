@@ -112,15 +112,103 @@ namespace dbTest.items
                 var result2 = query.Select(b => new { url = b.Url, b.Id, post = b.Posts, user = b.BlogUser }).ToQueryString();
             }
         }
-        public override void testInsert()
+        public override void testBatchInsert(int count)
         {
-            for (int i = 0; i < 30; i++)
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            context.AddRange(TestEntityFactory.NewList("EF", count));
+            context.ChangeTracker.DetectChanges();
+            context.SaveChanges();
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            var users = context.Set<TestEntity>().Take(count).ToList();
+            foreach (var u in users)
+                TestEntityFactory.Mutate(u, "EF", writeRandom);
+            context.ChangeTracker.DetectChanges();
+            context.SaveChanges();
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            var half = count / 2;
+            var existing = context.Set<TestEntity>().Take(half).ToList();
+            foreach (var u in existing)
+                TestEntityFactory.Mutate(u, "EF_U", writeRandom);
+            context.AddRange(TestEntityFactory.NewList("EF_I", count - half));
+            context.ChangeTracker.DetectChanges();
+            context.SaveChanges();
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            for (int i = 0; i < loops; i++)
             {
-                using (var context = new efContext())
+                var e = TestEntityFactory.New("EF_SI", i);
+                context.Add(e);
+                context.ChangeTracker.DetectChanges();
+                context.SaveChanges();
+                context.Entry(e).State = EntityState.Detached;
+            }
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            var users = context.Set<TestEntity>().AsNoTracking().Take(loops).ToList();
+            if (users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
+            {
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "EF_SU", writeRandom);
+                context.Update(u);
+                context.SaveChanges();
+                context.Entry(u).State = EntityState.Detached;
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+            var existing = context.Set<TestEntity>().AsNoTracking().Take(loops).ToList();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
                 {
-                    context.Add(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "string" + i });
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "EF_SX", writeRandom);
+                    context.Update(u);
                     context.SaveChanges();
+                    context.Entry(u).State = EntityState.Detached;
                 }
+                else
+                {
+                    var e = TestEntityFactory.New("EF_SX_I", i);
+                    context.Add(e);
+                    context.ChangeTracker.DetectChanges();
+                    context.SaveChanges();
+                    context.Entry(e).State = EntityState.Detached;
+                }
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            using var context = new efContext();
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = context.Set<TestEntity>().AsNoTracking().FirstOrDefault(x => x.Id == id);
             }
         }
     }

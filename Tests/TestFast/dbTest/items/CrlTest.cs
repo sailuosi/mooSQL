@@ -2,6 +2,7 @@ using CRL.Data;
 using CRL.Data.DBAccess;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dbTest.items
 {
@@ -40,8 +41,9 @@ namespace dbTest.items
             var c = rep.Count(b => b.Id > 0);
             if (c == 0)
             {
+                // 1000 行：覆盖 BatchUpdate(1000) / SingleGet(200+) 写基准种子需求
                 var list = new List<TestEntity>();
-                for (int i = 0; i < 500; i++)
+                for (int i = 0; i < 1000; i++)
                 {
                     list.Add(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "abcdefghijklmnopqrstuvwxyz" + i });
                 }
@@ -179,12 +181,76 @@ namespace dbTest.items
             query.Include(b => b.Posts, q => q.Include(x => x.Blog));
             var result2 = query.Select(b => new { url = b.Url, b.Id, post = b.Posts, user = b.BlogUser });//.ToList();
         }
-        public override void testInsert()
+        public override void testBatchInsert(int count)
         {
-            for (int i = 0; i < 30; i++)
+            RepositoryFactory.Get<TestEntity>().BatchInsert(TestEntityFactory.NewList("Crl", count));
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            var users = rep.GetLambdaQuery().Take(count).ToList();
+            foreach (var u in users)
+                TestEntityFactory.Mutate(u, "Crl", writeRandom);
+            foreach (var u in users)
+                rep.Update(u);
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            var half = count / 2;
+            var existing = rep.GetLambdaQuery().Take(half).ToList();
+            foreach (var u in existing)
+                TestEntityFactory.Mutate(u, "Crl_U", writeRandom);
+            var neu = TestEntityFactory.NewList("Crl_I", count - half);
+            rep.InsertOrUpdate(existing.Concat(neu).ToList());
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            for (int i = 0; i < loops; i++)
+                rep.Add(TestEntityFactory.New("Crl_SI", i));
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            var users = rep.GetLambdaQuery().Take(loops).ToList();
+            if (users == null || users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
             {
-                var rep = RepositoryFactory.Get<TestEntity>();
-                rep.Add(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "string" + i });
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "Crl_SU", writeRandom);
+                rep.Update(u);
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            var existing = rep.GetLambdaQuery().Take(loops).ToList();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing != null && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "Crl_SX", writeRandom);
+                    rep.InsertOrUpdate(u);
+                }
+                else
+                    rep.InsertOrUpdate(TestEntityFactory.New("Crl_SX_I", i));
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            var rep = RepositoryFactory.Get<TestEntity>();
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = rep.QueryItem(id);
             }
         }
         public void testJson()

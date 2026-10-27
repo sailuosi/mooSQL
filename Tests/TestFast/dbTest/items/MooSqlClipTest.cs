@@ -108,5 +108,13 @@ namespace dbTest.items
             var sql = clip.select(() => new { a4 = item.Name, e2.Id }).toSelect().sql;
             _ = sql;
         }
+
+        public override void testBatchInsert(int count) => MooSqlWriteOps.BatchInsert(count, "MooC");
+        public override void testBatchUpdate(int count) => MooSqlWriteOps.BatchUpdate(count, "MooC", writeRandom);
+        public override void testBatchUpsert(int count) => MooSqlWriteOps.BatchUpsert(count, "MooC_U", "MooC_I", writeRandom);
+        public override void testSingleInsert(int loops) => MooSqlWriteOps.SingleInsert(loops, "MooC_SI");
+        public override void testSingleUpdate(int loops) => MooSqlWriteOps.SingleUpdate(loops, "MooC_SU", writeRandom);
+        public override void testSingleUpsert(int loops) => MooSqlWriteOps.SingleUpsert(loops, "MooC_SX", writeRandom);
+        public override void testSingleGet(int loops) => MooSqlWriteOps.SingleGet(loops);
     }
 }

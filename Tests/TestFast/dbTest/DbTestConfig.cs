@@ -50,6 +50,32 @@ namespace dbTest
             nameof(LiteOrmTest),
         };
 
+        /// <summary>
+        /// 写操作基准（Batch/Single Insert/Update/Upsert/Get）参与适配器。
+        /// 源自 LiteOrm.Benchmark，并扩到本工程对比组 + mooSQL 三路径 + FreeSql/SqlSugar/EF。
+        /// </summary>
+        public static readonly string[] WriteProviders =
+        {
+            nameof(MooSqlBuilderTest),
+            nameof(MooSqlClipTest),
+            nameof(MooSqlQueryableTest),
+            nameof(AdoNetTest),
+            nameof(DapperTest),
+            nameof(CrlTest),
+            nameof(ChloeTest),
+            nameof(LiteOrmTest),
+            nameof(FreeSqlTest),
+            nameof(SqlSugarTest),
+            nameof(EfSqlliteTest),
+        };
+
+        public static bool IsWriteProvider(Type providerType)
+        {
+            if (providerType == null) return false;
+            if (!Allow(providerType)) return false;
+            return Array.IndexOf(WriteProviders, providerType.Name) >= 0;
+        }
+
         private static DbTestScope _scope = DbTestScope.Compare;
         private static bool _loaded;
 

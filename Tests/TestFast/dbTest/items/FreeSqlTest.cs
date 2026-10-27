@@ -85,11 +85,69 @@ namespace dbTest.items
             query.IncludeMany(b => b.Posts, q => q.Include(x => x.Blog));
             var result2 = query.ToSql(b => new { url = b.Url, b.Id, post = b.Posts, user = b.BlogUser });
         }
-        public override void testInsert()
+        public override void testBatchInsert(int count)
         {
-            for (int i = 0; i < 30; i++)
+            db.Insert(TestEntityFactory.NewList("Free", count)).ExecuteAffrows();
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            var users = db.Select<TestEntity>().Take(count).ToList();
+            foreach (var u in users)
+                TestEntityFactory.Mutate(u, "Free", writeRandom);
+            db.Update<TestEntity>().SetSource(users).ExecuteAffrows();
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            var half = count / 2;
+            var existing = db.Select<TestEntity>().Take(half).ToList();
+            foreach (var u in existing)
+                TestEntityFactory.Mutate(u, "F_U", writeRandom);
+            var all = existing.Concat(TestEntityFactory.NewList("F_I", count - half)).ToList();
+            db.InsertOrUpdate<TestEntity>().SetSource(all).ExecuteAffrows();
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            for (int i = 0; i < loops; i++)
+                db.Insert(TestEntityFactory.New("F_SI", i)).ExecuteAffrows();
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            var users = db.Select<TestEntity>().Take(loops).ToList();
+            if (users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
             {
-                db.Insert(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "string" + i }).ExecuteIdentity();
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "F_SU", writeRandom);
+                db.Update<TestEntity>().SetSource(u).ExecuteAffrows();
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            var existing = db.Select<TestEntity>().Take(loops).ToList();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "F_SX", writeRandom);
+                    db.InsertOrUpdate<TestEntity>().SetSource(u).ExecuteAffrows();
+                }
+                else
+                    db.InsertOrUpdate<TestEntity>().SetSource(TestEntityFactory.New("F_SX_I", i)).ExecuteAffrows();
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = db.Select<TestEntity>().Where(x => x.Id == id).First();
             }
         }
         public void testJson()

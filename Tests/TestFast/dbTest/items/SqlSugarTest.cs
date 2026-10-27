@@ -124,13 +124,106 @@ namespace dbTest.items
             query.Includes(b => b.Posts, b => b.Blog);
             var result2 = query.Select(b => new { url = b.Url, b.Id, post = b.Posts, user = b.BlogUser }).ToSql();
         }
-        public override void testInsert()
+        public override void testBatchInsert(int count)
         {
-            for (int i = 0; i < 30; i++)
+            var db = getDb();
+            db.Ado.BeginTran();
+            try
             {
-                var db = getDb();
-                //插入失败，SQLITE没处理自增主键
-                db.Insertable(new TestEntity() { F_Bool = true, F_Byte = 1, F_DateTime = DateTime.Now, F_Decimal = 100.23M, F_Double = 23.22, F_Float = 1.22F, F_Int16 = 22, F_Int32 = 333, F_Int64 = 333, F_String = "string" + i }).ExecuteReturnIdentity();
+                db.Insertable(TestEntityFactory.NewList("Sugar", count)).ExecuteCommand();
+                db.Ado.CommitTran();
+            }
+            catch
+            {
+                db.Ado.RollbackTran();
+                throw;
+            }
+        }
+
+        public override void testBatchUpdate(int count)
+        {
+            var db = getDb();
+            var users = db.Queryable<TestEntity>().Take(count).ToList();
+            foreach (var u in users)
+                TestEntityFactory.Mutate(u, "Sugar", writeRandom);
+            db.Ado.BeginTran();
+            try
+            {
+                db.Updateable(users).ExecuteCommand();
+                db.Ado.CommitTran();
+            }
+            catch
+            {
+                db.Ado.RollbackTran();
+                throw;
+            }
+        }
+
+        public override void testBatchUpsert(int count)
+        {
+            var db = getDb();
+            var half = count / 2;
+            var existing = db.Queryable<TestEntity>().Take(half).ToList();
+            foreach (var u in existing)
+                TestEntityFactory.Mutate(u, "S_U", writeRandom);
+            var all = existing.Concat(TestEntityFactory.NewList("S_I", count - half)).ToList();
+            db.Ado.BeginTran();
+            try
+            {
+                db.Storageable(all).ExecuteCommand();
+                db.Ado.CommitTran();
+            }
+            catch
+            {
+                db.Ado.RollbackTran();
+                throw;
+            }
+        }
+
+        public override void testSingleInsert(int loops)
+        {
+            var db = getDb();
+            for (int i = 0; i < loops; i++)
+                db.Insertable(TestEntityFactory.New("S_SI", i)).ExecuteCommand();
+        }
+
+        public override void testSingleUpdate(int loops)
+        {
+            var db = getDb();
+            var users = db.Queryable<TestEntity>().Take(loops).ToList();
+            if (users.Count == 0) return;
+            for (int i = 0; i < loops; i++)
+            {
+                var u = users[i % users.Count];
+                TestEntityFactory.Mutate(u, "S_SU", writeRandom);
+                db.Updateable(u).ExecuteCommand();
+            }
+        }
+
+        public override void testSingleUpsert(int loops)
+        {
+            var db = getDb();
+            var existing = db.Queryable<TestEntity>().Take(loops).ToList();
+            for (int i = 0; i < loops; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    TestEntityFactory.Mutate(u, "S_SX", writeRandom);
+                    db.Storageable(u).ExecuteCommand();
+                }
+                else
+                    db.Storageable(TestEntityFactory.New("S_SX_I", i)).ExecuteCommand();
+            }
+        }
+
+        public override void testSingleGet(int loops)
+        {
+            var db = getDb();
+            for (int i = 0; i < loops; i++)
+            {
+                int id = (i % loops) + 1;
+                _ = db.Queryable<TestEntity>().InSingle(id);
             }
         }
         public void testJson()
