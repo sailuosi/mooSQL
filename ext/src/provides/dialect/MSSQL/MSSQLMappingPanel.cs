@@ -51,6 +51,10 @@ namespace mooSQL.data.MSSQL
                 case DataFam.DateTime:
                 case DataFam.DateTime2:
                     return "datetime";
+                case DataFam.SmallDateTime:
+                    return "smalldatetime";
+                case DataFam.DateTimeOffset:
+                    return "datetimeoffset";
                 case DataFam.Time:
                     var scale = type.Length;
                     if (scale >= 0 && scale <= 7) {
@@ -68,6 +72,10 @@ namespace mooSQL.data.MSSQL
                         type.Precision = 10;
                     }
                     return string.Format("numeric({0},{1})", type.Precision, type.Scale);
+                case DataFam.Money:
+                    return "money";
+                case DataFam.SmallMoney:
+                    return "smallmoney";
                 case DataFam.Double:
                     if (type.Precision == null || type.Precision == 0)
                     {
@@ -81,11 +89,16 @@ namespace mooSQL.data.MSSQL
                     {
                         return string.Format("numeric({0},{1})", type.Precision, type.Scale);
                     }
+                case DataFam.Single:
+                    // CLR float → SQL Server real（与 GetDataType("real") 对称）
+                    return "real";
 
                 case DataFam.Guid:
                     return "uniqueidentifier";
                 case DataFam.Char:
                     return string.Format("char({0})", type.Length);
+                case DataFam.NChar:
+                    return string.Format("nchar({0})", type.Length > 0 ? type.Length : 1);
                 case DataFam.SByte:
                 case DataFam.Int16:
                     return "smallint";
@@ -103,6 +116,14 @@ namespace mooSQL.data.MSSQL
                 case DataFam.Text:
                 case DataFam.LongText:
                     return "text";
+                case DataFam.NText:
+                    return "ntext";
+                case DataFam.Xml:
+                    return "xml";
+                case DataFam.Variant:
+                    return "sql_variant";
+                case DataFam.BitArray:
+                    return "varbinary(max)";
                 case DataFam.Json:
                 case DataFam.BinaryJson:
                     return "nvarchar(max)";

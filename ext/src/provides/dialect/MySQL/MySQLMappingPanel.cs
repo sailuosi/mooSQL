@@ -109,7 +109,28 @@ namespace mooSQL.data
                     else { 
                         return string.Format("DECIMAL({0},{1})", type.Precision, type.Scale);
                     }
-                    
+                case DataFam.Single:
+                    // CLR float → MySQL FLOAT（与 GetDataType("float") 对称）
+                    return "FLOAT";
+                case DataFam.DateTimeOffset:
+                    // MySQL 无原生 offset 类型，退化为 DATETIME
+                    return "DATETIME";
+                case DataFam.NChar:
+                    return string.Format("CHAR({0})", type.Length > 0 ? type.Length : 1);
+                case DataFam.Xml:
+                    return "LONGTEXT";
+                case DataFam.NText:
+                    return "LONGTEXT";
+                case DataFam.Money:
+                case DataFam.SmallMoney:
+                    return "DECIMAL(19,4)";
+                case DataFam.SmallDateTime:
+                    return "DATETIME";
+                case DataFam.Variant:
+                    return "JSON";
+                case DataFam.BitArray:
+                    return "BLOB";
+
                 case DataFam.Guid:
                     return "varchar(36)";
                 case DataFam.Char:
