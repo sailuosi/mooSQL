@@ -15,6 +15,7 @@
 | `DapperTest` | Dapper |
 | `CrlTest` | CRL |
 | `ChloeTest` | Chloe |
+| `LiteOrmTest` | LiteOrm（NuGet 8.1.13） |
 
 **Full** 跑发现到的全部 `ITest` 适配器。
 
@@ -22,7 +23,7 @@
 
 ```text
 选择适配器范围：
-  1 = 对比组（SQLBuilder + ADO.NET + Dapper + CRL + Chloe）[默认]
+  1 = 对比组（SQLBuilder + ADO.NET + Dapper + CRL + Chloe + LiteOrm）[默认]
   2 = 全部 ITest 适配器
 请输入数字 (1/2，回车=1):
 ```

@@ -34,6 +34,21 @@ public class Program
             Console.WriteLine("[ok] RepoDbTest Result/Loop mapped F_Bool");
             return;
         }
+        if (args != null && args.Length > 0 && string.Equals(args[0], "liteormsmoke", StringComparison.OrdinalIgnoreCase))
+        {
+            var t = new LiteOrmTest();
+            t.testQueryResult();
+            t.testQueryAnonymousResult();
+            var cond = t.testQueryCondition();
+            var method = t.testQueryMethodCondition();
+            t.testQueryJoin();
+            t.testQueryLoop();
+            Console.WriteLine($"[ok] LiteOrmTest condLen={cond?.Length} methodLen={method?.Length}");
+            if (string.IsNullOrWhiteSpace(cond) || string.IsNullOrWhiteSpace(method)
+                || cond.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase) < 0)
+                throw new Exception("LiteOrmTest smoke failed: empty or unexpected SQL");
+            return;
+        }
 
         DbTestConfig.PromptScope(skipIfExplicit: scopeExplicit);
         DbTestConfig.PersistCurrent();
@@ -185,7 +200,8 @@ public class Program
             || !discovered.Contains("NHibernateTest")
             || !discovered.Contains("SmartSqlTest")
             || !discovered.Contains("SqlKataTest")
-            || !discovered.Contains("AdoNetTest"))
+            || !discovered.Contains("AdoNetTest")
+            || !discovered.Contains("LiteOrmTest"))
         {
             throw new Exception("Expected ITest providers missing from discovery");
         }
@@ -225,6 +241,7 @@ public class Program
         smokeOrm("NHibernate", new NHibernateTest(), expectCondSql: true);
         smokeOrm("SmartSql", new SmartSqlTest(), expectCondSql: false);
         smokeOrm("SqlKata", new SqlKataTest(), expectCondSql: true);
+        smokeOrm("LiteOrm", new LiteOrmTest(), expectCondSql: true);
 
         Console.WriteLine("moosmoke passed");
     }

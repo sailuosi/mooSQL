@@ -11,7 +11,7 @@ namespace dbTest
     /// </summary>
     public enum DbTestScope
     {
-        /// <summary>仅对比组（默认）：SQLBuilder + ADO.NET + Dapper + CRL + Chloe。</summary>
+        /// <summary>仅对比组（默认）：SQLBuilder + ADO.NET + Dapper + CRL + Chloe + LiteOrm。</summary>
         Compare = 0,
         /// <summary>发现到的全部 ITest 适配器。</summary>
         Full = 1,
@@ -38,7 +38,7 @@ namespace dbTest
             Path.Combine(Path.GetTempPath(), "mooSQL_dbTest_scope.txt");
 
         /// <summary>
-        /// 对比组：SQLBuilder（Builder）+ ADO.NET + Dapper + CRL + Chloe。
+        /// 对比组：SQLBuilder（Builder）+ ADO.NET + Dapper + CRL + Chloe + LiteOrm。
         /// </summary>
         public static readonly string[] CompareProviders =
         {
@@ -47,6 +47,7 @@ namespace dbTest
             nameof(DapperTest),
             nameof(CrlTest),
             nameof(ChloeTest),
+            nameof(LiteOrmTest),
         };
 
         private static DbTestScope _scope = DbTestScope.Compare;
@@ -156,7 +157,7 @@ namespace dbTest
 
             Console.WriteLine();
             Console.WriteLine("选择适配器范围：");
-            Console.WriteLine("  1 = 对比组（SQLBuilder + ADO.NET + Dapper + CRL + Chloe）[默认]");
+            Console.WriteLine("  1 = 对比组（SQLBuilder + ADO.NET + Dapper + CRL + Chloe + LiteOrm）[默认]");
             Console.WriteLine("  2 = 全部 ITest 适配器");
             Console.Write("请输入数字 (1/2，回车=1): ");
 
