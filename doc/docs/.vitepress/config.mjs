@@ -79,6 +79,8 @@ export default defineConfig({
           items: [
             { text: 'DbBus --表达式', link: '/SQL/high/expression' },
             { text: 'SooReposity ---仓储', link: '/SQL/high/repository' },
+            { text: '列表查询契约', link: '/SQL/high/query-contract' },
+            { text: 'EntityTranslator 切面', link: '/SQL/high/repository-entity-translator' },
             { text: 'SooWorkOfUnit', link: '/SQL/high/unitofwork' },
             { text: 'SQLClip', link: '/SQL/high/sqlclip' },
             { text: '导航加载与保存', link: '/SQL/high/navigation' },
@@ -99,6 +101,7 @@ export default defineConfig({
           text: '权限',
           collapsed: false,
           items: [
+            { text: '权限总览', link: '/SQL/auth/' },
             { text: '权限基础', link: '/SQL/auth/authbase' },
             { text: '生命周期', link: '/SQL/auth/authlife' },
           ]

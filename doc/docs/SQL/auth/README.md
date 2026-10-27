@@ -15,6 +15,7 @@ mooSQL 数据权限模块（`mooSQL.auth`）解决 **数据库查询带数据权
 | 本文 | 权限体系总览（概念、架构、AuthBag 模型、实现指南、API） |
 | [authlife.md](./authlife.md) | 执行生命周期各阶段详解 |
 | [authbase.md](./authbase.md) | 早期 API 与案例备忘 |
+| [列表查询契约](../high/query-contract.md) | 业务列表：`QueryPara` 前端条件与 `OnBuildSQL` + Auth 的标准接缝 |
 
 ### 源码位置
 

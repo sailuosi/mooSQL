@@ -49,6 +49,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 - 🎨 **SQL 语义化** - 链式方法模拟 SQL，语法设计贴近原生 SQL，学习曲线平缓
 - 🔌 **零迁移成本** - 与 EFCore、SqlSugar 等 ORM 的特性实体可兼容，直接使用
 - 🎪 **高级特性** - 支持 WITH AS 语句、MERGE INTO 语句、多表联查的 JOIN 实体定义、虚拟 SQL 列
+- 📋 **列表查询契约** - Select 读模型（`SooJoin` + `FieldKind.Join`）+ `QueryPara` 动态条件（字段白名单）+ `OnBuildSQL` 织入数据权限，详情见 `doc/docs/SQL/high/query-contract.md`
 - 🔧 **强大的扩展能力** - 支持扩展方法，轻松集成项目特殊逻辑（如权限过滤、业务规则等）
 - 📊 **完善的监控** - 内置日志追查、错误输出、慢 SQL 监控，便于开发调试和运维排查
 - 🎭 **类 MyBatis 体验** - SQL 碎片复用、实体映射，但比 XML 配置更灵活，可利用 C# 强大的过程控制

@@ -17,6 +17,9 @@ hero:
       text: 应用篇 仓储
       link: /SQL/high/repository
     - theme: alt
+      text: 列表查询契约
+      link: /SQL/high/query-contract
+    - theme: alt
       text: U8
       link: /ucml/bpocustom.md
 

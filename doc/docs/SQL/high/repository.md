@@ -1,5 +1,7 @@
 # 仓储
 
+> **列表页产品路径**：读模型 Join 字段 + `QueryPara` 动态条件 + `OnBuildSQL` 数据权限，见 **[列表查询契约](./query-contract.md)**。持久化切面见 [EntityTranslator](./repository-entity-translator.md)。
+
 一、仓储的定义
 仓储，顾名思义，存储数据的仓库。仓储作用之一是用于数据的持久化。从架构层面来说，仓储用于连接领域层和基础结构层，领域层通过仓储访问存储机制，而不用过于关心存储机制的具体细节。按照DDD设计原则，仓储的作用对象的领域模型的聚合根，也就是说每一个聚合都有一个单独的仓储。可能这样说大家未必能理解，相信看了仓储的代码设计，大家能有一个更加透彻的认识。
 
@@ -49,6 +51,14 @@ var res=Rep.GetPageList(input.Page, input.PageSize, (c, d) => {
 });
 
 ````
+
+前端动态条件 + 分页（产品列表页推荐）：
+````c#
+var para = input.ToQueryPara(); // conditions / pageSize / pageNum / orderBy
+para.OnBuildSQL(kit => kit.useAuth(this, "ao").Build());
+var page = Rep.GetPageList(para);
+````
+协议细节见 [列表查询契约](./query-contract.md)。
 ## GetTreeList
 查询树结构数据，传入外键，然后按主键进行查询。可自定义每层的更多自定义过滤条件（通过Clip）
 ````c#

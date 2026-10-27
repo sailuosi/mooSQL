@@ -72,6 +72,7 @@ A **dialect** layer smooths out differences across databases for common CRUD pat
 - **Table sharding** — `useShard` / `configureShard`, range queries across physical tables  
 - **Navigation** — SQLBuilder-side `includeHis` / `includeNav` / `useNavSave` / `useNavSaveRange` (separate from LINQ `Includes`)  
 - **Unit of work** — entities and raw SQL in one explicit transaction  
+- **List query contract** — Select read models (`SooJoin` + `FieldKind.Join`) + `QueryPara` dynamic filters (field whitelist) + `OnBuildSQL` for auth scopes; see [query-contract](doc/docs/SQL/high/query-contract.md)  
 - **Data authorization** — AuthBuilder / duty-style scopes  
 - **Observability** — logging, slow SQL, modify-SQL audit hooks  
 - **Interop** — reuse attribute-heavy entities from common .NET ORMs  
@@ -257,6 +258,7 @@ Primary guides in this repo (Chinese VitePress tree under `doc/docs/`):
 | SQLBuilder | [doc/docs/SQL/basis/SQLBuilder.md](doc/docs/SQL/basis/SQLBuilder.md) |
 | SQLClip | [doc/docs/SQL/high/sqlclip.md](doc/docs/SQL/high/sqlclip.md) |
 | Repository | [doc/docs/SQL/high/repository.md](doc/docs/SQL/high/repository.md) |
+| List query contract (Join + QueryPara + Auth) | [doc/docs/SQL/high/query-contract.md](doc/docs/SQL/high/query-contract.md) |
 | Unit of Work | [doc/docs/SQL/high/unitofwork.md](doc/docs/SQL/high/unitofwork.md) |
 | Navigation | [doc/docs/SQL/high/navigation.md](doc/docs/SQL/high/navigation.md) |
 | Master / multi-DB | [doc/docs/SQL/high/masterslave.md](doc/docs/SQL/high/masterslave.md) |
@@ -374,6 +376,7 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 - **分表** — `useShard` / `configureShard`，仓储 `ForShard` / `QueryRange`  
 - **导航** — `includeHis` / `includeNav` / `useNavSave` / `useNavSaveRange`（与 LINQ `Includes` 分轨）  
 - **工作单元** — 实体与手写 SQL 同事务  
+- **列表查询契约** — Select 读模型（`SooJoin` + `FieldKind.Join`）+ `QueryPara` 动态条件（字段白名单）+ `OnBuildSQL` 织入数据权限；见 [query-contract](doc/docs/SQL/high/query-contract.md)  
 - **数据权限** — AuthBuilder / 职责范围过滤  
 - **可观测性** — 日志、慢 SQL、修改类 SQL 审计  
 - **零迁移成本** — 常见 ORM 特性实体可兼容  
@@ -760,6 +763,7 @@ kit.select("*")
 | SQLBuilder | [doc/docs/SQL/basis/SQLBuilder.md](doc/docs/SQL/basis/SQLBuilder.md) |
 | SQLClip | [doc/docs/SQL/high/sqlclip.md](doc/docs/SQL/high/sqlclip.md) |
 | 仓储 | [doc/docs/SQL/high/repository.md](doc/docs/SQL/high/repository.md) |
+| 列表查询契约（Join · QueryPara · Auth） | [doc/docs/SQL/high/query-contract.md](doc/docs/SQL/high/query-contract.md) |
 | 工作单元 | [doc/docs/SQL/high/unitofwork.md](doc/docs/SQL/high/unitofwork.md) |
 | 导航加载与保存 | [doc/docs/SQL/high/navigation.md](doc/docs/SQL/high/navigation.md) |
 | 主从与多库 | [doc/docs/SQL/high/masterslave.md](doc/docs/SQL/high/masterslave.md) |
