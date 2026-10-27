@@ -512,7 +512,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string buildSoloFieldCaption(DDLFragSQL frag, DDLField fie)
         {
-            return string.Format(@"EXEC sp_addextendedproperty @name = N'MS_Description',@value = '{2}',@level0type = N'SCHEMA', @level0name = '{3}',  @level1type = N'TABLE', @level1name = '{0}', @level2type = N'COLUMN', @level2name = '{1}';", frag.Table, fie.FieldName, fie.Caption,getSchema(frag));
+            // sp_addextendedproperty 的 @level*name 须为系统目录裸名，不能带 [ ] 等标识符引号
+            return string.Format(@"EXEC sp_addextendedproperty @name = N'MS_Description',@value = '{2}',@level0type = N'SCHEMA', @level0name = '{3}',  @level1type = N'TABLE', @level1name = '{0}', @level2type = N'COLUMN', @level2name = '{1}';",
+                StripIdentQuotes(frag.Table), StripIdentQuotes(fie.FieldName), fie.Caption, getSchema(frag));
         }
         /// <summary>
         /// 独立的表注释
@@ -521,7 +523,8 @@ namespace mooSQL.data
         /// <returns></returns>
         public override string buildSoloTableCaption(DDLFragSQL frag)
         {
-            return string.Format(@"EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'{1}', @level0type = N'SCHEMA', @level0name = '{2}',  @level1type = N'TABLE',  @level1name = '{0}';", frag.Table, frag.TableCaption,getSchema(frag));
+            return string.Format(@"EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'{1}', @level0type = N'SCHEMA', @level0name = '{2}',  @level1type = N'TABLE',  @level1name = '{0}';",
+                StripIdentQuotes(frag.Table), frag.TableCaption, getSchema(frag));
         }
         /// <summary>
         /// 复制表结构
@@ -643,7 +646,7 @@ namespace mooSQL.data
  
         public override string AddColumnCaptionBy(string tableName, string columnName,string caption){
             return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{2}', N'user', N'dbo', N'table', N'{1}', N'column', N'{0}'",
-                columnName,tableName,caption
+                StripIdentQuotes(columnName), StripIdentQuotes(tableName), caption
                 );
         }
  /// <summary>
@@ -653,7 +656,7 @@ namespace mooSQL.data
         public override string UpdateColumnCaptionBy(string tableName, string columnName, string caption)
         {
             return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{2}', N'user', N'dbo', N'table', N'{1}', N'column', N'{0}'",
-                columnName, tableName, caption);
+                StripIdentQuotes(columnName), StripIdentQuotes(tableName), caption);
         }
  /// <summary>
  /// Builds SQL to delete a column caption/comment.
@@ -661,7 +664,7 @@ namespace mooSQL.data
  
         public override string DeleteColumnCaptionBy(string tableName, string columnName){
             return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{1}','column','{0}'",
-                columnName,tableName
+                StripIdentQuotes(columnName), StripIdentQuotes(tableName)
                 );
         }
  /// <summary>
@@ -670,7 +673,7 @@ namespace mooSQL.data
  
         public override string IsAnyColumnCaptionBy(string columnName, string tableName){
             return string.Format("SELECT A.name AS table_name, B.name AS column_name, C.value AS column_description FROM sys.tables A LEFT JOIN sys.extended_properties C ON C.major_id = A.object_id LEFT JOIN sys.columns B ON B.object_id = A.object_id AND C.minor_id = B.column_id INNER JOIN sys.schemas SC ON SC.schema_id = A.schema_id AND SC.name = 'dbo' WHERE A.name = '{1}' AND b.name = '{0}'",
-                columnName,tableName
+                StripIdentQuotes(columnName), StripIdentQuotes(tableName)
                 );
         }
  /// <summary>
@@ -678,7 +681,7 @@ namespace mooSQL.data
  /// </summary>
  
         public override string AddTableCaptionBy(string tableName, string caption){
-            return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL",tableName,caption);
+            return string.Format("EXECUTE sp_addextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL", StripIdentQuotes(tableName), caption);
         }
  /// <summary>
  /// Builds SQL to update a table caption/comment.
@@ -686,14 +689,14 @@ namespace mooSQL.data
  
         public override string UpdateTableCaptionBy(string tableName, string caption)
         {
-            return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL", tableName, caption);
+            return string.Format("EXECUTE sp_updateextendedproperty N'MS_Description', '{1}', N'user', N'dbo', N'table', N'{0}', NULL, NULL", StripIdentQuotes(tableName), caption);
         }
  /// <summary>
  /// Builds SQL to delete a table caption/comment.
  /// </summary>
  
         public override string DeleteTableCaptionBy(string tableName){
-            return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{0}' ",tableName);
+            return string.Format("EXEC sp_dropextendedproperty 'MS_Description','user',dbo,'table','{0}' ", StripIdentQuotes(tableName));
         }
  /// <summary>
  /// Builds SQL that checks whether a table caption exists.
@@ -704,7 +707,7 @@ namespace mooSQL.data
                 " FROM sys.tables A " +
                 "LEFT JOIN sys.extended_properties C ON C.major_id = A.object_id " +
                 "INNER JOIN sys.schemas SC ON  SC.schema_id=A.schema_id AND SC.name='dbo'" +
-                " WHERE A.name = '{0}'  AND minor_id=0",tableName);
+                " WHERE A.name = '{0}'  AND minor_id=0", StripIdentQuotes(tableName));
         }
  /// <summary>
  /// Builds a RENAME TABLE statement.
