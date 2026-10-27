@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>LiteOrm.Benchmark.OrmBenchmark-20261027-211501</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9711/25H2/2025Update/HudsonValley2)
+12th Gen Intel Core i9-12900KF 3.19GHz, 1 CPU, 24 logical and 16 physical cores
+.NET SDK 10.0.302
+  [Host]    : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
+  MediumRun : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>Job=MediumRun  IterationCount=1  LaunchCount=1  
+RunStrategy=ColdStart  UnrollFactor=1  WarmupCount=0  
+</code></pre>
+
+<table>
+<thead><tr><th>Method       </th><th>BatchCount</th><th>Mean  </th><th>Error</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>MooSql_Insert_Async</td><td>10</td><td>8.412 ms</td><td>NA</td><td>-</td><td>-</td><td>-</td><td>213.99 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>100</td><td>19.610 ms</td><td>NA</td><td>-</td><td>-</td><td>-</td><td>2080.91 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>1000</td><td>142.176 ms</td><td>NA</td><td>1000.0000</td><td>-</td><td>-</td><td>20741.87 KB</td>
+</tr><tr><td>MooSql_Insert_Async</td><td>10000</td><td>1,028.201 ms</td><td>NA</td><td>14000.0000</td><td>7000.0000</td><td>1000.0000</td><td>207321.72 KB</td>
+</tr></tbody></table>
+</body>
+</html>

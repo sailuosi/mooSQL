@@ -2,16 +2,17 @@ using BenchmarkDotNet.Attributes;
 using Dapper;
 using FreeSql;
 using LiteOrm.Common;
+using LiteOrm.Service;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Data.Common;
-using System.Text;
-using Microsoft.Data.Sqlite;
+using mooSQL.data;
 using Oracle.ManagedDataAccess.Client;
 using SqlSugar;
-using LiteOrm.Service;
+using System.Data.Common;
+using System.Text;
 
 
 namespace LiteOrm.Benchmark
@@ -254,8 +255,11 @@ namespace LiteOrm.Benchmark
                     // 1. 先清空/重建表结构
                     Console.WriteLine("Step 1: Cleaning and rebuilding tables...");
                     var sugar = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-                    sugar.DbMaintenance.DropTable<BenchmarkLog>();
-                    sugar.DbMaintenance.DropTable<BenchmarkUser>();
+                    // 空库首次跑时表尚不存在，SqlSugar DropTable 会直接抛错
+                    if (sugar.DbMaintenance.IsAnyTable(nameof(BenchmarkLog), false))
+                        sugar.DbMaintenance.DropTable<BenchmarkLog>();
+                    if (sugar.DbMaintenance.IsAnyTable(nameof(BenchmarkUser), false))
+                        sugar.DbMaintenance.DropTable<BenchmarkUser>();
                     sugar.CodeFirst.InitTables<BenchmarkUser, BenchmarkLog>();
 
                     var fsql = scope.ServiceProvider.GetRequiredService<IFreeSql>();
@@ -302,6 +306,23 @@ namespace LiteOrm.Benchmark
                     var logDao = scope.ServiceProvider.GetRequiredService<ObjectDAO<BenchmarkLog>>();
                     var liteLogs = userViewDao.Search().ToListAsync().GetAwaiter().GetResult().Select(u => new BenchmarkLog { UserId = u.Id, Message = $"Log for {u.Name}", LogTime = DateTime.Now }).ToList();
                     logDao.BatchInsertAsync(liteLogs).GetAwaiter().GetResult();
+
+                    // mooSQL 种子（与 dbTest 写基准一致：useRepo / useWork）
+                    Console.WriteLine("Seeding mooSQL...");
+                    MooSqlDb.EnsureInit(_connectionString!, _provider!);
+                    var mooUsers = Enumerable.Range(1, seedCount).Select(i => NewBenchmarkUser($"User{i}", 20 + (i % 50), $"user{i}@example.com")).ToList();
+                    using (var uow = MooSqlDb.Db.useWork())
+                    {
+                        uow.InsertRange(mooUsers);
+                        uow.Commit();
+                    }
+                    var mooSeeded = MooSqlDb.Db.useRepo<BenchmarkUser>().GetList(seedCount) ?? new List<BenchmarkUser>();
+                    var mooLogs = mooSeeded.Select(u => new BenchmarkLog { UserId = u.Id, Message = $"Log for {u.Name}", LogTime = DateTime.Now }).ToList();
+                    using (var uow = MooSqlDb.Db.useWork())
+                    {
+                        uow.InsertRange(mooLogs);
+                        uow.Commit();
+                    }
 
                     Console.WriteLine("Step 2: Seeding data completed.");
                 }
@@ -424,6 +445,15 @@ namespace LiteOrm.Benchmark
             }
         }
 
+        [Benchmark]
+        public Task MooSql_Insert_Async()
+        {
+            var users = Enumerable.Range(1, BatchCount).Select(i => NewBenchmarkUser("Moo", 25, "moo@test.com")).ToList();
+            using var uow = MooSqlDb.Db.useWork();
+            uow.InsertRange(users);
+            uow.Commit();
+            return Task.CompletedTask;
+        }
 
         #endregion
 
@@ -552,6 +582,24 @@ namespace LiteOrm.Benchmark
                 }
             }
         }
+
+        [Benchmark]
+        public Task MooSql_Update_Async()
+        {
+            var users = MooSqlDb.Db.useRepo<BenchmarkUser>().GetList(BatchCount);
+            if (users == null || users.Count == 0) return Task.CompletedTask;
+            foreach (var u in users)
+            {
+                u.Name = "MooSql" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                u.Age = _random.Next(20, 60);
+                u.Email = Guid.NewGuid().ToString("N").Substring(0, 10) + "@test.com";
+            }
+            using var uow = MooSqlDb.Db.useWork();
+            uow.UpdateRange(users);
+            uow.Commit();
+            return Task.CompletedTask;
+        }
+
         #endregion
 
         #region Async Upsert
@@ -670,6 +718,28 @@ namespace LiteOrm.Benchmark
                 }
             }
         }
+
+        [Benchmark]
+        public Task MooSql_Upsert_Async()
+        {
+            var half = BatchCount / 2;
+            var existing = MooSqlDb.Db.useRepo<BenchmarkUser>().GetList(half) ?? new List<BenchmarkUser>();
+            foreach (var u in existing)
+            {
+                u.Name = "Moo_Upsert_U";
+                u.Age = _random.Next(20, 60);
+            }
+            var neu = Enumerable.Range(1, BatchCount - half)
+                .Select(i => NewBenchmarkUser("Moo_Upsert_I", _random.Next(20, 60), $"moo_upsert{i}@test.com"))
+                .ToList();
+            using var uow = MooSqlDb.Db.useWork();
+            if (existing.Count > 0)
+                uow.UpdateRange(existing);
+            uow.InsertRange(neu);
+            uow.Commit();
+            return Task.CompletedTask;
+        }
+
         #endregion
 
         #region Async Join Query
@@ -758,6 +828,23 @@ namespace LiteOrm.Benchmark
                     .ToListAsync();
             }
         }
+
+        [Benchmark]
+        public Task MooSql_JoinQuery_Async()
+        {
+            var list = MooSqlDb.Db.useSQL()
+                .select("l.Id, l.Message, l.UserId, l.LogTime, u.Name as UserName, u.Age")
+                .from("BenchmarkLog l")
+                .innerJoin("BenchmarkUser u on u.Id = l.UserId")
+                .where("u.Age", 30, "<")
+                .orderBy("l.Id desc")
+                .top(BatchCount)
+                .query<BenchmarkLogView>()
+                .ToList();
+            _ = list;
+            return Task.CompletedTask;
+        }
+
         #endregion
     }
 
@@ -846,6 +933,15 @@ namespace LiteOrm.Benchmark
                 var user = NewBenchmarkUser("F_SI", 25, $"f_si{i}@test.com");
                 await fsql.Insert(user).ExecuteAffrowsAsync();
             }
+        }
+
+        [Benchmark]
+        public Task MooSql_SingleInsert_Async()
+        {
+            var repo = MooSqlDb.Db.useRepo<BenchmarkUser>();
+            for (int i = 0; i < SingleLoopCount; i++)
+                repo.Insert(NewBenchmarkUser("M_SI", 25, $"m_si{i}@test.com"));
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -944,6 +1040,23 @@ namespace LiteOrm.Benchmark
                 u.Email = Guid.NewGuid().ToString("N").Substring(0, 10) + "@test.com";
                 await fsql.Update<BenchmarkUser>().SetSource(u).ExecuteAffrowsAsync();
             }
+        }
+
+        [Benchmark]
+        public Task MooSql_SingleUpdate_Async()
+        {
+            var repo = MooSqlDb.Db.useRepo<BenchmarkUser>();
+            var users = repo.GetList(SingleLoopCount);
+            if (users == null || users.Count == 0) return Task.CompletedTask;
+            for (int i = 0; i < SingleLoopCount; i++)
+            {
+                var u = users[i % users.Count];
+                u.Name = "M_SU" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                u.Age = _random.Next(20, 60);
+                u.Email = Guid.NewGuid().ToString("N").Substring(0, 10) + "@test.com";
+                repo.Update(u);
+            }
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -1077,6 +1190,28 @@ namespace LiteOrm.Benchmark
             }
         }
 
+        [Benchmark]
+        public Task MooSql_SingleUpsert_Async()
+        {
+            var repo = MooSqlDb.Db.useRepo<BenchmarkUser>();
+            var existing = repo.GetList(SingleLoopCount) ?? new List<BenchmarkUser>();
+            for (int i = 0; i < SingleLoopCount; i++)
+            {
+                if (i % 2 == 0 && existing.Count > 0)
+                {
+                    var u = existing[i % existing.Count];
+                    u.Name = "M_SX_U" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                    u.Age = _random.Next(20, 60);
+                    repo.Save(u);
+                }
+                else
+                {
+                    repo.Save(NewBenchmarkUser("M_SX_I", 25, $"m_sx{i}@test.com"));
+                }
+            }
+            return Task.CompletedTask;
+        }
+
         #endregion
 
         #region Single Get (1000 iterations)
@@ -1141,6 +1276,18 @@ namespace LiteOrm.Benchmark
                 int id = (i % SingleLoopCount) + 1;
                 var u = await fsql.Select<BenchmarkUser>().Where(x => x.Id == id).FirstAsync();
             }
+        }
+
+        [Benchmark]
+        public Task MooSql_SingleGet_Async()
+        {
+            var repo = MooSqlDb.Db.useRepo<BenchmarkUser>();
+            for (int i = 0; i < SingleLoopCount; i++)
+            {
+                int id = (i % SingleLoopCount) + 1;
+                _ = repo.GetById(id);
+            }
+            return Task.CompletedTask;
         }
 
         #endregion
