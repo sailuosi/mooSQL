@@ -980,24 +980,83 @@ namespace mooSQL.data
             return res > 0;
         }
         /// <summary>
-        /// 批量保存
+        /// 批量保存。超阈值时一次探活已存在主键，再分流到 <see cref="InsertRange"/> / <see cref="UpdateRange"/> 内核（S1）。
         /// </summary>
         /// <param name="updateObjs"></param>
         /// <returns></returns>
         public int SaveRange(IEnumerable<T> updateObjs)
         {
-            var kit = getKit();
-            var cc = 0;
-            foreach (var obj in updateObjs)
+            if (updateObjs == null)
+                return 0;
+
+            if (En.Shard != null && En.Shard.IsActive)
             {
-                var c= SaveInner(obj,kit);
-                if (c > 0) {
-                    //执行失败的返回为-1，不能直接累计
-                    cc += c;
-                }
+                var helper = new ShardTableHelper(En);
+                var groups = helper.GroupByTable(updateObjs);
+                var cc = 0;
+                foreach (var kv in groups)
+                    cc += SaveRangeCore(kv.Value, kv.Key);
+                return cc;
             }
 
-            return cc;
+            return SaveRangeCore(updateObjs as IList<T> ?? updateObjs.ToList(), null);
+        }
+
+        int SaveRangeCore(IList<T> list, string physicalTable)
+        {
+            if (list == null || list.Count == 0)
+                return 0;
+            if (En.Insertable == false && En.Updatable == false)
+                return 0;
+
+            var opt = BatchOptions ?? new BatchWriteOptions();
+            var useRow = opt.Mode == BatchWriteMode.Row
+                || list.Count < opt.InsertRowThreshold;
+            if (useRow)
+            {
+                var kit = getKit();
+                var cc = 0;
+                foreach (var obj in list)
+                {
+                    var c = SaveInner(obj, kit);
+                    if (c > 0)
+                        cc += c;
+                }
+                return cc;
+            }
+
+            var tableLoader = physicalTable.HasText()
+                ? tryTableNameLoader(physicalTable)
+                : tryTableNameLoader(tbname);
+            var kitProbe = getKit();
+            var split = EntityBatchWriter.SplitSaveByExistence(
+                kitProbe, Translator, En, list, tableLoader, opt.InsertBatchSize);
+
+            var total = 0;
+            if (split.ToInsert.Count > 0)
+                total += InsertRangeCore(split.ToInsert, physicalTable);
+            if (split.ToUpdate.Count > 0)
+            {
+                // 更新内核暂不分表物理名重载；同组已按分表切开
+                if (physicalTable.HasText())
+                {
+                    var prev = tbname;
+                    try
+                    {
+                        tbname = physicalTable;
+                        total += UpdateRangeCore(split.ToUpdate);
+                    }
+                    finally
+                    {
+                        tbname = prev;
+                    }
+                }
+                else
+                {
+                    total += UpdateRangeCore(split.ToUpdate);
+                }
+            }
+            return total;
         }
     }
 }

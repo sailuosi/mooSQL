@@ -219,7 +219,7 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
-        /// 批量保存
+        /// 批量保存。超阈值时批量探活主键后分流到 <see cref="InsertRange{T}"/> / <see cref="UpdateRange{T}"/>。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
@@ -227,9 +227,31 @@ namespace mooSQL.data
         public SooUnitOfWork SaveRange<T>(IEnumerable<T> entity)
         {
             if (entity == null) return this;
+            var list = new List<T>();
+            foreach (var item in entity)
+            {
+                if (item != null)
+                    list.Add(item);
+            }
+            if (list.Count == 0) return this;
+
+            const int rowThreshold = 32;
+            if (list.Count < rowThreshold)
+            {
+                var cmds = DB.useSQL().toSaveList(list);
+                AddSQLs(cmds);
+                return this;
+            }
+
             var kit = DB.useSQL();
-            var cmds= kit.toSaveList(entity);
-            this.AddSQLs(cmds);
+            var translator = DB.client.Translator;
+            var en = DB.client.EntityCash.getEntityInfo(typeof(T));
+            var split = EntityBatchWriter.SplitSaveByExistence(
+                kit, translator, en, list, null, 200);
+            if (split.ToInsert.Count > 0)
+                InsertRange(split.ToInsert);
+            if (split.ToUpdate.Count > 0)
+                UpdateRange(split.ToUpdate);
             return this;
         }
         /// <summary>

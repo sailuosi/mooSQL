@@ -1,13 +1,214 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.Text;
+using mooSQL.data.model;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// 仓储批量写入内核：多行 INSERT（复用 SQLBuilder 切片）、Bulk、Update 多语句分片。
+    /// SaveRange S1 分流结果：空主键 / 库中不存在 → Insert；库中已存在 → Update。
+    /// </summary>
+    public sealed class SaveSplitResult<T>
+    {
+        /// <summary>走插入内核的实体。</summary>
+        public List<T> ToInsert { get; } = new List<T>();
+        /// <summary>走更新内核的实体。</summary>
+        public List<T> ToUpdate { get; } = new List<T>();
+    }
+
+    /// <summary>
+    /// 仓储批量写入内核：多行 INSERT（复用 SQLBuilder 切片）、Bulk、Update 多语句分片、Save 探活分流。
     /// </summary>
     public static class EntityBatchWriter
     {
+        /// <summary>
+        /// 按「主键是否为 null / 库中是否已存在」分流（对齐 <c>SaveInner</c>：任一侧 PK 为 null → 插入；否则批量探活）。
+        /// </summary>
+        public static SaveSplitResult<T> SplitSaveByExistence<T>(
+            SQLBuilder kit,
+            EntityTranslator translator,
+            EntityInfo en,
+            IList<T> entities,
+            Func<string> tableNameLoader,
+            int inChunkSize)
+        {
+            var result = new SaveSplitResult<T>();
+            if (entities == null || entities.Count == 0)
+                return result;
+            if (en == null) throw new ArgumentNullException(nameof(en));
+            if (translator == null) throw new ArgumentNullException(nameof(translator));
+
+            var pks = en.GetPK();
+            if (pks == null || pks.Count == 0)
+                throw new Exception("无主键定义时，无法自动保存！");
+
+            var candidates = new List<T>();
+            foreach (var entity in entities)
+            {
+                if (entity == null) continue;
+                if (HasAnyNullPrimaryKey(en, entity, kit))
+                {
+                    if (en.Insertable != false)
+                        result.ToInsert.Add(entity);
+                    continue;
+                }
+                candidates.Add(entity);
+            }
+
+            if (candidates.Count == 0)
+                return result;
+
+            var existing = LoadExistingPkKeySet(kit, translator, en, candidates, tableNameLoader, inChunkSize);
+            foreach (var entity in candidates)
+            {
+                var key = FormatEntityPkKey(en, entity, kit);
+                if (existing.Contains(key))
+                {
+                    if (en.Updatable != false)
+                        result.ToUpdate.Add(entity);
+                }
+                else if (en.Insertable != false)
+                {
+                    result.ToInsert.Add(entity);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 批量查询已存在主键键集合（字符串规范化，兼容单列/联合主键）。
+        /// </summary>
+        public static HashSet<string> LoadExistingPkKeySet<T>(
+            SQLBuilder kit,
+            EntityTranslator translator,
+            EntityInfo en,
+            IList<T> entitiesWithPk,
+            Func<string> tableNameLoader,
+            int inChunkSize)
+        {
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            if (entitiesWithPk == null || entitiesWithPk.Count == 0)
+                return set;
+            if (kit == null) throw new ArgumentNullException(nameof(kit));
+
+            var pks = en.GetPK();
+            if (pks == null || pks.Count == 0)
+                return set;
+
+            var chunk = inChunkSize > 0 ? inChunkSize : 500;
+            var maxPara = kit.Dialect != null && kit.Dialect.paramMaxSize > 0
+                ? kit.Dialect.paramMaxSize
+                : 2500;
+            if (chunk > maxPara - 8)
+                chunk = Math.Max(1, maxPara - 8);
+
+            var table = ResolveTableName(translator, en, entitiesWithPk[0], tableNameLoader);
+            var selectCols = BuildPkSelectList(pks);
+
+            for (var i = 0; i < entitiesWithPk.Count; i += chunk)
+            {
+                var take = Math.Min(chunk, entitiesWithPk.Count - i);
+                var slice = new List<T>(take);
+                for (var j = 0; j < take; j++)
+                    slice.Add(entitiesWithPk[i + j]);
+
+                kit.clear();
+                kit.from(table);
+                kit.select(selectCols);
+                translator.setPKWhereRange(kit, slice, en);
+                var dt = kit.query();
+                if (dt == null || dt.Rows.Count == 0)
+                    continue;
+                foreach (DataRow row in dt.Rows)
+                {
+                    var key = FormatRowPkKey(pks, row);
+                    if (!string.IsNullOrEmpty(key))
+                        set.Add(key);
+                }
+            }
+            return set;
+        }
+
+        static bool HasAnyNullPrimaryKey(EntityInfo en, object entity, SQLBuilder kit)
+        {
+            var pks = en.GetPK();
+            var exp = kit?.Dialect?.expression;
+            foreach (var pk in pks)
+            {
+                var raw = pk.PropertyInfo.GetValue(entity);
+                var val = exp != null ? exp.ResolveColumnValue(raw, pk) : raw;
+                if (val == null)
+                    return true;
+            }
+            return false;
+        }
+
+        static string FormatEntityPkKey(EntityInfo en, object entity, SQLBuilder kit)
+        {
+            var pks = en.GetPK();
+            var exp = kit?.Dialect?.expression;
+            var sb = new StringBuilder();
+            for (var i = 0; i < pks.Count; i++)
+            {
+                if (i > 0) sb.Append('\u001f');
+                var raw = pks[i].PropertyInfo.GetValue(entity);
+                var val = exp != null ? exp.ResolveColumnValue(raw, pks[i]) : raw;
+                sb.Append(NormalizePkPart(val));
+            }
+            return sb.ToString();
+        }
+
+        static string FormatRowPkKey(IList<EntityColumn> pks, DataRow row)
+        {
+            var sb = new StringBuilder();
+            for (var i = 0; i < pks.Count; i++)
+            {
+                if (i > 0) sb.Append('\u001f');
+                var name = pks[i].DbColumnName;
+                object val = null;
+                if (row.Table.Columns.Contains(name))
+                    val = row[name];
+                else if (i < row.Table.Columns.Count)
+                    val = row[i];
+                if (val == DBNull.Value)
+                    val = null;
+                sb.Append(NormalizePkPart(val));
+            }
+            return sb.ToString();
+        }
+
+        static string NormalizePkPart(object val)
+        {
+            if (val == null) return string.Empty;
+            if (val is IFormattable f)
+                return f.ToString(null, CultureInfo.InvariantCulture) ?? string.Empty;
+            return Convert.ToString(val, CultureInfo.InvariantCulture) ?? string.Empty;
+        }
+
+        static string BuildPkSelectList(IList<EntityColumn> pks)
+        {
+            var sb = new StringBuilder();
+            for (var i = 0; i < pks.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append(pks[i].DbColumnName);
+            }
+            return sb.ToString();
+        }
+
+        static string ResolveTableName(EntityTranslator translator, EntityInfo en, object sample, Func<string> tableNameLoader)
+        {
+            if (tableNameLoader != null)
+            {
+                var n = tableNameLoader();
+                if (!string.IsNullOrWhiteSpace(n))
+                    return n;
+            }
+            return translator.GetResolvedTableName(en, sample, tableNameLoader);
+        }
+
         /// <summary>
         /// 多行 VALUES 插入：逐实体钩子 + prepareInsert + newRow，一次 doInsert（内部可多 SQLSeg）。
         /// </summary>

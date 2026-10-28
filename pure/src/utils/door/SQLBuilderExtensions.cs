@@ -633,51 +633,38 @@ namespace mooSQL.data
         /// <param name="tbname">可选物理表名，用于动态分表等场景。</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static List<SQLCmd> toSaveList<T>(this SQLBuilder builder,IEnumerable<T> entity, string tbname = null)
+        public static List<SQLCmd> toSaveList<T>(this SQLBuilder builder, IEnumerable<T> entity, string tbname = null)
         {
-            var cmds= new List<SQLCmd>();
+            var cmds = new List<SQLCmd>();
+            if (entity == null)
+                return cmds;
+
+            var list = new List<T>();
+            foreach (var row in entity)
+            {
+                if (row != null)
+                    list.Add(row);
+            }
+            if (list.Count == 0)
+                return cmds;
+
             var en = builder.Client.EntityCash.getEntityInfo<T>();
-
             if (en.Insertable == false && en.Updatable == false)
-            {
                 return cmds;
-            }
-            
-            //检查是否存在（探测须落在 ck 上；集合走 IEnumerable<object> 重载，勿把列表当单实体）
-            var ck = builder.DBLive.useSQL();
-            var tableName = tbname.HasText() ? tbname : en.DbTableName;
-            ck.from(tableName);
-            var pks = en.GetPK();
-            foreach (var pk in pks) {
-                ck.select(pk.DbColumnName);
-            }
-            builder.Client.Translator.setPKWhereRange(ck, entity, en);
-            var oldDt = ck.query();
-            if (oldDt.Rows.Count == 0 && en.Insertable != false)
-            {
-                foreach (var row in entity) { 
-                    cmds.Add(toInsert(builder, row, tbname));
-                }
-                return cmds;
-            }
 
-            foreach (var row in entity) {
-                var sh = new List<string>();
-                foreach (var pk in pks)
-                {
-                    sh.Add(string.Format("{0}='{1}'", pk.DbColumnName, pk.PropertyInfo.GetValue(row)));
-                }
-                var shcond = string.Join(" and ", sh);
-                var rows = oldDt.Select(shcond);
-                if (rows.Length > 0 && en.Updatable !=false) {
-                    cmds.Add(toUpdate(builder, row, tbname));
-                }
-                else if (rows.Length == 0 && en.Insertable != false)
-                {
-                    cmds.Add(toInsert(builder, row, tbname));
-                }
-            }
- 
+            Func<string> tableLoader = null;
+            if (tbname.HasText())
+                tableLoader = () => tbname;
+
+            var ck = builder.DBLive.useSQL();
+            var split = EntityBatchWriter.SplitSaveByExistence(
+                ck, builder.Client.Translator, en, list, tableLoader, 200);
+
+            foreach (var row in split.ToInsert)
+                cmds.Add(toInsert(builder, row, tbname));
+            foreach (var row in split.ToUpdate)
+                cmds.Add(toUpdate(builder, row, tbname));
+
             return cmds;
         }
 

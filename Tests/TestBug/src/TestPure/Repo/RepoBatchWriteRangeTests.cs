@@ -82,6 +82,49 @@ namespace mooSQL.Pure.Tests
             CountCategory("batch_uow").Should().Be(40);
         }
 
+        [Fact]
+        public void SaveRange_MixInsertAndUpdate_WritesAll()
+        {
+            var repo = _fx.Db.useRepo<SQLiteTestProduct>();
+            repo.BatchOptions.InsertRowThreshold = 5;
+            repo.BatchOptions.InsertBulkThreshold = 100000;
+            repo.BatchOptions.UpdateRowThreshold = 5;
+
+            var existing = MakeProducts(15, 5000);
+            foreach (var p in existing)
+                p.Category = "save_mix";
+            repo.InsertRange(existing);
+
+            foreach (var p in existing)
+                p.Name = "saved-" + p.Id;
+
+            var fresh = MakeProducts(15, 5100);
+            foreach (var p in fresh)
+                p.Category = "save_mix";
+
+            var mixed = existing.Concat(fresh).ToList();
+            var n = repo.SaveRange(mixed);
+            n.Should().BeGreaterThan(0);
+
+            CountCategory("save_mix").Should().Be(30);
+            var loaded = repo.GetById(existing[0].Id);
+            loaded!.Name.Should().Be("saved-" + existing[0].Id);
+            repo.GetById(fresh[0].Id).Should().NotBeNull();
+        }
+
+        [Fact]
+        public void SaveRange_BelowThreshold_StillWorks()
+        {
+            var repo = _fx.Db.useRepo<SQLiteTestProduct>();
+            repo.BatchOptions.InsertRowThreshold = 32;
+            var list = MakeProducts(3, 5200);
+            foreach (var p in list)
+                p.Category = "save_lo";
+            var n = repo.SaveRange(list);
+            n.Should().Be(3);
+            CountCategory("save_lo").Should().Be(3);
+        }
+
         List<SQLiteTestProduct> MakeProducts(int count, int idBase)
         {
             var list = new List<SQLiteTestProduct>(count);
