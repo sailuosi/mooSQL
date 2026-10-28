@@ -460,7 +460,7 @@ namespace mooSQL.data
         /// <summary>
         /// SQL Server：UPDATE T SET … FROM T INNER JOIN (SELECT … UNION ALL …) S ON …
         /// </summary>
-        public override string buildUpdateUnion(FragUpdateUnion frag)
+        public override string buildUpdateBatch(FragUpdateBatch frag)
         {
             if (frag == null
                 || string.IsNullOrWhiteSpace(frag.tableName)

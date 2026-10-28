@@ -552,7 +552,7 @@ namespace mooSQL.data
         /// 构建多行值源 UPDATE（UPDATE … JOIN/FROM (UNION ALL SELECT …)）。
         /// 基类返回 null 表示本方言不支持；MySQL / SQL Server 等 override。
         /// </summary>
-        public virtual string buildUpdateUnion(FragUpdateUnion frag)
+        public virtual string buildUpdateBatch(FragUpdateBatch frag)
         {
             return null;
         }

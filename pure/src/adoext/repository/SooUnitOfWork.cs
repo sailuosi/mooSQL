@@ -212,7 +212,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 批量更新。小批量逐条入队；达 UpdateUnion 阈值且方言支持时入队 UpdateUnion（可多段）；否则 U1 多语句。
+        /// 批量更新。小批量逐条入队；达 UpdateBatch 阈值且方言支持时入队 UpdateBatch（可多段）；否则 U1 多语句。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
@@ -224,7 +224,7 @@ namespace mooSQL.data
             if (list.Count == 0) return this;
 
             const int rowThreshold = 32;
-            const int unionThreshold = 50;
+            const int batchThreshold = 50;
 
             if (list.Count < rowThreshold)
             {
@@ -240,15 +240,15 @@ namespace mooSQL.data
             var kit = DB.useSQL();
             var translator = DB.client.Translator;
             var en = DB.client.EntityCash.getEntityInfo(typeof(T));
-            var tryUnion = list.Count >= unionThreshold
+            var tryBatch = list.Count >= batchThreshold
                 && kit.Dialect != null
-                && kit.Dialect.SupportsUpdateUnion();
-            if (tryUnion)
+                && kit.Dialect.SupportsUpdateBatch();
+            if (tryBatch)
             {
                 try
                 {
-                    var opt = new BatchWriteOptions { UpdateUnionBatchSize = 200 };
-                    var cmd = EntityBatchWriter.TryBuildUpdateUnionCmd(
+                    var opt = new BatchWriteOptions { UpdateBatchChunkSize = 200 };
+                    var cmd = EntityBatchWriter.TryBuildUpdateBatchCmd(
                         kit, translator, en, list, null, null, opt, out _);
                     if (cmd != null && !cmd.Empty)
                     {

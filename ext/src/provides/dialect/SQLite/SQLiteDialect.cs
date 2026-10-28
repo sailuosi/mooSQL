@@ -14,7 +14,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.data.builder;
 using mooSQL.data.mapping;
+using mooSQL.data.model;
 using mooSQL.linq;
 
 namespace mooSQL.data
@@ -46,6 +48,26 @@ namespace mooSQL.data
             Option.ProviderFlags.IsSkipSupportedIfTake = true;
 
             this.initVersions();
+        }
+
+        /// <inheritdoc />
+        /// <remarks>SQLite 用 CTE + VALUES 相关子查询实现多行值源 UPDATE（非 UNION JOIN）。</remarks>
+        public override bool SupportsUpdateBatch() => true;
+
+        /// <inheritdoc />
+        /// <remarks>VALUES 行不需要 AS 别名；列名写在 CTE 头。</remarks>
+        protected override string ParameterizeUpdateBatchRow(
+            SqlGoup group,
+            int rowIndex,
+            IReadOnlyList<string> setColumns,
+            IReadOnlyList<string> keyColumns,
+            IReadOnlyList<string> sourceAliases,
+            Paras para,
+            string paraPrefix,
+            bool withAlias)
+        {
+            return base.ParameterizeUpdateBatchRow(
+                group, rowIndex, setColumns, keyColumns, sourceAliases, para, paraPrefix, withAlias: false);
         }
 /// <summary>
 /// Creates the LINQ member translator for this dialect.

@@ -37,7 +37,7 @@ namespace mooSQL.data
         public override bool SupportsMerge() => true;
 
         /// <inheritdoc />
-        public override bool SupportsUpdateUnion() => true;
+        public override bool SupportsUpdateBatch() => true;
 /// <summary>
 /// Creates the LINQ member translator for this dialect.
 /// </summary>

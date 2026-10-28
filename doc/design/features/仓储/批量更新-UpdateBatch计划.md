@@ -1,12 +1,12 @@
-# 批量更新 U2 — 按字段分桶 + UpdateUnion（UPDATE FROM / JOIN + UNION）
+# 批量更新 U2 — 按字段分桶 + UpdateBatch（多行值源批量 UPDATE）
 
 > 面向 **开发人员**（SQLBuilder / Dialect / EntityBatchWriter / Repo）。  
-> **结论先行**：`UpdateRange` 在 N ≥ **50** 时走 U2：Writer 用 **`newRow` 连续填行** → **`toUpdateUnion` / `doUpdateUnion`**。  
-> **自动分桶是 SQLBuilder 能力**：以各行实际 `SetFrag` 占用列为准拆签名；同桶拼 UPDATE+UNION，异构行拆成多条命令。仓储只负责阈值启停、钩子、填行与降级，**不**把「猜列签名」当作权威分桶。  
-> 现状：已有单行 `toUpdate`、表连接型 `toUpdateFrom`，**尚未**接入多行值源 UNION 批更；本计划补齐出口并挂仓储。  
+> **结论先行**：`UpdateRange` 在 N ≥ **50** 时走 U2：Writer 用 **`newRow` 连续填行** → **`toUpdateBatch` / `doUpdateBatch`**。  
+> **能力名是 UpdateBatch**（一条/少段批量 UPDATE）；方言可渲染为 UNION JOIN、FROM UNION、或 **CTE+VALUES**（SQLite），不绑死 UNION 语法。  
+> **自动分桶是 SQLBuilder 能力**：以各行实际 `SetFrag` 占用列为准拆签名；同桶出集合 UPDATE，异构行拆成多条命令。仓储只负责阈值启停、钩子、填行与降级。  
 > 关联：[`批量写入性能优化.md`](./批量写入性能优化.md)、[`LiteOrm-vs-MooSql-批量基准记录-2026-10-28.md`](../../../../Tests/TestFast/Orm.Benchmark/LiteOrm-vs-MooSql-批量基准记录-2026-10-28.md)。
 
-**落地进度**：**U2-P0 / P0b / P1 已完成** — Builder 分桶；MySQL / SQL Server / **PostgreSQL** 方言；Writer + Repo 阈值；**UoW UpdateRange** 对齐；桶内 batchSize/paramMaxSize 切片单测。**U2-P1b（基准）未做**。
+**落地进度**：**U2-P0 / P0b / P1 已完成**；**API 已由 UpdateUnion 更名为 UpdateBatch**；**SQLite CTE+VALUES 已接入**。余 **U2-P1b（基准）**。
 
 ---
 
@@ -23,9 +23,9 @@
 
 ### 1.2 目标
 
-1. **N ≥ UpdateUnionThreshold（默认 50）** 启动 U2。  
-2. SQLBuilder：**复用 `newRow`**，新增 **`toUpdateUnion` / `doUpdateUnion`**；构建时 **按行实际 SET 列自动分桶**（可多 `SQLCmd` / 多组 `SQLSeg`）。  
-3. Repo/`EntityBatchWriter`：达阈值则填行并调用 Union 出口；失败或不支持 → **降级 U1**。  
+1. **N ≥ UpdateBatchThreshold（默认 50）** 启动 U2。  
+2. SQLBuilder：**复用 `newRow`**，新增 **`toUpdateBatch` / `doUpdateBatch`**；构建时 **按行实际 SET 列自动分桶**（可多 `SQLCmd` / 多组 `SQLSeg`）。  
+3. Repo/`EntityBatchWriter`：达阈值则填行并调用 UpdateBatch 出口；失败或不支持 → **降级 U1**。  
 4. 小批量与 `Mode=Row` 不变（U0 / 现有 U1）。
 
 ### 1.3 非目标（本期）
@@ -64,8 +64,25 @@ INNER JOIN (
 SET T.`Name` = S.`v0`, T.`Age` = S.`v1`, T.`Email` = S.`v2`
 ```
 
+**SQLite（CTE + VALUES，无 UPDATE…JOIN）：**
+
+```sql
+WITH batch_data([Name], [Age], [Email], [Id]) AS (
+  VALUES (@p0, @p1, @p2, @p3),
+         (@p4, @p5, @p6, @p7)
+)
+UPDATE [BenchmarkUser]
+SET
+  [Name] = (SELECT [Name] FROM batch_data WHERE [BenchmarkUser].[Id] = batch_data.[Id]),
+  [Age] = (SELECT [Age] FROM batch_data WHERE [BenchmarkUser].[Id] = batch_data.[Id]),
+  [Email] = (SELECT [Email] FROM batch_data WHERE [BenchmarkUser].[Id] = batch_data.[Id])
+WHERE EXISTS (
+  SELECT 1 FROM batch_data WHERE [BenchmarkUser].[Id] = batch_data.[Id]
+)
+```
+
 - 批内 SET 必须同构 → **Builder 分桶保证**。  
-- 参数上限 → 桶内再按 `UpdateUnionBatchSize` / `paramMaxSize` 切窗。
+- 参数上限 → 桶内再按 `UpdateBatchChunkSize` / `paramMaxSize` 切窗。
 
 ---
 
@@ -78,17 +95,17 @@ SET T.`Name` = S.`v0`, T.`Age` = S.`v1`, T.`Email` = S.`v2`
 | 动态忽略落点 | `ignoreUpdate` / `includeUpdate` 等最终表现为 **该行有没有 `set(列)`** |
 | 真相来源 | `SqlGoup` 列式 `SetFrag` + `setIndex`；行间占用列可以不一致 |
 | 元数据预分桶风险 | 「实体类型相同」≠「更新目标列相同」；预分桶与真实 Frag 易漂移 |
-| 单一闸口 | 凡走 `toUpdateUnion` 的调用方（Repo / 手写 kit）都自动正确 |
+| 单一闸口 | 凡走 `toUpdateBatch` 的调用方（Repo / 手写 kit）都自动正确 |
 
-**结论**：**按行实际 SET 列签名拆命令 = `toUpdateUnion` 的正确性能力**；仓储 **可选**预分组仅为减峰值，**权威拆分以 Builder 为准**。
+**结论**：**按行实际 SET 列签名拆命令 = `toUpdateBatch` 的正确性能力**；仓储 **可选**预分组仅为减峰值，**权威拆分以 Builder 为准**。
 
 ### 3.2 分层职责
 
 | 层 | 职责 |
 |----|------|
 | **Repo / Writer** | N≥50 是否启用 U2、`Mode=Row`、钩子、分表、循环 `set`+`newRow`、失败降级 U1 |
-| **SQLBuilder `toUpdateUnion` / `doUpdateUnion`** | 扫描每行 `SetFrag` 占用（排除 `keyColumns`）→ 签名分桶 → 同桶调方言出 SQL；异构 → **多条 `SQLCmd`（或多组段）**；单行桶可退回普通 `UPDATE` |
-| **方言 `BuildUpdateUnionCmd`** | **假定输入行集已同构**；只负责 FROM/JOIN+UNION 拼装与参数窗切片 |
+| **SQLBuilder `toUpdateBatch` / `doUpdateBatch`** | 扫描每行 `SetFrag` 占用（排除 `keyColumns`）→ 签名分桶 → 同桶调方言出 SQL；异构 → **多条 `SQLCmd`（或多组段）**；单行桶可退回普通 `UPDATE` |
+| **方言 `BuildUpdateBatchCmd`** | **假定输入行集已同构**；拼装值源 UPDATE（UNION / CTE 等）与参数窗切片 |
 
 ### 3.3 桶键（Builder 内）
 
@@ -115,33 +132,33 @@ SET T.`Name` = S.`v0`, T.`Age` = S.`v1`, T.`Email` = S.`v2`
 |------|------|
 | 空签名 / 无键 | 跳过或报错（无 PK 无法 ON） |
 | 某签名仅 1 行 | 可生成单行 `UPDATE`，避免 UNION 壳 |
-| 同签名多行 | 一条（或参数窗多段）UpdateUnion SQL |
-| 一次 `doUpdateUnion` | **影响行数 = 各桶命令之和** |
+| 同签名多行 | 一条（或参数窗多段）UpdateBatch SQL |
+| 一次 `doUpdateBatch` | **影响行数 = 各桶命令之和** |
 | 分表 | 仍由 Writer 外层 `GroupByTable`；表内可一次填入，由 Builder 再分桶 |
 
 ### 3.6 仓储侧流程（不再强制预 GroupBy）
 
 ```text
 UpdateRange(list):
-  if Mode=Row or N < UpdateUnionThreshold → U0 / U1
+  if Mode=Row or N < UpdateBatchThreshold → U0 / U1
   分表 → 各组：
     OnBeforeSave
     kit.clear / setTable
     foreach entity:
       Translator 按当前忽略规则 set(SET列…) + set(PK…)
       newRow()
-    doUpdateUnion(keyColumns)   // 内部分桶 + 可能多命令
+    doUpdateBatch(keyColumns)   // 内部分桶 + 可能多命令
     失败 → 降级 U1（可用同一批实体重跑 UpdateMultiStatement）
 ```
 
-可选优化（非必须）：Writer 预分桶减少巨型 `SqlGoup` 峰值；**即使预分桶，`toUpdateUnion` 仍须再扫 Frag 兜底**。
+可选优化（非必须）：Writer 预分桶减少巨型 `SqlGoup` 峰值；**即使预分桶，`toUpdateBatch` 仍须再扫 Frag 兜底**。
 
 ### 3.7 阈值配置
 
 | 配置 | 默认 | 说明 |
 |------|------|------|
-| `UpdateUnionThreshold` | **50** | N ≥ 此值尝试 U2；32～49 仍可用 U1 |
-| `UpdateUnionBatchSize` | 200 | **同签名桶内**单条 UNION 最大行数 |
+| `UpdateBatchThreshold` | **50** | N ≥ 此值尝试 U2；32～49 仍可用 U1 |
+| `UpdateBatchChunkSize` | 200 | **同签名桶内**单条 UNION 最大行数 |
 | `UpdateBatchSize` | 100 | 仅 U1 降级 |
 
 启停阈值属 **仓储策略**，不进入 Builder。
@@ -157,7 +174,7 @@ UpdateRange(list):
 | `newRow` / `set` | 复用多行行模型 |
 | `toUpdate` / `doUpdate` | 单行；不变 |
 | `toUpdateFrom` / `doUpdateFrom` | 真表 FROM 连接更新；**不**兼作 Union |
-| **`toUpdateUnion` / `doUpdateUnion`** | 多行 Frag → **自动分桶** → 集合 UPDATE |
+| **`toUpdateBatch` / `doUpdateBatch`** | 多行 Frag → **自动分桶** → 集合 UPDATE |
 
 ### 4.2 行模型
 
@@ -168,22 +185,22 @@ for each entity:          // 可混有不同 SET 列；不必先分桶
   kit.set(setCol, v)…     // 仅实际要更新的列
   kit.set(pkCol, pkVal)
   kit.newRow()
-kit.doUpdateUnion(keyColumns)   // 内部分桶出 1..K 条命令
+kit.doUpdateBatch(keyColumns)   // 内部分桶出 1..K 条命令
 ```
 
-键列：**方案 A** — `toUpdateUnion(IReadOnlyList<string> keyColumns)`，其余有值列为 SET。
+键列：**方案 A** — `toUpdateBatch(IReadOnlyList<string> keyColumns)`，其余有值列为 SET。
 
 ### 4.3 构建链
 
 ```text
-EntityBatchWriter.UpdateUnion
+EntityBatchWriter.UpdateBatch
   → 填行（set + newRow），不强制预分桶
-  → doUpdateUnion(keyColumns)
-       → toUpdateUnion(keyColumns)
+  → doUpdateBatch(keyColumns)
+       → toUpdateBatch(keyColumns)
             → 按行 SetFrag 签名分桶
             → foreach bucket:
                  行数==1 → 可选走单行 buildUpdate
-                 否则 Dialect.BuildUpdateUnionCmd(同构行窗, keyColumns, batchSize)
+                 否则 Dialect.BuildUpdateBatchCmd(同构行窗, keyColumns, batchSize)
                       → 参数超限则多 SQLSeg
             → 返回 SQLCmd 或 SQLCmd 列表 / 多段累加执行
   → 累加影响行数；OnAfterSave
@@ -193,25 +210,25 @@ EntityBatchWriter.UpdateUnion
 |------|------|
 | Frag 全量投影 | **不采用** |
 | Builder 分桶 + 方言按同构窗出 SQL | **采用** |
-| 旧 `buildUpdateFrom(FragSQL)` | 仅真表 FROM；Union 走 **`BuildUpdateUnionCmd`** |
+| 旧 `buildUpdateFrom(FragSQL)` | 仅真表 FROM；Union 走 **`BuildUpdateBatchCmd`** |
 
 ### 4.4 抽象面改动
 
 | 位置 | 改动 |
 |------|------|
-| `SQLBuilder` | `toUpdateUnion(keyColumns)` / `doUpdateUnion`（及 Async）；文档注明 **可能多命令** |
+| `SQLBuilder` | `toUpdateBatch(keyColumns)` / `doUpdateBatch`（及 Async）；文档注明 **可能多命令** |
 | `StepBuilder` | 实现分桶 + 调方言；影响行数求和 |
 | `PrepareSQLBuilder` / proxy | 转发 |
 | `SQLClip`（可选） | 同名出口 |
-| `Dialect` | `BuildUpdateUnionCmd`（输入已同构）；不支持返回 null |
-| `SqlProviderFlags` | 建议 **`IsUpdateUnionSupported`**（勿与旧 `IsUpdateFromSupported` 混用） |
+| `Dialect` | `BuildUpdateBatchCmd`（输入已同构）；不支持返回 null |
+| `SqlProviderFlags` | 建议 **`IsUpdateBatchSupported`**（勿与旧 `IsUpdateFromSupported` 混用） |
 | `SqlGoup` | 辅助：按 `setIndex` 枚举有值列名、按签名分组行下标（可对标 `GetInsertRowIndices`） |
 
 ### 4.5 参数与切片（桶内）
 
 ```text
 paramsPerRow = setColumnCount + keyColumnCount
-rowsPerBatch = min(UpdateUnionBatchSize,
+rowsPerBatch = min(UpdateBatchChunkSize,
                    floor((paramMaxSize - basePs) / max(1, paramsPerRow)))
 ```
 
@@ -221,26 +238,26 @@ rowsPerBatch = min(UpdateUnionBatchSize,
 
 ### 5.1 `EntityBatchWriter`
 
-`UpdateUnion`：
+`UpdateBatch`：
 
 1. 同表实体列表 + `keyColumns` + Options。  
 2. 钩子后按 Translator 规则 `set` + `newRow`（动态忽略自然体现在 Frag）。  
-3. `doUpdateUnion`；null/异常 → 降级 U1。
+3. `doUpdateBatch`；null/异常 → 降级 U1。
 
 `UpdateRangeCore`：
 
 ```text
 N < UpdateRowThreshold → U0
-UpdateRowThreshold ≤ N < UpdateUnionThreshold → U1
-N ≥ UpdateUnionThreshold 且 IsUpdateUnionSupported → U2（填行 + doUpdateUnion）
+UpdateRowThreshold ≤ N < UpdateBatchThreshold → U1
+N ≥ UpdateBatchThreshold 且 IsUpdateBatchSupported → U2（填行 + doUpdateBatch）
 Mode=Row → U0
 ```
 
 ### 5.2 `BatchWriteOptions`
 
 ```csharp
-public int UpdateUnionThreshold { get; set; } = 50;
-public int UpdateUnionBatchSize { get; set; } = 200;
+public int UpdateBatchThreshold { get; set; } = 50;
+public int UpdateBatchChunkSize { get; set; } = 200;
 ```
 
 ### 5.3 UoW
@@ -255,13 +272,13 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 
 ## 6. 方言矩阵（首期）
 
-| 方言 | 语法倾向 | 首期 |
+| 方言 | 语法倾向 | 状态 |
 |------|----------|------|
-| MySQL / MariaDB | `UPDATE T JOIN (UNION…) S ON … SET …` | **P0** |
-| SQL Server | `UPDATE T SET … FROM T JOIN (UNION…) S` | **P0** |
-| PostgreSQL | `UPDATE … FROM (UNION…) S WHERE …` | ✅ P1 |
-| SQLite | 降级 U1 | 降级 |
-| Oracle / 达梦等 | MERGE / FROM 变体或降级 | P1/P2 |
+| MySQL / MariaDB | `UPDATE T JOIN (UNION…) S ON … SET …` | ✅ |
+| SQL Server | `UPDATE T SET … FROM T JOIN (UNION…) S` | ✅ |
+| PostgreSQL | `UPDATE … FROM (UNION…) S WHERE …` | ✅ |
+| SQLite | `WITH … AS (VALUES …) UPDATE … SET (SELECT …)` | ✅ |
+| Oracle / 达梦等 | MERGE / FROM 变体或降级 | P2 |
 
 ---
 
@@ -269,10 +286,11 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 
 | 阶段 | 内容 |
 |------|------|
-| **U2-P0** | ✅ **已完成**：`toUpdateUnion`/`doUpdateUnion`（分布类）+ Frag 自动分桶 + MySQL/SQL Server `BuildUpdateUnionCmd`；单测同构/异构/单行退化 |
-| **U2-P0b** | ✅ **已完成**：`prepareUpdateUnion` + Writer.`UpdateUnion`；`UpdateUnionThreshold=50`；失败/不支持降级 U1；`RepoUpdateUnionTests` |
-| **U2-P1** | ✅ **已完成**：PG `buildUpdateUnion`；batchSize/paramMaxSize 切片；UoW `UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateUnionCmd` |
-| **U2-P1b** | 基准 vs U1 / LiteOrm |
+| **U2-P0** | ✅ **已完成**：`toUpdateBatch`/`doUpdateBatch`（分布类）+ Frag 自动分桶 + MySQL/SQL Server `BuildUpdateBatchCmd`；单测同构/异构/单行退化 |
+| **U2-P0b** | ✅ **已完成**：`prepareUpdateBatch` + Writer.`UpdateBatch`；`UpdateBatchThreshold=50`；失败/不支持降级 U1；`RepoUpdateBatchTests` |
+| **U2-P1** | ✅ **已完成**：PG `buildUpdateBatch`；batchSize/paramMaxSize 切片；UoW `UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateBatchCmd` |
+| **U2-P1s** | ✅ **已完成**：API 更名 UpdateUnion→UpdateBatch；SQLite CTE+VALUES |
+| **U2-P1b** | 基准 vs U1 / LiteOrm（`--quick-update`） |
 | **U2-P2** | 脏字段路径说明；可选 Writer 预分桶优化 |
 
 ---
@@ -282,13 +300,13 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 | 用例 | 期望 |
 |------|------|
 | N=49 | 不走 U2 |
-| N=50，全列同 `set` | 一条（或少段）UpdateUnion |
+| N=50，全列同 `set` | 一条（或少段）UpdateBatch |
 | 一半实体 `ignoreUpdate` 少一列 | **两条**集合 SQL（Builder 自动拆） |
 | 签名仅 1 行 | 无强制 UNION 壳 |
 | 超参数上限 | 同桶多段，行写全 |
 | 联合主键 | ON 多列 |
 | 方言不支持 | 降级 U1 |
-| 手写 kit 混列 `newRow` 后 `doUpdateUnion` | 无需调用方预分桶即正确 |
+| 手写 kit 混列 `newRow` 后 `doUpdateBatch` | 无需调用方预分桶即正确 |
 
 ---
 
@@ -299,8 +317,8 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 | 一次调用多命令，调试条数变化 | 日志按桶打印签名与行数 |
 | 桶数 ≈ N（每行不同列） | 近似 U1 成本；可打点 |
 | 全列 SET 并发覆盖 | 与现网全量 update 同语义；缩小 SET 靠 ignore/脏字段 |
-| 与 `toUpdateFrom` 混淆 | 独立 `*UpdateUnion*` |
-| 巨型单 `SqlGoup` 峰值 | 可选 Writer 预分桶；或按批 clear 多次 `doUpdateUnion` |
+| 与 `toUpdateFrom` 混淆 | 独立 `*UpdateBatch*` |
+| 巨型单 `SqlGoup` 峰值 | 可选 Writer 预分桶；或按批 clear 多次 `doUpdateBatch` |
 
 ---
 
@@ -309,13 +327,13 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 | 项 | 决策 |
 |----|------|
 | 启动阈值 | **N ≥ 50**（仓储） |
-| **自动分桶** | **SQLBuilder `toUpdateUnion` 内建**（按行 SetFrag；权威） |
+| **自动分桶** | **SQLBuilder `toUpdateBatch` 内建**（按行 SetFrag；权威） |
 | Repo 预分桶 | **可选优化**，不能替代 Builder |
-| SQL | UPDATE + UNION 值源（方言 FROM/JOIN） |
-| Builder | 复用 `newRow`；新增 `toUpdateUnion` / `doUpdateUnion`（可多命令） |
+| SQL | 多行值源批量 UPDATE（方言：UNION JOIN / FROM / CTE+VALUES） |
+| Builder | 复用 `newRow`；`toUpdateBatch` / `doUpdateBatch`（可多命令） |
 | 与 `toUpdateFrom` | 并存 |
-| 降级 | → U1 |
-| 配置 | `UpdateUnionThreshold` / `UpdateUnionBatchSize` |
+| 降级 | → U1（方言 `SupportsUpdateBatch=false` 或构建失败） |
+| 配置 | `UpdateBatchThreshold` / `UpdateBatchChunkSize`（U1 仍用 `UpdateBatchSize`） |
 
 ---
 
@@ -323,22 +341,22 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 
 | 区域 | 路径 |
 |------|------|
-| 本计划 | `doc/design/features/仓储/批量更新-UpdateUnion计划.md` |
+| 本计划 | `doc/design/features/仓储/批量更新-UpdateBatch计划.md` |
 | 总览 | [`批量写入性能优化.md`](./批量写入性能优化.md) §3.4 / P3 |
-| Writer / Options | `EntityBatchWriter.UpdateUnion` / `BatchWriteOptions.UpdateUnionThreshold` |
-| Translator | `EntityTranslator.prepareUpdateUnion`（PK→set，非 where） |
-| Repo | `SooRepository.UpdateRangeCore`（N≥阈值且 SupportsUpdateUnion → U2，否则/失败 → U1） |
-| Builder API | `pure/.../SQLBuilder.updateUnion.cs`（abstract）+ `SQLBuilder.sugar.cs` 重载 |
-| Builder 实现 | `StepBuilder.updateUnion.cs` / `PrepareSQLBuilder.updateUnion.cs` |
-| SqlGoup 分桶 | `SqlGoup.updateUnion.cs`（`GetUpdateRowIndices` / `GroupUpdateRowsBySetSignature`） |
-| 方言内核 | `Dialect.updateUnionCmd.cs`（`SupportsUpdateUnion` / `BuildUpdateUnionCmd`） |
-| 方言 SQL | `MySQLExpress` / `MSSQLExpress` / `NpgsqlExpress.buildUpdateUnion`；族开关含 `PgFamilyDialect` |
-| UoW | `SooUnitOfWork.UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateUnionCmd` |
-| 单测 | `SQLBuilderUpdateUnionTests`、`RepoUpdateUnionTests` |
+| Writer / Options | `EntityBatchWriter.UpdateBatch` / `BatchWriteOptions.UpdateBatchThreshold` |
+| Translator | `EntityTranslator.prepareUpdateBatch`（PK→set，非 where） |
+| Repo | `SooRepository.UpdateRangeCore`（N≥阈值且 SupportsUpdateBatch → U2，否则/失败 → U1） |
+| Builder API | `pure/.../SQLBuilder.updateBatch.cs`（abstract）+ `SQLBuilder.sugar.cs` 重载 |
+| Builder 实现 | `StepBuilder.updateBatch.cs` / `PrepareSQLBuilder.updateBatch.cs` |
+| SqlGoup 分桶 | `SqlGoup.updateBatch.cs`（`GetUpdateRowIndices` / `GroupUpdateRowsBySetSignature`） |
+| 方言内核 | `Dialect.updateBatchCmd.cs`（`SupportsUpdateBatch` / `BuildUpdateBatchCmd`） |
+| 方言 SQL | `MySQLExpress` / `MSSQLExpress` / `NpgsqlExpress` / **`SQLiteExpress.buildUpdateBatch`** |
+| UoW | `SooUnitOfWork.UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateBatchCmd` |
+| 单测 | `SQLBuilderUpdateBatchTests`、`RepoUpdateBatchTests` |
 | 基准 | `Tests/TestFast/Orm.Benchmark` |
 
 ---
 
 ## 12. 一句话
 
-U2 = 仓储达阈值后 **`newRow` 填值** + SQLBuilder **`toUpdateUnion` 按实际 SET 列自动分桶** 出集合 UPDATE；动态忽略导致的列差异由 Builder 消化，而不是让 Repo 猜签名。
+U2 = 仓储达阈值后 **`newRow` 填值** + SQLBuilder **`toUpdateBatch` 按实际 SET 列自动分桶** 出集合 UPDATE；动态忽略导致的列差异由 Builder 消化，而不是让 Repo 猜签名。

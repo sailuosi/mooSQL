@@ -442,7 +442,7 @@ namespace mooSQL.data
         /// <summary>
         /// MySQL：UPDATE T INNER JOIN (SELECT … UNION ALL …) S ON … SET …
         /// </summary>
-        public override string buildUpdateUnion(FragUpdateUnion frag)
+        public override string buildUpdateBatch(FragUpdateBatch frag)
         {
             if (frag == null
                 || string.IsNullOrWhiteSpace(frag.tableName)

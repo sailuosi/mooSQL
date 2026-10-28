@@ -907,7 +907,7 @@ namespace mooSQL.data
             return res > 0;
         }
         /// <summary>
-        /// 批量更新。超阈值走 U1 多语句或 U2 UpdateUnion（见 <see cref="BatchOptions"/>）。
+        /// 批量更新。超阈值走 U1 多语句或 U2 UpdateBatch（见 <see cref="BatchOptions"/>）。
         /// </summary>
         /// <param name="updateObjs"></param>
         /// <returns></returns>
@@ -951,14 +951,14 @@ namespace mooSQL.data
 
             var tableLoader = tryTableNameLoader(tbname);
             var tryUnion = opt.Mode != BatchWriteMode.Row
-                && list.Count >= opt.UpdateUnionThreshold
+                && list.Count >= opt.UpdateBatchThreshold
                 && kit.Dialect != null
-                && kit.Dialect.SupportsUpdateUnion();
+                && kit.Dialect.SupportsUpdateBatch();
             if (tryUnion)
             {
                 try
                 {
-                    var n = EntityBatchWriter.UpdateUnion(
+                    var n = EntityBatchWriter.UpdateBatch(
                         kit, Translator, En, list, tableLoader,
                         OnBeforeSave, OnAfterSave, opt);
                     if (n >= 0)
@@ -967,7 +967,7 @@ namespace mooSQL.data
                 catch (Exception ex)
                 {
                     DBLive?.client?.Loggor?.LogError(
-                        "UpdateRange UpdateUnion failed, fallback to multi-statement: " + ex.Message);
+                        "UpdateRange UpdateBatch failed, fallback to multi-statement: " + ex.Message);
                 }
             }
 

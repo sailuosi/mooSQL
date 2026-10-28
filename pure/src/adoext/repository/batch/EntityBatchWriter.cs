@@ -367,10 +367,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 仅构建 UpdateUnion 命令（不执行）。供 Repo 执行与 UoW 入队共用。
+        /// 仅构建 UpdateBatch 命令（不执行）。供 Repo 执行与 UoW 入队共用。
         /// 不支持 / 无有效行 / 构建失败返回 null。
         /// </summary>
-        public static SQLCmd TryBuildUpdateUnionCmd<T>(
+        public static SQLCmd TryBuildUpdateBatchCmd<T>(
             SQLBuilder kit,
             EntityTranslator translator,
             EntityInfo entityInfo,
@@ -385,7 +385,7 @@ namespace mooSQL.data
                 return null;
             if (kit == null) throw new ArgumentNullException(nameof(kit));
             if (translator == null) throw new ArgumentNullException(nameof(translator));
-            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateUnion())
+            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateBatch())
                 return null;
 
             var en = entityInfo;
@@ -398,7 +398,7 @@ namespace mooSQL.data
             if (keyColumns.Count == 0)
                 return null;
 
-            ApplyUpdateUnionBatchSize(kit, options);
+            ApplyUpdateBatchChunkSize(kit, options);
 
             kit.clear();
             var first = true;
@@ -410,11 +410,11 @@ namespace mooSQL.data
                 if (!first)
                     kit.newRow();
                 first = false;
-                var res = translator.prepareUpdateUnion(kit, entity, typeof(T), en, tableNameLoader);
+                var res = translator.prepareUpdateBatch(kit, entity, typeof(T), en, tableNameLoader);
                 if (!res.Status)
                 {
                     kit.Client?.Loggor?.LogError(res.Message);
-                    throw new InvalidOperationException(res.Message ?? "prepareUpdateUnion failed.");
+                    throw new InvalidOperationException(res.Message ?? "prepareUpdateBatch failed.");
                 }
                 filled.Add(entity);
             }
@@ -422,16 +422,16 @@ namespace mooSQL.data
             if (first)
                 return null;
 
-            var cmd = kit.toUpdateUnion(keyColumns);
+            var cmd = kit.toUpdateBatch(keyColumns);
             if (cmd == null || cmd.Empty)
                 return null;
             return cmd;
         }
 
         /// <summary>
-        /// UpdateUnion（U2）：钩子后填行并执行。方言不支持或构建失败时返回 -1（调用方降级 U1）。
+        /// UpdateBatch（U2）：钩子后填行并执行。方言不支持或构建失败时返回 -1（调用方降级 U1）。
         /// </summary>
-        public static int UpdateUnion<T>(
+        public static int UpdateBatch<T>(
             SQLBuilder kit,
             EntityTranslator translator,
             EntityInfo entityInfo,
@@ -444,10 +444,10 @@ namespace mooSQL.data
             if (entities == null || entities.Count == 0)
                 return 0;
             if (kit == null) throw new ArgumentNullException(nameof(kit));
-            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateUnion())
+            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateBatch())
                 return -1;
 
-            var cmd = TryBuildUpdateUnionCmd(
+            var cmd = TryBuildUpdateBatchCmd(
                 kit, translator, entityInfo, entities, tableNameLoader, beforeSave, options, out var filled);
             if (filled.Count == 0)
                 return 0;
@@ -490,12 +490,12 @@ namespace mooSQL.data
                 sb.InsertValuesBatchSize = options.InsertBatchSize;
         }
 
-        static void ApplyUpdateUnionBatchSize(SQLBuilder kit, BatchWriteOptions options)
+        static void ApplyUpdateBatchChunkSize(SQLBuilder kit, BatchWriteOptions options)
         {
-            if (options == null || options.UpdateUnionBatchSize <= 0)
+            if (options == null || options.UpdateBatchChunkSize <= 0)
                 return;
             if (kit.Inner is StepBuilder sb)
-                sb.UpdateUnionBatchSize = options.UpdateUnionBatchSize;
+                sb.UpdateBatchChunkSize = options.UpdateBatchChunkSize;
         }
     }
 }

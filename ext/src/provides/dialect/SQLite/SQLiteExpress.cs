@@ -354,6 +354,74 @@ namespace mooSQL.data
             return sb.ToString();
         }
 
+        /// <summary>
+        /// SQLite：WITH batch_data(cols) AS (VALUES …) UPDATE SET col=(SELECT …) WHERE EXISTS。
+        /// </summary>
+        public override string buildUpdateBatch(FragUpdateBatch frag)
+        {
+            if (frag == null
+                || string.IsNullOrWhiteSpace(frag.tableName)
+                || frag.setColumns == null || frag.setColumns.Count == 0
+                || frag.keyColumns == null || frag.keyColumns.Count == 0
+                || frag.selectLists == null || frag.selectLists.Count == 0
+                || frag.sourceAliases == null
+                || frag.sourceAliases.Count != frag.setColumns.Count + frag.keyColumns.Count)
+            {
+                return null;
+            }
+
+            var table = normalizeName(frag.tableName);
+            var sb = new StringBuilder();
+            sb.Append("WITH batch_data(");
+            for (var i = 0; i < frag.sourceAliases.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append(normalizeName(frag.sourceAliases[i]));
+            }
+            sb.Append(") AS (VALUES ");
+            for (var i = 0; i < frag.selectLists.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append('(');
+                sb.Append(frag.selectLists[i]);
+                sb.Append(')');
+            }
+            sb.Append(") UPDATE ");
+            sb.Append(table);
+            sb.Append(" SET ");
+            for (var i = 0; i < frag.setColumns.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                var col = normalizeName(frag.setColumns[i]);
+                var src = normalizeName(frag.sourceAliases[i]);
+                sb.Append(col);
+                sb.Append(" = (SELECT ");
+                sb.Append(src);
+                sb.Append(" FROM batch_data WHERE ");
+                AppendSqliteBatchKeyMatch(sb, table, frag);
+                sb.Append(')');
+            }
+            sb.Append(" WHERE EXISTS (SELECT 1 FROM batch_data WHERE ");
+            AppendSqliteBatchKeyMatch(sb, table, frag);
+            sb.Append(')');
+            return sb.ToString();
+        }
+
+        void AppendSqliteBatchKeyMatch(StringBuilder sb, string quotedTable, FragUpdateBatch frag)
+        {
+            for (var k = 0; k < frag.keyColumns.Count; k++)
+            {
+                if (k > 0) sb.Append(" AND ");
+                var aliasIdx = frag.setColumns.Count + k;
+                var keyAlias = normalizeName(frag.sourceAliases[aliasIdx]);
+                sb.Append(quotedTable);
+                sb.Append('.');
+                sb.Append(keyAlias);
+                sb.Append(" = batch_data.");
+                sb.Append(keyAlias);
+            }
+        }
+
         /// <summary>SQLite 无 TRUNCATE；用 DELETE FROM 清空表。</summary>
         public override string buildTruncateTable(DDLFragSQL frag)
         {

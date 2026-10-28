@@ -9,12 +9,12 @@ namespace mooSQL.data
     public abstract partial class Dialect
     {
         /// <summary>
-        /// 是否支持多行值源 UPDATE（UPDATE + UNION）。默认 false；MySQL / SQL Server 等 override。
+        /// 是否支持多行值源批量 UPDATE（方言可为 UNION JOIN / FROM / CTE+VALUES 等）。默认 false。
         /// </summary>
-        public virtual bool SupportsUpdateUnion() => false;
+        public virtual bool SupportsUpdateBatch() => false;
 
         /// <summary>
-        /// 从已同构的多行 <see cref="SetFrag"/> 构建 UpdateUnion 命令。
+        /// 从已同构的多行 <see cref="SetFrag"/> 构建 UpdateBatch 命令。
         /// 调用方须保证 <paramref name="rowIds"/> 各行 SET 列签名一致。
         /// 不支持时返回 null。
         /// </summary>
@@ -24,7 +24,7 @@ namespace mooSQL.data
         /// <param name="keyColumns">ON 键列有序列表。</param>
         /// <param name="basePs">基底参数（通常为空）；每段 Copy 后追加本批。可为 null。</param>
         /// <param name="batchSize">同签名桶内单段最大行数；≤0 时仅按 <see cref="paramMaxSize"/> 切。</param>
-        public virtual SQLCmd BuildUpdateUnionCmd(
+        public virtual SQLCmd BuildUpdateBatchCmd(
             SqlGoup group,
             IReadOnlyList<int> rowIds,
             IReadOnlyList<string> setColumns,
@@ -32,7 +32,7 @@ namespace mooSQL.data
             Paras basePs,
             int batchSize)
         {
-            if (!SupportsUpdateUnion())
+            if (!SupportsUpdateBatch())
                 return null;
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -45,7 +45,7 @@ namespace mooSQL.data
             if (expression == null)
                 return null;
 
-            var aliases = BuildUpdateUnionSourceAliases(setColumns, keyColumns);
+            var aliases = BuildUpdateBatchSourceAliases(setColumns, keyColumns);
             if (aliases == null || aliases.Count != setColumns.Count + keyColumns.Count)
                 return null;
 
@@ -72,21 +72,21 @@ namespace mooSQL.data
                 {
                     var rowIndex = rowIds[i + r];
                     var withAlias = r == 0;
-                    var list = ParameterizeUpdateUnionRow(
+                    var list = ParameterizeUpdateBatchRow(
                         group, rowIndex, setColumns, keyColumns, aliases, para, prefix, withAlias);
                     if (string.IsNullOrEmpty(list))
                         return null;
                     selectLists.Add(list);
                 }
 
-                var frag = new FragUpdateUnion();
+                var frag = new FragUpdateBatch();
                 frag.tableName = group.tableName;
                 frag.setColumns = ToList(setColumns);
                 frag.keyColumns = ToList(keyColumns);
                 frag.sourceAliases = aliases;
                 frag.selectLists = selectLists;
 
-                var sql = expression.buildUpdateUnion(frag);
+                var sql = expression.buildUpdateBatch(frag);
                 if (string.IsNullOrWhiteSpace(sql))
                     return null;
 
@@ -115,7 +115,7 @@ namespace mooSQL.data
         /// <summary>
         /// 源侧别名：默认与列名相同（SQL Server 友好）。MySQL 族 override 为 v0..。
         /// </summary>
-        protected virtual List<string> BuildUpdateUnionSourceAliases(
+        protected virtual List<string> BuildUpdateBatchSourceAliases(
             IReadOnlyList<string> setColumns,
             IReadOnlyList<string> keyColumns)
         {
@@ -130,7 +130,7 @@ namespace mooSQL.data
         /// <summary>
         /// 参数化一行：列顺序 = setColumns + keyColumns；首行带 AS 别名。
         /// </summary>
-        protected virtual string ParameterizeUpdateUnionRow(
+        protected virtual string ParameterizeUpdateBatchRow(
             SqlGoup group,
             int rowIndex,
             IReadOnlyList<string> setColumns,
@@ -148,7 +148,7 @@ namespace mooSQL.data
                 var field = FindSetFrag(group, fieldName);
                 if (field == null || !field.values.TryGetValue(rowIndex, out var pair))
                     throw new InvalidOperationException(
-                        "UpdateUnion: 行 " + rowIndex + " 缺少列 " + fieldName);
+                        "UpdateBatch: 行 " + rowIndex + " 缺少列 " + fieldName);
 
                 if (col > 0) sb.Append(", ");
 

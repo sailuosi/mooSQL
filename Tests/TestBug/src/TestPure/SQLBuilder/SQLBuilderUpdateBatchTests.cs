@@ -7,12 +7,12 @@ using Xunit;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// U2-P0：toUpdateUnion 按 SetFrag 分桶；MySQL / SQL Server 出 UNION 形态。
+    /// U2：toUpdateBatch 按 SetFrag 分桶；MySQL/MSSQL/PG 出 UNION，SQLite 出 CTE+VALUES。
     /// </summary>
-    public class SQLBuilderUpdateUnionTests
+    public class SQLBuilderUpdateBatchTests
     {
         [Fact]
-        public void ToUpdateUnion_Mssql_SameSignature_OneUnionCmd()
+        public void ToUpdateBatch_Mssql_SameSignature_OneUnionCmd()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             kit.setTable("BenchmarkUser");
@@ -24,7 +24,7 @@ namespace mooSQL.Pure.Tests
                     .newRow();
             }
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.Should().NotBeNull();
             cmd.Empty.Should().BeFalse();
             cmd.SegmentCount.Should().Be(1);
@@ -36,7 +36,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToUpdateUnion_Mysql_SameSignature_JoinUnionShape()
+        public void ToUpdateBatch_Mysql_SameSignature_JoinUnionShape()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MySQL);
             kit.setTable("BenchmarkUser");
@@ -48,7 +48,7 @@ namespace mooSQL.Pure.Tests
                     .newRow();
             }
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.Empty.Should().BeFalse();
             cmd.SegmentCount.Should().Be(1);
             cmd.sql.Should().Contain("INNER JOIN");
@@ -59,7 +59,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToUpdateUnion_HeterogeneousSets_TwoSegments()
+        public void ToUpdateBatch_HeterogeneousSets_TwoSegments()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             kit.setTable("BenchmarkUser");
@@ -69,7 +69,7 @@ namespace mooSQL.Pure.Tests
             // 少一列 → 另一签名
             kit.set("Name", "partial").set("Id", 3).newRow();
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.Empty.Should().BeFalse();
             cmd.HasSegments.Should().BeTrue();
             cmd.SegmentCount.Should().Be(2);
@@ -86,7 +86,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToUpdateUnion_SingleRow_NoUnionShell()
+        public void ToUpdateBatch_SingleRow_NoUnionShell()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             kit.setTable("BenchmarkUser")
@@ -94,7 +94,7 @@ namespace mooSQL.Pure.Tests
                 .set("Age", 9)
                 .set("Id", 42);
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.Empty.Should().BeFalse();
             cmd.SegmentCount.Should().Be(1);
             cmd.sql.Should().Contain("UPDATE");
@@ -104,7 +104,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToUpdateUnion_Sqlite_MultiRow_Unsupported_Empty()
+        public void ToUpdateBatch_Sqlite_MultiRow_CteValuesShape()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.SQLite);
             kit.setTable("test_users");
@@ -113,25 +113,41 @@ namespace mooSQL.Pure.Tests
                 kit.set("name", "n" + i).set("id", i + 1).newRow();
             }
 
-            var cmd = kit.toUpdateUnion("id");
-            cmd.Empty.Should().BeTrue();
+            var cmd = kit.toUpdateBatch("id");
+            cmd.Empty.Should().BeFalse();
+            cmd.SegmentCount.Should().Be(1);
+            cmd.sql.Should().Contain("WITH batch_data");
+            cmd.sql.Should().Contain("VALUES");
+            cmd.sql.Should().Contain("EXISTS");
+            cmd.sql.Should().NotContain("UNION");
+            cmd.para.Count.Should().Be(4); // 2 rows * (1 set + 1 key)
         }
 
         [Fact]
-        public void DoUpdateUnion_Sqlite_MultiRow_ReturnsMinusOne()
+        public void DoUpdateBatch_Sqlite_MultiRow_Executes()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilderWithTestUserSchema();
-            kit.setTable("test_users");
-            for (var i = 0; i < 2; i++)
-            {
-                kit.set("name", "n" + i).set("id", i + 1).newRow();
-            }
+            kit.clear().setTable("test_users").where("id", 9101).doDelete();
+            kit.clear().setTable("test_users").where("id", 9102).doDelete();
+            kit.clear().setTable("test_users")
+                .set("name", "a").set("email", "a@x").set("id", 9101).doInsert();
+            kit.clear().setTable("test_users")
+                .set("name", "b").set("email", "b@x").set("id", 9102).doInsert();
 
-            kit.doUpdateUnion("id").Should().Be(-1);
+            kit.clear().setTable("test_users");
+            kit.set("name", "a2").set("id", 9101).newRow();
+            kit.set("name", "b2").set("id", 9102).newRow();
+
+            kit.doUpdateBatch("id").Should().Be(2);
+
+            kit.clear().select("name").from("test_users").where("id", 9101)
+                .queryScalar<string>().Should().Be("a2");
+            kit.clear().select("name").from("test_users").where("id", 9102)
+                .queryScalar<string>().Should().Be("b2");
         }
 
         [Fact]
-        public void DoUpdateUnion_Sqlite_SingleRow_Executes()
+        public void DoUpdateBatch_Sqlite_SingleRow_Executes()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilderWithTestUserSchema();
             const int id = 9001;
@@ -148,16 +164,16 @@ namespace mooSQL.Pure.Tests
                 .set("name", "uu_one_upd")
                 .set("id", id);
 
-            var n = kit.doUpdateUnion("id");
+            var n = kit.doUpdateBatch("id");
             n.Should().Be(1);
         }
 
         [Fact]
-        public void ToUpdateUnion_BatchSize_SlicesSegments()
+        public void ToUpdateBatch_BatchSize_SlicesSegments()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             if (kit.Inner is StepBuilder sb)
-                sb.UpdateUnionBatchSize = 2;
+                sb.UpdateBatchChunkSize = 2;
 
             kit.setTable("BenchmarkUser");
             for (var i = 0; i < 5; i++)
@@ -165,7 +181,7 @@ namespace mooSQL.Pure.Tests
                 kit.set("Name", "n" + i).set("Id", i + 1).newRow();
             }
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.HasSegments.Should().BeTrue();
             cmd.SegmentCount.Should().Be(3); // 2+2+1
             foreach (var seg in cmd.Segments)
@@ -173,13 +189,13 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ToUpdateUnion_ParamMaxSize_AlsoSlicesSegments()
+        public void ToUpdateBatch_ParamMaxSize_AlsoSlicesSegments()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             // 每行 2 参数（Name+Id）；paramMaxSize=5 → 每段最多 2 行
             kit.Dialect.paramMaxSize = 5;
             if (kit.Inner is StepBuilder sb)
-                sb.UpdateUnionBatchSize = 100;
+                sb.UpdateBatchChunkSize = 100;
 
             kit.setTable("BenchmarkUser");
             for (var i = 0; i < 5; i++)
@@ -187,13 +203,13 @@ namespace mooSQL.Pure.Tests
                 kit.set("Name", "n" + i).set("Id", i + 1).newRow();
             }
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.HasSegments.Should().BeTrue();
             cmd.SegmentCount.Should().Be(3);
         }
 
         [Fact]
-        public void ToUpdateUnion_Postgres_FromUnionWhereShape()
+        public void ToUpdateBatch_Postgres_FromUnionWhereShape()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.PostgreSQL);
             kit.setTable("BenchmarkUser");
@@ -202,7 +218,7 @@ namespace mooSQL.Pure.Tests
                 kit.set("Name", "n" + i).set("Age", i).set("Id", 10 + i).newRow();
             }
 
-            var cmd = kit.toUpdateUnion("Id");
+            var cmd = kit.toUpdateBatch("Id");
             cmd.Empty.Should().BeFalse();
             cmd.SegmentCount.Should().Be(1);
             cmd.sql.Should().Contain("UPDATE");

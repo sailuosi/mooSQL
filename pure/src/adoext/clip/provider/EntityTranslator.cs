@@ -367,10 +367,10 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 为 UpdateUnion 多行填值：与 <see cref="prepareUpdate"/> 相同的 SET 列规则，
+        /// 为 UpdateBatch 多行填值：与 <see cref="prepareUpdate"/> 相同的 SET 列规则，
         /// 但主键写入 <c>set</c>（作 ON 键），不写 WHERE。配合 <c>newRow</c> 使用。
         /// </summary>
-        public StatusResult prepareUpdateUnion(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null, Func<string> loadName = null)
+        public StatusResult prepareUpdateBatch(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null, Func<string> loadName = null)
         {
             if (entity == null)
             {

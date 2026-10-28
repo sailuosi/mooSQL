@@ -177,9 +177,9 @@ namespace mooSQL.data.builder
     }
 
     /// <summary>
-    /// 多行值源 UPDATE（JOIN/FROM + UNION ALL）碎片。
+    /// 多行值源批量 UPDATE 碎片（方言渲染为 JOIN/FROM+UNION 或 CTE+VALUES 等）。
     /// </summary>
-    public class FragUpdateUnion
+    public class FragUpdateBatch
     {
         /// <summary>目标表名（可含 schema）。</summary>
         public string tableName;

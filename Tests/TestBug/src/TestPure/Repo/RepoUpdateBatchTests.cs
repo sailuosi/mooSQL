@@ -8,14 +8,14 @@ using Xunit;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// U2-P0b：UpdateRange 阈值分流、UpdateUnion 填行 / ignoreUpdate 分桶、不支持方言降级。
+    /// U2：UpdateRange 阈值分流、UpdateBatch 填行 / ignoreUpdate 分桶、SQLite CTE 路径。
     /// </summary>
     [Collection("SQLiteIntegration")]
-    public class RepoUpdateUnionTests : IClassFixture<SQLiteTestFixture>
+    public class RepoUpdateBatchTests : IClassFixture<SQLiteTestFixture>
     {
         readonly SQLiteTestFixture _fx;
 
-        public RepoUpdateUnionTests(SQLiteTestFixture fixture)
+        public RepoUpdateBatchTests(SQLiteTestFixture fixture)
         {
             _fx = fixture;
             if (!_fx.TableExists(SQLiteTestFixture.ProductTable))
@@ -24,13 +24,13 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void UpdateRange_BelowUnionThreshold_StillU1_OnSqlite()
+        public void UpdateRange_BelowBatchThreshold_StillU1_OnSqlite()
         {
             var repo = _fx.Db.useRepo<SQLiteTestProduct>();
             repo.BatchOptions.InsertRowThreshold = 5;
             repo.BatchOptions.InsertBulkThreshold = 100000;
             repo.BatchOptions.UpdateRowThreshold = 5;
-            repo.BatchOptions.UpdateUnionThreshold = 50;
+            repo.BatchOptions.UpdateBatchThreshold = 50;
 
             var list = MakeProducts(20, 6000);
             repo.InsertRange(list);
@@ -43,52 +43,55 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void UpdateRange_AboveUnionThreshold_Sqlite_DegradesToU1()
+        public void UpdateRange_AboveBatchThreshold_Sqlite_UsesCteBatch()
         {
             var repo = _fx.Db.useRepo<SQLiteTestProduct>();
             repo.BatchOptions.InsertRowThreshold = 5;
             repo.BatchOptions.InsertBulkThreshold = 100000;
             repo.BatchOptions.UpdateRowThreshold = 5;
-            repo.BatchOptions.UpdateUnionThreshold = 10;
+            repo.BatchOptions.UpdateBatchThreshold = 10;
 
             var list = MakeProducts(15, 6100);
             repo.InsertRange(list);
             foreach (var p in list)
-                p.Name = "deg-" + p.Id;
+                p.Name = "cte-" + p.Id;
 
-            // SQLite 不支持 UpdateUnion → 应降级 U1 仍写成功
             var n = repo.UpdateRange(list);
             n.Should().BeGreaterThan(0);
-            repo.GetById(list[0].Id)!.Name.Should().Be("deg-" + list[0].Id);
-            repo.GetById(list[14].Id)!.Name.Should().Be("deg-" + list[14].Id);
+            repo.GetById(list[0].Id)!.Name.Should().Be("cte-" + list[0].Id);
+            repo.GetById(list[14].Id)!.Name.Should().Be("cte-" + list[14].Id);
         }
 
         [Fact]
-        public void UpdateUnion_Writer_Unsupported_ReturnsMinusOne()
+        public void UpdateBatch_Writer_Sqlite_ReturnsAffectedRows()
         {
             using var kit = TestDatabaseHelper.UseSQL(_fx.Db);
             var translator = _fx.Db.client.Translator;
             var en = _fx.Db.client.EntityCash.getEntityInfo(typeof(SQLiteTestProduct));
             var list = MakeProducts(3, 6200);
+            // 先落地行再批更新
+            _fx.Db.useRepo<SQLiteTestProduct>().InsertRange(list);
+            foreach (var p in list)
+                p.Name = "w-" + p.Id;
 
-            var n = EntityBatchWriter.UpdateUnion(
+            var n = EntityBatchWriter.UpdateBatch(
                 kit, translator, en, list, null, null, null,
-                new BatchWriteOptions { UpdateUnionBatchSize = 200 });
-            n.Should().Be(-1);
+                new BatchWriteOptions { UpdateBatchChunkSize = 200 });
+            n.Should().Be(3);
         }
 
         [Fact]
-        public void UpdateUnion_Mssql_SameSignature_BuildsUnionSql()
+        public void UpdateBatch_Mssql_SameSignature_BuildsUnionSql()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             var translator = new EntityTranslator();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(SQLiteTestProduct));
             var list = MakeProducts(3, 6300);
 
-            ApplyUpdateUnionFill(kit, translator, en, list, null);
+            ApplyUpdateBatchFill(kit, translator, en, list, null);
 
             var keys = EntityBatchWriter.GetPrimaryKeyColumnNames(en);
-            var cmd = kit.toUpdateUnion(keys);
+            var cmd = kit.toUpdateBatch(keys);
             cmd.Empty.Should().BeFalse();
             cmd.sql.Should().Contain("UNION ALL");
             cmd.sql.Should().Contain("INNER JOIN");
@@ -96,7 +99,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void UpdateUnion_Mssql_IgnoreUpdateHetero_TwoSegments()
+        public void UpdateBatch_Mssql_IgnoreUpdateHetero_TwoSegments()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             // 独立 Translator，避免污染客户端共享实例上的 ignoreUpdate
@@ -112,7 +115,7 @@ namespace mooSQL.Pure.Tests
             {
                 if (!first) kit.newRow();
                 first = false;
-                translator.prepareUpdateUnion(kit, p, typeof(SQLiteTestProduct), en).Status.Should().BeTrue();
+                translator.prepareUpdateBatch(kit, p, typeof(SQLiteTestProduct), en).Status.Should().BeTrue();
             }
 
             translator.ignoreUpdate(
@@ -122,22 +125,22 @@ namespace mooSQL.Pure.Tests
             foreach (var p in partial)
             {
                 kit.newRow();
-                translator.prepareUpdateUnion(kit, p, typeof(SQLiteTestProduct), en).Status.Should().BeTrue();
+                translator.prepareUpdateBatch(kit, p, typeof(SQLiteTestProduct), en).Status.Should().BeTrue();
             }
 
             var keys = EntityBatchWriter.GetPrimaryKeyColumnNames(en);
-            var cmd = kit.toUpdateUnion(keys);
+            var cmd = kit.toUpdateBatch(keys);
             cmd.Empty.Should().BeFalse();
             cmd.HasSegments.Should().BeTrue();
             cmd.SegmentCount.Should().Be(2);
         }
 
         [Fact]
-        public void UpdateRange_ModeRow_SkipsUnionEvenIfAboveThreshold()
+        public void UpdateRange_ModeRow_SkipsBatchEvenIfAboveThreshold()
         {
             var repo = _fx.Db.useRepo<SQLiteTestProduct>();
             repo.BatchOptions.Mode = BatchWriteMode.Row;
-            repo.BatchOptions.UpdateUnionThreshold = 2;
+            repo.BatchOptions.UpdateBatchThreshold = 2;
             repo.BatchOptions.UpdateRowThreshold = 100; // Mode=Row 优先
 
             var list = MakeProducts(5, 6500);
@@ -155,7 +158,7 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void UnitOfWork_UpdateRange_AboveThreshold_Sqlite_DegradesAndCommits()
+        public void UnitOfWork_UpdateRange_AboveThreshold_Sqlite_BatchAndCommits()
         {
             var repo = _fx.Db.useRepo<SQLiteTestProduct>();
             repo.BatchOptions.InsertRowThreshold = 5;
@@ -177,16 +180,16 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void TryBuildUpdateUnionCmd_Mssql_ReturnsNonEmpty()
+        public void TryBuildUpdateBatchCmd_Mssql_ReturnsNonEmpty()
         {
             using var kit = TestDatabaseHelper.CreateSQLBuilder(DataBaseType.MSSQL);
             var translator = new EntityTranslator();
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(SQLiteTestProduct));
             var list = MakeProducts(3, 6700);
 
-            var cmd = EntityBatchWriter.TryBuildUpdateUnionCmd(
+            var cmd = EntityBatchWriter.TryBuildUpdateBatchCmd(
                 kit, translator, en, list, null, null,
-                new BatchWriteOptions { UpdateUnionBatchSize = 200 },
+                new BatchWriteOptions { UpdateBatchChunkSize = 200 },
                 out var filled);
             filled.Should().HaveCount(3);
             cmd.Should().NotBeNull();
@@ -194,7 +197,7 @@ namespace mooSQL.Pure.Tests
             cmd.sql.Should().Contain("UNION ALL");
         }
 
-        static void ApplyUpdateUnionFill(
+        static void ApplyUpdateBatchFill(
             SQLBuilder kit,
             EntityTranslator translator,
             mooSQL.data.EntityInfo en,
@@ -208,7 +211,7 @@ namespace mooSQL.Pure.Tests
                 before?.Invoke(entity);
                 if (!first) kit.newRow();
                 first = false;
-                var res = translator.prepareUpdateUnion(kit, entity, typeof(SQLiteTestProduct), en);
+                var res = translator.prepareUpdateBatch(kit, entity, typeof(SQLiteTestProduct), en);
                 res.Status.Should().BeTrue(res.Message);
             }
         }

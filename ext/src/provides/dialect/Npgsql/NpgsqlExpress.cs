@@ -465,7 +465,7 @@ namespace mooSQL.data
         /// <summary>
         /// PostgreSQL：UPDATE T SET … FROM (SELECT … UNION ALL …) S WHERE T.key = S.key
         /// </summary>
-        public override string buildUpdateUnion(FragUpdateUnion frag)
+        public override string buildUpdateBatch(FragUpdateBatch frag)
         {
             if (frag == null
                 || string.IsNullOrWhiteSpace(frag.tableName)

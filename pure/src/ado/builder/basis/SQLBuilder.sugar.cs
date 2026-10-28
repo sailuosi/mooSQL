@@ -1276,30 +1276,30 @@ namespace mooSQL.data
 
         #endregion
 
-        #region UpdateUnion 重载
+        #region UpdateBatch 重载
 
         /// <summary>
-        /// 构建 UpdateUnion（params 键列）。
+        /// 构建 UpdateBatch（params 键列）。
         /// </summary>
-        public virtual SQLCmd toUpdateUnion(params string[] keyColumns)
+        public virtual SQLCmd toUpdateBatch(params string[] keyColumns)
         {
-            return toUpdateUnion((IReadOnlyList<string>)keyColumns);
+            return toUpdateBatch((IReadOnlyList<string>)keyColumns);
         }
 
         /// <summary>
-        /// 执行 UpdateUnion（params 键列）。
+        /// 执行 UpdateBatch（params 键列）。
         /// </summary>
-        public virtual int doUpdateUnion(params string[] keyColumns)
+        public virtual int doUpdateBatch(params string[] keyColumns)
         {
-            return doUpdateUnion((IReadOnlyList<string>)keyColumns);
+            return doUpdateBatch((IReadOnlyList<string>)keyColumns);
         }
 
         /// <summary>
-        /// 异步执行 UpdateUnion（params 键列）。
+        /// 异步执行 UpdateBatch（params 键列）。
         /// </summary>
-        public virtual Task<int> doUpdateUnionAsync(params string[] keyColumns)
+        public virtual Task<int> doUpdateBatchAsync(params string[] keyColumns)
         {
-            return doUpdateUnionAsync((IReadOnlyList<string>)keyColumns);
+            return doUpdateBatchAsync((IReadOnlyList<string>)keyColumns);
         }
 
         #endregion

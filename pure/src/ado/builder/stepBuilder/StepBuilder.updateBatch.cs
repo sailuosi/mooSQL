@@ -9,14 +9,14 @@ namespace mooSQL.data
     public partial class StepBuilder
     {
         /// <summary>
-        /// 同签名桶内单条 UpdateUnion 最大行数；与方言 paramMaxSize 共同约束切片。默认 200；≤0 时仅按参数上限切。
+        /// 同签名桶内单条 UpdateBatch 最大行数；与方言 paramMaxSize 共同约束切片。默认 200；≤0 时仅按参数上限切。
         /// </summary>
-        public int UpdateUnionBatchSize { get; set; } = 200;
+        public int UpdateBatchChunkSize { get; set; } = 200;
 
         /// <inheritdoc />
-        public override SQLCmd toUpdateUnion(IReadOnlyList<string> keyColumns)
+        public override SQLCmd toUpdateBatch(IReadOnlyList<string> keyColumns)
         {
-            if (!EnsureWriteTableName(nameof(toUpdateUnion)))
+            if (!EnsureWriteTableName(nameof(toUpdateBatch)))
                 return EmptyWriteCmd(QueryType.Update);
 
             if (keyColumns == null || keyColumns.Count == 0)
@@ -30,7 +30,7 @@ namespace mooSQL.data
             if (buckets.Count == 0)
                 return EmptyWriteCmd(QueryType.Update);
 
-            var supportsUnion = Dialect != null && Dialect.SupportsUpdateUnion();
+            var supportsUnion = Dialect != null && Dialect.SupportsUpdateBatch();
             var segments = new List<SQLSeg>();
 
             for (var b = 0; b < buckets.Count; b++)
@@ -56,8 +56,8 @@ namespace mooSQL.data
                     continue;
                 }
 
-                var unionCmd = Dialect.BuildUpdateUnionCmd(
-                    current, ids, setCols, keyColumns, null, UpdateUnionBatchSize);
+                var unionCmd = Dialect.BuildUpdateBatchCmd(
+                    current, ids, setCols, keyColumns, null, UpdateBatchChunkSize);
                 if (unionCmd == null || unionCmd.Empty)
                     return EmptyWriteCmd(QueryType.Update);
 
@@ -85,9 +85,9 @@ namespace mooSQL.data
         }
 
         /// <inheritdoc />
-        public override int doUpdateUnion(IReadOnlyList<string> keyColumns)
+        public override int doUpdateBatch(IReadOnlyList<string> keyColumns)
         {
-            var sql = toUpdateUnion(keyColumns);
+            var sql = toUpdateBatch(keyColumns);
             if (sql == null || sql.Empty)
                 return -1;
 
@@ -98,9 +98,9 @@ namespace mooSQL.data
         }
 
         /// <inheritdoc />
-        public override Task<int> doUpdateUnionAsync(IReadOnlyList<string> keyColumns)
+        public override Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns)
         {
-            var sql = toUpdateUnion(keyColumns);
+            var sql = toUpdateBatch(keyColumns);
             if (sql == null || sql.Empty)
                 return Task.FromResult(-1);
 
@@ -167,7 +167,7 @@ namespace mooSQL.data
 
             if (field == null || !field.values.TryGetValue(rowIndex, out var pair))
                 throw new InvalidOperationException(
-                    "toUpdateUnion: 行 " + rowIndex + " 缺少列 " + fieldName);
+                    "toUpdateBatch: 行 " + rowIndex + " 缺少列 " + fieldName);
 
             if (pair.paramed)
             {
