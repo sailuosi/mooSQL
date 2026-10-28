@@ -33,7 +33,18 @@ namespace mooSQL.data
         /// <summary>低于此行数走逐行更新。默认 32。</summary>
         public int UpdateRowThreshold { get; set; } = 32;
 
-        /// <summary>更新多语句每片条数。默认 100。</summary>
+        /// <summary>更新多语句每片条数（U1）。默认 100。</summary>
         public int UpdateBatchSize { get; set; } = 100;
+
+        /// <summary>
+        /// 达到此行数且方言支持时尝试 UpdateUnion（U2）。默认 50。
+        /// 介于 <see cref="UpdateRowThreshold"/> 与本阈值之间仍走 U1。
+        /// </summary>
+        public int UpdateUnionThreshold { get; set; } = 50;
+
+        /// <summary>
+        /// 同签名桶内单条 UpdateUnion 最大行数（交给 <c>StepBuilder.UpdateUnionBatchSize</c>）。默认 200。
+        /// </summary>
+        public int UpdateUnionBatchSize { get; set; } = 200;
     }
 }

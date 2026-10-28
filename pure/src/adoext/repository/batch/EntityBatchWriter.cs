@@ -366,12 +366,136 @@ namespace mooSQL.data
             return total;
         }
 
+        /// <summary>
+        /// 仅构建 UpdateUnion 命令（不执行）。供 Repo 执行与 UoW 入队共用。
+        /// 不支持 / 无有效行 / 构建失败返回 null。
+        /// </summary>
+        public static SQLCmd TryBuildUpdateUnionCmd<T>(
+            SQLBuilder kit,
+            EntityTranslator translator,
+            EntityInfo entityInfo,
+            IList<T> entities,
+            Func<string> tableNameLoader,
+            Action<T> beforeSave,
+            BatchWriteOptions options,
+            out List<T> filled)
+        {
+            filled = new List<T>();
+            if (entities == null || entities.Count == 0)
+                return null;
+            if (kit == null) throw new ArgumentNullException(nameof(kit));
+            if (translator == null) throw new ArgumentNullException(nameof(translator));
+            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateUnion())
+                return null;
+
+            var en = entityInfo;
+            if (en == null)
+                en = kit.DBLive?.client?.EntityCash?.getEntityInfo(typeof(T));
+            if (en == null)
+                return null;
+
+            var keyColumns = GetPrimaryKeyColumnNames(en);
+            if (keyColumns.Count == 0)
+                return null;
+
+            ApplyUpdateUnionBatchSize(kit, options);
+
+            kit.clear();
+            var first = true;
+            foreach (var entity in entities)
+            {
+                if (entity == null)
+                    continue;
+                beforeSave?.Invoke(entity);
+                if (!first)
+                    kit.newRow();
+                first = false;
+                var res = translator.prepareUpdateUnion(kit, entity, typeof(T), en, tableNameLoader);
+                if (!res.Status)
+                {
+                    kit.Client?.Loggor?.LogError(res.Message);
+                    throw new InvalidOperationException(res.Message ?? "prepareUpdateUnion failed.");
+                }
+                filled.Add(entity);
+            }
+
+            if (first)
+                return null;
+
+            var cmd = kit.toUpdateUnion(keyColumns);
+            if (cmd == null || cmd.Empty)
+                return null;
+            return cmd;
+        }
+
+        /// <summary>
+        /// UpdateUnion（U2）：钩子后填行并执行。方言不支持或构建失败时返回 -1（调用方降级 U1）。
+        /// </summary>
+        public static int UpdateUnion<T>(
+            SQLBuilder kit,
+            EntityTranslator translator,
+            EntityInfo entityInfo,
+            IList<T> entities,
+            Func<string> tableNameLoader,
+            Action<T> beforeSave,
+            Action<T, int> afterSave,
+            BatchWriteOptions options)
+        {
+            if (entities == null || entities.Count == 0)
+                return 0;
+            if (kit == null) throw new ArgumentNullException(nameof(kit));
+            if (kit.Dialect == null || !kit.Dialect.SupportsUpdateUnion())
+                return -1;
+
+            var cmd = TryBuildUpdateUnionCmd(
+                kit, translator, entityInfo, entities, tableNameLoader, beforeSave, options, out var filled);
+            if (filled.Count == 0)
+                return 0;
+            if (cmd == null)
+                return -1;
+
+            var cc = kit.exeNonQuery(cmd);
+            kit.clear();
+
+            if (afterSave != null)
+            {
+                foreach (var entity in filled)
+                    afterSave(entity, cc > 0 ? 1 : 0);
+            }
+            return cc;
+        }
+
+        /// <summary>实体主键物理列名（有序）。</summary>
+        public static List<string> GetPrimaryKeyColumnNames(EntityInfo en)
+        {
+            var list = new List<string>();
+            if (en == null) return list;
+            var pks = en.GetPK();
+            if (pks == null) return list;
+            for (var i = 0; i < pks.Count; i++)
+            {
+                var col = pks[i];
+                if (col == null || string.IsNullOrEmpty(col.DbColumnName))
+                    continue;
+                list.Add(col.DbColumnName);
+            }
+            return list;
+        }
+
         static void ApplyInsertBatchSize(SQLBuilder kit, BatchWriteOptions options)
         {
             if (options == null || options.InsertBatchSize <= 0)
                 return;
             if (kit.Inner is StepBuilder sb)
                 sb.InsertValuesBatchSize = options.InsertBatchSize;
+        }
+
+        static void ApplyUpdateUnionBatchSize(SQLBuilder kit, BatchWriteOptions options)
+        {
+            if (options == null || options.UpdateUnionBatchSize <= 0)
+                return;
+            if (kit.Inner is StepBuilder sb)
+                sb.UpdateUnionBatchSize = options.UpdateUnionBatchSize;
         }
     }
 }

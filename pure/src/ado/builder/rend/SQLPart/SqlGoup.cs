@@ -15,7 +15,7 @@ namespace mooSQL.data
     /// <summary>
     /// 一个SQL分组
     /// </summary>
-    public class SqlGoup {
+    public partial class SqlGoup {
         
         /// <summary>
         /// 用于标识的名称

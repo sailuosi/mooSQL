@@ -462,6 +462,69 @@ namespace mooSQL.data
             return this.buildMergeIntoGeneral(frag);
         }
 
+        /// <summary>
+        /// PostgreSQL：UPDATE T SET … FROM (SELECT … UNION ALL …) S WHERE T.key = S.key
+        /// </summary>
+        public override string buildUpdateUnion(FragUpdateUnion frag)
+        {
+            if (frag == null
+                || string.IsNullOrWhiteSpace(frag.tableName)
+                || frag.setColumns == null || frag.setColumns.Count == 0
+                || frag.keyColumns == null || frag.keyColumns.Count == 0
+                || frag.selectLists == null || frag.selectLists.Count == 0
+                || frag.sourceAliases == null
+                || frag.sourceAliases.Count != frag.setColumns.Count + frag.keyColumns.Count)
+            {
+                return null;
+            }
+
+            var t = string.IsNullOrWhiteSpace(frag.targetAlias) ? "T" : frag.targetAlias;
+            var s = string.IsNullOrWhiteSpace(frag.sourceAlias) ? "S" : frag.sourceAlias;
+            var sb = new StringBuilder();
+            sb.Append("UPDATE ");
+            sb.Append(normalizeName(frag.tableName));
+            sb.Append(" AS ");
+            sb.Append(t);
+            sb.Append(" SET ");
+            for (var i = 0; i < frag.setColumns.Count; i++)
+            {
+                if (i > 0)
+                    sb.Append(", ");
+                sb.Append(t);
+                sb.Append('.');
+                sb.Append(normalizeName(frag.setColumns[i]));
+                sb.Append(" = ");
+                sb.Append(s);
+                sb.Append('.');
+                sb.Append(normalizeName(frag.sourceAliases[i]));
+            }
+            sb.Append(" FROM (");
+            for (var i = 0; i < frag.selectLists.Count; i++)
+            {
+                if (i > 0)
+                    sb.Append(" UNION ALL ");
+                sb.Append("SELECT ");
+                sb.Append(frag.selectLists[i]);
+            }
+            sb.Append(") AS ");
+            sb.Append(s);
+            sb.Append(" WHERE ");
+            for (var k = 0; k < frag.keyColumns.Count; k++)
+            {
+                if (k > 0)
+                    sb.Append(" AND ");
+                var aliasIdx = frag.setColumns.Count + k;
+                sb.Append(t);
+                sb.Append('.');
+                sb.Append(normalizeName(frag.keyColumns[k]));
+                sb.Append(" = ");
+                sb.Append(s);
+                sb.Append('.');
+                sb.Append(normalizeName(frag.sourceAliases[aliasIdx]));
+            }
+            return sb.ToString();
+        }
+
         #endregion
 
         #region DDL语句

@@ -1,5 +1,6 @@
 using MySqlConnector;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
@@ -68,6 +69,21 @@ namespace mooSQL.data
  
 
         public override bool SupportsMerge() => false;
+
+        /// <inheritdoc />
+        public override bool SupportsUpdateUnion() => true;
+
+        /// <summary>MySQL 值源用 v0.. 别名，避免与保留字/大小写折叠冲突。</summary>
+        protected override List<string> BuildUpdateUnionSourceAliases(
+            IReadOnlyList<string> setColumns,
+            IReadOnlyList<string> keyColumns)
+        {
+            var n = setColumns.Count + keyColumns.Count;
+            var list = new List<string>(n);
+            for (var i = 0; i < n; i++)
+                list.Add("v" + i);
+            return list;
+        }
 /// <summary>
 /// Creates the LINQ member translator for this dialect.
 /// </summary>

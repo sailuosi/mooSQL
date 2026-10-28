@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
@@ -1271,6 +1272,34 @@ namespace mooSQL.data
         public virtual SQLBuilder andRight()
         {
             return rise();
+        }
+
+        #endregion
+
+        #region UpdateUnion 重载
+
+        /// <summary>
+        /// 构建 UpdateUnion（params 键列）。
+        /// </summary>
+        public virtual SQLCmd toUpdateUnion(params string[] keyColumns)
+        {
+            return toUpdateUnion((IReadOnlyList<string>)keyColumns);
+        }
+
+        /// <summary>
+        /// 执行 UpdateUnion（params 键列）。
+        /// </summary>
+        public virtual int doUpdateUnion(params string[] keyColumns)
+        {
+            return doUpdateUnion((IReadOnlyList<string>)keyColumns);
+        }
+
+        /// <summary>
+        /// 异步执行 UpdateUnion（params 键列）。
+        /// </summary>
+        public virtual Task<int> doUpdateUnionAsync(params string[] keyColumns)
+        {
+            return doUpdateUnionAsync((IReadOnlyList<string>)keyColumns);
         }
 
         #endregion

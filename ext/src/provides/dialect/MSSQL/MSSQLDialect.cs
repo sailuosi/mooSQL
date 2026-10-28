@@ -124,6 +124,9 @@ namespace mooSQL.data
 
         /// <inheritdoc/>
         public override bool SupportsMerge() => true;
+
+        /// <inheritdoc />
+        public override bool SupportsUpdateUnion() => true;
         /// <inheritdoc/>
         protected override IMemberTranslator CreateMemberTranslator()
             => new SqlServerMemberTranslator();

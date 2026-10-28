@@ -367,6 +367,78 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 为 UpdateUnion 多行填值：与 <see cref="prepareUpdate"/> 相同的 SET 列规则，
+        /// 但主键写入 <c>set</c>（作 ON 键），不写 WHERE。配合 <c>newRow</c> 使用。
+        /// </summary>
+        public StatusResult prepareUpdateUnion(SQLBuilder builder, object entity, Type EntityType, EntityInfo en = null, Func<string> loadName = null)
+        {
+            if (entity == null)
+            {
+                return new StatusResult(false, "实体为空！");
+            }
+            if (en == null)
+            {
+                en = builder.DBLive.client.EntityCash.getEntityInfo(EntityType);
+            }
+            if (en.Updatable == false)
+                return new StatusResult(false, "实体类未标记为可更新！");
+
+            this.fireBeforeUpdate(builder, entity, EntityType, en);
+
+            var str = setSaveTable(builder, entity, en, loadName);
+            if (str == false)
+            {
+                return new StatusResult(false, "实体类无法确定目标写入表！");
+            }
+
+            var gotKey = false;
+            var gotSet = false;
+            foreach (var col in en.Columns)
+            {
+                if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
+                if (!CanPersistColumn(col, forUpdate: true)) continue;
+                if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
+                if (CheckEdition(builder.DBLive, col) == false)
+                {
+                    continue;
+                }
+                var val = builder.Dialect.expression.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                if (col.IsPrimarykey)
+                {
+                    if (val == null)
+                    {
+                        return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
+                    }
+                    builder.set(col.DbColumnName, val);
+                    gotKey = true;
+                    continue;
+                }
+                if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
+                {
+                    continue;
+                }
+                if (this.includeUpdateFields.Count > 0 && this.includeUpdateFields.Contains(col.PropertyName) == false)
+                {
+                    continue;
+                }
+
+                setUpdateFieldValue(builder, col, val, en);
+                gotSet = true;
+            }
+            this.fireReadyUpdate(builder, entity, EntityType, en);
+            if (!gotKey)
+            {
+                return new StatusResult(false, "无法更新！未找到主键！");
+            }
+            if (!gotSet)
+            {
+                return new StatusResult(false, "无有效更新字段！");
+            }
+
+            return new StatusResult(true, "");
+        }
+
+        /// <summary>
         /// 按成员字典准备 UPDATE（脏字段 / 累加）。键以 '$' 前缀表示 col = col + @delta。
         /// 主键始终从实体读取写入 WHERE；includeUpdate 临时覆盖后恢复。
         /// </summary>

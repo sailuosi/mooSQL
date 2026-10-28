@@ -177,6 +177,38 @@ namespace mooSQL.data.builder
     }
 
     /// <summary>
+    /// 多行值源 UPDATE（JOIN/FROM + UNION ALL）碎片。
+    /// </summary>
+    public class FragUpdateUnion
+    {
+        /// <summary>目标表名（可含 schema）。</summary>
+        public string tableName;
+
+        /// <summary>目标表别名，默认 T。</summary>
+        public string targetAlias = "T";
+
+        /// <summary>值源别名，默认 S。</summary>
+        public string sourceAlias = "S";
+
+        /// <summary>SET 列（物理名，有序）。</summary>
+        public List<string> setColumns;
+
+        /// <summary>ON 键列（物理名，有序）。</summary>
+        public List<string> keyColumns;
+
+        /// <summary>
+        /// 源侧列别名，顺序为 setColumns 后接 keyColumns。
+        /// MySQL 常用 v0..；SQL Server 常用真实列名。
+        /// </summary>
+        public List<string> sourceAliases;
+
+        /// <summary>
+        /// 已参数化的 SELECT 列表（不含 SELECT 关键字）：首行含 AS 别名，后续仅占位符。
+        /// </summary>
+        public List<string> selectLists;
+    }
+
+    /// <summary>
     /// 类型 FragMergeInto。
     /// </summary>
     public class FragMergeInto {

@@ -340,7 +340,7 @@ namespace LiteOrm.Benchmark
     /// 批量操作与联表查询评测，数据量由 <see cref="BatchCount"/> 参数控制。
     /// </summary>
     [MemoryDiagnoser]
-    [MediumRunJob]
+    // Job 由 Program.cs 配置（MediumRun + InProcess）
     public class OrmBenchmark : OrmBenchmarkBase
     {
         [Params(10, 100, 1000, 10000)]
@@ -853,7 +853,7 @@ namespace LiteOrm.Benchmark
     /// 不参与 <c>BatchCount</c> 参数化。
     /// </summary>
     [MemoryDiagnoser]
-    [MediumRunJob]
+    // Job 由 Program.cs 配置（MediumRun + InProcess）
     public class OrmSingleBenchmark : OrmBenchmarkBase
     {
         private const int SingleLoopCount = 1000;

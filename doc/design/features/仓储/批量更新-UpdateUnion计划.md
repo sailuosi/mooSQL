@@ -6,7 +6,7 @@
 > 现状：已有单行 `toUpdate`、表连接型 `toUpdateFrom`，**尚未**接入多行值源 UNION 批更；本计划补齐出口并挂仓储。  
 > 关联：[`批量写入性能优化.md`](./批量写入性能优化.md)、[`LiteOrm-vs-MooSql-批量基准记录-2026-10-28.md`](../../../../Tests/TestFast/Orm.Benchmark/LiteOrm-vs-MooSql-批量基准记录-2026-10-28.md)。
 
-**落地进度**：规划中（未实现）。
+**落地进度**：**U2-P0 / P0b / P1 已完成** — Builder 分桶；MySQL / SQL Server / **PostgreSQL** 方言；Writer + Repo 阈值；**UoW UpdateRange** 对齐；桶内 batchSize/paramMaxSize 切片单测。**U2-P1b（基准）未做**。
 
 ---
 
@@ -259,7 +259,7 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 |------|----------|------|
 | MySQL / MariaDB | `UPDATE T JOIN (UNION…) S ON … SET …` | **P0** |
 | SQL Server | `UPDATE T SET … FROM T JOIN (UNION…) S` | **P0** |
-| PostgreSQL | `UPDATE … FROM (UNION…) S WHERE …` | P1 |
+| PostgreSQL | `UPDATE … FROM (UNION…) S WHERE …` | ✅ P1 |
 | SQLite | 降级 U1 | 降级 |
 | Oracle / 达梦等 | MERGE / FROM 变体或降级 | P1/P2 |
 
@@ -269,9 +269,9 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 
 | 阶段 | 内容 |
 |------|------|
-| **U2-P0** | `toUpdateUnion`/`doUpdateUnion`：**Frag 自动分桶** + MySQL/SQL Server `BuildUpdateUnionCmd`；单测：同构一命令、异构两命令、单行退化为普通 UPDATE |
-| **U2-P0b** | Writer + `UpdateRangeCore` 阈值 50；降级 U1；`ignoreUpdate` 混列集成测 |
-| **U2-P1** | PG 等；桶内参数窗多 `SQLSeg`；UoW |
+| **U2-P0** | ✅ **已完成**：`toUpdateUnion`/`doUpdateUnion`（分布类）+ Frag 自动分桶 + MySQL/SQL Server `BuildUpdateUnionCmd`；单测同构/异构/单行退化 |
+| **U2-P0b** | ✅ **已完成**：`prepareUpdateUnion` + Writer.`UpdateUnion`；`UpdateUnionThreshold=50`；失败/不支持降级 U1；`RepoUpdateUnionTests` |
+| **U2-P1** | ✅ **已完成**：PG `buildUpdateUnion`；batchSize/paramMaxSize 切片；UoW `UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateUnionCmd` |
 | **U2-P1b** | 基准 vs U1 / LiteOrm |
 | **U2-P2** | 脏字段路径说明；可选 Writer 预分桶优化 |
 
@@ -325,10 +325,16 @@ public int UpdateUnionBatchSize { get; set; } = 200;
 |------|------|
 | 本计划 | `doc/design/features/仓储/批量更新-UpdateUnion计划.md` |
 | 总览 | [`批量写入性能优化.md`](./批量写入性能优化.md) §3.4 / P3 |
-| Writer / Options | `pure/src/adoext/repository/batch/` |
-| Repo | `SooRepository.UpdateRangeCore` |
-| Builder / SqlGoup | `SQLBuilder` / `StepBuilder` / `SqlGoup` |
-| 方言 | `Dialect.*` / `SQLExpression.dml.cs` |
+| Writer / Options | `EntityBatchWriter.UpdateUnion` / `BatchWriteOptions.UpdateUnionThreshold` |
+| Translator | `EntityTranslator.prepareUpdateUnion`（PK→set，非 where） |
+| Repo | `SooRepository.UpdateRangeCore`（N≥阈值且 SupportsUpdateUnion → U2，否则/失败 → U1） |
+| Builder API | `pure/.../SQLBuilder.updateUnion.cs`（abstract）+ `SQLBuilder.sugar.cs` 重载 |
+| Builder 实现 | `StepBuilder.updateUnion.cs` / `PrepareSQLBuilder.updateUnion.cs` |
+| SqlGoup 分桶 | `SqlGoup.updateUnion.cs`（`GetUpdateRowIndices` / `GroupUpdateRowsBySetSignature`） |
+| 方言内核 | `Dialect.updateUnionCmd.cs`（`SupportsUpdateUnion` / `BuildUpdateUnionCmd`） |
+| 方言 SQL | `MySQLExpress` / `MSSQLExpress` / `NpgsqlExpress.buildUpdateUnion`；族开关含 `PgFamilyDialect` |
+| UoW | `SooUnitOfWork.UpdateRange` + `AddSQL` 展开多段；`TryBuildUpdateUnionCmd` |
+| 单测 | `SQLBuilderUpdateUnionTests`、`RepoUpdateUnionTests` |
 | 基准 | `Tests/TestFast/Orm.Benchmark` |
 
 ---

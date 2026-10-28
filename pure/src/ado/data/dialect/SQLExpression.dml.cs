@@ -547,6 +547,16 @@ namespace mooSQL.data
         public virtual string buildUpdateFrom(FragSQL frag) {
             throw new Exception("未定义的数据库Update from 语法");
         }
+
+        /// <summary>
+        /// 构建多行值源 UPDATE（UPDATE … JOIN/FROM (UNION ALL SELECT …)）。
+        /// 基类返回 null 表示本方言不支持；MySQL / SQL Server 等 override。
+        /// </summary>
+        public virtual string buildUpdateUnion(FragUpdateUnion frag)
+        {
+            return null;
+        }
+
         /// <summary>
         /// 创建 merge into 语句
         /// </summary>

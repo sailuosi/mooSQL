@@ -181,7 +181,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public EntityTranslator ignoreUpdate(params string[] fields)
         {
-            return includeUpdate(fields);
+            return ignoreUpdate((IEnumerable<string>)fields);
         }
 
         /// <summary>

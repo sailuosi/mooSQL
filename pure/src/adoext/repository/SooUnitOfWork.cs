@@ -94,12 +94,22 @@ namespace mooSQL.data
 
         }
         /// <summary>
-        /// 添加一个SQL
+        /// 添加一个SQL。多段命令会展开为多条入队（BatchSQL 列表路径不自动 ExpandSegments）。
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public SooUnitOfWork AddSQL(SQLCmd cmd) { 
-            if (cmd == null || string.IsNullOrEmpty(cmd.sql)) return this;
+        public SooUnitOfWork AddSQL(SQLCmd cmd)
+        {
+            if (cmd == null || cmd.Empty) return this;
+            if (cmd.HasSegments)
+            {
+                foreach (var piece in cmd.ExpandSegments())
+                {
+                    if (piece == null || piece.Empty) continue;
+                    this.SQLCommands.Add(piece);
+                }
+                return this;
+            }
             this.SQLCommands.Add(cmd);
             return this;
         }
@@ -202,7 +212,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 批量更新
+        /// 批量更新。小批量逐条入队；达 UpdateUnion 阈值且方言支持时入队 UpdateUnion（可多段）；否则 U1 多语句。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
@@ -210,13 +220,67 @@ namespace mooSQL.data
         public SooUnitOfWork UpdateRange<T>(IEnumerable<T> entity)
         {
             if (entity == null) return this;
-            var kit = DB.useSQL();
-            foreach (var item in entity)
+            var list = entity as IList<T> ?? entity.ToList();
+            if (list.Count == 0) return this;
+
+            const int rowThreshold = 32;
+            const int unionThreshold = 50;
+
+            if (list.Count < rowThreshold)
             {
-                var cmd = kit.toUpdate(item);
-                AddSQL(cmd);
+                var kitRow = DB.useSQL();
+                foreach (var item in list)
+                {
+                    if (item == null) continue;
+                    AddSQL(kitRow.toUpdate(item));
+                }
+                return this;
             }
+
+            var kit = DB.useSQL();
+            var translator = DB.client.Translator;
+            var en = DB.client.EntityCash.getEntityInfo(typeof(T));
+            var tryUnion = list.Count >= unionThreshold
+                && kit.Dialect != null
+                && kit.Dialect.SupportsUpdateUnion();
+            if (tryUnion)
+            {
+                try
+                {
+                    var opt = new BatchWriteOptions { UpdateUnionBatchSize = 200 };
+                    var cmd = EntityBatchWriter.TryBuildUpdateUnionCmd(
+                        kit, translator, en, list, null, null, opt, out _);
+                    if (cmd != null && !cmd.Empty)
+                    {
+                        AddSQL(cmd);
+                        return this;
+                    }
+                }
+                catch
+                {
+                    // 降级 U1
+                }
+            }
+
+            EnqueueUpdateMultiStatement(list, translator, en);
             return this;
+        }
+
+        void EnqueueUpdateMultiStatement<T>(
+            IList<T> entities,
+            EntityTranslator translator,
+            EntityInfo en)
+        {
+            var kit = DB.useSQL();
+            foreach (var entity in entities)
+            {
+                if (entity == null) continue;
+                kit.clear();
+                var res = translator.prepareUpdate(kit, entity, typeof(T), en, null);
+                if (!res.Status)
+                    throw new InvalidOperationException(res.Message ?? "prepareUpdate failed.");
+                AddSQL(kit.toUpdate());
+            }
         }
         /// <summary>
         /// 批量保存。超阈值时批量探活主键后分流到 <see cref="InsertRange{T}"/> / <see cref="UpdateRange{T}"/>。
