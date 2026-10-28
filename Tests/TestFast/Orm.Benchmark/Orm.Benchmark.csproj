@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <!-- BDN 外进程引擎需要 Pragmastat（Perfolizer 依赖），显式引用避免 FileNotFound -->
+    <PackageReference Include="Pragmastat" Version="3.2.4" />
     <PackageReference Include="FreeSql.Provider.Oracle" Version="3.5.307" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="10.0.5" />
     <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.1" />
