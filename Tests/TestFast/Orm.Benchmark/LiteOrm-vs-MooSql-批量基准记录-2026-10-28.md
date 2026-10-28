@@ -1,8 +1,9 @@
 # LiteOrm vs MooSql 批量基准记录
 
 > **日期**：2026-10-28  
-> **范围**：仅 `LiteOrm_*` / `MooSql_*` 批量组（`OrmBenchmark`）  
-> **原始 BDN 表**：同目录 [`LiteOrm.Benchmark.OrmBenchmark-report-github.md`](./LiteOrm.Benchmark.OrmBenchmark-report-github.md)  
+> **范围**：仅 `LiteOrm_*` / `MooSql_*` 批量组（`OrmBenchmark`），Windows / i7-11700  
+> **原始数据**：本节表格（BDN MediumRun + InProcess）；同目录 [`LiteOrm.Benchmark.OrmBenchmark-report-github.md`](./LiteOrm.Benchmark.OrmBenchmark-report-github.md) 现为 **另一场** Linux 五 ORM 跑测，解读见 [`多ORM批量基准记录-Linux.md`](./多ORM批量基准记录-Linux.md)  
+> **更新**：同日 Windows i9 外进程六 ORM（含单条）见 [`多ORM基准记录-Windows-2026-10-28.md`](./多ORM基准记录-Windows-2026-10-28.md)（绝对 Mean 不可与本表横比）  
 > **关联设计**：[`doc/design/features/仓储/批量写入性能优化.md`](../../../doc/design/features/仓储/批量写入性能优化.md)
 
 ---
