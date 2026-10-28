@@ -140,12 +140,12 @@ namespace mooSQL.data
                 var seg = _segments[i];
                 if (seg == null) continue;
                 h.Add(seg.sql);
-                AddParaHash(h, seg.para);
+                AddParaHash(ref h, seg.para);
             }
             return h.ToHashCode();
         }
 
-        static void AddParaHash(ScriptHash h, Paras para)
+        static void AddParaHash(ref ScriptHash h, Paras para)
         {
             if (para == null || para.value == null || para.value.Count == 0)
                 return;

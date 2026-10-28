@@ -1,4 +1,5 @@
 ﻿using mooSQL.data;
+using System;
 using System.IO;
 
 namespace TestMooSQL.src
@@ -7,9 +8,10 @@ namespace TestMooSQL.src
     {
         /// <summary>
         /// 本地专项 SQLite 文件路径（与 TestDatabaseHelper / 槽位 0 共用）。
+        /// 带进程号：dotnet test 多 TFM 并行时各进程不互踩同一文件。
         /// </summary>
         public static string LocalSQLitePath =>
-            Path.Combine(Path.GetTempPath(), "mooSQL_test_sqlite.db");
+            Path.Combine(Path.GetTempPath(), "mooSQL_test_sqlite_" + Environment.ProcessId + ".db");
 
         /// <summary>
         /// 本地专项 SQLite 连接串（槽位 0 / useSQLiteDB / useRunDB 默认）。

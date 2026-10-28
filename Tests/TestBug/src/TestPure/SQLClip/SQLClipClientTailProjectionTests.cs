@@ -3,6 +3,7 @@ using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -13,16 +14,34 @@ namespace mooSQL.Pure.Tests
     /// SQLClip 客户端尾投影 TDD（对标 Chloe MsSqlDemo.Method Select 段）。
     /// 见 doc/design/features/SQLClip-客户端尾投影.md §6.5
     /// </summary>
-    public class SQLClipClientTailProjectionTests
+    public class SQLClipClientTailProjectionTests : IDisposable
     {
         private readonly DBInstance _db;
+        private readonly string _dbPath;
         private readonly char[] _space = { ' ' };
 
         public SQLClipClientTailProjectionTests()
         {
-            _db = TestDatabaseHelper.CreateTestDBInstance();
+            // 独立临时库：避免与共享 mooSQL_test_sqlite.db 及其它 TFM 并行互踩 Seed 数据
+            _dbPath = Path.Combine(Path.GetTempPath(), "mooSQL_clip_tail_" + Guid.NewGuid().ToString("N") + ".db");
+            _db = TestDatabaseHelper.CreateTestDBInstance(
+                DataBaseType.SQLite,
+                "Data Source=" + _dbPath + ";Mode=ReadWriteCreate");
             TestDatabaseHelper.EnsureTestUserSchema(_db);
             Seed();
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (File.Exists(_dbPath))
+                    File.Delete(_dbPath);
+            }
+            catch
+            {
+                // 忽略临时库清理失败
+            }
         }
 
         private void Seed()

@@ -39,29 +39,36 @@ namespace mooSQL.data
 
         public void Add(object value)
         {
-#if NET6_0_OR_GREATER
-            _hash = HashCode.Combine(_hash, value);
-#else
+            // 装箱值类型必须拆开再累加：HashCode.Combine(object) 在 T=object 时走引用分支，
+            // 虽对多数装箱值可用 GetHashCode，但与显式 Add(int/bool/string) 路径对齐更稳妥。
             if (value == null)
             {
                 Add(0);
                 return;
             }
-            if (value is string)
+            if (value is string s)
             {
-                Add((string)value);
+                Add(s);
                 return;
             }
-            if (value is int)
+            if (value is int i)
             {
-                Add((int)value);
+                Add(i);
                 return;
             }
-            if (value is bool)
+            if (value is bool b)
             {
-                Add((bool)value);
+                Add(b);
                 return;
             }
+            if (value is long l)
+            {
+                Add(unchecked((int)l) ^ (int)(l >> 32));
+                return;
+            }
+#if NET6_0_OR_GREATER
+            _hash = HashCode.Combine(_hash, value.GetHashCode());
+#else
             Add(value.GetHashCode());
 #endif
         }
