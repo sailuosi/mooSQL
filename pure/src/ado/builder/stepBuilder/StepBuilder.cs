@@ -284,6 +284,11 @@ namespace mooSQL.data
             set { _paraRule = string.IsNullOrEmpty(value) ? "notEmpty" : value; }
         }
 
+        /// <summary>
+        /// 多行 INSERT … VALUES 每片最大行数；与方言 <c>paramMaxSize</c> 共同约束切片。默认 200；≤0 时仅按参数上限切。
+        /// </summary>
+        public int InsertValuesBatchSize { get; set; } = 200;
+
         private bool opened = true;
 
         /// <summary>
@@ -870,13 +875,23 @@ namespace mooSQL.data
 
         /// <summary>
         /// 创建包含参数信息的 插入语句。
+        /// 多行 VALUES 时由方言直接扫当前分组 set 状态，按 <see cref="InsertValuesBatchSize"/> 与 paramMaxSize 切片为多个 <see cref="SQLSeg"/>，仍返回一个 <see cref="SQLCmd"/>。
         /// </summary>
         /// <returns></returns>
         public override SQLCmd toInsert() {
             if (!EnsureWriteTableName(nameof(toInsert)))
                 return EmptyWriteCmd(QueryType.Insert);
-            string sql = current.buildInsert();
-            return geneCmd(sql, ps, QueryType.Insert);
+
+            var cmd = Dialect.BuildInsertCmd(current, ps, InsertValuesBatchSize);
+            if (cmd == null || cmd.Empty)
+                return EmptyWriteCmd(QueryType.Insert);
+
+            cmd.type = QueryType.Insert;
+            if (string.IsNullOrEmpty(cmd.TargetTable))
+                cmd.TargetTable = current.tableName ?? "";
+            if (string.IsNullOrEmpty(cmd.signal))
+                cmd.signal = this.Signal;
+            return cmd;
         }
 
         /// <inheritdoc />

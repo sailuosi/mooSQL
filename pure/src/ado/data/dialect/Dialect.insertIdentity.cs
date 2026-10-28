@@ -32,6 +32,9 @@ namespace mooSQL.data
         {
             if (insert == null || insert.Empty)
                 throw new InvalidOperationException("BuildInsertReturnIdCmd: insert SQLCmd is empty.");
+            if (insert.HasSegments)
+                throw new InvalidOperationException(
+                    "BuildInsertReturnIdCmd: multi-segment insert (param/batch split) is not supported. Use single-row InsertReturnId or L2 keys.");
 
             var mode = GetInsertIdentityMode(identityColumn);
             switch (mode)

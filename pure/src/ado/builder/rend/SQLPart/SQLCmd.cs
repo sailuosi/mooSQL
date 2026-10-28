@@ -7,7 +7,9 @@ using System.Data;
 namespace mooSQL.data
 {
     /// <summary>
-    /// 一个准备执行的SQL命令，包含SQL文本，参数等。
+    /// 一个准备执行的SQL命令：逻辑上一次执行单元。
+    /// SQL 与参数始终由 <see cref="SQLSeg"/> 承载（单段或多段）；
+    /// <see cref="sql"/> / <see cref="para"/> 为对首段的兼容门面。
     /// </summary>
     public partial class SQLCmd
     {
@@ -15,42 +17,61 @@ namespace mooSQL.data
         public const string ResultCacheKeyPrefix = "RC:";
 
         /// <summary>
-        /// 预执行的命令
+        /// 预执行的命令（单个空段）。
         /// </summary>
-        public SQLCmd() { 
-            this.para= new Paras();
+        public SQLCmd() {
+            UseSingleSegment(null, null);
             this.type = QueryType.Unknown;
         }
         /// <summary>
-        /// 创建预执行的命令
+        /// 创建预执行的命令（单段）。
         /// </summary>
         /// <param name="sql"></param>
         public SQLCmd(string sql) {
-            this.sql = sql;
-            this.para = new Paras();
+            UseSingleSegment(sql, null);
             this.type = QueryType.Unknown;
         }
         /// <summary>
-        /// 创建预执行的命令
+        /// 创建预执行的命令（单段）。
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="paras"></param>
         public SQLCmd(string sql,Paras paras) {
-            this.sql=sql;
-            this.para = new Paras();
+            UseSingleSegment(sql, paras);
             this.type = QueryType.Unknown;
-            if (paras != null) {
-                this.para.Copy(paras);
+        }
+        /// <summary>
+        /// 首段 SQL。set 时重置为单段（丢弃其余分段）。
+        /// </summary>
+        public string sql
+        {
+            get => PrimarySegment.sql;
+            set
+            {
+                EnsurePrimarySegment();
+                var keepPara = _segments[0].para;
+                UseSingleSegment(value, keepPara);
             }
         }
         /// <summary>
-        /// 创建预执行的SQL
+        /// 首段参数袋（可直接增删）。set 整袋时重置为单段。
         /// </summary>
-        public string sql { get; set; }
-        /// <summary>
-        /// 参数体集合
-        /// </summary>
-        public Paras para { get; set; }
+        public Paras para
+        {
+            get
+            {
+                var seg = PrimarySegment;
+                if (seg.para == null)
+                    seg.para = new Paras();
+                return seg.para;
+            }
+            set
+            {
+                EnsurePrimarySegment();
+                var keepSql = _segments[0].sql;
+                UseSingleSegment(keepSql, value ?? new Paras());
+            }
+        }
         /// <summary>
         /// 命令类型,默认text
         /// </summary>
@@ -73,59 +94,71 @@ namespace mooSQL.data
         public string signal { get; set; }
 
         /// <summary>
-        /// 复制存在的参数到本实例中
+        /// 复制存在的参数到首段参数袋。
         /// </summary>
         /// <param name="pa"></param>
         public void copy(Paras pa) { 
             para.Copy(pa);
         }
         /// <summary>
-        /// SQL是否为空
+        /// 是否无有效 SQL（所有段皆空）。
         /// </summary>
         public bool Empty
         {
             get {
-                return string.IsNullOrWhiteSpace(sql); 
+                EnsurePrimarySegment();
+                for (var i = 0; i < _segments.Count; i++)
+                {
+                    if (_segments[i] != null && !_segments[i].Empty)
+                        return false;
+                }
+                return true;
             }
         }
 
         /// <summary>
-        /// 解析 Live/Delay 参数（<see cref="Paras.ResolveDelayParas"/>），写回 <see cref="sql"/>。
-        /// 执行前与计算缓存指纹前均应调用；已解析则幂等。
+        /// 解析 Live/Delay 参数，逐段写回各段 <see cref="SQLSeg.sql"/>。
         /// </summary>
         public SQLCmd EnsureLiveParasResolved()
         {
-            if (para != null)
-                sql = para.ResolveDelayParas(sql ?? "");
+            EnsurePrimarySegment();
+            for (var i = 0; i < _segments.Count; i++)
+                _segments[i]?.EnsureLiveParasResolved();
             return this;
         }
 
         /// <summary>
-        /// 与 SQLBuilder 模版编排指纹一致：使用 <see cref="ScriptHash"/>（内部 <c>HashCode.Combine</c>），
-        /// 对解析后的 sql 文本及每个参数名、参数值累加哈希。
-        /// 调用时会先 <see cref="EnsureLiveParasResolved"/>。
+        /// 指纹：按段序列累加 sql 与参数。
         /// </summary>
         public override int GetHashCode()
         {
             EnsureLiveParasResolved();
             var h = new ScriptHash();
-            h.Add(sql);
-            if (para != null && para.value != null && para.value.Count > 0)
+            EnsurePrimarySegment();
+            for (var i = 0; i < _segments.Count; i++)
             {
-                foreach (var key in SortedParaKeys(para.value))
-                {
-                    h.Add(key);
-                    var p = para.value[key];
-                    h.Add(p != null ? p.val : null);
-                }
+                var seg = _segments[i];
+                if (seg == null) continue;
+                h.Add(seg.sql);
+                AddParaHash(h, seg.para);
             }
             return h.ToHashCode();
         }
 
+        static void AddParaHash(ScriptHash h, Paras para)
+        {
+            if (para == null || para.value == null || para.value.Count == 0)
+                return;
+            foreach (var key in SortedParaKeys(para.value))
+            {
+                h.Add(key);
+                var p = para.value[key];
+                h.Add(p != null ? p.val : null);
+            }
+        }
+
         /// <summary>
-        /// 结果缓存字符串键：<c>RC:</c> + <see cref="GetHashCode"/> 的 8 位大写十六进制
-        /// （与 <see cref="ScriptCacheKey"/> 编排哈希 <c>X8</c> 展示风格一致）。
-        /// 调用时会先加载 LivePara。
+        /// 结果缓存字符串键：<c>RC:</c> + <see cref="GetHashCode"/> 的 8 位大写十六进制。
         /// </summary>
         public string GetCacheKey()
         {
@@ -133,9 +166,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 指定前缀的缓存键：<paramref name="prefix"/> + HashCode 十六进制。
-        /// 前缀通常由 <c>SQLBuilder.useCachePrefix</c> 经 <c>StepBuilder.ComposeAutoCacheKeyPrefix</c> 规范化
-        /// （如 <c>RC:Shop:</c>），再拼 <c>X8</c>。
+        /// 指定前缀的缓存键。
         /// </summary>
         public string GetCacheKey(string prefix)
         {
@@ -150,9 +181,18 @@ namespace mooSQL.data
         {
             if (ReferenceEquals(this, obj)) return true;
             if (!(obj is SQLCmd other)) return false;
-            // 先比哈希；再比解析后 sql，降低碰撞误判
             if (GetHashCode() != other.GetHashCode()) return false;
-            return string.Equals(sql, other.sql, StringComparison.Ordinal);
+            if (SegmentCount != other.SegmentCount) return false;
+            EnsurePrimarySegment();
+            other.EnsurePrimarySegment();
+            for (var i = 0; i < _segments.Count; i++)
+            {
+                var a = _segments[i]?.sql;
+                var b = other._segments[i]?.sql;
+                if (!string.Equals(a, b, StringComparison.Ordinal))
+                    return false;
+            }
+            return true;
         }
 
         static IEnumerable<string> SortedParaKeys(IDictionary<string, Parameter> map)
@@ -168,43 +208,49 @@ namespace mooSQL.data
         /// <summary>
         /// 传递
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="func"></param>
-        /// <returns></returns>
         public T giveTo<T>(Func<SQLCmd,T> func) {
             return func(this);
-            //return tar;
         }
         /// <summary>
         /// 传递
         /// </summary>
-        /// <param name="tar"></param>
-        /// <returns></returns>
         public ISQLCmdTaker giveTo(ISQLCmdTaker tar)
         {
             tar.TakeOver(this);
             return tar;
         }
         /// <summary>
-        /// 转换为原始SQL语句，不带参数占位符。
+        /// 转换为原始SQL；多段时换行拼接各段。
         /// </summary>
-        /// <param name="paraPrefix"></param>
-        /// <returns></returns>
         public string toRawSQL(string paraPrefix="") {
             this.EnsureLiveParasResolved();
-            var sql = this.sql;
+            EnsurePrimarySegment();
+            if (_segments.Count == 1)
+                return FormatRawSql(_segments[0].sql, _segments[0].para, paraPrefix);
 
+            var parts = new List<string>(_segments.Count);
+            for (var i = 0; i < _segments.Count; i++)
+            {
+                var seg = _segments[i];
+                if (seg == null || seg.Empty) continue;
+                parts.Add(FormatRawSql(seg.sql, seg.para, paraPrefix));
+            }
+            return string.Join("\n", parts);
+        }
+
+        static string FormatRawSql(string sqlText, Paras para, string paraPrefix)
+        {
+            var sql = sqlText;
             if (para == null) return sql;
             foreach (var item in para.value)
             {
-                if (sql.Contains(item.Value.holder)) {
+                if (sql != null && sql.Contains(item.Value.holder)) {
                     sql = sql.Replace(item.Value.holder, "'" + item.Value.val.ToString() + "'");
                 }
                 else
                 {
                     sql = sql.Replace(paraPrefix + item.Key, "'" + item.Value.val.ToString() + "'");
                 }
-                    
             }
             return sql;
         }

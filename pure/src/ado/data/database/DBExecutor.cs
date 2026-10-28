@@ -982,6 +982,9 @@ namespace mooSQL.data
         /// <returns></returns>
         public object ExeQueryScalar(SQLCmd SQL)
         {
+            if (SQL != null && SQL.HasSegments)
+                throw new InvalidOperationException(
+                    "ExeQueryScalar: multi-segment SQLCmd is not supported. Use NonQuery expand or single-segment commands.");
             return ExecuteCmd(SQL, (cmd, cont) =>
             {
                 return cmd.ExecuteScalar(cont);
@@ -1103,6 +1106,17 @@ namespace mooSQL.data
         /// <returns></returns>
         public async Task<int> ExeNonQueryAsync(SQLCmd cmd)
         {
+            if (cmd != null && cmd.HasSegments)
+            {
+                var total = 0;
+                foreach (var piece in cmd.ExpandSegments())
+                {
+                    var cc = await Execute(piece, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync()).ConfigureAwait(false);
+                    fireModify(piece, cc);
+                    total += cc;
+                }
+                return total;
+            }
             var res = await Execute(cmd, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync());
             fireModify(cmd, res);
             return res;
@@ -1115,6 +1129,17 @@ namespace mooSQL.data
         /// <returns></returns>
         public async Task<int> ExeNonQueryAsync(SQLCmd cmd, CancellationToken token)
         {
+            if (cmd != null && cmd.HasSegments)
+            {
+                var total = 0;
+                foreach (var piece in cmd.ExpandSegments())
+                {
+                    var cc = await Execute(piece, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync(token)).ConfigureAwait(false);
+                    fireModify(piece, cc);
+                    total += cc;
+                }
+                return total;
+            }
             var res = await Execute(cmd, (dbCommand, cont) => dbCommand.ExecuteNonQueryAsync(token));
             fireModify(cmd, res);
             return res;
@@ -1136,6 +1161,17 @@ namespace mooSQL.data
         /// <returns></returns>
         public int ExeNonQuery(SQLCmd SQL)
         {
+            if (SQL != null && SQL.HasSegments)
+            {
+                var total = 0;
+                foreach (var piece in SQL.ExpandSegments())
+                {
+                    var cc = ExecuteCmd(piece, (cmd, c) => cmd.ExecuteNonQuery(c));
+                    fireModify(piece, cc);
+                    total += cc;
+                }
+                return total;
+            }
             var res = ExecuteCmd(SQL, (cmd, c) => {
                 return cmd.ExecuteNonQuery(c);
             });

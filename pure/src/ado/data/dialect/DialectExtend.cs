@@ -144,7 +144,7 @@ namespace mooSQL.data
                 var cols = bk.bulkTarget.Columns;
                 kit.setTable(bk.tableName);
                 int cc = 0;
-                // 多行 VALUES 约定：set… → newRow() → set…（先写当前行，再封存切下一行）
+                // 多行 VALUES：首行直接 set；其后 newRow() 再 set（newRow 已打开下一行下标）
                 foreach (DataRow row in bk.bulkTarget.Rows)
                 {
                     if (cc > 0)

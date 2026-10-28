@@ -152,11 +152,39 @@ namespace mooSQL.data
         public SooUnitOfWork InsertRange<T>(IEnumerable<T> entity)
         {
             if (entity == null) return this;
-            var kit = DB.useSQL();
-            foreach (var item in entity) {
-                var cmd = kit.toInsert(item);
-                AddSQL(cmd);
+            var list = entity as IList<T> ?? entity.ToList();
+            if (list.Count == 0) return this;
+
+            // 小批量仍逐条入队；大批量一次 toInsert（内部可多 SQLSeg）
+            const int rowThreshold = 32;
+            if (list.Count < rowThreshold)
+            {
+                var kitRow = DB.useSQL();
+                foreach (var item in list)
+                {
+                    var cmd = kitRow.toInsert(item);
+                    AddSQL(cmd);
+                }
+                return this;
             }
+
+            var kit = DB.useSQL();
+            if (kit.Inner is StepBuilder sb)
+                sb.InsertValuesBatchSize = 200;
+            var translator = DB.client.Translator;
+            var first = true;
+            foreach (var item in list)
+            {
+                if (item == null) continue;
+                if (!first)
+                    kit.newRow();
+                first = false;
+                var res = translator.prepareInsert(kit, item, typeof(T), null, null);
+                if (!res.Status)
+                    throw new InvalidOperationException(res.Message ?? "prepareInsert failed.");
+            }
+            if (!first)
+                AddSQL(kit.toInsert());
             return this;
         }
         /// <summary>

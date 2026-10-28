@@ -150,6 +150,7 @@ namespace mooSQL.data.builder
         /// </summary>
         public List<FragSetPart> setPart { get; set; }
     }
+
     /// <summary>
     /// update语句的set 部分配置项
     /// </summary>

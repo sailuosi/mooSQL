@@ -793,6 +793,11 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 批量写入阈值与模式（默认 Auto）。
+        /// </summary>
+        public BatchWriteOptions BatchOptions { get; set; } = new BatchWriteOptions();
+
+        /// <summary>
         /// 在实体进行保存前，执行的操作。
         /// </summary>
         /// <param name="entity"></param>
@@ -815,7 +820,7 @@ namespace mooSQL.data
             return res>0;
         }
         /// <summary>
-        /// 批量插入
+        /// 批量插入。超阈值走多行 VALUES / Bulk（见 <see cref="BatchOptions"/>）；切片由 SQLBuilder/Bulk 承担。
         /// </summary>
         /// <param name="insertObjs"></param>
         /// <returns></returns>
@@ -831,27 +836,64 @@ namespace mooSQL.data
                 var cc = 0;
                 foreach (var kv in groups)
                 {
-                    var kit = getKit();
-                    foreach (var obj in kv.Value)
-                    {
-                        var c = insertInner(obj, kit);
-                        if (c > 0)
-                            cc += c;
-                    }
+                    cc += InsertRangeCore(kv.Value, kv.Key);
                 }
                 return cc;
             }
 
-            var kitDefault = getKit();
-            var ccDefault = 0;
-            foreach (var obj in insertObjs) {
-                var c= insertInner(obj, kitDefault);
-                if (c > 0) {
-                    ccDefault += c;
+            return InsertRangeCore(insertObjs as IList<T> ?? insertObjs.ToList(), null);
+        }
+
+        int InsertRangeCore(IList<T> list, string physicalTable)
+        {
+            if (list == null || list.Count == 0)
+                return 0;
+
+            var opt = BatchOptions ?? new BatchWriteOptions();
+            var n = list.Count;
+            var mode = opt.Mode;
+            var useRow = mode == BatchWriteMode.Row
+                || (mode == BatchWriteMode.Auto && n < opt.InsertRowThreshold);
+            if (useRow)
+            {
+                var kit = getKit();
+                var cc = 0;
+                foreach (var obj in list)
+                {
+                    var c = insertInner(obj, kit);
+                    if (c > 0) cc += c;
+                }
+                return cc;
+            }
+
+            var tableLoader = physicalTable.HasText()
+                ? tryTableNameLoader(physicalTable)
+                : tryTableNameLoader(tbname);
+            var tableName = physicalTable.HasText()
+                ? physicalTable
+                : (tbname.HasText() ? tbname : En?.DbTableName);
+
+            var useBulk = mode == BatchWriteMode.Bulk
+                || (mode == BatchWriteMode.Auto && n >= opt.InsertBulkThreshold);
+            if (useBulk)
+            {
+                try
+                {
+                    return EntityBatchWriter.InsertBulk(
+                        DBLive, Executor, Translator, list, tableName,
+                        OnBeforeSave, OnAfterSave, opt);
+                }
+                catch (Exception ex)
+                {
+                    DBLive?.client?.Loggor?.LogError(
+                        "InsertRange Bulk failed, fallback to multi-values: " + ex.Message);
                 }
             }
-            
-            return ccDefault ;
+
+            var kitMv = getKit();
+            return EntityBatchWriter.InsertMultiValues(
+                kitMv, Translator, list, tableLoader,
+                OnBeforeSave, OnAfterSave, opt);
         }
         /// <summary>
         /// 更新
@@ -865,24 +907,15 @@ namespace mooSQL.data
             return res > 0;
         }
         /// <summary>
-        /// 批量更新
+        /// 批量更新。超阈值走多语句分片（见 <see cref="BatchOptions"/>）。
         /// </summary>
         /// <param name="updateObjs"></param>
         /// <returns></returns>
         public int UpdateRange(IEnumerable<T> updateObjs)
         {
-            var kit = getKit();
-            var cc = 0;
-            foreach (var obj in updateObjs)
-            {
-                var c= updateInner(obj,kit);
-                if (c > 0) {
-                    //执行失败的返回为-1，不能直接累计
-                    cc += c;
-                }
-            }
-
-            return cc;
+            if (updateObjs == null)
+                return 0;
+            return UpdateRangeCore(updateObjs as IList<T> ?? updateObjs.ToList());
         }
         /// <summary>
         /// 批量更新
@@ -891,18 +924,34 @@ namespace mooSQL.data
         /// <returns></returns>
         public int UpdateRange(T[] updateObjs)
         {
+            if (updateObjs == null)
+                return 0;
+            return UpdateRangeCore(updateObjs);
+        }
+
+        int UpdateRangeCore(IList<T> list)
+        {
+            if (list == null || list.Count == 0)
+                return 0;
+
+            var opt = BatchOptions ?? new BatchWriteOptions();
+            var useRow = opt.Mode == BatchWriteMode.Row
+                || list.Count < opt.UpdateRowThreshold;
             var kit = getKit();
-            var cc = 0;
-            foreach (var obj in updateObjs)
+            if (useRow)
             {
-                var c = updateInner(obj, kit);
-                if (c > 0) {
-                    //执行失败的返回为-1，不能直接累计
-                    cc += c;
+                var cc = 0;
+                foreach (var obj in list)
+                {
+                    var c = updateInner(obj, kit);
+                    if (c > 0) cc += c;
                 }
+                return cc;
             }
 
-            return cc;
+            return EntityBatchWriter.UpdateMultiStatement(
+                kit, Translator, list, tryTableNameLoader(tbname),
+                OnBeforeSave, OnAfterSave, opt);
         }
         /// <summary>
         /// 执行更新

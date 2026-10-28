@@ -325,13 +325,19 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 封存当前插入行并切换到下一行（供多行 VALUES：<c>set…newRow().set…</c>）。
+        /// 封存当前插入行并打开下一行（多行 VALUES）。
+        /// 调用后 <see cref="rows"/> 已含当前行与新行下标，构建时无需再补末行。
+        /// 约定：<c>set…newRow().set…</c> 或 <c>newRow().set…</c>（含首行）均可。
         /// </summary>
         public SqlGoup newRow()
         {
+            if (this.rows == null)
+                this.rows = new List<int>();
             if (!this.rows.Contains(this.setIndex))
                 this.rows.Add(this.setIndex);
             this.setIndex++;
+            if (!this.rows.Contains(this.setIndex))
+                this.rows.Add(this.setIndex);
             return this;
         }
         /// <summary>
@@ -731,6 +737,85 @@ namespace mooSQL.data
             return string.Join(",", valueRow);
         }
 
+        /// <summary>是否已通过 newRow 进入多行插入状态。</summary>
+        public bool HasMultiRowInsertState()
+        {
+            return this.rows != null && this.rows.Count > 0;
+        }
+
+        /// <summary>指定行是否存在可插入单元格。</summary>
+        public bool RowHasInsertableCells(int rowIndex)
+        {
+            if (columns == null) return false;
+            foreach (SetFrag field in columns)
+            {
+                if (field == null) continue;
+                if (!field.values.TryGetValue(rowIndex, out var pair)) continue;
+                if (pair.insetable == false) continue;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 多行插入时返回有数据的行下标（跳过 newRow 打开但未 set 的空占位）。
+        /// 单行时返回当前 <see cref="RowIndex"/>。
+        /// </summary>
+        public List<int> GetInsertRowIndices()
+        {
+            var list = new List<int>();
+            if (!HasMultiRowInsertState())
+            {
+                list.Add(setIndex);
+                return list;
+            }
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var idx = rows[i];
+                if (RowHasInsertableCells(idx))
+                    list.Add(idx);
+            }
+            return list;
+        }
+
+        /// <summary>按指定行生成插入列清单（与该行 insetable 列对齐）。</summary>
+        public string buildInsertFieldsForRow(int rowIndex)
+        {
+            var cols = new List<string>();
+            foreach (SetFrag field in columns)
+            {
+                if (!field.values.TryGetValue(rowIndex, out var pair) || pair.insetable == false)
+                    continue;
+                cols.Add(field.key);
+            }
+            return string.Join(",", cols);
+        }
+
+        /// <summary>
+        /// 对命令各段施加分组前后缀 SQL，并记录/触发插入 SQL 事件（多段时事件内容为首段）。
+        /// </summary>
+        public void FinalizeInsertCmd(SQLCmd cmd)
+        {
+            if (cmd == null) return;
+            if (cmd.HasSegments)
+            {
+                foreach (var seg in cmd.Segments)
+                {
+                    if (seg == null || seg.Empty) continue;
+                    seg.sql = checkPreSubfix(seg.sql);
+                }
+            }
+            else if (!cmd.Empty)
+            {
+                cmd.sql = checkPreSubfix(cmd.sql);
+            }
+
+            if (!cmd.Empty)
+            {
+                this.insertSQL = cmd.sql;
+                fireSQLEvent(cmd.sql);
+            }
+        }
         /// <summary>
         /// 创建插入语句，自动根据上下文推断创建的语句类别
         /// </summary>
@@ -743,23 +828,14 @@ namespace mooSQL.data
             frag.insertCols = buildInsertFields();
             if (this.rows.Count > 0)
             {
-                // newRow 已封存先前行；末行仍在 setIndex，需一并纳入
-                if (!this.rows.Contains(this.setIndex))
-                    this.rows.Add(this.setIndex);
-
                 var valus = new List<string>();
-                foreach (var index in rows)
+                var indices = GetInsertRowIndices();
+                foreach (var index in indices)
                 {
-                    var valueRow = new List<string>();
-                    var valsql= buildInsertRowVal(index);
-
-                    if (valsql != null) {
-                        //存入本行的值
+                    var valsql = buildInsertRowVal(index);
+                    if (valsql != null)
                         valus.Add(valsql);
-                    }
-
                 }
-                //放入 frag
                 frag.insertValues = valus;
             }
             else {

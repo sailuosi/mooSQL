@@ -114,6 +114,13 @@ namespace mooSQL.data
                 ? MooClient.resolveDualWriteTargets(pos, Executor?.RouteContext)
                 :new List<DBInstance>();
             var policy = MooClient.MasterSlaveOptions?.DualWriteError ?? DualWriteErrorPolicy.MasterWins;
+            if (sql != null && sql.HasSegments)
+            {
+                var total = 0;
+                foreach (var piece in sql.ExpandSegments())
+                    total += WriteFanoutExecutor.ExecuteNonQuery(piece, master, slaves, Executor, policy);
+                return total;
+            }
             return WriteFanoutExecutor.ExecuteNonQuery(sql, master, slaves, Executor, policy);
         }
 
@@ -124,7 +131,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override int exeNonQuery(SQLCmd sql)
         {
-            if (string.IsNullOrWhiteSpace(sql.sql)) return 0;
+            if (sql == null || sql.Empty) return 0;
             CheckDBForWrite();
             doPrintSQL(sql);
             if (ShouldApplyDualWrite())
@@ -138,7 +145,7 @@ namespace mooSQL.data
         /// <returns></returns>
         public override Task<int> exeNonQueryAsync(SQLCmd sql)
         {
-            if (string.IsNullOrWhiteSpace(sql.sql)) return Task.FromResult(0);
+            if (sql == null || sql.Empty) return Task.FromResult(0);
             CheckDBForWrite();
             doPrintSQL(sql);
             if (ShouldApplyDualWrite())
@@ -1052,10 +1059,15 @@ namespace mooSQL.data
         }
         private void doPrintSQL(SQLCmd cmd)
         {
-            if (this._printSQL && cmd !=null)
+            if (!this._printSQL || cmd == null)
+                return;
+            if (cmd.HasSegments)
             {
-                printSQL(cmd.sql, cmd.para);
+                foreach (var piece in cmd.ExpandSegments())
+                    printSQL(piece.sql, piece.para);
+                return;
             }
+            printSQL(cmd.sql, cmd.para);
         }
         /// <summary>
         /// 泛型方法 queryUniqueAsync（返回 Task&lt;T&gt;）。

@@ -160,31 +160,70 @@ namespace mooSQL.data
         /// <exception cref="Exception"></exception>
         public BulkBase addList<T>(IEnumerable<T> data)
         {
-            var enInfo= this.DBLive.client.EntityCash.getEntityInfo<T>();
-            if (enInfo == null) { 
-                throw new Exception("未找到实体类型，无法批量保存到数据库！："+typeof(T).FullName);
-            }
-            if(this.tableName.HasText()==false)
+            var translator = this.DBLive?.client?.Translator;
+            if (translator == null)
+                throw new Exception("未找到 EntityTranslator，无法对齐批量插入列语义。");
+            return addListAligned(translator, data, null);
+        }
+
+        /// <summary>
+        /// 经 <see cref="EntityTranslator.prepareInsert"/> 对齐列语义（L2 发号、Ignore、FieldKind、钩子等）后填入 Bulk 表。
+        /// 不调用仓储 <c>OnBeforeSave</c>。
+        /// </summary>
+        public BulkBase addListAligned<T>(EntityTranslator translator, IEnumerable<T> data, string physicalTable)
+        {
+            if (translator == null)
+                throw new ArgumentNullException(nameof(translator));
+            if (data == null)
+                return this;
+
+            var enInfo = this.DBLive.client.EntityCash.getEntityInfo<T>();
+            if (enInfo == null)
+                throw new Exception("未找到实体类型，无法批量保存到数据库！：" + typeof(T).FullName);
+            if (enInfo.Insertable == false)
+                throw new Exception("实体类未标记为可插入：" + typeof(T).FullName);
+
+            if (this.tableName.HasText() == false)
             {
-                this.tableName = enInfo.DbTableName;
+                this.tableName = physicalTable.HasText() ? physicalTable : enInfo.DbTableName;
             }
-            if(this.bulkTarget==null)
+            if (this.bulkTarget == null)
             {
                 this.bulkTarget = this.getBulkTable();
             }
+
+            Func<string> tableLoader = null;
+            if (this.tableName.HasText())
+            {
+                var tn = this.tableName;
+                tableLoader = () => tn;
+            }
+
+            var kit = this.DBLive.useSQL();
+            if (this.Executor != null)
+                kit.useTransaction(this.Executor);
+
             foreach (var item in data)
             {
+                if (item == null)
+                    continue;
+                kit.clear();
+                var res = translator.prepareInsert(kit, item, typeof(T), enInfo, tableLoader);
+                if (!res.Status)
+                    throw new InvalidOperationException(res.Message ?? "prepareInsert failed for Bulk addList.");
+
                 this.newRow();
-                foreach (var col in enInfo.Columns) {
-                    if (col.IsIgnore || col.IsOnlyIgnoreInsert) {
-                        continue;
+                var g = kit.Inner != null ? kit.Inner.current : null;
+                if (g != null && g.columns != null)
+                {
+                    foreach (var field in g.columns)
+                    {
+                        if (field == null) continue;
+                        if (!field.values.TryGetValue(g.RowIndex, out var pair)) continue;
+                        if (pair.insetable == false) continue;
+                        if (pair.value == null) continue;
+                        this.add(field.key, pair.value);
                     }
-                    var val = col.PropertyInfo.GetValue(item);
-                    if (val == null) { 
-                        continue;
-                    }
-                    val = this.DBLive.dialect.expression.ResolveColumnValue(val, col);
-                    this.add(col.DbColumnName, val);
                 }
                 this.addRow();
             }

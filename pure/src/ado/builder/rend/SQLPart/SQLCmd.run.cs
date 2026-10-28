@@ -18,6 +18,9 @@ namespace mooSQL.data
             EnsureLiveParasResolved();
             if (Empty)
                 throw new InvalidOperationException("SQLCmd.run: sql is empty.");
+            if (HasSegments)
+                throw new InvalidOperationException(
+                    "SQLCmd.run: multi-segment SQLCmd is not supported for InsertReturnId. Use single-row insert or application keys.");
 
             if (type == QueryType.InsertReturnId)
                 return db.ExeQueryScalar(this, executor);
