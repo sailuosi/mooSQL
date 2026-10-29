@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>mooSQL.ProviderDemo</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\provides\Aurora\mooSQL.Provider.Aurora.csproj" />
+    <ProjectReference Include="..\..\provides\CockroachDB\mooSQL.Provider.CockroachDB.csproj" />
+    <ProjectReference Include="..\..\provides\EDB\mooSQL.Provider.EDB.csproj" />
+    <ProjectReference Include="..\..\provides\Turso\mooSQL.Provider.Turso.csproj" />
+    <ProjectReference Include="..\..\provides\DuckDB\mooSQL.Provider.DuckDB.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -22,6 +22,15 @@ namespace mooSQL.config
             
             var res=new DataBase();
             res.dbType= db.DbType.asDBType();
+            // 枚举解析失败时保留原始字符串，走方言字符串通道
+            if (res.dbType == DataBaseType.None && !string.IsNullOrWhiteSpace(db.DbType))
+            {
+                res.dialectKey = db.DbType.Trim();
+            }
+            else if (res.dbType != DataBaseType.None)
+            {
+                res.dialectKey = res.dbType.ToString();
+            }
             res.DBConnectStr= db.ConnectString;
             res.index =db.Position;
             res.name =db.Name;

@@ -22,6 +22,9 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.OceanBase, () => new OBMySQLDialect() );
             this.useDialect(DataBaseType.TiDB, () => new TiDBDialect());
             this.useDialect(DataBaseType.MariaDB, () => new MariaDBDialect());
+            // PolarDB：已明确适配，独立枚举，方言复用族产品
+            this.useDialect(DataBaseType.PolarDBMySQL, () => new MySQLDialect());
+            this.useDialect(DataBaseType.PolarDBPostgreSQL, () => new NpgsqlDialect());
             this.useDialect(DataBaseType.MSSQL, () => new MSSQLDialect() );
             this.useDialect(DataBaseType.Oracle, () => new OracleDialect() );
             this.useDialect(DataBaseType.PostgreSQL, () => new NpgsqlDialect() );
@@ -33,12 +36,15 @@ namespace mooSQL.data
             this.useDialect(DataBaseType.DM, () => new DMDialect());
             this.useDialect(DataBaseType.OpenGauss, () => new OpenGaussDialect());
             this.useDialect(DataBaseType.GaussDB, () => new OpenGaussDialect());
+            // Access / JetSQL：已有 JetSQLDialect，双枚举共一方言
+            this.useDialect(DataBaseType.Access, () => new JetSQLDialect());
+            this.useDialect(DataBaseType.JetSQL, () => new JetSQLDialect());
 #if !NET451
             this.useDialect(DataBaseType.KingBaseR3, () => new KingBaseDialect());
             this.useDialect(DataBaseType.KingBaseR6, () => new KingBaseDialect());
 #endif
 #if NET6_0_OR_GREATER
-            this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect() );
+            // DuckDB 已迁至 provides/DuckDB（mooSQL.Provider.DuckDB），需显式 UseDuckDB()
             this.useDialect(DataBaseType.ClickHouse, () => new ClickHouseDialect());
 #endif
 #if NET10_0_OR_GREATER

@@ -273,6 +273,11 @@ public partial class DBTest
     {
         var client = new MooClient();
         client.dialectFactory = new DialectFactory();
+#if MOOSQL_PROVIDER_DUCKDB
+        // DuckDB 已迁出 Ext，需显式注册 Provider（仅 mooSQL.Tests 定义该符号）
+        if (dbType == DataBaseType.DuckDB)
+            client.dialectFactory.UseDuckDB();
+#endif
         var factory = new BaseEntityAnalyseFactory();
         factory.register(new MooEntityAnalyser());
         client.entityAnalyseFactory = factory;
@@ -280,6 +285,7 @@ public partial class DBTest
         var dbConfig = new DataBase
         {
             dbType = dbType,
+            dialectKey = dbType == DataBaseType.None ? null : dbType.ToString(),
             DBConnectStr = connectionString
         };
 

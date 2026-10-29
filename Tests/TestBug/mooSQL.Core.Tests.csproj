@@ -37,4 +37,9 @@
     <ProjectReference Include="..\..\generators\mooSQL.Pure.Generators.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <!-- DuckDB 已迁至 Provider；本项目引用 Ext.Core，避免与 Provider→Ext 程序集冲突，故排除 -->
+  <ItemGroup>
+    <Compile Remove="src\TestExt\Dialects\DuckDB\**" />
+  </ItemGroup>
+
 </Project>

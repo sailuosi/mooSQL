@@ -47,8 +47,10 @@ public class DBTestProviderTests
         DBTest.useCrateDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useCrateDBDialectOnly().config.dbType.Should().Be(DataBaseType.CrateDB);
 #if NET6_0_OR_GREATER
+#if MOOSQL_PROVIDER_DUCKDB
         DBTest.useDuckDBDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useDuckDBDialectOnly().config.dbType.Should().Be(DataBaseType.DuckDB);
+#endif
         DBTest.useClickHouseDialectOnly().config.DBConnectStr.Should().BeEmpty();
         DBTest.useClickHouseDialectOnly().config.dbType.Should().Be(DataBaseType.ClickHouse);
 #endif
@@ -105,7 +107,7 @@ public class DBTestProviderTests
 #if !NET451
         DBTest.useKingBaseDialectOnly().dialect.SupportsMerge().Should().BeTrue();
 #endif
-#if NET6_0_OR_GREATER
+#if MOOSQL_PROVIDER_DUCKDB
         DBTest.useDuckDBDialectOnly().dialect.SupportsMerge().Should().BeTrue();
 #endif
 

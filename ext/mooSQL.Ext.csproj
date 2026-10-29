@@ -69,7 +69,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.6" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.36" />
 		<PackageReference Include="System.Data.OleDb" Version="8.0.1" />
-		<PackageReference Include="DuckDB.NET.Data.Full" Version="1.4.4" />
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 		<PackageReference Include="Kdbndp_V9" Version="10.0.1.921" />
 	</ItemGroup>
@@ -88,7 +87,6 @@
 		<PackageReference Include="Npgsql" Version="8.0.9" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.36" />
 		<PackageReference Include="System.Data.OleDb" Version="10.0.3" />
-		<PackageReference Include="DuckDB.NET.Data.Full" Version="1.5.5" />
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -104,7 +102,6 @@
 		<PackageReference Include="Npgsql" Version="10.0.3" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.36" />
 		<PackageReference Include="System.Data.OleDb" Version="10.0.11" />
-		<PackageReference Include="DuckDB.NET.Data.Full" Version="1.5.5" />
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 		<PackageReference Include="Kdbndp_V9" Version="10.0.1.921" />
 		<PackageReference Include="HuaweiCloud.GaussDB.Driver" Version="8.0.1" />
@@ -122,6 +119,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="TestLinq" />
+    <InternalsVisibleTo Include="mooSQL.Provider.DuckDB" />
+    <InternalsVisibleTo Include="mooSQL.Provider.Aurora" />
+    <InternalsVisibleTo Include="mooSQL.Provider.CockroachDB" />
+    <InternalsVisibleTo Include="mooSQL.Provider.EDB" />
+    <InternalsVisibleTo Include="mooSQL.Provider.Turso" />
   </ItemGroup>
 
   <ItemGroup>
@@ -132,5 +134,8 @@
     <Compile Remove="**/artifacts/**" />
     <None Remove="**/artifacts/**" />
     <EmbeddedResource Remove="**/artifacts/**" />
+    <!-- DuckDB 已迁至 provides/DuckDB -->
+    <Compile Remove="src/provides/dialect/DuckDB/**" />
+    <None Remove="src/provides/dialect/DuckDB/**" />
   </ItemGroup>
 </Project>

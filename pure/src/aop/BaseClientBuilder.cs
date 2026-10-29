@@ -82,10 +82,16 @@ namespace mooSQL.data
                     client.entityAnalyseFactory.register(p);
                 }
             }
-            //超前注册的方言入库
+            //超前注册的方言入库（枚举通道）
             if (diadic != null) {
                 foreach (var dd in diadic) {
                     client.dialectFactory.useDialect(dd.Key,dd.Value);
+                }
+            }
+            //超前注册的方言入库（字符串通道）
+            if (diadicByKey != null) {
+                foreach (var dd in diadicByKey) {
+                    client.dialectFactory.useDialect(dd.Key, dd.Value);
                 }
             }
             //配置实体翻译器的应用
@@ -124,9 +130,11 @@ namespace mooSQL.data
             client.dialectFactory = dialectFactory;
             return this;
         }
-        private Dictionary<DataBaseType, Func<Dialect>> diadic= new Dictionary<DataBaseType, Func<Dialect>>(); 
+        private Dictionary<DataBaseType, Func<Dialect>> diadic= new Dictionary<DataBaseType, Func<Dialect>>();
+        private Dictionary<string, Func<Dialect>> diadicByKey =
+            new Dictionary<string, Func<Dialect>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>
-        /// 注册方言，注意！如果自定义工厂，必须先调用useDialectFactory,再调用本方法
+        /// 按枚举注册方言。注意：若自定义工厂，必须先调用 useDialectFactory，再调用本方法。
         /// </summary>
         /// <param name="dbType"></param>
         /// <param name="creator"></param>
@@ -134,6 +142,16 @@ namespace mooSQL.data
         public BaseClientBuilder useDialect(DataBaseType dbType, Func<Dialect> creator)
         {
             diadic[dbType] = creator;
+            return this;
+        }
+        /// <summary>
+        /// 按字符串键注册方言（双通道）。注意：若自定义工厂，必须先调用 useDialectFactory。
+        /// </summary>
+        public BaseClientBuilder useDialect(string dialectKey, Func<Dialect> creator)
+        {
+            if (string.IsNullOrWhiteSpace(dialectKey))
+                throw new ArgumentException("方言键不能为空。", nameof(dialectKey));
+            diadicByKey[dialectKey.Trim()] = creator;
             return this;
         }
         /// <summary>
