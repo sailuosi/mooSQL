@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using mooSQL.data.sync;
 
-namespace mooSQL.data.sync
+namespace mooSQL.data
 {
     /// <summary>单表同步任务（非泛型基类，便于 Host 枚举）。</summary>
     public abstract class SyncTableJob
@@ -56,7 +57,7 @@ namespace mooSQL.data.sync
         public Action<SQLBuilder>? OnTargetClear { get; set; }
 
         /// <summary>
-        /// 目标侧追加条件（MirrorKeys 扫目标键 / 删孤儿时用；空则复用 OnSourceQuery）。
+        /// 目标侧追加条件（MirrorKeys 扫目标键 / 删孤儿）；空则目标全表键扫（不复用 OnSourceQuery）。
         /// </summary>
         public Action<SQLBuilder>? OnTargetQuery { get; set; }
 
@@ -70,7 +71,11 @@ namespace mooSQL.data.sync
             return DataSyncPullMode.EntityByPk;
         }
 
-        /// <summary>执行本表同步（一轮内）。返回是否应中止整个 Start（Abort）。</summary>
+        /// <summary>
+        /// 执行本表同步（一轮内）。
+        /// 返回 true = 中止整个 Start（FailureAction.Abort 或批失败 Abort）；
+        /// 返回 false = 本表结束（成功或配置跳过），Host 继续后续表。
+        /// </summary>
         public abstract bool Execute(DataSyncHost host);
     }
 
@@ -118,7 +123,8 @@ namespace mooSQL.data.sync
                 case DataSyncMode.MirrorKeys:
                     return MirrorKeysRunner.Run(this, host);
                 default:
-                    host.AppendProgress("ERR " + typeof(TSrc).Name + ": unsupported mode " + mode);
+                    // 未知模式：跳过本表；仅当 Host FailureAction=Abort 时中止整轮
+                    host.AppendProgress("ERR " + typeof(TSrc).Name + ": unsupported mode " + mode + "（已跳过本表）");
                     return host.Options.FailureAction == DataSyncFailureAction.Abort;
             }
         }

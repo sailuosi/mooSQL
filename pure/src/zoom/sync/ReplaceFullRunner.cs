@@ -16,8 +16,9 @@ namespace mooSQL.data.sync
             var typeName = typeof(TSrc).Name;
             if (!host.Options.AllowDestructiveReplace)
             {
-                host.AppendProgress("ERR " + typeName + ": ReplaceFull 需要 AllowDestructiveReplace=true");
-                return true;
+                // 配置/闸门失败：跳过本表，不 Abort 整个 Host
+                host.AppendProgress("ERR " + typeName + ": ReplaceFull 需要 AllowDestructiveReplace=true（已跳过本表）");
+                return false;
             }
 
             try
@@ -31,11 +32,11 @@ namespace mooSQL.data.sync
 
                 var pull = job.ResolvePullMode();
                 if (!ClearTarget(job, host, dstDb, tableName, pull, typeName))
-                    return true;
+                    return false;
 
-                // 目标已空 → 水位 max 为 null → WatermarkAppend 即全量
+                // 忽略目标水位，按源全量拉（窗口清空后目标仍可能有残留 max）
                 if (pull == DataSyncPullMode.Watermark)
-                    return AppendOnlyRunner.WatermarkAppend(job, host, probePk: false);
+                    return AppendOnlyRunner.WatermarkAppend(job, host, probePk: false, ignoreWatermark: true);
                 return PageAppendRunner.Run(job, host, probePk: false);
             }
             catch (Exception ex)

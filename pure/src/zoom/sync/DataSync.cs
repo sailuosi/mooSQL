@@ -4,12 +4,11 @@
 ///////////////////////////////////////////////////////////
 
 using System;
-using mooSQL.data.sync;
 
 namespace mooSQL.data
 {
     /// <summary>
-    /// 库表数据同步入口。物理实现位于 <c>pure/src/zoom/sync</c>。
+    /// 库表数据同步入口（命名空间 <c>mooSQL.data</c>；物理目录 <c>pure/src/zoom/sync</c>）。
     /// </summary>
     public static class DataSync
     {

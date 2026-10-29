@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace mooSQL.data.sync
+namespace mooSQL.data
 {
     /// <summary>
     /// 数据同步宿主：仅 Start / Pause / Resume / Stop。
@@ -160,6 +160,7 @@ namespace mooSQL.data.sync
 
                     if (job.Execute(this))
                     {
+                        try { _runCts?.Cancel(); } catch { }
                         AppendProgress("ABORTED by FailureAction");
                         return false;
                     }
@@ -207,7 +208,10 @@ namespace mooSQL.data.sync
                                 return;
                             }
                             if (captured.Execute(this))
+                            {
                                 Interlocked.Exchange(ref abortFlag, 1);
+                                try { _runCts?.Cancel(); } catch { }
+                            }
                         }
                         finally
                         {

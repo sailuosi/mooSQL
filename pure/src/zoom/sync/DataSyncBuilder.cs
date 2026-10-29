@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooSQL.data.sync
+namespace mooSQL.data
 {
     /// <summary>链式配置；build() 得到 Host，配置期不执行同步。</summary>
     public sealed class DataSyncBuilder
@@ -149,18 +149,21 @@ namespace mooSQL.data.sync
             _job = job;
         }
 
+        /// <summary>源侧时序列（模式 1 水位拉源）。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> orderBy(string column)
         {
             _job.OrderByColumn = column;
             return this;
         }
 
+        /// <summary>目标水位列；空则同 orderBy。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> watermarkOnTarget(string column)
         {
             _job.WatermarkColumnOnTarget = column;
             return this;
         }
 
+        /// <summary>Upsert 用修改时间列；空则同 orderBy。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> modified(string column)
         {
             _job.ModifiedColumn = column;
@@ -174,42 +177,49 @@ namespace mooSQL.data.sync
             return this;
         }
 
+        /// <summary>本表行同步策略；空则用 Host 默认。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> mode(DataSyncMode mode)
         {
             _job.Mode = mode;
             return this;
         }
 
+        /// <summary>本表批/页大小；覆盖 Host 默认。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> batchSize(int size)
         {
             _job.BatchSize = size;
             return this;
         }
 
+        /// <summary>本表批失败策略；覆盖 Host 默认。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> failureAction(DataSyncFailureAction action)
         {
             _job.FailureAction = action;
             return this;
         }
 
+        /// <summary>本表源连接位；覆盖 Host 默认。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> sourcePosition(int position)
         {
             _job.SourcePosition = position;
             return this;
         }
 
+        /// <summary>本表目标连接位；覆盖 Host 默认。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> targetPosition(int position)
         {
             _job.TargetPosition = position;
             return this;
         }
 
+        /// <summary>自定义拉源 SQL（模式 2）；框架叠加翻页。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> fromSql(Action<SQLBuilder> build)
         {
             _job.FromSql = build;
             return this;
         }
 
+        /// <summary>源查询追加条件（模式 1/3）。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> onSourceQuery(Action<SQLBuilder> build)
         {
             _job.OnSourceQuery = build;
@@ -223,37 +233,45 @@ namespace mooSQL.data.sync
             return this;
         }
 
-        /// <summary>目标侧条件（MirrorKeys；空则复用 onSourceQuery）。</summary>
+        /// <summary>
+        /// 目标侧条件（MirrorKeys 扫删）。
+        /// 若已配 onSourceQuery 则必须同时配置本项，否则跳过本表以防误删。
+        /// </summary>
         public SyncTableJobConfigurator<TSrc, TDst> onTargetQuery(Action<SQLBuilder> build)
         {
             _job.OnTargetQuery = build;
             return this;
         }
 
+        /// <summary>行映射；异构必填，同构可省略（Identity）。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> map(Func<TSrc, TDst> map)
         {
             _job.Map = map;
             return this;
         }
 
+        /// <summary>批映射；与 map 二选一或并用时优先本项。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> mapBatch(Func<IReadOnlyList<TSrc>, IReadOnlyList<TDst>> mapBatch)
         {
             _job.MapBatch = mapBatch;
             return this;
         }
 
+        /// <summary>写入前对目标行赋值。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> onAssign(Action<TDst> assign)
         {
             _job.OnAssign = assign;
             return this;
         }
 
+        /// <summary>写入前对目标行赋值（带对应源行）。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> onAssign(Action<TDst, TSrc> assign)
         {
             _job.OnAssignWithSource = assign;
             return this;
         }
 
+        /// <summary>写入前对整批目标行赋值。</summary>
         public SyncTableJobConfigurator<TSrc, TDst> onAssignBatch(Action<IList<TDst>> assign)
         {
             _job.OnAssignBatch = assign;

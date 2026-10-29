@@ -19,15 +19,23 @@ namespace mooSQL.data.sync
             var typeName = typeof(TSrc).Name;
             if (!host.Options.AllowDestructiveReplace)
             {
-                host.AppendProgress("ERR " + typeName + ": MirrorKeys 需要 AllowDestructiveReplace=true");
-                return true;
+                host.AppendProgress("ERR " + typeName + ": MirrorKeys 需要 AllowDestructiveReplace=true（已跳过本表）");
+                return false;
             }
 
             // 模式 2 自定义 SQL 不做全表键镜像（范围不明）
             if (job.ResolvePullMode() == DataSyncPullMode.FromSql)
             {
-                host.AppendProgress("ERR " + typeName + ": MirrorKeys 不支持 fromSql；请用实体键集或水位拉源");
-                return true;
+                host.AppendProgress("ERR " + typeName + ": MirrorKeys 不支持 fromSql（已跳过本表）");
+                return false;
+            }
+
+            // 源有过滤、目标无过滤 → 拒绝，避免全表误删
+            if (job.OnSourceQuery != null && job.OnTargetQuery == null)
+            {
+                host.AppendProgress(
+                    "ERR " + typeName + ": MirrorKeys 已配 onSourceQuery 必须同时配 onTargetQuery（已跳过本表）");
+                return false;
             }
 
             try
@@ -54,7 +62,7 @@ namespace mooSQL.data.sync
                 var dstRepo = dstDb.useRepo<TDst>();
                 SyncJobHelpers.ApplyBulkOptions(dstRepo, host);
 
-                var targetFilter = job.OnTargetQuery ?? job.OnSourceQuery;
+                var targetFilter = job.OnTargetQuery;
                 var sourceKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 // —— 阶段 1：键集拉源，补齐缺失行，同时收集源键 ——

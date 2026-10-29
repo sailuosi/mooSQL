@@ -86,6 +86,15 @@ namespace mooSQL.data.sync
                     }
                     catch (Exception ex)
                     {
+                        // FromSql：SkipBatch 时页码+1 继续；水位/键集无批可推时结束本表
+                        if (pull == DataSyncPullMode.FromSql)
+                        {
+                            page++;
+                            if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/pull"))
+                                return true;
+                            SyncJobHelpers.DelayBatch(host);
+                            continue;
+                        }
                         return SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/pull");
                     }
 

@@ -4,7 +4,7 @@
 
 using System;
 
-namespace mooSQL.data.sync
+namespace mooSQL.data
 {
     /// <summary>DataSync Host 级选项。</summary>
     public sealed class DataSyncOptions

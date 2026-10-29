@@ -47,14 +47,22 @@ namespace mooSQL.data.sync
                 return new List<TDst>();
 
             List<TDst> mapped;
+            // 与源一一配对，避免 map 跳过 null 后 onAssign(dst,src) 索引错位
+            List<TSrc>? pairedSrc = null;
+
             if (job.MapBatch != null)
             {
                 var list = job.MapBatch(batch as IReadOnlyList<TSrc> ?? batch.ToList());
                 mapped = list == null ? new List<TDst>() : list.ToList();
+                // mapBatch 仅当条数一致时才允许带源 assign
+                if (job.OnAssignWithSource != null && mapped.Count == batch.Count)
+                    pairedSrc = batch as List<TSrc> ?? batch.ToList();
             }
             else
             {
                 mapped = new List<TDst>(batch.Count);
+                if (job.OnAssignWithSource != null)
+                    pairedSrc = new List<TSrc>(batch.Count);
                 var map = job.Map;
                 for (var i = 0; i < batch.Count; i++)
                 {
@@ -71,6 +79,7 @@ namespace mooSQL.data.sync
                     if (dst == null)
                         continue;
                     mapped.Add(dst);
+                    pairedSrc?.Add(src);
                 }
             }
 
@@ -83,8 +92,8 @@ namespace mooSQL.data.sync
                 {
                     var dst = mapped[i];
                     job.OnAssign?.Invoke(dst);
-                    if (job.OnAssignWithSource != null && i < batch.Count)
-                        job.OnAssignWithSource(dst, batch[i]);
+                    if (job.OnAssignWithSource != null && pairedSrc != null && i < pairedSrc.Count)
+                        job.OnAssignWithSource(dst, pairedSrc[i]);
                 }
             }
 
@@ -196,8 +205,20 @@ namespace mooSQL.data.sync
         public static void DelayBatch(DataSyncHost host)
         {
             var gap = host.Options.BatchInterval;
-            if (gap > TimeSpan.Zero)
-                System.Threading.Thread.Sleep(gap);
+            if (gap <= TimeSpan.Zero)
+                return;
+            // 切片等待，便于 Pause/Stop/Abort 打断
+            var until = DateTime.UtcNow + gap;
+            while (DateTime.UtcNow < until)
+            {
+                if (!host.WaitIfPausedOrThrow())
+                    return;
+                var left = until - DateTime.UtcNow;
+                if (left <= TimeSpan.Zero)
+                    break;
+                var slice = left.TotalMilliseconds > 50 ? 50 : (int)Math.Max(1, left.TotalMilliseconds);
+                System.Threading.Thread.Sleep(slice);
+            }
         }
 
         public static bool HandleBatchError(DataSyncHost host, SyncTableJob job, Exception ex, string context)
@@ -217,6 +238,7 @@ namespace mooSQL.data.sync
             Action<SQLBuilder>? extraWhere)
         {
             extraWhere?.Invoke(kit);
+            kit.whereIsNotNull(pkCol);
             if (afterPkValue != null && !(afterPkValue is DBNull))
                 kit.whereFormat("(" + pkCol + " > {0})", afterPkValue);
             if (kit.current == null || kit.current.orderPart == null || kit.current.orderPart.Count == 0)

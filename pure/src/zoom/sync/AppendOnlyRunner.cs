@@ -22,10 +22,12 @@ namespace mooSQL.data.sync
             return WatermarkAppend(job, host, probePk: true);
         }
 
+        /// <param name="ignoreWatermark">true 时不读目标 max，从源全量按序拉（ReplaceFull）。</param>
         internal static bool WatermarkAppend<TSrc, TDst>(
             SyncTableJob<TSrc, TDst> job,
             DataSyncHost host,
-            bool probePk)
+            bool probePk,
+            bool ignoreWatermark = false)
             where TSrc : class, new()
             where TDst : class, new()
         {
@@ -65,10 +67,14 @@ namespace mooSQL.data.sync
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);
 
                 var batchSize = SyncJobHelpers.EffectiveBatchSize(job, host);
-                var watermark = dstDb.useSQL()
-                    .select("max(" + wmCol + ")")
-                    .from(tableName)
-                    .queryScalar<DateTime?>();
+                DateTime? watermark = null;
+                if (!ignoreWatermark)
+                {
+                    watermark = dstDb.useSQL()
+                        .select("max(" + wmCol + ")")
+                        .from(tableName)
+                        .queryScalar<DateTime?>();
+                }
 
                 DateTime? cursorTime = watermark;
                 var cursorPk = string.Empty;
@@ -145,9 +151,9 @@ namespace mooSQL.data.sync
                                     pkValues.Add(pk);
                             }
 
-                            var existing = watermark == null && inserted == 0 && skipped == 0 && pulled == batch.Count
-                                ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                                : SyncJobHelpers.FindExistingPks(dstDb, tableName, pkColDst, pkPropDst, pkValues);
+                            // 始终探活：水位列全 NULL 时 max 也为 null，不可当作空表
+                            var existing = SyncJobHelpers.FindExistingPks(
+                                dstDb, tableName, pkColDst, pkPropDst, pkValues);
 
                             var toInsert = new List<TDst>(mapped.Count);
                             foreach (var row in mapped)
