@@ -23,26 +23,28 @@ namespace mooSQL.data.sync
             if (string.IsNullOrWhiteSpace(orderByColumn))
                 throw new ArgumentException("orderBy 列名不能为空", nameof(orderByColumn));
 
-            foreach (var prop in entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-            {
-                var col = prop.GetCustomAttribute<SooColumnAttribute>(inherit: true);
-                if (col == null)
-                    continue;
-
-                var dbName = string.IsNullOrWhiteSpace(col.Name) ? prop.Name : col.Name;
-                if (string.Equals(prop.Name, orderByColumn, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(dbName, orderByColumn, StringComparison.OrdinalIgnoreCase))
-                {
-                    return (prop, dbName);
-                }
-            }
+            var hit = FindColumn(entityType, orderByColumn);
+            if (hit.Prop != null)
+                return (hit.Prop, hit.DbColumn!);
 
             throw new InvalidOperationException(
                 "实体 " + entityType.Name + " 未找到 orderBy 列/属性: " + orderByColumn);
         }
 
-        public static (PropertyInfo Prop, string DbColumn) ResolvePrimaryKey(Type entityType)
+        /// <summary>
+        /// 解析主键。优先显式 <paramref name="keyColumn"/>，否则取实体 IsPrimaryKey。
+        /// </summary>
+        public static (PropertyInfo Prop, string DbColumn) ResolvePrimaryKey(Type entityType, string? keyColumn = null)
         {
+            if (!string.IsNullOrWhiteSpace(keyColumn))
+            {
+                var hit = FindColumn(entityType, keyColumn);
+                if (hit.Prop != null)
+                    return (hit.Prop, hit.DbColumn!);
+                throw new InvalidOperationException(
+                    "实体 " + entityType.Name + " 未找到 key 列/属性: " + keyColumn);
+            }
+
             foreach (var prop in entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 var col = prop.GetCustomAttribute<SooColumnAttribute>(inherit: true);
@@ -53,7 +55,22 @@ namespace mooSQL.data.sync
                 return (prop, dbName);
             }
 
-            throw new InvalidOperationException("实体 " + entityType.Name + " 未定义主键列");
+            throw new InvalidOperationException("实体 " + entityType.Name + " 未定义主键列（可 .key(...) 显式指定）");
+        }
+
+        static (PropertyInfo? Prop, string? DbColumn) FindColumn(Type entityType, string name)
+        {
+            foreach (var prop in entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                var col = prop.GetCustomAttribute<SooColumnAttribute>(inherit: true);
+                var dbName = col == null || string.IsNullOrWhiteSpace(col.Name) ? prop.Name : col.Name;
+                if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(dbName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (prop, dbName);
+                }
+            }
+            return (null, null);
         }
 
         public static void EnsureSafeIdent(string ident)

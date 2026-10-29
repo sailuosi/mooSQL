@@ -41,10 +41,10 @@ namespace mooSQL.data.sync
                 var dstType = typeof(TDst);
                 var tableName = SyncEntityMeta.ResolveTableName(dstType);
                 var (orderProp, orderCol) = SyncEntityMeta.ResolveOrderBy(srcType, job.OrderByColumn);
-                var (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(srcType);
+                var (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(srcType, job.KeyColumn);
                 var (pkPropDst, pkColDst) = typeof(TSrc) == typeof(TDst)
                     ? (pkPropSrc, pkColSrc)
-                    : SyncEntityMeta.ResolvePrimaryKey(dstType);
+                    : SyncEntityMeta.ResolvePrimaryKey(dstType, job.KeyColumn);
 
                 var wmCol = string.IsNullOrWhiteSpace(job.WatermarkColumnOnTarget)
                     ? orderCol

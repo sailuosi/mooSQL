@@ -205,5 +205,79 @@ namespace mooSQL.data.sync
             host.AppendProgress("ERR " + context + ": " + ex.Message);
             return Failure(job, host) == DataSyncFailureAction.Abort;
         }
+
+        /// <summary>
+        /// 键集翻页条件：orderBy pk，可选 pk &gt; afterValue。
+        /// </summary>
+        public static void ApplyKeysetPage(
+            SQLBuilder kit,
+            string pkCol,
+            object? afterPkValue,
+            int pageSize,
+            Action<SQLBuilder>? extraWhere)
+        {
+            extraWhere?.Invoke(kit);
+            if (afterPkValue != null && !(afterPkValue is DBNull))
+                kit.whereFormat("(" + pkCol + " > {0})", afterPkValue);
+            if (kit.current == null || kit.current.orderPart == null || kit.current.orderPart.Count == 0)
+                kit.orderBy(pkCol + " asc");
+            kit.top(pageSize);
+        }
+
+        /// <summary>从实体取主键值（typed，供键集游标）。</summary>
+        public static object? GetPkValue(PropertyInfo pkProp, object row)
+        {
+            if (row == null || pkProp == null)
+                return null;
+            return pkProp.GetValue(row);
+        }
+
+        public static string? PkToString(object? pk)
+        {
+            return pk?.ToString();
+        }
+
+        /// <summary>批量按主键删除目标行。</summary>
+        public static int DeleteByPkValues(
+            DBInstance targetDb,
+            string tableName,
+            string pkCol,
+            PropertyInfo pkProp,
+            List<string> pkValues)
+        {
+            if (pkValues == null || pkValues.Count == 0)
+                return 0;
+
+            var deleted = 0;
+            const int chunkSize = 500;
+            var isGuid = pkProp.PropertyType == typeof(Guid) || pkProp.PropertyType == typeof(Guid?);
+
+            for (var i = 0; i < pkValues.Count; i += chunkSize)
+            {
+                var chunk = pkValues.Skip(i).Take(chunkSize).ToList();
+                var kit = targetDb.useSQL().from(tableName);
+                if (isGuid)
+                {
+                    var guids = new List<Guid>();
+                    foreach (var s in chunk)
+                    {
+                        if (Guid.TryParse(s, out var g))
+                            guids.Add(g);
+                    }
+                    if (guids.Count == 0)
+                        continue;
+                    kit.whereInGuid(pkCol, guids);
+                }
+                else
+                {
+                    kit.whereIn(pkCol, chunk);
+                }
+                var n = kit.doDelete();
+                if (n > 0)
+                    deleted += n;
+            }
+
+            return deleted;
+        }
     }
 }

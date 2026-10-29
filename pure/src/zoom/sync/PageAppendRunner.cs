@@ -1,10 +1,11 @@
 ///////////////////////////////////////////////////////////
 //  PageAppendRunner.cs
-//  模式 2/3：翻页拉取 + Append（可探活）
+//  模式 2：offset 翻页；模式 3：主键键集翻页 + Append（可探活）
 ///////////////////////////////////////////////////////////
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace mooSQL.data.sync
 {
@@ -19,7 +20,7 @@ namespace mooSQL.data.sync
             {
                 var dstType = typeof(TDst);
                 var tableName = SyncEntityMeta.ResolveTableName(dstType);
-                var (pkPropDst, pkColDst) = SyncEntityMeta.ResolvePrimaryKey(dstType);
+                var (pkPropDst, pkColDst) = SyncEntityMeta.ResolvePrimaryKey(dstType, job.KeyColumn);
                 SyncEntityMeta.EnsureSafeIdent(tableName);
                 SyncEntityMeta.EnsureSafeIdent(pkColDst);
 
@@ -37,16 +38,17 @@ namespace mooSQL.data.sync
                 SyncJobHelpers.ApplyBulkOptions(dstRepo, host);
 
                 var pull = job.ResolvePullMode();
+                PropertyInfo? pkPropSrc = null;
                 string? pkColSrc = null;
                 if (pull == DataSyncPullMode.EntityByPk)
                 {
-                    var (pkPropSrc, pkCol) = SyncEntityMeta.ResolvePrimaryKey(typeof(TSrc));
-                    pkColSrc = pkCol;
+                    (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(typeof(TSrc), job.KeyColumn);
                     SyncEntityMeta.EnsureSafeIdent(pkColSrc);
                 }
 
                 long pulled = 0, inserted = 0, skipped = 0;
                 var page = 1;
+                object? keyCursor = null;
 
                 while (true)
                 {
@@ -55,6 +57,7 @@ namespace mooSQL.data.sync
 
                     List<TSrc> batch;
                     var pageNum = page;
+                    var cursorSnap = keyCursor;
                     try
                     {
                         if (pull == DataSyncPullMode.FromSql)
@@ -68,22 +71,27 @@ namespace mooSQL.data.sync
                         }
                         else
                         {
+                            // 模式 3：键集翻页（pk > cursor），避免大偏移
                             batch = srcRepo.GetList(kit =>
                             {
-                                job.OnSourceQuery?.Invoke(kit);
-                                if (kit.current == null || kit.current.orderPart == null || kit.current.orderPart.Count == 0)
-                                    kit.orderBy(pkColSrc + " asc");
-                                kit.setPage(pageSize, pageNum);
+                                SyncJobHelpers.ApplyKeysetPage(
+                                    kit, pkColSrc!, cursorSnap, pageSize, job.OnSourceQuery);
                             });
                         }
                     }
                     catch (Exception ex)
                     {
-                        page++;
-                        if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/page" + pageNum))
-                            return true;
-                        SyncJobHelpers.DelayBatch(host);
-                        continue;
+                        // FromSql 可页码+1；键集无批则无法安全推进，结束本表
+                        if (pull == DataSyncPullMode.FromSql)
+                        {
+                            page++;
+                            if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/page" + pageNum))
+                                return true;
+                            SyncJobHelpers.DelayBatch(host);
+                            continue;
+                        }
+
+                        return SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/keyset");
                     }
 
                     if (batch == null || batch.Count == 0)
@@ -98,7 +106,7 @@ namespace mooSQL.data.sync
                     }
                     catch (Exception ex)
                     {
-                        page++;
+                        AdvancePageOrKeyset(pull, batch, pkPropSrc, ref page, ref keyCursor);
                         if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/map"))
                             return true;
                         SyncJobHelpers.DelayBatch(host);
@@ -144,7 +152,7 @@ namespace mooSQL.data.sync
                     }
                     catch (Exception ex)
                     {
-                        page++;
+                        AdvancePageOrKeyset(pull, batch, pkPropSrc, ref page, ref keyCursor);
                         if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/write"))
                             return true;
                         SyncJobHelpers.DelayBatch(host);
@@ -154,14 +162,15 @@ namespace mooSQL.data.sync
                     if (batch.Count < pageSize)
                         break;
 
-                    page++;
+                    AdvancePageOrKeyset(pull, batch, pkPropSrc, ref page, ref keyCursor);
                     SyncJobHelpers.DelayBatch(host);
                 }
 
                 host.AppendProgress(
                     "OK " + typeName + "/" + tableName
                     + ": pulled=" + pulled + ", inserted=" + inserted
-                    + ", skipped=" + skipped + ", pages~=" + page);
+                    + ", skipped=" + skipped
+                    + (pull == DataSyncPullMode.EntityByPk ? ", keyset" : ", pages~=" + page));
                 return false;
             }
             catch (Exception ex)
@@ -170,5 +179,21 @@ namespace mooSQL.data.sync
             }
         }
 
+        static void AdvancePageOrKeyset<TSrc>(
+            DataSyncPullMode pull,
+            IList<TSrc> batch,
+            PropertyInfo? pkPropSrc,
+            ref int page,
+            ref object? keyCursor)
+        {
+            if (pull == DataSyncPullMode.FromSql)
+            {
+                page++;
+                return;
+            }
+            if (batch == null || batch.Count == 0 || pkPropSrc == null)
+                return;
+            keyCursor = SyncJobHelpers.GetPkValue(pkPropSrc, batch[batch.Count - 1]!);
+        }
     }
 }

@@ -25,6 +25,9 @@ namespace mooSQL.data.sync
         /// <summary>Upsert 用修改时间列。</summary>
         public string? ModifiedColumn { get; set; }
 
+        /// <summary>显式主键列/属性（覆盖实体 IsPrimaryKey）。</summary>
+        public string? KeyColumn { get; set; }
+
         /// <summary>行策略；空则用 Host 默认。</summary>
         public DataSyncMode? Mode { get; set; }
 
@@ -51,6 +54,11 @@ namespace mooSQL.data.sync
         /// 已设 from 表名；调用方补 where 后由框架 doDelete。
         /// </summary>
         public Action<SQLBuilder>? OnTargetClear { get; set; }
+
+        /// <summary>
+        /// 目标侧追加条件（MirrorKeys 扫目标键 / 删孤儿时用；空则复用 OnSourceQuery）。
+        /// </summary>
+        public Action<SQLBuilder>? OnTargetQuery { get; set; }
 
         /// <summary>解析拉源模式。</summary>
         public DataSyncPullMode ResolvePullMode()
@@ -107,6 +115,8 @@ namespace mooSQL.data.sync
                     return UpsertByModifiedRunner.Run(this, host);
                 case DataSyncMode.ReplaceFull:
                     return ReplaceFullRunner.Run(this, host);
+                case DataSyncMode.MirrorKeys:
+                    return MirrorKeysRunner.Run(this, host);
                 default:
                     host.AppendProgress("ERR " + typeof(TSrc).Name + ": unsupported mode " + mode);
                     return host.Options.FailureAction == DataSyncFailureAction.Abort;

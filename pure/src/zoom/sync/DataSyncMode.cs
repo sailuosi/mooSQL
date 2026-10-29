@@ -20,7 +20,12 @@ namespace mooSQL.data
         UpsertByModified = 2,
 
         /// <summary>先清空目标范围再全量 Bulk（需破坏性闸门）。</summary>
-        ReplaceFull = 3
+        ReplaceFull = 3,
+
+        /// <summary>
+        /// 键镜像：先按源补齐目标缺失行，再删除目标中源不存在的主键（需破坏性闸门）。
+        /// </summary>
+        MirrorKeys = 4
     }
 
     /// <summary>批失败时的行为。</summary>

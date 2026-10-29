@@ -21,10 +21,10 @@ namespace mooSQL.data.sync
                 var srcType = typeof(TSrc);
                 var dstType = typeof(TDst);
                 var tableName = SyncEntityMeta.ResolveTableName(dstType);
-                var (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(srcType);
+                var (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(srcType, job.KeyColumn);
                 var (pkPropDst, pkColDst) = typeof(TSrc) == typeof(TDst)
                     ? (pkPropSrc, pkColSrc)
-                    : SyncEntityMeta.ResolvePrimaryKey(dstType);
+                    : SyncEntityMeta.ResolvePrimaryKey(dstType, job.KeyColumn);
 
                 SyncEntityMeta.EnsureSafeIdent(pkColDst);
                 SyncEntityMeta.EnsureSafeIdent(tableName);
@@ -71,6 +71,7 @@ namespace mooSQL.data.sync
 
                 long pulled = 0, inserted = 0, updated = 0, skipped = 0;
                 var page = 1;
+                object? keyCursor = null;
 
                 while (true)
                 {
@@ -80,8 +81,8 @@ namespace mooSQL.data.sync
                     List<TSrc> batch;
                     try
                     {
-                        batch = PullBatch(job, host, srcDb, srcRepo, pull, orderCol ?? string.Empty, pkColSrc,
-                            cursorTime, cursorPk, batchSize, page);
+                        batch = PullBatch(job, srcDb, srcRepo, pull, orderCol ?? string.Empty, pkColSrc,
+                            cursorTime, cursorPk, keyCursor, batchSize, page);
                     }
                     catch (Exception ex)
                     {
@@ -99,7 +100,7 @@ namespace mooSQL.data.sync
                     }
                     catch (Exception ex)
                     {
-                        AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page);
+                        AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page, ref keyCursor);
                         if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/map"))
                             return true;
                         SyncJobHelpers.DelayBatch(host);
@@ -157,14 +158,14 @@ namespace mooSQL.data.sync
                     }
                     catch (Exception ex)
                     {
-                        AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page);
+                        AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page, ref keyCursor);
                         if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/upsert"))
                             return true;
                         SyncJobHelpers.DelayBatch(host);
                         continue;
                     }
 
-                    AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page);
+                    AdvanceAfterBatch(pull, batch, orderProp, pkPropSrc, ref cursorTime, ref cursorPk, ref page, ref keyCursor);
                     if (batch.Count < batchSize)
                         break;
                     SyncJobHelpers.DelayBatch(host);
@@ -184,7 +185,6 @@ namespace mooSQL.data.sync
 
         static List<TSrc> PullBatch<TSrc, TDst>(
             SyncTableJob<TSrc, TDst> job,
-            DataSyncHost host,
             DBInstance srcDb,
             SooRepository<TSrc> srcRepo,
             DataSyncPullMode pull,
@@ -192,6 +192,7 @@ namespace mooSQL.data.sync
             string pkColSrc,
             DateTime? cursorTime,
             string cursorPk,
+            object? keyCursor,
             int batchSize,
             int page)
             where TSrc : class, new()
@@ -209,12 +210,10 @@ namespace mooSQL.data.sync
 
             if (pull == DataSyncPullMode.EntityByPk)
             {
+                var after = keyCursor;
                 return srcRepo.GetList(kit =>
                 {
-                    job.OnSourceQuery?.Invoke(kit);
-                    if (kit.current == null || kit.current.orderPart == null || kit.current.orderPart.Count == 0)
-                        kit.orderBy(pkColSrc + " asc");
-                    kit.setPage(batchSize, page);
+                    SyncJobHelpers.ApplyKeysetPage(kit, pkColSrc, after, batchSize, job.OnSourceQuery);
                 });
             }
 
@@ -244,7 +243,8 @@ namespace mooSQL.data.sync
             PropertyInfo pkProp,
             ref DateTime? cursorTime,
             ref string cursorPk,
-            ref int page)
+            ref int page,
+            ref object? keyCursor)
         {
             if (pull == DataSyncPullMode.Watermark)
             {
@@ -253,6 +253,12 @@ namespace mooSQL.data.sync
                 var last = batch[batch.Count - 1];
                 cursorTime = orderProp.GetValue(last) as DateTime?;
                 cursorPk = pkProp.GetValue(last)?.ToString() ?? string.Empty;
+            }
+            else if (pull == DataSyncPullMode.EntityByPk)
+            {
+                if (batch == null || batch.Count == 0 || pkProp == null)
+                    return;
+                keyCursor = SyncJobHelpers.GetPkValue(pkProp, batch[batch.Count - 1]!);
             }
             else
             {

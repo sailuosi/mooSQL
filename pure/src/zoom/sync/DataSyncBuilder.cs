@@ -167,6 +167,13 @@ namespace mooSQL.data.sync
             return this;
         }
 
+        /// <summary>显式主键列/属性名（覆盖实体主键标注）。</summary>
+        public SyncTableJobConfigurator<TSrc, TDst> key(string column)
+        {
+            _job.KeyColumn = column;
+            return this;
+        }
+
         public SyncTableJobConfigurator<TSrc, TDst> mode(DataSyncMode mode)
         {
             _job.Mode = mode;
@@ -213,6 +220,13 @@ namespace mooSQL.data.sync
         public SyncTableJobConfigurator<TSrc, TDst> onTargetClear(Action<SQLBuilder> build)
         {
             _job.OnTargetClear = build;
+            return this;
+        }
+
+        /// <summary>目标侧条件（MirrorKeys；空则复用 onSourceQuery）。</summary>
+        public SyncTableJobConfigurator<TSrc, TDst> onTargetQuery(Action<SQLBuilder> build)
+        {
+            _job.OnTargetQuery = build;
             return this;
         }
 
