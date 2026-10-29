@@ -1,20 +1,23 @@
 # DuckDB 方言适配
 
 > 面向 **使用者**（如何配置与编写查询）与 **开发人员**（方言包结构、扩展点、TFM/驱动约定）。  
-> 关联代码：`ext/src/provides/dialect/DuckDB/`、`DataBaseType.DuckDB`、`DialectFactory`；冒烟：`Tests/TestBug/src/TestExt/DuckDBDialectSmokeTests.cs`。
+> 关联代码：`provides/DuckDB/`（`mooSQL.Provider.DuckDB`）、`DataBaseType.DuckDB`、`DialectKeys.DuckDB`；  
+> **不再**由 `ext` 的 `DialectFactory` 默认注册。冒烟 / 单测：`provides/DuckDB/tests`、Demo：`demos/ProviderDemo`。
 
 ---
 
 ## 1. 概述
 
-mooSQL 通过方言层接入 **DuckDB**（嵌入式分析库）。应用侧仍使用既有 **SQLBuilder / SQLClip / Repository / LINQ**，由 `DataBaseType.DuckDB` 选择 `DuckDBDialect` 完成 SQL 形态与 ADO 驱动差异。
+mooSQL 通过方言层接入 **DuckDB**（嵌入式分析库）。方言实现已迁至 **独立 Provider 包**；应用侧仍使用既有 **SQLBuilder / SQLClip / Repository / LINQ**，引用包并 `UseDuckDB()` 后，由 `DataBaseType.DuckDB` / `dialectKey` 选择 `DuckDBDialect`。
 
 | 项 | 说明 |
 |----|------|
-| 枚举 | `DataBaseType.DuckDB = 18` |
-| 支持 TFM | **net6.0 / net8.0 / net10.0**（net451 / net462 不引用驱动、不编译方言） |
+| 枚举 | `DataBaseType.DuckDB = 18`；字符串键 `DialectKeys.DuckDB` |
+| 包 | `mooSQL.Provider.DuckDB`（依赖 `mooSQL.Ext`） |
+| 注册 | **显式** `builder.UseDuckDB()` / `factory.UseDuckDB()`（模型 1） |
+| 支持 TFM | **net6.0 / net8.0 / net10.0** |
 | ADO 包 | `DuckDB.NET.Data.Full`（自带 native） |
-| 包版本 | net6 → **1.4.4**；net8 / net10 → **1.5.5**（按 TFM 分 ItemGroup，与 Npgsql/Sqlite 一致） |
+| 包版本 | net6 → **1.4.4**；net8 / net10 → **1.5.5** |
 | SQL 风格 | 偏 PostgreSQL：`"ident"`、`$name` 参数、`LIMIT/OFFSET`、SEQUENCE |
 | 命名空间 | 方言类型统一 `mooSQL.data` |
 
@@ -25,23 +28,23 @@ mooSQL 通过方言层接入 **DuckDB**（嵌入式分析库）。应用侧仍�
 ### 2.1 配置连接
 
 ```csharp
+using mooSQL.config;
 using mooSQL.data;
 
-var client = new MooClient();
-client.dialectFactory = new DialectFactory(); // Ext 默认工厂已注册 DuckDB
+var cash = new DBClientBuilder()
+    .UseDuckDB() // 必须：DialectFactory 默认不再注册 DuckDB
+    .useDataBase(new List<DBPosition>
+    {
+        new DBPosition
+        {
+            Position = 0,
+            DbType = "DuckDB",
+            ConnectString = @"Data Source=D:\data\app.duckdb"
+        }
+    })
+    .doBuild();
 
-var dbConfig = new DataBase
-{
-    dbType = DataBaseType.DuckDB,
-    // 推荐文件库；多语句 / 多连接需共享同一文件
-    DBConnectStr = @"Data Source=D:\data\app.duckdb"
-};
-
-var db = new DBInstance { config = dbConfig, client = client };
-db.dialect = client.dialectFactory.getDialect(dbConfig);
-db.dialect.dbInstance = db;
-db.dialect.db = dbConfig;
-db.cmd = new CmdExecutor(db);
+var db = cash.getInstance(0);
 ```
 
 测试辅助（仓库内）：
@@ -155,41 +158,26 @@ db.ExeNonQuery(exportSql, null);
 ### 3.1 模块位置
 
 ```
-ext/src/provides/dialect/DuckDB/
-├── DuckDBDialect.cs              # ADO 工厂、参数、Bulk、版本表
-├── DuckDBExpress.cs              # SQLExpression：DML/DDL/日期/字符串
-├── DuckDBSentence.cs             # 元数据 SQL、COPY 辅助、断线启发式
-├── DuckDBMappingPanel.cs         # CLR → DuckDB 类型
-├── DuckDBSQLFunction.cs          # SooSQLFunction
-├── DuckDBClauseTranslator.cs     # 对象名翻译
-├── ado/DuckDBDataAdapter.cs      # 查询 Fill
-├── entity/DuckDBBulkCopyee.cs    # Appender 批量
-└── Translation/DuckDBMemberTranslator.cs  # Ext LINQ DatePart/DateAdd
+provides/DuckDB/
+├── mooSQL.Provider.DuckDB.csproj
+├── src/
+│   ├── DuckDBProviderExtensions.cs   # UseDuckDB()
+│   ├── DuckDBDialect.cs              # ADO、参数、Bulk、版本表
+│   ├── DuckDBExpress.cs / DuckDBSentence.cs / …
+│   ├── ado/ · entity/ · Translation/
+│   └── …
+└── tests/
 ```
 
-全部类型命名空间：**`mooSQL.data`**（与 Dialect/Express 一致，不使用 `linq.DataProvider.*`）。
+全部类型命名空间：**`mooSQL.data`**。`ext/.../DuckDB/**` 仅历史残留（已 `Compile Remove`），以 `provides/DuckDB` 为准。
 
-### 3.2 注册与条件编译
+### 3.2 注册（模型 1）
 
-[`DialectFactory`](../../../ext/src/provides/DialectFactory.cs)：
-
-```csharp
-#if NET6_0_OR_GREATER
-this.useDialect(DataBaseType.DuckDB, () => new DuckDBDialect());
-#endif
-```
-
-方言源文件整体 `#if NET6_0_OR_GREATER`，保证 net451/net462 无 DuckDB 包也能编译 Ext。
-
-[`MemberTranslatorResolver`](../../../ext/src/linq/translator/MemberTranslatorResolver.cs)：
-
-```csharp
-nameof(DuckDBDialect) => new DuckDBMemberTranslator(),
-```
+`ext` 的 `DialectFactory` **不再**默认注册 DuckDB。见 `DuckDBProviderExtensions.UseDuckDB()`（`BaseClientBuilder` / `IDialectFactory`），双通道写入 `DataBaseType.DuckDB` 与 `DialectKeys.DuckDB`。
 
 ### 3.3 包引用约定
 
-[`mooSQL.Ext.csproj`](../../../ext/mooSQL.Ext.csproj) / [`mooSQL.Ext.Core.csproj`](../../../ext/mooSQL.Ext.Core.csproj) 按 TFM 分 ItemGroup：
+[`mooSQL.Provider.DuckDB.csproj`](../../../../provides/DuckDB/mooSQL.Provider.DuckDB.csproj) 按 TFM 分 ItemGroup（**不在** Ext csproj）：
 
 ```xml
 <!-- net6.0 -->
@@ -252,7 +240,8 @@ dotnet test Tests/TestBug/mooSQL.Tests.csproj -f net6.0 --filter "FullyQualified
 ```mermaid
 flowchart TB
   App[SQLBuilder / Repo / LINQ]
-  Factory[DialectFactory]
+  Use[UseDuckDB]
+  Factory[IDialectFactory]
   Dia[DuckDBDialect]
   Express[DuckDBExpress]
   Sent[DuckDBSentence]
@@ -261,7 +250,7 @@ flowchart TB
   ADO[DuckDBConnection / Command]
   Native[duckdb native via Full]
 
-  App --> Factory --> Dia
+  App --> Use --> Factory --> Dia
   Dia --> Express
   Dia --> Sent
   Dia --> Map
@@ -273,16 +262,17 @@ flowchart TB
 
 ## 5. 验收标准（适配完成时）
 
-1. `dbType=DuckDB` 时工厂返回 `DuckDBDialect`（net6/net8/net10）。  
-2. 文件库上完成 CRUD + 分页；SQL 含 `LIMIT`/`OFFSET`、参数为 `$...`。  
-3. net451/net462 构建无 DuckDB 包、无编译错误。  
-4. csproj：net6=1.4.4，net8/net10=1.5.5；冒烟双 TFM 通过。  
-5. README / skill「支持的数据库」已列出 DuckDB 及驱动版本说明。
+1. 引用 Provider 并 `UseDuckDB()` 后，`dbType=DuckDB` / `dialectKey=DuckDB` 解析为 `DuckDBDialect`（net6/net8/net10）。  
+2. **未** `UseDuckDB` 时，默认 `DialectFactory` 抛「尚未支持」。  
+3. 文件库 / `:memory:` 完成 CRUD + 分页；SQL 含 `LIMIT`/`OFFSET`、参数为 `$...`。  
+4. Ext 构建无 DuckDB 包依赖；Provider csproj：net6=1.4.4，net8/net10=1.5.5。  
+5. 支持清单 / 用户文档已标明 DuckDB 属 provides 显式注册。  
 
 ---
 
 ## 6. 相关链接
 
 - 驱动文档：[duckdb.net](https://duckdb.net)  
-- 方言能力矩阵：[`ext/src/linq/core/Dialect-Capability-Matrix.md`](../../../ext/src/linq/core/Dialect-Capability-Matrix.md)  
-- 产品说明：仓库根目录 [README.md](../../../README.md)「Supported databases / 支持的数据库」
+- 支持清单：[数据库支持清单.md](数据库支持清单.md) §4.2  
+- Provider 说明：[`provides/README.md`](../../../../provides/README.md)  
+- 产品说明：仓库根目录 [README.md](../../../../README.md)「Supported databases / 支持的数据库」

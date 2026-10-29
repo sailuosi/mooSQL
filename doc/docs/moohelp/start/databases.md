@@ -19,28 +19,24 @@ mooSQL 通过 **方言（Dialect）** 抹平各库在 SQL 形态、参数、Bulk
 自 v8.2 起，同源协议产品收敛为两大 **Family**，其余为独立方言。
 
 ```
-DialectFactory
-  ├─ MySQL Family（MySqlFamilyDialect + MySqlConnector）
-  │    MySQL / MariaDB / TiDB / OceanBase(MySQL 模式)
-  │    PolarDB for MySQL → 复用 MySQL（无独立枚举）
-  │
-  ├─ PostgreSQL Family（PgFamilyDialect）
-  │    PostgreSQL / CrateDB / openGauss / GaussDB / 人大金仓 R3·R6
-  │    PolarDB for PostgreSQL → 复用 PostgreSQL
-  │
-  └─ 独立方言
-       SQL Server / Oracle / 达梦 / SQLite / DuckDB / ClickHouse
-       TDengine(Taos) / SonnetDB / GBase8a / Oscar
+DialectFactory（ext 默认）
+  ├─ MySQL Family：MySQL / MariaDB / TiDB / OceanBase(MySQL) / PolarDBMySQL
+  ├─ PostgreSQL Family：PostgreSQL / CrateDB / openGauss / GaussDB / 金仓 R3·R6 / PolarDBPostgreSQL
+  └─ 独立：MSSQL / Oracle / 达梦 / SQLite / ClickHouse / Taos / SonnetDB / GBase8a / Oscar / Access·JetSQL
+
+provides/*（显式 UseXxx，不进默认工厂）
+  DuckDB / Aurora(MySQL·PG) / CockroachDB / EDB / Turso
 ```
 
 | 分类 | `DataBaseType`（配置 `DbType`） | 说明 |
 |------|--------------------------------|------|
-| MySQL Family | `MySQL`、`MariaDB`、`TiDB`、`OceanBase` | PolarDB-MySQL 写 `MySQL` |
-| PostgreSQL Family | `PostgreSQL`、`CrateDB`、`OpenGauss`、`GaussDB`、`KingBaseR3`、`KingBaseR6` | PolarDB-PG 写 `PostgreSQL` |
-| 独立 | `MSSQL`、`Oracle`、`DM`、`SQLite`、`DuckDB`、`ClickHouse`、`Taos`、`SonnetDB`、`GBase8a`、`Oscar` | 各自方言类 |
-| 未交付（勿当已支持） | `Access`、`DB2`、`Informix`、`OceanBaseOracle`、`UX` 等 | 枚举占位或未注册工厂 |
+| MySQL Family | `MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`PolarDBMySQL` | 新项目 PolarDB 请用 `PolarDBMySQL` |
+| PostgreSQL Family | `PostgreSQL`、`CrateDB`、`OpenGauss`、`GaussDB`、`KingBaseR3`/`R6`、`PolarDBPostgreSQL` | — |
+| 独立（ext） | `MSSQL`、`Oracle`、`DM`、`SQLite`、`ClickHouse`、`Taos`、`SonnetDB`、`GBase8a`、`Oscar`、`Access`/`JetSQL` | — |
+| Provider（须 `UseXxx`） | `DuckDB`、`AuroraMySQL`/`AuroraPostgreSQL`、`CockroachDB`、`EDB`、`Turso` | 见仓库 `provides/` |
+| 枚举占位（勿当已支持） | `Firebird`、`SapHana`、`Doris`、`StarRocks`、`YugabyteDB`、`DB2`、`UX`… | 身份齐全；无方言则不可连 |
 
-字符串识别不区分大小写，部分支持中文别名（如 `玛丽亚`→MariaDB、`钛DB`→TiDB），详见 `DataBase.setDBtype`。
+**双通道**：除枚举外可用 `DataBase.dialectKey` / `DialectKeys.*`（如 `"CRDB"`）。字符串识别不区分大小写，部分支持中文别名（`玛丽亚`、`钛DB`、`瀚高` 等），详见 `DataBase.setDBtype`。
 
 ---
 
@@ -71,7 +67,7 @@ DialectFactory
 ```
 
 ```csharp
-client.dialectFactory = new DialectFactory(); // Ext 默认已注册已支持方言
+client.dialectFactory = new DialectFactory(); // Ext 默认已注册常见方言
 
 var db = new DataBase()
     .setDBType(DataBaseType.PostgreSQL)
@@ -79,9 +75,16 @@ var db = new DataBase()
     .setNameCase(NameCaseMode.ToLower)   // 可选；None = 方言默认
     .setNameQuote(NameQuoteMode.IfNeeded)
     .setEnumConvert(EnumParaConvert.ToInt);
+
+// 少见库示例（需引用对应 Provider 包）
+var cash = new DBClientBuilder()
+    .UseDuckDB()
+    .UseAurora()
+    .useDataBase(positions)
+    .doBuild();
 ```
 
-完整属性表见 [初始化配置](/SQL/basis/initconfig)。
+完整属性表见 [初始化配置](/SQL/basis/initconfig)。设计侧清单见仓库 `doc/design/features/方言/数据库支持清单.md`。
 
 ### 2.2 与库行为强相关的连接项
 
@@ -129,7 +132,7 @@ var db = new DataBase()
 | Oracle | Oracle.ManagedDataAccess(.Core) | — |
 | 达梦 | DM.DmProvider | 全 TFM |
 | SQLite | System.Data.SQLite / Microsoft.Data.Sqlite | 按 TFM |
-| DuckDB | DuckDB.NET.Data.Full | **仅 net6+** |
+| DuckDB | DuckDB.NET.Data.Full（**Provider 包**） | **仅 net6+**；须 `UseDuckDB()` |
 | ClickHouse | ClickHouse.Driver | **仅 net6+** |
 | SonnetDB | SonnetDB 3.1.0 | **仅 net10** |
 | Oscar | Oscar.Data.SqlClient | — |
@@ -157,7 +160,7 @@ var db = new DataBase()
 | Oracle | 19c / 23ai / 26ai | 11g+ | 12c+ FETCH |
 | 达梦 | DM8 | DM7/DM8 | — |
 | SQLite | 3.40+ | 3.0+ | 窗口函数 3.24+ |
-| DuckDB | 1.4 / 1.5 | net6+ | — |
+| DuckDB | 1.4 / 1.5 | net6+ | Provider：`UseDuckDB()` |
 | ClickHouse | 24.8 / 26.x | net6+ | — |
 | TDengine | 3.0 / 3.4 | 2.0+ | — |
 | SonnetDB | 3.1 | 3.0+ | 仅 net10 |
@@ -235,14 +238,15 @@ var db = new DataBase()
 
 | 场景 | 建议 |
 |------|------|
-| 新项目 MySQL 兼容库 | 真 MariaDB → `MariaDB`；TiDB → `TiDB`；云 PolarDB-MySQL → `MySQL` |
-| PostgreSQL 及国产 PG 系 | 优先正确 `DbType`；核对 `NameCase`/`NameQuote` 与库内对象大小写 |
-| 嵌入式 / 分析 | SQLite 全 TFM；DuckDB / ClickHouse 需 net6+ |
+| 新项目 MySQL 兼容库 | 真 MariaDB → `MariaDB`；TiDB → `TiDB`；PolarDB → `PolarDBMySQL`；Aurora → `AuroraMySQL` + Provider |
+| PostgreSQL 及国产 PG 系 | 优先正确 `DbType`（含 `PolarDBPostgreSQL`）；核对 `NameCase`/`NameQuote` |
+| 嵌入式 / 分析 | SQLite 全 TFM；ClickHouse net6+；**DuckDB** 需 net6+ 且 `UseDuckDB()` |
 | 国产集中式 | 达梦 `DM`；金仓 `KingBaseR3`/`KingBaseR6`（net462+） |
+| 少见 / 国外 | Cockroach / EDB / Turso → 对应 `provides` 包 + `UseXxx()` |
 | 多库同一实体 | 映射名可统一 PascalCase，靠各连接的 `NameCase`/`NameQuote` 对齐物理名 |
 
 ---
 
 ## 10. 后续候选（非承诺）
 
-在 Family 上继续薄方言的候选（设计文档阶段 E）：Doris / StarRocks（MySQL wire）、Cockroach / Yugabyte（PG Family）等。不纳入当前「已支持」清单。
+枚举已预留 Doris / StarRocks / Yugabyte / Firebird 等身份；方言需按需做 Provider，不纳入当前「已支持」清单。详见设计侧 `数据库支持清单.md` §6。

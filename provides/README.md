@@ -38,3 +38,5 @@ var cash = new DBClientBuilder()
 ```
 
 演示程序：`demos/ProviderDemo`。
+
+设计文档：[数据库支持清单.md](../doc/design/features/方言/数据库支持清单.md)（§4.2 Provider、§5 双通道、§6 枚举分层）。

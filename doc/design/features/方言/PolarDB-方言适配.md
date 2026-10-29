@@ -1,8 +1,9 @@
 # PolarDB 方言适配说明
 
-> 面向 **使用者**（如何用现有 MySQL 方言连接 PolarDB）与 **开发人员**（是否立方言、兼容范围结论）。  
-> **结论先行**：在 mooSQL 覆盖的核心 DML/DDL 范围内，**PolarDB for MySQL 与 MySQL 可视为一致，当前不单独设立 `DataBaseType` / 方言类**；请使用 `DataBaseType.MySQL` + MySqlConnector。  
-> 对照实现：[`MySQLExpress`](../../ext/src/provides/dialect/MySQL/MySQLExpress.cs) / [`MySQLSentence`](../../ext/src/provides/dialect/MySQL/MySQLSentence.cs)；同类「云 MySQL 薄封装」先例：OceanBase → [`OBMySQLExpress`](../../ext/src/provides/dialect/OBMySQL/OBMySQLExpress.cs)。
+> 面向 **使用者**（如何连接 PolarDB）与 **开发人员**（枚举 / 方言复用结论）。  
+> **结论**：核心 DML/DDL 范围内 PolarDB for MySQL ≈ MySQL、PolarDB for PostgreSQL ≈ PostgreSQL；**不单独实现方言类**，复用 `MySQLDialect` / `NpgsqlDialect`。  
+> **枚举**：已提供独立身份 `PolarDBMySQL` / `PolarDBPostgreSQL`（`DialectFactory` 默认注册到上述方言）；仍兼容旧写法 `MySQL` / `PostgreSQL`。  
+> 对照：[`MySQLExpress`](../../../../ext/src/provides/dialect/MySQL/MySQLExpress.cs)；清单：[数据库支持清单.md](数据库支持清单.md)。
 
 ---
 
@@ -12,19 +13,19 @@
 
 | 产品线 | 协议 / SQL | mooSQL 现状 |
 |--------|------------|-------------|
-| **PolarDB for MySQL** | MySQL wire + MySQL SQL | **直接用 `MySQLDialect`**（本文重点） |
+| **PolarDB for MySQL** | MySQL wire + MySQL SQL | 枚举 `PolarDBMySQL` → 复用 `MySQLDialect`（本文重点） |
 | **PolarDB-X** | MySQL 兼容（分布式） | 语法大体可用；执行/自增有分布式限制（见 §3.2） |
-| PolarDB for PostgreSQL | PG wire | 用 `DataBaseType.PostgreSQL` / `NpgsqlDialect` |
-| PolarDB PostgreSQL 兼容 Oracle | PG 协议 + Oracle 语义 / PolarDB.NET | 另议，**不在本文 MySQL 分析范围** |
+| PolarDB for PostgreSQL | PG wire | 枚举 `PolarDBPostgreSQL` → 复用 `NpgsqlDialect` |
+| PolarDB PostgreSQL 兼容 Oracle | PG 协议 + Oracle 语义 | 另议，**不在本文 MySQL 分析范围** |
 
 与 CrateDB / ClickHouse 不同：那些是 **协议或 SQL 方言级不兼容**；PolarDB MySQL 是 **同一套 MySQL 方言的云托管（及 PolarDB-X 分布式）部署**。
 
 | 项 | 说明 |
 |----|------|
-| 枚举 | **无**独立 `DataBaseType.PolarDB*`（首期） |
-| 方言类 | **无**；复用 `MySQLDialect` / `MySQLExpress` / `MySQLSentence` |
-| ADO 驱动 | Ext 已有 **MySqlConnector** |
-| 配置 | `dbType = DataBaseType.MySQL`，连接串指向 PolarDB 地址 |
+| 枚举 | `DataBaseType.PolarDBMySQL` / `PolarDBPostgreSQL`（亦可用旧 `MySQL` / `PostgreSQL`） |
+| 方言类 | **无新类**；工厂映射到 `MySQLDialect` / `NpgsqlDialect` |
+| ADO 驱动 | Ext 已有 **MySqlConnector** / **Npgsql** |
+| 配置 | 新项目推荐独立枚举；连接串指向 PolarDB 地址 |
 
 ---
 
@@ -40,7 +41,7 @@ client.dialectFactory = new DialectFactory();
 
 var dbConfig = new DataBase
 {
-    dbType = DataBaseType.MySQL, // 不要虚构 PolarDB 枚举；语义即 MySQL
+    dbType = DataBaseType.PolarDBMySQL, // 或兼容写法 DataBaseType.MySQL
     // 使用 PolarDB 集群地址 / 端口 / 库名 / 账号
     DBConnectStr = "Server=pc-xxxx.mysql.polardb.rds.aliyuncs.com;Port=3306;Database=your_db;Uid=...;Pwd=...;"
 };
