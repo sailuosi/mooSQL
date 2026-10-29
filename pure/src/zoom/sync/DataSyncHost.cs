@@ -101,20 +101,8 @@ namespace mooSQL.data.sync
             {
                 do
                 {
-                    foreach (var job in _jobs)
-                    {
-                        if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping)
-                            break;
-                        if (!WaitIfPausedOrThrow())
-                            break;
-
-                        var abort = job.Execute(this);
-                        if (abort)
-                        {
-                            AppendProgress("ABORTED by FailureAction");
-                            break;
-                        }
-                    }
+                    if (!RunOneRound(ct))
+                        break;
 
                     if (_state == DataSyncHostState.Stopping || ct.IsCancellationRequested)
                         break;
@@ -153,6 +141,106 @@ namespace mooSQL.data.sync
                     _pauseGate.Set();
                 }
             }
+        }
+
+        /// <summary>
+        /// 跑一轮全部表任务。返回 false 表示应结束外层循环（中止/取消/暂停退出）。
+        /// </summary>
+        bool RunOneRound(CancellationToken ct)
+        {
+            var degree = Options.MaxDegreeOfParallelism;
+            if (degree <= 1 || _jobs.Count <= 1)
+            {
+                foreach (var job in _jobs)
+                {
+                    if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping)
+                        return false;
+                    if (!WaitIfPausedOrThrow())
+                        return false;
+
+                    if (job.Execute(this))
+                    {
+                        AppendProgress("ABORTED by FailureAction");
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // 表间并行：SemaphoreSlim 限流；Abort 后不再领取新任务
+            var abortFlag = 0;
+            var stopFlag = 0;
+            using (var sem = new SemaphoreSlim(degree, degree))
+            {
+                var tasks = new List<Task>(_jobs.Count);
+                foreach (var job in _jobs)
+                {
+                    if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping
+                        || Volatile.Read(ref abortFlag) != 0 || Volatile.Read(ref stopFlag) != 0)
+                        break;
+                    if (!WaitIfPausedOrThrow())
+                    {
+                        Interlocked.Exchange(ref stopFlag, 1);
+                        break;
+                    }
+
+                    try
+                    {
+                        sem.Wait(ct);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Interlocked.Exchange(ref stopFlag, 1);
+                        break;
+                    }
+
+                    var captured = job;
+                    tasks.Add(Task.Run(() =>
+                    {
+                        try
+                        {
+                            if (Volatile.Read(ref abortFlag) != 0 || Volatile.Read(ref stopFlag) != 0)
+                                return;
+                            if (!WaitIfPausedOrThrow())
+                            {
+                                Interlocked.Exchange(ref stopFlag, 1);
+                                return;
+                            }
+                            if (captured.Execute(this))
+                                Interlocked.Exchange(ref abortFlag, 1);
+                        }
+                        finally
+                        {
+                            sem.Release();
+                        }
+                    }, ct));
+                }
+
+                try
+                {
+                    if (tasks.Count > 0)
+                        Task.WaitAll(tasks.ToArray());
+                }
+                catch (AggregateException ae)
+                {
+                    foreach (var ex in ae.Flatten().InnerExceptions)
+                    {
+                        if (ex is OperationCanceledException)
+                            continue;
+                        AppendProgress("ERR host parallel: " + ex.Message);
+                    }
+                }
+            }
+
+            if (Volatile.Read(ref abortFlag) != 0)
+            {
+                AppendProgress("ABORTED by FailureAction");
+                return false;
+            }
+            if (Volatile.Read(ref stopFlag) != 0 || ct.IsCancellationRequested
+                || _state == DataSyncHostState.Stopping)
+                return false;
+            return true;
         }
 
         /// <summary>暂停：打断 Delay，不再开新批。</summary>

@@ -102,13 +102,57 @@ namespace mooSQL.data.sync
             if (pkValues == null || pkValues.Count == 0)
                 return set;
 
+            foreach (var row in QueryPkPairs(targetDb, tableName, pkCol, null, pkProp, pkValues))
+            {
+                if (!string.IsNullOrEmpty(row.Pk))
+                    set.Add(row.Pk);
+            }
+            return set;
+        }
+
+        /// <summary>
+        /// 按主键批查目标：PK + 可选修改时间列。
+        /// </summary>
+        public static Dictionary<string, DateTime?> LoadTargetModifiedByPk(
+            DBInstance targetDb,
+            string tableName,
+            string pkCol,
+            string modifiedCol,
+            PropertyInfo pkProp,
+            List<string> pkValues)
+        {
+            var map = new Dictionary<string, DateTime?>(StringComparer.OrdinalIgnoreCase);
+            if (pkValues == null || pkValues.Count == 0)
+                return map;
+
+            foreach (var row in QueryPkPairs(targetDb, tableName, pkCol, modifiedCol, pkProp, pkValues))
+            {
+                if (string.IsNullOrEmpty(row.Pk))
+                    continue;
+                map[row.Pk] = row.Modified;
+            }
+            return map;
+        }
+
+        static List<(string Pk, DateTime? Modified)> QueryPkPairs(
+            DBInstance targetDb,
+            string tableName,
+            string pkCol,
+            string? modifiedCol,
+            PropertyInfo pkProp,
+            List<string> pkValues)
+        {
+            var list = new List<(string Pk, DateTime? Modified)>();
             const int chunkSize = 500;
             var isGuid = pkProp.PropertyType == typeof(Guid) || pkProp.PropertyType == typeof(Guid?);
+            var selectCols = string.IsNullOrWhiteSpace(modifiedCol)
+                ? pkCol
+                : pkCol + "," + modifiedCol;
 
             for (var i = 0; i < pkValues.Count; i += chunkSize)
             {
                 var chunk = pkValues.Skip(i).Take(chunkSize).ToList();
-                var kit = targetDb.useSQL().select(pkCol).from(tableName);
+                var kit = targetDb.useSQL().select(selectCols).from(tableName);
                 if (isGuid)
                 {
                     var guids = new List<Guid>();
@@ -131,13 +175,22 @@ namespace mooSQL.data.sync
                     continue;
                 foreach (DataRow row in dt.Rows)
                 {
-                    var v = row[0]?.ToString();
-                    if (!string.IsNullOrEmpty(v))
-                        set.Add(v);
+                    var pk = row[0]?.ToString();
+                    if (string.IsNullOrEmpty(pk))
+                        continue;
+                    DateTime? mod = null;
+                    if (!string.IsNullOrWhiteSpace(modifiedCol) && dt.Columns.Count > 1 && row[1] != null && row[1] != DBNull.Value)
+                    {
+                        if (row[1] is DateTime dtv)
+                            mod = dtv;
+                        else if (DateTime.TryParse(row[1].ToString(), out var parsed))
+                            mod = parsed;
+                    }
+                    list.Add((pk, mod));
                 }
             }
 
-            return set;
+            return list;
         }
 
         public static void DelayBatch(DataSyncHost host)

@@ -46,6 +46,12 @@ namespace mooSQL.data.sync
         /// <summary>源查询追加条件（模式 1/3）。</summary>
         public Action<SQLBuilder>? OnSourceQuery { get; set; }
 
+        /// <summary>
+        /// ReplaceFull 时目标清空钩子（建议模式 2 窗口 DELETE）。
+        /// 已设 from 表名；调用方补 where 后由框架 doDelete。
+        /// </summary>
+        public Action<SQLBuilder>? OnTargetClear { get; set; }
+
         /// <summary>解析拉源模式。</summary>
         public DataSyncPullMode ResolvePullMode()
         {

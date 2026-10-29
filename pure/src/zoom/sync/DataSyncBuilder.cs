@@ -209,6 +209,13 @@ namespace mooSQL.data.sync
             return this;
         }
 
+        /// <summary>ReplaceFull 目标清空（from 已设；须补 where）。</summary>
+        public SyncTableJobConfigurator<TSrc, TDst> onTargetClear(Action<SQLBuilder> build)
+        {
+            _job.OnTargetClear = build;
+            return this;
+        }
+
         public SyncTableJobConfigurator<TSrc, TDst> map(Func<TSrc, TDst> map)
         {
             _job.Map = map;
