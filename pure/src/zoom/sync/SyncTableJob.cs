@@ -30,19 +30,19 @@ namespace mooSQL.data
         public string? KeyColumn { get; set; }
 
         /// <summary>行策略；空则用 Host 默认。</summary>
-        public DataSyncMode? Mode { get; set; }
+        public SooDataSyncMode? Mode { get; set; }
 
         /// <summary>失败策略；空则用 Host 默认。</summary>
-        public DataSyncFailureAction? FailureAction { get; set; }
+        public SooDataSyncFailureAction? FailureAction { get; set; }
 
         /// <summary>批/页大小覆盖。</summary>
         public int? BatchSize { get; set; }
 
-        /// <summary>源连接位覆盖。</summary>
-        public int? SourcePosition { get; set; }
+        /// <summary>源库实例覆盖；空则用 Host 默认。</summary>
+        public DBInstance? Source { get; set; }
 
-        /// <summary>目标连接位覆盖。</summary>
-        public int? TargetPosition { get; set; }
+        /// <summary>目标库实例覆盖；空则用 Host 默认。</summary>
+        public DBInstance? Target { get; set; }
 
         /// <summary>自定义 SQL（模式 2）。</summary>
         public Action<SQLBuilder>? FromSql { get; set; }
@@ -62,13 +62,13 @@ namespace mooSQL.data
         public Action<SQLBuilder>? OnTargetQuery { get; set; }
 
         /// <summary>解析拉源模式。</summary>
-        public DataSyncPullMode ResolvePullMode()
+        public SooDataSyncPullMode ResolvePullMode()
         {
             if (FromSql != null)
-                return DataSyncPullMode.FromSql;
+                return SooDataSyncPullMode.FromSql;
             if (!string.IsNullOrWhiteSpace(OrderByColumn))
-                return DataSyncPullMode.Watermark;
-            return DataSyncPullMode.EntityByPk;
+                return SooDataSyncPullMode.Watermark;
+            return SooDataSyncPullMode.EntityByPk;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace mooSQL.data
         /// 返回 true = 中止整个 Start（FailureAction.Abort 或批失败 Abort）；
         /// 返回 false = 本表结束（成功或配置跳过），Host 继续后续表。
         /// </summary>
-        public abstract bool Execute(DataSyncHost host);
+        public abstract bool Execute(SooDataSyncHost host);
     }
 
     /// <summary>同构/异构表任务。</summary>
@@ -107,25 +107,25 @@ namespace mooSQL.data
         }
 
         /// <inheritdoc />
-        public override bool Execute(DataSyncHost host)
+        public override bool Execute(SooDataSyncHost host)
         {
             var mode = Mode ?? host.Options.DefaultMode;
             switch (mode)
             {
-                case DataSyncMode.AppendOnly:
+                case SooDataSyncMode.AppendOnly:
                     return AppendOnlyRunner.Run(this, host);
-                case DataSyncMode.AppendWatermark:
+                case SooDataSyncMode.AppendWatermark:
                     return AppendWatermarkRunner.Run(this, host);
-                case DataSyncMode.UpsertByModified:
+                case SooDataSyncMode.UpsertByModified:
                     return UpsertByModifiedRunner.Run(this, host);
-                case DataSyncMode.ReplaceFull:
+                case SooDataSyncMode.ReplaceFull:
                     return ReplaceFullRunner.Run(this, host);
-                case DataSyncMode.MirrorKeys:
+                case SooDataSyncMode.MirrorKeys:
                     return MirrorKeysRunner.Run(this, host);
                 default:
                     // 未知模式：跳过本表；仅当 Host FailureAction=Abort 时中止整轮
                     host.AppendProgress("ERR " + typeof(TSrc).Name + ": unsupported mode " + mode + "（已跳过本表）");
-                    return host.Options.FailureAction == DataSyncFailureAction.Abort;
+                    return host.Options.FailureAction == SooDataSyncFailureAction.Abort;
             }
         }
     }

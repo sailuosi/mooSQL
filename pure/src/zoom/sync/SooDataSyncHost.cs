@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////
-//  DataSyncHost.cs
+//  SooDataSyncHost.cs
 ///////////////////////////////////////////////////////////
 
 using System;
@@ -13,33 +13,33 @@ namespace mooSQL.data
     /// <summary>
     /// 数据同步宿主：仅 Start / Pause / Resume / Stop。
     /// </summary>
-    public sealed class DataSyncHost
+    public sealed class SooDataSyncHost
     {
         readonly List<SyncTableJob> _jobs;
         readonly object _gate = new object();
         CancellationTokenSource? _runCts;
         ManualResetEventSlim _pauseGate = new ManualResetEventSlim(true);
-        volatile DataSyncHostState _state = DataSyncHostState.Idle;
+        volatile SooDataSyncHostState _state = SooDataSyncHostState.Idle;
 
-        internal DataSyncHost(MooClient client, DataSyncOptions options, List<SyncTableJob> jobs)
+        internal SooDataSyncHost(SooDataSyncOptions options, List<SyncTableJob> jobs)
         {
-            Client = client ?? throw new ArgumentNullException(nameof(client));
             Options = options ?? throw new ArgumentNullException(nameof(options));
+            if (Options.Source == null)
+                throw new ArgumentException("Options.Source 不能为空", nameof(options));
+            if (Options.Target == null)
+                throw new ArgumentException("Options.Target 不能为空", nameof(options));
             _jobs = jobs ?? new List<SyncTableJob>();
             WorkingProgress = new StringBuilder();
         }
 
-        /// <summary>所属客户端（取连接位）。</summary>
-        public MooClient Client { get; }
-
         /// <summary>选项。</summary>
-        public DataSyncOptions Options { get; }
+        public SooDataSyncOptions Options { get; }
 
         /// <summary>进度摘要（权威）。</summary>
         public StringBuilder WorkingProgress { get; }
 
         /// <summary>当前状态。</summary>
-        public DataSyncHostState State => _state;
+        public SooDataSyncHostState State => _state;
 
         /// <summary>追加一行进度，并回调 print。</summary>
         public void AppendProgress(string line)
@@ -60,15 +60,6 @@ namespace mooSQL.data
             }
         }
 
-        /// <summary>解析连接位对应实例。</summary>
-        public DBInstance ResolveDb(int position)
-        {
-            var cash = Client.CashHolder;
-            if (cash == null)
-                throw new InvalidOperationException("MooClient.CashHolder 未初始化");
-            return cash.getInstance(position);
-        }
-
         /// <summary>
         /// 启动连续同步。仅 Idle 时生效；Running/Paused 再调用无额外动作。
         /// </summary>
@@ -76,11 +67,15 @@ namespace mooSQL.data
         {
             lock (_gate)
             {
-                if (_state == DataSyncHostState.Running || _state == DataSyncHostState.Paused
-                    || _state == DataSyncHostState.Stopping)
+                if (_state == SooDataSyncHostState.Running || _state == SooDataSyncHostState.Paused
+                    || _state == SooDataSyncHostState.Stopping)
+#if NET451
+                    return Task.FromResult(0);
+#else
                     return Task.CompletedTask;
+#endif
 
-                _state = DataSyncHostState.Running;
+                _state = SooDataSyncHostState.Running;
                 _pauseGate.Set();
                 _runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             }
@@ -104,7 +99,7 @@ namespace mooSQL.data
                     if (!RunOneRound(ct))
                         break;
 
-                    if (_state == DataSyncHostState.Stopping || ct.IsCancellationRequested)
+                    if (_state == SooDataSyncHostState.Stopping || ct.IsCancellationRequested)
                         break;
 
                     if (Options.HostInterval == null || Options.HostInterval <= TimeSpan.Zero)
@@ -115,13 +110,13 @@ namespace mooSQL.data
                     var until = DateTime.UtcNow + wait;
                     while (DateTime.UtcNow < until)
                     {
-                        if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping)
+                        if (ct.IsCancellationRequested || _state == SooDataSyncHostState.Stopping)
                             break;
                         if (!WaitIfPausedOrThrow())
                             break;
                         Thread.Sleep(50);
                     }
-                } while (_state == DataSyncHostState.Running && !ct.IsCancellationRequested);
+                } while (_state == SooDataSyncHostState.Running && !ct.IsCancellationRequested);
             }
             catch (OperationCanceledException)
             {
@@ -135,7 +130,7 @@ namespace mooSQL.data
             {
                 lock (_gate)
                 {
-                    _state = DataSyncHostState.Idle;
+                    _state = SooDataSyncHostState.Idle;
                     _runCts?.Dispose();
                     _runCts = null;
                     _pauseGate.Set();
@@ -153,7 +148,7 @@ namespace mooSQL.data
             {
                 foreach (var job in _jobs)
                 {
-                    if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping)
+                    if (ct.IsCancellationRequested || _state == SooDataSyncHostState.Stopping)
                         return false;
                     if (!WaitIfPausedOrThrow())
                         return false;
@@ -176,7 +171,7 @@ namespace mooSQL.data
                 var tasks = new List<Task>(_jobs.Count);
                 foreach (var job in _jobs)
                 {
-                    if (ct.IsCancellationRequested || _state == DataSyncHostState.Stopping
+                    if (ct.IsCancellationRequested || _state == SooDataSyncHostState.Stopping
                         || Volatile.Read(ref abortFlag) != 0 || Volatile.Read(ref stopFlag) != 0)
                         break;
                     if (!WaitIfPausedOrThrow())
@@ -242,7 +237,7 @@ namespace mooSQL.data
                 return false;
             }
             if (Volatile.Read(ref stopFlag) != 0 || ct.IsCancellationRequested
-                || _state == DataSyncHostState.Stopping)
+                || _state == SooDataSyncHostState.Stopping)
                 return false;
             return true;
         }
@@ -252,9 +247,9 @@ namespace mooSQL.data
         {
             lock (_gate)
             {
-                if (_state != DataSyncHostState.Running)
+                if (_state != SooDataSyncHostState.Running)
                     return;
-                _state = DataSyncHostState.Paused;
+                _state = SooDataSyncHostState.Paused;
                 _pauseGate.Reset();
             }
         }
@@ -264,9 +259,9 @@ namespace mooSQL.data
         {
             lock (_gate)
             {
-                if (_state != DataSyncHostState.Paused)
+                if (_state != SooDataSyncHostState.Paused)
                     return;
-                _state = DataSyncHostState.Running;
+                _state = SooDataSyncHostState.Running;
                 _pauseGate.Set();
             }
         }
@@ -276,9 +271,9 @@ namespace mooSQL.data
         {
             lock (_gate)
             {
-                if (_state == DataSyncHostState.Idle)
+                if (_state == SooDataSyncHostState.Idle)
                     return;
-                _state = DataSyncHostState.Stopping;
+                _state = SooDataSyncHostState.Stopping;
                 _pauseGate.Set();
                 try { _runCts?.Cancel(); } catch { }
             }
@@ -289,19 +284,19 @@ namespace mooSQL.data
         /// </summary>
         public bool WaitIfPausedOrThrow()
         {
-            while (_state == DataSyncHostState.Paused)
+            while (_state == SooDataSyncHostState.Paused)
             {
                 _pauseGate.Wait(100);
-                if (_state == DataSyncHostState.Stopping)
+                if (_state == SooDataSyncHostState.Stopping)
                     return false;
                 if (_runCts != null && _runCts.IsCancellationRequested)
                     return false;
             }
-            if (_state == DataSyncHostState.Stopping)
+            if (_state == SooDataSyncHostState.Stopping)
                 return false;
             if (_runCts != null && _runCts.IsCancellationRequested)
                 return false;
-            return _state == DataSyncHostState.Running;
+            return _state == SooDataSyncHostState.Running;
         }
     }
 }

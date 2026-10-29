@@ -12,7 +12,7 @@ namespace mooSQL.data.sync
 {
     internal static class MirrorKeysRunner
     {
-        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, DataSyncHost host)
+        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, SooDataSyncHost host)
             where TSrc : class, new()
             where TDst : class, new()
         {
@@ -24,7 +24,7 @@ namespace mooSQL.data.sync
             }
 
             // 模式 2 自定义 SQL 不做全表键镜像（范围不明）
-            if (job.ResolvePullMode() == DataSyncPullMode.FromSql)
+            if (job.ResolvePullMode() == SooDataSyncPullMode.FromSql)
             {
                 host.AppendProgress("ERR " + typeName + ": MirrorKeys 不支持 fromSql（已跳过本表）");
                 return false;
@@ -52,8 +52,8 @@ namespace mooSQL.data.sync
                 SyncEntityMeta.EnsureSafeIdent(pkColSrc);
                 SyncEntityMeta.EnsureSafeIdent(pkColDst);
 
-                var srcDb = SyncJobHelpers.Db(host, SyncJobHelpers.SourcePos(job, host));
-                var dstDb = SyncJobHelpers.Db(host, SyncJobHelpers.TargetPos(job, host));
+                var srcDb = SyncJobHelpers.SourceDb(job, host);
+                var dstDb = SyncJobHelpers.TargetDb(job, host);
                 if (host.Options.EnsureTargetSchema)
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);
 

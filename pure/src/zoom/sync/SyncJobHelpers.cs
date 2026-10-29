@@ -12,25 +12,24 @@ namespace mooSQL.data.sync
 {
     internal static class SyncJobHelpers
     {
-        public static int EffectiveBatchSize(SyncTableJob job, DataSyncHost host)
+        public static int EffectiveBatchSize(SyncTableJob job, SooDataSyncHost host)
         {
             var n = job.BatchSize ?? host.Options.BatchSize;
             return n <= 0 ? 2000 : n;
         }
 
-        public static int SourcePos(SyncTableJob job, DataSyncHost host)
-            => job.SourcePosition ?? host.Options.SourcePosition;
+        public static DBInstance SourceDb(SyncTableJob job, SooDataSyncHost host)
+            => job.Source ?? host.Options.Source
+               ?? throw new InvalidOperationException("未设置源 DBInstance");
 
-        public static int TargetPos(SyncTableJob job, DataSyncHost host)
-            => job.TargetPosition ?? host.Options.TargetPosition;
+        public static DBInstance TargetDb(SyncTableJob job, SooDataSyncHost host)
+            => job.Target ?? host.Options.Target
+               ?? throw new InvalidOperationException("未设置目标 DBInstance");
 
-        public static DataSyncFailureAction Failure(SyncTableJob job, DataSyncHost host)
+        public static SooDataSyncFailureAction Failure(SyncTableJob job, SooDataSyncHost host)
             => job.FailureAction ?? host.Options.FailureAction;
 
-        public static DBInstance Db(DataSyncHost host, int position)
-            => host.ResolveDb(position);
-
-        public static void ApplyBulkOptions<T>(SooRepository<T> repo, DataSyncHost host) where T : class, new()
+        public static void ApplyBulkOptions<T>(SooRepository<T> repo, SooDataSyncHost host) where T : class, new()
         {
             if (repo == null || !host.Options.UseBulk)
                 return;
@@ -202,7 +201,7 @@ namespace mooSQL.data.sync
             return list;
         }
 
-        public static void DelayBatch(DataSyncHost host)
+        public static void DelayBatch(SooDataSyncHost host)
         {
             var gap = host.Options.BatchInterval;
             if (gap <= TimeSpan.Zero)
@@ -221,10 +220,10 @@ namespace mooSQL.data.sync
             }
         }
 
-        public static bool HandleBatchError(DataSyncHost host, SyncTableJob job, Exception ex, string context)
+        public static bool HandleBatchError(SooDataSyncHost host, SyncTableJob job, Exception ex, string context)
         {
             host.AppendProgress("ERR " + context + ": " + ex.Message);
-            return Failure(job, host) == DataSyncFailureAction.Abort;
+            return Failure(job, host) == SooDataSyncFailureAction.Abort;
         }
 
         /// <summary>

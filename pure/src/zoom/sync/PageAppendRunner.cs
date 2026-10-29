@@ -11,7 +11,7 @@ namespace mooSQL.data.sync
 {
     internal static class PageAppendRunner
     {
-        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, DataSyncHost host, bool probePk)
+        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, SooDataSyncHost host, bool probePk)
             where TSrc : class, new()
             where TDst : class, new()
         {
@@ -24,10 +24,8 @@ namespace mooSQL.data.sync
                 SyncEntityMeta.EnsureSafeIdent(tableName);
                 SyncEntityMeta.EnsureSafeIdent(pkColDst);
 
-                var srcPos = SyncJobHelpers.SourcePos(job, host);
-                var dstPos = SyncJobHelpers.TargetPos(job, host);
-                var srcDb = SyncJobHelpers.Db(host, srcPos);
-                var dstDb = SyncJobHelpers.Db(host, dstPos);
+                var srcDb = SyncJobHelpers.SourceDb(job, host);
+                var dstDb = SyncJobHelpers.TargetDb(job, host);
 
                 if (host.Options.EnsureTargetSchema)
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);
@@ -40,7 +38,7 @@ namespace mooSQL.data.sync
                 var pull = job.ResolvePullMode();
                 PropertyInfo? pkPropSrc = null;
                 string? pkColSrc = null;
-                if (pull == DataSyncPullMode.EntityByPk)
+                if (pull == SooDataSyncPullMode.EntityByPk)
                 {
                     (pkPropSrc, pkColSrc) = SyncEntityMeta.ResolvePrimaryKey(typeof(TSrc), job.KeyColumn);
                     SyncEntityMeta.EnsureSafeIdent(pkColSrc);
@@ -60,7 +58,7 @@ namespace mooSQL.data.sync
                     var cursorSnap = keyCursor;
                     try
                     {
-                        if (pull == DataSyncPullMode.FromSql)
+                        if (pull == SooDataSyncPullMode.FromSql)
                         {
                             if (job.FromSql == null)
                                 throw new InvalidOperationException("模式 FromSql 需要 fromSql 配置");
@@ -82,7 +80,7 @@ namespace mooSQL.data.sync
                     catch (Exception ex)
                     {
                         // FromSql 可页码+1；键集无批则无法安全推进，结束本表
-                        if (pull == DataSyncPullMode.FromSql)
+                        if (pull == SooDataSyncPullMode.FromSql)
                         {
                             page++;
                             if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/page" + pageNum))
@@ -170,7 +168,7 @@ namespace mooSQL.data.sync
                     "OK " + typeName + "/" + tableName
                     + ": pulled=" + pulled + ", inserted=" + inserted
                     + ", skipped=" + skipped
-                    + (pull == DataSyncPullMode.EntityByPk ? ", keyset" : ", pages~=" + page));
+                    + (pull == SooDataSyncPullMode.EntityByPk ? ", keyset" : ", pages~=" + page));
                 return false;
             }
             catch (Exception ex)
@@ -180,13 +178,13 @@ namespace mooSQL.data.sync
         }
 
         static void AdvancePageOrKeyset<TSrc>(
-            DataSyncPullMode pull,
+            SooDataSyncPullMode pull,
             IList<TSrc> batch,
             PropertyInfo? pkPropSrc,
             ref int page,
             ref object? keyCursor)
         {
-            if (pull == DataSyncPullMode.FromSql)
+            if (pull == SooDataSyncPullMode.FromSql)
             {
                 page++;
                 return;

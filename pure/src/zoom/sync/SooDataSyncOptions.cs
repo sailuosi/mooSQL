@@ -1,22 +1,22 @@
 ///////////////////////////////////////////////////////////
-//  DataSyncOptions.cs
+//  SooDataSyncOptions.cs
 ///////////////////////////////////////////////////////////
 
 using System;
 
 namespace mooSQL.data
 {
-    /// <summary>DataSync Host 级选项。</summary>
-    public sealed class DataSyncOptions
+    /// <summary>SooDataSync Host 级选项。</summary>
+    public sealed class SooDataSyncOptions
     {
-        /// <summary>源连接位。</summary>
-        public int SourcePosition { get; set; }
+        /// <summary>默认源库实例。</summary>
+        public DBInstance Source { get; set; } = null!;
 
-        /// <summary>目标连接位。</summary>
-        public int TargetPosition { get; set; }
+        /// <summary>默认目标库实例。</summary>
+        public DBInstance Target { get; set; } = null!;
 
         /// <summary>默认行同步策略。</summary>
-        public DataSyncMode DefaultMode { get; set; } = DataSyncMode.AppendOnly;
+        public SooDataSyncMode DefaultMode { get; set; } = SooDataSyncMode.AppendOnly;
 
         /// <summary>是否在同步前 Ensure 目标表结构。</summary>
         public bool EnsureTargetSchema { get; set; }
@@ -43,7 +43,7 @@ namespace mooSQL.data
         public TimeSpan? HostInterval { get; set; }
 
         /// <summary>批失败策略。</summary>
-        public DataSyncFailureAction FailureAction { get; set; } = DataSyncFailureAction.SkipBatch;
+        public SooDataSyncFailureAction FailureAction { get; set; } = SooDataSyncFailureAction.SkipBatch;
 
         /// <summary>进度行回调（对齐 SQLBuilder.print）。</summary>
         public Action<string>? OnPrint { get; set; }

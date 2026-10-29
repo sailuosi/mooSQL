@@ -11,7 +11,7 @@ namespace mooSQL.data.sync
     /// <summary>按主键探活后 InsertRange / UpdateRange（源 Modified ≥ 目标才更新）。</summary>
     internal static class UpsertByModifiedRunner
     {
-        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, DataSyncHost host)
+        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, SooDataSyncHost host)
             where TSrc : class, new()
             where TDst : class, new()
         {
@@ -32,7 +32,7 @@ namespace mooSQL.data.sync
                 var pull = job.ResolvePullMode();
                 PropertyInfo? orderProp = null;
                 string? orderCol = null;
-                if (pull == DataSyncPullMode.Watermark)
+                if (pull == SooDataSyncPullMode.Watermark)
                 {
                     if (string.IsNullOrWhiteSpace(job.OrderByColumn))
                         throw new InvalidOperationException("UpsertByModified 水位模式需要 orderBy");
@@ -50,8 +50,8 @@ namespace mooSQL.data.sync
                 var (modPropDst, modCol) = SyncEntityMeta.ResolveOrderBy(dstType, modColName);
                 SyncEntityMeta.EnsureSafeIdent(modCol);
 
-                var srcDb = SyncJobHelpers.Db(host, SyncJobHelpers.SourcePos(job, host));
-                var dstDb = SyncJobHelpers.Db(host, SyncJobHelpers.TargetPos(job, host));
+                var srcDb = SyncJobHelpers.SourceDb(job, host);
+                var dstDb = SyncJobHelpers.TargetDb(job, host);
                 if (host.Options.EnsureTargetSchema)
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);
 
@@ -62,7 +62,7 @@ namespace mooSQL.data.sync
 
                 DateTime? cursorTime = null;
                 var cursorPk = string.Empty;
-                if (pull == DataSyncPullMode.Watermark)
+                if (pull == SooDataSyncPullMode.Watermark)
                 {
                     var wmCol = string.IsNullOrWhiteSpace(job.WatermarkColumnOnTarget) ? orderCol! : job.WatermarkColumnOnTarget;
                     SyncEntityMeta.EnsureSafeIdent(wmCol);
@@ -87,7 +87,7 @@ namespace mooSQL.data.sync
                     catch (Exception ex)
                     {
                         // FromSql：SkipBatch 时页码+1 继续；水位/键集无批可推时结束本表
-                        if (pull == DataSyncPullMode.FromSql)
+                        if (pull == SooDataSyncPullMode.FromSql)
                         {
                             page++;
                             if (SyncJobHelpers.HandleBatchError(host, job, ex, typeName + "/pull"))
@@ -196,7 +196,7 @@ namespace mooSQL.data.sync
             SyncTableJob<TSrc, TDst> job,
             DBInstance srcDb,
             SooRepository<TSrc> srcRepo,
-            DataSyncPullMode pull,
+            SooDataSyncPullMode pull,
             string orderCol,
             string pkColSrc,
             DateTime? cursorTime,
@@ -207,7 +207,7 @@ namespace mooSQL.data.sync
             where TSrc : class, new()
             where TDst : class, new()
         {
-            if (pull == DataSyncPullMode.FromSql)
+            if (pull == SooDataSyncPullMode.FromSql)
             {
                 if (job.FromSql == null)
                     throw new InvalidOperationException("模式 FromSql 需要 fromSql 配置");
@@ -217,7 +217,7 @@ namespace mooSQL.data.sync
                 return new List<TSrc>(kit.query<TSrc>());
             }
 
-            if (pull == DataSyncPullMode.EntityByPk)
+            if (pull == SooDataSyncPullMode.EntityByPk)
             {
                 var after = keyCursor;
                 return srcRepo.GetList(kit =>
@@ -246,7 +246,7 @@ namespace mooSQL.data.sync
         }
 
         static void AdvanceAfterBatch<TSrc>(
-            DataSyncPullMode pull,
+            SooDataSyncPullMode pull,
             IList<TSrc> batch,
             PropertyInfo? orderProp,
             PropertyInfo pkProp,
@@ -255,7 +255,7 @@ namespace mooSQL.data.sync
             ref int page,
             ref object? keyCursor)
         {
-            if (pull == DataSyncPullMode.Watermark)
+            if (pull == SooDataSyncPullMode.Watermark)
             {
                 if (batch == null || batch.Count == 0 || orderProp == null || pkProp == null)
                     return;
@@ -263,7 +263,7 @@ namespace mooSQL.data.sync
                 cursorTime = orderProp.GetValue(last) as DateTime?;
                 cursorPk = pkProp.GetValue(last)?.ToString() ?? string.Empty;
             }
-            else if (pull == DataSyncPullMode.EntityByPk)
+            else if (pull == SooDataSyncPullMode.EntityByPk)
             {
                 if (batch == null || batch.Count == 0 || pkProp == null)
                     return;

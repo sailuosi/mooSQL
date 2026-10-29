@@ -9,7 +9,7 @@ namespace mooSQL.data.sync
 {
     internal static class ReplaceFullRunner
     {
-        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, DataSyncHost host)
+        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, SooDataSyncHost host)
             where TSrc : class, new()
             where TDst : class, new()
         {
@@ -25,7 +25,7 @@ namespace mooSQL.data.sync
             {
                 var tableName = SyncEntityMeta.ResolveTableName(typeof(TDst));
                 SyncEntityMeta.EnsureSafeIdent(tableName);
-                var dstDb = SyncJobHelpers.Db(host, SyncJobHelpers.TargetPos(job, host));
+                var dstDb = SyncJobHelpers.TargetDb(job, host);
 
                 if (host.Options.EnsureTargetSchema)
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);
@@ -35,7 +35,7 @@ namespace mooSQL.data.sync
                     return false;
 
                 // 忽略目标水位，按源全量拉（窗口清空后目标仍可能有残留 max）
-                if (pull == DataSyncPullMode.Watermark)
+                if (pull == SooDataSyncPullMode.Watermark)
                     return AppendOnlyRunner.WatermarkAppend(job, host, probePk: false, ignoreWatermark: true);
                 return PageAppendRunner.Run(job, host, probePk: false);
             }
@@ -47,16 +47,16 @@ namespace mooSQL.data.sync
 
         static bool ClearTarget<TSrc, TDst>(
             SyncTableJob<TSrc, TDst> job,
-            DataSyncHost host,
+            SooDataSyncHost host,
             DBInstance dstDb,
             string tableName,
-            DataSyncPullMode pull,
+            SooDataSyncPullMode pull,
             string typeName)
             where TSrc : class, new()
             where TDst : class, new()
         {
             // 模式 2：禁止静默整表 DELETE；须 onTargetClear 限定窗口
-            if (pull == DataSyncPullMode.FromSql)
+            if (pull == SooDataSyncPullMode.FromSql)
             {
                 if (job.OnTargetClear == null)
                 {

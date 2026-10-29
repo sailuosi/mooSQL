@@ -11,12 +11,12 @@ namespace mooSQL.data.sync
     /// <summary>AppendOnly：水位拉批 + PK 探活 + InsertRange。</summary>
     internal static class AppendOnlyRunner
     {
-        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, DataSyncHost host)
+        public static bool Run<TSrc, TDst>(SyncTableJob<TSrc, TDst> job, SooDataSyncHost host)
             where TSrc : class, new()
             where TDst : class, new()
         {
             var pull = job.ResolvePullMode();
-            if (pull == DataSyncPullMode.FromSql || pull == DataSyncPullMode.EntityByPk)
+            if (pull == SooDataSyncPullMode.FromSql || pull == SooDataSyncPullMode.EntityByPk)
                 return PageAppendRunner.Run(job, host, probePk: true);
 
             return WatermarkAppend(job, host, probePk: true);
@@ -25,7 +25,7 @@ namespace mooSQL.data.sync
         /// <param name="ignoreWatermark">true 时不读目标 max，从源全量按序拉（ReplaceFull）。</param>
         internal static bool WatermarkAppend<TSrc, TDst>(
             SyncTableJob<TSrc, TDst> job,
-            DataSyncHost host,
+            SooDataSyncHost host,
             bool probePk,
             bool ignoreWatermark = false)
             where TSrc : class, new()
@@ -58,10 +58,8 @@ namespace mooSQL.data.sync
                 SyncEntityMeta.EnsureSafeIdent(tableName);
                 SyncEntityMeta.EnsureSafeIdent(wmCol);
 
-                var srcPos = SyncJobHelpers.SourcePos(job, host);
-                var dstPos = SyncJobHelpers.TargetPos(job, host);
-                var srcDb = SyncJobHelpers.Db(host, srcPos);
-                var dstDb = SyncJobHelpers.Db(host, dstPos);
+                var srcDb = SyncJobHelpers.SourceDb(job, host);
+                var dstDb = SyncJobHelpers.TargetDb(job, host);
 
                 if (host.Options.EnsureTargetSchema)
                     dstDb.ensureSchema<TDst>(host.Options.SchemaMode);

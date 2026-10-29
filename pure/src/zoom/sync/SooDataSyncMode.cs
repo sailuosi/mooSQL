@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////
-//  DataSyncMode.cs
+//  SooDataSyncMode.cs
 //  行同步策略（与结构 SyncMode 区分）
 ///////////////////////////////////////////////////////////
 
@@ -8,7 +8,7 @@ namespace mooSQL.data
     /// <summary>
     /// 数据行同步策略。勿与表结构 <see cref="SyncMode"/> 混淆。
     /// </summary>
-    public enum DataSyncMode
+    public enum SooDataSyncMode
     {
         /// <summary>仅插入目标不存在的主键行；可配时序水位。</summary>
         AppendOnly = 0,
@@ -29,7 +29,7 @@ namespace mooSQL.data
     }
 
     /// <summary>批失败时的行为。</summary>
-    public enum DataSyncFailureAction
+    public enum SooDataSyncFailureAction
     {
         /// <summary>默认：跳过本批并继续。</summary>
         SkipBatch = 0,
@@ -39,7 +39,7 @@ namespace mooSQL.data
     }
 
     /// <summary>Host 生命周期状态。</summary>
-    public enum DataSyncHostState
+    public enum SooDataSyncHostState
     {
         /// <summary>空闲。</summary>
         Idle = 0,
@@ -52,7 +52,7 @@ namespace mooSQL.data
     }
 
     /// <summary>源侧拉取模式（由配置判定）。</summary>
-    public enum DataSyncPullMode
+    public enum SooDataSyncPullMode
     {
         /// <summary>时序字段 + 水位游标。</summary>
         Watermark = 1,
