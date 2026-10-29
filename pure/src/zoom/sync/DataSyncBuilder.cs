@@ -1,0 +1,242 @@
+///////////////////////////////////////////////////////////
+//  DataSyncBuilder.cs
+///////////////////////////////////////////////////////////
+
+using System;
+using System.Collections.Generic;
+
+namespace mooSQL.data.sync
+{
+    /// <summary>链式配置；build() 得到 Host，配置期不执行同步。</summary>
+    public sealed class DataSyncBuilder
+    {
+        readonly MooClient _client;
+        readonly DataSyncOptions _options;
+        readonly List<SyncTableJob> _jobs = new List<SyncTableJob>();
+
+        internal DataSyncBuilder(MooClient client, DataSyncOptions options)
+        {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _options = options ?? new DataSyncOptions();
+        }
+
+        /// <summary>目标缺表则 EnsureSchema。</summary>
+        public DataSyncBuilder ensureSchema(bool enable = true)
+        {
+            _options.EnsureTargetSchema = enable;
+            return this;
+        }
+
+        /// <summary>结构同步模式。</summary>
+        public DataSyncBuilder schemaMode(SyncMode mode)
+        {
+            _options.SchemaMode = mode;
+            return this;
+        }
+
+        /// <summary>默认行策略。</summary>
+        public DataSyncBuilder mode(DataSyncMode mode)
+        {
+            _options.DefaultMode = mode;
+            return this;
+        }
+
+        /// <summary>是否 Bulk。</summary>
+        public DataSyncBuilder useBulk(bool enable = true)
+        {
+            _options.UseBulk = enable;
+            return this;
+        }
+
+        /// <summary>Host 默认批大小。</summary>
+        public DataSyncBuilder batchSize(int size)
+        {
+            _options.BatchSize = size;
+            return this;
+        }
+
+        /// <summary>批间歇。</summary>
+        public DataSyncBuilder batchInterval(TimeSpan interval)
+        {
+            _options.BatchInterval = interval;
+            return this;
+        }
+
+        /// <summary>轮次间歇（every）。</summary>
+        public DataSyncBuilder every(TimeSpan interval)
+        {
+            _options.HostInterval = interval;
+            return this;
+        }
+
+        /// <summary>表间并行度。</summary>
+        public DataSyncBuilder parallelTables(int degree)
+        {
+            _options.MaxDegreeOfParallelism = degree <= 0 ? 1 : degree;
+            return this;
+        }
+
+        /// <summary>失败策略。</summary>
+        public DataSyncBuilder failureAction(DataSyncFailureAction action)
+        {
+            _options.FailureAction = action;
+            return this;
+        }
+
+        /// <summary>允许 ReplaceFull。</summary>
+        public DataSyncBuilder allowDestructiveReplace(bool allow = true)
+        {
+            _options.AllowDestructiveReplace = allow;
+            return this;
+        }
+
+        /// <summary>进度回调（对齐 SQLBuilder.print）。</summary>
+        public DataSyncBuilder print(Action<string> onPrint)
+        {
+            _options.OnPrint = onPrint;
+            return this;
+        }
+
+        /// <summary>同构表：orderBy 时序列。</summary>
+        public DataSyncBuilder syncTable<T>(string orderByColumn) where T : class, new()
+        {
+            return syncTable<T, T>(cfg =>
+            {
+                cfg.orderBy(orderByColumn);
+            });
+        }
+
+        /// <summary>同构表：配置委托。</summary>
+        public DataSyncBuilder syncTable<T>(Action<SyncTableJobConfigurator<T, T>> configure)
+            where T : class, new()
+        {
+            return syncTable<T, T>(configure);
+        }
+
+        /// <summary>异构表。</summary>
+        public DataSyncBuilder syncTable<TSrc, TDst>(Action<SyncTableJobConfigurator<TSrc, TDst>> configure)
+            where TSrc : class, new()
+            where TDst : class, new()
+        {
+            var job = new SyncTableJob<TSrc, TDst>();
+            var cfg = new SyncTableJobConfigurator<TSrc, TDst>(job);
+            configure?.Invoke(cfg);
+            if (typeof(TSrc) != typeof(TDst) && job.Map == null && job.MapBatch == null)
+            {
+                throw new InvalidOperationException(
+                    "异构 " + typeof(TSrc).Name + " → " + typeof(TDst).Name + " 必须提供 map/mapBatch");
+            }
+            _jobs.Add(job);
+            return this;
+        }
+
+        /// <summary>结束配置，得到可 Start 的 Host。</summary>
+        public DataSyncHost build()
+        {
+            return new DataSyncHost(_client, _options, new List<SyncTableJob>(_jobs));
+        }
+    }
+
+    /// <summary>单表链式配置。</summary>
+    public sealed class SyncTableJobConfigurator<TSrc, TDst>
+        where TSrc : class, new()
+        where TDst : class, new()
+    {
+        readonly SyncTableJob<TSrc, TDst> _job;
+
+        internal SyncTableJobConfigurator(SyncTableJob<TSrc, TDst> job)
+        {
+            _job = job;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> orderBy(string column)
+        {
+            _job.OrderByColumn = column;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> watermarkOnTarget(string column)
+        {
+            _job.WatermarkColumnOnTarget = column;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> modified(string column)
+        {
+            _job.ModifiedColumn = column;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> mode(DataSyncMode mode)
+        {
+            _job.Mode = mode;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> batchSize(int size)
+        {
+            _job.BatchSize = size;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> failureAction(DataSyncFailureAction action)
+        {
+            _job.FailureAction = action;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> sourcePosition(int position)
+        {
+            _job.SourcePosition = position;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> targetPosition(int position)
+        {
+            _job.TargetPosition = position;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> fromSql(Action<SQLBuilder> build)
+        {
+            _job.FromSql = build;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> onSourceQuery(Action<SQLBuilder> build)
+        {
+            _job.OnSourceQuery = build;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> map(Func<TSrc, TDst> map)
+        {
+            _job.Map = map;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> mapBatch(Func<IReadOnlyList<TSrc>, IReadOnlyList<TDst>> mapBatch)
+        {
+            _job.MapBatch = mapBatch;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> onAssign(Action<TDst> assign)
+        {
+            _job.OnAssign = assign;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> onAssign(Action<TDst, TSrc> assign)
+        {
+            _job.OnAssignWithSource = assign;
+            return this;
+        }
+
+        public SyncTableJobConfigurator<TSrc, TDst> onAssignBatch(Action<IList<TDst>> assign)
+        {
+            _job.OnAssignBatch = assign;
+            return this;
+        }
+    }
+}
