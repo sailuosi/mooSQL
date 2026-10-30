@@ -24,6 +24,31 @@ provides/
 
 每个库文件夹含：`mooSQL.Provider.*.csproj`、`src/`、`tests/`。
 
+## 打包
+
+与主项目（`pure` / `ext`）共用根目录 `Directory.Build.props`：
+
+| 项 | 值 |
+|----|----|
+| 版本 | `VersionPrefix`（当前与主包一致） |
+| 图标 / README | `packfile/` |
+| 输出目录 | 仓库根 `release/` |
+| 包 Id | 各 csproj 的 `PackageId`（如 `mooSQL.Provider.DuckDB`） |
+
+```bash
+# 单个 Provider
+dotnet pack provides/DuckDB/mooSQL.Provider.DuckDB.csproj -c Release
+
+# 全部 Provider
+dotnet pack provides/Aurora/mooSQL.Provider.Aurora.csproj -c Release
+dotnet pack provides/CockroachDB/mooSQL.Provider.CockroachDB.csproj -c Release
+dotnet pack provides/DuckDB/mooSQL.Provider.DuckDB.csproj -c Release
+dotnet pack provides/EDB/mooSQL.Provider.EDB.csproj -c Release
+dotnet pack provides/Turso/mooSQL.Provider.Turso.csproj -c Release
+```
+
+依赖：NuGet 会将 `ProjectReference` 到 `mooSQL.Ext` 转为包依赖；DuckDB 另含 `DuckDB.NET.Data.Full`。
+
 ## 用法
 
 ```csharp

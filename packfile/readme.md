@@ -41,4 +41,14 @@ dotnet add package mooSQL.Ext
 | **mooSQL.Pure.Core.** | Core library / 核心纯净能力                                                  |
 | **mooSQL.Ext.Core.**  | Dialects and extended DB support (**recommended**) / 多数据库方言与扩展（**推荐**） |
 
+### Provider 包（可选方言，需显式 UseXxx）
+
+| NuGet 包名 | 说明 |
+| ---------- | ---- |
+| **mooSQL.Provider.DuckDB** | DuckDB |
+| **mooSQL.Provider.Aurora** | Amazon Aurora（MySQL / PostgreSQL） |
+| **mooSQL.Provider.CockroachDB** | CockroachDB |
+| **mooSQL.Provider.EDB** | EnterpriseDB |
+| **mooSQL.Provider.Turso** | Turso / libSQL |
+
 > Local NuGet cache folder (typical on Windows): `C:\Users\<username>\.nuget\packages`

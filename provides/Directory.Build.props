@@ -1,0 +1,14 @@
+<Project>
+  <!-- 先导入仓库根 Directory.Build.props，否则本文件会遮蔽版本/图标/输出路径等全局打包设置 -->
+  <Import Project="..\Directory.Build.props" />
+
+  <!--
+    Provider 方言包专用元数据。
+    测试工程各自 csproj 已设 IsPackable=false。
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageTags>mooSQL;ORM;Database;Dialect;Provider</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>
