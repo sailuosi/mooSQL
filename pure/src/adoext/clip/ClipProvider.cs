@@ -360,8 +360,9 @@ namespace mooSQL.data.clip
             {
                 var ti = tb.TableInfo;
                 //这里还要检查实体是否为简单实体
-                if (ti.DType == DBTableType.Table)
+                if (ti.DType == DBTableType.Table || ti.DType == DBTableType.View)
                 {
+                    // View 与 Table 一样按 DbTableName 引用；此前漏处理 View 会导致 FROM 为空（SELECT t.* FROM WHERE ...）
                     sb.Append(" ");
                     var tbsql = clip.Context.Builder.DBLive.dialect.expression.wrapTableAsSQL(ti.DbTableName, tb.Alias, ti.SchemaName);
                     sb.Append(tbsql);
