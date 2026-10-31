@@ -42,13 +42,23 @@ description: Uses mooSQL Repository and UnitOfWork patterns for CRUD, pagination
 
 | 方法 | 说明 |
 |------|------|
-| `Insert(T)` / `InsertRange(IEnumerable<T>)` | 插入 |
+| `Insert(T)` / `InsertRange(IEnumerable<T>)` | 插入（返回影响行数） |
 | `Update(T)` | 更新 |
 | `Save(T)` / `SaveRange(IEnumerable<T>)` | 自动 insert/update |
 | `Delete(T)` / `Delete(IEnumerable<T>)` | 删除 |
 | `Delete(Expression<Func<T, bool>>)` | 条件删除 |
 | `DeleteById<K>(K id)` / `DeleteByIds<K>(ids)` | 按主键删 |
 | `ChangeTo<R>()` | 切换实体类型的仓储实例 |
+
+### 写入并返回主键（`SooRepository<T,K>`，与 SQLBuilder 命名对齐）
+
+| 方法 | 说明 |
+|------|------|
+| `InsertReturnId(T)` / `InsertReturnIds(...)` | 对齐 `doInsertReturnId(s)`；Identity 取库 Id 回填，应用发号读实体 PK |
+| `UpdateReturnId(T)` / `UpdateReturnIds(...)` | 更新后返回主键 |
+| `SaveReturnIds(...)` | 保存后返回主键列表 |
+
+旧名 `InsertWithPK` / `UpdateWithPK` / `*RangeWithPK` 已 `[Obsolete]`，请改用上述 ReturnId API。
 
 ### 使用示例
 
@@ -69,7 +79,32 @@ repo.SaveRange(users);
 repo.DeleteByIds(ids);
 ```
 
+## SooRichRepo<T>（富仓储，独立类型）
+
+**位置**: `pure/src/adoext/richRepo/SooRichRepo.cs`  
+**入口**: `db.useRichRepo<T>()`
+
+**不继承** `SooRepository`；内部组合薄仓转发 CRUD（`repo.Thin`）。厚能力只挂本类：
+
+| 能力 | API |
+|------|-----|
+| 脏更新 | `autoTrackOnQuery` / `Track` / `Update` / `UpdateDirty` / `UpdateAllColumns` |
+| 实体字典缓存 | `AllCache` / `QueryFromCache` / `ClearCache`（写后自动清） |
+| Schema | `EnsureSchema` / `PreviewSchema` / `SyncCaptions` |
+| Upsert | `InsertOrUpdate(entity, UpsertOptions)` |
+
+```csharp
+var repo = db.useRichRepo<User>().autoTrackOnQuery();
+var user = repo.GetById(1);
+user.Email = "n@x.com";
+repo.Update(user);              // 仅脏列
+repo.Thin.Update(user);         // 需要时显式走薄仓全列
+```
+
+薄仓 `useRepo` 行为不变，无 Tracking / EntityCache / Schema / Upsert API。
+
 ## SooUnitOfWork
+
 
 **位置**: `pure/src/adoext/repository/SooUnitOfWork.cs`
 

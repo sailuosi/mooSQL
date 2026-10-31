@@ -186,38 +186,6 @@ namespace mooSQL.data
         }
     }
 
-    public partial class SooRepository<T, K>
-    {
-        /// <summary>
-        /// 插入并取回强类型主键，回填实体。
-        /// </summary>
-        public K InsertReturnId(T insertObj)
-        {
-            var id = ((SooRepository<T>)this).InsertReturnId(insertObj);
-            if (id == null || id is DBNull)
-                throw new InvalidOperationException("InsertReturnId returned no identity value.");
-            if (id is K direct)
-                return direct;
-            return (K)Convert.ChangeType(id, typeof(K));
-        }
-
-        /// <summary>
-        /// 批量插入取强类型主键列表（Returning 方言可一批；否则逐行）。
-        /// </summary>
-        public List<K> InsertReturnIds(IEnumerable<T> insertObjs)
-        {
-            var raw = ((SooRepository<T>)this).InsertReturnIds(insertObjs);
-            var res = new List<K>(raw.Count);
-            foreach (var id in raw)
-            {
-                if (id == null || id is DBNull)
-                    throw new InvalidOperationException("InsertReturnIds returned no identity value.");
-                if (id is K direct)
-                    res.Add(direct);
-                else
-                    res.Add((K)Convert.ChangeType(id, typeof(K)));
-            }
-            return res;
-        }
-    }
+    // SooRepository<T,K>.InsertReturnId / InsertReturnIds 见 SooRepository.PK.cs（含应用发号路径）
 }
+
