@@ -30,7 +30,7 @@
 			<Version>18.15.1</Version>
 		</PackageReference>
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.117" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.15" />
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 	</ItemGroup>
@@ -80,9 +80,9 @@
 		  <Version>9.0.1</Version>
 		</PackageReference>
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
 		<PackageReference Include="System.Data.Odbc" Version="8.0.1" />
-		<PackageReference Include="NPOI" Version="2.7.0" />
+		<PackageReference Include="NPOI" Version="2.8.1" />
 		<PackageReference Include="MySqlConnector" Version="2.6.2" />
 		<PackageReference Include="Npgsql" Version="8.0.9" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.36" />
@@ -92,16 +92,16 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="ClickHouse.Driver" Version="1.5.0" />
 		<PackageReference Include="Microsoft.Data.Sqlite">
-			<Version>10.0.11</Version>
+			<Version>10.0.14</Version>
 		</PackageReference>
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.300" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
-		<PackageReference Include="System.Data.Odbc" Version="10.0.11" />
-		<PackageReference Include="NPOI" Version="2.7.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+		<PackageReference Include="System.Data.Odbc" Version="10.0.14" />
+		<PackageReference Include="NPOI" Version="2.8.1" />
 		<PackageReference Include="MySqlConnector" Version="2.6.2" />
 		<PackageReference Include="Npgsql" Version="10.0.3" />
 		<PackageReference Include="Oscar.Data.SqlClient" Version="4.2.36" />
-		<PackageReference Include="System.Data.OleDb" Version="10.0.11" />
+		<PackageReference Include="System.Data.OleDb" Version="10.0.14" />
 		<PackageReference Include="DM.DmProvider" Version="8.3.1.47463" />
 		<PackageReference Include="Kdbndp_V9" Version="10.0.1.921" />
 		<PackageReference Include="HuaweiCloud.GaussDB.Driver" Version="8.0.1" />
@@ -109,7 +109,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
