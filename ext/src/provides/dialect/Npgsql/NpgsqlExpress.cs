@@ -614,6 +614,11 @@ namespace mooSQL.data
         {
             return "serial";
         }
+
+        /// <summary>
+        /// PostgreSQL 的 serial/bigserial 是类型替换，不能当列后缀拼接。
+        /// </summary>
+        protected override bool IdentityAsColumnSuffix => false;
  /// <summary>
  /// Builds a CREATE DATABASE statement.
  /// </summary>

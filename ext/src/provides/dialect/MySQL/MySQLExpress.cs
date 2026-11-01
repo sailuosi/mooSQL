@@ -847,6 +847,9 @@ namespace mooSQL.data
         {
             return "AUTO_INCREMENT";
         }
+
+        /// <inheritdoc/>
+        protected override bool IdentityAsColumnSuffix => true;
         /// <summary>
         /// 创建表
         /// </summary>

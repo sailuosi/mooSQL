@@ -193,9 +193,32 @@ namespace mooSQL.data
                 sb.Append(field.DefaultValue);
                 sb.Append(" ");
             }
+            // 自增：MySQL AUTO_INCREMENT / MSSQL IDENTITY 等作为列后缀；
+            // SQLite / PostgreSQL serial 等由方言覆盖 buildDDLField 或关闭 IdentityAsColumnSuffix。
+            if (field.IsIdentity && IdentityAsColumnSuffix)
+            {
+                var auto = getTableAutoIdSQL();
+                if (!string.IsNullOrWhiteSpace(auto))
+                {
+                    sb.Append(auto);
+                    sb.Append(" ");
+                }
+            }
             sb.Append(this.buildDDLFieldCaption(field));
             return sb.ToString();
         }
+
+        /// <summary>
+        /// <see cref="getTableAutoIdSQL"/> 是否可作为列定义后缀拼接。
+        /// 默认 false：该方法在各方言语义不一（有的是 AUTO_INCREMENT，有的是取 last id 的 SELECT）。
+        /// MySQL/MSSQL 等覆盖为 true；SQLite 在 <see cref="buildDDLField"/> 内联 PRIMARY KEY AUTOINCREMENT。
+        /// </summary>
+        protected virtual bool IdentityAsColumnSuffix => false;
+
+        /// <summary>
+        /// 该列是否已在列定义中声明主键（勿再输出表级 PRIMARY KEY，避免 SQLite 重复约束）。
+        /// </summary>
+        protected virtual bool DeclaresPrimaryKeyInline(DDLField field) => false;
         /// <summary>
         /// 设置表字段的注释
         /// </summary>
@@ -263,7 +286,7 @@ namespace mooSQL.data
         protected List<string> getDDLPK(DDLFragSQL frag) {
             var res = new List<string>();
             foreach (var fie in frag.Columns) {
-                if (fie.IsPrimary) { 
+                if (fie.IsPrimary && !DeclaresPrimaryKeyInline(fie)) { 
                     res.Add(fie.FieldName);
                 }
             }

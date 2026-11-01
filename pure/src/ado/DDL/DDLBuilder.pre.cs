@@ -73,7 +73,7 @@ namespace mooSQL.data
         /// <param name="nullable"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public DDLBuilder set(string columnName, DbDataType columnType, string caption,bool nullable=true,string defaultValue=null,bool isPK=false)
+        public DDLBuilder set(string columnName, DbDataType columnType, string caption,bool nullable=true,string defaultValue=null,bool isPK=false, bool isIdentity=false)
         {
             var tar = new DDLField()
             {
@@ -83,7 +83,8 @@ namespace mooSQL.data
                 Caption = caption,
                 Nullable=nullable,
                 DefaultValue=defaultValue,
-                IsPrimary=isPK
+                IsPrimary=isPK,
+                IsIdentity=isIdentity
             };
             tar.TextType= this.DBLive.dialect.mapping.DbDataTypeToSQL(columnType);
             set(tar);

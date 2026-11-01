@@ -429,6 +429,46 @@ namespace mooSQL.data
         }
 
         #region DDL
+
+        /// <summary>
+        /// SQLite 自增不能当普通后缀拼；须 <c>INTEGER PRIMARY KEY AUTOINCREMENT</c> 内联。
+        /// </summary>
+        protected override bool IdentityAsColumnSuffix => false;
+
+        /// <inheritdoc/>
+        protected override bool DeclaresPrimaryKeyInline(DDLField field)
+            => field != null && field.IsIdentity;
+
+        /// <summary>
+        /// 非自增主键：表级 PRIMARY KEY；自增列已在 <see cref="buildDDLField"/> 内联，见 <see cref="DeclaresPrimaryKeyInline"/>。
+        /// </summary>
+        protected override string buildConstrainPK(string pkname, string fields)
+        {
+            return string.Format("PRIMARY KEY ({0})", fields);
+        }
+
+        /// <summary>
+        /// 自增列强制 <c>INTEGER PRIMARY KEY AUTOINCREMENT</c>（SQLite 唯一合法自增写法）。
+        /// </summary>
+        protected override string buildDDLField(DDLField field)
+        {
+            if (field != null && field.IsIdentity)
+            {
+                var sb = new StringBuilder();
+                sb.Append(field.FieldName);
+                sb.Append(" INTEGER PRIMARY KEY AUTOINCREMENT ");
+                sb.Append(field.Nullable ? "NULL " : "NOT NULL ");
+                if (!string.IsNullOrWhiteSpace(field.DefaultValue))
+                {
+                    sb.Append(field.DefaultValue);
+                    sb.Append(" ");
+                }
+                sb.Append(buildDDLFieldCaption(field));
+                return sb.ToString().Trim();
+            }
+            return base.buildDDLField(field);
+        }
+
 /// <summary>
 /// Returns SQL for retrieving an auto-generated identity value.
 /// </summary>

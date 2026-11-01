@@ -627,6 +627,9 @@ namespace mooSQL.data
         {
             return "IDENTITY(1,1)";
         }
+
+        /// <inheritdoc/>
+        protected override bool IdentityAsColumnSuffix => true;
  /// <summary>
  /// Builds a CREATE DATABASE statement.
  /// </summary>

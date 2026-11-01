@@ -308,10 +308,7 @@ namespace mooSQL.data
         }
         private void setDDLField(EntityColumn field, DDLBuilder ddl) {
             var dt = ResolveDesiredType(field);
-            ddl.set(LandIdent(field.DbColumnName), dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey);
-            if (!string.IsNullOrWhiteSpace(field.ColumnDescription)) { 
-                
-            }
+            ddl.set(LandIdent(field.DbColumnName), dt, field.ColumnDescription, field.IsNullable, field.DefaultValue, field.IsPrimarykey, field.IsIdentity);
         }
 
         /// <summary>

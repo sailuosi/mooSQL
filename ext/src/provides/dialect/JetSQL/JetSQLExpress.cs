@@ -171,6 +171,9 @@ namespace mooSQL.data
         {
             return "AUTOINCREMENT";
         }
+
+        /// <inheritdoc/>
+        protected override bool IdentityAsColumnSuffix => true;
 /// <summary>
 /// Builds a CREATE DATABASE statement.
 /// </summary>

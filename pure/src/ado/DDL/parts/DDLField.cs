@@ -41,6 +41,10 @@ public class DDLField
     /// </summary>
     public bool IsPrimary { get; set; }
     /// <summary>
+    /// 是否自增（IDENTITY / AUTO_INCREMENT / AUTOINCREMENT 等）
+    /// </summary>
+    public bool IsIdentity { get; set; }
+    /// <summary>
     /// 是否唯一
     /// </summary>
     public bool Unique {  get; set; }

@@ -112,6 +112,22 @@ namespace mooSQL.data
             return this;
         }
         /// <summary>
+        /// 设为主键
+        /// </summary>
+        public DDLColumnBuilder primaryKey()
+        {
+            field.IsPrimary = true;
+            return this;
+        }
+        /// <summary>
+        /// 设为自增列（方言决定 IDENTITY / AUTO_INCREMENT / INTEGER PRIMARY KEY AUTOINCREMENT）
+        /// </summary>
+        public DDLColumnBuilder identity()
+        {
+            field.IsIdentity = true;
+            return this;
+        }
+        /// <summary>
         /// 配置默认值SQL
         /// </summary>
         /// <param name="valueSQL"></param>

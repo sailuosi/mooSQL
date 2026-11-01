@@ -49,8 +49,10 @@ Console.WriteLine(cmd.sql);
 |------|------|
 | `setTable(name, caption?)` | 目标表及表注释 |
 | `set(col, typeText, caption, nullable?, default?)` | 按方言类型字符串加列 |
-| `set(col, DbDataType, caption, …, isPK?)` | 按抽象类型加列（由 mapping 转 SQL） |
-| `set(col)` → `DDLColumnBuilder` | 细粒度列设置后 `.add()` |
+| `set(col, DbDataType, caption, …, isPK?, isIdentity?)` | 按抽象类型加列（由 mapping 转 SQL）；`isIdentity` 走方言自增片段 |
+| `set(col)` → `DDLColumnBuilder` | 细粒度列设置后 `.add()` / `.primaryKey()` / `.identity()` |
+
+实体 `createTable<T>` 会把 `SooColumn.IsIdentity` 传入流式 DDL。SQLite 自增列输出为 `INTEGER PRIMARY KEY AUTOINCREMENT`（内联，不再叠表级 PRIMARY KEY）；MySQL / SQL Server 在列后缀追加 `AUTO_INCREMENT` / `IDENTITY(1,1)`。
 | `setCap(col, caption)` | 仅补列注释上下文 |
 | `setIndex(...)` | 索引 |
 | `doCreateTable` / `toCreateTable` | 建表 |
