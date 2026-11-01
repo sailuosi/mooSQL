@@ -219,13 +219,13 @@ namespace mooSQL.excel
             titleStyle.Alignment = HorizontalAlignment.Center;
             var font = book.CreateFont();
             font.FontHeightInPoints = 20;
-            font.Boldweight = 700;
+            font.IsBold = true;
             titleStyle.SetFont(font);
             //列名
             colNameStyle.Alignment = HorizontalAlignment.Center;
             var fontc = book.CreateFont();
             fontc.FontHeightInPoints = 12;
-            fontc.Boldweight = 700;
+            fontc.IsBold = true;
             colNameStyle.SetFont(fontc);
             colNameStyle.BorderBottom = BorderStyle.Thin;
             colNameStyle.BorderTop = BorderStyle.Thin;
