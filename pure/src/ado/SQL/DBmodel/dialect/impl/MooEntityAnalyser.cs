@@ -28,6 +28,17 @@ namespace mooSQL.data.Mapping
             info.DatabaseName = attr.Database;
             info.ServerName = attr.Server;
             info.LiveName = attr.LiveName;
+            if (!string.IsNullOrWhiteSpace(attr.Caption))
+                info.TableDescription = attr.Caption;
+            if (!string.IsNullOrWhiteSpace(attr.Alias))
+                info.Alias = attr.Alias;
+            info.DType = attr.Type;
+            if (!string.IsNullOrWhiteSpace(info.DbTableName) && info.DType == DBTableType.None)
+                info.DType = DBTableType.Table;
+            if (!string.IsNullOrWhiteSpace(attr.ViewSQL))
+                info.ViewSQL = attr.ViewSQL;
+            if (info.DType == DBTableType.View || !string.IsNullOrWhiteSpace(info.ViewSQL))
+                info.IsView = true;
             ShardRegistration.ApplyTableAttribute(info, attr);
 
             return info;

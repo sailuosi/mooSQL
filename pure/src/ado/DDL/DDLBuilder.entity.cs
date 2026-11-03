@@ -1,3 +1,4 @@
+using mooSQL.data.builder;
 using mooSQL.data.model;
 using mooSQL.utils;
 using System;
@@ -590,13 +591,22 @@ namespace mooSQL.data
             return true;
         }
         /// <summary>
-        /// 创建视图
+        /// 由实体 <see cref="EntityInfo.ViewSQL"/>（SELECT 正文）经方言包装为完整 CREATE VIEW。
         /// </summary>
         /// <param name="entityInfo"></param>
         /// <returns></returns>
         public virtual string toGetCreateView(EntityInfo entityInfo)
         {
-            return entityInfo.ViewSQL;
+            if (entityInfo == null || string.IsNullOrWhiteSpace(entityInfo.ViewSQL))
+                return null;
+            if (string.IsNullOrWhiteSpace(entityInfo.DbTableName))
+                return null;
+            var frag = new DDLFragSQL
+            {
+                Table = entityInfo.DbTableName,
+                SelectSQL = entityInfo.ViewSQL
+            };
+            return DBLive.dialect.expression.buildCreateView(frag);
         }
         /// <summary>
         /// 创建数据库

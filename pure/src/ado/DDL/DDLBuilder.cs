@@ -65,6 +65,8 @@ namespace mooSQL.data
             }
             this._targetTable= null;
             this._targetView= null;
+            this._selectBuilder = null;
+            this._selectSqlOverride = null;
             if (this._ddlFields != null) { 
                 this._ddlFields.Clear();
             }
@@ -202,7 +204,25 @@ namespace mooSQL.data
 
 
         private SQLBuilder _selectBuilder;
+        /// <summary>
+        /// 已解析的视图 SELECT 正文（优先于 <see cref="_selectBuilder"/>；CREATE VIEW 不接受命令参数，须为内联 SQL）。
+        /// </summary>
+        private string _selectSqlOverride;
 
+        /// <summary>
+        /// 解析视图定义 SELECT（优先 override，否则从 SQLBuilder 内联参数后取文本）。
+        /// </summary>
+        string resolveViewSelectSql()
+        {
+            if (!string.IsNullOrWhiteSpace(_selectSqlOverride))
+                return _selectSqlOverride;
+            if (_selectBuilder == null)
+                throw new Exception("视图定义的SQL不能为空！请先调用 SelectAs 或 createViewFromClip。");
+            var sql = _selectBuilder.toSelect();
+            if (sql == null || string.IsNullOrWhiteSpace(sql.sql))
+                throw new Exception("视图定义的SQL不能为空！");
+            return sql.toRawSQL(DBLive.dialect.expression.paraPrefix);
+        }
 
         /// <summary>
         /// 创建视图
@@ -216,11 +236,7 @@ namespace mooSQL.data
                 throw new Exception("数据库表名定义不得为空！");
             }
             frag.Table = this._targetTable;
-            var sql = this._selectBuilder.toSelect();
-            if (sql == null || string.IsNullOrWhiteSpace(sql.sql)) {
-                throw new Exception("视图定义的SQL不能为空！");
-            }
-            frag.SelectSQL = sql.sql;
+            frag.SelectSQL = resolveViewSelectSql();
             var str = this.DBLive.dialect.expression.buildCreateView(frag);
             var cmd = new SQLCmd(str, ps);
             return cmd;
@@ -247,6 +263,7 @@ namespace mooSQL.data
             {
                 throw new Exception("数据库表名定义不得为空！");
             }
+            frag.Table = this._targetTable;
             var str = this.DBLive.dialect.expression.buildDropView(frag);
             var cmd = new SQLCmd(str, ps);
             return cmd;
@@ -255,7 +272,7 @@ namespace mooSQL.data
         /// toDropView 方法（返回 SQLCmd）。
         /// </summary>
         public SQLCmd toDropView(string viewName) { 
-            this.setTable(viewName);
+            this.setView(viewName);
             return toDropView();
         }
         /// <summary>
@@ -272,7 +289,7 @@ namespace mooSQL.data
         /// doDropView 方法（返回 int）。
         /// </summary>
         public int doDropView(string viewName) { 
-            this.setTable(viewName);
+            this.setView(viewName);
             return doDropView();
         }
         /// <summary>
@@ -288,12 +305,7 @@ namespace mooSQL.data
                 throw new Exception("数据库表名定义不得为空！");
             }
             frag.Table = this._targetTable;
-            var sql = this._selectBuilder.toSelect();
-            if (sql == null || string.IsNullOrWhiteSpace(sql.sql))
-            {
-                throw new Exception("视图定义的SQL不能为空！");
-            }
-            frag.SelectSQL = sql.sql;
+            frag.SelectSQL = resolveViewSelectSql();
             var str = this.DBLive.dialect.expression.buildAlterView(frag);
             var cmd = new SQLCmd(str, ps);
             return cmd;

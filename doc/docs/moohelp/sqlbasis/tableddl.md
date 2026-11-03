@@ -131,7 +131,67 @@ bool hasCap = ddl.hasTableCaption("HH_SysUser");
 
 ---
 
-## 4. 元数据查询
+## 4. 建视图
+
+`ViewSQL` / `SelectAs` / `createViewFromClip` 均只提供 **SELECT 正文**；方言再包装为 `CREATE VIEW name AS …`。`CREATE VIEW` 不接受命令参数，构建时会将参数内联为字面量。
+
+```csharp
+var ddl = db.useDDL();
+
+// 1) SQLBuilder 委托
+ddl.clear()
+   .SelectAs(kit =>
+   {
+       kit.select("Id").select("Account")
+          .from("HH_SysUser")
+          .where("Enabled", 1);
+   }, "V_UserBrief")
+   .doCreateView();
+
+// 仅预览
+var createCmd = ddl.clear()
+    .SelectAs(kit => { kit.select("Id").from("HH_SysUser"); }, "V_UserBrief")
+    .toCreateView();
+
+// 2) SQLClip 现场（不写入实体缓存）
+ddl.clear()
+   .createViewFromClip(clip =>
+   {
+       clip.from<SysUser>(out var u)
+           .select(u.Id, u.Account)
+           .where(u.Enabled == true);
+   }, "V_UserBrief")
+   .doCreateView();
+// 或：ddl.doCreateViewFromClip(clip => { … }, "V_UserBrief");
+
+// 修改 / 删除（SQLite 等不支持 ALTER VIEW 时请 drop + create）
+ddl.clear()
+   .SelectAs(kit =>
+   {
+       kit.select("Id").select("Account").select("Name").from("HH_SysUser");
+   }, "V_UserBrief")
+   .doAlterView();
+ddl.doDropView("V_UserBrief");
+bool exists = ddl.hasView("V_UserBrief");
+```
+
+实体 + `[SooTable]`：`ViewSQL` 为 SELECT 正文；`Type = View`（或仅填 `ViewSQL`）时 `doInitTable` 会建视图；**已存在则跳过**。
+
+```csharp
+[SooTable("V_UserBrief", Type = DBTableType.View,
+    ViewSQL = "SELECT Id, Account FROM HH_SysUser WHERE Enabled=1")]
+public class UserBrief
+{
+    [SooColumn("Id")] public long Id { get; set; }
+    [SooColumn("Account")] public string Account { get; set; }
+}
+
+db.useDDL().doInitTable(new DMLOption(), typeof(UserBrief));
+```
+
+---
+
+## 5. 元数据查询
 
 ```csharp
 var ddl = db.useDDL();
@@ -169,9 +229,9 @@ string pk = sent.GetTablePKName("HH_SysUser");
 
 ---
 
-## 5. 实体类建表（DBTableCreator）
+## 6. 实体类建表（DBTableCreator）
 
-### 5.1 实体定义
+### 6.1 实体定义
 
 ```csharp
 using mooSQL.data;
@@ -194,7 +254,7 @@ public class SysUser
 }
 ```
 
-### 5.2 预览与执行
+### 6.2 预览与执行
 
 ```csharp
 // 预览建表 SQL（不访问库写结构；适合跨方言校验）
@@ -242,7 +302,7 @@ db.useSQL().useDBInit()
 
 ---
 
-## 6. 数据库初始化 Demo
+## 7. 数据库初始化 Demo
 
 应用启动或迁移脚本中，一次性按实体落库：
 
@@ -334,7 +394,7 @@ public static class DbSchemaBootstrap
 
 ---
 
-## 7. API 速查
+## 8. API 速查
 
 ### DDLBuilder（结构变更）
 
@@ -350,6 +410,8 @@ public static class DbSchemaBootstrap
 | 删表/列注释 | `doDeleteTableCaption` / `doDeleteColumnCaption` | 对应 `to*` |
 | 索引 | `doCreateIndex` / `doAddIndex(entity)` | `toCreateIndex` |
 | 批量初始化 | `doInitTable(...)` | `toInitTableList(...)` |
+| 建视图 | `SelectAs` / `createViewFromClip` + `doCreateView` | `toCreateView` |
+| 改/删视图 | `doAlterView` / `doDropView` | `toAlterView` / `toDropView` |
 
 ### 查询类
 
@@ -374,7 +436,7 @@ public static class DbSchemaBootstrap
 
 ---
 
-## 8. 相关文档
+## 9. 相关文档
 
 - [数据库支持情况](/moohelp/start/databases) — 方言、标识符默认、版本
 - [初始化配置](/SQL/basis/initconfig) — `NameCase` / `NameQuote` / `DbType`

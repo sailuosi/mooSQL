@@ -31,14 +31,66 @@ namespace mooSQL.data
 
         string? _targetView;
         /// <summary>
-        /// 设置目标视图
+        /// 设置目标视图（同时写入表名槽，供 create/alter/drop 共用）。
         /// </summary>
         /// <param name="targetView"></param>
         /// <returns></returns>
         public DDLBuilder setView(string targetView)
         {
             this._targetView = targetView;
+            this._targetTable = targetView;
             return this;
+        }
+
+        /// <summary>
+        /// 用 SQLBuilder 委托定义视图 SELECT，并指定视图名。随后可链式 <see cref="toCreateView"/> / <see cref="doCreateView"/> / <see cref="toAlterView"/>。
+        /// </summary>
+        /// <param name="selectBuilder">构建 SELECT 的委托。</param>
+        /// <param name="viewName">视图名。</param>
+        public DDLBuilder SelectAs(Action<SQLBuilder> selectBuilder, string viewName)
+        {
+            if (selectBuilder == null)
+                throw new ArgumentNullException(nameof(selectBuilder));
+            if (string.IsNullOrWhiteSpace(viewName))
+                throw new ArgumentException("视图名不能为空。", nameof(viewName));
+
+            setView(viewName);
+            _selectSqlOverride = null;
+            _selectBuilder = DBLive.useSQL();
+            selectBuilder(_selectBuilder);
+            return this;
+        }
+
+        /// <summary>
+        /// 用 SQLClip 委托现场定义视图 SELECT（不写入实体缓存），并指定视图名。
+        /// </summary>
+        /// <param name="build">构建 Clip 查询的委托。</param>
+        /// <param name="viewName">视图名。</param>
+        public DDLBuilder createViewFromClip(Action<SQLClip> build, string viewName)
+        {
+            if (build == null)
+                throw new ArgumentNullException(nameof(build));
+            if (string.IsNullOrWhiteSpace(viewName))
+                throw new ArgumentException("视图名不能为空。", nameof(viewName));
+
+            setView(viewName);
+            _selectBuilder = null;
+            var kit = DBLive.useSQL();
+            var clip = DBLive.useClip(kit);
+            build(clip);
+            var cmd = clip.toSelect();
+            if (cmd == null || string.IsNullOrWhiteSpace(cmd.sql))
+                throw new Exception("视图定义的SQL不能为空！");
+            _selectSqlOverride = cmd.toRawSQL(DBLive.dialect.expression.paraPrefix);
+            return this;
+        }
+
+        /// <summary>
+        /// <see cref="createViewFromClip"/> 后立即执行创建。
+        /// </summary>
+        public int doCreateViewFromClip(Action<SQLClip> build, string viewName)
+        {
+            return createViewFromClip(build, viewName).doCreateView();
         }
 
         List<DDLField> _ddlFields= new List<DDLField>();

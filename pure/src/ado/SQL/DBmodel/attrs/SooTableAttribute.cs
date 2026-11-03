@@ -63,6 +63,10 @@ namespace mooSQL.data
 		/// </summary>
 		public DBTableType Type { get; set; }
 		/// <summary>
+		/// 视图 SELECT 正文（不含 CREATE VIEW；仅当 Type=View 或用于 doInitTable 建视图时使用）。
+		/// </summary>
+		public string ViewSQL { get; set; }
+		/// <summary>
 		/// 表选项，已废弃
 		/// </summary>
 		public TableOptions TableOptions        { get; set; }

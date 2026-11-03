@@ -219,6 +219,10 @@ namespace mooSQL.data.Mapping
             {
                 info.DType = DBTableType.Table;
             }
+            if (!string.IsNullOrWhiteSpace(attr.ViewSQL))
+                info.ViewSQL = attr.ViewSQL;
+            if (info.DType == DBTableType.View || !string.IsNullOrWhiteSpace(info.ViewSQL))
+                info.IsView = true;
             info.LiveName = attr.LiveName;
             ShardRegistration.ApplyTableAttribute(info, attr);
             return info;
