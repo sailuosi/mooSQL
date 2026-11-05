@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using mooSQL.data.clip.project;
 
 
@@ -134,6 +135,41 @@ namespace mooSQL.data
             {
                 return Context.Builder.query<T>();
             }
+        }
+
+        /// <summary>
+        /// 异步查询列表（可取消）。实体多列走 Builder.queryAsync(ct)；单列/尾投影入口校验令牌后暂走同步物化。
+        /// </summary>
+        public Task<IEnumerable<T>> queryListAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Context.ClientProjection != null)
+            {
+                return Task.FromResult(Context.ClientProjection.ExecuteQuery<T>(Context.Builder));
+            }
+            if (Context.FieldCount == 1)
+            {
+                // queryFirstField 尚无独立 async；令牌已在入口校验
+                return Task.FromResult(Context.Builder.queryFirstField<T>());
+            }
+            return Context.Builder.queryAsync<T>(cancellationToken);
+        }
+
+        /// <summary>
+        /// 异步查询唯一行（可取消）。多列走 Builder.queryUniqueAsync；单列/尾投影入口校验令牌后同步物化。
+        /// </summary>
+        public Task<T> queryUniqueAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Context.ClientProjection != null)
+            {
+                return Task.FromResult(Context.ClientProjection.ExecuteUnique<T>(Context.Builder));
+            }
+            if (Context.FieldCount == 1)
+            {
+                return Task.FromResult(Context.Builder.queryScalar<T>());
+            }
+            return Context.Builder.queryUniqueAsync<T>(cancellationToken);
         }
         /// <summary>
         /// 查询出分页结果。

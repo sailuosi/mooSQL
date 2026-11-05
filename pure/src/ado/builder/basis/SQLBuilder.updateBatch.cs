@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
@@ -22,8 +23,8 @@ namespace mooSQL.data
         public abstract int doUpdateBatch(IReadOnlyList<string> keyColumns);
 
         /// <summary>
-        /// 异步执行 <see cref="toUpdateBatch"/>。
+        /// 异步执行 <see cref="toUpdateBatch"/>（可取消；令牌默认 default）。
         /// </summary>
-        public abstract Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns);
+        public abstract Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns, CancellationToken cancellationToken = default);
     }
 }

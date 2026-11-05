@@ -1,7 +1,10 @@
 using FluentAssertions;
 using mooSQL.Pure.Tests.TestHelpers;
 using mooSQL.data;
+using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace mooSQL.Pure.Tests
@@ -281,6 +284,51 @@ namespace mooSQL.Pure.Tests
             clip.whereNotInOrNull(() => u.Age, new int?[] { 28, 35 });
             var list = clip.select(u).queryList().ToList();
             list.Select(x => x.Id).Should().Contain(91);
+        }
+
+        [Fact]
+        public async Task QueryListAsync_ShouldMatchSync()
+        {
+            var clip = NewClip();
+            clip.from<SQLiteTestUser>(out var u);
+            clip.where(() => u.IsActive, true);
+            var sync = clip.select(u).queryList().ToList();
+
+            clip.clear();
+            clip.from<SQLiteTestUser>(out var u2);
+            clip.where(() => u2.IsActive, true);
+            var asyncList = (await clip.select(u2).queryListAsync().ConfigureAwait(false)).ToList();
+
+            asyncList.Count.Should().Be(sync.Count);
+            asyncList.Select(x => x.Id).Should().BeEquivalentTo(sync.Select(x => x.Id));
+        }
+
+        [Fact]
+        public async Task QueryListAsync_Canceled_ShouldThrow()
+        {
+            var clip = NewClip();
+            clip.from<SQLiteTestUser>(out var u);
+            clip.where(() => u.IsActive, true);
+            var typed = clip.select(u);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => typed.queryListAsync(cts.Token));
+        }
+
+        [Fact]
+        public async Task DoUpdateAsync_ShouldAffectRows()
+        {
+            var clip = NewClip();
+            var typed = clip.setTable<SQLiteTestUser>(out var u);
+            typed.set(() => u.Name, "AsyncUpd").where(() => u.Id, 1);
+            var n = await typed.doUpdateAsync().ConfigureAwait(false);
+            n.Should().Be(1);
+
+            clip.clear();
+            clip.from<SQLiteTestUser>(out var q);
+            clip.where(() => q.Id, 1);
+            var name = clip.select(() => q.Name).queryUnique();
+            name.Should().Be("AsyncUpd");
         }
     }
 }

@@ -584,6 +584,25 @@ namespace mooSQL.data.context
 
             }, context);
         }
+
+        /// <summary>
+        /// 异步查询 DataTable（可取消）：Open/ExecuteReader 尊重令牌；物化仍同步 Load。
+        /// </summary>
+        public async Task<DataTable> ExecuteQueryAsync(ExeContext context, CancellationToken cancellationToken)
+        {
+            return await ExecuteWrapAsync(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await context.session.OpenAsync(cancellationToken, context);
+                DbCommand dbCmd = CreateCmd(context);
+                using (var reader = await dbCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var dataTable = new DataTable();
+                    dataTable.Load(reader);
+                    return dataTable;
+                }
+            }, context);
+        }
         /// <summary>
         /// 查询返回多个表
         /// </summary>
@@ -657,6 +676,23 @@ namespace mooSQL.data.context
                     return tar;
                 }
 
+            }, context);
+        }
+
+        /// <summary>
+        /// 异步查询泛型集合（可取消）。
+        /// </summary>
+        public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(ExeContext context, CancellationToken cancellationToken)
+        {
+            return await ExecuteWrapAsync(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await context.session.OpenAsync(cancellationToken, context);
+                DbCommand dbCmd = CreateCmd(context);
+                using (var reader = await dbCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return queryByType<T>(reader, typeof(T), dbCmd, context.session.connection, false, DB);
+                }
             }, context);
         }
 

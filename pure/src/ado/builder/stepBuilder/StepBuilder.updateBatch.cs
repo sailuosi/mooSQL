@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.data.model;
 
@@ -98,13 +99,16 @@ namespace mooSQL.data
         }
 
         /// <inheritdoc />
-        public override Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns)
+        public override async Task<int> doUpdateBatchAsync(
+            IReadOnlyList<string> keyColumns,
+            CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var sql = toUpdateBatch(keyColumns);
             if (sql == null || sql.Empty)
-                return Task.FromResult(-1);
+                return -1;
 
-            var res = exeNonQueryAsync(sql);
+            var res = await exeNonQueryAsync(sql, cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
                 clear();
             return res;

@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.data.builder;
 using mooSQL.data.cluster;
@@ -916,9 +918,9 @@ namespace mooSQL.data
         public abstract List<TKey> doInsertReturnKeys<TKey>(string identityColumn = null);
 
         /// <summary>
-        /// 异步执行插入。
+        /// 异步执行插入（可取消；令牌默认 default）。
         /// </summary>
-        public abstract Task<int> doInsertAsync();
+        public abstract Task<int> doInsertAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行更新语句，默认会自动 clear；条件不得为空，如强制更新所有，可以设置 1=1。
@@ -926,9 +928,9 @@ namespace mooSQL.data
         public abstract int doUpdate();
 
         /// <summary>
-        /// 异步执行更新。
+        /// 异步执行更新（可取消；令牌默认 default）。
         /// </summary>
-        public abstract Task<int> doUpdateAsync();
+        public abstract Task<int> doUpdateAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行 delete SQL，默认完成后自动 clear。where 为空返回 -1。
@@ -936,9 +938,9 @@ namespace mooSQL.data
         public abstract int doDelete();
 
         /// <summary>
-        /// 异步执行删除。where 为空返回 -1。
+        /// 异步执行删除（可取消；令牌默认 default）。where 为空返回 -1。
         /// </summary>
-        public abstract Task<int> doDeleteAsync();
+        public abstract Task<int> doDeleteAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 注意！为防止误操作，where 条件项不得为空。
@@ -956,9 +958,9 @@ namespace mooSQL.data
         public abstract int doMergeInto();
 
         /// <summary>
-        /// 异步执行合并。
+        /// 异步执行合并（可取消；令牌默认 default）。
         /// </summary>
-        public abstract Task<int> doMergeIntoAsync();
+        public abstract Task<int> doMergeIntoAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 根据上下文配置获取查询结果。
@@ -966,9 +968,9 @@ namespace mooSQL.data
         public abstract DataTable query();
 
         /// <summary>
-        /// 异步查询。
+        /// 异步查询（可取消；令牌默认 default）。
         /// </summary>
-        public abstract Task<DataTable> queryAsync();
+        public abstract Task<DataTable> queryAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 泛型法，查询多行数据。
@@ -977,10 +979,10 @@ namespace mooSQL.data
         public abstract IEnumerable<T> query<T>();
 
         /// <summary>
-        /// 异步查询多行数据，返回泛型集合。
+        /// 异步查询多行（可取消；令牌默认 default）。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<IEnumerable<T>> queryAsync<T>();
+        public abstract Task<IEnumerable<T>> queryAsync<T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 依据自定义的行读取规则，来创建目标类的 list。
@@ -1041,7 +1043,7 @@ namespace mooSQL.data
         /// 异步分页查询，返回分页数据和总数。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<PageOutput<T>> queryPagedAsync<T>();
+        public abstract Task<PageOutput<T>> queryPagedAsync<T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询翻页结果，带汇总。
@@ -1053,7 +1055,7 @@ namespace mooSQL.data
         /// 异步查询有汇总的分页结果，selectCols 参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount 等，查询结果会放在返回对象的字典里，key 为列名。
         /// </summary>
         /// <param name="selectCols">汇总列定义。</param>
-        public abstract Task<PagedSumDataTable> queryPageSumAsync(string selectCols);
+        public abstract Task<PagedSumDataTable> queryPageSumAsync(string selectCols, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询含有汇总的分页结果，selectCols 参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount 等，查询结果会放在返回对象的字典里，key 为列名。
@@ -1067,7 +1069,7 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="selectCols">汇总列定义。</param>
-        public abstract Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols);
+        public abstract Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行汇总 SQL 并返回键值结果（可选包含 total 列）。
@@ -1106,10 +1108,10 @@ namespace mooSQL.data
         public abstract T queryUnique<T>();
 
         /// <summary>
-        /// 异步查询唯一一行，多行或没有都是 null。
+        /// 异步查询唯一一行（可取消；令牌默认 default），多行或没有都是 null。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<T> queryUniqueAsync<T>();
+        public abstract Task<T> queryUniqueAsync<T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询一个数据，只读第一行第一列。
@@ -1118,10 +1120,10 @@ namespace mooSQL.data
         public abstract T queryScalar<T>();
 
         /// <summary>
-        /// 异步查唯一值（第一行第一列）。
+        /// 异步查唯一值（可取消；令牌默认 default）。
         /// </summary>
         /// <typeparam name="T">标量类型。</typeparam>
-        public abstract Task<T> queryScalarAsync<T>();
+        public abstract Task<T> queryScalarAsync<T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询结果为唯一一行记录的结果，非 1 行结果返回 null。
@@ -1129,9 +1131,9 @@ namespace mooSQL.data
         public abstract DataRow queryRow();
 
         /// <summary>
-        /// 异步查询唯一行，非 1 行结果返回 null。
+        /// 异步查询唯一行（可取消；令牌默认 default），非 1 行结果返回 null。
         /// </summary>
-        public abstract Task<DataRow> queryRowAsync();
+        public abstract Task<DataRow> queryRowAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询唯一的一行，并转换泛型类，等效于 queryUnique&lt;T&gt; 方法。
@@ -1193,7 +1195,7 @@ namespace mooSQL.data
         /// <summary>
         /// 异步检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行。
         /// </summary>
-        public abstract Task<bool> existAsync();
+        public abstract Task<bool> existAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 根据某个字段，查询是否存在记录。
@@ -1685,7 +1687,10 @@ namespace mooSQL.data
         /// 异步执行非查询。
         /// </summary>
         /// <param name="sql">已物化命令。</param>
-        public abstract Task<int> exeNonQueryAsync(SQLCmd sql);
+        /// <summary>
+        /// 异步执行非查询（可取消；令牌默认 default）。
+        /// </summary>
+        public abstract Task<int> exeNonQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 批量执行。
@@ -1716,10 +1721,10 @@ namespace mooSQL.data
         public abstract DataTable exeQuery(SQLCmd sql);
 
         /// <summary>
-        /// 异步查询。
+        /// 异步查询（可取消；令牌默认 default）。
         /// </summary>
         /// <param name="sql">已物化命令。</param>
-        public abstract Task<DataTable> exeQueryAsync(SQLCmd sql);
+        public abstract Task<DataTable> exeQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行一次 select 查询语句，返回泛型集合。
@@ -1737,11 +1742,11 @@ namespace mooSQL.data
         public abstract IEnumerable<T> exeQuery<T>(SQLCmd SQL);
 
         /// <summary>
-        /// 异步查询，返回泛型集合。
+        /// 异步查询泛型集合（可取消；令牌默认 default）。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="SQL">已物化命令。</param>
-        public abstract Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL);
+        public abstract Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询第一列第一个值。没查到时返回 -1。
@@ -1750,10 +1755,10 @@ namespace mooSQL.data
         public abstract int exeQueryCount(SQLCmd sqlCmd);
 
         /// <summary>
-        /// 异步执行计数。没查到时返回 -1。
+        /// 异步执行计数（可取消；令牌默认 default）。没查到时返回 -1。
         /// </summary>
         /// <param name="sqlCmd">已物化命令。</param>
-        public abstract Task<int> exeQueryCountAsync(SQLCmd sqlCmd);
+        public abstract Task<int> exeQueryCountAsync(SQLCmd sqlCmd, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 可选 notEmpty / all / notNull，默认 notEmpty。

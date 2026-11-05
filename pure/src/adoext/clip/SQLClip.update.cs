@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
@@ -114,6 +115,12 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 异步执行更新（可取消；令牌默认 default），下传至 Builder/ADO。
+        /// </summary>
+        public Task<int> doUpdateAsync(CancellationToken cancellationToken = default)
+            => Context.Builder.doUpdateAsync(cancellationToken);
+
+        /// <summary>
         /// 转换为删除语句，但不执行
         /// </summary>
         /// <returns></returns>
@@ -128,6 +135,14 @@ namespace mooSQL.data
         public int doDelete()
         {
             return Context.Builder.doDelete();
+        }
+
+        /// <summary>
+        /// 异步执行删除（可取消）。
+        /// </summary>
+        public Task<int> doDeleteAsync(CancellationToken cancellationToken = default)
+        {
+            return Context.Builder.doDeleteAsync(cancellationToken);
         }
     }
 

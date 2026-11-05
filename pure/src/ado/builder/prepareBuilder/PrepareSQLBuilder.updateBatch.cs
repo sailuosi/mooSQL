@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace mooSQL.data
@@ -20,10 +21,12 @@ namespace mooSQL.data
         }
 
         /// <inheritdoc />
-        public override Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns)
+        public override Task<int> doUpdateBatchAsync(
+            IReadOnlyList<string> keyColumns,
+            CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.doUpdateBatchAsync(keyColumns);
+            return _inner.doUpdateBatchAsync(keyColumns, cancellationToken);
         }
     }
 }

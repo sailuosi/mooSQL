@@ -123,6 +123,21 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 异步查询 DataTable（可取消）。
+        /// </summary>
+        public Task<DataTable> ExeQueryAsync(SQLCmd SQL, CancellationToken cancellationToken, DBExecutor executor = null)
+        {
+            EnsureReadable();
+            if (executor == null)
+            {
+                executor = new DBExecutor(this);
+            }
+            return executor.ExecuteCmd(SQL, (cmd, cont) => {
+                return cmd.ExecuteQueryAsync(cont, cancellationToken);
+            });
+        }
+
+        /// <summary>
         /// 执行数据查询
         /// </summary>
         /// <param name="sql"></param>
@@ -370,6 +385,19 @@ namespace mooSQL.data
                 runner = new DBExecutor(this);
             }
             return runner.ExeQueryAsync<T>(SQL);
+        }
+
+        /// <summary>
+        /// 异步查询泛型集合（可取消）。
+        /// </summary>
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL, CancellationToken cancellationToken, DBExecutor runner = null)
+        {
+            EnsureReadable();
+            if (runner == null)
+            {
+                runner = new DBExecutor(this);
+            }
+            return runner.ExeQueryAsync<T>(SQL, cancellationToken);
         }
 
         /// <summary>

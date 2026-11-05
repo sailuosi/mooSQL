@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.data.builder;
 using mooSQL.data.cluster;
@@ -199,10 +200,10 @@ namespace mooSQL.data
             return _inner.exeNonQuery(sql);
         }
 
-        public override Task<int> exeNonQueryAsync(SQLCmd sql)
+        public override Task<int> exeNonQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.exeNonQueryAsync(sql);
+            return _inner.exeNonQueryAsync(sql, cancellationToken);
         }
 
         public override int exeNonQuery(IEnumerable<SQLCmd> cmds)
@@ -229,10 +230,10 @@ namespace mooSQL.data
             return _inner.exeQuery(sql);
         }
 
-        public override Task<DataTable> exeQueryAsync(SQLCmd sql)
+        public override Task<DataTable> exeQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.exeQueryAsync(sql);
+            return _inner.exeQueryAsync(sql, cancellationToken);
         }
 
         public override IEnumerable<T> exeQuery<T>(string SQL, Paras para = null)
@@ -247,10 +248,10 @@ namespace mooSQL.data
             return _inner.exeQuery<T>(SQL);
         }
 
-        public override Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
+        public override Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.exeQueryAsync<T>(SQL);
+            return _inner.exeQueryAsync<T>(SQL, cancellationToken);
         }
 
         public override int exeQueryCount(SQLCmd sqlCmd)
@@ -259,10 +260,10 @@ namespace mooSQL.data
             return _inner.exeQueryCount(sqlCmd);
         }
 
-        public override Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
+        public override Task<int> exeQueryCountAsync(SQLCmd sqlCmd, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.exeQueryCountAsync(sqlCmd);
+            return _inner.exeQueryCountAsync(sqlCmd, cancellationToken);
         }
 
         // withRecurTo / withRecur：见 PrepareSQLBuilder.defer.b.cs（编排期展开为 withSelect）

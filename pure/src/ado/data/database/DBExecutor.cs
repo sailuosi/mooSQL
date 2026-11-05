@@ -704,6 +704,17 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 异步查询泛型集合（可取消）。
+        /// </summary>
+        public Task<IEnumerable<T>> ExeQueryAsync<T>(SQLCmd SQL, CancellationToken cancellationToken)
+        {
+            return ExecuteCmd(SQL, (cmd, context) =>
+            {
+                return cmd.ExecuteQueryAsync<T>(context, cancellationToken);
+            });
+        }
+
+        /// <summary>
         /// 异步查询
         /// </summary>
         /// <typeparam name="T"></typeparam>

@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 
@@ -143,14 +145,15 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public override Task<int> exeNonQueryAsync(SQLCmd sql)
+        public override Task<int> exeNonQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sql == null || sql.Empty) return Task.FromResult(0);
             CheckDBForWrite();
             doPrintSQL(sql);
             if (ShouldApplyDualWrite())
                 return Task.FromResult(ExecuteDualWriteNonQuery(sql));
-            return DBLive.ExeNonQueryAsync(sql, Executor);
+            return DBLive.ExeNonQueryAsync(sql, cancellationToken, Executor);
         }
         /// <summary>
         /// 批量执行
@@ -202,12 +205,12 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public override Task<DataTable> exeQueryAsync(SQLCmd sql)
+        public override Task<DataTable> exeQueryAsync(SQLCmd sql, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sql.para == null) sql.para = new Paras();
             doPrintSQL(sql);
-
-            return DBLive.ExeQueryAsync(sql, Executor);
+            return DBLive.ExeQueryAsync(sql, cancellationToken, Executor);
         }
 
         /// <summary>
@@ -244,12 +247,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="SQL"></param>
         /// <returns></returns>
-        public override Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL)
+        public override Task<IEnumerable<T>> exeQueryAsync<T>(SQLCmd SQL, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (SQL.para == null) SQL.para = new Paras();
             doPrintSQL(SQL);
-
-            return DBLive.ExeQueryAsync<T>(SQL, Executor);
+            return DBLive.ExeQueryAsync<T>(SQL, cancellationToken, Executor);
         }
 
         private void printSQL(string SQL, Paras para)
@@ -301,9 +304,9 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="sqlCmd"></param>
         /// <returns></returns>
-        public override async Task<int> exeQueryCountAsync(SQLCmd sqlCmd)
+        public override async Task<int> exeQueryCountAsync(SQLCmd sqlCmd, CancellationToken cancellationToken = default)
         {
-            var dt = await exeQueryAsync(sqlCmd);
+            var dt = await exeQueryAsync(sqlCmd, cancellationToken).ConfigureAwait(false);
             if (dt.Rows.Count > 0)
             {
                 var val = dt.Rows[0][0];
@@ -418,9 +421,13 @@ namespace mooSQL.data
         }
 
         /// <summary>异步：使用已物化 SQLCmd 执行非查询。</summary>
-        internal Task<int> exeNonQueryPreparedAsync(SQLCmd sql)
+        internal Task<int> exeNonQueryPreparedAsync(SQLCmd sql) =>
+            exeNonQueryPreparedAsync(sql, CancellationToken.None);
+
+        /// <summary>异步：使用已物化 SQLCmd 执行非查询（可取消）。</summary>
+        internal async Task<int> exeNonQueryPreparedAsync(SQLCmd sql, CancellationToken cancellationToken)
         {
-            var res = exeNonQueryAsync(sql);
+            var res = await exeNonQueryAsync(sql, cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always)
                 clear();
             return res;
@@ -429,10 +436,10 @@ namespace mooSQL.data
         /// 异步执行插入
         /// </summary>
         /// <returns></returns>
-        public override Task<int> doInsertAsync()
+        public override async Task<int> doInsertAsync(CancellationToken cancellationToken = default)
         {
-
-            var res = exeNonQueryAsync(toInsert());
+            cancellationToken.ThrowIfCancellationRequested();
+            var res = await exeNonQueryAsync(toInsert(), cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -468,9 +475,10 @@ namespace mooSQL.data
         /// 异步执行更新
         /// </summary>
         /// <returns></returns>
-        public override Task<int> doUpdateAsync()
+        public override async Task<int> doUpdateAsync(CancellationToken cancellationToken = default)
         {
-            var res = exeNonQueryAsync(this.toUpdate());
+            cancellationToken.ThrowIfCancellationRequested();
+            var res = await exeNonQueryAsync(this.toUpdate(), cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -506,9 +514,10 @@ namespace mooSQL.data
         /// 异步执行合并
         /// </summary>
         /// <returns></returns>
-        public override Task<int> doMergeIntoAsync()
+        public override async Task<int> doMergeIntoAsync(CancellationToken cancellationToken = default)
         {
-            var res = exeNonQueryAsync(this.toMergeInto());
+            cancellationToken.ThrowIfCancellationRequested();
+            var res = await exeNonQueryAsync(this.toMergeInto(), cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -535,16 +544,16 @@ namespace mooSQL.data
         /// 异步执行删除
         /// </summary>
         /// <returns></returns>
-        public override Task<int> doDeleteAsync()
+        public override async Task<int> doDeleteAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (current.wherePart.Count == 0)
             {
-                return Task.FromResult(-1);
+                return -1;
             }
 
             var sql = this.toDelete();
-
-            var res = exeNonQueryAsync(sql);
+            var res = await exeNonQueryAsync(sql, cancellationToken).ConfigureAwait(false);
             if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
             return res;
         }
@@ -607,9 +616,12 @@ namespace mooSQL.data
         }
 
         /// <summary>异步：使用已物化 SQLCmd 执行 query。</summary>
-        internal async Task<DataTable> queryPreparedAsync(SQLCmd sql)
+        internal Task<DataTable> queryPreparedAsync(SQLCmd sql) =>
+            queryPreparedAsync(sql, CancellationToken.None);
+
+        internal async Task<DataTable> queryPreparedAsync(SQLCmd sql, CancellationToken cancellationToken)
         {
-            var dt = await doSelectAsync("dt", sql, cmd => exeQueryAsync(cmd)).ConfigureAwait(false);
+            var dt = await doSelectAsync("dt", sql, cmd => exeQueryAsync(cmd, cancellationToken)).ConfigureAwait(false);
             dealColumnName(dt);
             return dt;
         }
@@ -621,9 +633,13 @@ namespace mooSQL.data
         }
 
         /// <summary>异步泛型：使用已物化 SQLCmd 执行 query。</summary>
-        internal Task<IEnumerable<T>> queryPreparedAsync<T>(SQLCmd sql)
+        internal Task<IEnumerable<T>> queryPreparedAsync<T>(SQLCmd sql) =>
+            queryPreparedAsync<T>(sql, CancellationToken.None);
+
+        internal Task<IEnumerable<T>> queryPreparedAsync<T>(SQLCmd sql, CancellationToken cancellationToken)
         {
-            return doSelectAsync("enum:" + typeof(T).FullName, sql, cmd => exeQueryAsync<T>(cmd));
+            cancellationToken.ThrowIfCancellationRequested();
+            return doSelectAsync("enum:" + typeof(T).FullName, sql, cmd => exeQueryAsync<T>(cmd, cancellationToken));
         }
         /// <summary>
         /// 查询其它的
@@ -661,9 +677,10 @@ namespace mooSQL.data
         /// 异步查询
         /// </summary>
         /// <returns></returns>
-        public override async Task<DataTable> queryAsync()
+        public override async Task<DataTable> queryAsync(CancellationToken cancellationToken = default)
         {
-            var dt = await doSelectAsync("dt", cmd => exeQueryAsync(cmd)).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            var dt = await doSelectAsync("dt", cmd => exeQueryAsync(cmd, cancellationToken)).ConfigureAwait(false);
             dealColumnName(dt);
             return dt;
         }
@@ -737,11 +754,12 @@ namespace mooSQL.data
         /// </summary>
         /// <param name="selectCols"></param>
         /// <returns></returns>
-        public override async Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        public override async Task<PagedSumDataTable> queryPageSumAsync(string selectCols, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
-            var dt = await this.queryAsync();
+            var dt = await this.queryAsync(cancellationToken).ConfigureAwait(false);
             clearPage();
             this.selectWith(selectCols)
                 .select("Count(*) as ToTal");
@@ -751,7 +769,7 @@ namespace mooSQL.data
                 PageNum = this.current.pageNum,
                 PageSize = current.pageSize
             };
-            var sumRow = await this.queryRowAsync();
+            var sumRow = await this.queryRowAsync(cancellationToken).ConfigureAwait(false);
             if(sumRow != null)
             {
                 int columnCount = sumRow.Table.Columns.Count;
@@ -937,11 +955,12 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 queryPagedAsync（返回 Task&lt;PageOutput&lt;T&gt;&gt;）。
         /// </summary>
-        public override async Task<PageOutput<T>> queryPagedAsync<T>()
+        public override async Task<PageOutput<T>> queryPagedAsync<T>(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
-            var dt = await this.queryAsync<T>();
+            var dt = await this.queryAsync<T>(cancellationToken).ConfigureAwait(false);
             var total = this.count();
             var res = new PageOutput<T>()
             {
@@ -963,11 +982,12 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="selectCols"></param>
         /// <returns></returns>
-        public override async Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        public override async Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var oldMode = this._AutoClearWay;
             this._AutoClearWay = CleanWay.Never;
-            var dt = await this.queryAsync<T>();
+            var dt = await this.queryAsync<T>(cancellationToken).ConfigureAwait(false);
             var res = new PageSumOutput<T>()
             {
                 Items = dt,
@@ -977,7 +997,7 @@ namespace mooSQL.data
             clearPage();
             this.selectWith(selectCols)
                 .select("Count(*) as ToTal");
-            var sumRow = await this.queryRowAsync();
+            var sumRow = await this.queryRowAsync(cancellationToken).ConfigureAwait(false);
             if(sumRow != null)
             {
                 int columnCount = sumRow.Table.Columns.Count;
@@ -1011,9 +1031,10 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public override Task<IEnumerable<T>> queryAsync<T>()
+        public override Task<IEnumerable<T>> queryAsync<T>(CancellationToken cancellationToken = default)
         {
-            return doSelectAsync("enum:" + typeof(T).FullName, cmd => exeQueryAsync<T>(cmd));
+            cancellationToken.ThrowIfCancellationRequested();
+            return doSelectAsync("enum:" + typeof(T).FullName, cmd => exeQueryAsync<T>(cmd, cancellationToken));
         }
 
         /// <summary>
@@ -1072,14 +1093,16 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 queryUniqueAsync（返回 Task&lt;T&gt;）。
         /// </summary>
-        public override Task<T> queryUniqueAsync<T>()
+        public override Task<T> queryUniqueAsync<T>(CancellationToken cancellationToken = default)
         {
-            return queryUniqueInnerAsync<T>();
+            cancellationToken.ThrowIfCancellationRequested();
+            return queryUniqueInnerAsync<T>(cancellationToken);
         }
-        private Task<T> queryUniqueInnerAsync<T>()
+        private Task<T> queryUniqueInnerAsync<T>(CancellationToken cancellationToken = default)
         {
             return doSelectAsync("unique:" + typeof(T).FullName, async cmd =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 return await DBLive.ExeQueryUniqueRowAsync<T>(cmd, Executor).ConfigureAwait(false);
             });
         }
@@ -1101,10 +1124,12 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public override Task<T> queryScalarAsync<T>()
+        public override Task<T> queryScalarAsync<T>(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return doSelectAsync("scalar:" + typeof(T).FullName, async cmd =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 return await DBLive.ExeQueryScalarAsync<T>(cmd, Executor).ConfigureAwait(false);
             });
         }
@@ -1188,9 +1213,9 @@ namespace mooSQL.data
         /// 异步查询唯一行
         /// </summary>
         /// <returns></returns>
-        public override async Task<DataRow> queryRowAsync()
+        public override async Task<DataRow> queryRowAsync(CancellationToken cancellationToken = default)
         {
-            DataTable dt = await this.queryAsync();
+            DataTable dt = await this.queryAsync(cancellationToken).ConfigureAwait(false);
             if (dt.Rows.Count == 1)
             {
                 return dt.Rows[0];
@@ -1345,15 +1370,16 @@ namespace mooSQL.data
         /// 异步检查是否存在匹配记录，使用 EXISTS 优化 SQL 执行
         /// </summary>
         /// <returns></returns>
-        public override async Task<bool> existAsync()
+        public override async Task<bool> existAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var cmd = toSelectExist();
             if (string.IsNullOrEmpty(cmd.sql))
             {
                 return false;
             }
             doPrintSQL(cmd);
-            var val = await DBLive.ExeQueryScalarAsync(cmd, default, Executor).ConfigureAwait(false);
+            var val = await DBLive.ExeQueryScalarAsync(cmd, cancellationToken, Executor).ConfigureAwait(false);
             var tar = ToExistResult(val);
             if (this._AutoClearWay == CleanWay.Always)
             {

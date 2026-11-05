@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using mooSQL.data.context;
 
@@ -92,14 +93,14 @@ namespace mooSQL.data
             return _inner.doInsertReturnKeys<TKey>(identityColumn);
         }
 
-        public override Task<int> doInsertAsync()
+        public override Task<int> doInsertAsync(CancellationToken cancellationToken = default)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.doInsertAsync();
+                return _inner.doInsertAsync(cancellationToken);
             }
-            return _inner.exeNonQueryPreparedAsync(toInsert());
+            return _inner.exeNonQueryPreparedAsync(toInsert(), cancellationToken);
         }
 
         public override int doUpdate()
@@ -112,14 +113,14 @@ namespace mooSQL.data
             return _inner.exeNonQueryPrepared(toUpdate());
         }
 
-        public override Task<int> doUpdateAsync()
+        public override Task<int> doUpdateAsync(CancellationToken cancellationToken = default)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.doUpdateAsync();
+                return _inner.doUpdateAsync(cancellationToken);
             }
-            return _inner.exeNonQueryPreparedAsync(toUpdate());
+            return _inner.exeNonQueryPreparedAsync(toUpdate(), cancellationToken);
         }
 
         public override int doDelete()
@@ -134,16 +135,16 @@ namespace mooSQL.data
             return _inner.exeNonQueryPrepared(toDelete());
         }
 
-        public override Task<int> doDeleteAsync()
+        public override Task<int> doDeleteAsync(CancellationToken cancellationToken = default)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.doDeleteAsync();
+                return _inner.doDeleteAsync(cancellationToken);
             }
             if (!HasWhereStepForDelete())
                 return Task.FromResult(-1);
-            return _inner.exeNonQueryPreparedAsync(toDelete());
+            return _inner.exeNonQueryPreparedAsync(toDelete(), cancellationToken);
         }
 
         public override int doInsertFrom()
@@ -164,10 +165,10 @@ namespace mooSQL.data
             return _inner.doMergeInto();
         }
 
-        public override Task<int> doMergeIntoAsync()
+        public override Task<int> doMergeIntoAsync(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.doMergeIntoAsync();
+            return _inner.doMergeIntoAsync(cancellationToken);
         }
 
         // ---- query / count / exist ----
@@ -182,14 +183,14 @@ namespace mooSQL.data
             return _inner.queryPrepared(toSelect());
         }
 
-        public override Task<DataTable> queryAsync()
+        public override Task<DataTable> queryAsync(CancellationToken cancellationToken = default)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.queryAsync();
+                return _inner.queryAsync(cancellationToken);
             }
-            return _inner.queryPreparedAsync(toSelect());
+            return _inner.queryPreparedAsync(toSelect(), cancellationToken);
         }
 
         public override IEnumerable<T> query<T>()
@@ -202,14 +203,14 @@ namespace mooSQL.data
             return _inner.queryPrepared<T>(toSelect());
         }
 
-        public override Task<IEnumerable<T>> queryAsync<T>()
+        public override Task<IEnumerable<T>> queryAsync<T>(CancellationToken cancellationToken = default)
         {
             if (!_scriptTemplateCacheEnabled)
             {
                 runBuild();
-                return _inner.queryAsync<T>();
+                return _inner.queryAsync<T>(cancellationToken);
             }
-            return _inner.queryPreparedAsync<T>(toSelect());
+            return _inner.queryPreparedAsync<T>(toSelect(), cancellationToken);
         }
 
         public override List<T> query<T>(Func<DataRow, T> createEntity)
@@ -263,10 +264,10 @@ namespace mooSQL.data
             return _inner.queryPaged(activeOther);
         }
 
-        public override Task<PageOutput<T>> queryPagedAsync<T>()
+        public override Task<PageOutput<T>> queryPagedAsync<T>(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryPagedAsync<T>();
+            return _inner.queryPagedAsync<T>(cancellationToken);
         }
 
         public override PagedSumDataTable queryPageSum(string selectCols)
@@ -275,10 +276,10 @@ namespace mooSQL.data
             return _inner.queryPageSum(selectCols);
         }
 
-        public override Task<PagedSumDataTable> queryPageSumAsync(string selectCols)
+        public override Task<PagedSumDataTable> queryPageSumAsync(string selectCols, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryPageSumAsync(selectCols);
+            return _inner.queryPageSumAsync(selectCols, cancellationToken);
         }
 
         public override PageSumOutput<T> queryPageSum<T>(string selectCols)
@@ -287,10 +288,10 @@ namespace mooSQL.data
             return _inner.queryPageSum<T>(selectCols);
         }
 
-        public override Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols)
+        public override Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols, CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryPagedSumAsync<T>(selectCols);
+            return _inner.queryPagedSumAsync<T>(selectCols, cancellationToken);
         }
 
         public override Dictionary<string, object> querySummary(string sumSQL, bool containToal)
@@ -317,10 +318,10 @@ namespace mooSQL.data
             return _inner.queryUnique<T>();
         }
 
-        public override Task<T> queryUniqueAsync<T>()
+        public override Task<T> queryUniqueAsync<T>(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryUniqueAsync<T>();
+            return _inner.queryUniqueAsync<T>(cancellationToken);
         }
 
         public override T queryScalar<T>()
@@ -329,10 +330,10 @@ namespace mooSQL.data
             return _inner.queryScalar<T>();
         }
 
-        public override Task<T> queryScalarAsync<T>()
+        public override Task<T> queryScalarAsync<T>(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryScalarAsync<T>();
+            return _inner.queryScalarAsync<T>(cancellationToken);
         }
 
         public override DataRow queryRow()
@@ -341,10 +342,10 @@ namespace mooSQL.data
             return _inner.queryRow();
         }
 
-        public override Task<DataRow> queryRowAsync()
+        public override Task<DataRow> queryRowAsync(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.queryRowAsync();
+            return _inner.queryRowAsync(cancellationToken);
         }
 
         public override T queryRow<T>()
@@ -407,10 +408,10 @@ namespace mooSQL.data
             return _inner.exist();
         }
 
-        public override Task<bool> existAsync()
+        public override Task<bool> existAsync(CancellationToken cancellationToken = default)
         {
             runBuild();
-            return _inner.existAsync();
+            return _inner.existAsync(cancellationToken);
         }
 
         public override bool checkExistKey(string key, object value)

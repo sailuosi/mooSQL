@@ -166,11 +166,21 @@ namespace mooSQL.data.context
         Task<DataTable> ExecuteQueryAsync(ExeContext executionContext);
 
         /// <summary>
+        /// 异步查询 DataTable（可取消）。
+        /// </summary>
+        Task<DataTable> ExecuteQueryAsync(ExeContext executionContext, CancellationToken cancellationToken);
+
+        /// <summary>
         /// 执行查询并返回一个类型化的集合对象
         /// </summary>
         /// <param name="executionContext"></param>
         /// <returns></returns>
         Task<IEnumerable<T>> ExecuteQueryAsync<T>(ExeContext executionContext);
+
+        /// <summary>
+        /// 异步查询泛型集合（可取消）。
+        /// </summary>
+        Task<IEnumerable<T>> ExecuteQueryAsync<T>(ExeContext executionContext, CancellationToken cancellationToken);
         /// <summary>
         /// 自定义读取行的方法
         /// </summary>
