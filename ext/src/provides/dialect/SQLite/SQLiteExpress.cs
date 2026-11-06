@@ -522,6 +522,21 @@ namespace mooSQL.data
             // 改类型/可空/默认值需重建表；不发伪 RENAME 以免误判成功
             return "SELECT 1";
         }
+
+        /// <summary>
+        /// SQLite 不支持 <c>ALTER TABLE … ALTER COLUMN</c>；upsert 补齐缺列走 ADD，
+        /// 类型对齐需重建表，此处空操作避免发出非法 DDL。
+        /// </summary>
+        public override string buildAlterColumn(DDLFragSQL frag)
+        {
+            return "SELECT 1";
+        }
+
+        /// <inheritdoc cref="buildAlterColumn(DDLFragSQL)"/>
+        public override string buildAlterColumn(DDLFragSQL frag, DDLField field)
+        {
+            return "SELECT 1";
+        }
 /// <summary>
 /// Builds a CREATE TABLE statement.
 /// </summary>

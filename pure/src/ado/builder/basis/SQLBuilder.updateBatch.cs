@@ -18,12 +18,12 @@ namespace mooSQL.data
         public abstract SQLCmd toUpdateBatch(IReadOnlyList<string> keyColumns);
 
         /// <summary>
-        /// 执行 <see cref="toUpdateBatch"/>；空命令返回 -1。影响行数为各段之和。
+        /// 执行；空命令返回 -1。影响行数为各段之和。
         /// </summary>
         public abstract int doUpdateBatch(IReadOnlyList<string> keyColumns);
 
         /// <summary>
-        /// 异步执行 <see cref="toUpdateBatch"/>（可取消；令牌默认 default）。
+        /// 异步执行 可取消；令牌默认 default）。
         /// </summary>
         public abstract Task<int> doUpdateBatchAsync(IReadOnlyList<string> keyColumns, CancellationToken cancellationToken = default);
     }
