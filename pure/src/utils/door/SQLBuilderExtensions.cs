@@ -51,6 +51,13 @@ namespace mooSQL.data
             }
             return tar;
         }
+        public static SooRepository<T, K> useRepo<T, K>(this SQLBuilder kit) where T : class, new()
+        {
+            var repo = kit.DBLive.useRepo<T, K>();
+            if (kit.Executor != null)
+                repo.useTransaction(kit.Executor);
+            return repo;
+        }
         /// <summary>
         /// 创建一个批量SQL实例，并继承事务上下文（如果有的话）
         /// </summary>
