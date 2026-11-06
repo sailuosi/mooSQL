@@ -121,6 +121,12 @@ namespace mooSQL.data
                 return loadName() ?? string.Empty;
             return parseTableName(en, row);
         }
+        private string resolveTableName(EntityInfo en, Func<string> loadName)
+        {
+            if (loadName != null)
+                return loadName() ?? string.Empty;
+            return parseTableName(en);
+        }
         /// <summary>
         /// 构建插入语句  
         /// </summary>
@@ -255,6 +261,16 @@ namespace mooSQL.data
         /// <returns></returns>
         protected virtual bool setSaveTable(SQLBuilder builder, object entity, EntityInfo en = null, Func<string> loadName = null){
             string tbname = resolveTableName(en, loadName, entity);
+            if (tbname.HasText())
+            {
+                builder.setTable(tbname);
+                return true;
+            }
+            return false;
+        }
+        protected virtual bool setSaveTableByEn(SQLBuilder builder, EntityInfo en, Func<string> loadName = null)
+        {
+            string tbname = resolveTableName(en, loadName, en);
             if (tbname.HasText())
             {
                 builder.setTable(tbname);
@@ -660,7 +676,30 @@ namespace mooSQL.data
                 throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
             }
         }
+        public virtual void setPKWhereRangeByValues(SQLBuilder builder, IEnumerable vals, EntityInfo en)
+        {
+            bool gotWhere = false;
+            var pks = en.GetPK();
+            var exp = builder.Dialect.expression;
+            if (pks.Count == 1)
+            {
+ 
+                var pkCol = pks[0];
+                var prop = pkCol.PropertyInfo;
+                builder.whereIn(pkCol.DbColumnName, vals);
+            }
+            else if (pks.Count > 1)
+            {
+                //联合主键，需要用or处理
+                throw new NotSupportedException("联合主键实体删除不支持按单个主键集合！");
 
+            }
+
+            if (gotWhere == false && builder.ConditionCount == 0)
+            {
+                throw new Exception("设置主键失败！未找到主键或者where条件未定义！");
+            }
+        }
         /// <summary>
         /// 构建删除语句
         /// </summary>
@@ -741,6 +780,22 @@ namespace mooSQL.data
             this.fireReadyDelete(builder, ids, en.Type, en);
         }
         /// <summary>
+        /// 增加尾缀T，防止参数名模糊匹配错误
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="id"></param>
+        /// <param name="loadName"></param>
+        public void prepareDeleteByIdT<T>(SQLBuilder builder,  object id, Func<string> loadName = null) {
+            var en = builder.Client.EntityCash.getEntityInfo<T>();
+             prepareDeleteById(builder,en,id,loadName);
+        }
+        public void prepareDeleteByIdsT<T>(SQLBuilder builder, IEnumerable id, Func<string> loadName = null)
+        {
+            var en = builder.Client.EntityCash.getEntityInfo<T>();
+            prepareDeleteByIds(builder, en, id, loadName);
+        }
+        /// <summary>
         /// 按ID删除
         /// </summary>
         /// <param name="builder"></param>
@@ -775,6 +830,31 @@ namespace mooSQL.data
             this.fireReadyDelete(builder, id, en.Type, en);
         }
 
+        public void prepareDeleteByIds(SQLBuilder builder, EntityInfo en, IEnumerable vals, Func<string> loadName = null)
+        {
+            if (vals == null)
+            {
+                return;
+            }
+            //触发删除解析前钩子
+            this.fireBeforeDelete(builder, vals, en.Type, en);
+            var pks = en.GetPK();
+            if (pks.Count != 1)
+            {
+                throw new NotSupportedException("当前实体的主键信息不匹配！");
+            }
+            var pk = pks[0];
+
+            var str = setSaveTableByEn(builder, en, loadName);
+            if (str == false)
+            {
+                throw new Exception("实体类无法确定目标写入表！");
+            }
+            setPKWhereRangeByValues(builder, vals,en);
+
+            //触发删除解析后钩子
+            this.fireReadyDelete(builder, vals, en.Type, en);
+        }
 
         /// <summary>
         /// 执行更新

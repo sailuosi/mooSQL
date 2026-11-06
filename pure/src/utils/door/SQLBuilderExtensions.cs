@@ -4,6 +4,7 @@ using System.Collections;
 using System.Linq.Expressions;
 
 using System.Text;
+using System.Xml.Linq;
 
 
 namespace mooSQL.data
@@ -700,6 +701,18 @@ namespace mooSQL.data
             builder.Client.Translator.prepareDelete<T>(builder, entity, null, tryTableNameLoader(tbname));
             return builder.doDelete();
         }
+        public static int deleteById<T>(this SQLBuilder builder, object PK, string tbname=null) where T : class
+        {
+            var kit = builder.useSQL();
+            kit.Client.Translator.prepareDeleteByIdT<T>(kit, PK, tryTableNameLoader(tbname));
+            return kit.doDelete();
+        }
+        public static int deleteByIds<T>(this SQLBuilder builder, object PK, string tbname = null) where T : class
+        {
+            var kit = builder.useSQL();
+            kit.Client.Translator.prepareDeleteByIdT<T>(kit, PK, tryTableNameLoader(tbname));
+            return kit.doDelete();
+        }
         /// <summary>
         /// 返回删除命令，但不执行.独立执行环境，不干扰调用者环境
         /// </summary>
@@ -1101,8 +1114,23 @@ namespace mooSQL.data
         /// <returns></returns>
         public static T findRowById<T>(this SQLBuilder builder, object PK) where T : class, new()
         {
-            var repo = builder.useRepo<T>();
-            return repo.GetById(PK);
+            var kit = builder.useSQL();
+            kit.Client.Translator.BuildPKFromWhere<T>(kit, PK);
+            return kit.queryRow<T>();
+        }
+        /// <summary>
+        /// 按主键查找，并支持定义表名
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="PK"></param>
+        /// <param name="tbname"></param>
+        /// <returns></returns>
+        public static T findRowById<T>(this SQLBuilder builder, object PK,string tbname) where T : class
+        {
+            var kit = builder.useSQL();
+            kit.Client.Translator.BuildPKFromWhere<T>(kit, PK, tryTableNameLoader(tbname));
+            return kit.queryRow<T>();
         }
         /// <summary>
         /// 按主键检查是否存在记录。独立上下文
