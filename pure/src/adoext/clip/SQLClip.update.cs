@@ -97,6 +97,58 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 仅插入赋值（upsert / insert 路径）。
+        /// </summary>
+        public SQLClip setI<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.setI(field, value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 仅插入赋值，可空结构体。
+        /// </summary>
+        public SQLClip setI<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.setI(field, value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 仅更新赋值（upsert / update 路径）。
+        /// </summary>
+        public SQLClip setU<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.setU(field, value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 仅更新赋值，可空结构体。
+        /// </summary>
+        public SQLClip setU<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct
+        {
+            var field = provider.PatchOutField(fieldSelector);
+            if (!string.IsNullOrWhiteSpace(field))
+            {
+                Context.Builder.setU(field, value);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// 转换为更新语句，但不执行
         /// </summary>
         /// <returns></returns>
@@ -119,6 +171,22 @@ namespace mooSQL.data
         /// </summary>
         public Task<int> doUpdateAsync(CancellationToken cancellationToken = default)
             => Context.Builder.doUpdateAsync(cancellationToken);
+
+        /// <summary>
+        /// 执行 upsert（MERGE / ON DUPLICATE / 先查后写），转发 Builder.doUpsert。
+        /// </summary>
+        public int doUpsert(UpsertMode mode = UpsertMode.Auto)
+        {
+            return Context.Builder.doUpsert(mode);
+        }
+
+        /// <summary>
+        /// 异步执行 upsert。
+        /// </summary>
+        public Task<int> doUpsertAsync(UpsertMode mode = UpsertMode.Auto, CancellationToken cancellationToken = default)
+        {
+            return Context.Builder.doUpsertAsync(mode, cancellationToken);
+        }
 
         /// <summary>
         /// 转换为删除语句，但不执行
@@ -173,6 +241,42 @@ namespace mooSQL.data
         public new SQLClip<T> setToNull<R>(Expression<Func<R>> fieldSelector)
         {
             base.setToNull(fieldSelector);
+            return this;
+        }
+
+        /// <summary>
+        /// 仅插入赋值（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> setI<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            base.setI(fieldSelector, value);
+            return this;
+        }
+
+        /// <summary>
+        /// 仅插入赋值，可空结构体（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> setI<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct
+        {
+            base.setI(fieldSelector, value);
+            return this;
+        }
+
+        /// <summary>
+        /// 仅更新赋值（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> setU<R>(Expression<Func<R>> fieldSelector, R value)
+        {
+            base.setU(fieldSelector, value);
+            return this;
+        }
+
+        /// <summary>
+        /// 仅更新赋值，可空结构体（返回 SQLClip&lt;T&gt;）。
+        /// </summary>
+        public new SQLClip<T> setU<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct
+        {
+            base.setU(fieldSelector, value);
             return this;
         }
     }

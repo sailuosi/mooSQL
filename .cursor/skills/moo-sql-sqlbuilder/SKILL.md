@@ -225,6 +225,8 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 
 方言钩子：`Dialect.GetInsertOrUpdateDuplicateSuffix(kit)`。`set` 双写、`setI` 仅插、`setU` 仅更；`where` 为匹配条件（MERGE ON 优先 `t.col=s.col`）。SQLite ON CONFLICT 时 INSERT 列仍须满足 NOT NULL。
 
+同族上层：`SQLClip.doUpsert`；薄仓 `SooRepository.Upsert` / `UpsertRange`（主键 where）。RichRepo `InsertOrUpdate(UpsertOptions)` 仍为选项版独立路径。
+
 ---
 
 ## 十三、WHERE 条件

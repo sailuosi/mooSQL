@@ -44,7 +44,8 @@ description: Uses mooSQL Repository and UnitOfWork patterns for CRUD, pagination
 |------|------|
 | `Insert(T)` / `InsertRange(IEnumerable<T>)` | 插入（返回影响行数） |
 | `Update(T)` | 更新 |
-| `Save(T)` / `SaveRange(IEnumerable<T>)` | 自动 insert/update |
+| `Save(T)` / `SaveRange(IEnumerable<T>)` | 自动 insert/update（PK 探活） |
+| `Upsert(T, UpsertMode mode = Auto)` / `UpsertRange(...)` | 方言 upsert（同族 Builder.doUpsert；匹配键=主键；Range 逐条） |
 | `Delete(T)` / `Delete(IEnumerable<T>)` | 删除 |
 | `Delete(Expression<Func<T, bool>>)` | 条件删除 |
 | `DeleteById<K>(K id)` / `DeleteByIds<K>(ids)` | 按主键删 |
@@ -75,6 +76,8 @@ var exists = repo.IsAny(u => u.Email == email);
 
 repo.Insert(newUser);
 repo.Save(user);           // 有主键则 update，否则 insert
+repo.Upsert(user, UpsertMode.PrimaryKey); // 方言 upsert，非 Save
+repo.UpsertRange(users, UpsertMode.Auto);
 repo.SaveRange(users);
 repo.DeleteByIds(ids);
 ```
@@ -91,7 +94,7 @@ repo.DeleteByIds(ids);
 | 脏更新 | `autoTrackOnQuery` / `Track` / `Update` / `UpdateDirty` / `UpdateAllColumns` |
 | 实体字典缓存 | `AllCache` / `QueryFromCache` / `ClearCache`（写后自动清） |
 | Schema | `EnsureSchema` / `PreviewSchema` / `SyncCaptions` |
-| Upsert | `InsertOrUpdate(entity, UpsertOptions)` |
+| Upsert（选项版） | `InsertOrUpdate(entity, UpsertOptions)`（与薄仓 `Upsert` 并存） |
 
 ```csharp
 var repo = db.useRichRepo<User>().autoTrackOnQuery();
@@ -99,9 +102,10 @@ var user = repo.GetById(1);
 user.Email = "n@x.com";
 repo.Update(user);              // 仅脏列
 repo.Thin.Update(user);         // 需要时显式走薄仓全列
+repo.Thin.Upsert(user);         // 薄仓方言 upsert
 ```
 
-薄仓 `useRepo` 行为不变，无 Tracking / EntityCache / Schema / Upsert API。
+薄仓 `useRepo` 无 Tracking / EntityCache / Schema；方言 upsert 用 `Upsert` / `UpsertRange`。选项约束 upsert 仍在 RichRepo `InsertOrUpdate`。
 
 ## SooUnitOfWork
 

@@ -23,7 +23,7 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 
 ### 类型与关键约定
 
-- **SQLClip**：非泛型，from/join/where/select 及 setTable 后的 UPDATE/DELETE。
+- **SQLClip**：非泛型，from/join/where/select 及 setTable 后的 UPDATE/DELETE/UPSERT。
 - **SQLClip&lt;T&gt;**：`select&lt;R&gt;(...)` 或 `setTable&lt;T&gt;(out T table)` 之后得到；提供 `setPage`、`queryList`、`queryUnique`、`queryPage`。
 - **ClipJoin&lt;J&gt;**：join 返回此类型，需链式 `.on(Expression<Func<bool>>)` 后返回 SQLClip。
 - **分页**：Clip 层用 `setPage(pageSize, pageNum)` / `queryPage()`；底层 SQLBuilder 另有 `skipTake`（v8.1.2.2+），一般经 Clip 的 `setPage` 即可。
@@ -124,21 +124,20 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 | `queryUnique()` | 返回 T，多行或无则 null |
 | `queryPage()` | 返回 PageOutput&lt;T&gt;（**Items**、Total、PageSize、PageNum） |
 
-## 七、UPDATE / DELETE（setTable 之后）
+## 七、UPDATE / DELETE / UPSERT（setTable 之后）
 
-`setTable<T>(out T table) where T : class, new()` 绑定更新/删除表，返回 SQLClip&lt;T&gt;。
+`setTable<T>(out T table) where T : class, new()` 绑定目标表，返回 SQLClip&lt;T&gt;。
 
 | 方法 | 说明 |
 |------|------|
-| `set<R>(Expression<Func<R>> fieldSelector, R value)` | 设置字段值 |
-| `set<R>(Expression<Func<R>> fieldSelector, string SQLValue, bool paraed = true)` | 设置 SQL 片段 |
-| `setToNull<R>(Expression<Func<R>> fieldSelector)` | 设为 null |
-| `set<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct` | 可空值类型 |
-| `SQLClip<T>.set<R>(Expression<Func<T, R>> expression)` | 当前为空操作，保留供扩展 |
+| `set<R>(Expression<Func<R>> fieldSelector, R value)` | 设置字段值（插入+更新） |
+| `setI` / `setU` | 仅插入 / 仅更新（upsert） |
+| `setToNull` / 可空 `set` | 同前 |
 | `toUpdate()` / `doUpdate()` | 生成/执行 UPDATE |
 | `toDelete()` / `doDelete()` | 生成/执行 DELETE |
+| `doUpsert(UpsertMode)` / `doUpsertAsync` | 方言 upsert，转发 Builder |
 
-WHERE 使用同一套 where 方法（如 `where(() => user.Id, 1)`）。
+WHERE 使用同一套 where 方法（如 `where(() => user.Id, 1)`）；upsert 匹配键写在 where。
 
 ## 八、工具
 

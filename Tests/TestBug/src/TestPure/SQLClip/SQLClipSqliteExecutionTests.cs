@@ -287,6 +287,45 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void DoUpsert_CheckExist_Product_InsertThenUpdate()
+        {
+            var id = 8810;
+            TestDatabaseHelper.UseSQL(_fx.Db)
+                .setTable(SQLiteTestFixture.ProductTable)
+                .where("id", id)
+                .doDelete();
+
+            var clip = NewClip();
+            var typed = clip.setTable<SQLiteTestProduct>(out var p);
+            typed.set(() => p.Id, id)
+                .set(() => p.Name, "ClipUpsert")
+                .set(() => p.Category, "T")
+                .set(() => p.Price, 1.2m)
+                .set(() => p.Stock, 2)
+                .where(() => p.Id, id);
+            typed.doUpsert(UpsertMode.CheckExist).Should().BeGreaterThan(0);
+
+            clip.clear();
+            typed = clip.setTable<SQLiteTestProduct>(out p);
+            typed.set(() => p.Id, id)
+                .setI(() => p.Name, "ShouldKeep")
+                .set(() => p.Category, "T")
+                .set(() => p.Price, 1.2m)
+                .setU(() => p.Stock, 8)
+                .where(() => p.Id, id);
+            typed.doUpsert(UpsertMode.CheckExist).Should().BeGreaterThan(0);
+
+            var row = TestDatabaseHelper.UseSQL(_fx.Db)
+                .select("*")
+                .from(SQLiteTestFixture.ProductTable)
+                .where("id", id)
+                .queryRow();
+            row.Should().NotBeNull();
+            Convert.ToInt32(row!["stock"]).Should().Be(8);
+            Convert.ToString(row["name"]).Should().Be("ClipUpsert");
+        }
+
+        [Fact]
         public async Task QueryListAsync_ShouldMatchSync()
         {
             var clip = NewClip();

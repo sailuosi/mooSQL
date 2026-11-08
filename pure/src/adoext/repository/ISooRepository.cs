@@ -105,6 +105,16 @@ namespace mooSQL.data
         /// 内部成员说明。
         /// </summary>
         bool Update(Expression<Func<T, T>> columns, Expression<Func<T, bool>> whereExpression);
+
+        /// <summary>
+        /// 方言 upsert（同族 SQLBuilder.doUpsert）；匹配键为实体主键。
+        /// </summary>
+        int Upsert(T entity, UpsertMode mode = UpsertMode.Auto);
+
+        /// <summary>
+        /// 批量方言 upsert（逐条）。
+        /// </summary>
+        int UpsertRange(IEnumerable<T> entities, UpsertMode mode = UpsertMode.Auto);
         #endregion
     }
 }

@@ -24,7 +24,7 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 
 ### 类型与调用约定
 
-- **SQLClip**：非泛型，from/join/where/select 及 setTable 后的 UPDATE/DELETE。
+- **SQLClip**：非泛型，from/join/where/select 及 setTable 后的 UPDATE/DELETE/UPSERT。
 - **SQLClip&lt;T&gt;**：`select&lt;R&gt;(...)` 或 `setTable&lt;T&gt;(out T table)` 之后得到；提供 `setPage`、`skipTake`、`queryList`、`queryUnique`、`queryPage`。
 - **ClipJoin&lt;J&gt;**：join 返回此类型，需链式 `.on(Expression<Func<bool>>)` 后返回 SQLClip。
 - **分页**：`setPage` / `skipTake` / `skip` / `take`。
@@ -114,11 +114,11 @@ SQLClip 用于**基于实体类的查询构建**，语法与 SQLBuilder 高度�
 |------|------|
 | `setPage` / `skipTake` / `skip` / `take` / `clearPage` | 分页（返回 typed） |
 | `queryList()` / `queryUnique()` / `queryPage()` | 查询 |
-| `set` / `setToNull` | 更新字段（typed 链） |
+| `set` / `setI` / `setU` / `setToNull` | 更新/upsert 字段（typed 链） |
 
-## 七、UPDATE / DELETE（setTable 之后）
+## 七、UPDATE / DELETE / UPSERT（setTable 之后）
 
-`setTable<T>(out T table)` → `set` / `where` → `doUpdate` / `doDelete`。
+`setTable<T>(out T table)` → `set` / `setI` / `setU` / `where` → `doUpdate` / `doDelete` / `doUpsert(UpsertMode)`。
 
 ## 八、工具
 

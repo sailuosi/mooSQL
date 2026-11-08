@@ -24,8 +24,8 @@ SQLClip 用于**基于实体类的查询构建**，其语法与 SQLBuilder 高�
 
 ### 与 SQLBuilder 对齐边界
 
-- **应对齐**：查询构建主干（FROM/JOIN/WHERE/GROUP/ORDER/分页/子查询条件、UPDATE/DELETE set）。
-- **刻意不进 Clip（用 `useSQL` / Builder / 仓储）**：INSERT、MERGE、CTE、通用 UNION、Apart、`ifs`/`pin`、Pivot 等。
+- **应对齐**：查询构建主干（FROM/JOIN/WHERE/GROUP/ORDER/分页/子查询条件、UPDATE/DELETE set、upsert 的 setI/setU/doUpsert）。
+- **刻意不进 Clip（用 `useSQL` / Builder / 仓储）**：纯 INSERT、完整 MERGE 糖、CTE、通用 UNION、Apart、`ifs`/`pin`、Pivot 等。Upsert 用 `doUpsert(UpsertMode)`（底层 Builder）。
 - **新增公开 API 门禁**：须同时具备语法测试、SQL 产物快照（`SqlSnapshot/SQLClipSqlSnapshot*`）、SQLite 执行测试。
 
 ### 在项目中的位置
@@ -253,22 +253,24 @@ var dtos = clip
 
 ---
 
-## 十一、UPDATE / DELETE（setTable 之后）
+## 十一、UPDATE / DELETE / UPSERT（setTable 之后）
 
 ### 11.1 绑定更新/删除表
 
 | 方法签名 | 说明 |
 |----------|------|
-| `SQLClip<T> setTable<T>(out T table) where T : class, new()` | 绑定更新/删除的目标实体表，返回 `SQLClip<T>`；后续 set/where 使用该 `table` 的字段选择器。 |
+| `SQLClip<T> setTable<T>(out T table) where T : class, new()` | 绑定更新/删除/upsert 的目标实体表，返回 `SQLClip<T>`；后续 set/where 使用该 `table` 的字段选择器。 |
 
 ### 11.2 SET
 
 | 方法签名 | 说明 |
 |----------|------|
-| `SQLClip set<R>(Expression<Func<R>> fieldSelector, R value)` | 设置字段值。 |
+| `SQLClip set<R>(Expression<Func<R>> fieldSelector, R value)` | 设置字段值（插入+更新）。 |
 | `SQLClip set<R>(Expression<Func<R>> fieldSelector, string SQLValue, bool paraed = true)` | 设置字段为 SQL 片段（是否参数化由 paraed 控制）。 |
 | `SQLClip setToNull<R>(Expression<Func<R>> fieldSelector)` | 将字段设为 NULL。 |
 | `SQLClip set<R>(Expression<Func<R?>> fieldSelector, R value) where R : struct` | 可空值类型字段赋值。 |
+| `SQLClip setI<R>(Expression<Func<R>> fieldSelector, R value)` | 仅插入列（upsert）。 |
+| `SQLClip setU<R>(Expression<Func<R>> fieldSelector, R value)` | 仅更新列（upsert）。 |
 | `SQLClip<T> set<R>(Expression<Func<T, R>> expression)` | 定义于 `SQLClip<T>` 上；当前实现为空操作（仅返回 this），保留供扩展。 |
 
 ### 11.3 执行
@@ -279,8 +281,10 @@ var dtos = clip
 | `int doUpdate()` | 执行 UPDATE，返回影响行数。 |
 | `SQLCmd toDelete()` | 生成 DELETE SQLCmd，不执行。 |
 | `int doDelete()` | 执行 DELETE，返回影响行数。 |
+| `int doUpsert(UpsertMode mode = Auto)` | 执行 upsert，转发 Builder；无 toUpsert。 |
+| `Task<int> doUpsertAsync(UpsertMode mode = Auto, CancellationToken ct = default)` | 异步 upsert。 |
 
-UPDATE/DELETE 的 WHERE 使用同一套 where 方法（如 `where(() => user.Id, 1)`）。
+UPDATE/DELETE/UPSERT 的 WHERE 使用同一套 where 方法（如 `where(() => user.Id, 1)`）。upsert 匹配键写在 where。
 
 ---
 
