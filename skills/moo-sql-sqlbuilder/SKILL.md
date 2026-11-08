@@ -202,6 +202,20 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 | `toMergeInto()` | 生成 merge SQLCmd |
 | `doMergeInto()` | 执行 merge |
 
+### UPSERT（doUpsert）
+
+业务链：`setTable().setI()….setU().set().where().doUpsert(mode)`。仅 `doUpsert` / `doUpsertAsync`，无 `toUpsert`。
+
+| 方法 / 枚举 | 说明 |
+|------|------|
+| `doUpsert(UpsertMode mode = Auto)` | 方言路由执行 upsert |
+| `UpsertMode.Auto` | 支持 MERGE → MERGE；**MySQL 保守 → 先查后写** |
+| `UpsertMode.PrimaryKey` | 明确 where 为主键：MySQL → `ON DUPLICATE KEY UPDATE` |
+| `UpsertMode.CheckExist` | 全部方言 EXISTS → update/insert |
+| `UpsertMode.Merge` | 强制 MERGE（MySQL 走 FallBack 兼容） |
+
+`set` 双写、`setI` 仅插、`setU` 仅更；`where` 为匹配条件（MERGE ON 优先 `t.col=s.col`）。
+
 ---
 
 ## 十三、WHERE 条件

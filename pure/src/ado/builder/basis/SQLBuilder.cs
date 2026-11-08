@@ -963,6 +963,17 @@ namespace mooSQL.data
         public abstract Task<int> doMergeIntoAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// 按方言执行 upsert（MERGE / ON DUPLICATE / 先查后写）。仅执行，不提供 toUpsert。
+        /// 使用 setTable + set/setI/setU + where；默认 <see cref="UpsertMode.Auto"/>。
+        /// </summary>
+        public abstract int doUpsert(UpsertMode mode = UpsertMode.Auto);
+
+        /// <summary>
+        /// 异步执行 upsert（可取消；令牌默认 default）。
+        /// </summary>
+        public abstract Task<int> doUpsertAsync(UpsertMode mode = UpsertMode.Auto, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// 根据上下文配置获取查询结果。
         /// </summary>
         public abstract DataTable query();

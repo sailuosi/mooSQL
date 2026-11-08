@@ -171,6 +171,18 @@ namespace mooSQL.data
             return _inner.doMergeIntoAsync(cancellationToken);
         }
 
+        public override int doUpsert(UpsertMode mode = UpsertMode.Auto)
+        {
+            runBuild();
+            return _inner.doUpsert(mode);
+        }
+
+        public override Task<int> doUpsertAsync(UpsertMode mode = UpsertMode.Auto, CancellationToken cancellationToken = default)
+        {
+            runBuild();
+            return _inner.doUpsertAsync(mode, cancellationToken);
+        }
+
         // ---- query / count / exist ----
 
         public override DataTable query()

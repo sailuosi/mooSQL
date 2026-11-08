@@ -522,6 +522,23 @@ namespace mooSQL.data
             return res;
         }
 
+        /// <inheritdoc />
+        public override int doUpsert(UpsertMode mode = UpsertMode.Auto)
+        {
+            int res = Dialect.DoUpsert(this, mode);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
+            return res;
+        }
+
+        /// <inheritdoc />
+        public override async Task<int> doUpsertAsync(UpsertMode mode = UpsertMode.Auto, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var res = await Dialect.DoUpsertAsync(this, mode, cancellationToken).ConfigureAwait(false);
+            if (_AutoClearWay == CleanWay.AfterModify || _AutoClearWay == CleanWay.Always) clear();
+            return res;
+        }
+
         /// <summary>
         /// 执行 delete SQL 默认完成后自动clear
         /// </summary>
