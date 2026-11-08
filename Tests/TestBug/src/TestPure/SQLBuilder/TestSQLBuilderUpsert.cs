@@ -41,12 +41,39 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void Resolve_Sqlite_Auto_IsSelectWrite()
+        public void Resolve_Sqlite_Auto_IsSelectWrite_PrimaryKey_IsDuplicate()
         {
             var db = DBTest.useSQLiteDB();
             db.dialect.SupportsMerge().Should().BeFalse();
+            db.dialect.Option.ProviderFlags.IsInsertOrUpdateSupported.Should().BeTrue();
             db.dialect.ResolveUpsertStrategy(UpsertMode.Auto)
                 .Should().Be(Dialect.UpsertStrategy.SelectWrite);
+            db.dialect.ResolveUpsertStrategy(UpsertMode.PrimaryKey)
+                .Should().Be(Dialect.UpsertStrategy.DuplicateKey);
+        }
+
+        [Fact]
+        public void Sqlite_PrimaryKey_BuildsOnConflictSuffix()
+        {
+            var db = DBTest.useSQLiteDB();
+            using var kit = TestDatabaseHelper.UseSQL(db);
+            kit.setTable("t_user")
+                .set("id", 1)
+                .set("name", "a")
+                .where("id", 1);
+
+            var suffix = db.dialect.GetInsertOrUpdateDuplicateSuffix(kit.Inner);
+            suffix.Should().NotBeNullOrWhiteSpace();
+            var upper = suffix!.ToUpperInvariant();
+            upper.Should().Contain("ON CONFLICT");
+            upper.Should().Contain("ID");
+            upper.Should().Contain("DO UPDATE SET");
+
+            var cmd = kit.toInsertWithDuplicateUpdate(suffix);
+            var sql = cmd.toRawSQL().ToUpperInvariant();
+            sql.Should().Contain("INSERT");
+            sql.Should().Contain("ON CONFLICT");
+            sql.Should().Contain("DO UPDATE SET");
         }
 
         [Fact]
@@ -176,6 +203,48 @@ namespace mooSQL.Pure.Tests
             Convert.ToDecimal(row["price"]).Should().Be(2.5m);
             // setI 不应在更新路径改 name
             Convert.ToString(row["name"]).Should().Be("UpsertP");
+        }
+
+        [Fact]
+        public void PrimaryKey_OnConflict_UpdateStock()
+        {
+            var id = 8802;
+            TestDatabaseHelper.UseSQL(_fx.Db)
+                .setTable(SQLiteTestFixture.ProductTable)
+                .where("id", id)
+                .doDelete();
+
+            TestDatabaseHelper.UseSQL(_fx.Db)
+                .setTable(SQLiteTestFixture.ProductTable)
+                .set("id", id)
+                .set("name", "ConflictP")
+                .set("category", "T")
+                .set("price", 1m)
+                .set("stock", 1)
+                .where("id", id)
+                .doUpsert(UpsertMode.PrimaryKey)
+                .Should().BeGreaterThan(0);
+
+            // ON CONFLICT 仍先走 INSERT 列校验，NOT NULL 列需出现在 set/setI
+            TestDatabaseHelper.UseSQL(_fx.Db)
+                .setTable(SQLiteTestFixture.ProductTable)
+                .set("id", id)
+                .set("name", "ConflictP2")
+                .set("category", "T")
+                .set("price", 1m)
+                .setU("stock", 7)
+                .where("id", id)
+                .doUpsert(UpsertMode.PrimaryKey)
+                .Should().BeGreaterThan(0);
+
+            var row = TestDatabaseHelper.UseSQL(_fx.Db)
+                .select("*")
+                .from(SQLiteTestFixture.ProductTable)
+                .where("id", id)
+                .queryRow();
+            row.Should().NotBeNull();
+            Convert.ToInt32(row!["stock"]).Should().Be(7);
+            Convert.ToString(row["name"]).Should().Be("ConflictP2");
         }
     }
 }

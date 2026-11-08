@@ -53,6 +53,15 @@ namespace mooSQL.data
             }
         }
 
+        /// <summary>
+        /// INSERT upsert 后缀（不含 SET 赋值段）。默认不支持，返回 null。
+        /// MySQL：<c>ON DUPLICATE KEY UPDATE</c>；SQLite：<c>ON CONFLICT (cols) DO UPDATE SET</c>。
+        /// </summary>
+        public virtual string GetInsertOrUpdateDuplicateSuffix(StepBuilder kit)
+        {
+            return null;
+        }
+
         /// <summary>按 mode + 方言能力解析 upsert 路径。</summary>
         internal UpsertStrategy ResolveUpsertStrategy(UpsertMode mode)
         {
@@ -67,7 +76,8 @@ namespace mooSQL.data
                 && Option.ProviderFlags.IsInsertOrUpdateSupported;
             if (insertOrUpdate)
             {
-                // MySQL 族：仅 PrimaryKey 才放心 ON DUPLICATE；Auto 保守先查后写
+                // 标明 IsInsertOrUpdateSupported 的方言（MySQL/SQLite…）：
+                // 仅 PrimaryKey 才走 duplicate-key；Auto 保守先查后写
                 if (mode == UpsertMode.PrimaryKey)
                     return UpsertStrategy.DuplicateKey;
                 return UpsertStrategy.SelectWrite;
@@ -81,14 +91,39 @@ namespace mooSQL.data
 
         int ExecuteDuplicateKeyUpsert(StepBuilder kit)
         {
-            var cmd = kit.toInsertWithDuplicateUpdate("ON DUPLICATE KEY UPDATE");
+            var suffix = GetInsertOrUpdateDuplicateSuffix(kit);
+            if (string.IsNullOrWhiteSpace(suffix))
+                return ExecuteSelectWriteUpsert(kit);
+            var cmd = kit.toInsertWithDuplicateUpdate(suffix);
             return kit.exeNonQuery(cmd);
         }
 
         Task<int> ExecuteDuplicateKeyUpsertAsync(StepBuilder kit, CancellationToken cancellationToken)
         {
-            var cmd = kit.toInsertWithDuplicateUpdate("ON DUPLICATE KEY UPDATE");
+            var suffix = GetInsertOrUpdateDuplicateSuffix(kit);
+            if (string.IsNullOrWhiteSpace(suffix))
+                return ExecuteSelectWriteUpsertAsync(kit, cancellationToken);
+            var cmd = kit.toInsertWithDuplicateUpdate(suffix);
             return kit.exeNonQueryAsync(cmd, cancellationToken);
+        }
+
+        /// <summary>从 where 等值条件收集冲突/主键列名（去别名）。</summary>
+        protected List<string> CollectUpsertConflictColumns(StepBuilder kit)
+        {
+            var list = new List<string>();
+            if (kit?.current?.wherePart?.topBox == null)
+                return list;
+            var frags = new List<WhereFrag>();
+            CollectEqualityWhereFrags(kit.current.wherePart.topBox, frags);
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var frag in frags)
+            {
+                var bare = StripColumnAlias(frag.key);
+                if (string.IsNullOrWhiteSpace(bare) || !seen.Add(bare))
+                    continue;
+                list.Add(bare);
+            }
+            return list;
         }
 
         int ExecuteMergeUpsertOrFallback(StepBuilder kit)

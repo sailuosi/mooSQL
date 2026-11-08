@@ -219,11 +219,11 @@ SQLBuilder 采用贴近 SQL 的语法构建，方法小写开头。本体负责 
 |------|------|
 | `doUpsert(UpsertMode mode = Auto)` | 方言路由执行 upsert |
 | `UpsertMode.Auto` | 支持 MERGE → MERGE；**MySQL 保守 → 先查后写** |
-| `UpsertMode.PrimaryKey` | 明确 where 为主键：MySQL → `ON DUPLICATE KEY UPDATE` |
+| `UpsertMode.PrimaryKey` | 明确 where 为主键：MySQL/GBase → `ON DUPLICATE`；SQLite/Turso → `ON CONFLICT (where列) DO UPDATE SET` |
 | `UpsertMode.CheckExist` | 全部方言 EXISTS → update/insert |
 | `UpsertMode.Merge` | 强制 MERGE（MySQL 走 FallBack 兼容） |
 
-`set` 双写、`setI` 仅插、`setU` 仅更；`where` 为匹配条件（MERGE ON 优先 `t.col=s.col`）。
+方言钩子：`Dialect.GetInsertOrUpdateDuplicateSuffix(kit)`。`set` 双写、`setI` 仅插、`setU` 仅更；`where` 为匹配条件（MERGE ON 优先 `t.col=s.col`）。SQLite ON CONFLICT 时 INSERT 列仍须满足 NOT NULL。
 
 ---
 

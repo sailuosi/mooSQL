@@ -32,8 +32,17 @@ namespace mooSQL.data
             sentence = new GBase8aSentence(this);
             mapping = new MySQLMappingPanel();
 
+            Option ??= new SooOption();
+            Option.ProviderFlags ??= new SQLProviderFlags();
+            // 兼容 MySQL ON DUPLICATE；doUpsert Auto 仍保守，PrimaryKey 才启用
+            Option.ProviderFlags.IsInsertOrUpdateSupported = true;
+
             this.InitDBVersions();
         }
+
+        /// <inheritdoc />
+        public override string GetInsertOrUpdateDuplicateSuffix(StepBuilder kit)
+            => "ON DUPLICATE KEY UPDATE";
  /// <summary>
  /// Creates a new database command for this dialect.
  /// </summary>

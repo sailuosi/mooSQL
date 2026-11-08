@@ -28,7 +28,8 @@ namespace mooSQL.data
 /// </summary>
  
 
-        protected override string? GetInsertOrUpdateDuplicateSuffix() => "ON DUPLICATE KEY UPDATE";
+        protected override string? GetInsertOrUpdateDuplicateSuffix()
+            => dialect?.GetInsertOrUpdateDuplicateSuffix(null) ?? "ON DUPLICATE KEY UPDATE";
  /// <summary>
  /// Translates an object name into dialect-specific SQL.
  /// </summary>

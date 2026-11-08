@@ -71,6 +71,10 @@ namespace mooSQL.data
         public override bool SupportsMerge() => false;
 
         /// <inheritdoc />
+        public override string GetInsertOrUpdateDuplicateSuffix(StepBuilder kit)
+            => "ON DUPLICATE KEY UPDATE";
+
+        /// <inheritdoc />
         public override bool SupportsUpdateBatch() => true;
 
         /// <summary>MySQL 值源用 v0.. 别名，避免与保留字/大小写折叠冲突。</summary>

@@ -46,8 +46,27 @@ namespace mooSQL.data
             Option.ProviderFlags.IsTakeSupported = true;
             Option.ProviderFlags.IsSkipSupported = true;
             Option.ProviderFlags.IsSkipSupportedIfTake = true;
+            // PrimaryKey 模式下 doUpsert 走 ON CONFLICT；Auto 仍保守先查后写
+            Option.ProviderFlags.IsInsertOrUpdateSupported = true;
 
             this.initVersions();
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// 依赖 where 等值列作为冲突目标：<c>ON CONFLICT (cols) DO UPDATE SET …</c>。
+        /// 无冲突列时返回 null，DoUpsert 回退先查后写。
+        /// </remarks>
+        public override string GetInsertOrUpdateDuplicateSuffix(StepBuilder kit)
+        {
+            var cols = CollectUpsertConflictColumns(kit);
+            if (cols == null || cols.Count == 0)
+                return null;
+            var exp = expression;
+            var parts = new List<string>(cols.Count);
+            foreach (var c in cols)
+                parts.Add(exp.wrapField(c));
+            return "ON CONFLICT (" + string.Join(", ", parts) + ") DO UPDATE SET";
         }
 
         /// <inheritdoc />
