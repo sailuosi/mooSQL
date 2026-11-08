@@ -143,6 +143,9 @@ namespace mooSQL.data
                 return value;
             if (target == typeof(Guid) && value is string s)
                 return Guid.Parse(s);
+            // .NET Core+ Guid 不实现 IConvertible，ChangeType(Guid→string) 会失败
+            if (target == typeof(string) && value is Guid g)
+                return g.ToString();
             return Convert.ChangeType(value, target);
         }
     }

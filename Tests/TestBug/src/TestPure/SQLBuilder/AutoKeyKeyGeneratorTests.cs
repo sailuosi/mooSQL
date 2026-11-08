@@ -29,6 +29,15 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void ResolveAutoKey_Guid_Builtin_Coerces_To_String()
+        {
+            var client = CreateClient();
+            var v = client.ResolveAutoKey("Guid", typeof(string));
+            v.Should().BeOfType<string>();
+            Guid.TryParse((string)v, out _).Should().BeTrue();
+        }
+
+        [Fact]
         public void ResolveAutoKey_Custom_UsesRegister()
         {
             var client = CreateClient();
