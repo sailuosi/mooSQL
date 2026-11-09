@@ -3,6 +3,7 @@ using mooSQL.linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,7 +85,11 @@ namespace mooSQL.data
             return DB.client.ClientFactory.useDBRunner(DB);
         }
         /// <summary>获取一个富仓储实例（脏更新 / 字典缓存 / Schema / Upsert）。</summary>
-        public static SooRichRepo<T> useRichRepo<T>(this DBInstance DB) where T : class, new()
+        public static SooRichRepo<T> useRichRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(this DBInstance DB) where T : class, new()
         {
             return DB.client.ClientFactory.useRichRepo<T>(DB);
         }
@@ -95,7 +100,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="DB"></param>
         /// <returns></returns>
-        public static SooRepository<T> useRepo<T>(this DBInstance DB) where T : class, new() 
+        public static SooRepository<T> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(this DBInstance DB) where T : class, new() 
         {
             return DB.client.ClientFactory.useRepo<T>(DB);
         }
@@ -106,7 +115,11 @@ namespace mooSQL.data
         /// <typeparam name="K"></typeparam>
         /// <param name="DB"></param>
         /// <returns></returns>
-        public static SooRepository<T,K> useRepo<T,K>(this DBInstance DB) where T : class, new()
+        public static SooRepository<T,K> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T,K>(this DBInstance DB) where T : class, new()
         {
             return DB.client.ClientFactory.useRepo<T,K>(DB);
         }

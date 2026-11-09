@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -136,7 +137,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="table"></param>
         /// <returns></returns>
-        public SQLClip from<T>(out T table) where T:new() { 
+        public SQLClip from<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(out T table) where T:new() { 
             var tar= new T();
             table = tar;
 
@@ -205,7 +210,11 @@ namespace mooSQL.data
         /// <param name="tbname"></param>
         /// <param name="table"></param>
         /// <returns></returns>
-        public SQLClip from<T>(string tbname,out T table) where T : new()
+        public SQLClip from<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(string tbname,out T table) where T : new()
         {
             var tar = new T();
             table = tar;
@@ -227,7 +236,11 @@ namespace mooSQL.data
         /// <summary>
         /// 子查询作为 FROM：绑定实体，别名仍由后续 Lambda 中的 out 变量名决定（须先 where/字段选择再 select）。
         /// </summary>
-        public SQLClip from<T>(out T table, Func<SQLClip, SQLClip<T>> subfrom) where T : new()
+        public SQLClip from<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(out T table, Func<SQLClip, SQLClip<T>> subfrom) where T : new()
         {
             var bro = Context.Builder.getBrotherBuilder();
             var sub = DBLive.useClip(bro);
@@ -254,7 +267,11 @@ namespace mooSQL.data
         /// <typeparam name="J"></typeparam>
         /// <param name="tableJ"></param>
         /// <returns></returns>
-        public ClipJoin<J> join<J>(out J tableJ, string joinPrefix = "JOIN") where J : new()
+        public ClipJoin<J> join<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            J>(out J tableJ, string joinPrefix = "JOIN") where J : new()
         {
             tableJ = new J();
             //tableJ = AnonyTypeUtil.CreateInstanceWithDefaults<J>();
@@ -280,7 +297,11 @@ namespace mooSQL.data
         /// <param name="joinPrefix"></param>
         /// <param name="subfrom"></param>
         /// <returns></returns>
-        public ClipJoin<J> join<J>(out J tableJ, string joinPrefix, Func<SQLClip, SQLClip<J>> subfrom)
+        public ClipJoin<J> join<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            J>(out J tableJ, string joinPrefix, Func<SQLClip, SQLClip<J>> subfrom)
         {
 
             var bro = Context.Builder.getBrotherBuilder();

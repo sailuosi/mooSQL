@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,7 +11,11 @@ namespace mooSQL.data
     /// <summary>
     /// 平平无奇的抽象仓储接口
     /// </summary>
-    public interface ISooRepository<T>
+    public interface ISooRepository<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T>
     {
 
 

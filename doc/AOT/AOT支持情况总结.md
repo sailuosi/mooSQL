@@ -221,7 +221,8 @@ client.RegisterMaterializer(typeof(Order), (r, d) => ...);
    - 对稳定 POCO 实体加 `[GenerateMaterializer]`；
    - 使用 `SooColumn` 显式列名，与 SQL 别名一致；
    - 启动时 `useAotMode(true)` + `registerGeneratedMaterializers()`；
-   - 对 SG 未覆盖类型依赖反射兜底，或 `RegisterMaterializer` 手写。
+   - 对 SG 未覆盖类型依赖反射兜底，或 `RegisterMaterializer` 手写；
+   - 需反射兜底的实体可实现 `IReflectionEntity`（`DynamicallyAccessedMembers.All` 保留标记）；**不强制**。真正保成员靠调用面泛型：`query<T>` / `from<T>` / `useRepo<T>` 等已标注 DAM；标记接口不替代 SG 物化器。
 3. **避免在 AOT 模式下依赖**：有参构造物化、匿名类型、运行时改 `ITypeMap`、仅 Emit 时代的 schema 特化语义。
 4. **验证**：在引用 Generators 后跑 `MaterializerParityTests`；Native AOT 发布前需自行增加冒烟（Repository 查询 + 物化）。
 

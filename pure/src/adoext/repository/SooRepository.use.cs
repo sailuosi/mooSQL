@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,7 +37,11 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="R"></typeparam>
         /// <returns></returns>
-        public SooRepository<R> ChangeTo<R>() where R : class , new()
+        public SooRepository<R> ChangeTo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            R>() where R : class , new()
         {
             return DBLive.useRepo<R>();
         }

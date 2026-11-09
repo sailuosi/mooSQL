@@ -1,5 +1,6 @@
 using mooSQL.data.clip;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 using System.Linq.Expressions;
 
@@ -43,7 +44,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static SooRepository<T> useRepo<T>(this SQLBuilder builder) where T : class, new()
+        public static SooRepository<T> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(this SQLBuilder builder) where T : class, new()
         {
             var tar = builder.DBLive.useRepo<T>();
             if (builder.Executor != null) { 
@@ -51,7 +56,11 @@ namespace mooSQL.data
             }
             return tar;
         }
-        public static SooRepository<T, K> useRepo<T, K>(this SQLBuilder kit) where T : class, new()
+        public static SooRepository<T, K> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T, K>(this SQLBuilder kit) where T : class, new()
         {
             var repo = kit.DBLive.useRepo<T, K>();
             if (kit.Executor != null)

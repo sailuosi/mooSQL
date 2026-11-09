@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,7 +14,11 @@ namespace mooSQL.data
     /// Clip的泛型版本，用于构造特定类型的更新、删除语句。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public partial class SQLClip<T> : SQLClip
+    public partial class SQLClip<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T> : SQLClip
     {
         /// <summary>
         /// 构造

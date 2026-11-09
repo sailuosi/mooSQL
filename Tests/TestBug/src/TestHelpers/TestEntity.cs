@@ -10,7 +10,7 @@ namespace mooSQL.Pure.Tests.TestHelpers
     /// </summary>
     [SooTable("test_users")]
     [GenerateMaterializer]
-    public class TestUser
+    public class TestUser : IReflectionEntity
     {
         [SooColumn("id", IsPrimaryKey = true)]
         public int Id { get; set; }

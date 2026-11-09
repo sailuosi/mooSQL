@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +56,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="DB"></param>
         /// <returns></returns>
-        public virtual SooRepository<T> useRepo<T>(DBInstance DB) where T : class, new()
+        public virtual SooRepository<T> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(DBInstance DB) where T : class, new()
         {
             var t = new SooRepository<T>(DB);
             if (DB?.client != null && DB.client.EnableInsertReturnId)
@@ -66,7 +71,11 @@ namespace mooSQL.data
         /// <summary>
         /// 创建富仓储（脏更新 / 字典缓存 / Schema / Upsert）。
         /// </summary>
-        public virtual SooRichRepo<T> useRichRepo<T>(DBInstance DB) where T : class, new()
+        public virtual SooRichRepo<T> useRichRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(DBInstance DB) where T : class, new()
         {
             return new SooRichRepo<T>(DB);
         }
@@ -74,7 +83,11 @@ namespace mooSQL.data
         /// <summary>
         /// 泛型方法 useRepo（返回 SooRepository&lt;T,K&gt;）。
         /// </summary>
-        public virtual SooRepository<T,K> useRepo<T,K>(DBInstance DB) where T : class, new()
+        public virtual SooRepository<T,K> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T,K>(DBInstance DB) where T : class, new()
         {
             var t = new SooRepository<T,K>(DB);
             if (DB?.client != null && DB.client.EnableInsertReturnId)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading;
 using System.Threading.Tasks;
@@ -987,27 +988,43 @@ namespace mooSQL.data
         /// 泛型法，查询多行数据。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract IEnumerable<T> query<T>();
+        public abstract IEnumerable<T> query<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 异步查询多行（可取消；令牌默认 default）。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<IEnumerable<T>> queryAsync<T>(CancellationToken cancellationToken = default);
+        public abstract Task<IEnumerable<T>> queryAsync<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 依据自定义的行读取规则，来创建目标类的 list。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="createEntity">由 DataRow 构造实体的委托。</param>
-        public abstract List<T> query<T>(Func<DataRow, T> createEntity);
+        public abstract List<T> query<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(Func<DataRow, T> createEntity);
 
         /// <summary>
         /// 按行自定义读取（DbDataReader），走 doSelect 物化，供客户端尾投影等使用。
         /// </summary>
         /// <typeparam name="T">投影类型。</typeparam>
         /// <param name="onReadRow">行读取委托。</param>
-        public abstract IEnumerable<T> queryReader<T>(Func<System.Data.Common.DbDataReader, T> onReadRow);
+        public abstract IEnumerable<T> queryReader<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(Func<System.Data.Common.DbDataReader, T> onReadRow);
 
         /// <summary>
         /// 同 <see cref="queryReader{T}(Func{DbDataReader, T})"/>，可指定结果缓存类型标签（尾投影含投影指纹）。
@@ -1015,7 +1032,11 @@ namespace mooSQL.data
         /// <typeparam name="T">投影类型。</typeparam>
         /// <param name="resultTypeTag">结果缓存类型标签。</param>
         /// <param name="onReadRow">行读取委托。</param>
-        public abstract IEnumerable<T> queryReader<T>(string resultTypeTag, Func<System.Data.Common.DbDataReader, T> onReadRow);
+        public abstract IEnumerable<T> queryReader<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(string resultTypeTag, Func<System.Data.Common.DbDataReader, T> onReadRow);
 
         /// <summary>
         /// 使用自定义执行回调运行当前 SELECT。
@@ -1023,7 +1044,11 @@ namespace mooSQL.data
         /// <typeparam name="T">实体类型。</typeparam>
         /// <typeparam name="TResult">回调返回类型。</typeparam>
         /// <param name="onRuning">执行上下文回调。</param>
-        public abstract TResult queryAs<T, TResult>(Func<ExeContext, Type, TResult> onRuning);
+        public abstract TResult queryAs<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T, TResult>(Func<ExeContext, Type, TResult> onRuning);
 
         /// <summary>
         /// 分页查询，返回分页数据和总数。
@@ -1034,27 +1059,43 @@ namespace mooSQL.data
         /// 泛型法，分页查询，返回分页数据和总数。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract PageOutput<T> queryPaged<T>();
+        public abstract PageOutput<T> queryPaged<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 翻页查询；为了不干扰现有仓储逻辑，聚合放在了子属性中的版本。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="summSQL">汇总列 SQL。</param>
-        public abstract PageOutput<T> queryPaged<T>(string summSQL);
+        public abstract PageOutput<T> queryPaged<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(string summSQL);
 
         /// <summary>
         /// 分页查询，并在结果对象上执行额外逻辑（如汇总）。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="activeOther">对分页结果的附加处理。</param>
-        public abstract PageOutput<T> queryPaged<T>(Action<PageOutput<T>> activeOther);
+        public abstract PageOutput<T> queryPaged<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(Action<PageOutput<T>> activeOther);
 
         /// <summary>
         /// 异步分页查询，返回分页数据和总数。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<PageOutput<T>> queryPagedAsync<T>(CancellationToken cancellationToken = default);
+        public abstract Task<PageOutput<T>> queryPagedAsync<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询翻页结果，带汇总。
@@ -1073,14 +1114,22 @@ namespace mooSQL.data
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="selectCols">汇总列定义。</param>
-        public abstract PageSumOutput<T> queryPageSum<T>(string selectCols);
+        public abstract PageSumOutput<T> queryPageSum<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(string selectCols);
 
         /// <summary>
         /// 异步查询分页含有汇总的结果，selectCols 参数为汇总列的定义，如 sum(price) as TotalPrice, count(*) as TotalCount 等，查询结果会放在返回对象的字典里，key 为列名。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="selectCols">汇总列定义。</param>
-        public abstract Task<PageSumOutput<T>> queryPagedSumAsync<T>(string selectCols, CancellationToken cancellationToken = default);
+        public abstract Task<PageSumOutput<T>> queryPagedSumAsync<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(string selectCols, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行汇总 SQL 并返回键值结果（可选包含 total 列）。
@@ -1093,13 +1142,21 @@ namespace mooSQL.data
         /// 查询首列的数据，并转换为某个类型。
         /// </summary>
         /// <typeparam name="T">列值类型。</typeparam>
-        public abstract IEnumerable<T> queryFirstField<T>();
+        public abstract IEnumerable<T> queryFirstField<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 查询单行数据，只会读取第一行，忽略后续数据。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract T queryFirst<T>();
+        public abstract T queryFirst<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
         /// <summary>
         /// 查询获取首行，不存在时返回null
         /// </summary>
@@ -1116,25 +1173,41 @@ namespace mooSQL.data
         /// 查询单行数据，查询唯一的一行数据，多行或没有都是 null。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract T queryUnique<T>();
+        public abstract T queryUnique<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 异步查询唯一一行（可取消；令牌默认 default），多行或没有都是 null。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract Task<T> queryUniqueAsync<T>(CancellationToken cancellationToken = default);
+        public abstract Task<T> queryUniqueAsync<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询一个数据，只读第一行第一列。
         /// </summary>
         /// <typeparam name="T">标量类型。</typeparam>
-        public abstract T queryScalar<T>();
+        public abstract T queryScalar<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 异步查唯一值（可取消；令牌默认 default）。
         /// </summary>
         /// <typeparam name="T">标量类型。</typeparam>
-        public abstract Task<T> queryScalarAsync<T>(CancellationToken cancellationToken = default);
+        public abstract Task<T> queryScalarAsync<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询结果为唯一一行记录的结果，非 1 行结果返回 null。
@@ -1150,14 +1223,22 @@ namespace mooSQL.data
         /// 查询唯一的一行，并转换泛型类，等效于 queryUnique&lt;T&gt; 方法。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
-        public abstract T queryRow<T>();
+        public abstract T queryRow<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>();
 
         /// <summary>
         /// 依据自定义的行读取规则，来创建目标类。非 1 行返回 default。
         /// </summary>
         /// <typeparam name="T">实体类型。</typeparam>
         /// <param name="builder">由 DataRow 构造实体的委托。</param>
-        public abstract T queryRow<T>(Func<DataRow, T> builder);
+        public abstract T queryRow<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(Func<DataRow, T> builder);
 
         /// <summary>
         /// 获取第一行一列的 int 值结果，查询结果必须为 1 行，否则返回默认值。

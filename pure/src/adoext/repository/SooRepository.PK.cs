@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace mooSQL.data
@@ -8,7 +9,11 @@ namespace mooSQL.data
     /// 增加了强类型主键约束的仓储。
     /// 写入并返回主键的方法与 SQLBuilder 命名对齐：<c>InsertReturnId</c> / <c>UpdateReturnId</c>。
     /// </summary>
-    public partial class SooRepository<T, K> : SooRepository<T> where T : class, new()
+    public partial class SooRepository<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T, K> : SooRepository<T> where T : class, new()
     {
         /// <summary>
         /// 初始化 SooRepository（构造）。

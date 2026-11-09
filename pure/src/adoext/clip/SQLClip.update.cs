@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -17,7 +18,11 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="table"></param>
         /// <returns></returns>
-        public SQLClip<T> setTable<T>(out T table) where T : class, new()
+        public SQLClip<T> setTable<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>(out T table) where T : class, new()
         {
             table= new T();
             var bt = new ClipTable()

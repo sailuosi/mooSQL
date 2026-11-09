@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -13,7 +14,11 @@ namespace mooSQL.data
     /// 富仓储（独立类型，不继承 <see cref="SooRepository{T}"/>）。
     /// 内部组合薄仓转发 CRUD；厚能力（Tracking / EntityCache / Schema / Upsert）仅挂本类。
     /// </summary>
-    public class SooRichRepo<T> where T : class, new()
+    public class SooRichRepo<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T> where T : class, new()
     {
         readonly DBInstance _db;
         readonly SooRepository<T> _thin;

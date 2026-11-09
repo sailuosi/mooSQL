@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,7 +11,11 @@ namespace mooSQL.data
     /// <summary>
     /// JOIN语句构造中间过渡类
     /// </summary>
-    public class ClipJoin<T>
+    public class ClipJoin<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T>
     {
         /// <summary>
         /// 根Clip实例引用。

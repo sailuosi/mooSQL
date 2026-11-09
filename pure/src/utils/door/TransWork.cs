@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using mooSQL.data.clip;
 
 namespace mooSQL.data
@@ -38,11 +39,19 @@ namespace mooSQL.data
         }
 
         /// <summary>绑定事务的薄仓储。</summary>
-        public SooRepository<T> useRepo<T>() where T : class, new()
+        public SooRepository<T> useRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>() where T : class, new()
             => DB.useRepo<T>().useTransaction(Executor);
 
         /// <summary>绑定事务的富仓储。</summary>
-        public SooRichRepo<T> useRichRepo<T>() where T : class, new()
+        public SooRichRepo<T> useRichRepo<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+            T>() where T : class, new()
         {
             var repo = DB.useRichRepo<T>();
             repo.useTransaction(Executor);

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -19,7 +20,11 @@ namespace mooSQL.data
     /// just so,一个平平无奇的仓储模式实现
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public partial class SooRepository<T> : ISooRepository<T> where T : class, new()
+    public partial class SooRepository<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        T> : ISooRepository<T> where T : class, new()
     {
         /// <summary>
         /// 数据库实例
