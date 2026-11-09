@@ -131,17 +131,17 @@ namespace mooSQL.data
             => _accessors.TryGetValue(type, out accessor);
 
         /// <summary>
-        /// 将 SG Bootstrap 安装器应用到当前 Client（写侧 Accessor）。
+        /// 将 <see cref="GeneratedClientBootstrap"/> 安装器应用到当前 Client（物化器 / Accessor）。
         /// </summary>
         public MooClient RegisterGeneratedAccessors()
         {
             GeneratedAccessorHook?.Invoke(this);
-            EntityAccessorBootstrap.Apply(this);
+            GeneratedClientBootstrap.Apply(this);
             return this;
         }
 
         /// <summary>
-        /// 将 SG 写入静态引导表的物化器复制到当前 Client，并顺带注册生成的写侧 Accessor。
+        /// 兼容：复制静态 <see cref="MaterializerRegistry"/> 到 Client，并 Apply <see cref="GeneratedClientBootstrap"/>（含物化器+Accessor 安装器）。
         /// </summary>
         public MooClient RegisterGeneratedMaterializers()
         {
