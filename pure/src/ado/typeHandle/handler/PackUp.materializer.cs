@@ -31,7 +31,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 按 Client 配置选择 Emit 或 AOT 物化器。
+        /// Client 已注册物化器则无条件优先；否则按 EnableAot 选择 Emit 或 AOT Resolve。
         /// </summary>
         internal Func<DbDataReader, DBInstance, object> GetTypeMaterializer(
             Type type,
@@ -41,6 +41,10 @@ namespace mooSQL.data
             bool returnNullIfFirstMissing = false,
             DBInstance db = null)
         {
+            // 与写侧 Accessor 一致：Client 有则自动用，不依赖 EnableAot
+            if (TryGetClientMaterializer(type, out var fromClient))
+                return fromClient;
+
             if (!IsAotEnabled)
                 return GetTypePackImpl(type, reader, startBound, length, returnNullIfFirstMissing, db);
 

@@ -37,6 +37,10 @@ namespace mooSQL.data
 
         internal static Func<DbDataReader, DBInstance, object> GetReader(PackUp deserializer, Type type, DbDataReader reader, int startBound, int length, bool returnNullIfFirstMissing,DBInstance db=null)
         {
+            // Client 实例物化器不进入共享 Emit/AOT 缓存，避免跨 Client / EnableAot 污染
+            if (deserializer != null && deserializer.TryGetClientMaterializer(type, out var fromClient))
+                return fromClient;
+
             var found = (TypePackerCache)byType[type];
             if (found is null)
             {

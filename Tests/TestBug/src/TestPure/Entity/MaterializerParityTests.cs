@@ -139,6 +139,41 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void ClientMaterializer_UsedWhenEnableAotOff()
+        {
+            var client = CreateClient(enableAot: false);
+            client.RegisterMaterializer(typeof(TestUser), (r, d) => new TestUser
+            {
+                Id = 99,
+                Name = "NoAotButRegistered"
+            });
+
+            var packUp = new PackUp(client);
+            using var reader = CreateReader();
+            reader.Read().Should().BeTrue();
+            var func = packUp.GetTypePacker(packUp, typeof(TestUser), reader, 0, -1, false, null);
+            var result = (TestUser)func(reader, null)!;
+            result.Id.Should().Be(99);
+            result.Name.Should().Be("NoAotButRegistered");
+        }
+
+        [Fact]
+        public void RegisterGenerated_EnableAotOff_UsesClientMaterializer()
+        {
+            var client = CreateClient(enableAot: false);
+            client.RegisterGeneratedMaterializers();
+            client.TryGetMaterializer(typeof(TestUser), out _).Should().BeTrue();
+
+            var packUp = new PackUp(client);
+            using var reader = CreateReader();
+            reader.Read().Should().BeTrue();
+            var func = packUp.GetTypePacker(packUp, typeof(TestUser), reader, 0, -1, false, null);
+            var result = (TestUser)func(reader, null)!;
+            result.Id.Should().Be(1);
+            result.Name.Should().Be("Alice");
+        }
+
+        [Fact]
         public void RegisterGeneratedMaterializers_CopiesStaticToClient()
         {
             MaterializerRegistry.TryGet(typeof(TestUser), out _).Should().BeTrue("SG ModuleInitializer should populate static catalog");
