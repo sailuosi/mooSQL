@@ -180,7 +180,7 @@ namespace mooSQL.data
                     continue;
                 }
                 //如果自定义了字段的设置动作，并返回true,不再执行
-                var val = col.PropertyInfo.GetValue(entity);
+                var val = col.GetEntityValue(entity, builder.Client);
                 if (col.IsPrimarykey && val == null && !col.IsIdentity)
                 {
                     // L2：AutoKey 优先；否则钩子 OnLoadPKValue。结果必须写回实体（只判 null，见设计 §4.2）
@@ -200,7 +200,7 @@ namespace mooSQL.data
 
                     if (generated != null)
                     {
-                        col.PropertyInfo.SetValue(entity, generated);
+                        col.SetEntityValue(entity, generated, builder.Client);
                         val = generated;
                     }
                 }
@@ -346,7 +346,7 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                var val = builder.Dialect.expression.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var val = builder.Dialect.expression.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
                 // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤
                 if (col.IsPrimarykey)
                 {
@@ -418,7 +418,7 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                var val = builder.Dialect.expression.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var val = builder.Dialect.expression.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
                 if (col.IsPrimarykey)
                 {
                     if (val == null)
@@ -486,7 +486,7 @@ namespace mooSQL.data
             {
                 if (!col.IsPrimarykey) continue;
                 if (col.IsIgnore) continue;
-                var pkVal = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var pkVal = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
                 if (pkVal == null)
                     return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
                 builder.where(col.DbColumnName, pkVal);
@@ -612,7 +612,7 @@ namespace mooSQL.data
             var exp = builder.Dialect.expression;
             foreach (var col in pks)
             {
-                var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
                 if (val == null)
                 {
                     throw new Exception("设置主键失败！要操作的实体属性其where条件字段值为空！");
@@ -640,10 +640,9 @@ namespace mooSQL.data
             {
                 var pkValues = new List<object>();
                 var pkCol = pks[0];
-                var prop = pkCol.PropertyInfo;
                 foreach (var row in entitys)
                 {
-                    var val = exp.ResolveColumnValue(prop.GetValue(row), pkCol);
+                    var val = exp.ResolveColumnValue(pkCol.GetEntityValue(row, builder.Client), pkCol);
                     if (val != null)
                     {
                         pkValues.Add(val);
@@ -659,7 +658,7 @@ namespace mooSQL.data
                     builder.sink();
                     foreach (var col in pks) {
 
-                        var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(row), col);
+                        var val = exp.ResolveColumnValue(col.GetEntityValue(row, builder.Client), col);
                         if (val != null)
                         {
                             builder.where(col.DbColumnName, val);
@@ -888,7 +887,7 @@ namespace mooSQL.data
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
                 if (col.PropertyName == updateKey)
                 {
                     if (val == null)

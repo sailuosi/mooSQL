@@ -108,7 +108,7 @@ namespace mooSQL.data
             }
             foreach (var pk in pks)
             {
-                if (pk.PropertyInfo.GetValue(entity) == null)
+                if (pk.IsEntityValueNull(entity, builder.Client))
                 {
                     //主键不全时，走插入逻辑
                     return insertInner(entity,builder);

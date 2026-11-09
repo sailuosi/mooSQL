@@ -137,7 +137,7 @@ namespace mooSQL.data
             var exp = kit?.Dialect?.expression;
             foreach (var pk in pks)
             {
-                var raw = pk.PropertyInfo.GetValue(entity);
+                var raw = pk.GetEntityValue(entity, kit?.Client);
                 var val = exp != null ? exp.ResolveColumnValue(raw, pk) : raw;
                 if (val == null)
                     return true;
@@ -153,7 +153,7 @@ namespace mooSQL.data
             for (var i = 0; i < pks.Count; i++)
             {
                 if (i > 0) sb.Append('\u001f');
-                var raw = pks[i].PropertyInfo.GetValue(entity);
+                var raw = pks[i].GetEntityValue(entity, kit?.Client);
                 var val = exp != null ? exp.ResolveColumnValue(raw, pks[i]) : raw;
                 sb.Append(NormalizePkPart(val));
             }

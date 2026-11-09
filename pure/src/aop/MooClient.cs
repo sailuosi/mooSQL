@@ -77,11 +77,17 @@ namespace mooSQL.data
         public bool EnableInsertReturnId { get; set; }
 
         private readonly ConcurrentDictionary<Type, Func<DbDataReader, DBInstance, object>> _materializers = new();
+        private readonly ConcurrentDictionary<Type, IEntityTypeAccessor> _accessors = new();
 
         /// <summary>
         /// 可选钩子：在 <see cref="RegisterGeneratedMaterializers"/> 复制静态引导表之前执行。
         /// </summary>
         public Action<MooClient>? GeneratedMaterializerHook { get; set; }
+
+        /// <summary>
+        /// 可选钩子：在 <see cref="RegisterGeneratedAccessors"/> 应用 Bootstrap 安装器之前执行。
+        /// </summary>
+        public Action<MooClient>? GeneratedAccessorHook { get; set; }
 
         /// <summary>
         /// 向当前 Client 实例注册 AOT 物化器（优先级高于静态引导表）。
@@ -108,12 +114,40 @@ namespace mooSQL.data
             => _materializers.TryGetValue(type, out materializer);
 
         /// <summary>
-        /// 将 SG 写入静态引导表的物化器复制到当前 Client 实例（可配合 <see cref="GeneratedMaterializerHook"/>）。
+        /// 向当前 Client 实例注册写侧实体 Accessor。
+        /// </summary>
+        public MooClient RegisterAccessor(Type type, IEntityTypeAccessor accessor)
+        {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (accessor is null) throw new ArgumentNullException(nameof(accessor));
+            _accessors[type] = accessor;
+            return this;
+        }
+
+        /// <summary>
+        /// 尝试从当前 Client 实例获取写侧 Accessor。
+        /// </summary>
+        public bool TryGetAccessor(Type type, out IEntityTypeAccessor accessor)
+            => _accessors.TryGetValue(type, out accessor);
+
+        /// <summary>
+        /// 将 SG Bootstrap 安装器应用到当前 Client（写侧 Accessor）。
+        /// </summary>
+        public MooClient RegisterGeneratedAccessors()
+        {
+            GeneratedAccessorHook?.Invoke(this);
+            EntityAccessorBootstrap.Apply(this);
+            return this;
+        }
+
+        /// <summary>
+        /// 将 SG 写入静态引导表的物化器复制到当前 Client，并顺带注册生成的写侧 Accessor。
         /// </summary>
         public MooClient RegisterGeneratedMaterializers()
         {
             GeneratedMaterializerHook?.Invoke(this);
             MaterializerRegistry.CopyTo(this);
+            RegisterGeneratedAccessors();
             return this;
         }
 

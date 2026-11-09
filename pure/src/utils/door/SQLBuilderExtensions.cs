@@ -186,7 +186,7 @@ namespace mooSQL.data
             // SkipOnInsert=false 且已赋值：普通插入，返回实体已有 Id，不二次回填
             if (!idCol.IsOnlyIgnoreInsert && idCol.PropertyInfo != null)
             {
-                var existing = idCol.PropertyInfo.GetValue(entity);
+                var existing = idCol.GetEntityValue(entity, builder.Client);
                 if (existing != null)
                 {
                     var resAssigned = builder.Client.Translator.prepareInsert(
@@ -214,7 +214,7 @@ namespace mooSQL.data
                 var pt = idCol.PropertyInfo.PropertyType;
                 var target = Nullable.GetUnderlyingType(pt) ?? pt;
                 var converted = target.IsInstanceOfType(id) ? id : Convert.ChangeType(id, target);
-                idCol.PropertyInfo.SetValue(entity, converted);
+                idCol.SetEntityValue(entity, converted, builder.Client);
             }
             return id;
         }
@@ -291,7 +291,7 @@ namespace mooSQL.data
                     var pt = idCol.PropertyInfo.PropertyType;
                     var target = Nullable.GetUnderlyingType(pt) ?? pt;
                     var converted = target.IsInstanceOfType(id) ? id : Convert.ChangeType(id, target);
-                    idCol.PropertyInfo.SetValue(arr[i], converted);
+                    idCol.SetEntityValue(arr[i], converted, builder.Client);
                 }
                 list.Add(id);
             }
@@ -532,7 +532,7 @@ namespace mooSQL.data
             var cash = builder.DBLive.client.EntityCash;
 
             var field= cash.getField(typeof(T),Name);
-            var val= builder.Dialect.expression.ResolveColumnValue(field.PropertyInfo.GetValue(entity), field);
+            var val= builder.Dialect.expression.ResolveColumnValue(field.GetEntityValue(entity, builder.Client), field);
             if (val == null) { 
                 throw new Exception("实体的属性对应数据库字段信息未找到！");
             }
@@ -612,7 +612,7 @@ namespace mooSQL.data
             }
             foreach (var pk in pks)
             {
-                if (pk.PropertyInfo.GetValue(entity) == null)
+                if (pk.IsEntityValueNull(entity, builder.Client))
                 {
                     return toInsert(builder, entity, tbname);
                 }
@@ -787,7 +787,7 @@ namespace mooSQL.data
                 var ids = new List<object>();
                 foreach (var row in entitys)
                 {
-                    var val = pk.PropertyInfo.GetValue(row);
+                    var val = pk.GetEntityValue(row, builder.Client);
                     if (val != null)
                     {
                         ids.Add(val);
@@ -803,7 +803,7 @@ namespace mooSQL.data
                 var complete = true;
                 foreach (var k in pks)
                 {
-                    if (k.PropertyInfo.GetValue(row) == null)
+                    if (k.IsEntityValueNull(row, builder.Client))
                     {
                         complete = false;
                         break;

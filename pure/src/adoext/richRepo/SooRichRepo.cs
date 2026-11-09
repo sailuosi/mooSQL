@@ -541,7 +541,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(c);
                 if (col == null) continue;
-                sourceCols[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                sourceCols[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
             }
             foreach (var kv in insertCols)
                 sourceCols[kv.Key] = kv.Value;
@@ -629,7 +629,7 @@ namespace mooSQL.data
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
             }
             return dict;
         }
@@ -648,7 +648,7 @@ namespace mooSQL.data
                     if (col == null || col.IsPrimarykey) continue;
                     if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                         continue;
-                    dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                    dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
                 }
                 return dict;
             }
@@ -659,7 +659,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                     continue;
-                dict[col.DbColumnName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
             }
             return dict;
         }
@@ -676,7 +676,7 @@ namespace mooSQL.data
                 {
                     var col = FindColumn(name);
                     if (col == null) continue;
-                    ck.where(col.DbColumnName, exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col));
+                    ck.where(col.DbColumnName, exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col));
                 }
             }
             else
@@ -698,7 +698,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(name);
                 if (col == null || col.IsPrimarykey) continue;
-                dict[col.PropertyName] = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                dict[col.PropertyName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
             }
             if (dict.Count == 0) return 0;
 
@@ -722,7 +722,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(name);
                 if (col == null) continue;
-                upd.where(col.DbColumnName, exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col));
+                upd.where(col.DbColumnName, exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col));
             }
             foreach (var kv in dict)
             {
@@ -831,10 +831,10 @@ namespace mooSQL.data
             if (pks == null || pks.Count == 0)
                 return row.GetHashCode().ToString();
             if (pks.Count == 1)
-                return Convert.ToString(pks[0].PropertyInfo.GetValue(row));
+                return Convert.ToString(pks[0].GetEntityValue(row, _db.Client));
             var parts = new string[pks.Count];
             for (int i = 0; i < pks.Count; i++)
-                parts[i] = Convert.ToString(pks[i].PropertyInfo.GetValue(row)) ?? "";
+                parts[i] = Convert.ToString(pks[i].GetEntityValue(row, _db.Client)) ?? "";
             return string.Join("|", parts);
         }
 

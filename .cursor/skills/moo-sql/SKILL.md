@@ -50,6 +50,12 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 
 ## 设计理念
 
+### Client 中心
+
+- 运行时能力（物化器、写侧 Accessor 等）挂在 **`MooClient` 实例**上解析，不以进程静态查找表作为 Resolve 路径。
+- `[GenerateMaterializer]` 同时生成读侧物化器与写侧 `IEntityTypeAccessor`；须调用 `RegisterGeneratedMaterializers()`（顺带 Accessor）或 `RegisterGeneratedAccessors()` 装入当前 Client。
+- 写路径经 `EntityColumn.GetEntityValue` / `SetEntityValue` / `IsEntityValueNull`（需传入 Client）。
+
 ### SQLBuilder
 
 - 贴近 SQL 的语法，方法**小写开头**（`select`, `from`, `where`, `insert`）

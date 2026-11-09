@@ -12,7 +12,7 @@ namespace mooSQL.data
     /// <summary>
     /// 实体字段信息
     /// </summary>
-    public class EntityColumn
+    public partial class EntityColumn
     {
         /// <summary>
         /// 所属表

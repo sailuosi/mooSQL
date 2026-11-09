@@ -41,14 +41,14 @@ namespace mooSQL.data
         /// <c>SkipOnInsert=false</c>（即非 <see cref="EntityColumn.IsOnlyIgnoreInsert"/>）且主键已非 null：
         /// 跳过库取 Id / 二次回填，返回实体已有值。
         /// </summary>
-        protected static bool TryGetAssignedIdentitySkipFetch(EntityColumn idCol, object entity, out object existingId)
+        protected bool TryGetAssignedIdentitySkipFetch(EntityColumn idCol, object entity, out object existingId)
         {
             existingId = null;
             if (idCol?.PropertyInfo == null || entity == null)
                 return false;
             if (idCol.IsOnlyIgnoreInsert)
                 return false;
-            var val = idCol.PropertyInfo.GetValue(entity);
+            var val = idCol.GetEntityValue(entity, DBLive?.Client);
             if (val == null)
                 return false;
             existingId = val;
@@ -58,7 +58,7 @@ namespace mooSQL.data
         /// <summary>
         /// 将库返回的 Id 写入实体属性。
         /// </summary>
-        protected static void SetEntityPkValue(EntityColumn col, object entity, object id)
+        protected void SetEntityPkValue(EntityColumn col, object entity, object id)
         {
             if (col?.PropertyInfo == null || entity == null || id == null || id is DBNull)
                 return;
@@ -67,7 +67,7 @@ namespace mooSQL.data
             object converted = id;
             if (!targetType.IsInstanceOfType(id))
                 converted = Convert.ChangeType(id, targetType);
-            col.PropertyInfo.SetValue(entity, converted);
+            col.SetEntityValue(entity, converted, DBLive?.Client);
         }
 
         /// <summary>

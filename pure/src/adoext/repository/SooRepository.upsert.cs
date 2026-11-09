@@ -20,14 +20,16 @@ namespace mooSQL.data
             if (pks == null || pks.Count == 0)
                 throw new InvalidOperationException("Upsert 需要实体主键定义。");
 
+            var kit = getKit();
+            var client = kit.Client;
+
             // 与 SaveInner 一致：主键未赋值（引用类型 null）时直接插入，不走 doUpsert
             foreach (var pk in pks)
             {
-                if (pk.PropertyInfo != null && pk.PropertyInfo.GetValue(entity) == null)
-                    return insertInner(entity, getKit());
+                if (pk.PropertyInfo != null && pk.IsEntityValueNull(entity, client))
+                    return insertInner(entity, kit);
             }
 
-            var kit = getKit();
             OnBeforeSave(entity);
 
             var table = Translator.GetResolvedTableName(En, entity, tryTableNameLoader(tbname));
@@ -41,7 +43,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false)
                     continue;
 
-                var val = exp.ResolveColumnValue(col.PropertyInfo.GetValue(entity), col);
+                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, client), col);
                 var insertable = !col.IsOnlyIgnoreInsert;
                 var updatable = !col.IsPrimarykey && !col.IsOnlyIgnoreUpdate;
                 // 同一列勿先后 setI+setU（后者覆盖标志）；双写用 set

@@ -466,11 +466,29 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 将 SG 静态引导表中的物化器复制到当前 Client 实例。
+        /// 将 SG 静态引导表中的物化器复制到当前 Client 实例，并顺带注册写侧 Accessor。
         /// </summary>
         public BaseClientBuilder registerGeneratedMaterializers()
         {
             client.RegisterGeneratedMaterializers();
+            return this;
+        }
+
+        /// <summary>
+        /// 向 Client 实例注册写侧实体 Accessor。
+        /// </summary>
+        public BaseClientBuilder registerAccessor(Type type, IEntityTypeAccessor accessor)
+        {
+            client.RegisterAccessor(type, accessor);
+            return this;
+        }
+
+        /// <summary>
+        /// 将 SG Bootstrap 安装器应用到当前 Client（写侧 Accessor）。
+        /// </summary>
+        public BaseClientBuilder registerGeneratedAccessors()
+        {
+            client.RegisterGeneratedAccessors();
             return this;
         }
 
@@ -480,6 +498,15 @@ namespace mooSQL.data
         public BaseClientBuilder useGeneratedMaterializerHook(Action<MooClient> hook)
         {
             client.GeneratedMaterializerHook = hook;
+            return this;
+        }
+
+        /// <summary>
+        /// 设置 <see cref="MooClient.GeneratedAccessorHook"/>，在应用 Accessor Bootstrap 前执行。
+        /// </summary>
+        public BaseClientBuilder useGeneratedAccessorHook(Action<MooClient> hook)
+        {
+            client.GeneratedAccessorHook = hook;
             return this;
         }
 
