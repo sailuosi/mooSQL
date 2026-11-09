@@ -9,7 +9,7 @@ namespace mooSQL.data
         /// <summary>
         /// 方言 upsert（与 SQLBuilder.doUpsert / UpsertMode 同族）。
         /// 匹配键固定为实体主键；双写列 set、主键 setI、仅更新列 setU。
-        /// 与 <see cref="Save"/>（PK 探活 + Insert/Update）不同。
+        /// 与 <see cref="Save"/> 相同：任一主键 <c>GetValue == null</c> 时短路为 Insert（值类型默认 0 不短路）。
         /// </summary>
         public int Upsert(T entity, UpsertMode mode = UpsertMode.Auto)
         {
@@ -19,6 +19,13 @@ namespace mooSQL.data
             var pks = En.GetPK();
             if (pks == null || pks.Count == 0)
                 throw new InvalidOperationException("Upsert 需要实体主键定义。");
+
+            // 与 SaveInner 一致：主键未赋值（引用类型 null）时直接插入，不走 doUpsert
+            foreach (var pk in pks)
+            {
+                if (pk.PropertyInfo != null && pk.PropertyInfo.GetValue(entity) == null)
+                    return insertInner(entity, getKit());
+            }
 
             var kit = getKit();
             OnBeforeSave(entity);

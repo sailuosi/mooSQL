@@ -45,7 +45,7 @@ description: Uses mooSQL Repository and UnitOfWork patterns for CRUD, pagination
 | `Insert(T)` / `InsertRange(IEnumerable<T>)` | 插入（返回影响行数） |
 | `Update(T)` | 更新 |
 | `Save(T)` / `SaveRange(IEnumerable<T>)` | 自动 insert/update（PK 探活） |
-| `Upsert(T, UpsertMode mode = Auto)` / `UpsertRange(...)` | 方言 upsert（同族 Builder.doUpsert；匹配键=主键；Range 逐条） |
+| `Upsert(T, UpsertMode mode = Auto)` / `UpsertRange(...)` | 方言 upsert（同族 Builder.doUpsert；匹配键=主键；Range 逐条；主键 null → Insert，与 Save 相同） |
 | `Delete(T)` / `Delete(IEnumerable<T>)` | 删除 |
 | `Delete(Expression<Func<T, bool>>)` | 条件删除 |
 | `DeleteById<K>(K id)` / `DeleteByIds<K>(ids)` | 按主键删 |

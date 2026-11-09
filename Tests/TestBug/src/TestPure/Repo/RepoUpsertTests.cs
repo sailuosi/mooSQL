@@ -7,7 +7,11 @@ using Xunit;
 
 namespace mooSQL.Pure.Tests
 {
-    /// <summary>SooRepository.Upsert / UpsertRange 与 Builder UpsertMode 同族验收。</summary>
+    /// <summary>
+    /// SooRepository.Upsert / UpsertRange 与 Builder UpsertMode 同族验收。
+    /// 主键短路与 Save 一致：仅 PropertyInfo.GetValue == null（引用/可空类型）才 insert；
+    /// 当前夹具实体 Id 为 int，默认 0 不短路。
+    /// </summary>
     [Collection("SQLiteIntegration")]
     public class RepoUpsertTests : IClassFixture<SQLiteTestFixture>
     {
