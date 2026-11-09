@@ -15,7 +15,7 @@ namespace mooSQL.data
                 return PropertyInfo?.GetValue(entity);
 
             var type = belongTable?.Type ?? entity.GetType();
-            return EntityAccessorResolver.Resolve(client, type).GetValue(entity, name);
+            return EntityAccessorResolver.Resolve(client, type).ReadValue(entity, name);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace mooSQL.data
             }
 
             var type = belongTable?.Type ?? entity.GetType();
-            EntityAccessorResolver.Resolve(client, type).SetValue(entity, name, value);
+            EntityAccessorResolver.Resolve(client, type).WriteValue(entity, name, value);
         }
 
         /// <summary>

@@ -1,9 +1,6 @@
 ﻿using mooSQL.data.Mapping;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mooSQL.data
 {
@@ -20,8 +17,6 @@ namespace mooSQL.data
         /// </summary>
         public EntityDictionary(Type entityType) { 
             this.entityType = entityType;
-
-
         }
 
         /// <summary>属性名到列映射。</summary>
@@ -38,10 +33,27 @@ namespace mooSQL.data
             if (entity == null) {
                 throw new Exception("实体类的数据库映射信息解析失败！");
             }
+            init(entity);
+        }
+
+        /// <summary>
+        /// 使用已构建的 <see cref="EntityInfo"/>（如源生成工厂）填充字段字典。
+        /// </summary>
+        public void init(EntityInfo entity)
+        {
+            if (entity == null)
+                throw new Exception("实体类的数据库映射信息解析失败！");
             this.EntityInfo = entity;
-            Fields = new Dictionary<string, EntityColumn>();
-            foreach (var col in entity.Columns) {
-                Fields[col.PropertyInfo.Name] = col;
+            Fields = new Dictionary<string, EntityColumn>(StringComparer.Ordinal);
+            foreach (var col in entity.Columns)
+            {
+                if (col == null) continue;
+                var key = col.PropertyName;
+                if (string.IsNullOrEmpty(key))
+                    key = col.PropertyInfo?.Name;
+                if (string.IsNullOrEmpty(key))
+                    continue;
+                Fields[key] = col;
             }
         }
     }

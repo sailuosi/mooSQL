@@ -131,7 +131,22 @@ namespace mooSQL.data
             => _accessors.TryGetValue(type, out accessor);
 
         /// <summary>
-        /// 将 <see cref="GeneratedClientBootstrap"/> 安装器应用到当前 Client（物化器 / Accessor）。
+        /// 向 <see cref="EntityCash"/> 注册 EntityInfo 工厂（源生成首访短路）。
+        /// </summary>
+        public MooClient RegisterEntityFactory(Type type, Func<EntityInfo> factory)
+        {
+            EntityCash.RegisterEntityFactory(type, factory);
+            return this;
+        }
+
+        /// <summary>
+        /// 泛型形式注册 EntityInfo 工厂。
+        /// </summary>
+        public MooClient RegisterEntityFactory<T>(Func<EntityInfo> factory)
+            => RegisterEntityFactory(typeof(T), factory);
+
+        /// <summary>
+        /// 将 <see cref="GeneratedClientBootstrap"/> 安装器应用到当前 Client（物化器 / Accessor / EntityInfo）。
         /// </summary>
         public MooClient RegisterGeneratedAccessors()
         {

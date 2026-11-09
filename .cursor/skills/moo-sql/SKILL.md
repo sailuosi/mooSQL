@@ -52,10 +52,10 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 
 ### Client 中心
 
-- 运行时能力（物化器、写侧 Accessor 等）挂在 **`MooClient` 实例**上解析，不以进程静态查找表作为 Resolve 路径。
-- `[GenerateMaterializer]`（或业务侧按 `[SooTable]` 自建 SG）生成读侧物化器与写侧 `IEntityTypeAccessor`；须 `RegisterGeneratedMaterializers()` / `RegisterGeneratedAccessors()` 装入当前 Client。
-- **有则自动用**：Client 已注册物化器时读侧直接使用，**不依赖** `useAotMode`/`EnableAot`；写侧 Accessor 同理。`EnableAot` 仅保留未装入 Client 时的静态引导表/反射回退。
-- 写路径经 `EntityColumn.GetEntityValue` / `SetEntityValue` / `IsEntityValueNull`（需传入 Client）。
+- 运行时能力（物化器、写侧 Accessor、`EntityInfo` 工厂等）挂在 **`MooClient` 实例**上解析，不以进程静态查找表作为 Resolve 路径。
+- `[GenerateMaterializer]`（或业务侧按 `[SooTable]` 自建 SG）生成读侧物化器、写侧 `IEntityTypeAccessor`（`ReadValue`/`WriteValue`/`IsNull`）与可选 `Xxx_EntityMeta.Create`；须 `RegisterGeneratedMaterializers()` / `RegisterGeneratedAccessors()` 装入当前 Client（含 `RegisterEntityFactory`）。
+- **有则自动用**：Client 已注册物化器时读侧直接使用，**不依赖** `useAotMode`/`EnableAot`；写侧 Accessor 同理。已注册 EntityInfo 工厂时首次 `getEntityInfo` 跳过特性反射。`EnableAot` 仅保留未装入 Client 时的静态引导表/反射回退。
+- 写路径经 `EntityColumn.GetEntityValue` / `SetEntityValue` / `IsEntityValueNull`（需传入 Client；门面名不变，内部走 Accessor 的 Read/Write）。
 
 ### SQLBuilder
 

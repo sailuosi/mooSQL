@@ -132,7 +132,7 @@ namespace mooSQL.Generators
             sb.AppendLine("{");
             sb.AppendLine($"    internal sealed class {type.TypeName}_Accessor : IEntityTypeAccessor");
             sb.AppendLine("    {");
-            sb.AppendLine("        public object GetValue(object entity, string propertyName)");
+            sb.AppendLine("        public object ReadValue(object entity, string propertyName)");
             sb.AppendLine("        {");
             sb.AppendLine($"            var e = ({type.TypeFullName})entity;");
             sb.AppendLine("            switch (propertyName)");
@@ -147,7 +147,7 @@ namespace mooSQL.Generators
             sb.AppendLine("            }");
             sb.AppendLine("        }");
             sb.AppendLine();
-            sb.AppendLine("        public void SetValue(object entity, string propertyName, object value)");
+            sb.AppendLine("        public void WriteValue(object entity, string propertyName, object value)");
             sb.AppendLine("        {");
             sb.AppendLine($"            var e = ({type.TypeFullName})entity;");
             sb.AppendLine("            switch (propertyName)");
@@ -162,7 +162,7 @@ namespace mooSQL.Generators
             sb.AppendLine("        }");
             sb.AppendLine();
             sb.AppendLine("        public bool IsNull(object entity, string propertyName)");
-            sb.AppendLine("            => GetValue(entity, propertyName) == null;");
+            sb.AppendLine("            => ReadValue(entity, propertyName) == null;");
             sb.AppendLine("    }");
             sb.AppendLine("}");
             return sb.ToString();

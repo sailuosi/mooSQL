@@ -23,8 +23,8 @@ namespace mooSQL.Pure.Tests
 
             var user = new TestUser { Id = 7, Name = "Bob", Email = null };
             var accessor = EntityAccessorResolver.Resolve(client, typeof(TestUser));
-            accessor.GetValue(user, "Id").Should().Be(7);
-            accessor.GetValue(user, "Name").Should().Be("Bob");
+            accessor.ReadValue(user, "Id").Should().Be(7);
+            accessor.ReadValue(user, "Name").Should().Be("Bob");
             accessor.IsNull(user, "Email").Should().BeTrue();
         }
 
@@ -37,11 +37,11 @@ namespace mooSQL.Pure.Tests
             acc.Should().NotBeNull();
 
             var user = new TestUser { Id = 3, Name = "Ann", Email = null };
-            acc!.GetValue(user, "Id").Should().Be(3);
-            acc.GetValue(user, "Name").Should().Be("Ann");
+            acc!.ReadValue(user, "Id").Should().Be(3);
+            acc.ReadValue(user, "Name").Should().Be("Ann");
             acc.IsNull(user, "Email").Should().BeTrue();
 
-            acc.SetValue(user, "Email", "a@b.c");
+            acc.WriteValue(user, "Email", "a@b.c");
             user.Email.Should().Be("a@b.c");
             acc.IsNull(user, "Email").Should().BeFalse();
         }
@@ -54,13 +54,13 @@ namespace mooSQL.Pure.Tests
             client.TryGetAccessor(typeof(SQLiteTestProduct), out var acc).Should().BeTrue();
 
             var p = new SQLiteTestProduct { Id = 1, Name = "X", Category = "C", Price = 2m, Stock = 3 };
-            acc!.GetValue(p, "Name").Should().Be("X");
-            acc.SetValue(p, "Stock", 9);
+            acc!.ReadValue(p, "Name").Should().Be("X");
+            acc.WriteValue(p, "Stock", 9);
             p.Stock.Should().Be(9);
         }
 
         [Fact]
-        public void ReflectionAndGenerated_AgreeOnGetSetIsNull()
+        public void ReflectionAndGenerated_AgreeOnReadWriteIsNull()
         {
             var client = CreateClient();
             client.RegisterGeneratedAccessors();
@@ -71,14 +71,14 @@ namespace mooSQL.Pure.Tests
 
             foreach (var prop in new[] { "Id", "Name", "Email", "Age", "IsActive", "CreatedAt" })
             {
-                var g = generated!.GetValue(user, prop);
-                var r = reflection.GetValue(user, prop);
+                var g = generated!.ReadValue(user, prop);
+                var r = reflection.ReadValue(user, prop);
                 g.Should().Be(r, because: prop);
                 generated.IsNull(user, prop).Should().Be(reflection.IsNull(user, prop), because: prop);
             }
 
-            generated!.SetValue(user, "Name", "Next");
-            reflection.GetValue(user, "Name").Should().Be("Next");
+            generated!.WriteValue(user, "Name", "Next");
+            reflection.ReadValue(user, "Name").Should().Be("Next");
         }
 
         [Fact]

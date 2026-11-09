@@ -31,14 +31,14 @@ namespace mooSQL.data
             return _cache.GetOrAdd(type, static t => new ReflectionEntityAccessor(t));
         }
 
-        public object GetValue(object entity, string propertyName)
+        public object ReadValue(object entity, string propertyName)
         {
             if (entity is null || string.IsNullOrEmpty(propertyName)) return null;
             if (!_props.TryGetValue(propertyName, out var prop)) return null;
             return prop.GetValue(entity);
         }
 
-        public void SetValue(object entity, string propertyName, object value)
+        public void WriteValue(object entity, string propertyName, object value)
         {
             if (entity is null || string.IsNullOrEmpty(propertyName)) return;
             if (!_props.TryGetValue(propertyName, out var prop) || !prop.CanWrite) return;
@@ -46,6 +46,6 @@ namespace mooSQL.data
         }
 
         public bool IsNull(object entity, string propertyName)
-            => GetValue(entity, propertyName) == null;
+            => ReadValue(entity, propertyName) == null;
     }
 }

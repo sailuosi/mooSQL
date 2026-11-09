@@ -22,8 +22,27 @@ namespace mooSQL.data
         public EntityContext(IEntityAnalyseFactory analyseFactory) { 
             this.analyseFactory = analyseFactory;
             this.typeMap = new ConcurrentDictionary<Type, EntityDictionary> ();
+            this._entityFactories = new ConcurrentDictionary<Type, Func<EntityInfo>>();
         }
         private ConcurrentDictionary<Type, EntityDictionary> typeMap;
+        private readonly ConcurrentDictionary<Type, Func<EntityInfo>> _entityFactories;
+
+        /// <summary>
+        /// 注册编译期 EntityInfo 工厂（Client 中心）。首次 <see cref="getEntityInfo"/> 命中则跳过特性反射解析。
+        /// </summary>
+        public EntityContext RegisterEntityFactory(Type type, Func<EntityInfo> factory)
+        {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (factory is null) throw new ArgumentNullException(nameof(factory));
+            _entityFactories[type] = factory;
+            return this;
+        }
+
+        /// <summary>
+        /// 泛型形式注册 EntityInfo 工厂。
+        /// </summary>
+        public EntityContext RegisterEntityFactory<T>(Func<EntityInfo> factory)
+            => RegisterEntityFactory(typeof(T), factory);
 
         private void checkType(Type entity) {
             if (entity == null) { 
@@ -32,7 +51,10 @@ namespace mooSQL.data
             if (!typeMap.ContainsKey(entity))
             {
                 var tar = new EntityDictionary(entity);
-                tar.init(analyseFactory);
+                if (_entityFactories.TryGetValue(entity, out var factory) && factory != null)
+                    tar.init(factory());
+                else
+                    tar.init(analyseFactory);
                 typeMap.TryAdd(entity, tar);
             }
         }
