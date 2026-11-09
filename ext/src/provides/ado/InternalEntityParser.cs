@@ -46,9 +46,33 @@ namespace mooSQL.data.Mapping
                     if (entityColumn.IsPrimarykey){
                         entityColumn.IsNullable = false;
                     }
-                    if (attr.IsIdentity == true) {
+                    if (attr.HasIsIdentity())
+                        entityColumn.IsIdentity = attr.IsIdentity;
+                    else if (attr.IsIdentity == true)
                         entityColumn.IsIdentity = true;
+
+                    // 与 MooEntityAnalyser 对齐：SkipOnInsert/Update；Identity 默认跳过插入/更新
+                    if (attr.HasSkipOnInsert())
+                        entityColumn.IsOnlyIgnoreInsert = attr.SkipOnInsert;
+                    else if (entityColumn.IsIdentity)
+                        entityColumn.IsOnlyIgnoreInsert = true;
+                    if (attr.HasSkipOnUpdate())
+                        entityColumn.IsOnlyIgnoreUpdate = attr.SkipOnUpdate;
+                    else if (entityColumn.IsIdentity)
+                        entityColumn.IsOnlyIgnoreUpdate = true;
+
+                    // 应用侧发号（string Guid 等）：须写入 EntityColumn，prepareInsert 才能 ResolveAutoKey
+                    if (!string.IsNullOrWhiteSpace(attr.AutoKey))
+                        entityColumn.AutoKey = attr.AutoKey.Trim();
+                    if (attr.KeyGeneratorType != null)
+                        entityColumn.KeyGeneratorType = attr.KeyGeneratorType;
+                    if (entityColumn.IsIdentity &&
+                        (!string.IsNullOrWhiteSpace(entityColumn.AutoKey) || entityColumn.KeyGeneratorType != null))
+                    {
+                        throw new InvalidOperationException(
+                            "Column '" + entityColumn.PropertyName + "' cannot be both IsIdentity and AutoKey/KeyGeneratorType.");
                     }
+
                     entityColumn.Scale = attr.Scale;
                     entityColumn.Precision = attr.Precision;
                     entityColumn.DataType = attr.DataType;
