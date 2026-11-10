@@ -6,6 +6,12 @@ outline: deep
 
 ## 【第3代】 .net6/8/10 全面支持版
 
+### 2026-11-10 更新
+- 增强功能——实体解析器命名钩子与按名注册
+    - `IEntityAnalyser.Name`：同名注册原地替换；默认解析器名为 `SooDefault`
+    - 公开 `SooEntityAnalyser`（原 InternalEntityParser）；`DBClientBuilder.useDefaultEntityAnalyser` / `CreateDefaultEntityAnalyser`
+    - `useTableNameConvert` / `useColumnNameConvert` 与 `ResolveTableName`/`ResolveColumnName`：隐式表/列名 Pascal/camel/snake 转换；显式特性名不转换
+    - 工具类 `EntityNameConvert`（`ToSnakeCase` / `ToPascalCase` / `ToCamelCase`）
 ### 2026-10-19 更新
 - 新增功能——SQLBuilder.insertList 指定表名重载
     - 新增 `insertList<T>(IEnumerable<T> entity, string tbname)`：按物理表名 Bulk 批量插入，用于个性化分表

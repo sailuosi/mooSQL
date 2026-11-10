@@ -12,7 +12,7 @@ namespace mooSQL.data.Mapping
     public interface IEntityAnalyseFactory
     {
         /// <summary>
-        /// 注册
+        /// 注册解析器。按 <see cref="IEntityAnalyser.Name"/>（空则类型全名）同名则原地替换，异名追加。
         /// </summary>
         /// <param name="entityAnalyser"></param>
         /// <returns></returns>

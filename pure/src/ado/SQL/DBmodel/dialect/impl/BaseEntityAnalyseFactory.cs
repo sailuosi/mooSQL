@@ -28,20 +28,34 @@ namespace mooSQL.data.Mapping
 
 
         /// <summary>
-        /// 注册解析器
+        /// 注册解析器。按 <see cref="IEntityAnalyser.Name"/>（空则类型全名）同名则原地替换，异名追加。
         /// </summary>
         /// <param name="entityAnalyser"></param>
         /// <returns></returns>
         public virtual IEntityAnalyseFactory register(IEntityAnalyser entityAnalyser)
         {
+            if (entityAnalyser == null)
+                throw new ArgumentNullException(nameof(entityAnalyser));
+
             if (entityAnalyser.FailBacked)
-            {
-                failbackAnalysers.Add(entityAnalyser);
-            }
-            else {
-                entityAnalysers.Add(entityAnalyser);
-            }
+                ReplaceOrAdd(failbackAnalysers, entityAnalyser);
+            else
+                ReplaceOrAdd(entityAnalysers, entityAnalyser);
             return this;
+        }
+
+        static void ReplaceOrAdd(List<IEntityAnalyser> list, IEntityAnalyser entityAnalyser)
+        {
+            var key = EntityAnalyserBase.ResolveRegistrationKey(entityAnalyser);
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (string.Equals(EntityAnalyserBase.ResolveRegistrationKey(list[i]), key, StringComparison.Ordinal))
+                {
+                    list[i] = entityAnalyser;
+                    return;
+                }
+            }
+            list.Add(entityAnalyser);
         }
         /// <summary>
         /// 执行解析

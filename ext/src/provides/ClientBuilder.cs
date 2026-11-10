@@ -21,14 +21,23 @@ namespace mooSQL.data
         {
 
         }
+
+        /// <summary>
+        /// 创建默认 Soo 实体解析器（注册名 SooDefault）。业务可 override 返回子类以替换。
+        /// </summary>
+        protected override IEntityAnalyser CreateDefaultEntityAnalyser()
+        {
+            return new SooEntityAnalyser();
+        }
+
         /// <summary>
         /// 执行构建
         /// </summary>
         /// <returns></returns>
         protected override void buildingCash()
         {
-            useDialectFactory( new DialectFactory());
-            useEntityAnalyser(new InternalEntityParser());
+            useDialectFactory(new DialectFactory());
+            // 默认解析器由 BaseClientBuilder.EnsureDefaultEntityAnalyserQueued 在 buildingCash 之后注册
         }
     }
 }

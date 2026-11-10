@@ -73,12 +73,14 @@ namespace mooSQL.data
                 useDialectFactory(new DialectFactoryBase());
             }
             buildingCash();
+            EnsureDefaultEntityAnalyserQueued();
             if (DBPositions != null) {
                 youCash.addConfig(DBPositions);
             }
             //对于二级属性，允许超前注册、滞后加载
             if (parses != null) {
                 foreach (var p in parses) {
+                    ApplyNameConverts(p);
                     client.entityAnalyseFactory.register(p);
                 }
             }
@@ -165,6 +167,10 @@ namespace mooSQL.data
         }
 
         private List<IEntityAnalyser> parses = new List<IEntityAnalyser>();
+        private Func<string, string> _tableNameConvert;
+        private Func<string, string> _columnNameConvert;
+        private bool _defaultEntityAnalyserEnabled = true;
+        private IEntityAnalyser _defaultEntityAnalyser;
 
         /// <summary>
         /// 【已废弃，存在错别字】注册自定义的实体解析器
@@ -173,18 +179,119 @@ namespace mooSQL.data
         /// <returns></returns>
         [Obsolete("拼写错误，将在新版本废弃")]
         public BaseClientBuilder useEnityAnalyser(IEntityAnalyser entityAnalyser) {
-            parses.Add(entityAnalyser);
-            return this;
+            return useEntityAnalyser(entityAnalyser);
         }
         /// <summary>
-        /// 注册自定义的实体解析器
+        /// 注册自定义的实体解析器。按 <see cref="IEntityAnalyser.Name"/> 同名则替换，异名追加。
         /// </summary>
         /// <param name="entityAnalyser"></param>
         /// <returns></returns>
         public BaseClientBuilder useEntityAnalyser(IEntityAnalyser entityAnalyser)
         {
-            parses.Add(entityAnalyser);
+            if (entityAnalyser == null)
+                throw new ArgumentNullException(nameof(entityAnalyser));
+            ReplaceOrAddAnalyser(parses, entityAnalyser);
             return this;
+        }
+
+        /// <summary>
+        /// 隐式表名转换（灌入支持钩子的解析器，含默认 SooDefault）。
+        /// </summary>
+        public BaseClientBuilder useTableNameConvert(Func<string, string> convert)
+        {
+            _tableNameConvert = convert;
+            return this;
+        }
+
+        /// <summary>
+        /// 隐式列名转换（灌入支持钩子的解析器，含默认 SooDefault）。
+        /// </summary>
+        public BaseClientBuilder useColumnNameConvert(Func<string, string> convert)
+        {
+            _columnNameConvert = convert;
+            return this;
+        }
+
+        /// <summary>
+        /// 是否自动注册默认实体解析器（注册名 SooDefault）。纯 Builder 默认 true，但仅当子类提供 CreateDefaultEntityAnalyser 时才会创建。
+        /// </summary>
+        public BaseClientBuilder useDefaultEntityAnalyser(bool enable = true)
+        {
+            _defaultEntityAnalyserEnabled = enable;
+            if (!enable)
+                _defaultEntityAnalyser = null;
+            return this;
+        }
+
+        /// <summary>
+        /// 启用并以指定实例作为默认解析器（建议 Name = SooDefault，以便同名替换）。
+        /// </summary>
+        public BaseClientBuilder useDefaultEntityAnalyser(IEntityAnalyser analyser)
+        {
+            if (analyser == null)
+                throw new ArgumentNullException(nameof(analyser));
+            _defaultEntityAnalyserEnabled = true;
+            _defaultEntityAnalyser = analyser;
+            return this;
+        }
+
+        /// <summary>
+        /// 创建默认实体解析器。纯库基类返回 null；ext <c>DBClientBuilder</c> 返回 SooEntityAnalyser。
+        /// </summary>
+        protected virtual IEntityAnalyser CreateDefaultEntityAnalyser()
+        {
+            return null;
+        }
+
+        static void ReplaceOrAddAnalyser(List<IEntityAnalyser> list, IEntityAnalyser entityAnalyser)
+        {
+            var key = EntityAnalyserBase.ResolveRegistrationKey(entityAnalyser);
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (string.Equals(EntityAnalyserBase.ResolveRegistrationKey(list[i]), key, StringComparison.Ordinal))
+                {
+                    list[i] = entityAnalyser;
+                    return;
+                }
+            }
+            list.Add(entityAnalyser);
+        }
+
+        void ApplyNameConverts(IEntityAnalyser analyser)
+        {
+            var host = analyser as EntityAnalyserBase;
+            if (host == null)
+                return;
+            if (_tableNameConvert != null)
+                host.TableNameConvert = _tableNameConvert;
+            if (_columnNameConvert != null)
+                host.ColumnNameConvert = _columnNameConvert;
+        }
+
+        void EnsureDefaultEntityAnalyserQueued()
+        {
+            if (!_defaultEntityAnalyserEnabled)
+                return;
+
+            // 显式 useDefaultEntityAnalyser(instance) 始终写入（同名替换）
+            if (_defaultEntityAnalyser != null)
+            {
+                useEntityAnalyser(_defaultEntityAnalyser);
+                return;
+            }
+
+            // 自动创建：若队列中已有 SooDefault（如 useEntityAnalyser 先行注册），不覆盖
+            var key = EntityAnalyserNames.SooDefault;
+            for (int i = 0; i < parses.Count; i++)
+            {
+                if (string.Equals(EntityAnalyserBase.ResolveRegistrationKey(parses[i]), key, StringComparison.Ordinal))
+                    return;
+            }
+
+            var created = CreateDefaultEntityAnalyser();
+            if (created == null)
+                return;
+            useEntityAnalyser(created);
         }
         /// <summary>
         /// 注册业务实体工厂

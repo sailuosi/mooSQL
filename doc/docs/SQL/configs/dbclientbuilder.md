@@ -154,16 +154,25 @@ builder
 
 **含义**：自定义或覆盖某类型方言的创建方式。未内置支持的库可通过工厂扩展。
 
-### useEntityAnalyseFactory / useEntityAnalyser
+### useEntityAnalyseFactory / useEntityAnalyser / useDefaultEntityAnalyser
 
-````c#
+`c#
 builder
     .useEntityAnalyseFactory(factory)
     .useEntityAnalyser(new SqlSugarEntityAnalyser()); // 亦保留拼写 useEnityAnalyser
-````
+    // 默认 Soo 解析器（注册名 SooDefault）；同名注册会原地替换
+    .useDefaultEntityAnalyser()                       // 启用（DBClientBuilder 默认 true）
+    .useDefaultEntityAnalyser(false)                  // 关闭自动注册
+    .useDefaultEntityAnalyser(new AppEntityAnalyser()) // 替换默认（Name 宜为 SooDefault）
+    .useTableNameConvert(EntityNameConvert.ToSnakeCase)
+    .useColumnNameConvert(EntityNameConvert.ToSnakeCase);
+`
 
 **含义**：实体元数据解析（表名、主键、列映射）。对接 SqlSugar / UCML 等实体体系时注册对应 Analyser。
 
+- 每个 `IEntityAnalyser` 有 `Name`；**同名则替换、异名追加**（Builder 队列与 `entityAnalyseFactory.register` 一致）。
+- ext `DBClientBuilder` 默认注册 `SooEntityAnalyser`（`Name = SooDefault`）。业务可继承该类并 `override ResolveTableName` / `ResolveColumnName`，再 `useDefaultEntityAnalyser(new AppEntityAnalyser())` 替换。
+- `useTableNameConvert` / `useColumnNameConvert` 仅作用于**特性未写 Name** 的隐式表/列名；显式 `[SooColumn("x")]` 不转换。与连接级 `NameCase`/`NameQuote`（大小写折叠与引号）正交。
 ### useEntityTranslate
 
 ````c#
@@ -432,7 +441,7 @@ builder
 |------|------|
 | 构建 | `doBuild` |
 | 连接 | `useDataBase`×3、`useDBXMLConfig`、`useCashHolder` |
-| 方言/实体 | `useDialectFactory`、`useDialect`、`useEntityAnalyseFactory`、`useEntityAnalyser`、`useEntityTranslate`、`useClientFactory`、`useSQLBuilderOption` |
+| 方言/实体 | `useDialectFactory`、`useDialect`、`useEntityAnalyseFactory`、`useEntityAnalyser`、`useDefaultEntityAnalyser`、`useTableNameConvert`、`useColumnNameConvert`、`useEntityTranslate`、`useClientFactory`、`useSQLBuilderOption` |
 | 插件 | `useWatcher`、`useLogger`、`useCache` |
 | 主从 | `useMasterSlave`、`useSlave` |
 | 事件 | `onBeforeExecute`、`onAfterExecute`、`onExecuteError`、`onWatchSlowSQL`、`OnBeforeAddPara`、`onDBLiveCreated`、`onHealthChanged`、`onFailover`、`onBuildSetFrag`、`onBuildWhereFrag`、`onCreatedSQL` |

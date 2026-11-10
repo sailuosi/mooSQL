@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using FluentAssertions;
 using mooSQL.data;
 using mooSQL.data.Mapping;
@@ -7,13 +7,13 @@ using Xunit;
 namespace mooSQL.Pure.Tests
 {
     /// <summary>
-    /// DBClientBuilder 默认注册 InternalEntityParser；须映射 AutoKey，否则 prepareInsert 不发号。
+    /// DBClientBuilder 默认注册 SooEntityAnalyser（SooDefault）；须映射 AutoKey，否则 prepareInsert 不发号。
     /// </summary>
     public class InternalEntityParserAutoKeyTests
     {
         static MooClient CreateDbClientBuilderClient()
         {
-            // 与宿主 AddMooSql 同路径：InternalEntityParser（非 MooEntityAnalyser）
+            // 与宿主 AddMooSql 同路径：SooEntityAnalyser（非 MooEntityAnalyser）
             var cash = new DBClientBuilder().doBuild();
             return cash.getClient();
         }

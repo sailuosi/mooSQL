@@ -23,7 +23,10 @@ namespace mooSQL.data.Mapping
                 return info;
             }
 
-            info.DbTableName = attr.Name;
+            var hasExplicitTable = !string.IsNullOrWhiteSpace(attr.Name);
+            info.DbTableName = hasExplicitTable
+                ? attr.Name.Trim()
+                : ResolveTableName(entity.Name);
             info.SchemaName = attr.Schema;
             info.DatabaseName = attr.Database;
             info.ServerName = attr.Server;
@@ -66,9 +69,11 @@ namespace mooSQL.data.Mapping
 
             foreach (SooColumnAttribute ca in columnAttributes)
             {
-                // Name 为 null/空白时回退属性名（"" ?? PropName 仍是 ""，会导致 INSERT 空列名）
+                // Name 为 null/空白时回退属性名并走命名钩子（"" ?? PropName 仍是 ""，会导致 INSERT 空列名）
                 var hasExplicitName = !string.IsNullOrWhiteSpace(ca.Name);
-                entityColumn.DbColumnName = hasExplicitName ? ca.Name.Trim() : propertyInfo.Name;
+                entityColumn.DbColumnName = hasExplicitName
+                    ? ca.Name.Trim()
+                    : ResolveColumnName(propertyInfo.Name);
                 if (string.IsNullOrWhiteSpace(entityColumn.DbColumnName))
                     entityColumn.IsIgnore = true;
 

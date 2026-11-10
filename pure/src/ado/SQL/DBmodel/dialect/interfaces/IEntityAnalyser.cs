@@ -20,6 +20,12 @@ namespace mooSQL.data.Mapping
     public interface IEntityAnalyser
     {
         /// <summary>
+        /// 注册键；同名注册时替换已有项。默认解析器为 <c>SooDefault</c>。
+        /// 空名时由工厂回退为类型全名。
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// 能否解析
         /// </summary>
         /// <param name="type"></param>

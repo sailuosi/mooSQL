@@ -1,20 +1,26 @@
-﻿using mooSQL.data.model;
+using mooSQL.data.model;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mooSQL.data.Mapping
 {
-    internal class InternalEntityParser : BaseAttrEntityAnalyser<SooTableAttribute>
+    /// <summary>
+    /// mooSQL / Soo 特性默认实体解析器（注册名 <see cref="EntityAnalyserNames.SooDefault"/>）。
+    /// 支持继承字段、Join、FK、AutoKey、Shard 等 host 能力；可被子类覆盖命名钩子后同名替换。
+    /// </summary>
+    public class SooEntityAnalyser : BaseAttrEntityAnalyser<SooTableAttribute>
     {
-
-        public InternalEntityParser() {
+        /// <summary>
+        /// 创建默认 Soo 解析器。
+        /// </summary>
+        public SooEntityAnalyser()
+        {
             this.InheritColumn = true;
+            this.Name = EntityAnalyserNames.SooDefault;
         }
+
+        /// <inheritdoc />
         public override EntityColumn ParseColumn(Type entity, PropertyInfo propertyInfo, EntityInfo entityInfo, EntityColumn entityColumn)
         {
             var attrs = propertyInfo.GetCustomAttributes<SooColumnAttribute>();
@@ -27,10 +33,14 @@ namespace mooSQL.data.Mapping
                     entityColumn.PropertyName = propertyInfo.Name;
                     entityColumn.EntityName = entityInfo.EntityName;
                 }
-                foreach (var attr in attrs) { 
-                    entityColumn.DbColumnName = (attr.Name==null?propertyInfo.Name:attr.Name);
+                foreach (var attr in attrs)
+                {
+                    var hasExplicitName = !string.IsNullOrWhiteSpace(attr.Name);
+                    entityColumn.DbColumnName = hasExplicitName
+                        ? attr.Name.Trim()
+                        : ResolveColumnName(propertyInfo.Name);
                     entityColumn.ColumnDescription = attr.Caption;
-                    entityColumn.IsIgnore = attr.SkipOnEntityFetch&& attr.SkipOnInsert && attr.SkipOnUpdate;
+                    entityColumn.IsIgnore = attr.SkipOnEntityFetch && attr.SkipOnInsert && attr.SkipOnUpdate;
                     if (attr.IsColumn == false)
                     {
                         entityColumn.IsIgnore = true;
@@ -43,7 +53,8 @@ namespace mooSQL.data.Mapping
                     entityColumn.IsPrimarykey = attr.IsPrimaryKey;
                     entityColumn.IsNullable = attr.CanBeNull;
                     //主键字段不能为空
-                    if (entityColumn.IsPrimarykey){
+                    if (entityColumn.IsPrimarykey)
+                    {
                         entityColumn.IsNullable = false;
                     }
                     if (attr.HasIsIdentity())
@@ -76,40 +87,47 @@ namespace mooSQL.data.Mapping
                     entityColumn.Scale = attr.Scale;
                     entityColumn.Precision = attr.Precision;
                     entityColumn.DataType = attr.DataType;
-                    if (attr.DbType != null) {
+                    if (attr.DbType != null)
+                    {
                         entityColumn.DbType = parseDbDataType(attr.DbType);
                     }
-                    
 
                     if (attr.Kind != FieldKind.None)
                     {
                         entityColumn.Kind = attr.Kind;
                     }
-                    if (!string.IsNullOrWhiteSpace(attr.Alias)) { 
+                    if (!string.IsNullOrWhiteSpace(attr.Alias))
+                    {
                         entityColumn.Alias = attr.Alias;
                     }
-                    if (!string.IsNullOrWhiteSpace(attr.FreeSQL)) {
+                    if (!string.IsNullOrWhiteSpace(attr.FreeSQL))
+                    {
                         entityColumn.FreeSQL = attr.FreeSQL;
                     }
-                    if (!string.IsNullOrWhiteSpace(attr.SrcTable)) {
+                    if (!string.IsNullOrWhiteSpace(attr.SrcTable))
+                    {
                         entityColumn.SrcTable = attr.SrcTable;
                     }
-                    if (!string.IsNullOrWhiteSpace(attr.SrcField)) {
+                    if (!string.IsNullOrWhiteSpace(attr.SrcField))
+                    {
                         entityColumn.SrcField = attr.SrcField;
                     }
-                    if (!string.IsNullOrWhiteSpace(attr.Dict)) {
+                    if (!string.IsNullOrWhiteSpace(attr.Dict))
+                    {
                         entityColumn.Dict = attr.Dict;
                     }
 
                     //解析字段排序的设置
-                    if (attr.Asc == true || attr.Desc == true || attr.OrderIdx > 0) {
-                        var od= new EntityOrder();
+                    if (attr.Asc == true || attr.Desc == true || attr.OrderIdx > 0)
+                    {
+                        var od = new EntityOrder();
                         if (entityColumn.Kind == FieldKind.Base)
                         {
                             od.Nick = entityInfo.Alias;
                             od.Field = entityColumn.DbColumnName;
                         }
-                        else if (entityColumn.Kind == FieldKind.Join) {
+                        else if (entityColumn.Kind == FieldKind.Join)
+                        {
                             od.Nick = entityColumn.SrcTable;
                             od.Field = entityColumn.SrcField;
                         }
@@ -138,35 +156,37 @@ namespace mooSQL.data.Mapping
                         ShardRegistration.MarkShardField(entityInfo, entityColumn);
                 }
                 //设置默认类型，如果设置了字段名称，未设置类型，则为实表字段
-                if(!string.IsNullOrWhiteSpace(entityColumn.DbColumnName) && entityColumn.Kind == FieldKind.None){
-                    entityColumn.Kind =  FieldKind.Base;
+                if (!string.IsNullOrWhiteSpace(entityColumn.DbColumnName) && entityColumn.Kind == FieldKind.None)
+                {
+                    entityColumn.Kind = FieldKind.Base;
                 }
-
             }
 
             var fks = propertyInfo.GetCustomAttributes<SooFKAttribute>();
-            if (fks != null) {
-                foreach (var fk in fks) { 
+            if (fks != null)
+            {
+                foreach (var fk in fks)
+                {
                     entityColumn.IsFK = true;
                     entityColumn.thatTable = fk.thatTable;
                     entityColumn.thatField = fk.thatField;
                 }
-
             }
 
             return entityColumn;
         }
 
-        private DbDataType parseDbDataType(string dbtype) {
-
+        private DbDataType parseDbDataType(string dbtype)
+        {
 #if NET6_0_OR_GREATER
             object res;
-            if (Enum.TryParse(typeof(DbDataType), dbtype, true, out res)) {
+            if (Enum.TryParse(typeof(DbDataType), dbtype, true, out res))
+            {
                 return (DbDataType)res;
             }
 #else
             DbDataType res;
-            if (Enum.TryParse<DbDataType>( dbtype,  out res))
+            if (Enum.TryParse<DbDataType>(dbtype, out res))
             {
                 return res;
             }
@@ -175,16 +195,20 @@ namespace mooSQL.data.Mapping
             return DbDataType.Undefined;
         }
 
+        /// <inheritdoc />
         protected override EntityInfo AfterReadEntityAttr(Type Entity, EntityInfo result)
         {
             //读取join的配置、where的配置、orderby的配置
             var joinAtts = Entity.GetCustomAttributes<SooJoinAttribute>();
-            if (joinAtts != null) {
-                if (result.Joins == null) {
+            if (joinAtts != null)
+            {
+                if (result.Joins == null)
+                {
                     result.Joins = new ConcurrentDictionary<string, EntityJoin>();
                 }
                 int i = result.Joins.Count;
-                foreach (var joinAttribute in joinAtts) { 
+                foreach (var joinAttribute in joinAtts)
+                {
                     var join = new EntityJoin();
                     join.Type = joinAttribute.Type;
                     join.To = joinAttribute.To;
@@ -194,52 +218,58 @@ namespace mooSQL.data.Mapping
                     join.OnB = joinAttribute.OnB;
                     i++;
                     join.Idx = i;
-                    
-                    result.Joins.TryAdd(join.UniqueKey,join);
+
+                    result.Joins.TryAdd(join.UniqueKey, join);
                 }
             }
-
-
 
             return result;
         }
 
+        /// <inheritdoc />
         protected override EntityInfo ReadEntityAttr(SooTableAttribute attr, Type entity, EntityInfo info)
         {
             if (attr == null) return info;
 
             if (info == null)
             {
-                info = new mooSQL.data.EntityInfo();
+                info = new EntityInfo();
                 info.Type = entity;
                 info.EntityName = entity.Name;
             }
-            var name= attr.Name;
-            if (string.IsNullOrWhiteSpace(name)) { 
-                name = entity.Name;
+            var hasExplicitTable = !string.IsNullOrWhiteSpace(attr.Name);
+            if (hasExplicitTable)
+            {
+                info.DbTableName = attr.Name.Trim();
             }
-            if (!string.IsNullOrWhiteSpace(name)) {
-                info.DbTableName = name;
+            else
+            {
+                info.DbTableName = ResolveTableName(entity.Name);
             }
-            
-            if (attr.Schema != null) {
+
+            if (attr.Schema != null)
+            {
                 info.SchemaName = attr.Schema;
             }
-            if (attr.Database != null) {
+            if (attr.Database != null)
+            {
                 info.DatabaseName = attr.Database;
             }
-            if (attr.Server != null) {
+            if (attr.Server != null)
+            {
                 info.ServerName = attr.Server;
             }
 
-            if (attr.Caption != null) {
+            if (attr.Caption != null)
+            {
                 info.TableDescription = attr.Caption;
             }
-            if (!string.IsNullOrWhiteSpace(attr.Alias)) { 
+            if (!string.IsNullOrWhiteSpace(attr.Alias))
+            {
                 info.Alias = attr.Alias;
             }
             info.DType = attr.Type;
-            if(!string.IsNullOrWhiteSpace(info.DbTableName) && info.DType == DBTableType.None)
+            if (!string.IsNullOrWhiteSpace(info.DbTableName) && info.DType == DBTableType.None)
             {
                 info.DType = DBTableType.Table;
             }
@@ -252,11 +282,20 @@ namespace mooSQL.data.Mapping
             return info;
         }
 
+        /// <inheritdoc />
         public override EntityInfo ParseEntity(Type entity, EntityInfo info)
         {
             info = base.ParseEntity(entity, info);
             ShardRegistration.FinalizeEntityShard(info);
             return info;
         }
+    }
+
+    /// <summary>
+    /// 兼容旧名；请改用 <see cref="SooEntityAnalyser"/>。
+    /// </summary>
+    [Obsolete("请使用 SooEntityAnalyser")]
+    internal class InternalEntityParser : SooEntityAnalyser
+    {
     }
 }
