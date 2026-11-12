@@ -242,6 +242,8 @@ namespace mooSQL.data.clip
         }
 
         public void PatchSelect(Expression exp) {
+            // 拼列前补默认别名，避免 SELECT 用表名、FROM 用 t_fb_N 时 SQLite 报 no such table
+            EnsureDefaultAliases();
             clip.Context.ClientProjection = null;
 
             if (exp is LambdaExpression lmd) { 
@@ -396,8 +398,28 @@ namespace mooSQL.data.clip
             return sb.ToString();
         }
 
+        /// <summary>
+        /// PatchSelect 拼列前 / checkJoin 拼 FROM 前：仍无别名的绑定表补合成别名（不挡 Lambda 晚绑定）。
+        /// </summary>
+        private void EnsureDefaultAliases()
+        {
+            var tables = clip.Context.BindTables;
+            if (tables == null || tables.Count == 0)
+                return;
+
+            var i = 0;
+            foreach (var kv in tables)
+            {
+                var tb = kv.Value;
+                if (tb != null && string.IsNullOrWhiteSpace(tb.Alias))
+                    tb.Alias = "t_fb_" + i;
+                i++;
+            }
+        }
+
         private void checkJoin() {
             //检查from
+            EnsureDefaultAliases();
 
             // 无 BindFrom（如 FromLinqExpression 注入已含 FROM 的 Builder）时跳过，避免 _bindTables[null]
             if (clip.Context.FromBinded == false && clip.Context._fromTarget != null)

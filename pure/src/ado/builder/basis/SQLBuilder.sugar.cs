@@ -1309,9 +1309,9 @@ namespace mooSQL.data
         /// <typeparam name="T"></typeparam>
         /// <param name="kit"></param>
         /// <returns></returns>
-        public static List<T> queryToList<T>(this SQLBuilder kit)
+        public List<T> queryToList<T>()
         {
-            return kit.query<T>().ToList();
+            return query<T>().ToList();
         }
     }
 }

@@ -210,6 +210,45 @@ namespace mooSQL.Pure.Tests
             page.Total.Should().BeGreaterThanOrEqualTo(3);
         }
 
+        /// <summary>
+        /// 动态表名 + 无字段 Lambda + top/select：构建前补默认别名，避免空 AS。
+        /// </summary>
+        [Fact]
+        public void LiveTable_TopSelectWithoutFieldLambda_ShouldUseDefaultAliasAndExecute()
+        {
+            _fx.TableExists(SQLiteTestFixture.UserTable).Should().BeTrue();
+
+            string captured = null;
+            var clip = NewClip().print(s => captured = s);
+            clip.from<SQLiteTestUser>(SQLiteTestFixture.UserTable, out var t);
+            clip.top(2);
+            var list = clip.select(t).queryList().ToList();
+
+            captured.Should().NotBeNullOrWhiteSpace();
+            captured.Should().Contain(" AS t_fb_0");
+            captured.Should().NotMatchRegex(@"AS\s+LIMIT");
+            list.Count.Should().Be(2);
+        }
+
+        /// <summary>
+        /// 动态表名 + where 字段 Lambda：仍使用 out 变量名作为别名。
+        /// </summary>
+        [Fact]
+        public void LiveTable_WhereThenSelect_ShouldKeepLambdaAlias()
+        {
+            string captured = null;
+            var clip = NewClip().print(s => captured = s);
+            clip.from<SQLiteTestUser>(SQLiteTestFixture.UserTable, out var t);
+            clip.where(() => t.Id, 1);
+            var list = clip.select(t).queryList().ToList();
+
+            captured.Should().NotBeNullOrWhiteSpace();
+            captured.Should().Contain(" AS t");
+            captured.Should().NotContain("t_fb_");
+            list.Should().ContainSingle();
+            list[0].Id.Should().Be(1);
+        }
+
         [Fact]
         public void FromSubquery_ShouldFilterActiveThenOuterWhere()
         {
