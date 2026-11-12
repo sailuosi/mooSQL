@@ -71,7 +71,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 插入并取回库生成主键，回填实体后返回 Id（object）。无 Identity 列时抛异常。
+        /// 插入并返回主键（object）。Identity：取库 Id 回填；非自增：普通插入（含 AutoKey）后读实体 PK。
         /// </summary>
         public object InsertReturnId(T entity)
         {
@@ -79,8 +79,7 @@ namespace mooSQL.data
                 throw new ArgumentNullException(nameof(entity));
             var idCol = FindIdentityColumn();
             if (idCol == null)
-                throw new InvalidOperationException(
-                    "InsertReturnId requires an Identity column. For application keys use Insert + AutoKey.");
+                return InsertReturnApplicationKey(entity);
 
             var kit = getKit();
             OnBeforeSave(entity);
@@ -112,7 +111,7 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 批量插入取 Id。Returning/OUTPUT 方言走多行一次 Reader；否则逐行 <see cref="InsertReturnId"/>。
+        /// 批量插入取 Id。Identity 且方言支持时 Returning/OUTPUT 多行一次；否则逐行 <see cref="InsertReturnId"/>。
         /// </summary>
         public List<object> InsertReturnIds(IEnumerable<T> entities)
         {
@@ -126,8 +125,11 @@ namespace mooSQL.data
 
             var idCol = FindIdentityColumn();
             if (idCol == null)
-                throw new InvalidOperationException(
-                    "InsertReturnIds requires an Identity column. For application keys use Insert + AutoKey.");
+            {
+                foreach (var e in arr)
+                    list.Add(InsertReturnId(e));
+                return list;
+            }
 
             var kit = getKit();
             var canBatch = arr.Count > 1
@@ -183,6 +185,26 @@ namespace mooSQL.data
                 list.Add(ids[i]);
             }
             return list;
+        }
+
+        /// <summary>非 Identity：insertInner（含 AutoKey）后读实体单主键。</summary>
+        object InsertReturnApplicationKey(T entity)
+        {
+            var pks = En?.GetPK();
+            if (pks == null || pks.Count != 1)
+                throw new InvalidOperationException(
+                    "InsertReturnId requires a single primary key column when the entity has no Identity.");
+
+            var kit = getKit();
+            var rows = insertInner(entity, kit);
+            if (rows <= 0)
+                throw new InvalidOperationException("InsertReturnId failed: insert affected 0 rows.");
+
+            var id = pks[0].GetEntityValue(entity, DBLive?.Client);
+            if (id == null || id is DBNull)
+                throw new InvalidOperationException(
+                    "InsertReturnId returned no primary key value after insert (assign Id or configure AutoKey).");
+            return id;
         }
     }
 

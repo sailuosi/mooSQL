@@ -55,7 +55,7 @@ description: Uses mooSQL Repository and UnitOfWork patterns for CRUD, pagination
 
 | 方法 | 说明 |
 |------|------|
-| `InsertReturnId(T)` / `InsertReturnIds(...)` | 对齐 `doInsertReturnId(s)`；Identity 取库 Id 回填，应用发号读实体 PK |
+| `InsertReturnId(T)` / `InsertReturnIds(...)` | Identity 取库 Id 回填；非自增（含 AutoKey）普通插入后读实体 PK；`SQLBuilder.insertReturnId` 同语义 |
 | `UpdateReturnId(T)` / `UpdateReturnIds(...)` | 更新后返回主键 |
 | `SaveReturnIds(...)` | 保存后返回主键列表 |
 

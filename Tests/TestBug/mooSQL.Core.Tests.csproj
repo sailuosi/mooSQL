@@ -40,6 +40,9 @@
   <!-- DuckDB 已迁至 Provider；本项目引用 Ext.Core，避免与 Provider→Ext 程序集冲突，故排除 -->
   <ItemGroup>
     <Compile Remove="src\TestExt\Dialects\DuckDB\**" />
+    <!-- 引用 DuckDB 类型的用例仅在 mooSQL.Tests（含 Provider）中编译 -->
+    <Compile Remove="src\TestExt\Dialects\Shared\DbFuncTranslationMatrixTests.cs" />
+    <Compile Remove="src\TestExt\Dialects\Shared\UnsignedIntegerDbDataTypeToSQLTests.cs" />
   </ItemGroup>
 
 </Project>

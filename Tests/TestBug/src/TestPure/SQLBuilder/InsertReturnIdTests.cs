@@ -259,13 +259,38 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void Sqlite_InsertReturnId_NonIdentity_Throws()
+        public void Sqlite_InsertReturnId_AutoKey_ReturnsAndBackfills()
         {
-            Action act = () => TestDatabaseHelper.UseSQL(_fx.Db).insertReturnId(new AutoKeyOnlyEntity
+            EnsureAutoKeyOnlyTable();
+            var entity = new AutoKeyOnlyEntity
             {
-                Name = "x"
-            });
-            act.Should().Throw<InvalidOperationException>().WithMessage("*Identity*");
+                Name = "ak-" + Guid.NewGuid().ToString("N").Substring(0, 8)
+            };
+            var id = TestDatabaseHelper.UseSQL(_fx.Db).insertReturnId(entity);
+            id.Should().NotBeNull();
+            id.Should().BeOfType<Guid>();
+            entity.Id.Should().Be((Guid)id);
+
+            var found = TestDatabaseHelper.UseSQL(_fx.Db)
+                .select("name")
+                .from("moo_t_autokey_only")
+                .where("id", entity.Id)
+                .queryScalar<string>();
+            found.Should().Be(entity.Name);
+        }
+
+        [Fact]
+        public void Sqlite_Repo_InsertReturnId_AutoKey_ReturnsAndBackfills()
+        {
+            EnsureAutoKeyOnlyTable();
+            var entity = new AutoKeyOnlyEntity
+            {
+                Name = "rak-" + Guid.NewGuid().ToString("N").Substring(0, 8)
+            };
+            var id = _fx.Db.useRepo<AutoKeyOnlyEntity>().InsertReturnId(entity);
+            id.Should().NotBeNull();
+            id.Should().BeOfType<Guid>();
+            entity.Id.Should().Be((Guid)id);
         }
 
         [Fact]
@@ -345,6 +370,18 @@ CREATE TABLE {table} (
             _fx.ExecuteSql($@"
 CREATE TABLE {table} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL
+)");
+        }
+
+        void EnsureAutoKeyOnlyTable()
+        {
+            const string table = "moo_t_autokey_only";
+            if (_fx.TableExists(table))
+                return;
+            _fx.ExecuteSql($@"
+CREATE TABLE {table} (
+  id TEXT PRIMARY KEY NOT NULL,
   name TEXT NOT NULL
 )");
         }

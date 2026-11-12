@@ -180,8 +180,8 @@ namespace mooSQL.data
         }
 
         /// <summary>
-        /// 实体插入并取回库生成主键（回填实体属性）。须实体含 Identity 列。
-        /// 与 <see cref="insert{T}"/> 并列；逻辑 Id（AutoKey）请用普通 insert。
+        /// 实体插入并返回主键（回填实体属性）。
+        /// Identity：库生成 Id 并回填；非自增（含 AutoKey / 已赋值应用键）：普通插入后读实体主键。
         /// </summary>
         public static object insertReturnId<T>(this SQLBuilder kit, T entity, string tbname = null)
         {
@@ -189,8 +189,7 @@ namespace mooSQL.data
             var en = builder.Client.EntityCash.getEntityInfo(typeof(T));
             var idCol = FindIdentityColumn(en);
             if (idCol == null)
-                throw new InvalidOperationException(
-                    "insertReturnId requires an Identity column. For application keys use insert + AutoKey.");
+                return InsertReturnApplicationKey(builder, en, entity, tbname);
 
             // SkipOnInsert=false 且已赋值：普通插入，返回实体已有 Id，不二次回填
             if (!idCol.IsOnlyIgnoreInsert && idCol.PropertyInfo != null)
@@ -233,14 +232,14 @@ namespace mooSQL.data
         {
             var id = insertReturnId(kit, entity, tbname);
             if (id == null || id is DBNull)
-                throw new InvalidOperationException("insertReturnId returned no identity value.");
+                throw new InvalidOperationException("insertReturnId returned no primary key value.");
             if (id is TKey direct)
                 return direct;
             return (TKey)Convert.ChangeType(id, typeof(TKey));
         }
 
         /// <summary>
-        /// 批量实体插入取 Id。Returning/OUTPUT → 多行一次；否则逐行 <see cref="insertReturnId{T}"/>。
+        /// 批量实体插入取 Id。Identity 且方言支持时 Returning/OUTPUT 多行一次；否则逐行 <see cref="insertReturnId{T}"/>。
         /// </summary>
         public static List<object> insertReturnIds<T>(this SQLBuilder kit, IEnumerable<T> entities, string tbname = null)
         {
@@ -255,8 +254,11 @@ namespace mooSQL.data
             var en = kit.Client.EntityCash.getEntityInfo(typeof(T));
             var idCol = FindIdentityColumn(en);
             if (idCol == null)
-                throw new InvalidOperationException(
-                    "insertReturnIds requires an Identity column. For application keys use insert + AutoKey.");
+            {
+                foreach (var e in arr)
+                    list.Add(insertReturnId(kit, e, tbname));
+                return list;
+            }
 
             var canBatch = arr.Count > 1
                 && kit.Dialect.SupportsMultiRowInsertReturnId(idCol.DbColumnName);
@@ -315,7 +317,7 @@ namespace mooSQL.data
             foreach (var id in raw)
             {
                 if (id == null || id is DBNull)
-                    throw new InvalidOperationException("insertReturnIds returned no identity value.");
+                    throw new InvalidOperationException("insertReturnIds returned no primary key value.");
                 if (id is TKey direct)
                     list.Add(direct);
                 else
@@ -333,6 +335,35 @@ namespace mooSQL.data
             return builder;
         }
 
+        /// <summary>非 Identity：prepareInsert（含 AutoKey 发号）+ doInsert，再读实体主键。</summary>
+        static object InsertReturnApplicationKey(SQLBuilder builder, EntityInfo en, object entity, string tbname)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+            var pkCol = FindPrimaryKeyColumn(en);
+            if (pkCol == null)
+                throw new InvalidOperationException(
+                    "insertReturnId requires a primary key column when the entity has no Identity.");
+
+            var res = builder.Client.Translator.prepareInsert(
+                builder, entity, entity.GetType(), en, tryTableNameLoader(tbname));
+            if (!res.Status)
+            {
+                builder.Client.Loggor.LogError(res.Message);
+                throw new InvalidOperationException(res.Message ?? "prepareInsert failed.");
+            }
+
+            var rows = builder.doInsert();
+            if (rows <= 0)
+                throw new InvalidOperationException("insertReturnId failed: insert affected 0 rows.");
+
+            var id = pkCol.GetEntityValue(entity, builder.Client);
+            if (id == null || id is DBNull)
+                throw new InvalidOperationException(
+                    "insertReturnId returned no primary key value after insert (assign Id or configure AutoKey).");
+            return id;
+        }
+
         static EntityColumn FindIdentityColumn(EntityInfo en)
         {
             if (en?.Columns == null)
@@ -348,6 +379,16 @@ namespace mooSQL.data
                     fallback = col;
             }
             return fallback;
+        }
+
+        static EntityColumn FindPrimaryKeyColumn(EntityInfo en)
+        {
+            if (en == null)
+                return null;
+            var pks = en.GetPK();
+            if (pks == null || pks.Count != 1)
+                return null;
+            return pks[0];
         }
         /// <summary>
         /// 执行批量插入，通过BulkBase实现。注意！在启用事务时，将继承调用者的事务上下文。
