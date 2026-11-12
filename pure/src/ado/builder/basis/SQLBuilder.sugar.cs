@@ -1303,5 +1303,15 @@ namespace mooSQL.data
         }
 
         #endregion
+        /// <summary>
+        /// 查询List结果
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="kit"></param>
+        /// <returns></returns>
+        public static List<T> queryToList<T>(this SQLBuilder kit)
+        {
+            return kit.query<T>().ToList();
+        }
     }
 }
