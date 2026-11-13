@@ -79,6 +79,7 @@ namespace mooSQL.data
 			if (ca.HasCanBeNull())    CanBeNull    = ca.CanBeNull;
 			if (ca.HasIsIdentity())   IsIdentity   = ca.IsIdentity;
 			if (ca.HasIsPrimaryKey()) IsPrimaryKey = ca.IsPrimaryKey;
+			if (ca.HasIsFK())         IsFK         = ca.IsFK;
 			if (ca.HasLength())       Length       = ca.Length;
 			if (ca.HasPrecision())    Precision    = ca.Precision;
 			if (ca.HasScale())        Scale        = ca.Scale;
@@ -86,6 +87,7 @@ namespace mooSQL.data
 
 			AutoKey = ca.AutoKey;
 			KeyGeneratorType = ca.KeyGeneratorType;
+			Tag = ca.Tag;
 		}
 
 		/// <summary>
@@ -240,6 +242,26 @@ namespace mooSQL.data
         /// </summary>
         public bool HasIsPrimaryKey() => _isPrimaryKey.HasValue;
 
+		private bool? _isFK;
+		/// <summary>
+		/// 是否外键列（DDL 类型对齐用；不生成库级 FOREIGN KEY 约束）。
+		/// </summary>
+		public bool IsFK
+		{
+			get => _isFK ?? false;
+			set => _isFK = value;
+		}
+
+		/// <summary>
+		/// 是否已配置外键标记。
+		/// </summary>
+		public bool HasIsFK() => _isFK.HasValue;
+
+		/// <summary>
+		/// 自由标签；createTable 可通过 columnTypeByTag 按同 Tag 统一物理类型。
+		/// </summary>
+		public string Tag { get; set; }
+
 		/// <summary>
 		/// 主键顺序，用于复合主键。
 		/// </summary>
@@ -338,7 +360,7 @@ namespace mooSQL.data
 
 #endif
 #if NET5_0_OR_GREATER
-            return FormattableString.Invariant($".{Configuration}.{Name}.{MemberName}.{(int)DataType}.{DbType}.{(IsColumn?'1':'0')}.{Storage}.{(IsDiscriminator?'1':'0')}.{(SkipOnEntityFetch?'1':'0')}.{_skipOnInsert}.{_skipOnUpdate}.{_isIdentity}.{_isPrimaryKey}.{PrimaryKeyOrder}.{_canBeNull}.{_length}.{_precision}.{_scale}.{CreateFormat}.{_order}.");
+            return FormattableString.Invariant($".{Configuration}.{Name}.{MemberName}.{(int)DataType}.{DbType}.{(IsColumn?'1':'0')}.{Storage}.{(IsDiscriminator?'1':'0')}.{(SkipOnEntityFetch?'1':'0')}.{_skipOnInsert}.{_skipOnUpdate}.{_isIdentity}.{_isPrimaryKey}.{_isFK}.{Tag}.{PrimaryKeyOrder}.{_canBeNull}.{_length}.{_precision}.{_scale}.{CreateFormat}.{_order}.");
 #endif
 
         }

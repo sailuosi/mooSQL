@@ -51,6 +51,10 @@ namespace mooSQL.data.Mapping
 
                     entityColumn.Length = attr.Length;
                     entityColumn.IsPrimarykey = attr.IsPrimaryKey;
+                    if (attr.HasIsFK() && attr.IsFK)
+                        entityColumn.IsFK = true;
+                    if (!string.IsNullOrWhiteSpace(attr.Tag))
+                        entityColumn.Tag = attr.Tag.Trim();
                     entityColumn.IsNullable = attr.CanBeNull;
                     //主键字段不能为空
                     if (entityColumn.IsPrimarykey)

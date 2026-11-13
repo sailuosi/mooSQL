@@ -86,6 +86,10 @@ namespace mooSQL.data.Mapping
                 if (ca.HasScale()) entityColumn.Scale = ca.Scale;
                 if (ca.HasIsPrimaryKey())
                     entityColumn.IsPrimarykey = ca.IsPrimaryKey;
+                if (ca.HasIsFK() && ca.IsFK)
+                    entityColumn.IsFK = true;
+                if (!string.IsNullOrWhiteSpace(ca.Tag))
+                    entityColumn.Tag = ca.Tag.Trim();
                 if (ca.HasCanBeNull())
                     entityColumn.IsNullable = ca.CanBeNull;
                 if (ca.DataType != DataFam.Undefined)

@@ -268,6 +268,10 @@ namespace mooSQL.data
         /// 外键字段
         /// </summary>
         public string thatField { get; set; }
+        /// <summary>
+        /// 自由标签；createTable 可通过 columnTypeByTag 按同 Tag 统一物理类型。
+        /// </summary>
+        public string Tag { get; set; }
 
         /// <summary>
         /// 转换为String。

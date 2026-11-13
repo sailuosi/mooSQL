@@ -127,6 +127,34 @@ namespace mooSQL.data
         }
 
         private int defaultFieldLength = 50;
+
+        DataFam? _pkColumnDataType;
+        int _pkColumnLength;
+        readonly Dictionary<string, (DataFam Type, int Length)> _tagColumnTypes =
+            new Dictionary<string, (DataFam, int)>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 配置主键物理类型；同时作用于 IsPrimarykey 与 IsFK 列（DDL 建表/改列）。
+        /// length：VarChar/NVarChar 等用；Guid/数值等忽略。length≤0 且为字符类型时默认 64。
+        /// </summary>
+        public DBTableCreator pkColumnType(DataFam dataType, int length = 0)
+        {
+            _pkColumnDataType = dataType;
+            _pkColumnLength = length;
+            return this;
+        }
+
+        /// <summary>
+        /// 按 Tag 指定列物理类型；同 Tag 列共用同一数据库类型。可链式多次；同 tag 后写覆盖先写。
+        /// </summary>
+        public DBTableCreator columnTypeByTag(string tag, DataFam dataType, int length = 0)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+                throw new ArgumentException("tag must not be empty.", nameof(tag));
+            _tagColumnTypes[tag.Trim()] = (dataType, length);
+            return this;
+        }
+
         /// <summary>
         /// 清空配置，恢复到初始化状态
         /// </summary>
@@ -136,6 +164,9 @@ namespace mooSQL.data
             EnsureProgress();
             this.WorkingProgress.Clear();
             this.defaultFieldLength = 50;
+            _pkColumnDataType = null;
+            _pkColumnLength = 0;
+            _tagColumnTypes.Clear();
             return this;
         }
 
@@ -313,9 +344,24 @@ namespace mooSQL.data
 
         /// <summary>
         /// 解析实体列期望的数据库类型（含默认长度补齐，与建表/加列一致）。
+        /// 优先级：columnTypeByTag &gt; pkColumnType(PK/IsFK) &gt; 默认推导。
         /// </summary>
         DbDataType ResolveDesiredType(EntityColumn field)
         {
+            if (field != null
+                && !string.IsNullOrWhiteSpace(field.Tag)
+                && _tagColumnTypes.TryGetValue(field.Tag.Trim(), out var tagCfg))
+            {
+                return BuildOverrideType(tagCfg.Type, tagCfg.Length);
+            }
+
+            if (field != null
+                && _pkColumnDataType.HasValue
+                && (field.IsPrimarykey || field.IsFK))
+            {
+                return BuildOverrideType(_pkColumnDataType.Value, _pkColumnLength);
+            }
+
             var dt = transDtype(field);
             if ((dt.DataType == DataFam.VarChar || dt.DataType == DataFam.NVarChar)
                 && (dt.Length.GetValueOrDefault() == 0 || dt.Length.GetValueOrDefault() == 50))
@@ -323,6 +369,29 @@ namespace mooSQL.data
                 dt.Length = this.defaultFieldLength;
             }
             return dt;
+        }
+
+        /// <summary>
+        /// 由 DataFam + length 构造覆盖用 DbDataType（字符类 length≤0 默认 64）。
+        /// </summary>
+        DbDataType BuildOverrideType(DataFam dataType, int length)
+        {
+            switch (dataType)
+            {
+                case DataFam.Char:
+                case DataFam.NChar:
+                case DataFam.VarChar:
+                case DataFam.NVarChar:
+                    return new DbDataType(dataType, length > 0 ? length : 64);
+                case DataFam.Decimal:
+                case DataFam.VarNumeric:
+                case DataFam.Money:
+                    return new DbDataType(dataType, length > 0 ? length : 0, 0, 0);
+                case DataFam.Vector:
+                    return new DbDataType(dataType, length > 0 ? length : 1536);
+                default:
+                    return new DbDataType(dataType);
+            }
         }
 
         /// <summary>
