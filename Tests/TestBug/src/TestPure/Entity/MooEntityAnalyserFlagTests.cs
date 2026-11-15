@@ -98,6 +98,21 @@ namespace mooSQL.Pure.Tests
             MooEntityAnalyser.IsNonScalarCollection(typeof(System.Collections.Generic.List<int>)).Should().BeTrue();
         }
 
+        [Fact]
+        public void CanBeNull_Unset_DefaultsNullable_True_PrimaryKeyForcedFalse()
+        {
+            var en = CreateClient().EntityCash.getEntityInfo<FlagNullableDefaultEntity>();
+            var name = en.GetColumn(nameof(FlagNullableDefaultEntity.Name));
+            name.Should().NotBeNull();
+            name.IsNullable.Should().BeTrue();
+            var id = en.GetColumn(nameof(FlagNullableDefaultEntity.Id));
+            id.Should().NotBeNull();
+            id.IsNullable.Should().BeFalse();
+            var required = en.GetColumn(nameof(FlagNullableDefaultEntity.Code));
+            required.Should().NotBeNull();
+            required.IsNullable.Should().BeFalse();
+        }
+
         [SooTable("flag_identity")]
         class FlagIdentityEntity
         {
@@ -166,6 +181,19 @@ namespace mooSQL.Pure.Tests
 
             [SooColumn("name")]
             public string Name { get; set; }
+        }
+
+        [SooTable("flag_nullable_default")]
+        class FlagNullableDefaultEntity
+        {
+            [SooColumn("id", IsPrimaryKey = true)]
+            public int Id { get; set; }
+
+            [SooColumn("name")]
+            public string Name { get; set; }
+
+            [SooColumn("code", CanBeNull = false)]
+            public string Code { get; set; }
         }
     }
 }

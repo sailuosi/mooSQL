@@ -90,8 +90,10 @@ namespace mooSQL.data.Mapping
                     entityColumn.IsFK = true;
                 if (!string.IsNullOrWhiteSpace(ca.Tag))
                     entityColumn.Tag = ca.Tag.Trim();
-                if (ca.HasCanBeNull())
-                    entityColumn.IsNullable = ca.CanBeNull;
+                // Align with SooColumnAttribute.CanBeNull getter (_canBeNull ?? true).
+                entityColumn.IsNullable = ca.CanBeNull;
+                if (entityColumn.IsPrimarykey)
+                    entityColumn.IsNullable = false;
                 if (ca.DataType != DataFam.Undefined)
                     entityColumn.DataType = ca.DataType;
                 if (!string.IsNullOrWhiteSpace(ca.Caption))
