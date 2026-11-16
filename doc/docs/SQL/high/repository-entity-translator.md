@@ -406,18 +406,52 @@ Phase D：`ShardJoinHelper.BuildShardSubquerySql` 供分表与普通表手动 JO
 
 ---
 
-## 11. 设计要点小结
+## 11. 列级 AutoValue（Insert/Update）
+
+与 `AutoKey` 类似，在 `[SooColumn]` 上声明自动赋值表达式；`prepareInsert` / `prepareUpdate`（含 `prepareUpdateBatch`）在属性值为 **null** 时解析并写回实体，再进入 `kit.set`。
+
+| 属性 | 时机 |
+|------|------|
+| `AutoValueInsert` | 插入列循环，AutoKey 之后 |
+| `AutoValueUpdate` | 更新非主键列；主键只进 WHERE，不套 AutoValue |
+
+```csharp
+[SooColumn(Name = "is_deleted", AutoValueInsert = "false")]
+public bool? IsDeleted { get; set; }
+
+[SooColumn(Name = "created_at", AutoValueInsert = "now()")]
+public DateTime? CreatedAt { get; set; }
+
+[SooColumn(Name = "updated_at", AutoValueInsert = "now()", AutoValueUpdate = "now()")]
+public DateTime? UpdatedAt { get; set; }
+
+[SooColumn(Name = "created_by", AutoValueInsert = "user")]
+public string CreatedBy { get; set; }
+
+client.RegisterAutoValue("user", () => currentUserId);
+```
+
+- **内置**：`true` / `false` / `0` / `1` / `now` / `now()`（→ `DateTime.Now`）；结果为 CLR 值（参数化），不是方言 SQL 表达式。
+- **自定义**：`RegisterAutoValue` / `HasAutoValue` / `ResolveAutoValue`（对齐 `RegisterKeyGenerator`）。
+- **仅 null 填充**：非可空 `DateTime`/`bool` 的默认值不是 null，不会被填充——审计列请用可空类型。若每次更新都要刷 `UpdatedAt` 且实体已有旧值，业务侧先置 null，或用 `OnBeforeUpdateEntity` 强制覆盖。
+- **与钩子分工**：列级默认值优先用 AutoValue；跨实体强制覆盖、SQL 表达式（如 `GETDATE()`）仍用 `OnBefore*` / `OnInsertField` / `OnUpdateField`。
+
+本期不做：Delete 改软删 UPDATE、查询自动过滤删除标记。
+
+---
+
+## 12. 设计要点小结
 
 1. **切面挂在 SQL 构建阶段**，不替代 ADO 执行层；`OnReady*` 之后才是 `doInsert/doUpdate/doDelete`。
-2. **字段级钩子**适合「列级」策略（默认值、表达式、跳过 null）；**实体级 Before** 适合改实体对象属性。
-3. **目标场景**是将系统字段、审计字段、租户字段等横切逻辑从各仓储实现中抽出，集中到 `EntityTranslator` 一次注册。
+2. **字段级钩子**适合「列级」策略（默认值、表达式、跳过 null）；**实体级 Before** 适合改实体对象属性；**列级 AutoValue** 适合声明式 null 填充。
+3. **目标场景**是将系统字段、审计字段、租户字段等横切逻辑从各仓储实现中抽出，集中到 `EntityTranslator` 一次注册或列注解。
 4. 使用仓储时务必 **统一 Translator 实例**（扩展 `DBClientFactory`），否则 `useEntityTranslate` 与 `useRepo` 行为不一致。
 5. 删除钩子已覆盖仓储、SQLBuilder、Savable 的实体/主键删除路径；表达式删除与 Clip 条件删除仍不经 Translator。
 6. 仓储另有 `OnBeforeSave` / `OnAfterSave` 虚方法，与 Translator 切面互补，可按需组合。
 
 ---
 
-## 12. 相关文档
+## 13. 相关文档
 
 - [仓储使用说明](./repository.md)
 - [工作单元 UnitOfWork](./unitofwork.md)

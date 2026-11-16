@@ -146,6 +146,12 @@ namespace mooSQL.data
             // .NET Core+ Guid 不实现 IConvertible，ChangeType(Guid→string) 会失败
             if (target == typeof(string) && value is Guid g)
                 return g.ToString();
+            // AutoValue：bool ↔ 整型软删标记（0/1）
+            if (target == typeof(bool) && value is IConvertible)
+                return Convert.ToBoolean(value);
+            if ((target == typeof(int) || target == typeof(long) || target == typeof(short) || target == typeof(byte))
+                && value is bool b)
+                return Convert.ChangeType(b ? 1 : 0, target);
             return Convert.ChangeType(value, target);
         }
     }

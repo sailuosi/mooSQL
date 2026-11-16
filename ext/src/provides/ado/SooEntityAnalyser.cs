@@ -81,6 +81,10 @@ namespace mooSQL.data.Mapping
                         entityColumn.AutoKey = attr.AutoKey.Trim();
                     if (attr.KeyGeneratorType != null)
                         entityColumn.KeyGeneratorType = attr.KeyGeneratorType;
+                    if (!string.IsNullOrWhiteSpace(attr.AutoValueInsert))
+                        entityColumn.AutoValueInsert = attr.AutoValueInsert.Trim();
+                    if (!string.IsNullOrWhiteSpace(attr.AutoValueUpdate))
+                        entityColumn.AutoValueUpdate = attr.AutoValueUpdate.Trim();
                     if (entityColumn.IsIdentity &&
                         (!string.IsNullOrWhiteSpace(entityColumn.AutoKey) || entityColumn.KeyGeneratorType != null))
                     {

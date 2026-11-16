@@ -73,6 +73,14 @@ namespace mooSQL.data
         /// </summary>
         public Type KeyGeneratorType { get; set; }
         /// <summary>
+        /// 插入时 AutoValue 表达式；空表示未启用。仅当属性值为 null 时填充。
+        /// </summary>
+        public string AutoValueInsert { get; set; }
+        /// <summary>
+        /// 更新时 AutoValue 表达式；空表示未启用。仅当属性值为 null 时填充。
+        /// </summary>
+        public string AutoValueUpdate { get; set; }
+        /// <summary>
         /// 是否主键
         /// </summary>
         public bool IsPrimarykey { get; set; }

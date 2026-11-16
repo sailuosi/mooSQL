@@ -87,6 +87,8 @@ namespace mooSQL.data
 
 			AutoKey = ca.AutoKey;
 			KeyGeneratorType = ca.KeyGeneratorType;
+			AutoValueInsert = ca.AutoValueInsert;
+			AutoValueUpdate = ca.AutoValueUpdate;
 			Tag = ca.Tag;
 		}
 
@@ -226,6 +228,16 @@ namespace mooSQL.data
 		/// 强类型主键生成器（实现 <c>IKeyGenerator</c>）。仅当未设 <see cref="AutoKey"/> 时生效。
 		/// </summary>
 		public Type KeyGeneratorType { get; set; }
+
+		/// <summary>
+		/// 插入时自动赋值表达式（如 <c>false</c>、<c>now()</c>、<c>user</c>）。仅当属性值为 <c>null</c> 时填充；经 Client <c>ResolveAutoValue</c> 解析为 CLR 值。
+		/// </summary>
+		public string AutoValueInsert { get; set; }
+
+		/// <summary>
+		/// 更新时自动赋值表达式（如 <c>now()</c>）。仅当属性值为 <c>null</c> 时填充；经 Client <c>ResolveAutoValue</c> 解析为 CLR 值。
+		/// </summary>
+		public string AutoValueUpdate { get; set; }
 
 		private bool? _isPrimaryKey;
 		/// <summary>

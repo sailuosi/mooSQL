@@ -204,6 +204,16 @@ namespace mooSQL.data
                         val = generated;
                     }
                 }
+                // AutoValueInsert：仅 null 时填充并写回实体
+                if (val == null && !string.IsNullOrWhiteSpace(col.AutoValueInsert))
+                {
+                    var autoVal = builder.Client.ResolveAutoValue(col.AutoValueInsert, col.PropertyInfo.PropertyType);
+                    if (autoVal != null)
+                    {
+                        col.SetEntityValue(entity, autoVal, builder.Client);
+                        val = autoVal;
+                    }
+                }
                 val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 setInsertFieldValue(builder, col, val,en);
             }
@@ -346,10 +356,11 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                var val = builder.Dialect.expression.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
-                // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤
+                var val = col.GetEntityValue(entity, builder.Client);
+                // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤；不套 AutoValueUpdate
                 if (col.IsPrimarykey)
                 {
+                    val = builder.Dialect.expression.ResolveColumnValue(val, col);
                     if (val == null)
                     {
                         return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
@@ -358,6 +369,17 @@ namespace mooSQL.data
                     gotWhere = true;
                     continue;
                 }
+                // AutoValueUpdate：仅 null 时填充并写回实体
+                if (val == null && !string.IsNullOrWhiteSpace(col.AutoValueUpdate))
+                {
+                    var autoVal = builder.Client.ResolveAutoValue(col.AutoValueUpdate, col.PropertyInfo.PropertyType);
+                    if (autoVal != null)
+                    {
+                        col.SetEntityValue(entity, autoVal, builder.Client);
+                        val = autoVal;
+                    }
+                }
+                val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 //配置为忽略时，则忽略执行
                 if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
                 {
@@ -418,9 +440,10 @@ namespace mooSQL.data
                 {
                     continue;
                 }
-                var val = builder.Dialect.expression.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
+                var val = col.GetEntityValue(entity, builder.Client);
                 if (col.IsPrimarykey)
                 {
+                    val = builder.Dialect.expression.ResolveColumnValue(val, col);
                     if (val == null)
                     {
                         return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
@@ -429,6 +452,17 @@ namespace mooSQL.data
                     gotKey = true;
                     continue;
                 }
+                // AutoValueUpdate：仅 null 时填充并写回实体
+                if (val == null && !string.IsNullOrWhiteSpace(col.AutoValueUpdate))
+                {
+                    var autoVal = builder.Client.ResolveAutoValue(col.AutoValueUpdate, col.PropertyInfo.PropertyType);
+                    if (autoVal != null)
+                    {
+                        col.SetEntityValue(entity, autoVal, builder.Client);
+                        val = autoVal;
+                    }
+                }
+                val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
                 {
                     continue;
