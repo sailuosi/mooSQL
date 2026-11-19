@@ -49,7 +49,8 @@ mooSQL 是一个 .NET 下的轻量级 ORM 库，适用于 .NET Framework 4.5+、
 - 🎨 **SQL 语义化** - 链式方法模拟 SQL，语法设计贴近原生 SQL，学习曲线平缓
 - 🔌 **零迁移成本** - 与 EFCore、SqlSugar 等 ORM 的特性实体可兼容，直接使用
 - 🎪 **高级特性** - 支持 WITH AS 语句、MERGE INTO 语句、多表联查的 JOIN 实体定义、虚拟 SQL 列
-- 📋 **列表查询契约** - Select 读模型（`SooJoin` + `FieldKind.Join`）+ `QueryPara` 动态条件（字段白名单）+ `OnBuildSQL` 织入数据权限，详情见 `doc/docs/SQL/high/query-contract.md`
+- 📋 **查询实体** - `DBTableType.Select` + `SooJoin` 声明式多表读模型（用法同普通实体，无需物理视图），见 `doc/docs/SQL/high/query-entity.md`
+- 📋 **列表查询契约** - 查询实体 + `QueryPara` 动态条件（字段白名单）+ `OnBuildSQL` 织入数据权限，详情见 `doc/docs/SQL/high/query-contract.md`
 - 🔧 **强大的扩展能力** - 支持扩展方法，轻松集成项目特殊逻辑（如权限过滤、业务规则等）
 - 📊 **完善的监控** - 内置日志追查、错误输出、慢 SQL 监控，便于开发调试和运维排查
 - 🎭 **类 MyBatis 体验** - SQL 碎片复用、实体映射，但比 XML 配置更灵活，可利用 C# 强大的过程控制
@@ -424,28 +425,30 @@ kit.select("*")
 
 ### 特色查询实体
 
-**类 MyBatis 的查询实体功能**：允许定义特殊的查询实体，表来源可以是多表 JOIN，字段可以是多个表的综合，可以是 SQL 函数。这里相当于是把 MyBatis 的 JOIN 查询实体结果映射给支持了。
+**类 MyBatis resultMap 的声明式多表读模型**：用 `[SooTable(Type = Select)]` + `[SooJoin]` + `FieldKind` 把主表与关联列声明在一个类上；查询时 `GetPageList` / `from<T>` / `findRowById` 与普通实体同形，**运行时展开 JOIN**，一般**不必**建物理视图。完整概念见 **[查询实体（Select 读模型）](docs/SQL/high/query-entity.md)**；列表 + 权限闭环见 [列表查询契约](docs/SQL/high/query-contract.md)。
 
 ```csharp
-// 定义查询实体，支持多表 JOIN 和 SQL 函数
-public class OrderDetailView
+[SooTable(Name = "Orders", Alias = "o", Type = DBTableType.Select)]
+[SooJoin(Type = JoinKind.Left, To = "Users", As = "u",
+         OnA = "o.UserId", OnB = "u.Id")]
+public class OrderListRow
 {
+    [SooColumn(Name = "OrderNo", Kind = FieldKind.Base, IsPrimaryKey = true)]
     public string OrderNo { get; set; }
+
+    [SooColumn(Kind = FieldKind.Join, SrcTable = "u", SrcField = "UserName", Alias = "UserName")]
     public string UserName { get; set; }
+
+    // 聚合等可用 FieldKind.Free
+    [SooColumn(Kind = FieldKind.Free, FreeSQL = "o.TotalAmount", Alias = "TotalAmount")]
     public decimal TotalAmount { get; set; }
-    public int ItemCount { get; set; }  // 来自 SQL 函数 COUNT()
 }
 
-// 使用
-var kit = DBCash.useSQL(0);
-var orders = kit
-    .select("o.OrderNo, u.UserName, o.TotalAmount, COUNT(oi.Id) as ItemCount")
-    .from("Orders o")
-    .join("left join Users u on o.UserId = u.Id")
-    .join("left join OrderItems oi on o.Id = oi.OrderId")
-    .groupBy("o.OrderNo, u.UserName, o.TotalAmount")
-    .query<OrderDetailView>();
+// 用法与表实体相同
+var page = DBCash.useRepo<OrderListRow>(0).GetPageList(para);
 ```
+
+仍可用手写 `select(...).join(...).query<T>()` 映射无元数据 DTO；**新代码优先声明查询实体**。
 
 ## 🗄️ 支持的数据库
 

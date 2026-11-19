@@ -76,6 +76,7 @@ ADO 核心层: DBInstance / DBExecutor / Dialect / SQLBuilder
 | 场景 | 推荐 |
 |------|------|
 | 简单 CRUD | Repository |
+| 列表 / 多表只读宽行（查询实体） | `DBTableType.Select` + `SooJoin`；见 `doc/docs/SQL/high/query-entity.md` |
 | 复杂查询 | SQLBuilder 或 SQLClip |
 | 批量操作 | UnitOfWork + Repository |
 | 动态 SQL | SQLBuilder 链式构建 |

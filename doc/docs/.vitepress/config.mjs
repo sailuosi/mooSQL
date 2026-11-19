@@ -79,6 +79,7 @@ export default defineConfig({
           items: [
             { text: 'DbBus --表达式', link: '/SQL/high/expression' },
             { text: 'SooReposity ---仓储', link: '/SQL/high/repository' },
+            { text: '查询实体（Select 读模型）', link: '/SQL/high/query-entity' },
             { text: '列表查询契约', link: '/SQL/high/query-contract' },
             { text: 'EntityTranslator 切面', link: '/SQL/high/repository-entity-translator' },
             { text: 'SooWorkOfUnit', link: '/SQL/high/unitofwork' },

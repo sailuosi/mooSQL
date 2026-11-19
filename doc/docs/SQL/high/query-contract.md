@@ -6,11 +6,13 @@ outline: deep
 
 本文描述 mooSQL 在**业务列表页**上已经落地、可直接当产品能力使用的闭环：
 
-1. **声明式读模型**：`[SooJoin]` + `[SooColumn(Kind = FieldKind.Join)]`，查询时自动 JOIN 并投影关联字段  
+1. **声明式读模型（查询实体）**：`[SooJoin]` + `[SooColumn(Kind = FieldKind.Join)]`，查询时自动 JOIN 并投影关联字段  
 2. **前端动态条件**：`QueryPara` / `QueryCondition`，经仓储 `GetPageList(para)` 解析，字段须落在实体元数据上  
 3. **服务端权限接缝**：`para.OnBuildSQL` 中挂载 `useAuth` / `useDuty`（或等价扩展），与前端条件 AND 合并  
 
 三者合在一起，就是「前端可传筛选项、后端可验字段、权限可织入」的标准列表查询协议。复杂手写 SQL、SQLClip、LINQ 仍可并行使用，**不替代**本契约。
+
+> **查询实体概念**（`DBTableType.Select` vs Table / View、自连接、与物理视图选型、引擎展开方式）见专题 **[查询实体（Select 读模型）](./query-entity.md)**。本文第 2 节只保留列表场景所需的声明摘要。
 
 相关源码：
 
@@ -70,11 +72,13 @@ public PageOutput<BCHRHumanRow> queryBCHRHumanEntity([FromBody] PageQueryDto inp
 
 ## 2. 声明式读模型（Join 字段）
 
+> 完整概念、Table/View/Select 对照、自连接、Clip 子查询包装：见 **[查询实体](./query-entity.md)**。
+
 ### 2.1 何时用
 
-列表页需要「主表 + 组织名 / 地点层次码 / 关联字典」等**只读投影**时，用 `DBTableType.Select` 的查询实体（常见命名 `*Row`），而不是在每个 Service 里手写 `left join`。
+列表页需要「主表 + 组织名 / 地点层次码 / 关联字典」等**只读投影**时，用 `DBTableType.Select` 的**查询实体**（常见命名 `*Row`），而不是在每个 Service 里手写 `left join`，也**不必**先建物理视图。
 
-写路径继续用真正的表实体（`DBTableType.Table`）做 Insert/Update；读路径用 Select 读模型。这是**约定分层**，不必再拆一套独立 View ORM。
+写路径继续用真正的表实体（`DBTableType.Table`）做 Insert/Update；读路径用 Select 查询实体。这是**约定分层**，不必再拆一套独立 View ORM。
 
 ### 2.2 声明方式
 

@@ -17,6 +17,9 @@ hero:
       text: 应用篇 仓储
       link: /SQL/high/repository
     - theme: alt
+      text: 查询实体
+      link: /SQL/high/query-entity
+    - theme: alt
       text: 列表查询契约
       link: /SQL/high/query-contract
     - theme: alt

@@ -4,6 +4,8 @@ outline: deep
 
 # 多表查询
 
+> 反复复用的「主表 + 关联展示列」读模型，优先声明 **[查询实体](/SQL/high/query-entity)**（`DBTableType.Select` + `SooJoin`），不必每次手写 join，也不必建物理视图。本节讲手写 / Clip 联表。
+
 ## 使用SQLBuilder
 
 kit变量是SQLBuilder的实例，用于构建SQL语句。

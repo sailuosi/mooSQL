@@ -175,6 +175,8 @@ ddl.doDropView("V_UserBrief");
 bool exists = ddl.hasView("V_UserBrief");
 ```
 
+> 应用内只读宽行（列表 / 待办明细）通常用 **[查询实体](/SQL/high/query-entity)**（`DBTableType.Select`），**不必**建物理视图。`Type = View` 适用于遗留视图、跨系统共用投影或 DBA 强制视图。
+
 实体 + `[SooTable]`：`ViewSQL` 为 SELECT 正文；`Type = View`（或仅填 `ViewSQL`）时 `doInitTable` 会建视图；**已存在则跳过**。
 
 ```csharp

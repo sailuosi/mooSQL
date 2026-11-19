@@ -1,5 +1,6 @@
 # 仓储
 
+> **查询实体**（`DBTableType.Select` + `SooJoin`）：见 **[查询实体（Select 读模型）](./query-entity.md)**。  
 > **列表页产品路径**：读模型 Join 字段 + `QueryPara` 动态条件 + `OnBuildSQL` 数据权限，见 **[列表查询契约](./query-contract.md)**。持久化切面见 [EntityTranslator](./repository-entity-translator.md)。
 
 一、仓储的定义
