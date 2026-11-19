@@ -24,7 +24,8 @@ namespace mooSQL.data
                 throw new NotSupportedException("当前实体的主键信息不匹配！");
             }
             var pk = pks[0];
-            this.BuildFromPart(kit, en, loadName);
+            // 须 BuildSelectFrom：Select 实体自连接时仅 BuildFromPart 会落成 SELECT *，同名列后写覆盖
+            this.BuildSelectFrom(kit, en, loadName);
             this.BeforeBuildWhere(kit, en, QueryAction.QueryOne);
             var pkname = pk.DbColumnName;
             if (!string.IsNullOrWhiteSpace(en.Alias))

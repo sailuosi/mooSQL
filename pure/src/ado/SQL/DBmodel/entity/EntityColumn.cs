@@ -282,6 +282,19 @@ namespace mooSQL.data
         public string Tag { get; set; }
 
         /// <summary>
+        /// 查询结果/外层引用列名：Join、Free 优先 Alias（子查询投影名），否则 DbColumnName。
+        /// </summary>
+        public string GetProjectedName()
+        {
+            if (Kind == FieldKind.Join || Kind == FieldKind.Free)
+            {
+                if (!string.IsNullOrWhiteSpace(Alias))
+                    return Alias;
+            }
+            return DbColumnName;
+        }
+
+        /// <summary>
         /// 转换为String。
         /// </summary>
         public override string ToString()

@@ -52,15 +52,16 @@ namespace mooSQL.data.clip.project
             if (string.IsNullOrWhiteSpace(tb.Alias))
                 tb.Alias = callerName;
 
+            var projected = col.GetProjectedName();
             root = new ColumnRoot
             {
                 Expression = me,
                 Table = tb,
                 Column = col,
                 Alias = tb.Alias,
-                SqlField = col.DbColumnName,
+                SqlField = projected,
                 ClrType = col.PropertyInfo?.PropertyType ?? me.Type,
-                Key = (tb.Alias ?? "") + "\0" + (col.DbColumnName ?? me.Member.Name),
+                Key = (tb.Alias ?? "") + "\0" + (projected ?? me.Member.Name),
             };
             return true;
         }

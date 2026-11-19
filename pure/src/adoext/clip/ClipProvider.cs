@@ -371,13 +371,7 @@ namespace mooSQL.data.clip
                 }
                 else if (ti.DType == DBTableType.Select)
                 {
-                    var tool = clip.Context.Builder.getBrotherBuilder();
-                    this.Translator.BuildSelectFrom(tool, tb.TableInfo);
-                    var select = tool.toSelect();
-                    sb.Append(" ( ");
-                    sb.Append(select.sql);
-                    sb.Append(" ) AS ");
-                    sb.Append(tb.Alias);
+                    AppendSelectEntitySubquery(sb, tb, loadName: null);
                 }
 
             }
@@ -390,12 +384,38 @@ namespace mooSQL.data.clip
             }
             else if (tb.BSrc == ClipTableSrc.LiveTable)
             {
-                sb.Append(" ");
-                sb.Append(tb.querySQL);
-                sb.Append(" AS ");
-                sb.Append(tb.Alias);
+                var ti = tb.TableInfo;
+                // 分表/显式表名：查询实体仍须 BuildSelectFrom 后包子查询，禁止裸挂物理表名跳过 Join
+                if (ti != null && ti.DType == DBTableType.Select)
+                {
+                    Func<string> loadName = null;
+                    if (!string.IsNullOrWhiteSpace(tb.querySQL))
+                        loadName = () => tb.querySQL;
+                    AppendSelectEntitySubquery(sb, tb, loadName);
+                }
+                else
+                {
+                    sb.Append(" ");
+                    sb.Append(tb.querySQL);
+                    sb.Append(" AS ");
+                    sb.Append(tb.Alias);
+                }
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// DBTableType.Select：BuildSelectFrom 展开后包成 (select …) AS alias。
+        /// </summary>
+        private void AppendSelectEntitySubquery(StringBuilder sb, ClipTable tb, Func<string> loadName)
+        {
+            var tool = clip.Context.Builder.getBrotherBuilder();
+            this.Translator.BuildSelectFrom(tool, tb.TableInfo, loadName);
+            var select = tool.toSelect();
+            sb.Append(" ( ");
+            sb.Append(select.sql);
+            sb.Append(" ) AS ");
+            sb.Append(tb.Alias);
         }
 
         /// <summary>

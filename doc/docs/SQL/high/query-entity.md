@@ -157,10 +157,10 @@ public class TaskViewEntity
 // 仓储
 var page = db.useRepo<BCHRHumanRow>().GetPageList(para);
 
-// 按主键（Select：展开 JOIN + WHERE 主键）
+// 按主键（Select：扁平 BuildSelectFrom + WHERE 主键；显式 Alias，非 SELECT *）
 var one = kit.findRowById<TaskViewEntity>(taskId);
 
-// SQLClip：Select 会被包成子查询再挂外层 WHERE/ORDER
+// SQLClip：Select 包成子查询后再挂外层 WHERE/ORDER
 var clip = kit.useClip();
 clip.from<TaskViewEntity>(out var t)
     .where(() => t.SignId, userId)
@@ -168,32 +168,34 @@ clip.from<TaskViewEntity>(out var t)
 var list = clip.select(t).take(20).queryList();
 ```
 
-调用方感知：`T` 仍是一个「实体类型」；差异只在元数据是 Select 还是 Table。
+调用方感知：`T` 仍是一个「实体类型」；差异只在元数据是 Select 还是 Table。Clip 与 `findRowById` 展开形态不同（子查询 vs 扁平），见 §6。
 
 ---
 
 ## 6. 引擎如何展开（心智模型）
 
-### 6.1 仓储 / `BuildSelectFrom`
+### 6.1 仓储 / `findRowById` / `BuildSelectFrom`（扁平展开）
 
 对 `DBTableType.Select`，`EntityTranslator.BuildSelectFrom` 大致：
 
-1. 按列生成 `SELECT`（Base / Join / Free）  
+1. 按列生成 `SELECT`（Base / Join / Free；Join/Free 须带稳定 **Alias**）  
 2. `FROM 主表 AS alias`  
 3. 按 `[SooJoin]` 顺序拼 `INNER/LEFT/... JOIN`
 
-`findRowById`、`GetPageList` 走这条路径。
+`findRowById`、`GetById`、`GetPageList(QueryPara)` 走这条**扁平**路径（一层 SQL，不包子查询）。  
+自连接时必须靠 Alias 区分同名物理列；禁止空投影落成 `SELECT *`（否则 `ai`/`mai` 同名列会后写覆盖）。
 
-### 6.2 SQLClip `from<T>`
+### 6.2 SQLClip `from<T>`（子查询包裹）
 
 `ClipProvider` 对 Select：**先**用上面规则生成完整 SELECT，再包成：
 
 ```sql
-SELECT outer.* FROM ( /* BuildSelectFrom 的 SQL */ ) AS outer
-WHERE ...
+SELECT t.* FROM ( /* BuildSelectFrom 的 SQL */ ) AS t
+WHERE t.ai_activity_state = @p ...
 ```
 
-因此 Clip 里对 `TaskViewEntity` 的 where/order，作用在子查询结果列（Base 的物理名 / Join 的 Alias）上。
+- 外层 where/order/select 作用在子查询**结果列**上：Base 用物理列名，Join/Free 用 **Alias**（`EntityColumn.GetProjectedName()`）。  
+- `from<T>(tbname, …)` 分表：内层主表名走 `loadName`，仍包子查询，不裸挂物理表名。
 
 ### 6.3 View
 

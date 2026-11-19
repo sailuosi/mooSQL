@@ -85,9 +85,10 @@ namespace mooSQL.data.clip
             }
             this.field = fie;
             var t = "";
-            if ( !string.IsNullOrWhiteSpace(fie.DbColumnName))
+            var projected = fie.GetProjectedName();
+            if (!string.IsNullOrWhiteSpace(projected))
             {
-                t = fie.DbColumnName;
+                t = projected;
             }
             if (srcNick)
             {
@@ -205,7 +206,8 @@ namespace mooSQL.data.clip
                         parsingField.SQLAlias = tb.Alias;
                         var col= tb.TableInfo.GetColumn(name);
                         if (col != null) { 
-                            parsingField.SQLField = col.DbColumnName;
+                            // Join/Free 外层用投影名（Alias），与 Select 子查询结果列对齐
+                            parsingField.SQLField = col.GetProjectedName();
                             parsingField.EnColumn = col;                        
                         }
 
