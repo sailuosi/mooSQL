@@ -47,7 +47,7 @@ GetTypeMaterializer → GetTypePackImpl (Emit)
 ```
 GetTypeMaterializer → MaterializerResolver.Resolve
   1. MooClient 实例注册表（最高优先级）
-  2. MaterializerRegistry 静态表（SG ModuleInitializer，仅 net6+ / net8+ / net10+）
+  2. MaterializerRegistry 静态表（SG ModuleInitializer，仅 net6+ / net8+ / net10+ / net11+）
   3. ReflectionMaterializer（反射兜底）
   4. 均失败 → InvalidOperationException
 ```
@@ -57,7 +57,7 @@ GetTypeMaterializer → MaterializerResolver.Resolve
 | TFM | `EnableAot = false` | `EnableAot = true` |
 |-----|---------------------|-------------------|
 | net451 / net462 | Emit | 仅 **反射**（无 Analyzer / SG） |
-| net6.0 / net8.0 / net10.0 | Emit | **SG → 反射** |
+| net6.0 / net8.0 / net10.0 / net11.0 | Emit | **SG → 反射** |
 
 ---
 

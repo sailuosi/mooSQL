@@ -120,13 +120,13 @@ var cash = new DBClientBuilder()
 
 ## 4. 适配驱动与 .NET 版本
 
-**框架 TFM**：`net451` / `net462` / `net6.0` / `net8.0` / `net10.0`（以 `mooSQL.Ext` 为准）。一般业务依赖 **mooSQL.Ext**（含方言与驱动引用）。
+**框架 TFM**：`net451` / `net462` / `net6.0` / `net8.0` / `net10.0` / `net11.0`（以 `mooSQL.Ext` 为准）。一般业务依赖 **mooSQL.Ext**（含方言与驱动引用）。
 
 | 产品 | 典型驱动（Ext） | TFM 注意 |
 |------|-----------------|----------|
 | MySQL / MariaDB / TiDB / OB-MySQL | MySqlConnector（如 2.6.2） | 全主流 TFM |
 | PostgreSQL / CrateDB | Npgsql（net8≈8.0.9；net10≈10.0.3） | — |
-| openGauss / GaussDB | net8+：`HuaweiCloud.GaussDB.Driver`；低 TFM 可 Npgsql 兼容路径 | net8 / net10 |
+| openGauss / GaussDB | net8+：`HuaweiCloud.GaussDB.Driver`；低 TFM 可 Npgsql 兼容路径 | net8 / net10 / net11 |
 | 人大金仓 | `Kdbndp_V9` | **非 net451**（net462+） |
 | SQL Server | Microsoft.Data.SqlClient | — |
 | Oracle | Oracle.ManagedDataAccess(.Core) | — |
@@ -134,7 +134,7 @@ var cash = new DBClientBuilder()
 | SQLite | System.Data.SQLite / Microsoft.Data.Sqlite | 按 TFM |
 | DuckDB | DuckDB.NET.Data.Full（**Provider 包**） | **仅 net6+**；须 `UseDuckDB()` |
 | ClickHouse | ClickHouse.Driver | **仅 net6+** |
-| SonnetDB | SonnetDB 3.1.0 | **仅 net10** |
+| SonnetDB | SonnetDB 3.1.0 | **net10+**（含 net11） |
 | Oscar | Oscar.Data.SqlClient | — |
 | GBase8a | 独立方言（协议近 MySQL） | — |
 
@@ -163,7 +163,7 @@ var cash = new DBClientBuilder()
 | DuckDB | 1.4 / 1.5 | net6+ | Provider：`UseDuckDB()` |
 | ClickHouse | 24.8 / 26.x | net6+ | — |
 | TDengine | 3.0 / 3.4 | 2.0+ | — |
-| SonnetDB | 3.1 | 3.0+ | 仅 net10 |
+| SonnetDB | 3.1 | 3.0+ | net10+（含 net11） |
 
 ---
 

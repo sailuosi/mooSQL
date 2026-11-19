@@ -15,9 +15,9 @@ mooSQL 通过方言层接入 **DuckDB**（嵌入式分析库）。方言实现�
 | 枚举 | `DataBaseType.DuckDB = 18`；字符串键 `DialectKeys.DuckDB` |
 | 包 | `mooSQL.Provider.DuckDB`（依赖 `mooSQL.Ext`） |
 | 注册 | **显式** `builder.UseDuckDB()` / `factory.UseDuckDB()`（模型 1） |
-| 支持 TFM | **net6.0 / net8.0 / net10.0** |
+| 支持 TFM | **net6.0 / net8.0 / net10.0 / net11.0** |
 | ADO 包 | `DuckDB.NET.Data.Full`（自带 native） |
-| 包版本 | net6 → **1.4.4**；net8 / net10 → **1.5.5** |
+| 包版本 | net6 → **1.4.4**；net8 / net10 / net11 → **1.5.5** |
 | SQL 风格 | 偏 PostgreSQL：`"ident"`、`$name` 参数、`LIMIT/OFFSET`、SEQUENCE |
 | 命名空间 | 方言类型统一 `mooSQL.data` |
 
@@ -183,7 +183,7 @@ provides/DuckDB/
 <!-- net6.0 -->
 <PackageReference Include="DuckDB.NET.Data.Full" Version="1.4.4" />
 
-<!-- net8.0 / net10.0 -->
+<!-- net8.0 / net10.0 / net11.0 -->
 <PackageReference Include="DuckDB.NET.Data.Full" Version="1.5.5" />
 ```
 
@@ -265,7 +265,7 @@ flowchart TB
 1. 引用 Provider 并 `UseDuckDB()` 后，`dbType=DuckDB` / `dialectKey=DuckDB` 解析为 `DuckDBDialect`（net6/net8/net10）。  
 2. **未** `UseDuckDB` 时，默认 `DialectFactory` 抛「尚未支持」。  
 3. 文件库 / `:memory:` 完成 CRUD + 分页；SQL 含 `LIMIT`/`OFFSET`、参数为 `$...`。  
-4. Ext 构建无 DuckDB 包依赖；Provider csproj：net6=1.4.4，net8/net10=1.5.5。  
+4. Ext 构建无 DuckDB 包依赖；Provider csproj：net6=1.4.4，net8/net10/net11=1.5.5。  
 5. 支持清单 / 用户文档已标明 DuckDB 属 provides 显式注册。  
 
 ---

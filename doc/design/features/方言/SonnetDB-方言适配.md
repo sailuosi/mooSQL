@@ -12,7 +12,7 @@ mooSQL 通过方言层接入 **SonnetDB**（国产多模型引擎，IoTSharp）�
 | 项 | 说明 |
 |----|------|
 | 枚举 | `DataBaseType.SonnetDB = 26` |
-| 支持 TFM | **仅 net10.0**（官方 ADO 包仅目标 net10；net451/net462/net6/net8 不引用、不编译方言） |
+| 支持 TFM | **net10.0+**（含 net11；官方 ADO 包目标 net10，更高 TFM 回退；net451/net462/net6/net8 不引用、不编译方言） |
 | ADO 包 | `SonnetDB`（程序集/命名空间 `SonnetDB.Data`） |
 | 包版本 | **3.1.0** |
 | SQL 风格 | `"ident"`、`@name` 参数、`LIMIT/OFFSET`、关系表 `AUTO_INCREMENT` + `RETURNING` |
@@ -162,7 +162,7 @@ ext/src/provides/dialect/SonnetDB/
 
 | 项 | DuckDB | SonnetDB |
 |----|--------|----------|
-| TFM | net6+ | **仅 net10** |
+| TFM | net6+ | **net10+**（含 net11） |
 | 参数 | `$` | `@` |
 | 自增 | SEQUENCE + nextval | `AUTO_INCREMENT` |
 | Bulk | Appender + Fallback | 仅 Fallback |

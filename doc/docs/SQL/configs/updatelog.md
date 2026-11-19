@@ -4,7 +4,13 @@ outline: deep
 
 # 更新迭代记录
 
-## 【第3代】 .net6/8/10 全面支持版
+## 【第3代】 .net6/8/10/11 全面支持版
+
+### 2026-11-19 更新
+- 框架——新增 **net11.0** TFM
+    - `mooSQL.Pure` / `mooSQL.Ext`（及 Core 变体）、DuckDB / Aurora / EDB / CockroachDB / Turso Provider、`mooSQL.Tests` 已纳入 `net11.0`
+    - 系统包（Caching / Channels / Sqlite / Odbc / OleDb）跟 **11.0.0**；第三方驱动暂复用 net10 线（TFM 回退）
+    - SonnetDB 仍 `#if NET10_0_OR_GREATER`（覆盖 net11）
 
 ### 2026-11-10 更新
 - 增强功能——实体解析器命名钩子与按名注册
@@ -61,7 +67,7 @@ outline: deep
         - PostgreSQL Family：`PgFamilyDialect`（PostgreSQL / CrateDB / openGauss / GaussDB / 人大金仓 R3·R6）
         - 独立方言：SQL Server、Oracle、达梦、DuckDB、ClickHouse、Taos、SonnetDB、GBase8a、Oscar 等
     - **新注册 / 增强方言**
-        - MariaDB、TiDB、DuckDB（net6+）、达梦 DM、人大金仓、openGauss / GaussDB、SonnetDB（**仅 net10**）等
+        - MariaDB、TiDB、DuckDB（net6+）、达梦 DM、人大金仓、openGauss / GaussDB、SonnetDB（**net10+**，含 net11）等
         - `DBVersion` 与驱动钉版本对齐调研（2026-10）
     - 清单见 `doc/design/features/方言/数据库支持清单.md`
 
