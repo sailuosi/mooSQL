@@ -358,6 +358,27 @@ namespace mooSQL.Pure.Tests
         public void WhereIn_ValueTypes(OverloadCase valueCase)
             => AssertExpectation(valueCase);
 
+        /// <summary>
+        /// prepareDelete 将 id 装箱为 List&lt;object&gt; 后 whereIn：GUID 字符串必须整值进入 IN，
+        /// 不得因 string:IEnumerable&lt;char&gt; 被拆成单字符。
+        /// </summary>
+        [Fact]
+        public void WhereIn_ListObject_GuidStrings_MustNotExpandToChars()
+        {
+            using var builder = TestDatabaseHelper.CreateSQLBuilder();
+            builder.select("*").from("t").whereIn("oid", new List<object>
+            {
+                Guid1.ToString(),
+                Guid2.ToString()
+            });
+
+            var sql = ResolveSql(builder);
+            sql.Should().Contain(Guid1.ToString());
+            sql.Should().Contain(Guid2.ToString());
+            CountInListElements(sql, notIn: false).Should().Be(2,
+                "GUID strings boxed in List<object> must stay as two IN values, not per-character");
+        }
+
         [Theory]
         [MemberData(nameof(WhereNotInValueTypeCases))]
         public void WhereNotIn_ValueTypes(OverloadCase valueCase)

@@ -138,11 +138,15 @@ namespace mooSQL.data
                         cc++;
                     }
                 }
-                if (item is IEnumerable listed) {
-                    foreach(var lv in listed)
+                // string / byte[] 实现 IEnumerable，但必须整值加入，不能按元素展开
+                // （否则 List<object> 里的 GUID 字符串会被拆成 'a','x',...）
+                if (item is IEnumerable listed && item is not string && item is not byte[])
+                {
+                    foreach (var lv in listed)
                     {
                         cc += addValue(lv);
                     }
+                    continue;
                 }
                 var str = item.ToString();
                 if (isSafeStr) { 
