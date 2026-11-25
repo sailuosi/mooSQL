@@ -24,6 +24,8 @@ namespace mooSQL.data
         /// <param name="parent"></param>
         public SQLExpression(Dialect parent) { 
             this.dialect = parent;
+            // Guid 字符串规范为全方言通用（whereGuid / 裸 DataFam.Guid）；列级乐观/严格见 TryConvertColumnValue
+            RegisterParameterConverter(DataFam.Guid, TryConvertGuidParameter);
         }
         /// <summary>
         /// 数据库配置

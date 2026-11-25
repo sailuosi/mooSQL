@@ -519,7 +519,11 @@ namespace mooSQL.data
                     kit.setU(kv.Key, kv.Value);
             }
 
-            var suffix = ResolveDuplicateKeySuffix();
+            if (kit is not StepBuilder step)
+                return false;
+            var suffix = _db.dialect.GetInsertOrUpdateDuplicateSuffix(step);
+            if (string.IsNullOrWhiteSpace(suffix))
+                return false;
             var cmd = kit.toInsertWithDuplicateUpdate(suffix);
             options.SqlOut = cmd?.sql ?? cmd?.toRawSQL();
             affected = kit.exeNonQuery(cmd);
@@ -606,8 +610,6 @@ namespace mooSQL.data
             affected = kit.exeNonQuery(cmd);
             return true;
         }
-
-        static string ResolveDuplicateKeySuffix() => "ON DUPLICATE KEY UPDATE";
 
         List<string> ResolveConstraintColumns(UpsertOptions options)
         {

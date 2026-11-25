@@ -18,22 +18,24 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
-        public void ResolveColumnValue_UndefinedColumn_ShouldBeUnderlyingInt()
+        public void TryConvertColumnValue_UndefinedColumn_ShouldBeUnderlyingInt()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
-            var v = db.dialect.expression.ResolveColumnValue(TestMenuTypeEnum.Btn, null);
+            db.dialect.expression.TryConvertColumnValue(null, TestMenuTypeEnum.Btn, out var v, out _)
+                .Should().BeTrue();
             v.Should().Be(2);
             v.Should().BeOfType<int>();
         }
 
         [Fact]
-        public void ResolveColumnValue_VarCharColumn_ShouldBeEnumName()
+        public void TryConvertColumnValue_VarCharColumn_ShouldBeEnumName()
         {
             var db = TestDatabaseHelper.CreateTestDBInstance();
             var en = db.client.EntityCash.getEntityInfo<TestEnumMenu>();
             var col = en.Columns.First(c => c.DbColumnName == "status");
             col.DataType.Should().Be(DataFam.VarChar);
-            var v = db.dialect.expression.ResolveColumnValue(TestMenuTypeEnum.Btn, col);
+            db.dialect.expression.TryConvertColumnValue(col, TestMenuTypeEnum.Btn, out var v, out _)
+                .Should().BeTrue();
             v.Should().Be("Btn");
         }
 
