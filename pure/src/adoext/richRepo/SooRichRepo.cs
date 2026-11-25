@@ -546,7 +546,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(c);
                 if (col == null) continue;
-                sourceCols[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
+                sourceCols[col.DbColumnName] = exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client));
             }
             foreach (var kv in insertCols)
                 sourceCols[kv.Key] = kv.Value;
@@ -634,7 +634,7 @@ namespace mooSQL.data
             {
                 if (col.IsIgnore || col.IsOnlyIgnoreInsert || col.PropertyInfo == null) continue;
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
+                dict[col.DbColumnName] = exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client));
             }
             return dict;
         }
@@ -653,7 +653,7 @@ namespace mooSQL.data
                     if (col == null || col.IsPrimarykey) continue;
                     if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                         continue;
-                    dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
+                    dict[col.DbColumnName] = exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client));
                 }
                 return dict;
             }
@@ -664,7 +664,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 if (constraints.Contains(col.PropertyName) || constraints.Contains(col.DbColumnName))
                     continue;
-                dict[col.DbColumnName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
+                dict[col.DbColumnName] = exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client));
             }
             return dict;
         }
@@ -681,7 +681,7 @@ namespace mooSQL.data
                 {
                     var col = FindColumn(name);
                     if (col == null) continue;
-                    ck.where(col.DbColumnName, exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col));
+                    ck.where(col.DbColumnName, exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client)));
                 }
             }
             else
@@ -703,7 +703,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(name);
                 if (col == null || col.IsPrimarykey) continue;
-                dict[col.PropertyName] = exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col);
+                dict[col.PropertyName] = exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client));
             }
             if (dict.Count == 0) return 0;
 
@@ -727,7 +727,7 @@ namespace mooSQL.data
             {
                 var col = FindColumn(name);
                 if (col == null) continue;
-                upd.where(col.DbColumnName, exp.ResolveColumnValue(col.GetEntityValue(entity, _db.Client), col));
+                upd.where(col.DbColumnName, exp.ConvertColumnValue(col, col.GetEntityValue(entity, _db.Client)));
             }
             foreach (var kv in dict)
             {

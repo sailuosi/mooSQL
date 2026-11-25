@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mooSQL.data.model;
 
 namespace mooSQL.data
 {
@@ -11,11 +12,6 @@ namespace mooSQL.data
         /// <summary>
         /// 构建实体查询的from和where条件部分
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="K"></typeparam>
-        /// <param name="kit"></param>
-        /// <param name="PK"></param>
-        /// <exception cref="NotSupportedException"></exception>
         public void BuildPKFromWhere<T>(SQLBuilder kit, object PK, Func<string> loadName = null) {
             var en = kit.DBLive.client.EntityCash.getEntityInfo(typeof(T));
             var pks = en.GetPK();
@@ -32,7 +28,24 @@ namespace mooSQL.data
             {
                 pkname = string.Format("{0}.{1}", en.Alias, pkname);
             }
-            kit.where(pkname, PK);
+            ApplyPkWhere(kit, pkname, pk, PK);
+        }
+
+        /// <summary>
+        /// 主键相等条件：列级 TryConvert；失败衰减 1=2。
+        /// </summary>
+        internal static void ApplyPkWhere(SQLBuilder kit, string pkname, EntityColumn pk, object PK)
+        {
+            var exp = kit.Dialect.expression;
+            if (!exp.TryConvertColumnValue(pk, PK, out var v, out var fam))
+            {
+                kit.where("1=2");
+                return;
+            }
+            if (fam == DataFam.Undefined)
+                kit.where(pkname, v);
+            else
+                kit.where(pkname, v, fam);
         }
     }
 }

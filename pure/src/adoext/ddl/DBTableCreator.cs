@@ -146,12 +146,16 @@ namespace mooSQL.data
 
         /// <summary>
         /// 按 Tag 指定列物理类型；同 Tag 列共用同一数据库类型。可链式多次；同 tag 后写覆盖先写。
+        /// 同步登记到 <see cref="DBInstance"/>，供运行时 where/set 按物理类型绑参（如 Guid/uuid）。
+        /// Creator.<see cref="clear"/> 只清本地表，不清 DBInstance 登记。
         /// </summary>
         public DBTableCreator columnTypeByTag(string tag, DataFam dataType, int length = 0)
         {
             if (string.IsNullOrWhiteSpace(tag))
                 throw new ArgumentException("tag must not be empty.", nameof(tag));
-            _tagColumnTypes[tag.Trim()] = (dataType, length);
+            var key = tag.Trim();
+            _tagColumnTypes[key] = (dataType, length);
+            DBLive?.RegisterColumnTypeByTag(key, dataType, length);
             return this;
         }
 

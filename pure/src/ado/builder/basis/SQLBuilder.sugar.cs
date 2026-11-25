@@ -71,6 +71,22 @@ namespace mooSQL.data
         }
 
         /// <summary>
+        /// 添加 where 条件项，指定库字段类型（默认 =、参数化）。
+        /// </summary>
+        public virtual SQLBuilder where(string key, object val, DataFam dataFam)
+        {
+            return where(key, val, "=", true, dataFam);
+        }
+
+        /// <summary>
+        /// 添加 where 条件项，指定比较符与库字段类型，默认参数化。
+        /// </summary>
+        public virtual SQLBuilder where(string key, object val, string op, DataFam dataFam)
+        {
+            return where(key, val, op, true, dataFam);
+        }
+
+        /// <summary>
         /// 使用子查询构建 where 条件，默认比较符为 =。
         /// </summary>
         /// <param name="key">字段名。</param>

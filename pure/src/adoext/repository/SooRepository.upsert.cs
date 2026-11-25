@@ -43,7 +43,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false)
                     continue;
 
-                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, client), col);
+                var val = exp.ConvertColumnValue(col, col.GetEntityValue(entity, client));
                 var insertable = !col.IsOnlyIgnoreInsert;
                 var updatable = !col.IsPrimarykey && !col.IsOnlyIgnoreUpdate;
                 // 同一列勿先后 setI+setU（后者覆盖标志）；双写用 set

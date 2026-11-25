@@ -1,5 +1,6 @@
 
 using mooSQL.data.builder;
+using mooSQL.data.model;
 
 using System;
 using System.Collections.Generic;
@@ -12,14 +13,8 @@ namespace mooSQL.data
     /// <summary>
     /// NpgsqlExpress type.
     /// </summary>
-    /// <summary>
-    /// NpgsqlExpress type.
-    /// </summary>
     public class NpgsqlExpress:SQLExpression
     {
-        /// <summary>
-        /// NpgsqlExpress type.
-        /// </summary>
         /// <summary>
         /// NpgsqlExpress type.
         /// </summary>
@@ -27,6 +22,7 @@ namespace mooSQL.data
             _paraPrefix = ":";
             _selectAutoIncrement = "";
             _provideType = "Npgsql.NpgsqlFactory,Npgsql";
+            RegisterParameterConverter(DataFam.Guid, TryConvertGuidParameter);
         }
 
         /// <inheritdoc/>
@@ -42,14 +38,35 @@ namespace mooSQL.data
         /// <inheritdoc/>
         public override bool StrictParameterTypes => true;
 
+        /// <summary>
+        /// PG 严格：物理类型转换失败时返回 false（不抛），由 Clip/仓储决定 1=2 / throw。
+        /// </summary>
+        public override bool TryConvertColumnValue(
+            EntityColumn col,
+            object value,
+            out object converted,
+            out DataFam effectiveFam)
+        {
+            effectiveFam = GetEffectiveDataFam(col);
+            converted = ApplyEnumColumnMapping(value, col);
+
+            if (!TryConvertParameter(effectiveFam, converted, out var typed))
+            {
+                converted = converted ?? value;
+                return false;
+            }
+
+            converted = typed;
+            return true;
+        }
+
         /// <inheritdoc/>
         protected override System.Collections.Generic.HashSet<string> GetReservedWords()
             => SqlReservedWords.PostgreSQL;
-/// <summary>
-/// Quotes an identifier for this dialect.
-/// </summary>
- 
 
+        /// <summary>
+        /// Quotes an identifier for this dialect.
+        /// </summary>
         public override string wrapKeyword(string value)
         {
             if(value.StartsWith("\"") && value.EndsWith("\""))

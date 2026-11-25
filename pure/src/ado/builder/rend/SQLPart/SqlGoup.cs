@@ -500,17 +500,8 @@ namespace mooSQL.data
             if (val != null && type != null)
             {
                 var t = Nullable.GetUnderlyingType(type) ?? type;
-                if (t == typeof(Guid)) {
+                if (t == typeof(Guid))
                     field.dataFam = DataFam.Guid;
-                    if (val is string valstr)
-                    {
-                        field = buildGuidWhere(field, valstr);
-                    }
-                    else {
-                        field = buildGuidWhere(field, val.ToString());
-                    }
-                }
-                    
                 else if (root?.expression?.dialect?.mapping?.SharpToDataType != null
                     && root.expression.dialect.mapping.SharpToDataType.TryGet(t, out var db)
                     && db.DataType != DataFam.Undefined)
@@ -521,22 +512,21 @@ namespace mooSQL.data
             return this;
         }
 
-        private WhereFrag buildGuidWhere(WhereFrag frag, string valstr) {
-            if (Guid.TryParse(valstr, out var valguid))
-            {
-                frag.value = valguid;
-            }
-            else
-            {
-                //无效的guid，是其它值，则为不可能条件
-                frag.value = null;
-                frag.paramed = false;
-                frag.op = null;
-
-                this.root.DBLive.Client.Loggor.LogError(string.Format("构建where条件失败，参数值不是规范的guid，降级为不可能条件！字段：{0},值：{1}", key, valstr));
-                
-            }
-            return frag;
+        /// <summary>
+        /// where 条件（带库字段类型；值应由上层 TryConvert 完成）。
+        /// </summary>
+        public SqlGoup where(string key, object val, string op, bool paramed, DataFam dataFam)
+        {
+            WhereFrag field = new WhereFrag();
+            field.key = key;
+            field.value = val;
+            field.paramed = paramed;
+            field.op = op;
+            field.dataFam = dataFam;
+            if (dataFam == DataFam.Guid)
+                field.ShouldBeType = typeof(Guid);
+            where(field);
+            return this;
         }
 
 

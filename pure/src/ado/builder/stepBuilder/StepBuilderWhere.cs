@@ -1117,30 +1117,7 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder whereGuid(string key, object val)
         {
-            if (val == null || val == DBNull.Value)
-            {
-                return where("1=2");
-            }
-            Guid gid;
-            if (val is Guid g)
-            {
-                gid = g;
-            }
-            else if (RegxUntils.isGUID(val.ToString()))
-            {
-                gid = new Guid(val.ToString());
-            }
-            else
-            {
-                return where("1=2");
-            }
-
-            // 严格类型方言（如 PG uuid）携带 Guid 类型提示，驱动按 uuid 绑定
-            if (expression != null && expression.StrictParameterTypes)
-            {
-                return where(key, gid, "=", true, typeof(Guid));
-            }
-            return where(key, gid, "=", true);
+            return where(key, val, "=", true, DataFam.Guid);
         }
 
         /// <summary>
@@ -1153,12 +1130,28 @@ namespace mooSQL.data {
         /// <returns></returns>
         public override SQLBuilder where(string key, Object val, string op, bool paramed, Type t)
         {
+            var fam = ResolveDataFamFromClrType(t);
+            if (fam != DataFam.Undefined)
+                return where(key, val, op, paramed, fam);
+            return whereTypedCore(key, val, op, paramed, t, DataFam.Undefined);
+        }
+
+        /// <inheritdoc/>
+        public override SQLBuilder where(string key, object val, string op, bool paramed, DataFam dataFam)
+        {
+            Type t = null;
+            if (dataFam == DataFam.Guid)
+                t = typeof(Guid);
+            return whereTypedCore(key, val, op, paramed, t, dataFam);
+        }
+
+        SQLBuilder whereTypedCore(string key, object val, string op, bool paramed, Type t, DataFam dataFam)
+        {
             if (!opened)
             {
                 opened = true;
                 return this;
             }
-
 
             if (val == null) return this;
 
@@ -1177,10 +1170,30 @@ namespace mooSQL.data {
                 }
             }
 
+            if (dataFam != DataFam.Undefined && expression != null)
+            {
+                if (!expression.TryConvertParameter(dataFam, val, out var converted))
+                    return where("1=2");
+                val = converted;
+            }
 
-
-            this.current.where(key, val, op, paramed, t);
+            if (dataFam != DataFam.Undefined)
+                this.current.where(key, val, op, paramed, dataFam);
+            else
+                this.current.where(key, val, op, paramed, t);
             return this;
+        }
+
+        DataFam ResolveDataFamFromClrType(Type t)
+        {
+            if (t == null) return DataFam.Undefined;
+            t = Nullable.GetUnderlyingType(t) ?? t;
+            if (t == typeof(Guid)) return DataFam.Guid;
+            if (expression?.dialect?.mapping?.SharpToDataType != null
+                && expression.dialect.mapping.SharpToDataType.TryGet(t, out var db)
+                && db.DataType != DataFam.Undefined)
+                return db.DataType;
+            return DataFam.Undefined;
         }
         /// <summary>
         /// 创建 between and 的条件，当任一参数为null时，自动衰减大于、小于 ，都为null,则不执行

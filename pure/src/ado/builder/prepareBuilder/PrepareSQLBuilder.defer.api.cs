@@ -218,6 +218,8 @@ namespace mooSQL.data
 
         public override SQLBuilder where(string key, object val, string op, bool paramed, Type t) => Enqueue(new WherestringobjectstringboolTypeStep(key, val, op, paramed, t));
 
+        public override SQLBuilder where(string key, object val, string op, bool paramed, DataFam dataFam) => Enqueue(new WherestringobjectstringboolDataFamStep(key, val, op, paramed, dataFam));
+
         public override SQLBuilder whereFormat(string template, params object[] values) => Enqueue(new WhereFormatstringobjectArrStep(template, values));
 
 

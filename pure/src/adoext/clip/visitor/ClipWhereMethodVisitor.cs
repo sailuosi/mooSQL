@@ -29,7 +29,7 @@ namespace mooSQL.data.clip
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[0];
             var kit = CompileContext.CurrentLayer.Current;
-            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
+            var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
@@ -45,7 +45,7 @@ namespace mooSQL.data.clip
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[0];
             var kit = CompileContext.CurrentLayer.Current;
-            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
+            var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
@@ -61,7 +61,7 @@ namespace mooSQL.data.clip
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[1];
             var kit = CompileContext.CurrentLayer.Current;
-            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
+            var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
@@ -77,7 +77,7 @@ namespace mooSQL.data.clip
             var fie = _clipBuddy.VisitToGotField(prop, out var col);
             var argu = method.Arguments[1];
             var kit = CompileContext.CurrentLayer.Current;
-            var val = kit.Dialect.expression.ResolveColumnValue(_clipBuddy.VisitToGotValue(argu), col);
+            var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
@@ -116,7 +116,7 @@ namespace mooSQL.data.clip
                     foreach (var item in enumerable)
                     {
                         if (item == null) continue;
-                        converted.Add(kit.Dialect.expression.ResolveColumnValue(item, col));
+                        converted.Add(kit.Dialect.expression.ConvertColumnValue(col, item));
                     }
                     if (converted.Count > 0)
                         kit.whereIn(fie, converted);

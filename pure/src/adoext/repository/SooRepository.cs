@@ -222,9 +222,8 @@ namespace mooSQL.data
             if (!string.IsNullOrWhiteSpace(en.Alias)) { 
                 pkname = string.Format("{0}.{1}", en.Alias, pkname);
             }
-            var tow = kit
-                .where(pkname, id,pk.UnderType)
-                .queryUnique<T>();
+            EntityTranslator.ApplyPkWhere(kit, pkname, pk, id);
+            var tow = kit.queryUnique<T>();
             return tow;
         }
         /// <summary>

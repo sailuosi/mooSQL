@@ -7,7 +7,7 @@ namespace mooSQL.data
 {
     /// <summary>
     /// 枚举列默认映射（对齐 EF Core：无自定义类型时按底层整型）。
-    /// 供自动建表推断与 <see cref="SQLExpression.ResolveColumnValue"/> 算法零件共用。
+    /// 供自动建表推断与 <see cref="SQLExpression.TryConvertColumnValue"/> 算法零件共用。
     /// </summary>
     public static class EnumColumnMapping
     {

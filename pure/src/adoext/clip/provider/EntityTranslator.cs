@@ -214,7 +214,6 @@ namespace mooSQL.data
                         val = autoVal;
                     }
                 }
-                val = builder.Dialect.expression.ResolveColumnValue(val, col);
                 setInsertFieldValue(builder, col, val,en);
             }
 
@@ -238,9 +237,32 @@ namespace mooSQL.data
             }
             if (seted == false)
             {
-                kit.set(col.DbColumnName, val);
+                SetColumnValue(kit, col, val);
             }
         }
+
+        /// <summary>
+        /// 写列值：列级 TryConvert；失败抛错；成功按有效 DataFam set。
+        /// </summary>
+        protected virtual void SetColumnValue(SQLBuilder kit, EntityColumn col, object val)
+        {
+            var exp = kit.Dialect.expression;
+            if (!exp.TryConvertColumnValue(col, val, out var v, out var fam))
+            {
+                throw new Exception(
+                    $"列 {col.DbColumnName} 值无法按物理类型转换：{val}");
+            }
+            if (fam == DataFam.Undefined)
+                kit.set(col.DbColumnName, v);
+            else
+                kit.set(col.DbColumnName, v, fam);
+        }
+
+        /// <summary>
+        /// 乐观列转换（忽略 bool）。
+        /// </summary>
+        protected static object ConvertColumnValue(SQLExpression exp, EntityColumn col, object value)
+            => exp.ConvertColumnValue(col, value);
 
         /// <summary>
         /// insert/update 前校验：空列名跳过；无公开 getter 则带属性名抛错，避免 Property Get method was not found。
@@ -360,7 +382,7 @@ namespace mooSQL.data
                 // 主键始终参与 WHERE，不受 includeUpdate / ignoreUpdate 过滤；不套 AutoValueUpdate
                 if (col.IsPrimarykey)
                 {
-                    val = builder.Dialect.expression.ResolveColumnValue(val, col);
+                    val = ConvertColumnValue(builder.Dialect.expression, col, val);
                     if (val == null)
                     {
                         return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
@@ -379,7 +401,7 @@ namespace mooSQL.data
                         val = autoVal;
                     }
                 }
-                val = builder.Dialect.expression.ResolveColumnValue(val, col);
+                val = ConvertColumnValue(builder.Dialect.expression, col, val);
                 //配置为忽略时，则忽略执行
                 if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
                 {
@@ -443,7 +465,7 @@ namespace mooSQL.data
                 var val = col.GetEntityValue(entity, builder.Client);
                 if (col.IsPrimarykey)
                 {
-                    val = builder.Dialect.expression.ResolveColumnValue(val, col);
+                    val = ConvertColumnValue(builder.Dialect.expression, col, val);
                     if (val == null)
                     {
                         return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
@@ -462,7 +484,7 @@ namespace mooSQL.data
                         val = autoVal;
                     }
                 }
-                val = builder.Dialect.expression.ResolveColumnValue(val, col);
+                val = ConvertColumnValue(builder.Dialect.expression, col, val);
                 if (this.ignoreUpdateFields.Count > 0 && this.ignoreUpdateFields.Contains(col.PropertyName))
                 {
                     continue;
@@ -520,7 +542,7 @@ namespace mooSQL.data
             {
                 if (!col.IsPrimarykey) continue;
                 if (col.IsIgnore) continue;
-                var pkVal = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
+                var pkVal = ConvertColumnValue(exp, col, col.GetEntityValue(entity, builder.Client));
                 if (pkVal == null)
                     return new StatusResult(false, "无法更新！要更新的实体属性其where条件字段值为空！");
                 builder.where(col.DbColumnName, pkVal);
@@ -538,7 +560,7 @@ namespace mooSQL.data
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
                 if (CheckEdition(builder.DBLive, col) == false) continue;
 
-                var memberVal = exp.ResolveColumnValue(kv.Value, col);
+                var memberVal = ConvertColumnValue(exp, col, kv.Value);
                 if (isCumulation)
                 {
                     setCumulationFieldValue(builder, col, memberVal);
@@ -585,7 +607,7 @@ namespace mooSQL.data
             // 形如：Score = Score + @p  —— 用 set(key, rawExpr, paramed:false) 无法自动加参，
             // 故采用：set(col, 拼接后由方言处理较难)；简化为两次——先参数化 delta 到表达式。
             var colName = col.DbColumnName;
-            delta = kit.Dialect.expression.ResolveColumnValue(delta, col);
+            delta = ConvertColumnValue(kit.Dialect.expression, col, delta);
             // 使用参数化 set 的变体：值侧写成 "col+{value}" 不成立。
             // 实践：set(colName, delta) 会变成 col=@p；累加需 raw。
             // 将 delta 作为独立参数名嵌入 raw 字符串风险高；此处用 builder.set(col, col + "+" + literal) 仅数值。
@@ -629,7 +651,7 @@ namespace mooSQL.data
             }
             if (seted == false)
             {
-                kit.set(col.DbColumnName, val);
+                SetColumnValue(kit, col, val);
             }
         }
         /// <summary>
@@ -643,15 +665,15 @@ namespace mooSQL.data
         {
             bool gotWhere = false;
             var pks = en.GetPK();
-            var exp = builder.Dialect.expression;
             foreach (var col in pks)
             {
-                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
-                if (val == null)
+                var raw = col.GetEntityValue(entity, builder.Client);
+                if (raw == null)
                 {
                     throw new Exception("设置主键失败！要操作的实体属性其where条件字段值为空！");
                 }
-                builder.where(col.DbColumnName, val);
+                ApplyPkWhere(builder, col.DbColumnName, col, raw);
+                gotWhere = true;
             }
             if (gotWhere == false && builder.ConditionCount == 0)
             {
@@ -676,14 +698,19 @@ namespace mooSQL.data
                 var pkCol = pks[0];
                 foreach (var row in entitys)
                 {
-                    var val = exp.ResolveColumnValue(pkCol.GetEntityValue(row, builder.Client), pkCol);
+                    var raw = pkCol.GetEntityValue(row, builder.Client);
+                    if (!exp.TryConvertColumnValue(pkCol, raw, out var val, out _))
+                        continue;
                     if (val != null)
-                    {
                         pkValues.Add(val);
-                    }
-
                 }
-                builder.whereIn(pkCol.DbColumnName, pkValues);
+                if (pkValues.Count == 0)
+                    builder.where("1=2");
+                else if (pkValues.TrueForAll(x => x is Guid))
+                    builder.whereInGuid(pkCol.DbColumnName, pkValues.Cast<Guid>());
+                else
+                    builder.whereIn(pkCol.DbColumnName, pkValues);
+                gotWhere = true;
             }
             else if (pks.Count > 1) {
                 //联合主键，需要用or处理
@@ -691,17 +718,14 @@ namespace mooSQL.data
                 foreach (var row in entitys) {
                     builder.sink();
                     foreach (var col in pks) {
-
-                        var val = exp.ResolveColumnValue(col.GetEntityValue(row, builder.Client), col);
-                        if (val != null)
-                        {
-                            builder.where(col.DbColumnName, val);
-                        }
+                        var raw = col.GetEntityValue(row, builder.Client);
+                        if (raw != null)
+                            ApplyPkWhere(builder, col.DbColumnName, col, raw);
                     }
                     builder.rise();
                 }
                 builder.rise();
-            
+                gotWhere = true;
             }
 
             if (gotWhere == false && builder.ConditionCount == 0)
@@ -713,13 +737,25 @@ namespace mooSQL.data
         {
             bool gotWhere = false;
             var pks = en.GetPK();
-            var exp = builder.Dialect.expression;
             if (pks.Count == 1)
             {
- 
                 var pkCol = pks[0];
-                var prop = pkCol.PropertyInfo;
-                builder.whereIn(pkCol.DbColumnName, vals);
+                var exp = builder.Dialect.expression;
+                var pkValues = new List<object>();
+                foreach (var v in vals)
+                {
+                    if (!exp.TryConvertColumnValue(pkCol, v, out var converted, out _))
+                        continue;
+                    if (converted != null)
+                        pkValues.Add(converted);
+                }
+                if (pkValues.Count == 0)
+                    builder.where("1=2");
+                else if (pkValues.TrueForAll(x => x is Guid))
+                    builder.whereInGuid(pkCol.DbColumnName, pkValues.Cast<Guid>());
+                else
+                    builder.whereIn(pkCol.DbColumnName, pkValues);
+                gotWhere = true;
             }
             else if (pks.Count > 1)
             {
@@ -805,7 +841,7 @@ namespace mooSQL.data
             foreach (var id in ids)
             {
                 if (id == null) continue;
-                converted.Add(exp.ResolveColumnValue(id, pk));
+                converted.Add(ConvertColumnValue(exp, pk, id));
             }
             builder.whereIn(pk.DbColumnName, converted);
 
@@ -857,7 +893,7 @@ namespace mooSQL.data
             {
                 throw new Exception("实体类无法确定目标写入表！");
             }
-            builder.where(pk.DbColumnName, builder.Dialect.expression.ResolveColumnValue(id, pk));
+            ApplyPkWhere(builder, pk.DbColumnName, pk, id);
 
             //触发删除解析后钩子
             this.fireReadyDelete(builder, id, en.Type, en);
@@ -921,7 +957,7 @@ namespace mooSQL.data
                 if (col.IsIgnore || col.IsOnlyIgnoreUpdate) continue;
                 //未设置或者基础表字段才进行更新
                 if ((col.Kind == FieldKind.Base || col.Kind == FieldKind.None) == false) continue;
-                var val = exp.ResolveColumnValue(col.GetEntityValue(entity, builder.Client), col);
+                var val = ConvertColumnValue(exp, col, col.GetEntityValue(entity, builder.Client));
                 if (col.PropertyName == updateKey)
                 {
                     if (val == null)

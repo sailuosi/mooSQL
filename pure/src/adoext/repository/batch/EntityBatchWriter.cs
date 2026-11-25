@@ -138,7 +138,7 @@ namespace mooSQL.data
             foreach (var pk in pks)
             {
                 var raw = pk.GetEntityValue(entity, kit?.Client);
-                var val = exp != null ? exp.ResolveColumnValue(raw, pk) : raw;
+                var val = exp != null ? exp.ConvertColumnValue(pk, raw) : raw;
                 if (val == null)
                     return true;
             }
@@ -154,7 +154,7 @@ namespace mooSQL.data
             {
                 if (i > 0) sb.Append('\u001f');
                 var raw = pks[i].GetEntityValue(entity, kit?.Client);
-                var val = exp != null ? exp.ResolveColumnValue(raw, pks[i]) : raw;
+                var val = exp != null ? exp.ConvertColumnValue(pks[i], raw) : raw;
                 sb.Append(NormalizePkPart(val));
             }
             return sb.ToString();

@@ -582,7 +582,7 @@ namespace mooSQL.data
             var cash = builder.DBLive.client.EntityCash;
 
             var field= cash.getField(typeof(T),Name);
-            var val= builder.Dialect.expression.ResolveColumnValue(field.GetEntityValue(entity, builder.Client), field);
+            var val= builder.Dialect.expression.ConvertColumnValue(field, field.GetEntityValue(entity, builder.Client));
             if (val == null) { 
                 throw new Exception("实体的属性对应数据库字段信息未找到！");
             }

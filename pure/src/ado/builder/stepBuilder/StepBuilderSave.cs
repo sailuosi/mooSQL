@@ -137,6 +137,14 @@ namespace mooSQL.data
                 }
             }
 
+            // 裸 DataFam set：方言 TryConvert；失败则跳过本字段
+            if (dataFam != DataFam.Undefined && expression != null
+                && val != null && val != DBNull.Value && !string.Equals(val as string, "null", StringComparison.Ordinal))
+            {
+                if (!expression.TryConvertParameter(dataFam, val, out var converted))
+                    return this;
+                val = converted;
+            }
 
             SetFrag field = current.getSetFrag(key);
 

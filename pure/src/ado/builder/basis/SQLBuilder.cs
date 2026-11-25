@@ -655,6 +655,11 @@ namespace mooSQL.data
         public abstract SQLBuilder where(string key, object val, string op, bool paramed, Type t);
 
         /// <summary>
+        /// 添加 where 条件项，并指定库字段类型（裸 DataFam，无 EntityColumn 时由方言 TryConvertParameter）。
+        /// </summary>
+        public abstract SQLBuilder where(string key, object val, string op, bool paramed, DataFam dataFam);
+
+        /// <summary>
         /// 使用字符串模板进行格式化。参数放入到 SQL 参数中。格式为 {0} {1} {2} 等标准化的 C# String.Format 语法。
         /// </summary>
         /// <param name="template">含占位符的条件模板。</param>

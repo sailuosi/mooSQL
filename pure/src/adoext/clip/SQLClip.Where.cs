@@ -143,11 +143,42 @@ namespace mooSQL.data
         {
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
-            {
-                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
-            }
+                ApplyTypedWhere(field, col, value, "=");
             return this;
         }
+
+        /// <summary>
+        /// 列级 TryConvert 后绑参；严格方言转换失败 → 1=2。
+        /// </summary>
+        void ApplyTypedWhere(string field, EntityColumn col, object value, string op)
+        {
+            var exp = Context.Builder.Dialect.expression;
+            if (!exp.TryConvertColumnValue(col, value, out var v, out var fam))
+            {
+                Context.Builder.where("1=2");
+                return;
+            }
+            if (fam == DataFam.Undefined)
+            {
+                if (string.IsNullOrEmpty(op) || op == "=")
+                    Context.Builder.where(field, v);
+                else
+                    Context.Builder.where(field, v, op);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(op) || op == "=")
+                    Context.Builder.where(field, v, fam);
+                else
+                    Context.Builder.where(field, v, op, fam);
+            }
+        }
+
+        /// <summary>
+        /// 乐观列转换（忽略 bool；失败时基类已回原值）。
+        /// </summary>
+        object ConvertColumnValue(EntityColumn col, object value)
+            => Context.Builder.Dialect.expression.ConvertColumnValue(col, value);
         /// <summary>
         /// 是某个值或者null
         /// </summary>
@@ -160,7 +191,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsOrNull(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
+                Context.Builder.whereIsOrNull(field, ConvertColumnValue(col, value));
             }
             return this;
         }
@@ -188,9 +219,7 @@ namespace mooSQL.data
             }
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
-            {
-                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
-            }
+                ApplyTypedWhere(field, col, value, op);
             return this;
         }
 
@@ -202,7 +231,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereIsNullOR(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
+                Context.Builder.whereIsNullOR(field, ConvertColumnValue(col, value), op);
             }
             return this;
         }
@@ -215,7 +244,7 @@ namespace mooSQL.data
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
             {
-                Context.Builder.whereVsOrNull(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
+                Context.Builder.whereVsOrNull(field, ConvertColumnValue(col, value), op);
             }
             return this;
         }
@@ -302,9 +331,7 @@ namespace mooSQL.data
         {
             var field = provider.PatchOutField(fieldSelector, out var col);
             if (!string.IsNullOrWhiteSpace(field))
-            {
-                Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col), op);
-            }
+                ApplyTypedWhere(field, col, value, op);
             return this;
         }
         /// <summary>
@@ -348,7 +375,8 @@ namespace mooSQL.data
             foreach (var v in values)
             {
                 if (v == null) continue;
-                list.Add(exp.ResolveColumnValue(v, col));
+                if (exp.TryConvertColumnValue(col, v, out var converted, out _))
+                    list.Add(converted);
             }
             return list;
         }
@@ -381,7 +409,7 @@ namespace mooSQL.data
                 var field = provider.PatchOutField(fieldSelector, out var col);
                 if (!string.IsNullOrWhiteSpace(field))
                 {
-                    Context.Builder.where(field, Context.Builder.Dialect.expression.ResolveColumnValue(value, col));
+                    Context.Builder.where(field, ConvertColumnValue(col, value));
                 }
             }
             Context.Builder.rise();
