@@ -153,6 +153,17 @@ namespace mooSQL.linq
         public abstract string VisitToGotField(Expression node, out MemberInfo member);
 
         /// <summary>
+        /// 解析字段 SQL，并输出列映射（供 Guid/Tag 等按物理类型绑参）。
+        /// 默认无列信息；子类（WhereExpressionVisitor / Clip）应覆盖。
+        /// 独立方法名，避免与 <c>out MemberInfo</c> 重载在 <c>out var</c> 下二义。
+        /// </summary>
+        public virtual string VisitToGotColumn(Expression node, out EntityColumn column)
+        {
+            column = null;
+            return VisitToGotField(node);
+        }
+
+        /// <summary>
         /// 将表达式尽量折叠为运行时常量值（用于比较右侧等场景）。
         /// </summary>
         /// <param name="node">待求值表达式。</param>
@@ -170,6 +181,48 @@ namespace mooSQL.linq
             catch { }
 
             return null;
+        }
+
+        /// <summary>
+        /// 按列物理类型转换常量后写入 where（对齐 SQLClip.ApplyTypedWhere）。
+        /// 严格方言转换失败 → <c>1=2</c>。
+        /// </summary>
+        public void ApplyTypedWhereConstant(string field, EntityColumn col, object value, string op = "=")
+        {
+            if (string.IsNullOrWhiteSpace(field) || value == null)
+                return;
+
+            var kit = Builder;
+            var exp = kit.Dialect?.expression;
+            if (col == null || exp == null)
+            {
+                if (string.IsNullOrEmpty(op) || op == "=")
+                    kit.where(field, value);
+                else
+                    kit.where(field, value, op);
+                return;
+            }
+
+            if (!exp.TryConvertColumnValue(col, value, out var v, out var fam))
+            {
+                kit.where("1=2");
+                return;
+            }
+
+            if (fam == DataFam.Undefined)
+            {
+                if (string.IsNullOrEmpty(op) || op == "=")
+                    kit.where(field, v);
+                else
+                    kit.where(field, v, op);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(op) || op == "=")
+                    kit.where(field, v, fam);
+                else
+                    kit.where(field, v, op, fam);
+            }
         }
 
         /// <summary>
@@ -200,9 +253,8 @@ namespace mooSQL.linq
             var op = this.GetCompareOp(node.NodeType);
             if (op != null)
             {
-                //此时是支持的比较符，则获取左右值
-                var fie = VisitToGotField(node.Left);
-                //暂时允许
+                EntityColumn leftCol = null;
+                var fie = VisitToGotColumn(node.Left, out leftCol);
                 WhereFrag wh = new WhereFrag();
                 wh.op = op;
                 bool fail = false;
@@ -212,11 +264,13 @@ namespace mooSQL.linq
                 }
                 else
                 {
-                    //作为字段解析失败，尝试作为值来解析
                     var leftVal = VisitToGotValue(node.Left);
                     if (leftVal != null)
                     {
-                        wh.leftValue = leftVal;
+                        var exp = Builder.Dialect?.expression;
+                        wh.leftValue = exp != null
+                            ? exp.ConvertColumnValue(leftCol, leftVal)
+                            : leftVal;
                     }
                     else
                     {
@@ -224,10 +278,8 @@ namespace mooSQL.linq
                     }
                 }
 
-                //如果未失败，则解析右侧表达式
                 if (fail == false)
                 {
-                    //值部分，同样优先解析为SQL
                     var valuesql = VisitToGotField(node.Right);
                     if (valuesql != null)
                     {
@@ -237,16 +289,24 @@ namespace mooSQL.linq
                     }
                     else
                     {
-                       var constant = VisitToGotValue(node.Right);
+                        var constant = VisitToGotValue(node.Right);
                         if (constant != null)
                         {
-                            wh.value = constant;
-                            wh.paramed = true;
-                            Builder.where(wh);
+                            if (fie != null)
+                            {
+                                ApplyTypedWhereConstant(fie, leftCol, constant, op);
+                            }
+                            else
+                            {
+                                var exp = Builder.Dialect?.expression;
+                                wh.value = exp != null
+                                    ? exp.ConvertColumnValue(leftCol, constant)
+                                    : constant;
+                                wh.paramed = true;
+                                Builder.where(wh);
+                            }
                         }
                     }
- 
-
                 }
             }
 

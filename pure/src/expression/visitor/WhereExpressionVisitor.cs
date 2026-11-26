@@ -35,40 +35,43 @@ namespace mooSQL.linq
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public override string VisitToGotField(Expression node) {
-            bool needNick = true;
-            if (Context.RunType == LayerRunType.update && Builder.FromCount == 0)
-            {
-                needNick = false;
-            }
-            var fidv = new FieldVisitor(Context, needNick);
-            var fie = fidv.Visit(node);
-            if (fie is StringExpression str) {
-                return str.Value;
-            }
-            return null;
-        }
+        public override string VisitToGotField(Expression node) =>
+            VisitToGotColumn(node, out _);
+
         /// <summary>
         /// 获取字段表达式
         /// </summary>
         /// <param name="node"></param>
         /// <param name="member"></param>
         /// <returns></returns>
-        public override string VisitToGotField(Expression node,out MemberInfo member)
+        public override string VisitToGotField(Expression node, out MemberInfo member)
+        {
+            var sql = VisitByField(node, out var fidv);
+            member = fidv?.member;
+            return sql;
+        }
+
+        /// <inheritdoc />
+        public override string VisitToGotColumn(Expression node, out EntityColumn column)
+        {
+            var sql = VisitByField(node, out var fidv);
+            column = fidv?.field;
+            return sql;
+        }
+
+        string VisitByField(Expression node, out FieldVisitor fidv)
         {
             bool needNick = true;
             if (Context.RunType == LayerRunType.update && Builder.FromCount == 0)
             {
                 needNick = false;
             }
-            var fidv = new FieldVisitor(Context, needNick);
+            fidv = new FieldVisitor(Context, needNick);
             var fie = fidv.Visit(node);
             if (fie is StringExpression str)
             {
-                member = fidv.member;
                 return str.Value;
             }
-            member = null;
             return null;
         }
 

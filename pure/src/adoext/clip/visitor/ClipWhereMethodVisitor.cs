@@ -25,24 +25,14 @@ namespace mooSQL.data.clip
 
         public override MethodCall VisitEquals(EqualsCall method)
         {
-            var prop = method.callExpression.Object;
-            var fie = _clipBuddy.VisitToGotField(prop, out var col);
-            var argu = method.Arguments[0];
-            var kit = CompileContext.CurrentLayer.Current;
-            var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
-
-            if (!string.IsNullOrWhiteSpace(fie) && val != null)
-            {
-                kit.where(fie, val);
-            }
-
-            return method;
+            // 基类 WhereMethodVisitor 已按列 DataFam 绑参；保留 override 以走 Clip 字段解析。
+            return base.VisitEquals(method);
         }
 
         public override MethodCall VisitContains(ContainsCall method)
         {
             var prop = method.callExpression.Object;
-            var fie = _clipBuddy.VisitToGotField(prop, out var col);
+            var fie = _clipBuddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[0];
             var kit = CompileContext.CurrentLayer.Current;
             var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
@@ -58,7 +48,7 @@ namespace mooSQL.data.clip
         public override MethodCall VisitLike(LikeCall method)
         {
             var prop = method.Arguments[0];
-            var fie = _clipBuddy.VisitToGotField(prop, out var col);
+            var fie = _clipBuddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[1];
             var kit = CompileContext.CurrentLayer.Current;
             var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
@@ -74,7 +64,7 @@ namespace mooSQL.data.clip
         public override MethodCall VisitLikeLeft(LikeLeftCall method)
         {
             var prop = method.Arguments[0];
-            var fie = _clipBuddy.VisitToGotField(prop, out var col);
+            var fie = _clipBuddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[1];
             var kit = CompileContext.CurrentLayer.Current;
             var val = kit.Dialect.expression.ConvertColumnValue(col, _clipBuddy.VisitToGotValue(argu));
@@ -95,12 +85,12 @@ namespace mooSQL.data.clip
             var prop = method.callExpression.Object;
             if (prop != null)
             {
-                fie = _clipBuddy.VisitToGotField(prop, out col);
+                fie = _clipBuddy.VisitToGotColumn(prop, out col);
                 val = _clipBuddy.VisitToGotValue(method.Arguments[0]);
             }
             else if (method.Arguments.Count == 2)
             {
-                fie = _clipBuddy.VisitToGotField(method.Arguments[0], out col);
+                fie = _clipBuddy.VisitToGotColumn(method.Arguments[0], out col);
                 val = _clipBuddy.VisitToGotValue(method.Arguments[1]);
             }
 

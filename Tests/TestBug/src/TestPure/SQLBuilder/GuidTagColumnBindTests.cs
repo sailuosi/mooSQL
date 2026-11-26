@@ -133,6 +133,44 @@ namespace mooSQL.Pure.Tests
         }
 
         [Fact]
+        public void Pg_Linq_Where_StringGuid_Binds_DataFamGuid()
+        {
+            var sample = SampleOid.ToString("D");
+            var kit = TestDatabaseHelper.UseSQL(_pg).use<GuidTagEntity>();
+            kit.select("*").from("guid_tag_bind_demo as t");
+            kit.where(t => t.FormId == sample);
+
+            var cmd = kit.toSelect();
+            var p = cmd.para.value.Values.First(x => x.val is Guid);
+            p.val.Should().Be(SampleOid);
+            p.dataType.Should().Be(DataFam.Guid);
+        }
+
+        [Fact]
+        public void Pg_Linq_Where_InvalidGuid_Decays_To_1Eq2()
+        {
+            var kit = TestDatabaseHelper.UseSQL(_pg).use<GuidTagEntity>();
+            kit.select("*").from("guid_tag_bind_demo as t");
+            kit.where(t => t.FormId == "not-a-guid");
+
+            kit.toSelect().toRawSQL().Should().Contain("1=2");
+        }
+
+        [Fact]
+        public void Pg_Linq_Equals_StringGuid_Binds_DataFamGuid()
+        {
+            var sample = SampleOid.ToString("D");
+            var kit = TestDatabaseHelper.UseSQL(_pg).use<GuidTagEntity>();
+            kit.select("*").from("guid_tag_bind_demo as t");
+            kit.where(t => t.FormId.Equals(sample));
+
+            var cmd = kit.toSelect();
+            var p = cmd.para.value.Values.First(x => x.val is Guid);
+            p.val.Should().Be(SampleOid);
+            p.dataType.Should().Be(DataFam.Guid);
+        }
+
+        [Fact]
         public void Pg_BuildPKFromWhere_StringGuid_Binds_DataFamGuid()
         {
             var kit = TestDatabaseHelper.UseSQL(_pg);

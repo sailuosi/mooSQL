@@ -3,7 +3,8 @@ using mooSQL.data.call;
 using mooSQL.utils;
 using System;
 using System.Collections;
-
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 
@@ -33,12 +34,13 @@ namespace mooSQL.linq
         {
             var prop= method.callExpression.Object;
 
-            var fie= Buddy.VisitToGotField(prop);
+            var fie= Buddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[0];
-            var val= Buddy.VisitToGotValue(argu);
+            var kit = _context.CurrentLayer.Current;
+            var val= kit.Dialect.expression.ConvertColumnValue(col, Buddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null) { 
-                _context.CurrentLayer.Current.whereLike(fie, val);
+                kit.whereLike(fie, val);
             }
 
             return method;
@@ -47,13 +49,13 @@ namespace mooSQL.linq
         {
             var prop = method.callExpression.Object;
 
-            var fie = Buddy.VisitToGotField(prop);
+            var fie = Buddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[0];
             var val = Buddy.VisitToGotValue(argu);
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                _context.CurrentLayer.Current.where(fie, val);
+                Buddy.ApplyTypedWhereConstant(fie, col, val);
             }
 
             return method;
@@ -62,13 +64,14 @@ namespace mooSQL.linq
         {
             var prop =method.Arguments[0];
             
-            var fie = Buddy.VisitToGotField(prop);
+            var fie = Buddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[1];
-            var val = Buddy.VisitToGotValue(argu);
+            var kit = _context.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ConvertColumnValue(col, Buddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                _context.CurrentLayer.Current.whereLike(fie, val);
+                kit.whereLike(fie, val);
             }
 
             return method;
@@ -77,13 +80,14 @@ namespace mooSQL.linq
         {
             var prop = method.Arguments[0];
 
-            var fie = Buddy.VisitToGotField(prop);
+            var fie = Buddy.VisitToGotColumn(prop, out var col);
             var argu = method.Arguments[1];
-            var val = Buddy.VisitToGotValue(argu);
+            var kit = _context.CurrentLayer.Current;
+            var val = kit.Dialect.expression.ConvertColumnValue(col, Buddy.VisitToGotValue(argu));
 
             if (!string.IsNullOrWhiteSpace(fie) && val != null)
             {
-                _context.CurrentLayer.Current.whereLikeLeft(fie, val);
+                kit.whereLikeLeft(fie, val);
             }
 
             return method;
@@ -96,61 +100,59 @@ namespace mooSQL.linq
         public override MethodCall VisitInList(InListCall method)
         {
             string fie = null;
-            MemberInfo field = null;
+            EntityColumn col = null;
             object val = null;
             var prop = method.callExpression.Object;
             if (prop != null) { 
-                fie = Buddy.VisitToGotField(prop,out field);
+                fie = Buddy.VisitToGotColumn(prop, out col);
                 var argu = method.Arguments[0];
                 val = Buddy.VisitToGotValue(argu);            
             }
             else if(method.Arguments.Count ==2) {
-                fie = Buddy.VisitToGotField(method.Arguments[0],out field);
+                fie = Buddy.VisitToGotColumn(method.Arguments[0], out col);
                 val = Buddy.VisitToGotValue(method.Arguments[1]);
             }
 
-            if (!string.IsNullOrWhiteSpace(fie) && val != null)
+            if (string.IsNullOrWhiteSpace(fie) || val == null)
+                return method;
+
+            try
             {
-                try
+                var kit = _context.CurrentLayer.Current;
+                var exp = kit.Dialect.expression;
+                if (val is IEnumerable enumerable && val is not string)
                 {
-                    var vtype = val.GetType();
-                    var gtype = GetMemberType( field);
-                    //因为不进行类型转换，所以这里是按照值的类型进行调用，否则需要进行类型转换，这里不做处理
-                    if (IsIEnumerableT(vtype))
+                    var converted = new List<object>();
+                    foreach (var item in enumerable)
                     {
-                        var whereInType = vtype.GetGenericArguments()[0];
-                        var baseTypeMem = gtype.UnwrapNullable();
-                        var baseTypeVal= whereInType.UnwrapNullable();
-                        if (baseTypeVal == baseTypeMem)
+                        if (item == null) continue;
+                        if (!exp.TryConvertColumnValue(col, item, out var v, out _))
                         {
-                            var mothod = this.GetType().GetMethod("callWhereInSQL", BindingFlags.NonPublic | BindingFlags.Instance);
-                            var mot = mothod.MakeGenericMethod(whereInType);
-                            mot.Invoke(this, new object[] { _context.CurrentLayer.Current, fie, val });
+                            kit.where("1=2");
+                            return method;
                         }
-                        else { 
-                            //参数类型不一致，尝试进行转换，未实现。
-                            var mothod = this.GetType().GetMethod("callWhereInSQL", BindingFlags.NonPublic | BindingFlags.Instance);
-                            var mot = mothod.MakeGenericMethod(whereInType);
-                            mot.Invoke(this, new object[] { _context.CurrentLayer.Current, fie, val });                        
-                        }
-
-
+                        converted.Add(v);
                     }
-                    else if (typeof(IEnumerable).IsAssignableFrom(vtype))
-                    {
-                        var mothod = this.GetType().GetMethod("callWhereInNotT", BindingFlags.NonPublic | BindingFlags.Instance);
-                        mothod.Invoke(this, new object[] { _context.CurrentLayer.Current, fie, val });
-                    }
-                    else { 
-                        // 
-                    }
-
-
+                    if (converted.Count > 0)
+                        kit.whereIn(fie, converted);
+                    return method;
                 }
-                catch { }
+
+                var vtype = val.GetType();
+                if (IsIEnumerableT(vtype))
+                {
+                    var whereInType = vtype.GetGenericArguments()[0];
+                    var mothod = this.GetType().GetMethod("callWhereInSQL", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var mot = mothod.MakeGenericMethod(whereInType);
+                    mot.Invoke(this, new object[] { kit, fie, val });
+                }
+                else if (typeof(IEnumerable).IsAssignableFrom(vtype))
+                {
+                    var mothod = this.GetType().GetMethod("callWhereInNotT", BindingFlags.NonPublic | BindingFlags.Instance);
+                    mothod.Invoke(this, new object[] { kit, fie, val });
+                }
             }
-
-
+            catch { }
 
             return method;
         }
@@ -184,13 +186,6 @@ namespace mooSQL.linq
 
 
 
-
-        private Type GetMemberType(MemberInfo member)
-        {
-            if (member is PropertyInfo p) return p.PropertyType;
-            else if (member is FieldInfo f) return f.FieldType;
-            return null;
-        }
 
         bool IsIEnumerableT(Type type)
         {

@@ -51,13 +51,17 @@ namespace mooSQL.data.clip
         /// <summary>
         /// 解析字段 SQL，并输出列映射信息。
         /// </summary>
-        internal string VisitToGotField(Expression node, out EntityColumn column)
+        public override string VisitToGotColumn(Expression node, out EntityColumn column)
         {
             var sql = VisitByClipField(node, out var fidv);
             column = ResolveColumnFromVisitor(fidv);
             LastResolvedColumn = column;
             return sql;
         }
+
+        /// <summary>兼容旧 Clip 调用：等同 <see cref="VisitToGotColumn"/>。</summary>
+        internal string VisitToGotField(Expression node, out EntityColumn column) =>
+            VisitToGotColumn(node, out column);
 
         private string VisitByClipField(Expression node, out ClipFieldVisitor fidv) {
             bool needNick = true;
@@ -108,78 +112,7 @@ namespace mooSQL.data.clip
             return sql;
         }
 
-        /// <summary>
-        /// Clip 专用比较：按左侧列信息变换右侧枚举值后再 where（不影响 SQLBuilder / 基类路径）。
-        /// </summary>
-        protected override Expression VisitBinary(BinaryExpression node)
-        {
-            if (node.NodeType == ExpressionType.And || node.NodeType == ExpressionType.AndAlso)
-            {
-                Builder.sink();
-                Visit(node.Left);
-                Visit(node.Right);
-                Builder.rise();
-                return node;
-            }
-            else if (node.NodeType == ExpressionType.Or || node.NodeType == ExpressionType.OrElse)
-            {
-                Builder.sinkOR();
-                Visit(node.Left);
-                Visit(node.Right);
-                Builder.rise();
-                return node;
-            }
-
-            var op = this.GetCompareOp(node.NodeType);
-            if (op != null)
-            {
-                EntityColumn leftCol = null;
-                var fie = VisitToGotField(node.Left, out leftCol);
-                WhereFrag wh = new WhereFrag();
-                wh.op = op;
-                bool fail = false;
-                if (fie != null)
-                {
-                    wh.key = fie;
-                }
-                else
-                {
-                    var leftVal = VisitToGotValue(node.Left);
-                    if (leftVal != null)
-                    {
-                        wh.leftValue = Builder.Dialect.expression.ConvertColumnValue(leftCol, leftVal);
-                    }
-                    else
-                    {
-                        fail = true;
-                    }
-                }
-
-                if (fail == false)
-                {
-                    var valuesql = VisitToGotField(node.Right);
-                    if (valuesql != null)
-                    {
-                        wh.value = valuesql;
-                        wh.paramed = false;
-                        Builder.where(wh);
-                    }
-                    else
-                    {
-                        var constant = VisitToGotValue(node.Right);
-                        if (constant != null)
-                        {
-                            wh.value = Builder.Dialect.expression.ConvertColumnValue(leftCol, constant);
-                            wh.paramed = true;
-                            Builder.where(wh);
-                        }
-                    }
-                }
-            }
-
-            return node;
-        }
-
+        // VisitBinary 使用基类 ConditionVisitor：TryConvertColumnValue + DataFam 绑参
 
     }
 }
