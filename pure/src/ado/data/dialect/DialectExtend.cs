@@ -158,7 +158,13 @@ namespace mooSQL.data
                             kit.set(col.ColumnName, "null", false);
                             continue;
                         }
-                        kit.set(col.ColumnName, row[col.ColumnName]);
+                        var fam = DataFam.Undefined;
+                        if (bk.colDataFams != null)
+                            bk.colDataFams.TryGetValue(col.ColumnName, out fam);
+                        if (fam != DataFam.Undefined)
+                            kit.set(col.ColumnName, row[col.ColumnName], fam);
+                        else
+                            kit.set(col.ColumnName, row[col.ColumnName]);
                     }
 
                     cc++;

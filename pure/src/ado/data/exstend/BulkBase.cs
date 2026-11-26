@@ -23,6 +23,11 @@ namespace mooSQL.data
         /// 需要插入的列名
         /// </summary>
         public List<string> colnames;
+
+        /// <summary>
+        /// 列名 → 物理 DataFam（insertList/prepareInsert 登记；Bulk 重放绑参用）。
+        /// </summary>
+        public Dictionary<string, DataFam> colDataFams = new Dictionary<string, DataFam>(StringComparer.OrdinalIgnoreCase);
         /// <summary>
         /// 数据库实例
         /// </summary>
@@ -222,7 +227,7 @@ namespace mooSQL.data
                         if (!field.values.TryGetValue(g.RowIndex, out var pair)) continue;
                         if (pair.insetable == false) continue;
                         if (pair.value == null) continue;
-                        this.add(field.key, pair.value);
+                        this.add(field.key, pair.value, pair.dataFam);
                     }
                 }
                 this.addRow();
@@ -339,15 +344,39 @@ namespace mooSQL.data
             return value;
         }
         /// <summary>
+        /// 登记列物理类型（Undefined 不覆盖已有非 Undefined）。
+        /// </summary>
+        public BulkBase registerColDataFam(string colname, DataFam dataFam)
+        {
+            if (string.IsNullOrEmpty(colname) || dataFam == DataFam.Undefined)
+                return this;
+            if (colDataFams == null)
+                colDataFams = new Dictionary<string, DataFam>(StringComparer.OrdinalIgnoreCase);
+            if (!colDataFams.TryGetValue(colname, out var existing) || existing == DataFam.Undefined)
+                colDataFams[colname] = dataFam;
+            return this;
+        }
+
+        /// <summary>
         /// 为addingRow添加数据
         /// </summary>
         /// <param name="colname"></param>
         /// <param name="value"></param>
         public BulkBase add(string colname, object value)
         {
-            add(addingRow, colname, value);
+            add(addingRow, colname, value, DataFam.Undefined);
             return this;
         }
+
+        /// <summary>
+        /// 为addingRow添加数据并登记物理 DataFam。
+        /// </summary>
+        public BulkBase add(string colname, object value, DataFam dataFam)
+        {
+            add(addingRow, colname, value, dataFam);
+            return this;
+        }
+
         /// <summary>
         /// 为指定行添加数据
         /// </summary>
@@ -355,6 +384,14 @@ namespace mooSQL.data
         /// <param name="colname"></param>
         /// <param name="value"></param>
         public BulkBase add(DataRow row,string colname, object value)
+        {
+            return add(row, colname, value, DataFam.Undefined);
+        }
+
+        /// <summary>
+        /// 为指定行添加数据并登记物理 DataFam。
+        /// </summary>
+        public BulkBase add(DataRow row, string colname, object value, DataFam dataFam)
         {
             if (value == null) return this;
             if (colCheck != checkColMode.none)
@@ -365,6 +402,7 @@ namespace mooSQL.data
             {
                 colnames.Add(colname);
             }
+            registerColDataFam(colname, dataFam);
             try
             {
                 row[colname]= value;
