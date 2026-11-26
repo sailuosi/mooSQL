@@ -192,18 +192,54 @@ public abstract class TreeSQLBuilder<K,RealMe> where RealMe: TreeSQLBuilder<K, R
         {
             _onQueryBase(kit);
         }
-
+        int before = kit.ConditionCount;
         if (_onFilterRootScoped != null)
         {
             _onFilterRootScoped(kit);
         }
-        else if(_FKField.HasText())
+        //这里不能直接用，需要检查是否传入有效条件，如果没有，转入普通逻辑
+        if(kit.ConditionCount==before)
         {
-            kit.whereIsNull(_FKField);
+            buildRootWhere(kit);
         }
         return kit.query();
     }
+    protected void buildRootWhere(SQLBuilder kit)
+    {
+        //无效的字符串主键
+        if (_onFilterRootEmpty != null && (RootPKVal == null || (RootPKVal is string str && string.IsNullOrWhiteSpace(str))))
+        {
+            _onFilterRootEmpty(kit);
+        }
+        else if (this.RootPKVal != null)
+        {
+            doWherePKValues(kit, this.RootPKVal);
+        }
+        else if (_onFilterRootEmpty != null)
+        {
+            _onFilterRootEmpty(kit);
+        }
+        else
+        {
+            kit.whereIsNull(_FKField);
+        }
+    }
 
+    /// <summary>
+    /// 加载根节点
+    /// </summary>
+    /// <param name="kit"></param>
+    /// <returns></returns>
+    protected virtual DataTable LoadRootValues(SQLBuilder kit)
+    {
+        kit.clear();
+        if (_onQueryBase != null)
+        {
+            _onQueryBase(kit);
+        }
+        buildRootWhere(kit);
+        return kit.query();
+    }
     /// <summary>
     /// 获取顶级数据，局部情况下
     /// </summary>
@@ -595,36 +631,8 @@ public abstract class TreeSQLBuilder<K,RealMe> where RealMe: TreeSQLBuilder<K, R
         
         return kit.query();
     }
-    /// <summary>
-    /// 加载根节点
-    /// </summary>
-    /// <param name="kit"></param>
-    /// <returns></returns>
-    protected virtual DataTable LoadRootValues(SQLBuilder kit)
-    {
-        kit.clear();
-        if (_onQueryBase != null)
-        {
-            _onQueryBase(kit);
-        }
-        //无效的字符串主键
-        if (_onFilterRootEmpty!=null &&(  RootPKVal ==null|| (RootPKVal is string str && string.IsNullOrWhiteSpace(str)) )) {
-            _onFilterRootEmpty(kit);
-        }
-        else if (this.RootPKVal != null)
-        {
-            doWherePKValues(kit, this.RootPKVal);
-        }
-        else if (_onFilterRootEmpty != null)
-        {
-            _onFilterRootEmpty(kit);
-        }
-        else
-        {
-            kit.whereIsNull(_FKField);
-        }
-        return kit.query();
-    }
+
+
 
     /// <summary>
     /// doWherePKValues 方法。
